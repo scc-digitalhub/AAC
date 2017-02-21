@@ -23,13 +23,19 @@ body {
 	/* verdana */
 /* 	color: #ffffff;
  */	
- background-repeat: repeat-y;
 	background-size: 100% auto;
-	background-color: silver;
 	margin: 0 auto;
+}
+
+.confirmation-content {
+	padding: 10px;
+	text-align: left;
+}
+.confirmation-content h2 {
 	text-align: center;
-	background-color: white;
-	font-family: "lucida grande", tahoma, arial, sans-serif;
+}
+.confirmation-content .row form {
+    display: initial !important;
 }
 
 ul.pprovider {

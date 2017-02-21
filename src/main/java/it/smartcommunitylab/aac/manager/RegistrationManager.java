@@ -252,7 +252,7 @@ public class RegistrationManager {
 		vars.put("user", user);
 		vars.put("url", applicationURL+"/internal/confirm?confirmationCode="+key);
 		String subject = messageSource.getMessage("confirmation.subject", null, Locale.forLanguageTag(reg.getLang()));
-		sender.sendEmail(reg.getEmail(), "confirmation_"+lang, subject, vars);
+		sender.sendEmail(reg.getEmail(), "mail/confirmation_"+lang, subject, vars);
 	}
 
 	/**
@@ -267,7 +267,7 @@ public class RegistrationManager {
 		vars.put("user", user);
 		vars.put("url", applicationURL+"/internal/confirm?confirmationCode="+key);
 		String subject = messageSource.getMessage("reset.subject", null, Locale.forLanguageTag(reg.getLang()));
-		sender.sendEmail(reg.getEmail(), "reset_"+lang, subject, vars);
+		sender.sendEmail(reg.getEmail(), "mail/reset_"+lang, subject, vars);
 	}
 
 

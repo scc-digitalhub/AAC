@@ -1,0 +1,75 @@
+<!--
+
+       Copyright 2012-2013 Trento RISE
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="-1" />
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Custom styles for this template -->
+    <link href="../css/style.css" rel="stylesheet" />
+    <title>AAC</title>
+</head>
+<body>
+    <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
+    <div class="clear"></div>
+
+  <div class="confirmation-content container-fluid">
+    <div class="row">
+      <div class="col-md-offset-4 col-md-4">
+
+      <div class="error" th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null and !(session.SPRING_SECURITY_LAST_EXCEPTION instanceof org.springframework.security.oauth2.common.exceptions.UnapprovedClientAuthenticationException)}">
+        <h2 th:text="#{lbl_approval_error_title}">Error title</h2>
+        <p th:text="#{lbl_approval_error_message}">: (<span th:text="${session.getAttribute('SPRING_SECURITY_LAST_EXCEPTION').message}">message</span>)</p>
+      </div>
+
+      <h2>Please Confirm</h2>
+
+      <p th:utext="#{lbl_approval_authorize(${clientName})}">Text:</p>
+      <ul class="permission">
+        <li th:each="r : ${resources}" th:text="${r.name}"></li>
+      </ul>
+
+      <div class="row">
+        <div class="col-xs-3 col-xs-offset-3 text-right">
+	      <form  id="confirmationForm" name="confirmationForm" action="authorize" method="post">
+	        <input name="user_oauth_approval" value="true" type="hidden"/>
+	        <label><input class="btn btn-primary" name="authorize" th:attr="value=#{lbl_approval_do_authorize}" type="submit"/></label>
+	      </form>
+        </div>
+        <div class="col-xs-3">
+	      <form id="denialForm" name="denialForm" action="authorize" method="post">
+	        <input name="user_oauth_approval" value="false" type="hidden"/>
+	        <label><input class="btn" name="deny" th:attr="value=#{lbl_approval_do_deny}" type="submit"/></label>
+	      </form>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
