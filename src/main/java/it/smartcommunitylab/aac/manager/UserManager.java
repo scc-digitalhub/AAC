@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.manager;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -22,26 +22,31 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
- * Base class for the app controllers. 
+ * Logged in user data manager. 
  * @author raman
  *
  */
-public class AbstractController {
+@Component
+public class UserManager {
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
+	@Autowired
+	private UserRepository userRepository;
 
 	/**
 	 * Check that the specified client is owned by the currently logged user
 	 * @param clientId
 	 */
-	protected void checkClientIdOwnership(String clientId) {
+	public void checkClientIdOwnership(String clientId) {
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 		if (client == null || !client.getDeveloperId().equals(getUserId())) {
 			throw new SecurityException("Attempt modifyung non-owned client app data");
@@ -52,14 +57,14 @@ public class AbstractController {
 	 * Get the user from the Spring Security Context
 	 * @return
 	 */
-	protected UserDetails getUser(){
+	public UserDetails getUser(){
 		return (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 	
 	/**
 	 * @return the user ID (long) from the user object in Spring Security Context
 	 */
-	protected Long getUserId() {
+	public Long getUserId() {
 		return Long.parseLong(getUser().getUsername());
 	}
 
@@ -67,7 +72,7 @@ public class AbstractController {
 	 * The authority (e.g., google) value from the Spring Security Context of the currently logged user
 	 * @return the authority value (string)
 	 */
-	protected String getUserAuthority() {
+	public String getUserAuthority() {
 		return SecurityContextHolder.getContext().getAuthentication().getDetails().toString();
 	}
 
@@ -75,7 +80,7 @@ public class AbstractController {
 	 * The authority (e.g., google) value from the Spring Security Context of the currently logged user
 	 * @return the authority value (string)
 	 */
-	protected Set<String> getUserRoles() {
+	public Set<String> getUserRoles() {
 		Set<String> res = new HashSet<>();
 		SecurityContextHolder.getContext().getAuthentication().getAuthorities().forEach(ga -> res.add(ga.getAuthority()));
 		return res;
@@ -86,7 +91,8 @@ public class AbstractController {
 	 * @param user
 	 * @return
 	 */
-	protected String getUserName(User user) {
+	public String getUserName() {
+		User user =  userRepository.findOne(getUserId());
 		return user.getName() + " "+user.getSurname();
 	}
 

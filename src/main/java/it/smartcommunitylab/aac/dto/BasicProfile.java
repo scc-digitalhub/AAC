@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  ******************************************************************************/
-package it.smartcommunitylab.aac.profile.model;
+package it.smartcommunitylab.aac.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

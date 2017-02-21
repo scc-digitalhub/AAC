@@ -40,7 +40,7 @@ import it.smartcommunitylab.aac.oauth.IsolationSupportHibernateJpaDialect;
  *
  */
 @Configuration 
-@EntityScan({"it.smartcommunitylab.aac.model", "it.smartcommunitylab.aac.profile.model"})
+@EntityScan({"it.smartcommunitylab.aac.model", "it.smartcommunitylab.aac.dto"})
 @EnableTransactionManagement
 @EnableSpringDataWebSupport
 @EnableJpaRepositories(basePackages = {"it.smartcommunitylab.aac"}, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
@@ -85,7 +85,7 @@ public class DatabaseConfig {
 		props.setProperty("hibernate.hbm2ddl.auto", "update");
 		bean.setJpaProperties(props);
 		
-//		bean.setPackagesToScan("it.smartcommunitylab.aac.model", "it.smartcommunitylab.aac.profile.model");
+//		bean.setPackagesToScan("it.smartcommunitylab.aac.model", "it.smartcommunitylab.aac.dto");
 //		bean.setPersistenceUnitManager(null);
 		
 		return bean;

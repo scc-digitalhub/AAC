@@ -51,7 +51,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  */
 @Controller
 @Transactional
-public class AdminController extends AbstractController{
+public class AdminController {
 
 	@Autowired
 	private UserRepository userRepository;

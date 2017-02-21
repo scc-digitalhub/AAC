@@ -264,4 +264,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return resource;
 	}
 	
+	@Bean
+	protected ResourceServerConfiguration restRegistrationResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
+			public void configure(HttpSecurity http) throws Exception {
+				http
+				.antMatcher("/internal/register/rest")
+				.authorizeRequests()
+				.anyRequest().access("#oauth2.hasScope('usermanagement')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(5);
+		return resource;
+	}
+	
 }

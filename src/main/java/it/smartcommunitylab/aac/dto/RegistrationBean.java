@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.auth.internal;
+package it.smartcommunitylab.aac.dto;
 
 import java.io.Serializable;
 

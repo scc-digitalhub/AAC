@@ -50,7 +50,7 @@ public class InternalUserDetailsRepo implements UserDetailsService {
 		
 		Registration reg = userRepository.findByEmail(userName);
 		if (reg == null) throw new UsernameNotFoundException("User "+userName+" not found");
-		if (!reg.isConfirmed()) throw new UsernameNotFoundException("Registration not confirmed");
+		if (!reg.isConfirmed()) throw new UsernameNotFoundException("RegistrationBean not confirmed");
 		
 		return new User(reg.getUserId().toString(),reg.getPassword(), list);
 	}

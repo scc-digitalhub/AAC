@@ -15,8 +15,8 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.manager;
 
+import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.profile.model.BasicProfile;
 
 import java.util.ArrayList;
 import java.util.List;

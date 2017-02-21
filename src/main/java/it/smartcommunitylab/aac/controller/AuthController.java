@@ -65,7 +65,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  * Controller for developer console entry points
  */
 @Controller
-public class AuthController extends AbstractController {
+public class AuthController {
 
 	@Autowired
 	private UserRepository userRepository;

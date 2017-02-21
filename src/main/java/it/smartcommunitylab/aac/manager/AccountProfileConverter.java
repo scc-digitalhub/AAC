@@ -18,9 +18,9 @@ package it.smartcommunitylab.aac.manager;
 
 import java.util.Set;
 
+import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.profile.model.AccountProfile;
 
 /**
  * @author raman

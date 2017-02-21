@@ -33,5 +33,15 @@
 	      <description>Account profile of the platform users. Read access only.</description>
 	    </resourceMapping>
     </service>
-					  	 
+					  	
+  <service name="User management service" id="smartcommunity.usermanagement">
+    <description>Core service for managing basic user profiles.</description>
+
+    <resourceMapping id="usermanagement"
+      name="Manage users" uri="usermanagement"
+      authority="ROLE_CLIENT"  approvalRequired="true">
+      <description>Manage user data programmatically.</description>
+    </resourceMapping>
+
+    </service>					  	 
 </services>

@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.profile.model;
+package it.smartcommunitylab.aac.dto;
 
 import java.util.HashMap;
 import java.util.Map;

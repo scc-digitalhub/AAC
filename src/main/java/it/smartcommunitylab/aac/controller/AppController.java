@@ -34,11 +34,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * Controller for performing the basic operations over the 
@@ -48,15 +47,15 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  */
 @Controller
 @Transactional
-public class AppController extends AbstractController {
+public class AppController {
 
 	private Log logger = LogFactory.getLog(getClass());
 	
 	@Autowired
 	private ClientDetailsManager clientDetailsAdapter;
 	@Autowired
-	private UserRepository userRepository;
-
+	private UserManager userManager;
+	
 	/**
 	 * Retrieve the with the user data: currently on the username is added.
 	 * @return
@@ -72,12 +71,11 @@ public class AppController extends AbstractController {
 	 */
 	@RequestMapping("/dev")
 	public ModelAndView developer() {
-		User user =  userRepository.findOne(getUserId());
 		Map<String,Object> model = new HashMap<String, Object>();
 		
-		String username = getUserName(user);
+		String username = userManager.getUserName();
 		model.put("username",username);
-		model.put("roles", getUserRoles());
+		model.put("roles", userManager.getUserRoles());
 		return new ModelAndView("index", model);
 	}
 	
@@ -91,7 +89,7 @@ public class AppController extends AbstractController {
 		response.setResponseCode(RESPONSE.OK);
 		try {
 			// read all the apps associated to the signed user 
-			List<ClientAppBasic> list = clientDetailsAdapter.getByDeveloperId(getUserId());
+			List<ClientAppBasic> list = clientDetailsAdapter.getByDeveloperId(userManager.getUserId());
 			response.setData(list);
 		} catch (Exception e) {
 			logger.error(e.getMessage(),e);
@@ -112,7 +110,7 @@ public class AppController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			response.setData(clientDetailsAdapter.create(appData, getUserId()));
+			response.setData(clientDetailsAdapter.create(appData, userManager.getUserId()));
 		} catch (Exception e) {
 			logger.error(e.getMessage(),e);
 			response.setResponseCode(RESPONSE.ERROR);
@@ -136,7 +134,7 @@ public class AppController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			checkClientIdOwnership(clientId);
+			userManager.checkClientIdOwnership(clientId);
 			if (resetClientSecretMobile) {
 				response.setData(clientDetailsAdapter.resetClientSecretMobile(clientId));
 			} else {
@@ -160,7 +158,7 @@ public class AppController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			checkClientIdOwnership(clientId);
+			userManager.checkClientIdOwnership(clientId);
 			response.setData(clientDetailsAdapter.delete(clientId));
 		} catch (Exception e) {
 			logger.error(e.getMessage(),e);
@@ -181,7 +179,7 @@ public class AppController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			checkClientIdOwnership(clientId);
+			userManager.checkClientIdOwnership(clientId);
 			response.setData(clientDetailsAdapter.update(clientId, data));
 		} catch (Exception e) {
 			logger.error(e.getMessage(),e);

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profile.model;
+package it.smartcommunitylab.aac.dto;
 
 import java.util.List;
 
@@ -7,18 +7,18 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "AccountProfiles")
+@XmlRootElement(name = "BasicProfiles")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AccountProfiles {
+public class BasicProfiles {
 
-	@XmlElement(name = "AccountProfile")
-	private List<AccountProfile> profiles;
+	@XmlElement(name = "BasicProfile")
+	private List<BasicProfile> profiles;
 
-	public List<AccountProfile> getProfiles() {
+	public List<BasicProfile> getProfiles() {
 		return profiles;
 	}
 
-	public void setProfiles(List<AccountProfile> profiles) {
+	public void setProfiles(List<BasicProfile> profiles) {
 		this.profiles = profiles;
 	}
 	

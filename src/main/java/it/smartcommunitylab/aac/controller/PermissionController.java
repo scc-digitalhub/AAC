@@ -43,6 +43,7 @@ import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
 import it.smartcommunitylab.aac.manager.ResourceManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Permissions;
@@ -60,7 +61,7 @@ import it.smartcommunitylab.aac.repository.ResourceRepository;
  *
  */
 @Controller
-public class PermissionController extends AbstractController {
+public class PermissionController {
 
 	private static final Integer RA_NONE = 0;
 	private static final Integer RA_APPROVED = 1;
@@ -75,6 +76,8 @@ public class PermissionController extends AbstractController {
 	private ResourceRepository resourceRepository;
 	@Autowired
 	private ResourceParameterRepository resourceParameterRepository;
+	@Autowired
+	private UserManager userManager;
 	
 	/**
 	 * Save permissions requested by the app.
@@ -89,7 +92,7 @@ public class PermissionController extends AbstractController {
 		response.setResponseCode(RESPONSE.OK);
 		try {
 			// check that the client is owned by the current user
-			checkClientIdOwnership(clientId);
+			userManager.checkClientIdOwnership(clientId);
 			ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 			ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
 			
@@ -144,7 +147,7 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			checkClientIdOwnership(clientId);
+			userManager.checkClientIdOwnership(clientId);
 			ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 			Permissions permissions = buildPermissions(clientDetails, serviceId);
 			response.setData(permissions);
@@ -167,7 +170,7 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			checkClientIdOwnership(clientId);
+			userManager.checkClientIdOwnership(clientId);
 			response.setData(resourceManager.getServiceObjects());
 		} catch (Exception e) {
 			logger.error("Failure reading permissions model: "+e.getMessage(),e);
@@ -187,7 +190,7 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			response.setData(resourceManager.getServiceObjects(""+getUserId()));
+			response.setData(resourceManager.getServiceObjects(""+userManager.getUserId()));
 		} catch (Exception e) {
 			logger.error("Failure reading permissions model: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -207,7 +210,7 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			response.setData(resourceManager.saveServiceObject(sd, getUserId()));
+			response.setData(resourceManager.saveServiceObject(sd, userManager.getUserId()));
 		} catch (Exception e) {
 			logger.error("Failure saving service: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -227,8 +230,8 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			resourceManager.checkServiceOwnership(serviceId,getUserId().toString());
-			resourceManager.deleteService(serviceId, getUserId().toString());
+			resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
+			resourceManager.deleteService(serviceId, userManager.getUserId().toString());
 		} catch (Exception e) {
 			logger.error("Failure deleting service: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -248,8 +251,8 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			resourceManager.checkServiceOwnership(serviceId,getUserId().toString());
-			response.setData(resourceManager.addResourceDeclaration(serviceId, decl, getUserId().toString()));
+			resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
+			response.setData(resourceManager.addResourceDeclaration(serviceId, decl, userManager.getUserId().toString()));
 		} catch (Exception e) {
 			logger.error("Failure adding parameter to service: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -269,8 +272,8 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			resourceManager.checkServiceOwnership(serviceId,getUserId().toString());
-			response.setData(resourceManager.removeResourceDeclaration(serviceId, id, getUserId().toString()));
+			resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
+			response.setData(resourceManager.removeResourceDeclaration(serviceId, id, userManager.getUserId().toString()));
 		} catch (Exception e) {
 			logger.error("Failure deleting parameter from service: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -291,8 +294,8 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			resourceManager.checkServiceOwnership(serviceId,getUserId().toString());
-			response.setData(resourceManager.addMapping(serviceId, mapping, getUserId().toString()));
+			resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
+			response.setData(resourceManager.addMapping(serviceId, mapping, userManager.getUserId().toString()));
 		} catch (Exception e) {
 			logger.error("Failure adding parameter to service: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -313,8 +316,8 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			resourceManager.checkServiceOwnership(serviceId,getUserId().toString());
-			response.setData(resourceManager.removeMapping(serviceId, id, getUserId().toString()));
+			resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
+			response.setData(resourceManager.removeMapping(serviceId, id, userManager.getUserId().toString()));
 		} catch (Exception e) {
 			logger.error("Failure deleting mapping from service: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -357,7 +360,7 @@ public class PermissionController extends AbstractController {
 		Set<String> set = clientDetails.getResourceIds();
 		if (set == null) set = Collections.emptySet();
 		
-		List<Resource> otherResources = resourceManager.getAvailableResources(clientDetails.getClientId(), getUserId());
+		List<Resource> otherResources = resourceManager.getAvailableResources(clientDetails.getClientId(), userManager.getUserId());
 		// read approval status for the resources that require approval explicitly
 		ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
 		if (info.getResourceApprovals() == null) info.setResourceApprovals(Collections.<String,Boolean>emptyMap());
@@ -422,7 +425,7 @@ public class PermissionController extends AbstractController {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
-			checkClientIdOwnership(rp.getClientId());
+			userManager.checkClientIdOwnership(rp.getClientId());
 			resourceManager.storeResourceParameter(rp, rp.getService().getServiceId());
 			response.setData(rp);
 		} catch (Exception e) {
@@ -447,7 +450,7 @@ public class PermissionController extends AbstractController {
 		response.setResponseCode(RESPONSE.OK);
 		try {
 			ResourceParameter rp = resourceParameterRepository.findOne(id);
-			checkClientIdOwnership(rp.getClientId());
+			userManager.checkClientIdOwnership(rp.getClientId());
 			rp = resourceManager.updateResourceParameterVisibility(id, vis);
 			response.setData(rp);
 		} catch (Exception e) {
@@ -472,7 +475,7 @@ public class PermissionController extends AbstractController {
 		response.setResponseCode(RESPONSE.OK);
 		try {
 			ResourceParameter rp = resourceParameterRepository.findOne(id);
-			checkClientIdOwnership(rp.getClientId());
+			userManager.checkClientIdOwnership(rp.getClientId());
 			resourceManager.removeResourceParameter(id);
 		} catch (Exception e) {
 			logger.error("Failure deleting resource parameter: "+e.getMessage(),e);

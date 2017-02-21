@@ -16,11 +16,12 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import it.smartcommunitylab.aac.dto.AccountProfile;
+import it.smartcommunitylab.aac.dto.AccountProfiles;
+import it.smartcommunitylab.aac.dto.BasicProfile;
+import it.smartcommunitylab.aac.dto.BasicProfiles;
 import it.smartcommunitylab.aac.manager.BasicProfileManager;
-import it.smartcommunitylab.aac.profile.model.AccountProfile;
-import it.smartcommunitylab.aac.profile.model.AccountProfiles;
-import it.smartcommunitylab.aac.profile.model.BasicProfile;
-import it.smartcommunitylab.aac.profile.model.BasicProfiles;
+import it.smartcommunitylab.aac.manager.UserManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,9 +43,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  */
 @Controller
-public class BasicProfileController extends AbstractController {
+public class BasicProfileController {
 
 	private Log logger = LogFactory.getLog(getClass());
+	@Autowired 
+	private UserManager userManager;
+	
 	
 	@Autowired
 	private BasicProfileManager profileManager;
@@ -93,7 +97,7 @@ public class BasicProfileController extends AbstractController {
 	BasicProfile findProfile(HttpServletResponse response)
 			throws IOException {
 		try {
-			Long user = getUserId();
+			Long user = userManager.getUserId();
 			if (user == null) {
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 				return null;
@@ -125,7 +129,7 @@ public class BasicProfileController extends AbstractController {
 	AccountProfile findAccountProfile(HttpServletResponse response)
 			throws IOException {
 		try {
-			Long user = getUserId();
+			Long user = userManager.getUserId();
 			if (user == null) {
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 				return null;

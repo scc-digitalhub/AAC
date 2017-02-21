@@ -35,7 +35,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.auth.internal.RegistrationBean;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
@@ -43,6 +42,7 @@ import it.smartcommunitylab.aac.common.NotConfirmedException;
 import it.smartcommunitylab.aac.common.NotRegisteredException;
 import it.smartcommunitylab.aac.common.PasswordHash;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
