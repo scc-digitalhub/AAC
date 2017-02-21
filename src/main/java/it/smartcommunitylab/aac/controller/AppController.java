@@ -77,6 +77,7 @@ public class AppController extends AbstractController {
 		
 		String username = getUserName(user);
 		model.put("username",username);
+		model.put("roles", getUserRoles());
 		return new ModelAndView("index", model);
 	}
 	

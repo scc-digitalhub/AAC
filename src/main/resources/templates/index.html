@@ -49,6 +49,7 @@
     <script src="lib/jquery.js"></script>
     <script src="lib/bootstrap.min.js"></script>
     <script src="js/services.js"></script>
+    <script src="js/admin.js"></script>
 </head>
 
   <body data-ng-controller="MainController">
@@ -65,8 +66,7 @@
         <div class="collapse navbar-collapse">	        
           <ul class="nav navbar-nav">
 	          <li class="{{activeView('apps')}}"><a href="#" data-ng-click="currentView='apps'">API Clients</a></li>
-            <li class="{{activeView('services')}}"><a href="#" data-ng-click="currentView='services'">My Services</a></li>
-	          <li class="{{activeView('profile')}}"><a href="#" data-ng-click="currentView='profile'">Profile</a></li>
+            <li th:if="${roles.contains('ROLE_ADMIN')}" class="{{activeView('admin')}}"><a href="#" data-ng-click="currentView='admin'">Admin</a></li>
 	        </ul>
 	        <ul class="nav navbar-nav pull-right">
 	          <li id="fat-menu" class="dropdown">

@@ -18,10 +18,8 @@ package it.smartcommunitylab.aac.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -34,7 +32,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.model.ApprovalData;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
@@ -43,7 +40,6 @@ import it.smartcommunitylab.aac.model.IdPData;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
@@ -65,19 +61,6 @@ public class AdminController extends AbstractController{
 	private ResourceRepository resourceRepository;
 
 	private static final Log logger = LogFactory.getLog(AdminController.class);
-	/**
-	 * Retrieve the with the user data: currently on the username is added.
-	 * @return
-	 */
-	@RequestMapping("/admin")
-	public ModelAndView admin() {
-		User user = userRepository.findOne(getUserId());
-		Map<String,Object> model = new HashMap<String, Object>();
-		
-		String username = getUserName(user);
-		model.put("username",username);
-		return new ModelAndView("admin", model);
-	}
 	
 	@RequestMapping("/admin/approvals")
 	public @ResponseBody Response getApprovals() {

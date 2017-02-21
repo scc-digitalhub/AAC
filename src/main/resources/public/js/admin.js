@@ -1,5 +1,3 @@
-angular.module('admin', [ 'ngResource']);
-
 /**
  * Main layout controller
  * @param $scope
@@ -12,9 +10,9 @@ function AdminController($scope, $resource) {
 	// title
 	$scope.title = 'App Approvals';
 	
-	$scope.currentView = 'approvals';
+	$scope.adminView = 'approvals';
 	$scope.activeView = function(view) {
-		return view == $scope.currentView ? 'active' : '';
+		return view == $scope.adminView ? 'active' : '';
 	};
 	$scope.signOut = function() {
 	    window.document.location = "./admin/logout";

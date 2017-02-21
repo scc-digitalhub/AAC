@@ -17,9 +17,12 @@
                   <div class="span6">{{r.name}}</div>
                </div>
             </div>
-               
         </div>
       </div>
     </div>
   </div>
+  <div ng-if="approvals == null || approvals.length == 0">
+    <h5>No data</h5>
+  </div>   
+  
 </div>    

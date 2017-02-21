@@ -16,6 +16,9 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -66,6 +69,16 @@ public class AbstractController {
 	 */
 	protected String getUserAuthority() {
 		return SecurityContextHolder.getContext().getAuthentication().getDetails().toString();
+	}
+
+	/**
+	 * The authority (e.g., google) value from the Spring Security Context of the currently logged user
+	 * @return the authority value (string)
+	 */
+	protected Set<String> getUserRoles() {
+		Set<String> res = new HashSet<>();
+		SecurityContextHolder.getContext().getAuthentication().getAuthorities().forEach(ga -> res.add(ga.getAuthority()));
+		return res;
 	}
 
 	/**
