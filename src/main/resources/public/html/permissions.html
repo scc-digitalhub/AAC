@@ -1,0 +1,11 @@
+  <table class="table table-bordered">
+	  <tr ng-repeat="item in services">
+	    <td> 
+	    <bold><a href="#" ng-click="changeServicePermissions(item)">{{item.name}}</a></bold>
+	    <p/>
+      {{item.description}}
+      </td>
+	  </tr>
+  </table>
+  <div ng-include="'./html/service-perm.html'"></div>
+

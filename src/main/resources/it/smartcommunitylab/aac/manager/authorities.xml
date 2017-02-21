@@ -1,0 +1,99 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+
+       Copyright 2012-2013 Trento RISE
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<authorities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://aac.smartcommunitylab.it/jaxbmodel"  
+  xsi:schemaLocation="http://aac.smartcommunitylab.it/jaxbmodel ../../../../../jaxb/binding/attributeSchema.xsd">
+
+  <authorityMapping name="google" url="google" public="true" useParams="true">
+      <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
+      <attributes>email</attributes>
+      <attributes>name</attributes>
+      <attributes>link</attributes>
+      <identifyingAttributes>email</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="facebook" url="facebook" public="true" useParams="true">
+      <attributes alias="it.smartcommunitylab.aac.givenname">first_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
+      <attributes>email</attributes>
+      <identifyingAttributes>id</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="googlelocal" url="googlelocal" public="true" web="false">
+      <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
+      <attributes>email</attributes>
+      <attributes>name</attributes>
+      <attributes>link</attributes>
+      <identifyingAttributes>id</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="facebooklocal" url="facebooklocal" public="true" web="false">
+      <attributes alias="it.smartcommunitylab.aac.givenname">first_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
+      <attributes>email</attributes>
+      <identifyingAttributes>id</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="true">
+      <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">surname</attributes>
+      <attributes>email</attributes>
+      <identifyingAttributes>email</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="adc" url="adc" public="false" web="true" >
+      <attributes alias="it.smartcommunitylab.aac.givenname">pat_attribute_nome</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">pat_attribute_cognome</attributes>
+      <attributes>pat_attribute_email</attributes>
+      <attributes>pat_attribute_capdomicilio</attributes>
+      <attributes>pat_attribute_capresidenza</attributes>
+      <attributes>pat_attribute_cellulare</attributes>
+      <attributes>pat_attribute_cittadomicilio</attributes>
+      <attributes>pat_attribute_cittaresidenza</attributes>
+      <attributes>pat_attribute_datanascita</attributes>
+      <attributes>pat_attribute_emailaddresspersonale</attributes>
+      <attributes>pat_attribute_indirizzodomicilio</attributes>
+      <attributes>pat_attribute_indirizzoresidenza</attributes>
+      <attributes>pat_attribute_luogonascita</attributes>
+      <attributes>pat_attribute_provinciadomicilio</attributes>
+      <attributes>pat_attribute_provincianascita</attributes>
+      <attributes>pat_attribute_provinciaresidenza</attributes>
+      <attributes>pat_attribute_sesso</attributes>
+      <attributes>pat_attribute_statodomicilio</attributes>
+      <attributes>pat_attribute_statonascita</attributes>
+      <attributes>pat_attribute_statoresidenza</attributes>
+      <attributes>pat_attribute_telefono</attributes>
+      <attributes>pat_attribute_titolo</attributes>
+      <attributes>pat_attribute_subjectdn</attributes>
+      <attributes>pat_attribute_issuerdn</attributes>
+      <attributes>pat_attribute_base64</attributes>
+      <identifyingAttributes>pat_attribute_codicefiscale</identifyingAttributes>
+  </authorityMapping>
+
+  <authorityMatching>
+      <authority name="google" attribute="email"/>
+      <authority name="googlelocal" attribute="email"/>
+      <authority name="facebook" attribute="email"/>
+      <authority name="facebooklocal" attribute="email"/>
+      <authority name="internal" attribute="email"/>
+      </authorityMatching>
+  <authorityMatching>
+      <authority name="facebook" attribute="id"/>
+      <authority name="facebooklocal" attribute="id"/>
+  </authorityMatching>
+
+ --></authorities>

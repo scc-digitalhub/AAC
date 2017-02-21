@@ -1,0 +1,60 @@
+server:
+  contextPath: /aac
+
+application:
+  url: http://localhost:8080/aac
+
+jdbc:
+  dialect: org.hibernate.dialect.MySQLDialect
+  driver: com.mysql.jdbc.Driver
+  url: jdbc:mysql://localhost:3306/aac
+  user: ac
+  password: ac
+
+
+security:
+  restricted: false
+  adminfile: file:///home/dev/sources/aac/admin.txt
+  basic:
+      enabled: false
+
+oauth-providers:
+  providers:
+    - provider: facebook
+      client:
+        clientId: 
+        clientSecret: 
+        accessTokenUri: https://graph.facebook.com/oauth/access_token
+        userAuthorizationUri: https://www.facebook.com/dialog/oauth
+        tokenName: oauth_token
+        authenticationScheme: query
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile    
+    - provider: google
+      client:
+        clientId: 
+        clientSecret: 
+        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
+        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile
+      resource:        
+        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        preferTokenInfo: true        
+
+mail:
+  username: test
+  password: 
+  host: 
+  port: 25
+  protocol: 
+
+logging:
+  level:
+    org.springframework.security: DEBUG

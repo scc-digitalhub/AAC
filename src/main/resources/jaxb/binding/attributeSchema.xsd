@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!-- Copyright 2012-2013 Trento RISE Licensed under the Apache License, Version 
+	2.0 (the "License"); you may not use this file except in compliance with 
+	the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
+<xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://aac.smartcommunitylab.it/jaxbmodel"
+  xmlns:tns="http://aac.smartcommunitylab.it/jaxbmodel" elementFormDefault="qualified">
+    <xsd:include schemaLocation=""></xsd:include>
+    <xsd:element name="authorities" type="tns:authorities" />
+	<xsd:complexType name="authorities">
+		<xsd:annotation>
+			<xsd:documentation>List of identity provider authorities.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="authorityMapping" type="tns:authorityMapping" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="authorityMatching" type="tns:authorityMatching" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="authorityMapping">
+		<xsd:annotation>
+			<xsd:documentation>Description of the authority. Characterized by the
+				authority name, url path, identity attributes, other attributes, and
+				whether the attributes are extracted from the request parameters or
+				from attributes
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="attributes" type="tns:attributes" />
+			</xsd:choice>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="identifyingAttributes" type="xsd:string" />
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required" />
+		<xsd:attribute name="url" type="xsd:string" use="required" />
+		<xsd:attribute name="useParams" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="public" type="xsd:boolean" use="optional" default="false"/>
+    <xsd:attribute name="web" type="xsd:boolean" use="optional" default="true"/>
+	</xsd:complexType>
+	<xsd:complexType name="attributes">
+		<xsd:annotation>
+			<xsd:documentation>Attribute descriptor defined by the attribute
+				value and optional (internal) alias</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="alias" type="xsd:string" use="optional" />
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="authorityMatching">
+    <xsd:annotation>
+      <xsd:documentation>Matching authorities for duplicate accounts</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="authority" type="tns:match" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="match">
+    <xsd:annotation>
+      <xsd:documentation>Matching authority definition</xsd:documentation>
+    </xsd:annotation>
+    <xsd:attribute name="name" type="xsd:string" use="required" />
+    <xsd:attribute name="attribute" type="xsd:string" use="required" />
+  </xsd:complexType>
+</xsd:schema>
