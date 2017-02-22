@@ -58,3 +58,8 @@ mail:
 logging:
   level:
     org.springframework.security: DEBUG
+    
+spring:
+  messages:
+    basename: resources/internal
+    encoding: UTF-8    
