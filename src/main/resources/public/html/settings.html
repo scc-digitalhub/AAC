@@ -25,12 +25,14 @@
                 ng-model="app.redirectUris"></td>
         </tr>
         <tr>
-            <th>Server-side access</th>
-            <td><input type="checkbox" ng-model="app.serverSideAccess"></td>
-        </tr>
-        <tr>
-            <th>Browser access</th>
-            <td><input type="checkbox" ng-model="app.browserAccess"></td>
+            <th>Grant types</th>
+            <td>
+             <table class="idps">
+               <tr ng-repeat="(k,v) in grantTypes">
+               <td>{{GTLabels[k]}} </td><td> <input type="checkbox" ng-model="grantTypes[k]"></td><td></td>
+               </tr>
+             </table>
+            </td>
         </tr>
         <tr>
             <th>Native app access</th>

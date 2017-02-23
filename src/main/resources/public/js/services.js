@@ -46,6 +46,21 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 	// implicit flow token of the current app
 	$scope.implicitToken = null;
 
+	$scope.GTLabels = {
+			implicit: 'Implicit',
+			authorization_code: 'Authorization Code',
+			password: 'Password',
+			client_credentials: 'Client Credentials',
+			refresh_token: 'Refresh token'
+	}
+	$scope.grantTypes = {
+			implicit: false,
+			authorization_code: false,
+			password: false,
+			client_credentials: false,
+			refresh_token: false
+	}
+	
 	// resource reference for the app API
 	var ClientAppBasic = $resource('dev/apps/:clientId', {}, {
 		query : { method : 'GET' },
@@ -79,6 +94,7 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 				$scope.apps = apps;
 				if (apps.length > 0) {
 					$scope.app = angular.copy(apps[0]);
+					$scope.initGrantTypes($scope.app);
 					$scope.clientId = apps[0].clientId;
 					$scope.switchClientView('overview');
 				} else {
@@ -105,6 +121,26 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 		}
 		return res;
 	};
+	/**
+	 * Grant types
+	 */
+	$scope.initGrantTypes = function(app) {
+		for (var k in $scope.grantTypes) {
+			$scope.grantTypes[k] = false;
+		}
+		if (app.grantedTypes) {
+			app.grantedTypes.forEach(function(gt){
+				$scope.grantTypes[gt] = true;
+			});
+		}
+	}
+	$scope.showGrantTypes = function(app) {
+		var arr = [];
+		if (app.grantedTypes) app.grantedTypes.forEach(function(gt) {
+			arr.push($scope.GTLabels[gt]);
+		});
+		return arr.join(', ');
+	}
 	
 	$scope.idpIcon = function(req,app) {
 		if (!req) return null;
@@ -228,6 +264,7 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 			if ($scope.apps[i].clientId == client) {
 				$scope.clientId = $scope.apps[i].clientId;
 				$scope.app = angular.copy($scope.apps[i]);
+				$scope.initGrantTypes($scope.app);	
 				$scope.switchClientView('overview');
 				return;
 			}
@@ -275,6 +312,9 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 	 * Save current app settings
 	 */
 	$scope.saveSettings = function() {
+		var newGt = [];
+		for (var k in $scope.grantTypes) if ($scope.grantTypes[k]) newGt.push(k);
+		$scope.app.grantedTypes = newGt;
 		var newClient = new ClientAppBasic($scope.app);
 		newClient.$update({clientId:$scope.clientId}, function(response) {
 			if (response.responseCode == 'OK') {
@@ -283,6 +323,7 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 
 				var app = response.data;
 				$scope.app = angular.copy(app);
+				$scope.initGrantTypes($scope.app);
 				for (var i = 0; i < $scope.apps.length; i++) {
 					if ($scope.apps[i].clientId == app.clientId) {
 						$scope.apps[i] = app;
@@ -413,6 +454,7 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 							if ($scope.clientId == client) {
 								$scope.clientId = app.clientId;
 								$scope.app = angular.copy(app);
+								$scope.initGrantTypes($scope.app);
 							}
 							return;
 						}
@@ -443,7 +485,7 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 	 * generate or retrieve client access token through the implicit OAuth2 flow.
 	 */
 	$scope.getImplicitToken = function() {
-		if (!$scope.app.browserAccess) {
+		if ($scope.app.grantedTypes.indexOf('implicit') < 0) {
 			$scope.info = '';
 			$scope.error = 'Implicit token requires browser access selected!';
 			return;

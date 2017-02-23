@@ -39,8 +39,6 @@ import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceParameterRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 /**
  * Support for the management of client app registration details
@@ -53,20 +51,10 @@ public class ClientDetailsManager {
 
 	/** GRANT TYPE: CLIENT CRIDENTIALS FLOW */
 	private static final String GT_CLIENT_CREDENTIALS = "client_credentials";
-	/** GRANT TYPE: IMPLICIT FLOW */
-	private static final String GT_IMPLICIT = "implicit";
-	/** GRANT TYPE: AUTHORIZATION GRANT FLOW */
-	private static final String GT_AUTHORIZATION_CODE = "authorization_code";
-	/** GRANT TYPE: REFRESH TOKEN */
-	private static final String GT_REFRESH_TOKEN = "refresh_token";
 	private Log log = LogFactory.getLog(getClass());
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
-	@Autowired
-	private ResourceRepository resourceRepository;
-	@Autowired
-	private ResourceParameterRepository resourceParameterRepository;
 	@Autowired
 	private AttributesAdapter attributesAdapter;
 	/**
@@ -145,10 +133,6 @@ public class ClientDetailsManager {
 				}
 			}
 		}
-		// access server-side corresponds to the 'authorization grant' flow.
-		res.setServerSideAccess(e.getAuthorizedGrantTypes().contains(GT_AUTHORIZATION_CODE));
-		// browser access corresponds to the 'implicit' flow.
-		res.setBrowserAccess(e.getAuthorizedGrantTypes().contains(GT_IMPLICIT));
 
 		res.setRedirectUris(StringUtils.collectionToCommaDelimitedString(e.getRegisteredRedirectUri()));
 		return res;
@@ -185,19 +169,7 @@ public class ClientDetailsManager {
 			info.setName(data.getName());
 			info.setNativeAppsAccess(data.isNativeAppsAccess());
 			info.setNativeAppSignatures(Utils.normalizeValues(data.getNativeAppSignatures()));
-			Set<String> types = new HashSet<String>(client.getAuthorizedGrantTypes());
-			if (data.isBrowserAccess()) {
-				types.add(GT_IMPLICIT);
-			} else {
-				types.remove(GT_IMPLICIT);
-			} 
-			if (data.isServerSideAccess() || data.isNativeAppsAccess()) {
-				types.add(GT_AUTHORIZATION_CODE);
-				types.add(GT_REFRESH_TOKEN);
-			} else {
-				types.remove(GT_AUTHORIZATION_CODE);
-				types.remove(GT_REFRESH_TOKEN);
-			}
+			Set<String> types = data.getGrantedTypes();
 			client.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(types));
 			if (info.getIdentityProviders() == null) {
 				info.setIdentityProviders(new HashMap<String, Integer>());
@@ -235,7 +207,7 @@ public class ClientDetailsManager {
 			return "name cannot be empty";
 		}
 		// for server-side or native access redirect URLs are required
-		if ((data.isServerSideAccess() || data.isNativeAppsAccess()) && (data.getRedirectUris() == null || data.getRedirectUris().trim().isEmpty())) {
+		if ((data.hasServerSideAccess() || data.isNativeAppsAccess()) && (data.getRedirectUris() == null || data.getRedirectUris().trim().isEmpty())) {
 			return "redirect URL is required for Server-side or native access";
 		}
 //		if (data.isNativeAppsAccess() && (data.getNativeAppSignatures() == null || data.getNativeAppSignatures().isEmpty())) {

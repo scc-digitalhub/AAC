@@ -20,12 +20,8 @@
         <td>{{app.redirectUris}}</td>
     </tr>
     <tr>
-        <th>Server-side access</th>
-        <td><i class="{{statusIcon(app.serverSideAccess)}}"></i></td>
-    </tr>
-    <tr>
-        <th>Browser access</th>
-        <td><i class="{{statusIcon(app.browserAccess)}}"></i></td>
+        <th>Grant types</th>
+        <td>{{showGrantTypes(app)}}</td>
     </tr>
     <tr>
         <th>Native app access</th>
