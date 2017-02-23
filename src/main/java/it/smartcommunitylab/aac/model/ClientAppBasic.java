@@ -26,6 +26,11 @@ import java.util.Set;
  */
 public class ClientAppBasic {
 
+	/** GRANT TYPE: IMPLICIT FLOW */
+	private static final String GT_IMPLICIT = "implicit";
+	/** GRANT TYPE: AUTHORIZATION GRANT FLOW */
+	private static final String GT_AUTHORIZATION_CODE = "authorization_code";
+
 	private String clientId;
 	private String clientSecret;
 	private String clientSecretMobile;
@@ -35,8 +40,6 @@ public class ClientAppBasic {
 
 	private boolean nativeAppsAccess;
 	private String nativeAppSignatures;
-	private boolean browserAccess;
-	private boolean serverSideAccess;
 
 	private Map<String,Boolean> identityProviders;
 	private Map<String,Boolean> identityProviderApproval;
@@ -126,30 +129,6 @@ public class ClientAppBasic {
 		this.nativeAppSignatures = nativeAppSignatures;
 	}
 	/**
-	 * @return the browserAccess
-	 */
-	public boolean isBrowserAccess() {
-		return browserAccess;
-	}
-	/**
-	 * @param browserAccess the browserAccess to set
-	 */
-	public void setBrowserAccess(boolean browserAccess) {
-		this.browserAccess = browserAccess;
-	}
-	/**
-	 * @return the serverSideAccess
-	 */
-	public boolean isServerSideAccess() {
-		return serverSideAccess;
-	}
-	/**
-	 * @param serverSideAccess the serverSideAccess to set
-	 */
-	public void setServerSideAccess(boolean serverSideAccess) {
-		this.serverSideAccess = serverSideAccess;
-	}
-	/**
 	 * @return the clientSecretMobile
 	 */
 	public String getClientSecretMobile() {
@@ -185,5 +164,11 @@ public class ClientAppBasic {
 	public void setIdentityProviderApproval(
 			Map<String, Boolean> identityProviderApproval) {
 		this.identityProviderApproval = identityProviderApproval;
+	}
+	/**
+	 * @return
+	 */
+	public boolean hasServerSideAccess() {
+		return grantedTypes != null && (grantedTypes.contains(GT_IMPLICIT) || grantedTypes.contains(GT_AUTHORIZATION_CODE));
 	}
 }

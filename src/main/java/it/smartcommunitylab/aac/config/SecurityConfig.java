@@ -17,8 +17,10 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
@@ -49,11 +51,11 @@ import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ContextExtender;
 import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
+import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
-import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 @Configuration 
@@ -84,6 +86,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		bean.setRowMapper(getClientDetailsRowMapper());
 		return bean;
 	}
+	
+	@Bean
+	public UserDetailsService getInternalUserDetailsService() {
+		return new InternalUserDetailsRepo();
+	} 
+	
 	@Bean
 	public ClientDetailsRowMapper getClientDetailsRowMapper() {
 		return new ClientDetailsRowMapper();
@@ -149,12 +157,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					.addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class)
 					;
 	}
-
+	
 	@Override
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
 	}
 
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(getInternalUserDetailsService());
+	}
 	@Bean
 	protected ContextExtender contextExtender() {
 		return new ContextExtender();
@@ -207,12 +219,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			bean.setRequestFactory(getOAuth2RequestFactory());
 			return bean;
 		}
-		
-		@Bean
-		public UserDetailsRepo getUserDetailsService() {
-			return new UserDetailsRepo();
-		}
-		
+				
 		Filter endpointFilter() {
 			ClientCredentialsTokenEndpointFilter filter = new ClientCredentialsTokenEndpointFilter(clientDetailsRepository);
 			filter.setAuthenticationManager(authenticationManager);
@@ -228,8 +235,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		
 		@Override
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-			endpoints.tokenStore(tokenStore).userApprovalHandler(userApprovalHandler)
-					.authenticationManager(authenticationManager);
+			endpoints
+			.tokenStore(tokenStore)
+			.userApprovalHandler(userApprovalHandler)
+			.authenticationManager(authenticationManager)
+			;
 		}		
         @Override
         public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {

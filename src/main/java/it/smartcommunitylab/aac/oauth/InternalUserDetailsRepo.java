@@ -15,9 +15,6 @@
  */
 package it.smartcommunitylab.aac.oauth;
 
-import it.smartcommunitylab.aac.model.Registration;
-import it.smartcommunitylab.aac.repository.RegistrationRepository;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -28,16 +25,15 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+
+import it.smartcommunitylab.aac.model.Registration;
+import it.smartcommunitylab.aac.repository.RegistrationRepository;
 
 /**
  * Implementation of the {@link UserDetailsService} based on the SC user model.
  * @author raman
  *
  */
-
-@Component
 
 public class InternalUserDetailsRepo implements UserDetailsService {
 

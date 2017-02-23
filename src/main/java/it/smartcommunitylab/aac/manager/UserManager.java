@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
@@ -35,6 +36,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  *
  */
 @Component
+@Transactional
 public class UserManager {
 
 	@Autowired
