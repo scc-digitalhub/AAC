@@ -16,8 +16,17 @@
 
 package it.smartcommunitylab.aac.auth.internal;
 
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.dto.RegistrationBean;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RoleManager.ROLE;
+import it.smartcommunitylab.aac.model.Registration;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -32,6 +41,13 @@ import javax.validation.ValidatorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -41,12 +57,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.dto.RegistrationBean;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.model.Registration;
 
 /**
  * @author raman
@@ -84,6 +94,16 @@ public class RegistrationController {
 			} catch (UnsupportedEncodingException e) {
 				throw new RegistrationException(e);
 			}
+			
+			List<GrantedAuthority> list = new LinkedList<>();
+			list.add(new SimpleGrantedAuthority(ROLE.user.roleName()));
+			
+			UserDetails ud = new User(username, password, list);
+			AbstractAuthenticationToken a = new UsernamePasswordAuthenticationToken(username, password, list);
+			a.setDetails("internal");
+
+			SecurityContextHolder.getContext().setAuthentication(a);
+			
 			String redirect = String
 					.format("redirect:/eauth/internal?target=%s&email=%s&name=%s&surname=%s",
 							targetEnc,
@@ -227,11 +247,11 @@ public class RegistrationController {
 		}
 	}
 	
-	@RequestMapping(value = "/internal/reset")
+	@RequestMapping(value = "/internal/reset", method = RequestMethod.GET)
 	public String resetPage() {
 		return "registration/resetpwd";
 	}
-	@RequestMapping(value = "/reset", method = RequestMethod.POST)
+	@RequestMapping(value = "/internal/reset", method = RequestMethod.POST)
 	public String reset(Model model, @RequestParam String username) {
 		try {
 			manager.resetPassword(username);
@@ -251,14 +271,14 @@ public class RegistrationController {
 			return "registration/changepwd";
 		}
 		String userMail = (String)req.getSession().getAttribute("changePwdEmail");
-		if (userMail == null || !userMail.equals(reg.getEmail())) {
+		if (userMail == null) {
 			model.addAttribute("error", RegistrationException.class.getSimpleName());
 			return "registration/changepwd";
 		}
 		req.getSession().removeAttribute("changePwdEmail");
 		
 		try {
-			manager.updatePassword(reg.getEmail(), reg.getPassword());
+			manager.updatePassword(userMail, reg.getPassword());
 		} catch (RegistrationException e) {
 			e.printStackTrace();
 			model.addAttribute("error", e.getClass().getSimpleName());

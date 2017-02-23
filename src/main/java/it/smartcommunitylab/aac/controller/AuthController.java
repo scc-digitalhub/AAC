@@ -15,6 +15,14 @@
  */
 package it.smartcommunitylab.aac.controller;
 
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.AttributesAdapter;
+import it.smartcommunitylab.aac.manager.ClientDetailsManager;
+import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Arrays;
@@ -32,7 +40,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,14 +59,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.manager.AttributesAdapter;
-import it.smartcommunitylab.aac.manager.ClientDetailsManager;
-import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
-import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * Controller for developer console entry points
@@ -257,7 +256,7 @@ public class AuthController {
 		target = nTarget;
 		
 		Authentication old = SecurityContextHolder.getContext().getAuthentication();
-		if (old != null && old instanceof UsernamePasswordAuthenticationToken) {
+		if (old != null && old instanceof AACAuthenticationToken) {
 			if (!authorityUrl.equals(old.getDetails())) {
 	            new SecurityContextLogoutHandler().logout(req, res, old);
 		        SecurityContextHolder.getContext().setAuthentication(null);
@@ -272,7 +271,7 @@ public class AuthController {
 		List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(nTarget), "UTF-8");
 
 		it.smartcommunitylab.aac.model.User userEntity = null;
-		if (old != null && old instanceof UsernamePasswordAuthenticationToken) {
+		if (old != null && old instanceof AACAuthenticationToken) {
 			String userId = old.getName();
 			userEntity = userRepository.findOne(Long.parseLong(userId));
 		} else {

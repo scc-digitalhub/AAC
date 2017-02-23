@@ -23,13 +23,16 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
+import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
-//import org.thymeleaf.context.Context;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 /**
  * @author raman
@@ -54,8 +57,8 @@ public class MailSender {
 	@Value("classpath:/javamail.properties")
 	private Resource mailProps;
 		
-//	@Autowired
-//	private TemplateEngine templateEngine;
+	@Autowired
+	private TemplateEngine templateEngine;
 
     public MailSender() throws IOException {
     	mailSender = new org.springframework.mail.javamail.JavaMailSenderImpl();
@@ -78,29 +81,29 @@ public class MailSender {
     
 	public void sendEmail(String email, String template, String subject, Map<String,Object> vars) throws RegistrationException {
 		
-//		try {
-//			final Context ctx = new Context();
-//			if (vars != null) {
-//				for (String var : vars.keySet()) {
-//					ctx.setVariable(var, vars.get(var));
-//				}
-//			}
-//			
-//			final MimeMessage mimeMessage = mailSender.createMimeMessage();
-//			final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); 
-//			message.setSubject(subject);
-//			message.setFrom(mailUser);
-//			message.setTo(email);
-//
-//			// Create the HTML body using Thymeleaf
-//			// TODO use some template engine
-//			final String htmlContent = ""; // this.templateEngine.process(template, ctx);
-//			message.setText(htmlContent, true);
-//			// Send mail
-//			mailSender.send(mimeMessage);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw new RegistrationException(e);
-//		}
+		try {
+			final Context ctx = new Context();
+			if (vars != null) {
+				for (String var : vars.keySet()) {
+					ctx.setVariable(var, vars.get(var));
+				}
+			}
+			
+			final MimeMessage mimeMessage = mailSender.createMimeMessage();
+			final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); 
+			message.setSubject(subject);
+			message.setFrom(mailUser);
+			message.setTo(email);
+
+			// Create the HTML body using Thymeleaf
+			// TODO use some template engine
+			final String htmlContent = this.templateEngine.process(template, ctx);
+			message.setText(htmlContent, true);
+			// Send mail
+			mailSender.send(mimeMessage);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RegistrationException(e);
+		}
 	}
 }
