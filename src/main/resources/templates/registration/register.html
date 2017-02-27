@@ -45,7 +45,7 @@
             <!-- <form:form modelAttribute="reg"> -->
              <form action="#" th:action="@{/internal/register}" th:object="${reg}" method="post">
                 <div>&nbsp;</div>
-				<div class="error" th:if="${error} != null" th:text="${error}">Error text</div>
+				<div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
                 <div>&nbsp;</div>
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_name} + '*: '"></label>

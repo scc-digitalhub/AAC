@@ -39,9 +39,9 @@
 	<div class="authorities" th:text="#{lbl_generic_error_text}">
 		<p>An error has occurred while processing you request. Please contact the administrator.</p>
 	</div>
-  <div style="display:none">	
+  <div style="display:none" th:if="${exception != null and !(exception instanceof T(java.lang.String))}">	
     Failed URL: <span th:text="${url}">URL</span>
-    Exception:  <span th:text="${exception.message}">message</span>
+    Exception:  <span th:text="${exception}">message</span>
       <br th:each="e : ${exception.stackTrace}" th:text="${e}"/>
    </div>
 </body>

@@ -16,6 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,7 +43,10 @@ import org.springframework.security.oauth2.provider.request.DefaultOAuth2Request
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
+import org.springframework.web.filter.CorsFilter;
 
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
@@ -105,6 +109,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		registration.setOrder(-100);
 		return registration;
 	}
+
+	@Bean
+    public FilterRegistrationBean corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+        bean.setOrder(0);
+        return bean;
+    }	
+	
 
 	@Bean
 	@ConfigurationProperties("oauth-providers")
@@ -262,6 +281,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				http
 				.antMatcher("/*profile/**")
 				.authorizeRequests()
+				.antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
 				.antMatchers("/basicprofile/all").access("#oauth2.hasScope('profile.basicprofile.all')")
 				.antMatchers("/basicprofile/me").access("#oauth2.hasScope('profile.basicprofile.me')")
 				.antMatchers("/accountprofile/all").access("#oauth2.hasScope('profile.accountprofile.all')")

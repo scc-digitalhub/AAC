@@ -20,7 +20,7 @@ package it.smartcommunitylab.aac.common;
  * @author raman
  *
  */
-public class RegistrationException extends Exception {
+public class RegistrationException extends RuntimeException {
 	private static final long serialVersionUID = -3713058847321448029L;
 
 	public RegistrationException() {
