@@ -487,7 +487,7 @@ function AppController($scope, $resource, $http, $timeout, $location) {
 	$scope.getImplicitToken = function() {
 		if ($scope.app.grantedTypes.indexOf('implicit') < 0) {
 			$scope.info = '';
-			$scope.error = 'Implicit token requires browser access selected!';
+			$scope.error = 'Implicit token requires Implicit grant type selected!';
 			return;
 		}
 		var hostport = $location.host()+(($location.absUrl().indexOf(':'+$location.port())>0)?(":"+$location.port()):"");
