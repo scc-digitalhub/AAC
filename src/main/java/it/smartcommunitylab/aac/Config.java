@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac;
 
-
-
 /**
  * Constants and methods for managing resource visibility
  * @author raman
@@ -29,6 +27,12 @@ public class Config {
 	public static final String NAME_ATTR = "it.smartcommunitylab.aac.givenname";
 	/** User surname attribute alias */
 	public static final String SURNAME_ATTR = "it.smartcommunitylab.aac.surname";
+	/** Internal Attribute Authority */ 
+	public static final String IDP_INTERNAL = "internal";
+	/** APIManager Attribute Authority */ 
+	public static final String IDP_APIMANAGER = "apimanager";
+	/** APIMananger full domain name (email @ domain) */
+	public static final String FULLDOMAIN_ATTR = "fulldomainname";
 	
 	/** Authorization authorities */
 	public enum AUTHORITY {ROLE_USER, ROLE_CLIENT, ROLE_ANY, ROLE_CLIENT_TRUSTED};

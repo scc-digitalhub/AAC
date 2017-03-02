@@ -25,6 +25,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -59,7 +61,7 @@ public class UserManager {
 	 * Get the user from the Spring Security Context
 	 * @return
 	 */
-	public UserDetails getUser(){
+	private UserDetails getUserDetails(){
 		return (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 	
@@ -67,7 +69,7 @@ public class UserManager {
 	 * @return the user ID (long) from the user object in Spring Security Context
 	 */
 	public Long getUserId() {
-		return Long.parseLong(getUser().getUsername());
+		return Long.parseLong(getUserDetails().getUsername());
 	}
 
 	/**
@@ -93,9 +95,34 @@ public class UserManager {
 	 * @param user
 	 * @return
 	 */
-	public String getUserName() {
+	public String getUserFullName() {
 		User user =  userRepository.findOne(getUserId());
 		return user.getName() + " "+user.getSurname();
 	}
 
+	/**
+	 * Get user DB object
+	 * @return {@link User} object
+	 */
+	public User getUser() {
+		User user = userRepository.findOne(getUserId());
+		return user;
+	}
+
+	/**
+	 * @param user
+	 * @return
+	 */
+	public String getAPIManagerName() {
+		Long id = getUserId();
+		if (id == null || id == 0) return null; 
+		User user = userRepository.findOne(id);
+		if (user == null) return null;
+		for (Attribute a : user.getAttributeEntities()) {
+			if (a.getAuthority().equals(Config.IDP_APIMANAGER) && a.getKey().equals(Config.FULLDOMAIN_ATTR)) {
+				return a.getValue();
+			}
+		}
+		return null;
+	}
 }

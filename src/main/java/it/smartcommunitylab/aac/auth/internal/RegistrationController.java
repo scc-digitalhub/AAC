@@ -16,13 +16,6 @@
 
 package it.smartcommunitylab.aac.auth.internal;
 
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.dto.RegistrationBean;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.RoleManager.ROLE;
-import it.smartcommunitylab.aac.model.Registration;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.LinkedList;
@@ -46,8 +39,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -57,6 +48,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.dto.RegistrationBean;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RoleManager.ROLE;
+import it.smartcommunitylab.aac.model.Registration;
 
 /**
  * @author raman
@@ -98,9 +97,8 @@ public class RegistrationController {
 			List<GrantedAuthority> list = new LinkedList<>();
 			list.add(new SimpleGrantedAuthority(ROLE.user.roleName()));
 			
-			UserDetails ud = new User(username, password, list);
 			AbstractAuthenticationToken a = new UsernamePasswordAuthenticationToken(username, password, list);
-			a.setDetails("internal");
+			a.setDetails(Config.IDP_INTERNAL);
 
 			SecurityContextHolder.getContext().setAuthentication(a);
 			

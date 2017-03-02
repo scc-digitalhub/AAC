@@ -49,6 +49,7 @@ import org.springframework.web.filter.CompositeFilter;
 import org.springframework.web.filter.CorsFilter;
 
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.APIMgmtTokenEmitter;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
@@ -101,6 +102,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new ClientDetailsRowMapper();
 	}
 
+	@Bean
+	public APIMgmtTokenEmitter tokenEmitter() {
+		return new APIMgmtTokenEmitter();
+	}
 	
 	@Bean
 	public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
@@ -221,7 +226,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			return new DefaultOAuth2RequestFactory(clientDetailsService);
 		}
 
-		@Bean
+		@Bean("appTokenServices")
 		public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
 			NonRemovingTokenServices bean = new NonRemovingTokenServices();
 			bean.setTokenStore(tokenStore);

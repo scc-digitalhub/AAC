@@ -16,18 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.InvalidDataException;
-import it.smartcommunitylab.aac.common.InvalidPasswordException;
-import it.smartcommunitylab.aac.common.NotConfirmedException;
-import it.smartcommunitylab.aac.common.NotRegisteredException;
-import it.smartcommunitylab.aac.common.PasswordHash;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.dto.RegistrationBean;
-import it.smartcommunitylab.aac.model.Registration;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.RegistrationRepository;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
@@ -46,6 +34,19 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.InvalidDataException;
+import it.smartcommunitylab.aac.common.InvalidPasswordException;
+import it.smartcommunitylab.aac.common.NotConfirmedException;
+import it.smartcommunitylab.aac.common.NotRegisteredException;
+import it.smartcommunitylab.aac.common.PasswordHash;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.dto.RegistrationBean;
+import it.smartcommunitylab.aac.model.Registration;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.RegistrationRepository;
 
 /**
  * @author raman
@@ -126,7 +127,7 @@ public class RegistrationManager {
 		existing.setConfirmed(true);
 		existing.setConfirmationKey(null);
 		existing.setConfirmationDeadline(null);
-		User globalUser = providerServiceAdapter.updateUser("internal", toMap(existing), null);
+		User globalUser = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(existing), null);
 		existing.setUserId("" + globalUser.getId());
 
 		repository.save(existing);

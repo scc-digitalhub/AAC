@@ -24,6 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.axis2.AxisFault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
+import it.smartcommunitylab.aac.manager.APIMgmtTokenEmitter;
 import it.smartcommunitylab.aac.wso2.model.API;
 import it.smartcommunitylab.aac.wso2.model.APIInfo;
 import it.smartcommunitylab.aac.wso2.model.DataList;
@@ -47,16 +50,18 @@ import it.smartcommunitylab.aac.wso2.services.UserManagementService;
  * @author raman
  *
  */
-@Controller()
-@RequestMapping("/mgmt/apis")
+@Controller
 public class APIMgtController {
 
 	@Autowired
 	private APIPublisherService pub;
 	@Autowired
 	private UserManagementService isService;
+	@Autowired
+	private APIMgmtTokenEmitter tokenEmitter;
 	
-	@GetMapping()
+	
+	@GetMapping("/mgmt/apis")
 	public @ResponseBody DataList<APIInfo> getAPIs(
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
 			@RequestParam(required=false, defaultValue="25") Integer limit, 
@@ -64,7 +69,7 @@ public class APIMgtController {
 		return pub.getAPIs(offset, limit, query, getToken());
 	}
 	
-	@GetMapping("/{apiId}")
+	@GetMapping("/mgmt/apis/{apiId}")
 	public @ResponseBody API getAPI(@PathVariable String apiId) {
 		API api = pub.getAPI(apiId, getToken());
 		
@@ -74,7 +79,7 @@ public class APIMgtController {
 		return api;
 	}
 	
-	@GetMapping("/{apiId}/thumbnail")
+	@GetMapping("/mgmt/apis/{apiId}/thumbnail")
 	public @ResponseBody byte[] getAPI(@PathVariable String apiId, HttpServletResponse res) {
 		API api = pub.getAPI(apiId, getToken());
 		res.setContentType(MediaType.IMAGE_JPEG_VALUE);
@@ -82,7 +87,7 @@ public class APIMgtController {
 		return null;
 	}
 
-	@GetMapping("/{apiId}/subscriptions")
+	@GetMapping("/mgmt/apis/{apiId}/subscriptions")
 	public @ResponseBody DataList<Subscription> getAPISubscriptions(
 			@PathVariable String apiId,
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
@@ -91,7 +96,7 @@ public class APIMgtController {
 		return pub.getSubscriptions(apiId, offset, limit, getToken());
 	}
 
-	@PutMapping("/{apiId}/userroles")
+	@PutMapping("/mgmt/apis/{apiId}/userroles")
 	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws AxisFault, RemoteException, TenantMgtAdminServiceExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException 
 	{
 		String name = "", domain = "";
@@ -99,11 +104,23 @@ public class APIMgtController {
 		return pub.getUserAPIRoles(apiId, name, domain, getToken());
 	}
 	/**
-	 * @return
+	 * @return 
+	 * @throws Exception 
 	 */
 	private String getToken() {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO change
+		return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
 	}
+
+	@RequestMapping("/apimanager/token")
+	public @ResponseBody
+	String createToken() {
+		try {
+			return tokenEmitter.createToken();
+		} catch (Exception e) {
+			throw new AccessDeniedException("Inusfficies API Manager rights");
+		}
+	}
+
 
 }

@@ -15,14 +15,6 @@
  */
 package it.smartcommunitylab.aac.controller;
 
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.manager.AttributesAdapter;
-import it.smartcommunitylab.aac.manager.ClientDetailsManager;
-import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
-import it.smartcommunitylab.aac.repository.UserRepository;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Arrays;
@@ -59,6 +51,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.AttributesAdapter;
+import it.smartcommunitylab.aac.manager.ClientDetailsManager;
+import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
+import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * Controller for developer console entry points

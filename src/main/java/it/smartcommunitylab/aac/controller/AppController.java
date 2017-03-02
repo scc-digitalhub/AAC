@@ -71,7 +71,7 @@ public class AppController {
 	public ModelAndView developer() {
 		Map<String,Object> model = new HashMap<String, Object>();
 		
-		String username = userManager.getUserName();
+		String username = userManager.getUserFullName();
 		model.put("username",username);
 		model.put("roles", userManager.getUserRoles());
 		return new ModelAndView("index", model);
