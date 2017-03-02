@@ -65,30 +65,27 @@ public class RegistrationManager {
 
 	@Autowired
 	private MailSender sender;
-	
+
 	@Resource(name = "messageSource")
-    private MessageSource messageSource;
-	
+	private MessageSource messageSource;
+
 	@Autowired
 	private ProviderServiceAdapter providerServiceAdapter;
 
 	public Registration register(String name, String surname, String email, String password, String lang) throws RegistrationException {
-		if (!StringUtils.hasText(name) || 
-			!StringUtils.hasText(surname) ||
-			!StringUtils.hasText(email) ||
-			!StringUtils.hasText(password)) {
+		if (!StringUtils.hasText(name) || !StringUtils.hasText(surname) || !StringUtils.hasText(email) || !StringUtils.hasText(password)) {
 			throw new InvalidDataException();
 		}
-		
+
 		if (lang == null) {
 			lang = "en";
 		}
-		
+
 		Registration existing = getUserByEmail(email);
 		if (existing != null) {
 			throw new AlreadyRegisteredException();
 		}
-		
+
 		Registration reg = new Registration();
 		try {
 			reg.setName(name);
@@ -106,12 +103,12 @@ public class RegistrationManager {
 			sendConfirmationMail(reg, key);
 			return reg;
 		} catch (Exception e) {
-			//repository.delete(reg);
+			// repository.delete(reg);
 			e.printStackTrace();
 			throw new RegistrationException(e);
 		}
 	}
-	
+
 	public Registration confirm(String confirmationToken) throws RegistrationException {
 		Registration existing;
 		try {
@@ -125,26 +122,61 @@ public class RegistrationManager {
 		if (existing.getConfirmationDeadline().before(new Date())) {
 			throw new InvalidDataException();
 		}
-		
+
 		existing.setConfirmed(true);
 		existing.setConfirmationKey(null);
 		existing.setConfirmationDeadline(null);
 		User globalUser = providerServiceAdapter.updateUser("internal", toMap(existing), null);
-		existing.setUserId(""+globalUser.getId());
+		existing.setUserId("" + globalUser.getId());
 
 		repository.save(existing);
-		
 
 		return existing;
 	}
-	
-	
+
+	public User registerOffline(String name, String surname, String email, String password, String lang) throws RegistrationException {
+		if (!StringUtils.hasText(email) || !StringUtils.hasText(password)) {
+			throw new InvalidDataException();
+		}
+
+		if (lang == null) {
+			lang = "en";
+		}
+
+		Registration existing = getUserByEmail(email);
+		if (existing != null) {
+			throw new AlreadyRegisteredException();
+		}
+
+		Registration reg = new Registration();
+		try {
+			reg.setName(name);
+			reg.setSurname(surname);
+			reg.setEmail(email);
+			reg.setPassword(PasswordHash.createHash(password));
+			reg.setLang(lang);
+			reg.setConfirmed(true);
+			reg.setConfirmationKey(null);
+			reg.setConfirmationDeadline(null);
+			User globalUser = providerServiceAdapter.updateUser("internal", toMap(reg), null);
+			reg.setUserId("" + globalUser.getId());
+
+			repository.save(reg);
+
+			return globalUser;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RegistrationException(e);
+		}
+	}
+
 	/**
 	 * @param existing
 	 * @return
 	 */
 	private Map<String, String> toMap(Registration existing) {
-		Map<String,String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<String, String>();
 		map.put("name", existing.getName());
 		map.put("surname", existing.getSurname());
 		map.put("email", existing.getEmail());
@@ -189,7 +221,7 @@ public class RegistrationManager {
 			throw new RegistrationException(e);
 		}
 	}
-	
+
 	public void updatePassword(String email, String password) throws RegistrationException {
 		Registration existing = getUserByEmail(email);
 		if (existing == null) {
@@ -202,8 +234,7 @@ public class RegistrationManager {
 			throw new RegistrationException(e);
 		}
 	}
-	
-	
+
 	public Registration getUser(String email, String password) throws RegistrationException {
 		Registration existing = getUserByEmail(email);
 		if (existing == null) {
@@ -215,26 +246,28 @@ public class RegistrationManager {
 		if (existing.getPassword() == null) {
 			throw new InvalidPasswordException();
 		}
-		
+
 		boolean matches = false;
 		try {
 			matches = PasswordHash.validatePassword(password, existing.getPassword());
 		} catch (Exception e) {
 			throw new RegistrationException(e);
-		} 
-		
+		}
+
 		if (!matches) {
 			throw new InvalidPasswordException();
 		}
 		return existing;
 	}
-	
+
 	private Registration getUserByEmail(String email) {
 		return repository.findByEmail(email);
 	}
+
 	private Registration getUserByToken(String confirmationToken) {
 		return repository.findByConfirmationKey(confirmationToken);
 	}
+
 	private String generateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
 		String rnd = UUID.randomUUID().toString();
 		return rnd;
@@ -242,33 +275,32 @@ public class RegistrationManager {
 
 	/**
 	 * @param reg
-	 * @param key 
-	 * @throws RegistrationException 
+	 * @param key
+	 * @throws RegistrationException
 	 */
 	private void sendConfirmationMail(Registration reg, String key) throws RegistrationException {
 		RegistrationBean user = new RegistrationBean(reg.getEmail(), reg.getName(), reg.getSurname());
 		String lang = reg.getLang();
-		Map<String,Object> vars = new HashMap<String, Object>();
+		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("user", user);
-		vars.put("url", applicationURL+"/internal/confirm?confirmationCode="+key);
+		vars.put("url", applicationURL + "/internal/confirm?confirmationCode=" + key);
 		String subject = messageSource.getMessage("confirmation.subject", null, Locale.forLanguageTag(reg.getLang()));
-		sender.sendEmail(reg.getEmail(), "mail/confirmation_"+lang, subject, vars);
+		sender.sendEmail(reg.getEmail(), "mail/confirmation_" + lang, subject, vars);
 	}
 
 	/**
 	 * @param existing
 	 * @param key
-	 * @throws RegistrationException 
+	 * @throws RegistrationException
 	 */
 	private void sendResetMail(Registration reg, String key) throws RegistrationException {
 		RegistrationBean user = new RegistrationBean(reg.getEmail(), reg.getName(), reg.getSurname());
 		String lang = reg.getLang();
-		Map<String,Object> vars = new HashMap<String, Object>();
+		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("user", user);
-		vars.put("url", applicationURL+"/internal/confirm?confirmationCode="+key);
+		vars.put("url", applicationURL + "/internal/confirm?confirmationCode=" + key);
 		String subject = messageSource.getMessage("reset.subject", null, Locale.forLanguageTag(reg.getLang()));
-		sender.sendEmail(reg.getEmail(), "mail/reset_"+lang, subject, vars);
+		sender.sendEmail(reg.getEmail(), "mail/reset_" + lang, subject, vars);
 	}
-
 
 }

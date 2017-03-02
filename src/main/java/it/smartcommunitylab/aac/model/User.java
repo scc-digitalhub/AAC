@@ -29,6 +29,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.api.client.util.Sets;
+
 /**
  * DB entity representing the user: user ID, social ID, and the attributes
  * @author raman
@@ -46,16 +49,22 @@ public class User implements Serializable {
 
 //	@OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
 //			CascadeType.REMOVE, CascadeType.MERGE })
-	@OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL})	
+	@OneToMany(fetch = FetchType.EAGER, cascade = { CascadeType.ALL})	
 	@JoinColumn(name = "USER_ID", nullable=false)
+	@JsonIgnore
 	private Set<Attribute> attributeEntities;
 
+	@OneToMany(fetch = FetchType.EAGER, cascade = { CascadeType.ALL}, orphanRemoval = true)	
+	@JoinColumn(name = "USER_ID", nullable=false)
+	private Set<Role> roles;	
+	
 	private String name; 
 	private String surname;
 	private String fullName;
 	
 	public User() {
 		super();
+		this.roles = Sets.newHashSet();
 	}
 	
 	
@@ -70,6 +79,7 @@ public class User implements Serializable {
 		super();
 		updateNames(name, surname);
 		this.attributeEntities = attrs;
+		this.roles = Sets.newHashSet();
 	}
 
 
@@ -90,6 +100,13 @@ public class User implements Serializable {
 		this.attributeEntities = attributeEntities;
 	}
 
+	public Set<Role> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(Set<Role> roles) {
+		this.roles = roles;
+	}
 
 	@Override
 	public String toString() {

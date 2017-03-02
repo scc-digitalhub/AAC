@@ -278,8 +278,8 @@ public class AuthController {
 			userEntity = providerServiceAdapter.updateUser(authorityUrl, toMap(pairs), req);
 		}
 
-		List<GrantedAuthority> list = roleManager.buildAuthorities(userEntity, authorityUrl);
-
+		List<GrantedAuthority> list = roleManager.buildAuthorities(userEntity);
+		
 		UserDetails user = new User(userEntity.getId().toString(), "", list);
 		AbstractAuthenticationToken a = new AACAuthenticationToken(user, null, authorityUrl, list);
 		a.setDetails(authorityUrl);

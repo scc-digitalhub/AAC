@@ -16,13 +16,16 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashSet;
-import java.util.LinkedList;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,9 +34,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import it.smartcommunitylab.aac.model.Attribute;
-import it.smartcommunitylab.aac.model.Identity;
-import it.smartcommunitylab.aac.model.User;
+import com.google.common.collect.Sets;
 
 /**
  * Used to check whether the user has the administrator rights.
@@ -46,9 +47,18 @@ public class RoleManager {
 	@Autowired
 	@Value("${security.adminfile}")
 	private Resource adminFile;
+	
+	@Value("${admin.password}")
+	private String adminPassword;	
 
 	@Autowired
 	private AttributesAdapter attributesAdapter;
+	
+	@Autowired
+	private RegistrationManager registrationManager;
+	
+	@Autowired
+	private UserRepository userRepository;	
 	
 	public enum ROLE {
 		admin ("ROLE_ADMIN"), 
@@ -67,49 +77,118 @@ public class RoleManager {
 		}
 	};
 	
-	public List<GrantedAuthority> buildAuthorities(User user, String provider) {
-		List<GrantedAuthority> list = new LinkedList<>();
-		list.add(new SimpleGrantedAuthority(ROLE.user.roleName()));
+	public enum SCOPE {
+		system ("SCOPE_SYSTEM"), 
+		application ("SCOPE_APPLICATION");
+		
+		private final String scopeName;
 
-		Set<Identity> identityAttrs = new HashSet<Identity>();
-		for (Attribute a : user.getAttributeEntities()) {
-			if (a.getAuthority().getName().equals(provider) && 
-				attributesAdapter.isIdentityAttr(a)) {
-				identityAttrs.add(new Identity(provider, a.getKey(), a.getValue(), null));
-			}
+		private SCOPE(String scopeName) {
+			this.scopeName = scopeName;
 		}
+		
+		public String scopeName(){
+			return scopeName;
+		}
+	};	
+	
+	
+	@PostConstruct
+	public void init() {
 		try {
-			for (Identity test : readIdentities()) {
-				if (identityAttrs.contains(test)) {
-					list.add(new SimpleGrantedAuthority(ROLE.valueOf(test.getRole()).roleName()));
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+			User admin = registrationManager.registerOffline("", "", "admin", adminPassword, null);
+			Role role = new Role(SCOPE.system, ROLE.admin, null);
+//			admin.getRoles().add(role);
+			admin.setRoles(Sets.newHashSet(role));
+			userRepository.saveAndFlush(admin);
+		} catch (AlreadyRegisteredException e1) {
 		}
+	}
+	
+	
+	public void updateRoles(User user, Set<Role> roles) {
+//		user.getRoles().clear();
+//		user.getRoles().addAll(roles);
+		user.setRoles(roles);
+		userRepository.saveAndFlush(user);
+	}
+	
+	public void addRole(User user, Role role) {
+		Set<Role> roles = Sets.newHashSet(user.getRoles());
+		roles.add(role);
+		
+		user.setRoles(roles);
+		userRepository.saveAndFlush(user);
+	}
+	
+	public void removeRole(User user, Role role) {
+		Set<Role> roles = Sets.newHashSet(user.getRoles());
+		roles.remove(role);
+		
+		user.setRoles(roles);
+		userRepository.saveAndFlush(user);
+	}	
+	
+	public Set<Role> getRoles(User user) {
+		return user.getRoles();
+	}		
+	
+	public boolean hasRole(User user, Role role) {
+		return user.getRoles().contains(role);
+	}
+	
+	public List<GrantedAuthority> buildAuthorities(User user) {
+		Set<Role> roles = getRoles(user);
+		
+		List<GrantedAuthority> list = roles.stream().filter(x -> x.getScope().equals(SCOPE.system)).map(y -> new SimpleGrantedAuthority(y.getRole().roleName())).collect(Collectors.toList());
+
 		return list;
 	}
 	
-	public boolean checkAccount(Set<Identity> identityStrings, ROLE role) throws Exception {
-		for (Identity test : readIdentities()) {
-			if (role.name().equals(test.getRole()) && identityStrings.contains(test)) return true;
-		}
-		return false;
-	}
 	
-	private List<Identity> readIdentities() throws IOException {
-		List<Identity> res = new LinkedList<>();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(adminFile.getInputStream()));
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-			if (line.startsWith("#")) continue;
-
-			String[] arr = line.split(";");
-			if (arr.length != 4) continue;
-				
-			Identity test = new Identity(arr[0].trim(), arr[1].trim(), arr[2].trim(), arr[3].trim().toLowerCase());
-			res.add(test);
-		}
-		return res;
-	}
+//	public List<GrantedAuthority> buildAuthorities(User user, String provider) {
+//		List<GrantedAuthority> list = new LinkedList<>();
+//		list.add(new SimpleGrantedAuthority(ROLE.user.roleName()));
+//
+//		Set<Identity> identityAttrs = new HashSet<Identity>();
+//		for (Attribute a : user.getAttributeEntities()) {
+//			if (a.getAuthority().getName().equals(provider) && 
+//				attributesAdapter.isIdentityAttr(a)) {
+//				identityAttrs.add(new Identity(provider, a.getKey(), a.getValue(), null));
+//			}
+//		}
+//		try {
+//			for (Identity test : readIdentities()) {
+//				if (identityAttrs.contains(test)) {
+//					list.add(new SimpleGrantedAuthority(ROLE.valueOf(test.getRole()).roleName()));
+//				}
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return list;
+//	}
+//	
+//	public boolean checkAccount(Set<Identity> identityStrings, ROLE role) throws Exception {
+//		for (Identity test : readIdentities()) {
+//			if (role.name().equals(test.getRole()) && identityStrings.contains(test)) return true;
+//		}
+//		return false;
+//	}
+//	
+//	private List<Identity> readIdentities() throws IOException {
+//		List<Identity> res = new LinkedList<>();
+//		BufferedReader reader = new BufferedReader(new InputStreamReader(adminFile.getInputStream()));
+//		String line = null;
+//		while ((line = reader.readLine()) != null) {
+//			if (line.startsWith("#")) continue;
+//
+//			String[] arr = line.split(";");
+//			if (arr.length != 4) continue;
+//				
+//			Identity test = new Identity(arr[0].trim(), arr[1].trim(), arr[2].trim(), arr[3].trim().toLowerCase());
+//			res.add(test);
+//		}
+//		return res;
+//	}
 }

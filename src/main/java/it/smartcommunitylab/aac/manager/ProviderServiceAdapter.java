@@ -15,6 +15,15 @@
  */
 package it.smartcommunitylab.aac.manager;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.model.Attribute;
+import it.smartcommunitylab.aac.model.Authority;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.AttributeRepository;
+import it.smartcommunitylab.aac.repository.AuthorityRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,14 +38,6 @@ import javax.xml.bind.JAXBException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.Attribute;
-import it.smartcommunitylab.aac.model.Authority;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.AttributeRepository;
-import it.smartcommunitylab.aac.repository.AuthorityRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * This class manages operations of the service
@@ -100,17 +101,20 @@ public class ProviderServiceAdapter {
 		User user = null;
 		if (users.isEmpty()) {
 			user = new User(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR), new HashSet<Attribute>(list));
-			user = userRepository.save(user);
+			user.getRoles().add(Role.systemUser());
+			user = userRepository.saveAndFlush(user);
 		} else {
 			user = users.get(0);
 			attributeRepository.deleteInBatch(user.getAttributeEntities());
 			user.setAttributeEntities(new HashSet<Attribute>(list));
 			user.updateNames(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR));
-			userRepository.save(user);
+			userRepository.saveAndFlush(user);
 		}
 		return user;
 	}
 
+//	public User updateUserRoles()
+	
 	private void populateAttributes(Authority auth, Map<String, String> attributes, List<Attribute> list, Set<Attribute> old) {
 		for (String key : attributes.keySet()) {
 			String value = attributes.get(key);
