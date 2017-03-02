@@ -96,7 +96,7 @@ public class RoleManager {
 	@PostConstruct
 	public void init() {
 		try {
-			User admin = registrationManager.registerOffline("", "", "admin", adminPassword, null);
+			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null);
 			Role role = new Role(SCOPE.system, ROLE.admin, null);
 //			admin.getRoles().add(role);
 			admin.setRoles(Sets.newHashSet(role));
