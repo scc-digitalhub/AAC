@@ -18,3 +18,5 @@ buildNumber.properties
 
 .settings/org.eclipse.wst.common.project.facet.core.prefs.xml
 
+
+.DS_Store
