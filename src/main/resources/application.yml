@@ -11,10 +11,15 @@ jdbc:
   user: ac
   password: ac
 
+spring:
+  messages:
+    basename: resources/internal
+    encoding: UTF-8
+
 
 security:
   restricted: false
-  adminfile: file:///home/dev/sources/aac/admin.txt
+  adminfile: 
   basic:
       enabled: false
 
@@ -49,17 +54,28 @@ oauth-providers:
         preferTokenInfo: true        
 
 mail:
-  username: test
+  username: info@smartcommunitylab.it
   password: 
-  host: 
-  port: 25
-  protocol: 
+  host: smtp.smartcommunitylab.it
+  port: 465
+  protocol: smtps 
 
 logging:
   level:
     org.springframework.security: DEBUG
+
+api:
+  store:
+    endpoint: https://localhost:9443/api/am/store/v0.10 
+  publisher:
+    endpoint: https://localhost:9443/api/am/publisher/v0.10
+  identity:
+    endpoint: https://localhost:9443/services/IdentityApplicationManagementService
+    password: admin    
+  usermgmt:
+    endpoint: https://localhost:9443/services/RemoteUserStoreManagerService
+    password: admin    
+  multitenancy:
+    endpoint: https://localhost:9443/services/TenantMgtAdminService
+    password: admin      
     
-spring:
-  messages:
-    basename: resources/internal
-    encoding: UTF-8    

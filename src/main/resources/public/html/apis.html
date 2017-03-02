@@ -1,0 +1,29 @@
+<div class="container">
+<div class="row" ng-controller="APIListController">
+  <!--/span-->
+  <div class="col-md-9 col-md-offset-2 well">
+		 <div class="header">
+		   <h1>APIs</h1>
+		 </div>
+		  <table class="table table-hover">
+		   <tr ng-repeat="api in apis" ng-click="goAPI(api)">
+		     <td>
+		       <strong>{{api.name}}</strong><br><span ng-if="!!api.description">({{api.description}})</span> 
+		     </td>
+		     <td>
+		      {{api.version}}
+		     </td>
+		     <td>
+		      {{api.status}}
+		     </td>
+		   </tr>
+		 </table>
+		 <div class="text-center">
+		<!--    <ul uib-pagination total-items="page.totalItems" ng-model="page.currentPage" items-per-page="page.limit" max-size="1" class="pagination-sm" ng-change="pageChanged()"></ul>    -->
+		 </div>    
+   </div>
+  <!--/span-->
+</div>
+<!--/row-->
+</div>
+

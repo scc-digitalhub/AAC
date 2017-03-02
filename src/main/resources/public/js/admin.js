@@ -1,8 +1,9 @@
+angular.module('aac.controllers.admin', [])
 /**
  * Main layout controller
  * @param $scope
  */
-function AdminController($scope, $resource) {
+.controller('AdminController', function ($scope, $resource) {
 	// error message
 	$scope.error = '';
 	// info message
@@ -78,4 +79,4 @@ function AdminController($scope, $resource) {
 			}	
 		});
 	};
-}
+})
