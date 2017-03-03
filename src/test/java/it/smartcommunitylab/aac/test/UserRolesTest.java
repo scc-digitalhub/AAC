@@ -1,14 +1,16 @@
 package it.smartcommunitylab.aac.test;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.manager.RoleManager.ROLE;
-import it.smartcommunitylab.aac.manager.RoleManager.SCOPE;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -27,6 +29,7 @@ import com.google.common.collect.Sets;
 @EnableConfigurationProperties
 public class UserRolesTest {
 
+	private static final String TESTAPP = "testapp";
 	private static final String USERNAME = "testuser";
 
 	@Autowired
@@ -41,8 +44,9 @@ public class UserRolesTest {
 	@Autowired
 	private RegistrationRepository registrationRepository;		
 
-	private Role role1 = new Role(SCOPE.system, ROLE.developer, null);
-	private Role role2 = new Role(SCOPE.application, ROLE.user, null);	
+	private Role role1 = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
+	private Role role2 = new Role(ROLE_SCOPE.application, Config.R_USER, TESTAPP);
+	private Role role3 = new Role(ROLE_SCOPE.user, Config.R_ADMIN, TESTAPP);
 	private User user;
 	
 	@Before
@@ -60,7 +64,7 @@ public class UserRolesTest {
 	}	
 	
 	@Test
-	public void test() {
+	public void testChangeRoles() {
 		Long id = user.getId();
 		
 		user = userRepository.findOne(id);
@@ -82,5 +86,35 @@ public class UserRolesTest {
 		Assert.assertTrue(roleManager.hasRole(user, role1));
 		Assert.assertFalse(roleManager.hasRole(user, role2));		
 	}
+	
+	@Test
+	public void testFindByRole() {
+//		Pageable pageable = new PageRequest(0, 5);
+//		List<User> users = userRepository.findByPartialRole(role1.getRole(), role1.getScope(), pageable);
+		List<User> users = roleManager.findUsersByRole(role1, false, 0, 5);
+		Assert.assertEquals(2, users.size());
+		
+//		pageable = new PageRequest(0, 1);
+//		users = userRepository.findByPartialRole(role1.getRole(), role1.getScope(), pageable);
+		users = roleManager.findUsersByRole(role1, false, 0, 1);
+		Assert.assertEquals(1, users.size());		
+		
+//		pageable = new PageRequest(1, 1);
+//		users = userRepository.findByPartialRole(role1.getRole(), role1.getScope(), pageable);
+		users = roleManager.findUsersByRole(role1, false, 1, 1);
+		Assert.assertEquals(1, users.size());		
+		
+		roleManager.addRole(user, role2);
+//		pageable = new PageRequest(0, 5);
+//		users = userRepository.findByFullRole(role2.getRole(), role2.getScope(), TESTAPP, pageable);
+		users = roleManager.findUsersByRole(role2, true, 0, 5);
+		Assert.assertEquals(1, users.size());	
+		
+//		users = userRepository.findByFullRole(role1.getRole(), role2.getScope(), TESTAPP, pageable);
+		users = roleManager.findUsersByRole(role3, true, 0, 5);
+		Assert.assertEquals(0, users.size());			
+		
+	}
+	
 	
 }

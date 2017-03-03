@@ -16,6 +16,13 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,18 +32,13 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * Used to check whether the user has the administrator rights.
@@ -106,6 +108,15 @@ public class RoleManager {
 	
 	public boolean hasRole(User user, Role role) {
 		return user.getRoles().contains(role);
+	}
+	
+	public List<User> findUsersByRole(Role role, boolean full, int page, int pageSize) {
+		Pageable pageable = new PageRequest(page, pageSize);
+		if (full) {
+			return userRepository.findByFullRole(role.getRole(), role.getScope(), role.getContext(), pageable);
+		} else {
+			return userRepository.findByPartialRole(role.getRole(), role.getScope(), pageable);
+		}
 	}
 	
 	public List<GrantedAuthority> buildAuthorities(User user) {
