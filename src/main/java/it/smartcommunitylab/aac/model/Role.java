@@ -1,14 +1,14 @@
 package it.smartcommunitylab.aac.model;
 
-import it.smartcommunitylab.aac.manager.RoleManager.ROLE;
-import it.smartcommunitylab.aac.manager.RoleManager.SCOPE;
-
 import java.io.Serializable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 
 @Entity
 @Table(name = "role")
@@ -23,14 +23,14 @@ public class Role implements Serializable {
 	@GeneratedValue
 	private Long id;
 
-	private SCOPE scope;
-	private ROLE role;
+	private ROLE_SCOPE scope;
+	private String role;
 	private String context;
 
 	public Role() {
 	}
 	
-	public Role(SCOPE scope, ROLE role, String context) {
+	public Role(ROLE_SCOPE scope, String role, String context) {
 		super();
 		this.scope = scope;
 		this.role = role;
@@ -38,7 +38,7 @@ public class Role implements Serializable {
 	}
 	
 	public static Role systemUser() {
-		return new Role(SCOPE.system, ROLE.user, null);
+		return new Role(ROLE_SCOPE.system, Config.R_USER, null);
 	}
 
 
@@ -50,19 +50,19 @@ public class Role implements Serializable {
 		this.id = id;
 	}
 
-	public SCOPE getScope() {
+	public ROLE_SCOPE getScope() {
 		return scope;
 	}
 
-	public void setScope(SCOPE scope) {
+	public void setScope(ROLE_SCOPE scope) {
 		this.scope = scope;
 	}
 
-	public ROLE getRole() {
+	public String getRole() {
 		return role;
 	}
 
-	public void setRole(ROLE role) {
+	public void setRole(String role) {
 		this.role = role;
 	}
 
@@ -98,9 +98,9 @@ public class Role implements Serializable {
 				return false;
 		} else if (!context.equals(other.context))
 			return false;
-		if (role != other.role)
+		if (!role.equals(other.role))
 			return false;
-		if (scope != other.scope)
+		if (!scope.equals(other.scope))
 			return false;
 		return true;
 	}

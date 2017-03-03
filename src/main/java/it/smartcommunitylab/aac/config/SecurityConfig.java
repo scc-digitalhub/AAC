@@ -48,8 +48,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 import org.springframework.web.filter.CorsFilter;
 
+import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.manager.APIMgmtTokenEmitter;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
@@ -103,8 +103,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public APIMgmtTokenEmitter tokenEmitter() {
-		return new APIMgmtTokenEmitter();
+	public APIProviderManager tokenEmitter() {
+		return new APIProviderManager();
 	}
 	
 	@Bean

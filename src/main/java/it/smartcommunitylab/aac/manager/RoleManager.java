@@ -16,11 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,6 +30,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * Used to check whether the user has the administrator rights.
@@ -60,44 +62,13 @@ public class RoleManager {
 	@Autowired
 	private UserRepository userRepository;	
 	
-	public enum ROLE {
-		admin ("ROLE_ADMIN"), 
-		user ("ROLE_USER"), 
-		developer ("ROLE_DEVELOPER"), 
-		manager ("ROLE_MANAGER");
-		
-		private final String roleName;
-
-		private ROLE(String roleName) {
-			this.roleName = roleName;
-		}
-		
-		public String roleName(){
-			return roleName;
-		}
-	};
-	
-	public enum SCOPE {
-		system ("SCOPE_SYSTEM"), 
-		application ("SCOPE_APPLICATION");
-		
-		private final String scopeName;
-
-		private SCOPE(String scopeName) {
-			this.scopeName = scopeName;
-		}
-		
-		public String scopeName(){
-			return scopeName;
-		}
-	};	
 	
 	
 	@PostConstruct
 	public void init() {
 		try {
 			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null);
-			Role role = new Role(SCOPE.system, ROLE.admin, null);
+			Role role = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
 //			admin.getRoles().add(role);
 			admin.setRoles(Sets.newHashSet(role));
 			userRepository.saveAndFlush(admin);
@@ -140,7 +111,7 @@ public class RoleManager {
 	public List<GrantedAuthority> buildAuthorities(User user) {
 		Set<Role> roles = getRoles(user);
 		
-		List<GrantedAuthority> list = roles.stream().filter(x -> x.getScope().equals(SCOPE.system)).map(y -> new SimpleGrantedAuthority(y.getRole().roleName())).collect(Collectors.toList());
+		List<GrantedAuthority> list = roles.stream().filter(x -> x.getScope().equals(ROLE_SCOPE.system)).map(y -> new SimpleGrantedAuthority(y.getRole())).collect(Collectors.toList());
 
 		return list;
 	}

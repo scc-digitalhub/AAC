@@ -55,13 +55,6 @@
       <attributes>email</attributes>
       <identifyingAttributes>email</identifyingAttributes>
   </authorityMapping>
-  <authorityMapping name="apimanager" url="apimanager" public="false" web="false" useParams="true">
-      <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
-      <attributes alias="it.smartcommunitylab.aac.surname">surname</attributes>
-      <attributes>email</attributes>
-      <attributes>fulldomainname</attributes>
-      <identifyingAttributes>fulldomainname</identifyingAttributes>
-  </authorityMapping>
   <authorityMapping name="adc" url="adc" public="false" web="true" >
       <attributes alias="it.smartcommunitylab.aac.givenname">pat_attribute_nome</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">pat_attribute_cognome</attributes>
@@ -97,7 +90,6 @@
       <authority name="facebook" attribute="email"/>
       <authority name="facebooklocal" attribute="email"/>
       <authority name="internal" attribute="email"/>
-      <authority name="apimanager" attribute="email"/>
   </authorityMatching>
   <authorityMatching>
       <authority name="facebook" attribute="id"/>

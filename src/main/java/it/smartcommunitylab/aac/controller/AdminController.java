@@ -22,16 +22,30 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.validation.Valid;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
+import it.smartcommunitylab.aac.apimanager.APIProvider;
+import it.smartcommunitylab.aac.apimanager.APIProviderManager;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.ApprovalData;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -57,7 +71,9 @@ public class AdminController {
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private ResourceRepository resourceRepository;
-
+	@Autowired
+	private APIProviderManager providerManager;
+	
 	private static final Log logger = LogFactory.getLog(AdminController.class);
 	
 	@RequestMapping("/admin/approvals")
@@ -176,5 +192,51 @@ public class AdminController {
 			return result;
 		}
 	}
+
+	public @ResponseBody Response getAPIProviders(@RequestParam(required=false, defaultValue="0") Integer offset, 
+			@RequestParam(required=false, defaultValue="25") Integer limit, 
+			@RequestParam(required=false, defaultValue="") String query) 
+	{
+		// TODO
+		return null;
+	}
+	
+	@PostMapping("/admin/apiproviders")
+	public @ResponseBody Response createAPIProvider(@Valid @RequestBody APIProvider provider) {
+		
+		providerManager.createAPIProvider(provider);
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.OK);
+		return result;
+	}
+	
+
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processValidationError(MethodArgumentNotValidException ex) {
+        BindingResult br = ex.getBindingResult();
+        List<FieldError> fieldErrors = br.getFieldErrors();
+        StringBuilder builder = new StringBuilder();
+        
+        fieldErrors.forEach(fe -> builder.append(fe.getDefaultMessage()).append("\n"));
+        
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.ERROR);
+		result.setErrorMessage(builder.toString());
+		return result;
+    }
+	
+	@ExceptionHandler(RegistrationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public Response processRegistrationError(MethodArgumentNotValidException ex) {
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.ERROR);
+		result.setErrorMessage(ex.getMessage());
+		return result;
+
+    }
 
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.apimanager;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -37,7 +37,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
-import it.smartcommunitylab.aac.manager.APIMgmtTokenEmitter;
 import it.smartcommunitylab.aac.wso2.model.API;
 import it.smartcommunitylab.aac.wso2.model.APIInfo;
 import it.smartcommunitylab.aac.wso2.model.DataList;
@@ -58,7 +57,7 @@ public class APIMgtController {
 	@Autowired
 	private UserManagementService isService;
 	@Autowired
-	private APIMgmtTokenEmitter tokenEmitter;
+	private APIProviderManager tokenEmitter;
 	
 	
 	@GetMapping("/mgmt/apis")

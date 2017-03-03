@@ -54,7 +54,6 @@ import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.RoleManager.ROLE;
 import it.smartcommunitylab.aac.model.Registration;
 
 /**
@@ -95,7 +94,7 @@ public class RegistrationController {
 			}
 			
 			List<GrantedAuthority> list = new LinkedList<>();
-			list.add(new SimpleGrantedAuthority(ROLE.user.roleName()));
+			list.add(new SimpleGrantedAuthority(Config.R_USER));
 			
 			AbstractAuthenticationToken a = new UsernamePasswordAuthenticationToken(username, password, list);
 			a.setDetails(Config.IDP_INTERNAL);

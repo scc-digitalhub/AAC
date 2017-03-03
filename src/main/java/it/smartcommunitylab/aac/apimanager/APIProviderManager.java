@@ -14,14 +14,16 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.manager;
+package it.smartcommunitylab.aac.apimanager;
 
+import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
@@ -38,23 +40,38 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.util.StringUtils;
+import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.manager.RoleManager.ROLE;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.services.UserManagementService;
+import it.smartcommunitylab.aac.wso2.services.Utils;
 
 /**
  * @author raman
  *
  */
 @Transactional
-public class APIMgmtTokenEmitter {
+public class APIProviderManager {
 	
+	/** APIMananger email */
+	public static final String EMAIL_ATTR = "email";
+
 	private static final String API_MGT_CLIENT_ID = "API_MGT_CLIENT_ID";
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create"};
+	/** Predefined tenant role PROVIDER (API provider) */
+	private static final String R_PROVIDER = "ROLE_PROVIDER";
 	
 	@Autowired
 	@Qualifier("appTokenServices")
@@ -63,11 +80,37 @@ public class APIMgmtTokenEmitter {
 	private UserManager userManager;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
+	@Autowired
+	private UserRepository userRepository;
+	@Autowired
+	private UserManagementService umService;
 	
+
+	
+	public void createAPIProvider(APIProvider provider) throws RegistrationException {
+		// TODO
+		// - create user with authority API provider, generate password
+		// - send 'confirmation' email
+		List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, provider.getEmail());
+		if (users != null && !users.isEmpty()) {
+			User user = users.get(0);
+			if (user.hasRole(ROLE_SCOPE.tenant, R_PROVIDER)) {
+				throw new AlreadyRegisteredException();
+			}
+		}
+		String password = generatePassword();
+		try {
+			umService.createPublsher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());
+			String fullDomainName = Utils.getUserNameAtTenant(provider.getEmail(), provider.getDomain());
+			
+		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
+			throw new RegistrationException(e.getMessage());
+		}
+	}
 	
 	public String createToken() throws Exception {
 		Map<String, String> requestParameters = new HashMap<>();
-		String apiManagerName = userManager.getAPIManagerName();
+		String apiManagerName = getAPIManagerName();
 		if (apiManagerName == null) {
 			return null;
 		}
@@ -89,7 +132,7 @@ public class APIMgmtTokenEmitter {
 	private Collection<? extends GrantedAuthority> authorities() {
 		// TODO user authorities
 		List<GrantedAuthority> list = new LinkedList<>();
-		list.add(new SimpleGrantedAuthority(ROLE.user.roleName()));
+		list.add(new SimpleGrantedAuthority(Config.R_USER));
 		return list;
 	}
 
@@ -135,5 +178,28 @@ public class APIMgmtTokenEmitter {
 	private String defaultGrantTypes() {
 		return StringUtils.arrayToCommaDelimitedString(GRANT_TYPES);
 	}
-
+	/**
+	 * @return
+	 */
+	private String generatePassword() {
+		// TODO
+		return null;
+	}
+	
+	/**
+	 * @param user
+	 * @return
+	 */
+	private String getAPIManagerName() {
+		User user = userManager.getUser();
+		if (user == null) return null;
+		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
+		if (providerRoles.isEmpty()) return null;
+		
+		String email = user.attributeValue(Config.IDP_INTERNAL, EMAIL_ATTR);
+		if (email == null) return null;
+		Role role = providerRoles.iterator().next();
+		
+		return Utils.getUserNameAtTenant(email, role.getContext());
+	}
 }

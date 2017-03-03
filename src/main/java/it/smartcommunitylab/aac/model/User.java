@@ -18,7 +18,9 @@ package it.smartcommunitylab.aac.model;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -31,6 +33,8 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.client.util.Sets;
+
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 
 /**
  * DB entity representing the user: user ID, social ID, and the attributes
@@ -147,5 +151,30 @@ public class User implements Serializable {
 		if (name != null) setName(name);
 		if (surname != null) setSurname(surname);
 		setFullName((getName()+" "+getSurname()).trim().toLowerCase());
+	}
+	
+	public boolean hasRole(ROLE_SCOPE scope, String role, String context) {
+		// TODO
+		return false;
+	}
+	public boolean hasRole(ROLE_SCOPE scope, String role) {
+		// TODO
+		return false;
+	}
+	
+	public Set<Role> role(ROLE_SCOPE scope, String role) {
+		return roles
+		.stream()
+		.filter(r -> { return r.getScope().equals(scope) && r.getRole().equals(role); })
+		.collect(Collectors.toSet());
+	}
+	
+	public String attributeValue(String authority, String key) {
+		Optional<Attribute> attr = attributeEntities
+				.stream()
+				.filter(a -> {return a.getAuthority().getName().equals(authority) && a.getKey().equals(key);})
+				.findAny();
+		if (attr.isPresent()) return attr.get().getValue();
+		return null;
 	}
 }

@@ -159,7 +159,7 @@ public class RegistrationManager {
 			reg.setConfirmed(true);
 			reg.setConfirmationKey(null);
 			reg.setConfirmationDeadline(null);
-			User globalUser = providerServiceAdapter.updateUser("internal", toMap(reg), null);
+			User globalUser = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(reg), null);
 			reg.setUserId("" + globalUser.getId());
 
 			repository.save(reg);

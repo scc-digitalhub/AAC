@@ -29,16 +29,37 @@ public class Config {
 	public static final String SURNAME_ATTR = "it.smartcommunitylab.aac.surname";
 	/** Internal Attribute Authority */ 
 	public static final String IDP_INTERNAL = "internal";
-	/** APIManager Attribute Authority */ 
-	public static final String IDP_APIMANAGER = "apimanager";
-	/** APIMananger full domain name (email @ domain) */
-	public static final String FULLDOMAIN_ATTR = "fulldomainname";
 	
 	/** Authorization authorities */
 	public enum AUTHORITY {ROLE_USER, ROLE_CLIENT, ROLE_ANY, ROLE_CLIENT_TRUSTED};
 	
 	/** Resource visibility values: either only the specific app can see, or all the apps of the current developer, or any app */
 	public enum RESOURCE_VISIBILITY {CLIENT_APP,DEVELOPER,PUBLIC}
+
+	/** ROLE SCOPES */ 
+	public enum ROLE_SCOPE {
+		system ("SCOPE_SYSTEM"), 
+		application ("SCOPE_APPLICATION"),
+		tenant ("SCOPE_TENANT"),
+		user ("SCOPE_USER");
+		
+		private final String scopeName;
+
+		private ROLE_SCOPE(String scopeName) {
+			this.scopeName = scopeName;
+		}
+		
+		public String scopeName(){
+			return scopeName;
+		}
+	};
+	
+	/** Predefined system role USER */
+	public static final String R_USER = "ROLE_USER";
+	/** Predefined system role ADMIN */
+	public static final String R_ADMIN = "ROLE_ADMIN";
+
+	
 
 	/**
 	 * Check whether the child property visibility is equal or more restrictive than the one of the parent property.

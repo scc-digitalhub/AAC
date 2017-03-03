@@ -109,20 +109,4 @@ public class UserManager {
 		return user;
 	}
 
-	/**
-	 * @param user
-	 * @return
-	 */
-	public String getAPIManagerName() {
-		Long id = getUserId();
-		if (id == null || id == 0) return null; 
-		User user = userRepository.findOne(id);
-		if (user == null) return null;
-		for (Attribute a : user.getAttributeEntities()) {
-			if (a.getAuthority().equals(Config.IDP_APIMANAGER) && a.getKey().equals(Config.FULLDOMAIN_ATTR)) {
-				return a.getValue();
-			}
-		}
-		return null;
-	}
 }
