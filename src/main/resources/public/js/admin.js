@@ -12,13 +12,7 @@ angular.module('aac.controllers.admin', [])
 	$scope.title = 'App Approvals';
 	
 	$scope.adminView = 'approvals';
-	$scope.activeView = function(view) {
-		return view == $scope.adminView ? 'active' : '';
-	};
-	$scope.signOut = function() {
-	    window.document.location = "./admin/logout";
-	};
-	
+
 	// resource reference for the approval API
 	var ClientApprovals = $resource('admin/approvals/:clientId', {}, {
 		query : { method : 'GET' },
@@ -79,4 +73,55 @@ angular.module('aac.controllers.admin', [])
 			}	
 		});
 	};
+})
+
+.controller('APIProviderController', function ($uibModal, $scope, APIProviders, Utils) {
+
+	var resetPage = function(){
+		$scope.page = {
+		  offset: 0,
+		  limit: 25,
+		  totalItems: 0,
+		  currentPage: 1
+		};
+	}
+	resetPage();
+	
+	// page changed
+	$scope.pageChanged = function() {
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadData();
+	};
+
+	// load providers
+	var loadData = function(){
+		APIProviders.getProviders($scope.page.offset, $scope.page.limit).then(function(data){
+	    	$scope.providers = data.list;
+			var count = (($scope.page.currentPage-1) * $scope.page.limit + data.count);
+			$scope.page.totalItems = 
+				data.count < $scope.page.limit ? count : (count + 1);			
+	    }, Utils.showError);
+	}
+	loadData();
+
+	// create provider
+	$scope.createProvider = function() {
+		$scope.providerDlg.close();
+		APIProviders.createProvider($scope.provider).then(function(){
+			Utils.showSuccess();
+			resetPage();
+			loadData();
+		},Utils.showError);
+	}
+	
+	$scope.newProvider = function(){
+		$scope.provider = {};
+		$scope.providerDlg = $uibModal.open({
+	      ariaLabelledBy: 'modal-title',
+	      ariaDescribedBy: 'modal-body',
+	      templateUrl: 'html/provider.modal.html',
+	      scope: $scope,
+	      size: 'lg'
+	    });
+	}
 })

@@ -17,26 +17,41 @@
 package it.smartcommunitylab.aac.apimanager;
 
 import java.rmi.RemoteException;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.apache.axis2.AxisFault;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.wso2.model.API;
 import it.smartcommunitylab.aac.wso2.model.APIInfo;
 import it.smartcommunitylab.aac.wso2.model.DataList;
@@ -55,10 +70,11 @@ public class APIMgtController {
 	@Autowired
 	private APIPublisherService pub;
 	@Autowired
-	private UserManagementService isService;
+	private UserManagementService umService;
 	@Autowired
-	private APIProviderManager tokenEmitter;
-	
+	private APIProviderManager providerManager;
+	@Autowired
+	private RoleManager roleManager;
 	
 	@GetMapping("/mgmt/apis")
 	public @ResponseBody DataList<APIInfo> getAPIs(
@@ -99,7 +115,7 @@ public class APIMgtController {
 	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws AxisFault, RemoteException, TenantMgtAdminServiceExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException 
 	{
 		String name = "", domain = "";
-		isService.updateRoles(roleModel, name, domain);
+		umService.updateRoles(roleModel, name, domain);
 		return pub.getUserAPIRoles(apiId, name, domain, getToken());
 	}
 	/**
@@ -111,15 +127,73 @@ public class APIMgtController {
 		return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
 	}
 
-	@RequestMapping("/apimanager/token")
+	@GetMapping("/apimanager/token")
 	public @ResponseBody
 	String createToken() {
 		try {
-			return tokenEmitter.createToken();
+			return providerManager.createToken();
 		} catch (Exception e) {
 			throw new AccessDeniedException("Inusfficies API Manager rights");
 		}
 	}
 
+	@GetMapping("/admin/apiproviders")
+	public @ResponseBody DataList<APIProvider> providers(
+			@RequestParam(required=false, defaultValue="0") Integer offset, 
+			@RequestParam(required=false, defaultValue="25") Integer limit) 
+	{
+		List<APIProvider> res = new LinkedList<>();
+		List<User> users = roleManager.findUsersByRole(ROLE_SCOPE.tenant, APIProviderManager.R_PROVIDER, offset / limit + 1, limit);
+		users.forEach(u -> {
+			String domain = u.role(ROLE_SCOPE.tenant, APIProviderManager.R_PROVIDER).iterator().next().getContext();
+			res.add(new APIProvider(
+					u.attributeValue(Config.IDP_INTERNAL, "email"),
+					u.attributeValue(Config.IDP_INTERNAL, "name"),
+					u.attributeValue(Config.IDP_INTERNAL, "surname"),
+					domain,
+					u.attributeValue(Config.IDP_INTERNAL, "lang")
+					));
+		});
+		DataList<APIProvider> dataList = new DataList<>();
+		dataList.setList(res);
+		return dataList;
+	}
+	
+	@PostMapping("/admin/apiproviders")
+	public @ResponseBody Response createAPIProvider(@Valid @RequestBody APIProvider provider) {
+		
+		providerManager.createAPIProvider(provider);
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.OK);
+		return result;
+	}
+	
 
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processValidationError(MethodArgumentNotValidException ex) {
+        BindingResult br = ex.getBindingResult();
+        List<FieldError> fieldErrors = br.getFieldErrors();
+        StringBuilder builder = new StringBuilder();
+        
+        fieldErrors.forEach(fe -> builder.append(fe.getDefaultMessage()).append("\n"));
+        
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.ERROR);
+		result.setErrorMessage(builder.toString());
+		return result;
+    }
+	
+	@ExceptionHandler(RegistrationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public Response processRegistrationError(RegistrationException ex) {
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.ERROR);
+		result.setErrorMessage(ex.getMessage());
+		return result;
+
+    }
 }

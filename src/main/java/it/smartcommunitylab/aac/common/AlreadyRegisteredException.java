@@ -21,6 +21,13 @@ package it.smartcommunitylab.aac.common;
  *
  */
 public class AlreadyRegisteredException extends RegistrationException {
+	/**
+	 * @param string
+	 */
+	public AlreadyRegisteredException(String string) {
+		super(string);
+	}
+
 	private static final long serialVersionUID = 3481701175901182216L;
 
 }

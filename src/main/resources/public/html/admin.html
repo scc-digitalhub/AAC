@@ -2,9 +2,10 @@
 <div class="row" ng-controller="AdminController">
   <div class="col-md-2">
     <div class="sidebar-nav well">
-       <ul class="nav nav-list">
-         <li><a ng-click="adminView='approvals';title='App Approvals'">App approvals</a></li>
-         <li><a ng-click="adminView='idps';title='IdP Approvals'">IdP approvals</a></li>
+       <ul class="nav nav-pills nav-stacked">
+         <li ng-class="{'active':adminView == 'approvals'}"><a ng-click="adminView='approvals';title='App Approvals'">App approvals</a></li>
+         <li ng-class="{'active':adminView == 'idps'}"><a ng-click="adminView='idps';title='IdP Approvals'">IdP approvals</a></li>
+         <li ng-class="{'active':adminView == 'providers'}"><a ng-click="adminView='providers';title='API Providers'">API Providers</a></li>
        </ul>
     </div>
     <!--/.well -->

@@ -17,7 +17,7 @@ app.config(function ($httpProvider) {
 
 app.run(function($rootScope){
 	$rootScope.$on("$routeChangeStart", function (event, next, current) {
-		console.log('next = '+event.targetScope.currentView);
+		if (!next.$$route || !next.$$route.originalPath) return;
 		if (next.$$route.originalPath.indexOf('/apps') == 0)  $rootScope.currentView = 'apps';
 		if (next.$$route.originalPath.indexOf('/apis') == 0)  $rootScope.currentView = 'apis';
 		if (next.$$route.originalPath.indexOf('/admin') == 0)  $rootScope.currentView = 'admin';

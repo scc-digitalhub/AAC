@@ -20,7 +20,6 @@ import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -47,6 +45,8 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -71,7 +71,7 @@ public class APIProviderManager {
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create"};
 	/** Predefined tenant role PROVIDER (API provider) */
-	private static final String R_PROVIDER = "ROLE_PROVIDER";
+	public static final String R_PROVIDER = "ROLE_PROVIDER";
 	
 	@Autowired
 	@Qualifier("appTokenServices")
@@ -84,28 +84,39 @@ public class APIProviderManager {
 	private UserRepository userRepository;
 	@Autowired
 	private UserManagementService umService;
-	
-
+	@Autowired
+	private RegistrationManager regManager;
+	@Autowired
+	private RoleManager roleManager;
 	
 	public void createAPIProvider(APIProvider provider) throws RegistrationException {
-		// TODO
-		// - create user with authority API provider, generate password
-		// - send 'confirmation' email
+		//check user exists.
 		List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, provider.getEmail());
 		if (users != null && !users.isEmpty()) {
 			User user = users.get(0);
-			if (user.hasRole(ROLE_SCOPE.tenant, R_PROVIDER)) {
-				throw new AlreadyRegisteredException();
+			Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
+			// if the existing user is already a provider for a different domain, throw an exception
+			if (!providerRoles.isEmpty() && !providerRoles.iterator().next().getContext().equals(provider.getDomain())) {
+				throw new AlreadyRegisteredException("A user with the same username is already registered locally");
 			}
 		}
+		// create WSO2 publisher (tenant and tenant admin)
 		String password = generatePassword();
+		// create registration data and user attributes
+		User created = regManager.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang());
+		Role providerRole = new Role(ROLE_SCOPE.tenant, R_PROVIDER, provider.getDomain());
+		roleManager.addRole(created, providerRole);
+
 		try {
 			umService.createPublsher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());
-			String fullDomainName = Utils.getUserNameAtTenant(provider.getEmail(), provider.getDomain());
+//			String fullDomainName = Utils.getUserNameAtTenant(provider.getEmail(), provider.getDomain());
 			
 		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
 			throw new RegistrationException(e.getMessage());
 		}
+		
+		// TODO
+		// - send 'confirmation' email
 	}
 	
 	public String createToken() throws Exception {
@@ -130,10 +141,7 @@ public class APIProviderManager {
 	 * @return
 	 */
 	private Collection<? extends GrantedAuthority> authorities() {
-		// TODO user authorities
-		List<GrantedAuthority> list = new LinkedList<>();
-		list.add(new SimpleGrantedAuthority(Config.R_USER));
-		return list;
+		return roleManager.buildAuthorities(userManager.getUser());
 	}
 
 	/**
@@ -182,8 +190,8 @@ public class APIProviderManager {
 	 * @return
 	 */
 	private String generatePassword() {
-		// TODO
-		return null;
+		//return RandomStringUtils.randomAlphanumeric(8);
+		return "12345678";
 	}
 	
 	/**

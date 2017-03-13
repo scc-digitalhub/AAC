@@ -20,7 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.Ordered;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -28,7 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
  * @author raman
  *
  */
-@Component
+//@Component
 class GlobalDefaultExceptionHandler implements HandlerExceptionResolver, Ordered {
     public static final String DEFAULT_ERROR_VIEW = "error";
 

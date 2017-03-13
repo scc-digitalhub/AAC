@@ -91,27 +91,27 @@ public class UserRolesTest {
 	public void testFindByRole() {
 //		Pageable pageable = new PageRequest(0, 5);
 //		List<User> users = userRepository.findByPartialRole(role1.getRole(), role1.getScope(), pageable);
-		List<User> users = roleManager.findUsersByRole(role1, false, 0, 5);
+		List<User> users = roleManager.findUsersByRole(role1.getScope(), role1.getRole(), 0, 5);
 		Assert.assertEquals(2, users.size());
 		
 //		pageable = new PageRequest(0, 1);
 //		users = userRepository.findByPartialRole(role1.getRole(), role1.getScope(), pageable);
-		users = roleManager.findUsersByRole(role1, false, 0, 1);
+		users = roleManager.findUsersByRole(role1.getScope(), role1.getRole(), 0, 1);
 		Assert.assertEquals(1, users.size());		
 		
 //		pageable = new PageRequest(1, 1);
 //		users = userRepository.findByPartialRole(role1.getRole(), role1.getScope(), pageable);
-		users = roleManager.findUsersByRole(role1, false, 1, 1);
+		users = roleManager.findUsersByRole(role1.getScope(), role1.getRole(), 1, 1);
 		Assert.assertEquals(1, users.size());		
 		
 		roleManager.addRole(user, role2);
 //		pageable = new PageRequest(0, 5);
 //		users = userRepository.findByFullRole(role2.getRole(), role2.getScope(), TESTAPP, pageable);
-		users = roleManager.findUsersByRole(role2, true, 0, 5);
+		users = roleManager.findUsersByRole(role2.getScope(), role2.getRole(), role2.getContext(), 0, 5);
 		Assert.assertEquals(1, users.size());	
 		
 //		users = userRepository.findByFullRole(role1.getRole(), role2.getScope(), TESTAPP, pageable);
-		users = roleManager.findUsersByRole(role3, true, 0, 5);
+		users = roleManager.findUsersByRole(role3.getScope(), role3.getRole(), role3.getContext(), 0, 5);
 		Assert.assertEquals(0, users.size());			
 		
 	}

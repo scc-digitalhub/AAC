@@ -1,0 +1,27 @@
+ <div  ng-controller="APIProviderController">
+	<div class="row">
+		<div class="col-md-12 text-right">
+			<button class="btn btn-primary" type="button"
+				ng-click="newProvider()">New provider</button>
+		</div>
+	</div>
+
+
+	<div ng-if="providers.length > 0">
+		<table class="table table-hover">
+			<tr ng-repeat="p in providers">
+				<td><strong>{{p.name}} {{p.surname}}</strong><br>
+				<span>({{p.email}})</span></td>
+				<td>{{p.domain}}</td>
+			</tr>
+		</table>
+		<div class="text-center">
+			<ul uib-pagination total-items="page.totalItems"
+				ng-model="page.currentPage" items-per-page="page.limit" max-size="1"
+				class="pagination-sm" ng-change="pageChanged()"></ul>
+		</div>
+	</div>
+	<div ng-if="providers == null || providers.length == 0">
+		<h5>No data</h5>
+	</div>
+</div>

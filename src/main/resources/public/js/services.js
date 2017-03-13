@@ -194,15 +194,54 @@ angular.module('aac.services', [])
 	 * Show error bar
 	 */
 	utils.showError = function(msg) {
-		$rootScope.errorMsg = msg.data.message;
+		$rootScope.errorMsg = msg.data.errorMessage;
 		$rootScope.showError = true;
 		$timeout(function(){
 			$rootScope.showError = false;
 			$rootScope.errorMsg = null;
-		}, 3000);
+		}, 5000);
 	}
 	
 	return utils;
 })
 
+/**
+ * REST API service
+ */
+.service('APIProviders', function($q, $http) {
+	var providersService = {};
+		
+	/**
+	 * Read a specific page of the  providers list
+	 */
+	providersService.getProviders = function(offset, limit) {
+		var deferred = $q.defer();
+		var conf = {};
+		conf.params = {
+			offset: offset,
+			limit: limit
+		}
+		$http.get('admin/apiproviders', conf).then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
+	/**
+	 * Create a provider instance
+	 */
+	providersService.createProvider = function(provider) {
+		var deferred = $q.defer();
+		$http.post('admin/apiproviders', provider).then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
+	
+	
+	return providersService;
+})	
 ;

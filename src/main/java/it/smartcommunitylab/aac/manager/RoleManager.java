@@ -16,13 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +33,13 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 /**
  * Used to check whether the user has the administrator rights.
  * @author raman
@@ -56,9 +56,6 @@ public class RoleManager {
 	private String adminPassword;	
 
 	@Autowired
-	private AttributesAdapter attributesAdapter;
-	
-	@Autowired
 	private RegistrationManager registrationManager;
 	
 	@Autowired
@@ -71,7 +68,6 @@ public class RoleManager {
 		try {
 			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null);
 			Role role = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
-//			admin.getRoles().add(role);
 			admin.setRoles(Sets.newHashSet(role));
 			userRepository.saveAndFlush(admin);
 		} catch (AlreadyRegisteredException e1) {
@@ -80,8 +76,6 @@ public class RoleManager {
 	
 	
 	public void updateRoles(User user, Set<Role> roles) {
-//		user.getRoles().clear();
-//		user.getRoles().addAll(roles);
 		user.setRoles(roles);
 		userRepository.saveAndFlush(user);
 	}
@@ -110,13 +104,13 @@ public class RoleManager {
 		return user.getRoles().contains(role);
 	}
 	
-	public List<User> findUsersByRole(Role role, boolean full, int page, int pageSize) {
+	public List<User> findUsersByRole(ROLE_SCOPE scope, String role, int page, int pageSize) {
 		Pageable pageable = new PageRequest(page, pageSize);
-		if (full) {
-			return userRepository.findByFullRole(role.getRole(), role.getScope(), role.getContext(), pageable);
-		} else {
-			return userRepository.findByPartialRole(role.getRole(), role.getScope(), pageable);
-		}
+		return userRepository.findByPartialRole(role, scope, pageable);
+	}
+	public List<User> findUsersByRole(ROLE_SCOPE scope, String role, String context, int page, int pageSize) {
+		Pageable pageable = new PageRequest(page, pageSize);
+		return userRepository.findByFullRole(role, scope, context, pageable);
 	}
 	
 	public List<GrantedAuthority> buildAuthorities(User user) {

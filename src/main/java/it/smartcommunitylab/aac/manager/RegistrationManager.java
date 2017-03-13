@@ -84,7 +84,7 @@ public class RegistrationManager {
 
 		Registration existing = getUserByEmail(email);
 		if (existing != null) {
-			throw new AlreadyRegisteredException();
+			throw new AlreadyRegisteredException("User is already registered");
 		}
 
 		Registration reg = new Registration();
@@ -146,7 +146,7 @@ public class RegistrationManager {
 
 		Registration existing = getUserByEmail(email);
 		if (existing != null) {
-			throw new AlreadyRegisteredException();
+			throw new AlreadyRegisteredException("User is already registered");
 		}
 
 		Registration reg = new Registration();

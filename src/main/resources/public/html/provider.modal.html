@@ -1,0 +1,26 @@
+<div class="modal-header">
+	<h3 class="modal-title" id="modal-title">New API Provider</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <div class="form-group">
+    <label for="domain">Domain</label>
+    <input type="text" class="form-control" id="domain" placeholder="Domain" ng-model="provider.domain">
+  </div>
+  <div class="form-group">
+    <label for="email">Email address</label>
+    <input type="email" class="form-control" id="email" placeholder="Email" ng-model="provider.email">
+  </div>
+  <div class="form-group">
+    <label for="name">First Name</label>
+    <input type="text" class="form-control" id="name" placeholder="First Name" ng-model="provider.name">
+  </div>
+  <div class="form-group">
+    <label for="surname">Last Name</label>
+    <input type="text" class="form-control" id="surname" placeholder="Last Name" ng-model="provider.surname">
+  </div>
+</div>
+</div>
+<div class="modal-footer">
+	<button class="btn btn-primary" type="button" ng-click="createProvider()" ng-disabled="!provider.name || !provider.surname || !provider.email || !provider.domain">OK</button>
+	<button class="btn btn-warning" type="button" ng-click="providerDlg.dismiss()">Cancel</button>
+</div>

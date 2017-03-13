@@ -39,6 +39,22 @@ public class APIProvider {
 	@NotEmpty
 	private String surname;
 
+	private String lang;
+	
+	public APIProvider() {
+		super();
+	}
+	
+	public APIProvider(String email, String name, String surname, String domain, String lang) {
+		super();
+		this.email = email;
+		this.name = name;
+		this.surname = surname;
+		this.domain = domain;
+		this.lang = lang;
+	}
+
+
 	public String getDomain() {
 		return domain;
 	}
@@ -63,5 +79,10 @@ public class APIProvider {
 	public void setSurname(String surname) {
 		this.surname = surname;
 	}
-	
+	public String getLang() {
+		return lang;
+	}
+	public void setLang(String lang) {
+		this.lang = lang;
+	}
 }
