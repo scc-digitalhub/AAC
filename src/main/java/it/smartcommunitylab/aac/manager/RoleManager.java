@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,7 +29,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
@@ -66,7 +66,7 @@ public class RoleManager {
 	@PostConstruct
 	public void init() {
 		try {
-			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null);
+			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null, false, null);
 			Role role = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
 			admin.setRoles(Sets.newHashSet(role));
 			userRepository.saveAndFlush(admin);
@@ -81,10 +81,11 @@ public class RoleManager {
 	}
 	
 	public void addRole(User user, Role role) {
-		Set<Role> roles = Sets.newHashSet(user.getRoles());
-		roles.add(role);
-		
-		user.setRoles(roles);
+//		Set<Role> roles = Sets.newHashSet(user.getRoles());
+		if (user.getRoles() == null) {
+			user.setRoles(new HashSet<>());
+		}
+		user.getRoles().add(role);
 		userRepository.saveAndFlush(user);
 	}
 	
@@ -116,7 +117,7 @@ public class RoleManager {
 	public List<GrantedAuthority> buildAuthorities(User user) {
 		Set<Role> roles = getRoles(user);
 		
-		List<GrantedAuthority> list = roles.stream().filter(x -> x.getScope().equals(ROLE_SCOPE.system)).map(y -> new SimpleGrantedAuthority(y.getRole())).collect(Collectors.toList());
+		List<GrantedAuthority> list = roles.stream().collect(Collectors.toList());
 
 		return list;
 	}

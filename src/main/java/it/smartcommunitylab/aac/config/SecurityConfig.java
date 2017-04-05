@@ -171,6 +171,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
 				.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"),"ROLE_ADMIN")
 				.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
+				.antMatchers("/mgmt/apis**").hasAuthority("ROLE_PROVIDER")
 				.and().exceptionHandling()
 					.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
 					.accessDeniedPage("/accesserror")
@@ -320,27 +321,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(5);
 		return resource;
 	}
-	
-	@Bean
-	protected ResourceServerConfiguration apiMgmtResources() {
-		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
-			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
-				super.setConfigurers(configurers);
-			}
-		};
-		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
-			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
-			public void configure(HttpSecurity http) throws Exception {
-				http
-				.antMatcher("/mgmt/apis")
-				.authorizeRequests()
-				.antMatchers(HttpMethod.OPTIONS, "/mgmt/apis").permitAll()
-				.anyRequest().authenticated()
-				.and().csrf().disable();
-			}
 
-		}));
-		resource.setOrder(6);
-		return resource;
-	}
 }

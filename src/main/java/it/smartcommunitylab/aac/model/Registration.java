@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.model;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -52,6 +53,9 @@ public class Registration implements Serializable {
 	private String confirmationKey;
 	
 	private String userId;
+	
+	@Column(name="change_first_access")
+	private Boolean changeOnFirstAccess;
 	
 	/**
 	 * @return the id
@@ -173,5 +177,12 @@ public class Registration implements Serializable {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
+	public Boolean isChangeOnFirstAccess() {
+		return changeOnFirstAccess != null && changeOnFirstAccess;
+	}
+	public void setChangeOnFirstAccess(Boolean changeOnFirstAccess) {
+		this.changeOnFirstAccess = changeOnFirstAccess;
+	}
+
 	
 }

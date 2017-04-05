@@ -7,12 +7,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 
 @Entity
 @Table(name = "role")
-public class Role implements Serializable {
+public class Role implements Serializable, GrantedAuthority {
 
 	/**
 	 * 
@@ -108,6 +110,14 @@ public class Role implements Serializable {
 	@Override
 	public String toString() {
 		return scope + " " + role + (context == null ? "" : " - " + context) + " [" + id + "]";
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.GrantedAuthority#getAuthority()
+	 */
+	@Override
+	public String getAuthority() {
+		return role;
 	}
 
 }

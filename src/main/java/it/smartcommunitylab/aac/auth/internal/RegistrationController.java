@@ -20,7 +20,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +31,6 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,6 +39,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
@@ -66,6 +66,8 @@ public class RegistrationController {
 
 	@Autowired
 	private RegistrationManager manager;
+	@Autowired
+	private APIProviderManager apiProviderManager;
 	
 	/**
 	 * Login the user 
@@ -85,10 +87,12 @@ public class RegistrationController {
 	{
 		try {
 			Registration user = manager.getUser(username, password);
-			String targetEnc = null;
+			String target = (String)req.getSession().getAttribute("redirect");
 			try {
-				targetEnc = URLEncoder.encode((String) req.getSession()
-						.getAttribute("redirect"), "UTF8");
+				if (!StringUtils.hasText(target)) {
+					target = "/";
+				}
+				target = URLEncoder.encode(target, "UTF8");
 			} catch (UnsupportedEncodingException e) {
 				throw new RegistrationException(e);
 			}
@@ -103,7 +107,7 @@ public class RegistrationController {
 			
 			String redirect = String
 					.format("redirect:/eauth/internal?target=%s&email=%s&name=%s&surname=%s",
-							targetEnc,
+							target,
 							user.getEmail(), 
 							user.getName(),
 							user.getSurname());;
@@ -144,8 +148,9 @@ public class RegistrationController {
 			return "registration/register";
         }
 		try {
-			Locale locale = LocaleContextHolder.getLocale();
-			manager.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), locale.getLanguage());
+			apiProviderManager.createAPIUser(reg);
+
+			manager.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 			return "registration/regsuccess";
 		} catch (RegistrationException e) {
 			model.addAttribute("error", e.getClass().getSimpleName());
@@ -178,6 +183,7 @@ public class RegistrationController {
 			return;
         }
 		try {
+			apiProviderManager.createAPIUser(reg);
 			manager.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 		} catch(AlreadyRegisteredException e) {
 			res.setStatus(HttpStatus.CONFLICT.value());
@@ -230,7 +236,7 @@ public class RegistrationController {
 	public String confirm(Model model, @RequestParam String confirmationCode, HttpServletRequest req) {
 		try {
 			Registration user = manager.confirm(confirmationCode);
-			if (user.getPassword() != null) {
+			if (user.getPassword() != null && !user.isChangeOnFirstAccess()) {
 				return "registration/confirmsuccess";
 			} else {
 				req.getSession().setAttribute("changePwdEmail", user.getEmail());
@@ -275,6 +281,7 @@ public class RegistrationController {
 		req.getSession().removeAttribute("changePwdEmail");
 		
 		try {
+			apiProviderManager.updatePassword(userMail, reg.getPassword());
 			manager.updatePassword(userMail, reg.getPassword());
 		} catch (RegistrationException e) {
 			e.printStackTrace();
