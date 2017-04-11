@@ -1,5 +1,20 @@
 package it.smartcommunitylab.aac.config;
 
+import it.smartcommunitylab.aac.apimanager.APIProviderManager;
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
+import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
+import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.ContextExtender;
+import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
+import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
+import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
+import it.smartcommunitylab.aac.oauth.OAuthProviders;
+import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
+import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+
 import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,21 +62,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 import org.springframework.web.filter.CorsFilter;
-
-import it.smartcommunitylab.aac.apimanager.APIProviderManager;
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
-import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
-import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
-import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
-import it.smartcommunitylab.aac.oauth.ContextExtender;
-import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
-import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
-import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
-import it.smartcommunitylab.aac.oauth.OAuthProviders;
-import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
-import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 @Configuration 
 @EnableOAuth2Client
@@ -171,6 +171,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
 				.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"),"ROLE_ADMIN")
 				.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
+				.antMatchers("/mgmt/apis**").hasAuthority("ROLE_PROVIDER")
 				.and().exceptionHandling()
 					.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
 					.accessDeniedPage("/accesserror")
@@ -343,4 +344,53 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(6);
 		return resource;
 	}
+	
+
+	@Bean
+	protected ResourceServerConfiguration wso2ClientResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
+			public void configure(HttpSecurity http) throws Exception {
+				http
+				.antMatcher("/wso2/client/**")
+				.authorizeRequests()
+				.anyRequest().access("#oauth2.hasScope('clientmanagement')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(7);
+		return resource;
+	}	
+	
+	@Bean
+	protected ResourceServerConfiguration wso2APIResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
+			public void configure(HttpSecurity http) throws Exception {
+				http
+				.antMatcher("/wso2/resources/**")
+				.authorizeRequests()
+				.anyRequest().access("#oauth2.hasScope('apimanagement')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(8);
+		return resource;
+	}	
+
+	
+
+	
 }

@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.common;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.util.StringUtils;
@@ -88,7 +89,8 @@ public class Utils {
 		res.getResource().clear();
 		res.getResource().addAll(JsonUtils.toObjectList(s.getResourceDefinitions(), ResourceDeclaration.class));
 		res.getResourceMapping().clear();
-		res.getResourceMapping().addAll(JsonUtils.toObjectList(s.getResourceMappings(), ResourceMapping.class));
+		List<ResourceMapping> resourceMapping = JsonUtils.toObjectList(s.getResourceMappings(), ResourceMapping.class);
+		res.getResourceMapping().addAll(resourceMapping);
 		return res;
 	} 
 	

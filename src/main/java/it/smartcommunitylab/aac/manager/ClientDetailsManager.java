@@ -16,6 +16,13 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
+import it.smartcommunitylab.aac.model.ClientAppInfo;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,12 +40,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
-import it.smartcommunitylab.aac.model.ClientAppBasic;
-import it.smartcommunitylab.aac.model.ClientAppInfo;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import com.google.common.base.Joiner;
 
 /**
  * Support for the management of client app registration details
@@ -92,7 +94,7 @@ public class ClientDetailsManager {
 	 * @param e
 	 * @return
 	 */
-	private ClientAppBasic convertToClientApp(ClientDetailsEntity e) {
+	public ClientAppBasic convertToClientApp(ClientDetailsEntity e) {
 		ClientAppBasic res = new ClientAppBasic();
 		res.setClientId(e.getClientId());
 		res.setClientSecret(e.getClientSecret());
@@ -106,11 +108,13 @@ public class ClientDetailsManager {
 		for (String key : attributesAdapter.getAuthorityUrls().keySet()) {
 			res.getIdentityProviders().put(key, false);
 		}
-		
+
+		res.setName(e.getName());
+		res.setScope(Joiner.on(",").join(e.getScope()));
+		res.setParameters(e.getParameters());
 		
 		ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
 		if (info != null) {
-			res.setName(info.getName());
 			res.setNativeAppsAccess(info.isNativeAppsAccess());
 			res.setNativeAppSignatures(info.getNativeAppSignatures());
 			if (info.getIdentityProviders() != null) {
@@ -175,20 +179,24 @@ public class ClientDetailsManager {
 				info.setIdentityProviders(new HashMap<String, Integer>());
 			}
 			
-			for (String key : attributesAdapter.getAuthorityUrls().keySet()) {
-				if (data.getIdentityProviders().get(key)) {
-					Integer value = info.getIdentityProviders().get(key);
-					AuthorityMapping a = attributesAdapter.getAuthority(key);
-					if (value == null || value == ClientAppInfo.UNKNOWN) {
-						info.getIdentityProviders().put(key, a.isPublic() ? ClientAppInfo.APPROVED : ClientAppInfo.REQUESTED);
+			if (data.getIdentityProviders() != null) {
+				for (String key : attributesAdapter.getAuthorityUrls().keySet()) {
+					if (data.getIdentityProviders().get(key)) {
+						Integer value = info.getIdentityProviders().get(key);
+						AuthorityMapping a = attributesAdapter.getAuthority(key);
+						if (value == null || value == ClientAppInfo.UNKNOWN) {
+							info.getIdentityProviders().put(key, a.isPublic() ? ClientAppInfo.APPROVED : ClientAppInfo.REQUESTED);
+						}
+					} else {
+						info.getIdentityProviders().remove(key);
 					}
-				} else {
-					info.getIdentityProviders().remove(key);
 				}
 			}
 			
 			client.setAdditionalInformation(info.toJson());
 			client.setRedirectUri(Utils.normalizeValues(data.getRedirectUris()));
+			client.setScope(data.getScope());
+			client.setParameters(data.getParameters());
 		} catch (Exception e) {
 			log .error("failed to convert an object: "+e.getMessage(), e);
 			return null;
@@ -285,23 +293,78 @@ public class ClientDetailsManager {
 			throw new IllegalArgumentException("An app name cannot be empty");
 		}
 		info.setName(appData.getName());
+		
 		for (ClientDetailsEntity cde : clientDetailsRepository.findAll()) {
-			if (ClientAppInfo.convert(cde.getAdditionalInformation()).getName().equals(appData.getName())) {
-				throw new IllegalArgumentException("An app with the same name already exists");
-			}
+			ClientAppInfo.convert(cde.getAdditionalInformation());
 		}
+		
+//		for (ClientDetailsEntity cde : clientDetailsRepository.findAll()) {
+//			if (ClientAppInfo.convert(cde.getAdditionalInformation()).getName().equals(appData.getName())) {
+//				throw new IllegalArgumentException("An app with the same name already exists");
+//			}
+//		}
+		
+		ClientDetailsEntity old = clientDetailsRepository.findByName(appData.getName());
+		if (old != null) {
+			throw new IllegalArgumentException("An app with the same name already exists");
+		}
+		
 		entity.setAdditionalInformation(info.toJson());
+		entity.setName(appData.getName());
 		entity.setClientId(generateClientId());
 		entity.setAuthorities(defaultAuthorities());
 		entity.setAuthorizedGrantTypes(defaultGrantTypes());
 		entity.setDeveloperId(userId);
 		entity.setClientSecret(generateClientSecret());
+		entity.setScope(appData.getScope());
 		entity.setClientSecretMobile(generateClientSecret());
+		entity.setParameters(appData.getParameters());
 
 		entity = clientDetailsRepository.save(entity);
 		return convertToClientApp(entity);
 		
 	}
+	
+	/**
+	 * Create or update a Client from {@link ClientAppBasic} descriptor
+	 * @param appData
+	 * @param userId
+	 * @return {@link ClientAppBasic} descriptor of the created Client
+	 * @throws Exception 
+	 */
+	public ClientAppBasic createOrUpdate(ClientAppBasic appData, Long userId) throws Exception {
+		ClientDetailsEntity entity = new ClientDetailsEntity();
+		ClientAppInfo info = new ClientAppInfo();
+		if (!StringUtils.hasText(appData.getName())) {
+			throw new IllegalArgumentException("An app name cannot be empty");
+		}
+		info.setName(appData.getName());
+		
+		for (ClientDetailsEntity cde : clientDetailsRepository.findAll()) {
+			ClientAppInfo.convert(cde.getAdditionalInformation());
+		}
+		
+		ClientDetailsEntity old = clientDetailsRepository.findByName(appData.getName());
+		if (old != null) {
+			entity = old;
+		}
+		
+		entity.setAdditionalInformation(info.toJson());
+		entity.setName(appData.getName());
+		entity.setClientId(generateClientId());
+		entity.setAuthorities(defaultAuthorities());
+		entity.setAuthorizedGrantTypes(defaultGrantTypes());
+		entity.setDeveloperId(userId);
+		entity.setClientSecret(generateClientSecret());
+		entity.setScope(appData.getScope());
+		entity.setClientSecretMobile(generateClientSecret());
+		entity.setParameters(appData.getParameters());
+
+		entity = clientDetailsRepository.save(entity);
+		return convertToClientApp(entity);
+		
+	}	
+	
 	/**
 	 * delete the specified client
 	 * @param clientId

@@ -44,6 +44,8 @@ public class ClientAppInfo {
 	
 	private Map<String, Integer> identityProviders;
 	
+	private String scope;
+	
 	public static ClientAppInfo convert(Map<String,Object> map) {
 		return mapper.convertValue(map, ClientAppInfo.class);
 	}
@@ -121,4 +123,14 @@ public class ClientAppInfo {
 	public void setNativeAppSignatures(String nativeAppSignatures) {
 		this.nativeAppSignatures = nativeAppSignatures;
 	}
+
+	public String getScope() {
+		return scope;
+	}
+
+	public void setScope(String scope) {
+		this.scope = scope;
+	}
+	
+	
 }

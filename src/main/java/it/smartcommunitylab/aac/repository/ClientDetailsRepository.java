@@ -35,6 +35,9 @@ public interface ClientDetailsRepository extends JpaRepository<ClientDetailsEnti
 	
 	@Query("select c from ClientDetailsEntity c where c.clientId=?1")
 	public ClientDetailsEntity findByClientId(String clientId);
+	
+	@Query("select c from ClientDetailsEntity c where c.name=?1")
+	public ClientDetailsEntity findByName(String clientId);	
 
 }
 //@Query("select u from User u left join u.attributeEntities a where a.authority.name=?1 and a.key=?2 and a.value=?3")

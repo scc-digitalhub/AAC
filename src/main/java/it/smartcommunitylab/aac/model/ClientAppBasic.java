@@ -44,6 +44,11 @@ public class ClientAppBasic {
 	private Map<String,Boolean> identityProviders;
 	private Map<String,Boolean> identityProviderApproval;
 
+	private String userName;
+	private String scope;
+	
+	private String parameters;
+	
 	/**
 	 * @return the clientId
 	 */
@@ -170,5 +175,23 @@ public class ClientAppBasic {
 	 */
 	public boolean hasServerSideAccess() {
 		return grantedTypes != null && (grantedTypes.contains(GT_IMPLICIT) || grantedTypes.contains(GT_AUTHORIZATION_CODE));
+	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	public String getScope() {
+		return scope;
+	}
+	public void setScope(String scope) {
+		this.scope = scope;
+	}
+	public String getParameters() {
+		return parameters;
+	}
+	public void setParameters(String parameters) {
+		this.parameters = parameters;
 	}
 }

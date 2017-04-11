@@ -43,5 +43,21 @@
       <description>Manage user data programmatically.</description>
     </resourceMapping>
 
-    </service>					  	 
+    </service>
+
+	<service name="API Management Service" id="smartcommunity.apimanagement">
+		<description>Core service for managing clients and APIs.</description>
+
+		<resourceMapping id="clientmanagement" name="Manage clients"
+			uri="clientmanagement" authority="ROLE_CLIENT" approvalRequired="true">
+			<description>Manage clients programmatically.</description>
+		</resourceMapping>
+		<resourceMapping id="apimanagement" name="Manage APIs"
+			uri="apimanagement" authority="ROLE_CLIENT" approvalRequired="true">
+			<description>Manage APIs programmatically.</description>
+		</resourceMapping>
+
+	</service>	    
+    
+    			  	 
 </services>

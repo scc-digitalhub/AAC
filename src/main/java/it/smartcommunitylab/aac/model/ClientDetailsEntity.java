@@ -50,6 +50,9 @@ public class ClientDetailsEntity implements ClientDetails {
 	
 	private static ObjectMapper mapper = new ObjectMapper();
 
+	@Column(name = "name", unique=true)
+	private String name;	
+	
 	@Column(name = "client_id", unique=true)
 	private String clientId;
 	
@@ -93,6 +96,19 @@ public class ClientDetailsEntity implements ClientDetails {
 	@Column(nullable = false)
 	private Long developerId;
 	
+	@Column(name = "parameters")
+	private String parameters;	
+	
+
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	/**
 	 * @return the clientId
 	 */
@@ -328,5 +344,13 @@ public class ClientDetailsEntity implements ClientDetails {
 	@Override
 	public boolean isAutoApprove(String scope) {
 		return "true".equals(autoapprove) || (StringUtils.hasText(autoapprove) && StringUtils.commaDelimitedListToSet(autoapprove).contains(scope));
+	}
+
+	public String getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(String parameters) {
+		this.parameters = parameters;
 	}
 }
