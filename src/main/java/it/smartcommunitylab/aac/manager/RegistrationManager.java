@@ -135,7 +135,7 @@ public class RegistrationManager {
 		return existing;
 	}
 
-	public User registerOffline(String name, String surname, String email, String password, String lang) throws RegistrationException {
+	public User registerOffline(String name, String surname, String email, String password, String lang, boolean changePwdOnFirstAccess, String confirmationKey) throws RegistrationException {
 		if (!StringUtils.hasText(email) || !StringUtils.hasText(password)) {
 			throw new InvalidDataException();
 		}
@@ -156,9 +156,18 @@ public class RegistrationManager {
 			reg.setEmail(email);
 			reg.setPassword(PasswordHash.createHash(password));
 			reg.setLang(lang);
-			reg.setConfirmed(true);
-			reg.setConfirmationKey(null);
-			reg.setConfirmationDeadline(null);
+			if (StringUtils.hasText(confirmationKey)) {
+				Calendar c = Calendar.getInstance();
+				c.add(Calendar.DATE, 1);
+				reg.setConfirmationDeadline(c.getTime());
+				reg.setConfirmationKey(confirmationKey);
+				reg.setConfirmed(false);
+			} else {
+				reg.setConfirmed(true);
+				reg.setConfirmationDeadline(null);
+				reg.setConfirmationKey(null);
+			}
+			reg.setChangeOnFirstAccess(changePwdOnFirstAccess);
 			User globalUser = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(reg), null);
 			reg.setUserId("" + globalUser.getId());
 
@@ -230,6 +239,7 @@ public class RegistrationManager {
 		}
 		try {
 			existing.setPassword(PasswordHash.createHash(password));
+			existing.setChangeOnFirstAccess(false);
 			repository.save(existing);
 		} catch (Exception e) {
 			throw new RegistrationException(e);

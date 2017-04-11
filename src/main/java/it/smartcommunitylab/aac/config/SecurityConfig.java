@@ -390,7 +390,4 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return resource;
 	}	
 
-	
-
-	
 }

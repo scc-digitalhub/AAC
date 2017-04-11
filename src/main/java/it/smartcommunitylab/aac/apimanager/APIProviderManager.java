@@ -21,14 +21,19 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -39,12 +44,15 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.util.StringUtils;
 import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
+import org.wso2.carbon.um.ws.api.stub.ClaimValue;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.dto.RegistrationBean;
+import it.smartcommunitylab.aac.manager.MailSender;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -64,6 +72,14 @@ import it.smartcommunitylab.aac.wso2.services.Utils;
 @Transactional
 public class APIProviderManager {
 	
+	@Value("${application.url}")
+	private String applicationURL;
+	@Resource(name = "messageSource")
+	private MessageSource messageSource;
+
+	@Autowired
+	private MailSender sender;
+
 	/** APIMananger email */
 	public static final String EMAIL_ATTR = "email";
 
@@ -102,23 +118,66 @@ public class APIProviderManager {
 		}
 		// create WSO2 publisher (tenant and tenant admin)
 		String password = generatePassword();
+		String key =  RandomStringUtils.randomAlphanumeric(24);
 		// create registration data and user attributes
-		User created = regManager.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang());
+		User created = regManager.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang(), true, key);
 		Role providerRole = new Role(ROLE_SCOPE.tenant, R_PROVIDER, provider.getDomain());
 		roleManager.addRole(created, providerRole);
 
 		try {
-			umService.createPublsher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());
-//			String fullDomainName = Utils.getUserNameAtTenant(provider.getEmail(), provider.getDomain());
-			
+			umService.createPublisher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());
+			sendConfirmationMail(provider, key);
 		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
 			throw new RegistrationException(e.getMessage());
 		}
 		
-		// TODO
-		// - send 'confirmation' email
 	}
 	
+	/**
+	 * Update user password in API Manager
+	 * @param reg
+	 */
+	public void updatePassword(String email, String newPassword) {
+		try {
+			List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, email);
+			if (users != null && !users.isEmpty()) {
+				User user = users.get(0);
+				Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
+				if (providerRoles != null && providerRoles.size() == 1) {
+					Role providerRole = providerRoles.iterator().next();
+					umService.updatePublisherPassword(email, providerRole.getContext(), newPassword);
+				} else {
+					umService.updateNormalUserPassword(email, newPassword);
+				}
+			} else {
+				throw new RegistrationException("User does not exist");
+			}	
+		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+			throw new RegistrationException(e.getMessage());
+		}
+	}
+	/**
+	 * Create new API user in API Manager
+	 * @param reg
+	 */
+	public void createAPIUser(RegistrationBean reg) {
+		try {
+			ClaimValue[] claims = new ClaimValue[]{
+					Utils.createClaimValue("http://wso2.org/claims/emailaddress", reg.getEmail()),
+					Utils.createClaimValue("http://wso2.org/claims/givenname", reg.getName()),
+					Utils.createClaimValue("http://wso2.org/claims/lastname", reg.getSurname())
+			};
+			umService.createSubscriber(reg.getEmail(), reg.getPassword(), claims);
+		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+			throw new RegistrationException(e.getMessage());
+		}	
+	}
+
+	/**
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
 	public String createToken() throws Exception {
 		Map<String, String> requestParameters = new HashMap<>();
 		String apiManagerName = getAPIManagerName();
@@ -167,6 +226,7 @@ public class APIProviderManager {
 			entity.setAuthorizedGrantTypes(defaultGrantTypes());
 			entity.setDeveloperId(0L);
 			entity.setClientSecret(generateClientSecret());
+			entity.setClientSecretMobile(generateClientSecret());
 			entity = clientDetailsRepository.save(entity);
 			client = entity;
 		}
@@ -190,8 +250,7 @@ public class APIProviderManager {
 	 * @return
 	 */
 	private String generatePassword() {
-		//return RandomStringUtils.randomAlphanumeric(8);
-		return "12345678";
+		return RandomStringUtils.randomAlphanumeric(8);
 	}
 	
 	/**
@@ -210,4 +269,20 @@ public class APIProviderManager {
 		
 		return Utils.getUserNameAtTenant(email, role.getContext());
 	}
+	
+	/**
+	 * @param reg
+	 * @param key
+	 * @throws RegistrationException
+	 */
+	private void sendConfirmationMail(APIProvider provider,  String key) throws RegistrationException {
+		RegistrationBean user = new RegistrationBean(provider.getEmail(), provider.getName(), provider.getSurname());
+		String lang = StringUtils.hasText(provider.getLang()) ? provider.getLang() : Config.DEFAULT_LANG;
+		Map<String, Object> vars = new HashMap<String, Object>();
+		vars.put("user", user);
+		vars.put("url", applicationURL + "/internal/confirm?confirmationCode=" + key);
+		String subject = messageSource.getMessage("confirmation.subject", null, Locale.forLanguageTag(lang));
+		sender.sendEmail(provider.getEmail(), "mail/provider_reg_" + lang, subject, vars);
+	}
+
 }

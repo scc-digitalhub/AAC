@@ -79,7 +79,7 @@
         <div class="collapse navbar-collapse">	        
           <ul class="nav navbar-nav">
             <li data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
-            <li data-ng-class="{'active': currentView == 'apis'}"><a data-ng-click="go('apis')">API Roles</a></li>
+            <li th:if="${roles.contains('ROLE_PROVIDER')}" data-ng-class="{'active': currentView == 'apis'}"><a data-ng-click="go('apis')">API Roles</a></li>
             <li th:if="${roles.contains('ROLE_ADMIN')}" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
 	        </ul>
 	        <ul class="nav navbar-nav pull-right">

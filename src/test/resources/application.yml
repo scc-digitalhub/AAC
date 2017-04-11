@@ -54,7 +54,7 @@ oauth-providers:
         preferTokenInfo: true        
 
 admin:
-  password: 
+  password: admin
 
 mail:
   username: info@smartcommunitylab.it

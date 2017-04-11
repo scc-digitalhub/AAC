@@ -16,19 +16,16 @@
 
 package it.smartcommunitylab.aac.apimanager;
 
-import java.rmi.RemoteException;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import org.apache.axis2.AxisFault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -42,16 +39,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.Response;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.wso2.model.API;
 import it.smartcommunitylab.aac.wso2.model.APIInfo;
 import it.smartcommunitylab.aac.wso2.model.DataList;
@@ -80,12 +75,12 @@ public class APIMgtController {
 	public @ResponseBody DataList<APIInfo> getAPIs(
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
 			@RequestParam(required=false, defaultValue="25") Integer limit, 
-			@RequestParam(required=false, defaultValue="") String query) {
+			@RequestParam(required=false, defaultValue="") String query) throws Exception {
 		return pub.getAPIs(offset, limit, query, getToken());
 	}
 	
 	@GetMapping("/mgmt/apis/{apiId}")
-	public @ResponseBody API getAPI(@PathVariable String apiId) {
+	public @ResponseBody API getAPI(@PathVariable String apiId) throws Exception {
 		API api = pub.getAPI(apiId, getToken());
 		
 		if (api.getThumbnailUri() != null) {
@@ -95,7 +90,7 @@ public class APIMgtController {
 	}
 	
 	@GetMapping("/mgmt/apis/{apiId}/thumbnail")
-	public @ResponseBody byte[] getAPI(@PathVariable String apiId, HttpServletResponse res) {
+	public @ResponseBody byte[] getAPI(@PathVariable String apiId, HttpServletResponse res) throws Exception {
 		API api = pub.getAPI(apiId, getToken());
 		res.setContentType(MediaType.IMAGE_JPEG_VALUE);
 		if (api.getThumbnailUri() != null) return pub.getAPIThumbnail(apiId, getToken());
@@ -106,13 +101,13 @@ public class APIMgtController {
 	public @ResponseBody DataList<Subscription> getAPISubscriptions(
 			@PathVariable String apiId,
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
-			@RequestParam(required=false, defaultValue="25") Integer limit) 
+			@RequestParam(required=false, defaultValue="25") Integer limit) throws Exception 
 	{
 		return pub.getSubscriptions(apiId, offset, limit, getToken());
 	}
 
 	@PutMapping("/mgmt/apis/{apiId}/userroles")
-	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws AxisFault, RemoteException, TenantMgtAdminServiceExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException 
+	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws Exception 
 	{
 		String name = "", domain = "";
 		umService.updateRoles(roleModel, name, domain);
@@ -122,18 +117,11 @@ public class APIMgtController {
 	 * @return 
 	 * @throws Exception 
 	 */
-	private String getToken() {
-		// TODO change
-		return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-	}
-
-	@GetMapping("/apimanager/token")
-	public @ResponseBody
-	String createToken() {
+	private String getToken() throws Exception {
 		try {
 			return providerManager.createToken();
 		} catch (Exception e) {
-			throw new AccessDeniedException("Inusfficies API Manager rights");
+			throw new AccessDeniedException(e.getMessage());
 		}
 	}
 
@@ -143,13 +131,13 @@ public class APIMgtController {
 			@RequestParam(required=false, defaultValue="25") Integer limit) 
 	{
 		List<APIProvider> res = new LinkedList<>();
-		List<User> users = roleManager.findUsersByRole(ROLE_SCOPE.tenant, APIProviderManager.R_PROVIDER, offset / limit + 1, limit);
+		List<User> users = roleManager.findUsersByRole(ROLE_SCOPE.tenant, APIProviderManager.R_PROVIDER, offset / limit, limit);
 		users.forEach(u -> {
 			String domain = u.role(ROLE_SCOPE.tenant, APIProviderManager.R_PROVIDER).iterator().next().getContext();
 			res.add(new APIProvider(
 					u.attributeValue(Config.IDP_INTERNAL, "email"),
-					u.attributeValue(Config.IDP_INTERNAL, "name"),
-					u.attributeValue(Config.IDP_INTERNAL, "surname"),
+					u.getName(),
+					u.getSurname(),
 					domain,
 					u.attributeValue(Config.IDP_INTERNAL, "lang")
 					));
@@ -169,6 +157,15 @@ public class APIMgtController {
 	}
 	
 
+	@ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseBody
+    public Response processAccessError(AccessDeniedException ex) {
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.ERROR);
+		result.setErrorMessage(ex.getMessage());
+		return result;
+    }
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

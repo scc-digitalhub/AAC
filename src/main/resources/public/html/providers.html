@@ -9,11 +9,16 @@
 
 	<div ng-if="providers.length > 0">
 		<table class="table table-hover">
+		  <thead>
+		  <tr><th>Name (email)</th><th>domain</th></tr>
+		  </thead>
+		  <tbody>
 			<tr ng-repeat="p in providers">
 				<td><strong>{{p.name}} {{p.surname}}</strong><br>
 				<span>({{p.email}})</span></td>
 				<td>{{p.domain}}</td>
 			</tr>
+			</tbody>
 		</table>
 		<div class="text-center">
 			<ul uib-pagination total-items="page.totalItems"

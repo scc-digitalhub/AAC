@@ -23,6 +23,8 @@ package it.smartcommunitylab.aac;
  */
 public class Config {
 
+	public static final String DEFAULT_LANG = "en";
+	
 	/** User name attribute alias */
 	public static final String NAME_ATTR = "it.smartcommunitylab.aac.givenname";
 	/** User surname attribute alias */

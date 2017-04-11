@@ -1,15 +1,5 @@
 package it.smartcommunitylab.aac.test;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.model.Registration;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.RegistrationRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-
 import java.util.List;
 
 import org.junit.After;
@@ -24,6 +14,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.collect.Sets;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.RegistrationRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
@@ -31,12 +30,17 @@ public class UserRolesTest {
 
 	private static final String TESTAPP = "testapp";
 	private static final String USERNAME = "testuser";
+	private static final String USERNAME2 = "testuser2";
+	private static final String CUSTOM_ROLE = "ROLE_CUSTOM";
+	private static final String CUSTOM_ROLE_VALUE = "value";
 
 	@Autowired
 	private RegistrationManager registrationManager;	
 	
 	@Autowired
 	private RoleManager roleManager;		
+	@Autowired
+	private RegistrationManager regManager;		
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -47,21 +51,31 @@ public class UserRolesTest {
 	private Role role1 = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
 	private Role role2 = new Role(ROLE_SCOPE.application, Config.R_USER, TESTAPP);
 	private Role role3 = new Role(ROLE_SCOPE.user, Config.R_ADMIN, TESTAPP);
+	private Role role4 = new Role(ROLE_SCOPE.tenant, CUSTOM_ROLE, CUSTOM_ROLE_VALUE);
 	private User user;
 	
 	@Before
 	public void createUser() {
-		user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null);
+		user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
 		user.setRoles(Sets.newHashSet(role1));
 		userRepository.save(user);		
 	}
 	
 	@After
 	public void deleteUser() {
-		Registration registration = registrationRepository.findByEmail(USERNAME);
-		registrationRepository.delete(registration);
-		userRepository.delete(user);
+		registrationRepository.deleteAll();
+		userRepository.deleteAll();
 	}	
+	
+	@Test
+	public void testNewRoles() {
+		
+		User created = regManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
+		Role providerRole = new Role(ROLE_SCOPE.tenant, CUSTOM_ROLE, CUSTOM_ROLE_VALUE);
+		roleManager.addRole(created, providerRole);
+		
+		Assert.assertTrue(roleManager.hasRole(created, role4));
+	}
 	
 	@Test
 	public void testChangeRoles() {
