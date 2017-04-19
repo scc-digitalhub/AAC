@@ -32,6 +32,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
 
+	@Query("select u from User u where u.name=?1")
+	User findByName(String text);	
+	
 	@Query("select u from User u where u.fullName like ?1")
 	List<User> findByFullNameLike(String text);
 	

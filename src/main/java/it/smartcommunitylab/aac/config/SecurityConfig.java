@@ -7,6 +7,7 @@ import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ContextExtender;
+import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
 import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
@@ -54,7 +55,6 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
-import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -224,9 +224,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Bean
 		public OAuth2RequestFactory getOAuth2RequestFactory() throws PropertyVetoException {
-			return new DefaultOAuth2RequestFactory(clientDetailsService);
-		}
-
+			CustomOAuth2RequestFactory result = new CustomOAuth2RequestFactory();
+			return result;
+		}		
+		
 		@Bean("appTokenServices")
 		public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
 			NonRemovingTokenServices bean = new NonRemovingTokenServices();
@@ -264,7 +265,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.tokenStore(tokenStore)
 			.userApprovalHandler(userApprovalHandler)
 			.authenticationManager(authenticationManager)
-			;
+			.requestFactory(getOAuth2RequestFactory());
 		}		
         @Override
         public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {

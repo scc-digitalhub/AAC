@@ -143,6 +143,7 @@ public class WSO2Manager {
 			resource.setResourceUri(id);
 			resource.setAuthority(Config.AUTHORITY.ROLE_ANY);
 			resource.setVisibility(RESOURCE_VISIBILITY.PUBLIC);
+			resource.setRoles(Joiner.on(",").join(aacResource.getRoles()));
 			
 			resource.setService(sd);
 			

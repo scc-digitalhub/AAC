@@ -96,6 +96,11 @@ public class Resource {
 	private ServiceDescriptor service;
 	
 	/**
+	 * WSO2 roles
+	 */
+	private String roles;
+	
+	/**
 	 * @return the resourceId
 	 */
 	public Long getResourceId() {
@@ -262,4 +267,13 @@ public class Resource {
 	public void setService(ServiceDescriptor service) {
 		this.service = service;
 	}
+
+	public String getRoles() {
+		return roles;
+	}
+
+	public void setRoles(String roles) {
+		this.roles = roles;
+	}
+	
 }
