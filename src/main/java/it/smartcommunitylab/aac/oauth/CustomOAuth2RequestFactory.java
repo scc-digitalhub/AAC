@@ -169,6 +169,10 @@ public class CustomOAuth2RequestFactory implements OAuth2RequestFactory {
 			}
 		}
 		
+		if (newScopes.isEmpty()) {
+			newScopes.add("default");
+		}
+		
 		return newScopes;
 		
 		
