@@ -175,10 +175,17 @@ public class WSO2Controller {
 	@RequestMapping(value = "/wso2/resources/{userName}", method = RequestMethod.POST)
 	public @ResponseBody void createResources(HttpServletResponse response, @RequestBody AACService service, @PathVariable("userName") String userName) throws Exception {
 		try {
-			boolean ok = wso2Manager.createResource(service, userName);
+			
+			String un = userName.replace("-AT-", "@");
+			int index = un.lastIndexOf('@');
+			if (index != -1) {
+				un = un.substring(0, index);
+			}
+			
+			boolean ok = wso2Manager.createResource(service, un);
 
 			if (!ok) {
-				response.setStatus(HttpStatus.NOT_FOUND.value());
+				response.setStatus(HttpStatus.BAD_REQUEST.value());
 			}
 
 		} catch (Exception e) {
