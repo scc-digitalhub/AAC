@@ -16,16 +16,21 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.keymanager.model.AACTokenValidation;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ResourceServices;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.services.Utils;
 
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -114,19 +119,36 @@ public class ResourceAccessController {
 	                .withCreatorVisibility(JsonAutoDetect.Visibility.ANY));
 			
 			String userName = null;
+			String userId = null;
+			
+			System.err.println(auth.getPrincipal());
+			if (auth.getPrincipal() != null) {
+				System.err.println(auth.getPrincipal().getClass());
+			}
 			
 			if (auth.getPrincipal() instanceof User) {
 				User principal = (User)auth.getPrincipal();
-				String userId = principal.getUsername();
+				userId = principal.getUsername();
 				it.smartcommunitylab.aac.model.User user = userRepository.findOne(Long.parseLong(userId));
-				userName = user.getName();
+				userName = getWSO2Name(user);
+//			} if (auth.getPrincipal() instanceof it.smartcommunitylab.aac.model.User) { 
+//				it.smartcommunitylab.aac.model.User principal = (it.smartcommunitylab.aac.model.User)auth.getPrincipal();
+//				userId = principal.getId().toString();
+//				userName = getWSO2Name(user);
 			} else {
 				ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-				Map parameters = mapper.readValue(client.getParameters(), Map.class);
-				userName = (String)parameters.get("username");
+				if (client.getParameters() != null) {
+					Map parameters = mapper.readValue(client.getParameters(), Map.class);
+					userName = (String)parameters.get("username");
+				} else {
+//					it.smartcommunitylab.aac.model.User user = userRepository.findOne(Long.parseLong(userId));
+					userName = "admin";
+					userName = (String)auth.getPrincipal();
+				}
 			}
 			
-			response.setUser(userName);
+			response.setUsername(userName);
+			response.setUserId(userId);
 			response.setClientId(clientId);
 			response.setScope(Iterables.toArray(auth.getOAuth2Request().getScope(), String.class));
 			
@@ -139,6 +161,26 @@ public class ResourceAccessController {
 			logger.error("Error validating token: "+e.getMessage());
 		}
 		return response;
+	}	
+	
+	/**
+	 * @param user
+	 * @return
+	 */
+	private String getWSO2Name(it.smartcommunitylab.aac.model.User user) {
+		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, "ROLE_PROVIDER");
+
+		String email = user.attributeValue(Config.IDP_INTERNAL, "email");
+		if (email == null) return null;
+		
+		String domain = null;
+		if (providerRoles.isEmpty()) domain = "carbon.super";
+		else {
+			Role role = providerRoles.iterator().next();
+			domain = role.getContext();
+		}
+		
+		return Utils.getUserNameAtTenant(email, domain);
 	}	
 	
 	private String parseHeaderToken(HttpServletRequest request) {
