@@ -3,7 +3,8 @@ package it.smartcommunitylab.aac.keymanager.model;
 public class AACTokenValidation {
 
 	private boolean valid = false;
-	private String user;
+	private String userId;
+	private String username;
 	private String clientId;
 	
 	private long validityPeriod;
@@ -21,12 +22,20 @@ public class AACTokenValidation {
 		this.valid = valid;
 	}
 
-	public String getUser() {
-		return user;
+	public String getUserId() {
+		return userId;
 	}
 
-	public void setUser(String user) {
-		this.user = user;
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getClientId() {
