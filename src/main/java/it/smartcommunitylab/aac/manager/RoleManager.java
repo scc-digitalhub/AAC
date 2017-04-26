@@ -16,12 +16,17 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,13 +37,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * Used to check whether the user has the administrator rights.
@@ -62,15 +60,15 @@ public class RoleManager {
 	private UserRepository userRepository;	
 	
 	
-	
-	@PostConstruct
-	public void init() {
+	public User init() {
 		try {
 			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null, false, null);
 			Role role = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
 			admin.setRoles(Sets.newHashSet(role));
 			userRepository.saveAndFlush(admin);
+			return admin;
 		} catch (AlreadyRegisteredException e1) {
+			return userRepository.findByName("admin");
 		}
 	}
 	

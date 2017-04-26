@@ -16,7 +16,26 @@
 
 package it.smartcommunitylab.aac.apimanager;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.dto.RegistrationBean;
+import it.smartcommunitylab.aac.manager.MailSender;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.ClientAppInfo;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.services.UserManagementService;
+import it.smartcommunitylab.aac.wso2.services.Utils;
+
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -47,23 +66,7 @@ import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.ClaimValue;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.dto.RegistrationBean;
-import it.smartcommunitylab.aac.manager.MailSender;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.ClientAppInfo;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.wso2.services.UserManagementService;
-import it.smartcommunitylab.aac.wso2.services.Utils;
+import com.google.common.base.Joiner;
 
 /**
  * @author raman
@@ -72,6 +75,7 @@ import it.smartcommunitylab.aac.wso2.services.Utils;
 @Transactional
 public class APIProviderManager {
 	
+	private static final String MANAGEMENT_SCOPES = "clientmanagement,apimanagement";
 	@Value("${application.url}")
 	private String applicationURL;
 	@Resource(name = "messageSource")
@@ -84,7 +88,7 @@ public class APIProviderManager {
 	public static final String EMAIL_ATTR = "email";
 
 	private static final String API_MGT_CLIENT_ID = "API_MGT_CLIENT_ID";
-	private static final String[] GRANT_TYPES = new String []{"password","client_credentials"};
+	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create"};
 	/** Predefined tenant role PROVIDER (API provider) */
 	public static final String R_PROVIDER = "ROLE_PROVIDER";
@@ -104,6 +108,12 @@ public class APIProviderManager {
 	private RegistrationManager regManager;
 	@Autowired
 	private RoleManager roleManager;
+	
+	public void init(long developerId) throws Exception {
+		if (clientDetailsRepository.findByClientId(API_MGT_CLIENT_ID) == null) {
+			createAPIMgmtClient(developerId);
+		}
+	}
 	
 	public void createAPIProvider(APIProvider provider) throws RegistrationException {
 		//check user exists.
@@ -152,7 +162,7 @@ public class APIProviderManager {
 			} else {
 				throw new RegistrationException("User does not exist");
 			}	
-		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
 			throw new RegistrationException(e.getMessage());
 		}
 	}
@@ -181,17 +191,22 @@ public class APIProviderManager {
 	public String createToken() throws Exception {
 		Map<String, String> requestParameters = new HashMap<>();
 		String apiManagerName = getAPIManagerName();
+		
+		Long userId = userManager.getUser().getId();
 		if (apiManagerName == null) {
 			return null;
 		}
 		requestParameters.put("username", apiManagerName);
 		requestParameters.put("password", "");
 		
+		// USER
+		org.springframework.security.core.userdetails.User user = new org.springframework.security.core.userdetails.User(userId.toString(), "", new ArrayList<GrantedAuthority>());
+		
 		ClientDetails clientDetails = getAPIMgmtClient();
 		TokenRequest tokenRequest = new TokenRequest(requestParameters, clientDetails.getClientId(), scopes(), "password");
 		OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
 		Collection<? extends GrantedAuthority> list = authorities();
-		OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, new UsernamePasswordAuthenticationToken(apiManagerName, "", list));
+		OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, new UsernamePasswordAuthenticationToken(user, "", list));
 		OAuth2AccessToken accessToken = tokenService.createAccessToken(oAuth2Authentication);
 		return accessToken.getValue();
 	}
@@ -216,21 +231,30 @@ public class APIProviderManager {
 	 */
 	private ClientDetails getAPIMgmtClient() throws Exception {
 		ClientDetails client = clientDetailsRepository.findByClientId(API_MGT_CLIENT_ID);
-		if (client == null) {
-			ClientDetailsEntity entity = new ClientDetailsEntity();
-			ClientAppInfo info = new ClientAppInfo();
-			info.setName(API_MGT_CLIENT_ID);
-			entity.setAdditionalInformation(info.toJson());
-			entity.setClientId(API_MGT_CLIENT_ID);
-			entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT_TRUSTED.name());
-			entity.setAuthorizedGrantTypes(defaultGrantTypes());
-			entity.setDeveloperId(0L);
-			entity.setClientSecret(generateClientSecret());
-			entity.setClientSecretMobile(generateClientSecret());
-			entity = clientDetailsRepository.save(entity);
-			client = entity;
-		}
+//		if (client == null) {
+//			ClientDetails entity = createAPIMgmtClient();
+//			client = entity;
+//		}
 		return client;
+	}
+	
+	private ClientDetails createAPIMgmtClient(long developerId) throws Exception {
+		ClientDetailsEntity entity = new ClientDetailsEntity();
+		ClientAppInfo info = new ClientAppInfo();
+		info.setName(API_MGT_CLIENT_ID);
+		entity.setAdditionalInformation(info.toJson());
+		entity.setClientId(API_MGT_CLIENT_ID);
+		entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT_TRUSTED.name());
+		entity.setAuthorizedGrantTypes(defaultGrantTypes());
+		entity.setDeveloperId(developerId);
+		entity.setClientSecret(generateClientSecret());
+		entity.setClientSecretMobile(generateClientSecret());
+		
+		entity.setName(API_MGT_CLIENT_ID);
+		entity.setScope(MANAGEMENT_SCOPES + "," + Joiner.on(",").join(API_MGT_SCOPES));
+		
+		entity = clientDetailsRepository.save(entity);
+		return entity;
 	}
 
 	/**
