@@ -1,15 +1,9 @@
 server:
   contextPath: /aac
 
-application:
-  url: http://localhost:8080/aac
-
 jdbc:
   dialect: org.hibernate.dialect.MySQLDialect
   driver: com.mysql.jdbc.Driver
-  url: jdbc:mysql://localhost:3306/aac
-  user: ac
-  password: ac
 
 spring:
   messages:
@@ -19,66 +13,10 @@ spring:
 
 security:
   restricted: false
-  adminfile: file:///Users/raman/Documents/Work/SO/platform/smartcampus-platform/AAC/admin.txt
   basic:
       enabled: false
 
-oauth-providers:
-  providers:
-    - provider: facebook
-      client:
-        clientId: 987886727948557
-        clientSecret: 1e266616c5382b439d09ba662ca94844
-        accessTokenUri: https://graph.facebook.com/oauth/access_token
-        userAuthorizationUri: https://www.facebook.com/dialog/oauth
-        tokenName: oauth_token
-        authenticationScheme: query
-        clientAuthenticationScheme: form
-        scope:
-            - openid
-            - email
-            - profile    
-    - provider: google
-      client:
-        clientId: 453601816446-4meaa3hq39gtnj1spb7skm3faarkl2i6.apps.googleusercontent.com
-        clientSecret: KHM5GNIoDQP6sgt8VlvUGLFZ
-        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
-        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
-        clientAuthenticationScheme: form
-        scope:
-            - openid
-            - email
-            - profile
-      resource:        
-        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
-        preferTokenInfo: true        
-
-admin:
-  password: admin
-
-mail:
-  username: ayee.test@gmail.com
-  password: 123ERT678
-  host: smtp.gmail.com
-  port: 465
-  protocol: smtps 
 
 logging:
   level:
-    org.springframework.security: DEBUG
-
-api:
-  store:
-    endpoint: https://localhost:9443/api/am/store/v0.10 
-  publisher:
-    endpoint: https://localhost:9443/api/am/publisher/v0.10
-  identity:
-    endpoint: https://localhost:9443/services/IdentityApplicationManagementService
-    password: admin    
-  usermgmt:
-    endpoint: https://localhost:9443/services/RemoteUserStoreManagerService
-    password: admin    
-  multitenancy:
-    endpoint: https://localhost:9443/services/TenantMgtAdminService
-    password: admin      
-    
+    org.springframework.security: INFO
