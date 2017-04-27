@@ -1,0 +1,67 @@
+application:
+  url: http://localhost:8080/aac
+
+jdbc:
+  url: jdbc:mysql://localhost:3306/aac
+  user: ac
+  password: ac
+
+oauth-providers:
+  providers:
+    - provider: facebook
+      client:
+        clientId: fb-client-id
+        clientSecret: fb-client-secret
+        accessTokenUri: https://graph.facebook.com/oauth/access_token
+        userAuthorizationUri: https://www.facebook.com/dialog/oauth
+        tokenName: oauth_token
+        authenticationScheme: query
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile    
+    - provider: google
+      client:
+        clientId: google-client-id
+        clientSecret: google-client-secret
+        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
+        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile
+      resource:        
+        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        preferTokenInfo: true        
+
+admin:
+  password: admin
+
+mail:
+  username: user@gmail.com
+  password: 123
+  host: smtp.gmail.com
+  port: 465
+  protocol: smtps 
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+api:
+  store:
+    endpoint: https://localhost:9443/api/am/store/v0.10 
+  publisher:
+    endpoint: https://localhost:9443/api/am/publisher/v0.10
+  identity:
+    endpoint: https://localhost:9443/services/IdentityApplicationManagementService
+    password: admin    
+  usermgmt:
+    endpoint: https://localhost:9443/services/RemoteUserStoreManagerService
+    password: admin    
+  multitenancy:
+    endpoint: https://localhost:9443/services/TenantMgtAdminService
+    password: admin      
+    
