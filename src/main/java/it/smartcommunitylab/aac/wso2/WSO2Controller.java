@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.wso2;
 
+import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.keymanager.model.AACService;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 
@@ -177,10 +178,7 @@ public class WSO2Controller {
 		try {
 			
 			String un = userName.replace("-AT-", "@");
-			int index = un.lastIndexOf('@');
-			if (index != -1) {
-				un = un.substring(0, index);
-			}
+			un = Utils.extractUserFromTenant(un);
 			
 			boolean ok = wso2Manager.createResource(service, un);
 

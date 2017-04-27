@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.wso2;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
+import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jaxbmodel.Authority;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.keymanager.model.AACResource;
@@ -57,7 +58,9 @@ public class WSO2Manager {
 	private ServiceRepository serviceRepository;
 	
 	public ClientAppBasic createClient(ClientAppBasic app, String userName) throws Exception {
-		Registration registration = registrationRepository.findByEmail(userName);
+		String un = Utils.extractUserFromTenant(userName);
+		
+		Registration registration = registrationRepository.findByEmail(un);
 		
 		if (registration == null) {
 			return null;

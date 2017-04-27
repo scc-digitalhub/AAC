@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth;
 
+import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.Role;
@@ -9,6 +10,7 @@ import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -141,53 +143,60 @@ public class CustomOAuth2RequestFactory implements OAuth2RequestFactory {
 	}
 
 	private Set<String> checkUserScopes(Map<String, String> requestParameters, Set<String> scopes, ClientDetailsEntity client) throws Exception {
+		Set<String> newScopes = Sets.newHashSet();
+
 		ObjectMapper mapper = new ObjectMapper();
-		
+
 		Map parameters = mapper.readValue(client.getParameters(), Map.class);
 
 		String userName = (String) parameters.get("username");
-		User user = userRepository.findByName(userName);
+		String un = Utils.extractUserFromTenant(userName);
 
-		Set<String> roleNames = Sets.newHashSet();
-		for (Role role : user.getRoles()) {
-			roleNames.add(role.getRole());
-		}
-		
-		Set<String> newScopes = Sets.newHashSet();
-		
-		for (String scope : scopes) {
-			Resource resource = resourceRepository.findByResourceUri(scope);
-			if (resource != null) {
-				if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
-					Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
-					if (!Sets.intersection(roleNames, roles).isEmpty()) {
+		// User user = userRepository.findByName(un);
+		List<User> users = userRepository.findByAttributeEntities("internal", "email", un);
+
+		if (users != null && !users.isEmpty()) {
+			User user = users.get(0);
+			Set<String> roleNames = Sets.newHashSet();
+			for (Role role : user.getRoles()) {
+				roleNames.add(role.getRole());
+			}
+
+			for (String scope : scopes) {
+				Resource resource = resourceRepository.findByResourceUri(scope);
+				if (resource != null) {
+					if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
+						Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
+						if (!Sets.intersection(roleNames, roles).isEmpty()) {
+							newScopes.add(scope);
+						}
+					} else {
 						newScopes.add(scope);
 					}
-				} else {
-					newScopes.add(scope);
 				}
 			}
+
+			if (newScopes.isEmpty()) {
+				newScopes.add("default");
+			}
 		}
-		
-		if (newScopes.isEmpty()) {
-			newScopes.add("default");
-		}
-		
+
 		return newScopes;
-		
-		
-//		if (!securityContextAccessor.isUser()) {
-//			return scopes;
-//		}
-//		Set<String> result = new LinkedHashSet<String>();
-//		Set<String> authorities = AuthorityUtils.authorityListToSet(securityContextAccessor.getAuthorities());
-//		for (String scope : scopes) {
-//			if (authorities.contains(scope) || authorities.contains(scope.toUpperCase())
-//					|| authorities.contains("ROLE_" + scope.toUpperCase())) {
-//				result.add(scope);
-//			}
-//		}
-//		return result;
+
+		// if (!securityContextAccessor.isUser()) {
+		// return scopes;
+		// }
+		// Set<String> result = new LinkedHashSet<String>();
+		// Set<String> authorities =
+		// AuthorityUtils.authorityListToSet(securityContextAccessor.getAuthorities());
+		// for (String scope : scopes) {
+		// if (authorities.contains(scope) ||
+		// authorities.contains(scope.toUpperCase())
+		// || authorities.contains("ROLE_" + scope.toUpperCase())) {
+		// result.add(scope);
+		// }
+		// }
+		// return result;
 	}
 	
 }
