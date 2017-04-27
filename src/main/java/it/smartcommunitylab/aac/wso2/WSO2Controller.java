@@ -63,7 +63,7 @@ public class WSO2Controller {
 	
 	private static final Log logger = LogFactory.getLog(WSO2Controller.class);
 	
-	@RequestMapping(value = "/wso2/client/{userName}", method=RequestMethod.POST)
+	@RequestMapping(value = "/wso2/client/{userName:.+}", method=RequestMethod.POST)
 	public @ResponseBody ClientAppBasic createClient(HttpServletResponse response, @RequestBody ClientAppBasic app, @PathVariable("userName") String userName) throws Exception {
 		try {
 		ClientAppBasic resApp = wso2Manager.createClient(app, userName);
