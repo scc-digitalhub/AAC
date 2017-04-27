@@ -2,7 +2,7 @@ angular.module('aac.controllers.apis', [])
 /**
  * Single API view controller
  */
-.controller('APIController', function($scope, Data, Utils) {
+.controller('APIController', function($scope, $location, $routeParams, Data, Utils) {
 	$scope.page = {
 	  offset: 0,
 	  limit: 25,
@@ -57,7 +57,7 @@ angular.module('aac.controllers.apis', [])
 /**
  * List of APIs controller
  */
-.controller('APIListController', function($scope, Data, Utils) {
+.controller('APIListController', function($scope, $location, Data, Utils) {
 	$scope.page = {
 	  offset: 0,
 	  limit: 25,
