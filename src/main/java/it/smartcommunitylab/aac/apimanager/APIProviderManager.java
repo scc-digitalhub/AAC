@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 import it.smartcommunitylab.aac.wso2.services.UserManagementService;
 import it.smartcommunitylab.aac.wso2.services.Utils;
@@ -75,7 +76,10 @@ import com.google.common.base.Joiner;
 @Transactional
 public class APIProviderManager {
 	
-	private static final String MANAGEMENT_SCOPES = "clientmanagement,apimanagement";
+	private static final String APIMANAGEMENT = "apimanagement";
+	private static final String CLIENTMANAGEMENT = "clientmanagement";
+	private static final String SMARTCOMMUNITY_APIMANAGEMENT = "smartcommunity.apimanagement";
+	private static final String MANAGEMENT_SCOPES = CLIENTMANAGEMENT + "," + APIMANAGEMENT;
 	@Value("${application.url}")
 	private String applicationURL;
 	@Resource(name = "messageSource")
@@ -102,6 +106,8 @@ public class APIProviderManager {
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private ResourceRepository resourceRepository;
 	@Autowired
 	private UserManagementService umService;
 	@Autowired
@@ -249,6 +255,13 @@ public class APIProviderManager {
 		entity.setDeveloperId(developerId);
 		entity.setClientSecret(generateClientSecret());
 		entity.setClientSecretMobile(generateClientSecret());
+		
+		String resourcesId = "";
+		it.smartcommunitylab.aac.model.Resource r = resourceRepository.findByServiceIdAndResourceType(SMARTCOMMUNITY_APIMANAGEMENT, CLIENTMANAGEMENT);
+		resourcesId += r.getResourceId();
+		r = resourceRepository.findByServiceIdAndResourceType(SMARTCOMMUNITY_APIMANAGEMENT, APIMANAGEMENT);
+		resourcesId += "," + r.getResourceId();
+		entity.setResourceIds(resourcesId);
 		
 		entity.setName(API_MGT_CLIENT_ID);
 		entity.setScope(MANAGEMENT_SCOPES + "," + Joiner.on(",").join(API_MGT_SCOPES));

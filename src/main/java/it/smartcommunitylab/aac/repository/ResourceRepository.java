@@ -47,4 +47,8 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
 	
 	@Query("select r from Resource r where r.service=?1 and r.resourceType=?2")
 	public List<Resource> findByServiceAndResourceType(ServiceDescriptor service, String resourceType);
+	
+	@Query("select r from Resource r where r.service.serviceId=?1 and r.resourceType=?2")
+	public Resource findByServiceIdAndResourceType(String serviceId, String resourceType);	
+	
 }
