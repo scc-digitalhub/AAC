@@ -16,6 +16,13 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,13 +31,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.Attribute;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
  * Logged in user data manager. 
@@ -41,6 +41,8 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Transactional
 public class UserManager {
 
+	public static final String R_PROVIDER = "ROLE_PROVIDER";
+	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
@@ -107,6 +109,20 @@ public class UserManager {
 	public User getUser() {
 		User user = userRepository.findOne(getUserId());
 		return user;
+	}
+	
+	public String getProviderDomain() {
+		User user = getUser();
+		if (user == null) {
+			return null;
+		}
+		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
+		if (providerRoles.isEmpty()) return null;
+		
+		
+		Role role = providerRoles.iterator().next();
+		
+		return role.getContext();
 	}
 
 }

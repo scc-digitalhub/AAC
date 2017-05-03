@@ -16,6 +16,23 @@
 
 package it.smartcommunitylab.aac.apimanager;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.Response.RESPONSE;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.wso2.model.API;
+import it.smartcommunitylab.aac.wso2.model.APIInfo;
+import it.smartcommunitylab.aac.wso2.model.DataList;
+import it.smartcommunitylab.aac.wso2.model.RoleModel;
+import it.smartcommunitylab.aac.wso2.model.Subscription;
+import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
+import it.smartcommunitylab.aac.wso2.services.UserManagementService;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,21 +57,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.model.Response;
-import it.smartcommunitylab.aac.model.Response.RESPONSE;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.wso2.model.API;
-import it.smartcommunitylab.aac.wso2.model.APIInfo;
-import it.smartcommunitylab.aac.wso2.model.DataList;
-import it.smartcommunitylab.aac.wso2.model.RoleModel;
-import it.smartcommunitylab.aac.wso2.model.Subscription;
-import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
-import it.smartcommunitylab.aac.wso2.services.UserManagementService;
-
 /**
  * @author raman
  *
@@ -70,6 +72,8 @@ public class APIMgtController {
 	private APIProviderManager providerManager;
 	@Autowired
 	private RoleManager roleManager;
+	@Autowired
+	private UserManager userManager;	
 	
 	@GetMapping("/mgmt/apis")
 	public @ResponseBody DataList<APIInfo> getAPIs(
@@ -103,15 +107,19 @@ public class APIMgtController {
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
 			@RequestParam(required=false, defaultValue="25") Integer limit) throws Exception 
 	{
-		return pub.getSubscriptions(apiId, offset, limit, getToken());
+		return pub.getSubscriptions(apiId, userManager.getProviderDomain(), offset, limit, getToken());
 	}
 
 	@PutMapping("/mgmt/apis/{apiId}/userroles")
 	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws Exception 
 	{
-		String name = "", domain = "";
-		umService.updateRoles(roleModel, name, domain);
-		return pub.getUserAPIRoles(apiId, name, domain, getToken());
+//		String info[] = Utils.extractInfoFromTenant(roleModel.getUser());
+//		if (info == null) {
+//			info = new String[]{roleModel.getUser(), "carbon.super"};
+//		}
+		
+		umService.updateRoles(roleModel, roleModel.getUser(), userManager.getProviderDomain());
+		return pub.getUserAPIRoles(apiId, roleModel.getUser(), userManager.getProviderDomain(), getToken());
 	}
 	/**
 	 * @return 
@@ -131,9 +139,9 @@ public class APIMgtController {
 			@RequestParam(required=false, defaultValue="25") Integer limit) 
 	{
 		List<APIProvider> res = new LinkedList<>();
-		List<User> users = roleManager.findUsersByRole(ROLE_SCOPE.tenant, APIProviderManager.R_PROVIDER, offset / limit, limit);
+		List<User> users = roleManager.findUsersByRole(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, offset / limit, limit);
 		users.forEach(u -> {
-			String domain = u.role(ROLE_SCOPE.tenant, APIProviderManager.R_PROVIDER).iterator().next().getContext();
+			String domain = u.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER).iterator().next().getContext();
 			res.add(new APIProvider(
 					u.attributeValue(Config.IDP_INTERNAL, "email"),
 					u.getName(),

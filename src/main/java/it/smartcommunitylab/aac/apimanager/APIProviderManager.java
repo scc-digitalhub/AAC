@@ -95,7 +95,7 @@ public class APIProviderManager {
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create"};
 	/** Predefined tenant role PROVIDER (API provider) */
-	public static final String R_PROVIDER = "ROLE_PROVIDER";
+	
 	
 	@Autowired
 	@Qualifier("appTokenServices")
@@ -126,7 +126,7 @@ public class APIProviderManager {
 		List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, provider.getEmail());
 		if (users != null && !users.isEmpty()) {
 			User user = users.get(0);
-			Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
+			Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
 			// if the existing user is already a provider for a different domain, throw an exception
 			if (!providerRoles.isEmpty() && !providerRoles.iterator().next().getContext().equals(provider.getDomain())) {
 				throw new AlreadyRegisteredException("A user with the same username is already registered locally");
@@ -137,7 +137,7 @@ public class APIProviderManager {
 		String key =  RandomStringUtils.randomAlphanumeric(24);
 		// create registration data and user attributes
 		User created = regManager.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang(), true, key);
-		Role providerRole = new Role(ROLE_SCOPE.tenant, R_PROVIDER, provider.getDomain());
+		Role providerRole = new Role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, provider.getDomain());
 		roleManager.addRole(created, providerRole);
 
 		try {
@@ -158,7 +158,7 @@ public class APIProviderManager {
 			List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, email);
 			if (users != null && !users.isEmpty()) {
 				User user = users.get(0);
-				Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
+				Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
 				if (providerRoles != null && providerRoles.size() == 1) {
 					Role providerRole = providerRoles.iterator().next();
 					umService.updatePublisherPassword(email, providerRole.getContext(), newPassword);
@@ -297,7 +297,7 @@ public class APIProviderManager {
 	private String getAPIManagerName() {
 		User user = userManager.getUser();
 		if (user == null) return null;
-		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
+		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
 		if (providerRoles.isEmpty()) return null;
 		
 		String email = user.attributeValue(Config.IDP_INTERNAL, EMAIL_ATTR);
