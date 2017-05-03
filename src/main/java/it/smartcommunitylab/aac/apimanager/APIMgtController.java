@@ -119,7 +119,7 @@ public class APIMgtController {
 //		}
 		
 		umService.updateRoles(roleModel, roleModel.getUser(), userManager.getProviderDomain());
-		return pub.getUserAPIRoles(apiId, roleModel.getUser(), userManager.getProviderDomain(), getToken());
+		return pub.getUserAPIRoles(apiId, userManager.getProviderDomain(), roleModel.getUser(), getToken());
 	}
 	/**
 	 * @return 

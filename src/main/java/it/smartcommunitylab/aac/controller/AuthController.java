@@ -236,7 +236,7 @@ public class AuthController {
 	@RequestMapping("/eauth/{authorityUrl}")
 	public ModelAndView forward(@PathVariable String authorityUrl,
 			@RequestParam(required = false) String target,
-			HttpServletRequest req, HttpServletResponse res) throws Exception {
+			HttpServletRequest req, HttpServletResponse res) {
 
 		String nTarget = (String) req.getSession().getAttribute("redirect");
 		if (nTarget == null)

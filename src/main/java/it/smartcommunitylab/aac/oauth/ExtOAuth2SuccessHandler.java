@@ -17,6 +17,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -45,15 +46,40 @@ public class ExtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
 		OAuth2Authentication oauth = (OAuth2Authentication) authentication;
 		@SuppressWarnings("unchecked")
 		Map<String,Object> details = (Map<String,Object>)oauth.getUserAuthentication().getDetails();
+		details = flatten(details);
 		try {
 			URIBuilder builder = new URIBuilder(getDefaultTargetUrl());
 			for (String key: details.keySet()) {
 				builder.addParameter(key, details.get(key).toString());
+				request.setAttribute(key, details.get(key));
 			}
-			getRedirectStrategy().sendRedirect(request, response, builder.build().toString());
+			request.getRequestDispatcher(builder.build().toString()).forward(request, response);
+//			response.sendRedirect("forward:"+builder.build().toString());
+//			getRedirectStrategy().sendRedirect(request, response, builder.build().toString());
 		} catch (URISyntaxException e) {
 			throw new ServletException(e.getMessage());
 		}
+	}
+
+	/**
+	 * @param details
+	 * @return
+	 */
+	private Map<String, Object> flatten(Map<String, Object> details) {
+		Map<String, Object> result = new HashMap<>();
+		if (details != null) {
+			flatten(details, "", result);
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void flatten(Map<String,Object> map, String pre, Map<String, Object> result) {
+		String prefix = pre.length() > 0 ? (pre + ".") : ""; 
+		map.forEach((k,v) -> {
+			if (v != null && (v instanceof Map)) flatten((Map<String,Object>)v, prefix+k, result);
+			else result.put(k,v);
+		});
 	}
 	
 }

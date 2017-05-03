@@ -35,6 +35,18 @@ oauth-providers:
       resource:        
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
         preferTokenInfo: true        
+    - provider: adc
+      client:
+        clientId: adc-client-id
+        clientSecret: adc-client-secret
+        accessTokenUri: https://dev.smartcommunitylab.it/aac/oauth/token
+        userAuthorizationUri: https://dev.smartcommunitylab.it/aac/eauth/authorize
+        clientAuthenticationScheme: form
+        scope:
+            - profile.basicprofile.me
+            - profile.accountprofile.me
+      resource:        
+        userInfoUri: https://dev.smartcommunitylab.it/aac/accountprofile/me
 
 admin:
   password: admin
