@@ -113,4 +113,15 @@ public class Utils {
 		return un;
 	}
 	
+	public static String[] extractInfoFromTenant(String tenant) {
+		int index = tenant.lastIndexOf('@');
+		if (index != -1) {
+			String result[] = new String[2];
+			result[0] = tenant.substring(0, index);
+			result[1] = tenant.substring(index + 1, tenant.length());
+			return result;
+		}
+		return null;
+	}	
+	
 }
