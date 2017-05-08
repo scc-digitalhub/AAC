@@ -59,7 +59,7 @@ import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ContextExtender;
 import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
-import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
+import it.smartcommunitylab.aac.oauth.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.MockDataAwareOAuth2SuccessHandler;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
@@ -142,6 +142,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@ConfigurationProperties("oauth-providers")
 	public OAuthProviders oauthProviders(){
 		return new OAuthProviders();
+	}
+	
+	@Bean
+	public InternalPasswordEncoder getInternalPasswordEncoder() {
+		return new InternalPasswordEncoder();
 	}
 	
 	private Filter extOAuth2Filter() throws IOException {
