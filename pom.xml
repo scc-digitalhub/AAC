@@ -206,7 +206,7 @@
         <executable>true</executable>
 				</configuration>
 			</plugin>		
-			<plugin>
+<!-- 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxb2-maven-plugin</artifactId>
 				<version>1.6</version>
@@ -219,8 +219,6 @@
 							<clearOutputDir>false</clearOutputDir>
 							<arguments>-Xvalue-constructor</arguments>
 							<locale>en</locale>
-							<!-- <noPackageLevelAnnotations>true</noPackageLevelAnnotations>
-							<packageLevelAnnotations>false</packageLevelAnnotations> -->
 						</configuration>
 						<goals>
 							<goal>xjc</goal>
@@ -234,7 +232,7 @@
 						<version>3.0</version>
 					</dependency>
 				</dependencies>
-			</plugin>
+			</plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
