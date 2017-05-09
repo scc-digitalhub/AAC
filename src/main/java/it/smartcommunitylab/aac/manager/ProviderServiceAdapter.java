@@ -15,6 +15,20 @@
  */
 package it.smartcommunitylab.aac.manager;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.JAXBException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.Authority;
@@ -23,21 +37,6 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.AttributeRepository;
 import it.smartcommunitylab.aac.repository.AuthorityRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.JAXBException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class manages operations of the service
@@ -57,8 +56,7 @@ public class ProviderServiceAdapter {
 	private AttributeRepository attributeRepository;
 	
 	
-	@PostConstruct
-	private void init() throws JAXBException, IOException {
+	public void init() throws JAXBException, IOException {
 		attrAdapter.init();
 	}
 
