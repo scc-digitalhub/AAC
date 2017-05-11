@@ -14,6 +14,8 @@ oauth-providers:
         clientSecret: fb-client-secret
         accessTokenUri: https://graph.facebook.com/oauth/access_token
         userAuthorizationUri: https://www.facebook.com/dialog/oauth
+        preEstablishedRedirectUri: ${application.url}/auth/facebook-oauth/callback
+        useCurrentUri: false
         tokenName: oauth_token
         authenticationScheme: query
         clientAuthenticationScheme: form
@@ -27,6 +29,8 @@ oauth-providers:
         clientSecret: google-client-secret
         accessTokenUri: https://www.googleapis.com/oauth2/v3/token
         userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
+        preEstablishedRedirectUri: ${application.url}/auth/google-oauth/callback
+        useCurrentUri: false
         clientAuthenticationScheme: form
         scope:
             - openid
@@ -41,6 +45,8 @@ oauth-providers:
         clientSecret: adc-client-secret
         accessTokenUri: https://dev.smartcommunitylab.it/aac/oauth/token
         userAuthorizationUri: https://dev.smartcommunitylab.it/aac/eauth/authorize
+        preEstablishedRedirectUri: ${application.url}/auth/adc-oauth/callback
+        useCurrentUri: false
         clientAuthenticationScheme: form
         scope:
             - profile.basicprofile.me
