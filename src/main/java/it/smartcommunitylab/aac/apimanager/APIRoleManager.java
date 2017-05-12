@@ -1,14 +1,5 @@
 package it.smartcommunitylab.aac.apimanager;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.wso2.model.DataList;
-import it.smartcommunitylab.aac.wso2.model.RoleModel;
-import it.smartcommunitylab.aac.wso2.model.Subscription;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +9,15 @@ import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.model.DataList;
+import it.smartcommunitylab.aac.wso2.model.RoleModel;
+import it.smartcommunitylab.aac.wso2.model.Subscription;
 
 @Component
 @Transactional
@@ -30,9 +30,6 @@ public class APIRoleManager {
 		for (Subscription sub: subs.getList()) {
 			String subscriber = sub.getSubscriber();
 			String info[] = Utils.extractInfoFromTenant(subscriber);
-			if (info == null) {
-				info = new String[] { subscriber, "carbon.super" };
-			}			
 			final String name = info[0];
 			final String domain = info[1];			
 			
@@ -47,9 +44,6 @@ public class APIRoleManager {
 	
 	public List<String> updateLocalRoles(RoleModel roleModel) {
 		String info[] = Utils.extractInfoFromTenant(roleModel.getUser());
-		if (info == null) {
-			info = new String[] { roleModel.getUser(), "carbon.super" };
-		}
 		
 		final String name = info[0];
 		final String domain = info[1];
