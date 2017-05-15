@@ -16,6 +16,41 @@
 
 package it.smartcommunitylab.aac.apimanager;
 
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.TokenRequest;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
+import org.wso2.carbon.um.ws.api.stub.ClaimValue;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+
+import com.google.common.base.Joiner;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
@@ -34,40 +69,6 @@ import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 import it.smartcommunitylab.aac.wso2.services.UserManagementService;
 import it.smartcommunitylab.aac.wso2.services.Utils;
-
-import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-
-import org.apache.commons.lang.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.TokenRequest;
-import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.util.StringUtils;
-import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
-import org.wso2.carbon.um.ws.api.stub.ClaimValue;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
-
-import com.google.common.base.Joiner;
 
 /**
  * @author raman
@@ -194,6 +195,7 @@ public class APIProviderManager {
 	 * @return
 	 * @throws Exception
 	 */
+	@Transactional(isolation=Isolation.SERIALIZABLE)
 	public String createToken() throws Exception {
 		Map<String, String> requestParameters = new HashMap<>();
 		String apiManagerName = getAPIManagerName();

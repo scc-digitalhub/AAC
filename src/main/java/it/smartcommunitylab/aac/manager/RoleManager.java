@@ -64,7 +64,9 @@ public class RoleManager {
 		try {
 			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null, false, null);
 			Role role = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
-			admin.setRoles(Sets.newHashSet(role));
+			Role providerRole = new Role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, "carbon.super");
+			
+			admin.setRoles(Sets.newHashSet(role, providerRole));
 			userRepository.saveAndFlush(admin);
 			return admin;
 		} catch (AlreadyRegisteredException e1) {
