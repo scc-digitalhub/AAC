@@ -92,6 +92,12 @@
       <artifactId>wso2-integration</artifactId>
       <version>${wso2integration.version}</version>
     </dependency>
+     
+     <dependency>
+    	<groupId>it.smartcommunitylab.aac.authorization</groupId>
+		<artifactId>aac-authorization</artifactId>
+		<version>0.1.0</version>
+    </dependency>
 		
 		
 

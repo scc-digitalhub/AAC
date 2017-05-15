@@ -1,21 +1,5 @@
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.apimanager.APIProviderManager;
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
-import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
-import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
-import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
-import it.smartcommunitylab.aac.oauth.ContextExtender;
-import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
-import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
-import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
-import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
-import it.smartcommunitylab.aac.oauth.OAuthProviders;
-import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
-import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-
 import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,7 +47,23 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 import org.springframework.web.filter.CorsFilter;
 
-@Configuration 
+import it.smartcommunitylab.aac.apimanager.APIProviderManager;
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
+import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
+import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.ContextExtender;
+import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
+import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
+import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
+import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
+import it.smartcommunitylab.aac.oauth.OAuthProviders;
+import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
+import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+
+@Configuration
 @EnableOAuth2Client
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -79,24 +79,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private DataSource dataSource;
-	
 
-	@Bean 
+	@Bean
 	public AutoJdbcTokenStore getTokenStore() throws PropertyVetoException {
 		return new AutoJdbcTokenStore(dataSource);
 	}
+
 	@Bean
 	public JdbcClientDetailsService getClientDetails() throws PropertyVetoException {
 		JdbcClientDetailsService bean = new JdbcClientDetailsService(dataSource);
 		bean.setRowMapper(getClientDetailsRowMapper());
 		return bean;
 	}
-	
+
 	@Bean
 	public UserDetailsService getInternalUserDetailsService() {
 		return new InternalUserDetailsRepo();
-	} 
-	
+	}
+
 	@Bean
 	public ClientDetailsRowMapper getClientDetailsRowMapper() {
 		return new ClientDetailsRowMapper();
@@ -106,7 +106,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public APIProviderManager tokenEmitter() {
 		return new APIProviderManager();
 	}
-	
+
 	@Bean
 	public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
 		FilterRegistrationBean registration = new FilterRegistrationBean();
@@ -116,73 +116,63 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-    public FilterRegistrationBean corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
-        bean.setOrder(0);
-        return bean;
-    }	
-	
+	public FilterRegistrationBean corsFilter() {
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowCredentials(true);
+		config.addAllowedOrigin("*");
+		config.addAllowedHeader("*");
+		config.addAllowedMethod("*");
+		source.registerCorsConfiguration("/**", config);
+		FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+		bean.setOrder(0);
+		return bean;
+	}
 
 	@Bean
 	@ConfigurationProperties("oauth-providers")
-	public OAuthProviders oauthProviders(){
+	public OAuthProviders oauthProviders() {
 		return new OAuthProviders();
 	}
-	
+
 	private Filter extOAuth2Filter() {
 		CompositeFilter filter = new CompositeFilter();
 		List<Filter> filters = new ArrayList<>();
 		List<ClientResources> providers = oauthProviders().getProviders();
 		for (ClientResources client : providers) {
 			String id = client.getProvider();
-			filters.add(extOAuth2Filter(client, Utils.filterRedirectURL(id), "/eauth/"+id));
+			filters.add(extOAuth2Filter(client, Utils.filterRedirectURL(id), "/eauth/" + id));
 		}
 		filter.setFilters(filters);
 		return filter;
-	}	
-	
+	}
+
 	private Filter extOAuth2Filter(ClientResources client, String path, String target) {
-		OAuth2ClientAuthenticationProcessingFilter filter = new OAuth2ClientAuthenticationProcessingFilter(
-				path);
-		
+		OAuth2ClientAuthenticationProcessingFilter filter = new OAuth2ClientAuthenticationProcessingFilter(path);
+
 		filter.setAuthenticationSuccessHandler(new ExtOAuth2SuccessHandler(target));
-		
+
 		OAuth2RestTemplate template = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
 		filter.setRestTemplate(template);
-		UserInfoTokenServices tokenServices = new UserInfoTokenServices(
-				client.getResource().getUserInfoUri(), client.getClient().getClientId());
+		UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
+				client.getClient().getClientId());
 		tokenServices.setRestTemplate(template);
 		filter.setTokenServices(tokenServices);
 		return filter;
-	}	
-	
+	}
+
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http
-			.authorizeRequests()
-				.antMatchers("/eauth/authorize/**").permitAll()
-				.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
-				.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"),"ROLE_ADMIN")
-				.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
-				.antMatchers("/mgmt/**").hasAnyAuthority("ROLE_PROVIDER")
-				.and().exceptionHandling()
-					.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
-					.accessDeniedPage("/accesserror")
-				.and().logout()
-					.logoutSuccessUrl("/login").permitAll()
-				.and().csrf()
-					.disable()
-					.addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class)
-					;
+		http.authorizeRequests().antMatchers("/eauth/authorize/**").permitAll()
+				.antMatchers("/oauth/authorize", "/eauth/**").authenticated().antMatchers("/", "/dev**")
+				.hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
+				.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN").antMatchers("/mgmt/**")
+				.hasAnyAuthority("ROLE_PROVIDER").antMatchers("/authorization/**").permitAll().and().exceptionHandling()
+				.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+				.accessDeniedPage("/accesserror").and().logout().logoutSuccessUrl("/login").permitAll().and().csrf()
+				.disable().addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class);
 	}
-	
+
 	@Override
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
@@ -192,17 +182,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(getInternalUserDetailsService());
 	}
+
 	@Bean
 	protected ContextExtender contextExtender() {
 		return new ContextExtender();
 	}
-	
+
 	@Configuration
 	@EnableAuthorizationServer
 	protected class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 		@Autowired
 		private DataSource dataSource;
-		
+
 		@Autowired
 		private TokenStore tokenStore;
 
@@ -220,14 +211,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
 			return new AutoJdbcAuthorizationCodeServices(dataSource);
-		}	
+		}
 
 		@Bean
 		public OAuth2RequestFactory getOAuth2RequestFactory() throws PropertyVetoException {
 			CustomOAuth2RequestFactory result = new CustomOAuth2RequestFactory();
 			return result;
-		}		
-		
+		}
+
 		@Bean("appTokenServices")
 		public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
 			NonRemovingTokenServices bean = new NonRemovingTokenServices();
@@ -237,7 +228,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			bean.setClientDetailsService(clientDetailsService);
 			return bean;
 		}
-		
+
 		@Bean
 		public UserApprovalHandler getUserApprovalHandler() throws PropertyVetoException {
 			UserApprovalHandler bean = new UserApprovalHandler();
@@ -245,9 +236,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			bean.setRequestFactory(getOAuth2RequestFactory());
 			return bean;
 		}
-				
+
 		Filter endpointFilter() {
-			ClientCredentialsTokenEndpointFilter filter = new ClientCredentialsTokenEndpointFilter(clientDetailsRepository);
+			ClientCredentialsTokenEndpointFilter filter = new ClientCredentialsTokenEndpointFilter(
+					clientDetailsRepository);
 			filter.setAuthenticationManager(authenticationManager);
 			// need to initialize success/failure handlers
 			filter.afterPropertiesSet();
@@ -258,137 +250,135 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 			clients.jdbc(dataSource).clients(clientDetailsService);
 		}
-		
+
 		@Override
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-			endpoints
-			.tokenStore(tokenStore)
-			.userApprovalHandler(userApprovalHandler)
-			.authenticationManager(authenticationManager)
-			.requestFactory(getOAuth2RequestFactory());
-		}		
-        @Override
-        public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
-            oauthServer
-            .addTokenEndpointAuthenticationFilter(endpointFilter())
-            ;
-        }
-    }
-	
+			endpoints.tokenStore(tokenStore).userApprovalHandler(userApprovalHandler)
+					.authenticationManager(authenticationManager).requestFactory(getOAuth2RequestFactory());
+		}
+
+		@Override
+		public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
+			oauthServer.addTokenEndpointAuthenticationFilter(endpointFilter());
+		}
+	}
+
 	@Bean
 	protected ResourceServerConfiguration profileResources() {
-		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
 			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
 				super.setConfigurers(configurers);
 			}
 		};
-		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
-			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
 			public void configure(HttpSecurity http) throws Exception {
-				http
-				.antMatcher("/*profile/**")
-				.authorizeRequests()
-				.antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
-				.antMatchers("/basicprofile/all").access("#oauth2.hasScope('profile.basicprofile.all')")
-				.antMatchers("/basicprofile/me").access("#oauth2.hasScope('profile.basicprofile.me')")
-				.antMatchers("/accountprofile/all").access("#oauth2.hasScope('profile.accountprofile.all')")
-				.antMatchers("/accountprofile/me").access("#oauth2.hasScope('profile.accountprofile.me')")
-				.and().csrf().disable();
+				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**")
+						.permitAll().antMatchers("/basicprofile/all")
+						.access("#oauth2.hasScope('profile.basicprofile.all')").antMatchers("/basicprofile/me")
+						.access("#oauth2.hasScope('profile.basicprofile.me')").antMatchers("/accountprofile/all")
+						.access("#oauth2.hasScope('profile.accountprofile.all')").antMatchers("/accountprofile/me")
+						.access("#oauth2.hasScope('profile.accountprofile.me')").and().csrf().disable();
 			}
 
 		}));
 		resource.setOrder(4);
 		return resource;
 	}
-	
+
 	@Bean
 	protected ResourceServerConfiguration restRegistrationResources() {
-		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
 			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
 				super.setConfigurers(configurers);
 			}
 		};
-		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
-			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
 			public void configure(HttpSecurity http) throws Exception {
-				http
-				.antMatcher("/internal/register/rest")
-				.authorizeRequests()
-				.anyRequest().access("#oauth2.hasScope('usermanagement')")
-				.and().csrf().disable();
+				http.antMatcher("/internal/register/rest").authorizeRequests().anyRequest()
+						.access("#oauth2.hasScope('usermanagement')").and().csrf().disable();
 			}
 
 		}));
 		resource.setOrder(5);
 		return resource;
 	}
-	
-//	@Bean
-//	protected ResourceServerConfiguration apiMgmtResources() {
-//		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
-//			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
-//				super.setConfigurers(configurers);
-//			}
-//		};
-//		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
-//			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
-//			public void configure(HttpSecurity http) throws Exception {
-//				http
-//				.antMatcher("/mgmt/apis")
-//				.authorizeRequests()
-//				.antMatchers(HttpMethod.OPTIONS, "/mgmt/apis").permitAll()
-//				.anyRequest().authenticated()
-//				.and().csrf().disable();
-//			}
-//
-//		}));
-//		resource.setOrder(6);
-//		return resource;
-//	}
-	
+
+	// @Bean
+	// protected ResourceServerConfiguration apiMgmtResources() {
+	// ResourceServerConfiguration resource = new ResourceServerConfiguration()
+	// {
+	// public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+	// super.setConfigurers(configurers);
+	// }
+	// };
+	// resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new
+	// ResourceServerConfigurerAdapter() {
+	// public void configure(ResourceServerSecurityConfigurer resources) throws
+	// Exception { resources.resourceId(null); }
+	// public void configure(HttpSecurity http) throws Exception {
+	// http
+	// .antMatcher("/mgmt/apis")
+	// .authorizeRequests()
+	// .antMatchers(HttpMethod.OPTIONS, "/mgmt/apis").permitAll()
+	// .anyRequest().authenticated()
+	// .and().csrf().disable();
+	// }
+	//
+	// }));
+	// resource.setOrder(6);
+	// return resource;
+	// }
 
 	@Bean
 	protected ResourceServerConfiguration wso2ClientResources() {
-		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
 			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
 				super.setConfigurers(configurers);
 			}
 		};
-		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
-			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
 			public void configure(HttpSecurity http) throws Exception {
-				http
-				.antMatcher("/wso2/client/**")
-				.authorizeRequests()
-				.anyRequest().access("#oauth2.hasScope('clientmanagement')")
-				.and().csrf().disable();
+				http.antMatcher("/wso2/client/**").authorizeRequests().anyRequest()
+						.access("#oauth2.hasScope('clientmanagement')").and().csrf().disable();
 			}
 
 		}));
 		resource.setOrder(7);
 		return resource;
-	}	
-	
+	}
+
 	@Bean
 	protected ResourceServerConfiguration wso2APIResources() {
-		ResourceServerConfiguration resource = new ResourceServerConfiguration() {	
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
 			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
 				super.setConfigurers(configurers);
 			}
 		};
-		resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new ResourceServerConfigurerAdapter() {
-			public void configure(ResourceServerSecurityConfigurer resources) throws Exception { resources.resourceId(null); }
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
 			public void configure(HttpSecurity http) throws Exception {
-				http
-				.antMatcher("/wso2/resources/**")
-				.authorizeRequests()
-				.anyRequest().access("#oauth2.hasScope('apimanagement')")
-				.and().csrf().disable();
+				http.antMatcher("/wso2/resources/**").authorizeRequests().anyRequest()
+						.access("#oauth2.hasScope('apimanagement')").and().csrf().disable();
 			}
 
 		}));
 		resource.setOrder(8);
 		return resource;
-	}	
+	}
 
 }
