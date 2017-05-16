@@ -83,6 +83,15 @@ public class WSO2Manager {
 		return resApp;
 	}
 	
+	public void updateValidity(String clientId, Integer validity) throws Exception {
+		ClientDetailsEntity entity = clientDetailsRepository.findByClientId(clientId);
+		
+		entity.setAccessTokenValidity(validity);
+//		entity.setRefreshTokenValidity(validity);
+
+		clientDetailsRepository.save(entity);
+	}	
+	
 	public void updateClientScope(String consumerKey, String scope) throws Exception {
 		ClientDetailsEntity entity = clientDetailsRepository.findByClientId(consumerKey);
 		Set<String> oldScope = entity.getScope();
@@ -96,7 +105,7 @@ public class WSO2Manager {
 				resourcesId += "," + r.getResourceId();
 			}
 		}
-		resourcesId =resourcesId.replaceFirst(",", "");
+		resourcesId = resourcesId.replaceFirst(",", "");
 		entity.setResourceIds(resourcesId);		
 		
 		ClientAppBasic resApp = clientDetailsManager.convertToClientApp(entity);
