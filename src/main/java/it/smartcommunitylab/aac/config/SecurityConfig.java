@@ -244,7 +244,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			return result;
 		}		
 		
-		@Bean("appTokenServices")
+//		@Bean("appTokenServices")
 		public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
 			NonRemovingTokenServices bean = new NonRemovingTokenServices();
 			bean.setTokenStore(tokenStore);
@@ -281,7 +281,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.tokenStore(tokenStore)
 			.userApprovalHandler(userApprovalHandler)
 			.authenticationManager(authenticationManager)
-			.requestFactory(getOAuth2RequestFactory());
+			.requestFactory(getOAuth2RequestFactory())
+			.tokenServices(getTokenServices());
 		}		
         @Override
         public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {

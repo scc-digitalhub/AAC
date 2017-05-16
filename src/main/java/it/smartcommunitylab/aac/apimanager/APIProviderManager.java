@@ -31,7 +31,6 @@ import javax.annotation.Resource;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -99,7 +98,7 @@ public class APIProviderManager {
 	
 	
 	@Autowired
-	@Qualifier("appTokenServices")
+//	@Qualifier("appTokenServices")
 	AuthorizationServerTokenServices tokenService;
 	@Autowired
 	private UserManager userManager;
