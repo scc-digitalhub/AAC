@@ -195,6 +195,10 @@
 		<version>2.4.0</version>
 	</dependency>	
 	
+    <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+    </dependency>    
     
 	</dependencies>
 
@@ -204,10 +208,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<executable>true</executable>
+        <addResources>true</addResources>
+        <executable>true</executable>
 				</configuration>
 			</plugin>		
-			<plugin>
+ 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxb2-maven-plugin</artifactId>
 				<version>1.6</version>
@@ -220,8 +225,6 @@
 							<clearOutputDir>false</clearOutputDir>
 							<arguments>-Xvalue-constructor</arguments>
 							<locale>en</locale>
-							<!-- <noPackageLevelAnnotations>true</noPackageLevelAnnotations>
-							<packageLevelAnnotations>false</packageLevelAnnotations> -->
 						</configuration>
 						<goals>
 							<goal>xjc</goal>

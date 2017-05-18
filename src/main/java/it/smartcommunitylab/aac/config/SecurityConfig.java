@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.config;
 
 import java.beans.PropertyVetoException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -46,17 +48,20 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 import org.springframework.web.filter.CorsFilter;
+import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
+import it.smartcommunitylab.aac.model.MockDataMappings;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ContextExtender;
 import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
-import it.smartcommunitylab.aac.oauth.ExtOAuth2SuccessHandler;
+import it.smartcommunitylab.aac.oauth.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
+import it.smartcommunitylab.aac.oauth.MockDataAwareOAuth2SuccessHandler;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
@@ -67,6 +72,9 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @EnableOAuth2Client
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Value("classpath:/testdata.yml")
+	private Resource dataMapping;
 
 	@Value("${application.url}")
 	private String applicationURL;
@@ -135,7 +143,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new OAuthProviders();
 	}
 
-	private Filter extOAuth2Filter() {
+	@Bean
+	public InternalPasswordEncoder getInternalPasswordEncoder() {
+		return new InternalPasswordEncoder();
+	}
+
+	private Filter extOAuth2Filter() throws IOException {
 		CompositeFilter filter = new CompositeFilter();
 		List<Filter> filters = new ArrayList<>();
 		List<ClientResources> providers = oauthProviders().getProviders();
@@ -145,12 +158,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		}
 		filter.setFilters(filters);
 		return filter;
+
 	}
 
-	private Filter extOAuth2Filter(ClientResources client, String path, String target) {
+	private Filter extOAuth2Filter(ClientResources client, String path, String target) throws IOException {
 		OAuth2ClientAuthenticationProcessingFilter filter = new OAuth2ClientAuthenticationProcessingFilter(path);
 
-		filter.setAuthenticationSuccessHandler(new ExtOAuth2SuccessHandler(target));
+		Yaml yaml = new Yaml();
+		MockDataMappings data = yaml.loadAs(dataMapping.getInputStream(), MockDataMappings.class);
+
+		filter.setAuthenticationSuccessHandler(new MockDataAwareOAuth2SuccessHandler(target, data));
 
 		OAuth2RestTemplate template = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
 		filter.setRestTemplate(template);
@@ -217,9 +234,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		public OAuth2RequestFactory getOAuth2RequestFactory() throws PropertyVetoException {
 			CustomOAuth2RequestFactory result = new CustomOAuth2RequestFactory();
 			return result;
+
 		}
 
-		@Bean("appTokenServices")
+		// @Bean("appTokenServices")
+
 		public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
 			NonRemovingTokenServices bean = new NonRemovingTokenServices();
 			bean.setTokenStore(tokenStore);
@@ -254,13 +273,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Override
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 			endpoints.tokenStore(tokenStore).userApprovalHandler(userApprovalHandler)
-					.authenticationManager(authenticationManager).requestFactory(getOAuth2RequestFactory());
+					.authenticationManager(authenticationManager).requestFactory(
+
+							getOAuth2RequestFactory())
+					.tokenServices(getTokenServices());
 		}
 
 		@Override
 		public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
 			oauthServer.addTokenEndpointAuthenticationFilter(endpointFilter());
 		}
+
 	}
 
 	@Bean

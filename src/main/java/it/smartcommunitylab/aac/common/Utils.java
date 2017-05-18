@@ -16,10 +16,6 @@
 
 package it.smartcommunitylab.aac.common;
 
-import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
-import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
-import it.smartcommunitylab.aac.model.ServiceDescriptor;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +23,10 @@ import java.util.Set;
 import org.springframework.util.StringUtils;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
+
+import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
+import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
+import it.smartcommunitylab.aac.model.ServiceDescriptor;
 
 /**
  * Common methods and functions
@@ -106,11 +106,28 @@ public class Utils {
 	
 	public static String extractUserFromTenant(String tenant) {
 		String un = tenant;
-		int index = un.lastIndexOf('@');
-		if (index != -1) {
-			un = un.substring(0, index);
+		
+		int index = un.indexOf('@');
+		int lastIndex = un.lastIndexOf('@');
+		
+		if (index != lastIndex) {
+			un = un.substring(0, lastIndex);
 		}
+		
 		return un;
 	}
+	
+	public static String[] extractInfoFromTenant(String tenant) {
+		int index = tenant.indexOf('@');
+		int lastIndex = tenant.lastIndexOf('@');
+		
+		if (index != lastIndex) {
+			String result[] = new String[2];
+			result[0] = tenant.substring(0, lastIndex);
+			result[1] = tenant.substring(lastIndex + 1, tenant.length());
+			return result;
+		}
+		return new String[] {tenant, "carbon.super"};
+	}	
 	
 }

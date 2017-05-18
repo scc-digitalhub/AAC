@@ -10,12 +10,28 @@
 		</encoder>
 	</appender>
 
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>/home/dev/wso2/logs/aac.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>aac.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 30 days' worth of history capped at 3GB total size -->
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>3GB</totalSizeCap>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender> 
+
 	<logger name="it.smartcommunitylab" level="DEBUG" additivity="false">
-            <appender-ref ref="STDOUT" />
+            <appender-ref ref="FILE" />
 	</logger>	
 	
-	<logger name="org.springframework.security" level="DEBUG" additivity="false">
-            <appender-ref ref="STDOUT" />
+	<logger name="org.springframework.security" level="ERROR" additivity="false">
+            <appender-ref ref="FILE" />
 	</logger>		
 	
 

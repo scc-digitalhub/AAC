@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.apimanager;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Response;
@@ -74,6 +73,8 @@ public class APIMgtController {
 	private RoleManager roleManager;
 	@Autowired
 	private UserManager userManager;	
+	@Autowired
+	private APIRoleManager apiRoleManager;	
 	
 	@GetMapping("/mgmt/apis")
 	public @ResponseBody DataList<APIInfo> getAPIs(
@@ -107,20 +108,24 @@ public class APIMgtController {
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
 			@RequestParam(required=false, defaultValue="25") Integer limit) throws Exception 
 	{
-		return pub.getSubscriptions(apiId, userManager.getProviderDomain(), offset, limit, getToken());
+		DataList<Subscription> subs = pub.getSubscriptions(apiId, userManager.getProviderDomain(), offset, limit, getToken());
+		apiRoleManager.fillRoles(subs);
+		return subs;
 	}
+	
+
 
 	@PutMapping("/mgmt/apis/{apiId}/userroles")
 	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws Exception 
 	{
-//		String info[] = Utils.extractInfoFromTenant(roleModel.getUser());
-//		if (info == null) {
-//			info = new String[]{roleModel.getUser(), "carbon.super"};
-//		}
-		
-		umService.updateRoles(roleModel, roleModel.getUser(), userManager.getProviderDomain());
-		return pub.getUserAPIRoles(apiId, userManager.getProviderDomain(), roleModel.getUser(), getToken());
-	}
+//		umService.updateRoles(roleModel, roleModel.getUser(), userManager.getProviderDomain());
+//		List<String> roles = pub.getUserAPIRoles(apiId, roleModel.getUser(), userManager.getProviderDomain(), getToken());
+		return apiRoleManager.updateLocalRoles(roleModel);
+	} 
+	
+
+	
+	
 	/**
 	 * @return 
 	 * @throws Exception 

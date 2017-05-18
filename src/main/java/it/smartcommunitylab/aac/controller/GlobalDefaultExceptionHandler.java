@@ -49,6 +49,7 @@ class GlobalDefaultExceptionHandler implements HandlerExceptionResolver, Ordered
 	        mav.addObject("exception", anExc);
 	        mav.addObject("url", aReq.getRequestURL());
 	        mav.setViewName(DEFAULT_ERROR_VIEW);
+	        anExc.printStackTrace();
 	        return mav;
 	 	    }
 	}

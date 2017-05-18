@@ -1,5 +1,20 @@
 package it.smartcommunitylab.aac.wso2;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.util.Lists;
+import com.google.api.client.util.Maps;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
@@ -20,21 +35,6 @@ import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.ServiceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.util.Lists;
-import com.google.api.client.util.Maps;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 
 @Component
 //@Transactional
@@ -83,11 +83,31 @@ public class WSO2Manager {
 		return resApp;
 	}
 	
+	public void updateValidity(String clientId, Integer validity) throws Exception {
+		ClientDetailsEntity entity = clientDetailsRepository.findByClientId(clientId);
+		
+		entity.setAccessTokenValidity(validity);
+//		entity.setRefreshTokenValidity(validity);
+
+		clientDetailsRepository.save(entity);
+	}	
+	
 	public void updateClientScope(String consumerKey, String scope) throws Exception {
 		ClientDetailsEntity entity = clientDetailsRepository.findByClientId(consumerKey);
 		Set<String> oldScope = entity.getScope();
 		oldScope.addAll(Splitter.on(",").splitToList(scope));
 		entity.setScope(Joiner.on(",").join(oldScope));
+		
+		String resourcesId = "";
+		for (String resource : entity.getScope()) {
+			it.smartcommunitylab.aac.model.Resource r = resourceRepository.findByResourceUri(resource);
+			if (r != null) {
+				resourcesId += "," + r.getResourceId();
+			}
+		}
+		resourcesId = resourcesId.replaceFirst(",", "");
+		entity.setResourceIds(resourcesId);		
+		
 		ClientAppBasic resApp = clientDetailsManager.convertToClientApp(entity);
 		clientDetailsManager.update(entity.getClientId(), resApp);
 	}		

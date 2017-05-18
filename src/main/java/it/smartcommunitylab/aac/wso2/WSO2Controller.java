@@ -16,10 +16,6 @@
 
 package it.smartcommunitylab.aac.wso2;
 
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.keymanager.model.AACService;
-import it.smartcommunitylab.aac.model.ClientAppBasic;
-
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
@@ -37,6 +33,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.keymanager.model.AACService;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 
 @Controller
 public class WSO2Controller {
@@ -88,13 +88,6 @@ public class WSO2Controller {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
-//		ClientAppBasic resApp = wso2Manager.getClient(clientId);
-//		
-//		if (resApp == null) {
-//			response.setStatus(HttpStatus.NOT_FOUND.value());
-//			return null;
-//		}
-		
 		ClientAppBasic resApp = wso2Manager.updateClient(clientId, app);
 		
 		return resApp;
@@ -102,6 +95,20 @@ public class WSO2Controller {
 			e.printStackTrace();
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			return null;
+		}
+	}	
+	
+	@RequestMapping(value = "/wso2/client/validity/{clientId}/{validity}", method=RequestMethod.PATCH)
+	public @ResponseBody void updateTokenValidity(HttpServletResponse response, @PathVariable("clientId") String clientId, @PathVariable("validity") Integer validity) throws Exception {
+		try {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		wso2Manager.updateValidity(clientId, validity);
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 	}	
 	

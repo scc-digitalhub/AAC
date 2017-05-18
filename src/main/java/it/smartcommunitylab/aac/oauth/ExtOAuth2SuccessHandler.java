@@ -46,7 +46,7 @@ public class ExtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
 		OAuth2Authentication oauth = (OAuth2Authentication) authentication;
 		@SuppressWarnings("unchecked")
 		Map<String,Object> details = (Map<String,Object>)oauth.getUserAuthentication().getDetails();
-		details = flatten(details);
+		details = preprocess(details);
 		try {
 			URIBuilder builder = new URIBuilder(getDefaultTargetUrl());
 			for (String key: details.keySet()) {
@@ -65,7 +65,7 @@ public class ExtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
 	 * @param details
 	 * @return
 	 */
-	private Map<String, Object> flatten(Map<String, Object> details) {
+	protected Map<String, Object> preprocess(Map<String, Object> details) {
 		Map<String, Object> result = new HashMap<>();
 		if (details != null) {
 			flatten(details, "", result);
@@ -78,7 +78,7 @@ public class ExtOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandl
 		String prefix = pre.length() > 0 ? (pre + ".") : ""; 
 		map.forEach((k,v) -> {
 			if (v != null && (v instanceof Map)) flatten((Map<String,Object>)v, prefix+k, result);
-			else result.put(k,v);
+			else result.put(prefix + k,v);
 		});
 	}
 	

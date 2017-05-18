@@ -1,14 +1,5 @@
 package it.smartcommunitylab.aac.oauth;
 
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +17,19 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
 import org.springframework.security.oauth2.provider.TokenRequest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
-public class CustomOAuth2RequestFactory implements OAuth2RequestFactory {
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+
+public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFactory {
 
 	@Autowired
 	private ClientDetailsService clientDetailsService;
@@ -44,6 +43,9 @@ public class CustomOAuth2RequestFactory implements OAuth2RequestFactory {
 	@Autowired
 	private ResourceRepository resourceRepository;	
 
+	@Autowired
+	private UserManager userManager;
+	
 	private SecurityContextAccessor securityContextAccessor = new DefaultSecurityContextAccessor();
 
 	private boolean checkUserScopes = false;
@@ -145,18 +147,24 @@ public class CustomOAuth2RequestFactory implements OAuth2RequestFactory {
 	private Set<String> checkUserScopes(Map<String, String> requestParameters, Set<String> scopes, ClientDetailsEntity client) throws Exception {
 		Set<String> newScopes = Sets.newHashSet();
 
-		ObjectMapper mapper = new ObjectMapper();
+		User user = null;
+		Long userId = null;
+		if ("client_credentials".equals(requestParameters.get("grant_type"))) {
+			userId = client.getDeveloperId();
+			user = userRepository.findOne(userId);
+		} else if ("password".equals(requestParameters.get("grant_type"))) {
+			String userName = requestParameters.get("username");
+			List<User> users = userRepository.findByAttributeEntities("internal", "email", userName);
+			if (users != null && !users.isEmpty()) {
+				user = users.get(0);
+			}
+		} else {
+			userId = userManager.getUserId();
+			user = userRepository.findOne(userId);
+		}
+			
 
-		Map parameters = mapper.readValue(client.getParameters(), Map.class);
-
-		String userName = (String) parameters.get("username");
-		String un = Utils.extractUserFromTenant(userName);
-
-		// User user = userRepository.findByName(un);
-		List<User> users = userRepository.findByAttributeEntities("internal", "email", un);
-
-		if (users != null && !users.isEmpty()) {
-			User user = users.get(0);
+		if (user != null) {
 			Set<String> roleNames = Sets.newHashSet();
 			for (Role role : user.getRoles()) {
 				roleNames.add(role.getRole());
@@ -176,11 +184,11 @@ public class CustomOAuth2RequestFactory implements OAuth2RequestFactory {
 				}
 			}
 
-			if (newScopes.isEmpty()) {
-				newScopes.add("default");
-			}
 		}
 
+		if (newScopes.isEmpty()) {
+			newScopes.add("default");
+		}
 		return newScopes;
 
 		// if (!securityContextAccessor.isUser()) {
