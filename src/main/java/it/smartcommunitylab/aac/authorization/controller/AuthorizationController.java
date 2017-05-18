@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.authorization.beans.AuthorizationDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationNodeDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationResourceDTO;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeAlreadyExist;
+import it.smartcommunitylab.aac.authorization.model.FQname;
 
 @RestController
 public class AuthorizationController {
@@ -29,41 +30,42 @@ public class AuthorizationController {
 	@Autowired
 	private AuthorizationSchemaHelper authorizationSchemaHelper;
 
-	@RequestMapping(value = "/authorization/{id}", method = RequestMethod.DELETE)
-	public void removeAuthorization(@PathVariable String id) {
+	@RequestMapping(value = "/authorization/{domain}/{id}", method = RequestMethod.DELETE)
+	public void removeAuthorization(@PathVariable String domain, @PathVariable String id) {
 		authorizationHelper.remove(id);
 	}
 
-	@RequestMapping(value = "/authorization", method = RequestMethod.POST)
-	public AuthorizationDTO insertAuthorization(@RequestBody AuthorizationDTO authorization)
-			throws NotValidResourceException {
-		return convert(authorizationHelper.insert(convert(authorization)));
+	@RequestMapping(value = "/authorization/{domain}", method = RequestMethod.POST)
+	public AuthorizationDTO insertAuthorization(@PathVariable String domain,
+			@RequestBody AuthorizationDTO authorizationDTO) throws NotValidResourceException {
+		return convert(authorizationHelper.insert(convert(domain, authorizationDTO)));
 	}
 
-	@RequestMapping(value = "/authorization/validate", method = RequestMethod.POST)
-	public boolean validateAuthorization(@RequestBody AuthorizationDTO authorization) {
-		return authorizationHelper.validate(convert(authorization));
+	@RequestMapping(value = "/authorization/{domain}/validate", method = RequestMethod.POST)
+	public boolean validateAuthorization(@PathVariable String domain, @RequestBody AuthorizationDTO authorization) {
+		return authorizationHelper.validate(convert(domain, authorization));
 	}
 
-	@RequestMapping(value = "/authorization/schema", method = RequestMethod.POST)
-	public void addRootChildToSchema(@RequestBody AuthorizationNodeDTO node) throws AuthorizationNodeAlreadyExist {
-		authorizationSchemaHelper.addRootChild(convert(node));
-	}
-
-	@RequestMapping(value = "/authorization/schema/{parentQname}", method = RequestMethod.POST)
-	public void addChildToSchema(@RequestBody AuthorizationNodeDTO childNode, @PathVariable String parentQname)
+	@RequestMapping(value = "/authorization/{domain}/schema", method = RequestMethod.POST)
+	public void addRootChildToSchema(@PathVariable String domain, @RequestBody AuthorizationNodeDTO node)
 			throws AuthorizationNodeAlreadyExist {
-		authorizationSchemaHelper.addChild(parentQname, convert(childNode));
+		authorizationSchemaHelper.addRootChild(convert(domain, node));
 	}
 
-	@RequestMapping(value = "/authorization/schema/{qname}", method = RequestMethod.GET)
-	public AuthorizationNodeDTO getNode(@PathVariable String qname) {
-		return convert(authorizationSchemaHelper.getNode(qname));
+	@RequestMapping(value = "/authorization/{domain}/schema/{parentQname}", method = RequestMethod.POST)
+	public void addChildToSchema(@PathVariable String domain, @RequestBody AuthorizationNodeDTO childNode,
+			@PathVariable String parentQname) throws AuthorizationNodeAlreadyExist {
+		authorizationSchemaHelper.addChild(new FQname(domain, parentQname), convert(domain, childNode));
 	}
 
-	@RequestMapping(value = "/authorization/schema/validate", method = RequestMethod.POST)
-	public boolean validateResource(@RequestBody AuthorizationResourceDTO resource) {
-		return authorizationSchemaHelper.isValid(AuthorizationConverter.convert(resource));
+	@RequestMapping(value = "/authorization/{domain}/schema/{qname}", method = RequestMethod.GET)
+	public AuthorizationNodeDTO getNode(@PathVariable String domain, @PathVariable String qname) {
+		return convert(authorizationSchemaHelper.getNode(new FQname(domain, qname)));
+	}
+
+	@RequestMapping(value = "/authorization/{domain}/schema/validate", method = RequestMethod.POST)
+	public boolean validateResource(@PathVariable String domain, @RequestBody AuthorizationResourceDTO resource) {
+		return authorizationSchemaHelper.isValid(AuthorizationConverter.convert(domain, resource));
 	}
 
 	@ExceptionHandler(AuthorizationNodeAlreadyExist.class)

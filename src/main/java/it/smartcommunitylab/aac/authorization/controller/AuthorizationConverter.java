@@ -14,28 +14,29 @@ import it.smartcommunitylab.aac.authorization.model.AuthorizationNode;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeParam;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeValue;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationUser;
+import it.smartcommunitylab.aac.authorization.model.FQname;
 import it.smartcommunitylab.aac.authorization.model.Resource;
 
 public class AuthorizationConverter {
 
-	public static Resource convert(AuthorizationResourceDTO resource) {
+	public static Resource convert(String domain, AuthorizationResourceDTO resource) {
 		List<AuthorizationNodeValue> convertedValueList = new ArrayList<>();
 		resource.getValues().stream().forEach(dto -> {
-			convertedValueList.add(convert(dto));
+			convertedValueList.add(convert(domain, dto));
 		});
-		Resource convertedObj = new Resource(resource.getQnameRef(), convertedValueList);
+		Resource convertedObj = new Resource(new FQname(domain, resource.getQnameRef()), convertedValueList);
 		return convertedObj;
 	}
 
-	public static AuthorizationNodeValue convert(AuthorizationNodeValueDTO nodeValue) {
-		AuthorizationNodeValue convertedObj = new AuthorizationNodeValue(nodeValue.getQname(), nodeValue.getName(),
-				nodeValue.getValue());
+	public static AuthorizationNodeValue convert(String domain, AuthorizationNodeValueDTO nodeValue) {
+		AuthorizationNodeValue convertedObj = new AuthorizationNodeValue(new FQname(domain, nodeValue.getQname()),
+				nodeValue.getName(), nodeValue.getValue());
 		return convertedObj;
 	}
 
-	public static Authorization convert(AuthorizationDTO authorization) {
+	public static Authorization convert(String domain, AuthorizationDTO authorization) {
 		Authorization convertedObj = new Authorization(convert(authorization.getSubject()), authorization.getAction(),
-				convert(authorization.getResource()), convert(authorization.getEntity()));
+				convert(domain, authorization.getResource()), convert(authorization.getEntity()));
 		return convertedObj;
 	}
 
@@ -79,7 +80,7 @@ public class AuthorizationConverter {
 		AuthorizationResourceDTO convertedObj = new AuthorizationResourceDTO();
 		if (resource != null) {
 			convertedObj = new AuthorizationResourceDTO();
-			convertedObj.setQnameRef(resource.getQnameRef());
+			convertedObj.setQnameRef(resource.getFqnameRef().getQname());
 			if (resource.getValues() != null) {
 				List<AuthorizationNodeValueDTO> values = new ArrayList<>();
 				resource.getValues().stream().forEach(nodeValue -> {
@@ -97,29 +98,29 @@ public class AuthorizationConverter {
 			convertedObj = new AuthorizationNodeValueDTO();
 			if (nodeValue.getDefinition() != null) {
 				convertedObj.setName(nodeValue.getDefinition().getName());
-				convertedObj.setQname(nodeValue.getDefinition().getQname());
+				convertedObj.setQname(nodeValue.getDefinition().getFQname().getQname());
 			}
 			convertedObj.setValue(nodeValue.getValue());
 		}
 		return convertedObj;
 	}
 
-	public static AuthorizationNode convert(AuthorizationNodeDTO node) {
+	public static AuthorizationNode convert(String domain, AuthorizationNodeDTO node) {
 		AuthorizationNode convertedObj = null;
 		if (node != null) {
-			convertedObj = new AuthorizationNode(node.getQname());
+			convertedObj = new AuthorizationNode(new FQname(domain, node.getQname()));
 			for (AuthorizationNodeParamDTO param : node.getParameters()) {
-				convertedObj.getParameters().add(convert(param));
+				convertedObj.getParameters().add(convert(domain, param));
 			}
 		}
 
 		return convertedObj;
 	}
 
-	private static AuthorizationNodeParam convert(AuthorizationNodeParamDTO param) {
+	private static AuthorizationNodeParam convert(String domain, AuthorizationNodeParamDTO param) {
 		AuthorizationNodeParam convertedObj = null;
 		if (param != null) {
-			convertedObj = new AuthorizationNodeParam(param.getQname(), param.getName());
+			convertedObj = new AuthorizationNodeParam(new FQname(domain, param.getQname()), param.getName());
 		}
 		return convertedObj;
 	}
@@ -128,11 +129,11 @@ public class AuthorizationConverter {
 		AuthorizationNodeDTO convertedObj = null;
 		if (node != null) {
 			convertedObj = new AuthorizationNodeDTO();
-			convertedObj.setQname(node.getQname());
+			convertedObj.setQname(node.getFqname().getQname());
 			List<AuthorizationNodeParamDTO> params = new ArrayList<>();
 			node.getParameters().stream().forEach(param -> {
 				AuthorizationNodeParamDTO paramDTO = new AuthorizationNodeParamDTO();
-				paramDTO.setQname(param.getQname());
+				paramDTO.setQname(param.getFQname().getQname());
 				paramDTO.setName(param.getName());
 				params.add(paramDTO);
 			});
