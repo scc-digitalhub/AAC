@@ -16,14 +16,6 @@
 
 package it.smartcommunitylab.aac.controller;
 
-import io.swagger.annotations.ApiParam;
-import it.smartcommunitylab.aac.dto.AccountProfile;
-import it.smartcommunitylab.aac.dto.AccountProfiles;
-import it.smartcommunitylab.aac.dto.BasicProfile;
-import it.smartcommunitylab.aac.dto.BasicProfiles;
-import it.smartcommunitylab.aac.manager.BasicProfileManager;
-import it.smartcommunitylab.aac.manager.UserManager;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -34,11 +26,17 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import it.smartcommunitylab.aac.dto.AccountProfile;
+import it.smartcommunitylab.aac.dto.AccountProfiles;
+import it.smartcommunitylab.aac.dto.BasicProfile;
+import it.smartcommunitylab.aac.dto.BasicProfiles;
+import it.smartcommunitylab.aac.manager.BasicProfileManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 
 /**
  * @author raman
@@ -58,7 +56,7 @@ public class BasicProfileController {
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/all/{userId}")
 	public @ResponseBody
 	BasicProfile getUser(HttpServletResponse response,
-			@PathVariable("userId") String userId, @ApiParam(defaultValue="Bearer ") @RequestHeader(value="Authorization", required=true) String authorization) throws IOException {
+			@PathVariable("userId") String userId) throws IOException {
 		try {
 			return profileManager.getBasicProfileById(userId);
 		} catch (Exception e) {
@@ -72,7 +70,7 @@ public class BasicProfileController {
 	public @ResponseBody
 	BasicProfiles searchUsers(
 			HttpServletResponse response,
-			@RequestParam(value = "filter", required = false) String fullNameFilter, @ApiParam(defaultValue="Bearer ") @RequestHeader(value="Authorization", required=true) String authorization)
+			@RequestParam(value = "filter", required = false) String fullNameFilter)
 			throws IOException {
 
 		try {
@@ -96,7 +94,7 @@ public class BasicProfileController {
 
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/me")
 	public @ResponseBody
-	BasicProfile findProfile(HttpServletResponse response, @ApiParam(defaultValue="Bearer ") @RequestHeader(value="Authorization", required=true) String authorization)
+	BasicProfile findProfile(HttpServletResponse response)
 			throws IOException {
 		try {
 			Long user = userManager.getUserId();
@@ -113,7 +111,7 @@ public class BasicProfileController {
 
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/profiles")
 	public @ResponseBody
-	BasicProfiles findProfiles(HttpServletResponse response, @RequestParam List<String> userIds, @ApiParam(defaultValue="Bearer ") @RequestHeader(value="Authorization", required=true) String authorization) {
+	BasicProfiles findProfiles(HttpServletResponse response, @RequestParam List<String> userIds) {
 		try {
 			BasicProfiles profiles = new BasicProfiles();
 			profiles.setProfiles(profileManager.getUsers(userIds));
@@ -128,7 +126,7 @@ public class BasicProfileController {
 
 	@RequestMapping(method = RequestMethod.GET, value = "/accountprofile/me")
 	public @ResponseBody
-	AccountProfile findAccountProfile(HttpServletResponse response, @ApiParam(defaultValue="Bearer ") @RequestHeader(value="Authorization", required=true) String authorization)
+	AccountProfile findAccountProfile(HttpServletResponse response)
 			throws IOException {
 		try {
 			Long user = userManager.getUserId();
@@ -146,7 +144,7 @@ public class BasicProfileController {
 
 	@RequestMapping(method = RequestMethod.GET, value = "/accountprofile/profiles")
 	public @ResponseBody
-	AccountProfiles findAccountProfiles(HttpServletResponse response, @RequestParam List<String> userIds, @ApiParam(defaultValue="Bearer ") @RequestHeader(value="Authorization", required=true) String authorization)
+	AccountProfiles findAccountProfiles(HttpServletResponse response, @RequestParam List<String> userIds)
 			throws IOException {
 		try {
 			AccountProfiles profiles = new AccountProfiles();

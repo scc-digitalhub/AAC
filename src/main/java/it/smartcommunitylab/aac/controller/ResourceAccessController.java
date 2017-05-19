@@ -16,17 +16,6 @@
 
 package it.smartcommunitylab.aac.controller;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.keymanager.model.AACTokenValidation;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
-import it.smartcommunitylab.aac.oauth.ResourceServices;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.wso2.services.Utils;
-
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
@@ -44,14 +33,25 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.keymanager.model.AACTokenValidation;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
+import it.smartcommunitylab.aac.oauth.ResourceServices;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.services.Utils;
 
 /**
  * Controller for remote check the access to the resource
@@ -82,8 +82,8 @@ public class ResourceAccessController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping("/resources/access")
-	public @ResponseBody Boolean canAccessResource(@RequestHeader("Authorization") String token, @RequestParam String scope, HttpServletRequest request) {
+	@RequestMapping(method = RequestMethod.GET, value = "/resources/access")
+	public @ResponseBody Boolean canAccessResource(@RequestParam String scope, HttpServletRequest request) {
 		try {
 			String parsedToken = parseHeaderToken(request);
 			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
@@ -98,8 +98,8 @@ public class ResourceAccessController {
 		return false;
 	}
 	
-	@RequestMapping("/resources/token")
-	public @ResponseBody AACTokenValidation getTokenInfo(@RequestHeader("Authorization") String token, HttpServletRequest request) {
+	@RequestMapping(method = RequestMethod.GET, value = "/resources/token")
+	public @ResponseBody AACTokenValidation getTokenInfo(HttpServletRequest request) {
 		AACTokenValidation response = new AACTokenValidation();
 		
 		try {
