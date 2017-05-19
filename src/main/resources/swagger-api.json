@@ -1,0 +1,409 @@
+{
+	"swagger": "2.0",
+	"x-wso2-security": {
+		"apim": {
+			"x-wso2-scopes": [{
+				"description": "",
+				"name": "Accountprofile All",
+				"roles": "accountmanager",
+				"key": "profile.accountprofile.all"
+			},
+			{
+				"description": "",
+				"name": "Accountprofile Me",
+				"roles": "",
+				"key": "profile.accountprofile.me"
+			},
+			{
+				"description": "",
+				"name": "Basicprofile All",
+				"roles": "",
+				"key": "profile.basicprofile.all"
+			},
+			{
+				"description": "",
+				"name": "Basicprofile Me",
+				"roles": "",
+				"key": "profile.basicprofile.me"
+			}
+			]
+		}
+	},
+	"info": {
+		"description": "Api Documentation",
+		"version": "1.0",
+		"title": "Api Documentation",
+		"termsOfService": "urn:tos",
+		"contact": {
+			
+		},
+		"license": {
+			"name": "Apache 2.0",
+			"url": "http://www.apache.org/licenses/LICENSE-2.0"
+		}
+	},
+	"host": "localhost:8080",
+	"basePath": "/aac",
+	"tags": [{
+		"name": "basic-profile-controller",
+		"description": "Basic Profile Controller"
+	},
+	{
+		"name": "resource-access-controller",
+		"description": "Resource Access Controller"
+	}],
+	"paths": {
+		"/accountprofile/me": {
+			"get": {
+				"x-auth-type":"Application User",
+				"x-scope":"profile.accountprofile.me",
+				"tags": ["basic-profile-controller"],
+				"summary": "findAccountProfile",
+				"operationId": "findAccountProfileUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/AccountProfile"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/accountprofile/profiles": {
+			"get": {
+				"x-auth-type":"Application",
+				"x-scope":"profile.accountprofile.all",
+				"tags": ["basic-profile-controller"],
+				"summary": "findAccountProfiles",
+				"operationId": "findAccountProfilesUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "userIds",
+					"in": "query",
+					"description": "userIds",
+					"required": true,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/AccountProfiles"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/basicprofile/all": {
+			"get": {
+				"x-auth-type":"Application",
+				"x-scope":"profile.basicprofile.all",
+				"tags": ["basic-profile-controller"],
+				"summary": "searchUsers",
+				"operationId": "searchUsersUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "filter",
+					"in": "query",
+					"description": "filter",
+					"required": false,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/BasicProfiles"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/basicprofile/all/{userId}": {
+			"get": {
+				"x-auth-type":"Application",
+				"x-scope":"profile.basicprofile.all",
+				"tags": ["basic-profile-controller"],
+				"summary": "getUser",
+				"operationId": "getUserUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "userId",
+					"in": "path",
+					"description": "userId",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/BasicProfile"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/basicprofile/me": {
+			"get": {
+				"x-auth-type":"Application User",
+				"x-scope":"profile.basicprofile.me",
+				"tags": ["basic-profile-controller"],
+				"summary": "findProfile",
+				"operationId": "findProfileUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/BasicProfile"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/basicprofile/profiles": {
+			"get": {
+				"x-auth-type":"Application",
+				"x-scope":"profile.basicprofile.all",
+				"tags": ["basic-profile-controller"],
+				"summary": "findProfiles",
+				"operationId": "findProfilesUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "userIds",
+					"in": "query",
+					"description": "userIds",
+					"required": true,
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"collectionFormat": "multi"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/BasicProfiles"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/resources/access": {
+			"get": {
+				"tags": ["resource-access-controller"],
+				"summary": "canAccessResource",
+				"operationId": "canAccessResourceUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "scope",
+					"in": "query",
+					"description": "scope",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/resources/token": {
+			"get": {
+				"tags": ["resource-access-controller"],
+				"summary": "getTokenInfo",
+				"operationId": "getTokenInfoUsingGET",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/AACTokenValidation"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"Map«string,string»": {
+			"type": "object",
+			"additionalProperties": {
+				"type": "string"
+			}
+		},
+		"BasicProfile": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"surname": {
+					"type": "string"
+				},
+				"userId": {
+					"type": "string"
+				}
+			}
+		},
+		"AACTokenValidation": {
+			"type": "object",
+			"properties": {
+				"applicationToken": {
+					"type": "boolean"
+				},
+				"clientId": {
+					"type": "string"
+				},
+				"issuedTime": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"scope": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"userId": {
+					"type": "string"
+				},
+				"username": {
+					"type": "string"
+				},
+				"valid": {
+					"type": "boolean"
+				},
+				"validityPeriod": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"AccountProfiles": {
+			"type": "object",
+			"properties": {
+				"profiles": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/AccountProfile"
+					}
+				}
+			}
+		},
+		"AccountProfile": {
+			"type": "object",
+			"properties": {
+				"accounts": {
+					"type": "object",
+					"additionalProperties": {
+						"$ref": "#/definitions/Map«string,string»"
+					}
+				}
+			}
+		},
+		"BasicProfiles": {
+			"type": "object",
+			"properties": {
+				"profiles": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/BasicProfile"
+					}
+				}
+			}
+		}
+	}
+}

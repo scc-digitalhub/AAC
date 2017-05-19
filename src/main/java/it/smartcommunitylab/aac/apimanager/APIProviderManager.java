@@ -93,7 +93,7 @@ public class APIProviderManager {
 
 	private static final String API_MGT_CLIENT_ID = "API_MGT_CLIENT_ID";
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
-	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create"};
+	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create", "apim:api_publish"};
 	/** Predefined tenant role PROVIDER (API provider) */
 	
 	
@@ -219,11 +219,49 @@ public class APIProviderManager {
 	}
 
 	/**
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	@Transactional(isolation = Isolation.SERIALIZABLE)
+	public String createToken(String username, String password) throws Exception {
+		Map<String, String> requestParameters = new HashMap<>();
+
+		List<User> users = userRepository.findByAttributeEntities("internal", "email", username);
+
+		if (users != null && !users.isEmpty()) {
+			Long userId = users.get(0).getId();
+
+			requestParameters.put("username", username);
+			requestParameters.put("password", password);
+
+			// USER
+			org.springframework.security.core.userdetails.User user = new org.springframework.security.core.userdetails.User(userId.toString(), "", new ArrayList<GrantedAuthority>());
+
+			ClientDetails clientDetails = getAPIMgmtClient();
+			TokenRequest tokenRequest = new TokenRequest(requestParameters, clientDetails.getClientId(), scopes(), "password");
+			OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
+			Collection<? extends GrantedAuthority> list = authorities(users.get(0));
+			OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, new UsernamePasswordAuthenticationToken(user, "", list));
+			OAuth2AccessToken accessToken = tokenService.createAccessToken(oAuth2Authentication);
+			return accessToken.getValue();
+		}
+		return null;
+	}
+	
+	/**
 	 * @return
 	 */
 	private Collection<? extends GrantedAuthority> authorities() {
 		return roleManager.buildAuthorities(userManager.getUser());
 	}
+	
+	/**
+	 * @return
+	 */
+	private Collection<? extends GrantedAuthority> authorities(User user) {
+		return roleManager.buildAuthorities(user);
+	}	
 
 	/**
 	 * @return
