@@ -16,26 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.AUTHORITY;
-import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
-import it.smartcommunitylab.aac.common.PatternMatcher;
-import it.smartcommunitylab.aac.common.ResourceException;
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
-import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
-import it.smartcommunitylab.aac.jaxbmodel.Service;
-import it.smartcommunitylab.aac.jaxbmodel.Services;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.model.ResourceParameter;
-import it.smartcommunitylab.aac.model.ServiceDescriptor;
-import it.smartcommunitylab.aac.oauth.ResourceStorage;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceParameterRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
-import it.smartcommunitylab.aac.repository.ServiceRepository;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -64,6 +44,26 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.AUTHORITY;
+import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
+import it.smartcommunitylab.aac.common.PatternMatcher;
+import it.smartcommunitylab.aac.common.ResourceException;
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
+import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
+import it.smartcommunitylab.aac.jaxbmodel.Service;
+import it.smartcommunitylab.aac.jaxbmodel.Services;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.model.ResourceParameter;
+import it.smartcommunitylab.aac.model.ServiceDescriptor;
+import it.smartcommunitylab.aac.oauth.ResourceStorage;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceParameterRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
+import it.smartcommunitylab.aac.repository.ServiceRepository;
+
 /**
  * Class used to operate resource model.
  * @author raman
@@ -87,7 +87,7 @@ public class ResourceManager {
 	
 	public void init() throws ResourceException {
 		List<Service> services = loadResourceTemplates();
-		processServiceObjects(services, null);
+		processServiceObjects(services);
 	}
 
 	/**
@@ -353,10 +353,10 @@ public class ResourceManager {
 		}
 	}
 
-	private void processServiceObjects(List<Service> services, String ownerId) throws ResourceException {
+	private void processServiceObjects(List<Service> services) throws ResourceException {
 		checkServiceListConsistency(services);
 
-		List<ServiceDescriptor> dbServices = serviceRepository.findByOwnerId(ownerId);
+		List<ServiceDescriptor> dbServices = serviceRepository.findByNullOwnerId();
 		Map<String,ServiceDescriptor> dbServiceMap = new HashMap<String, ServiceDescriptor>();
 		for (ServiceDescriptor s : dbServices) {
 			dbServiceMap.put(s.getServiceId(), s); 
@@ -382,13 +382,13 @@ public class ResourceManager {
 		
 		// process changes
 		for (ServiceDescriptor s : deleted) {
-			deleteService(s, ownerId);
+			deleteService(s, null);
 		}
 		for (Service service: updated.keySet()) {
-			updateService(service, updated.get(service), ownerId);
+			updateService(service, updated.get(service), null);
 		}
 		for (Service service: created) {
-			createService(service, ownerId);
+			createService(service, null);
 		}
 	}
 
@@ -656,6 +656,7 @@ public class ResourceManager {
 		r.setAuthority(AUTHORITY.valueOf(rm.getAuthority().value()));
 		r.setClientId(clientId);
 		r.setResourceParameter(rp);
+		r.setRoles(rm.getRoles());
 		UriTemplate template = new UriTemplate(rm.getUri());
 		Map<String,String> params = template.match(uri);
 		template = new UriTemplate(rm.getDescription());

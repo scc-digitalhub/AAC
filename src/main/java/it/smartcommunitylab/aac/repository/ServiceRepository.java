@@ -15,13 +15,13 @@
  */
 package it.smartcommunitylab.aac.repository;
 
-import it.smartcommunitylab.aac.model.ServiceDescriptor;
-
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import it.smartcommunitylab.aac.model.ServiceDescriptor;
 
 /**
  * 
@@ -33,4 +33,7 @@ public interface ServiceRepository extends JpaRepository<ServiceDescriptor, Stri
 
 	@Query("select s from ServiceDescriptor s where s.ownerId=?1")
 	public List<ServiceDescriptor> findByOwnerId(String ownerId);
+	
+	@Query("select s from ServiceDescriptor s where s.ownerId IS NULL")
+	public List<ServiceDescriptor> findByNullOwnerId();	
 }
