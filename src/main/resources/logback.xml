@@ -11,7 +11,7 @@
 	</appender>
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/home/dev/wso2/logs/aac.log</file>
+    <file>${aac.log.folder:-logs}/aac.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
       <fileNamePattern>aac.%d{yyyy-MM-dd}.log</fileNamePattern>
