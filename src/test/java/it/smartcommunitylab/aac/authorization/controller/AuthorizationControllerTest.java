@@ -87,7 +87,7 @@ public class AuthorizationControllerTest {
 	public void insertAuthorization() throws Exception {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		Resource resource = new Resource(new FQname("domain", "A"),
-				Arrays.asList(new AuthorizationNodeValue(new FQname("domain", "A"), "a", "a_value")));
+				Arrays.asList(new AuthorizationNodeValue("A", "a", "a_value")));
 		Authorization auth = new Authorization(new AuthorizationUser("subject", "type"), "action", resource,
 				new AuthorizationUser("entity", "type"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain")
@@ -99,7 +99,7 @@ public class AuthorizationControllerTest {
 	public void validateAuthorization() throws Exception {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		Resource resource = new Resource(new FQname("domain", "A"),
-				Arrays.asList(new AuthorizationNodeValue(new FQname("domain", "A"), "a", "a_value")));
+				Arrays.asList(new AuthorizationNodeValue("A", "a", "a_value")));
 		Authorization auth = new Authorization(new AuthorizationUser("subject", "type"), "action", resource,
 				new AuthorizationUser("entity", "type"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain/validate")
