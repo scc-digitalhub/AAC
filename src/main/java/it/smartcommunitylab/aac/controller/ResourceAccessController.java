@@ -157,9 +157,14 @@ public class ResourceAccessController {
 			response.setValidityPeriod(storedToken.getExpiresIn() * 1000L);
 
 			response.setValid(true);
+			
+			response.setApplicationToken(response.getUserId() == null);
+			
+//			System.err.println(mapper.writeValueAsString(response));			
 		} catch (Exception e) {
 			logger.error("Error validating token: "+e.getMessage());
 		}
+		
 		return response;
 	}	
 	
