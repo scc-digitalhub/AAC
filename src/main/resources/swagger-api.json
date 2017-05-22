@@ -3,26 +3,26 @@
 	"x-wso2-security": {
 		"apim": {
 			"x-wso2-scopes": [{
-				"description": "",
-				"name": "Accountprofile All",
+				"description": "Account profile of the platform users. Read access only.",
+				"name": "Read all account profiles",
 				"roles": "accountmanager",
 				"key": "profile.accountprofile.all"
 			},
 			{
-				"description": "",
-				"name": "Accountprofile Me",
+				"description": "Account profile of the current platform user. Read access only.",
+				"name": "Read user's account profile",
 				"roles": "",
 				"key": "profile.accountprofile.me"
 			},
 			{
-				"description": "",
-				"name": "Basicprofile All",
+				"description": "Basic profile of the platform users. Read access only.",
+				"name": "Read all basic profiles",
 				"roles": "",
 				"key": "profile.basicprofile.all"
 			},
 			{
-				"description": "",
-				"name": "Basicprofile Me",
+				"description": "Basic profile of the current platform user. Read access only.",
+				"name": "Read user's basic profile",
 				"roles": "",
 				"key": "profile.basicprofile.me"
 			}

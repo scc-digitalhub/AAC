@@ -9,7 +9,7 @@
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="http://aac.smartcommunitylab.it/jaxbmodel"  
 	xsi:schemaLocation="http://aac.smartcommunitylab.it/jaxbmodel ../../../../../jaxb/binding/resourceTemplateSchema.xsd">
-	<service name="Basic profile service" id="smartcommunity.profile.basicprofie">
+	<service name="Basic profile service" id="carbon.super-AAC-1.0.0">
 		<description>Core service for managing basic user profiles.</description>
 
 		<resourceMapping id="profile.basicprofile.me"
@@ -29,7 +29,7 @@
 		</resourceMapping>
 	    <resourceMapping id="profile.accountprofile.all"
 	      name="Read all account profiles" uri="profile.accountprofile.all"
-	      authority="ROLE_CLIENT" approvalRequired="true">
+	      authority="ROLE_CLIENT" approvalRequired="true" roles="accountmanager">
 	      <description>Account profile of the platform users. Read access only.</description>
 	    </resourceMapping>
     </service>
