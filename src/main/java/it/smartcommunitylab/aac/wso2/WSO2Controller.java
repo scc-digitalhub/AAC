@@ -180,7 +180,7 @@ public class WSO2Controller {
 	}		
 	
 	
-	@RequestMapping(value = "/wso2/resources/{userName}", method = RequestMethod.POST)
+	@RequestMapping(value = "/wso2/resources/{userName:.+}", method = RequestMethod.POST)
 	public @ResponseBody void createResources(HttpServletResponse response, @RequestBody AACService service, @PathVariable("userName") String userName) throws Exception {
 		try {
 			
@@ -203,6 +203,9 @@ public class WSO2Controller {
 	@RequestMapping(value = "/wso2/resources/{resourceName:.+}", method = RequestMethod.DELETE)
 	public @ResponseBody void deleteResources(HttpServletResponse response, @PathVariable("resourceName") String resourceName) throws Exception {
 		try {
+			
+			
+			
 			wso2Manager.deleteResource(resourceName);
 		} catch (Exception e) {
 			e.printStackTrace();
