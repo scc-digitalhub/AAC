@@ -1,5 +1,6 @@
 application:
   url: http://localhost:8080/aac
+  internalUrl: http://localhost:8080/aac  
 
 jdbc:
   url: jdbc:mysql://localhost:3306/aac

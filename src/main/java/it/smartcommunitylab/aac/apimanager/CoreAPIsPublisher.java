@@ -28,7 +28,7 @@ public class CoreAPIsPublisher {
 	@Value("${admin.password}")
 	private String adminPassword;
 
-	private final static String ENDPOINT_CONFIG = "{\"production_endpoints\":{\"url\":\"http://localhost:8080/aac\",\"config\":null},\"sandbox_endpoints\":{\"url\":\"http://localhost:8080/aac\",\"config\":null},\"endpoint_type\":\"http\"}";
+	private final static String ENDPOINT_CONFIG = "{\"production_endpoints\":{\"url\":\"${application.internalUrl}\",\"config\":null},\"sandbox_endpoints\":{\"url\":\"${application.internalUrl}\",\"config\":null},\"endpoint_type\":\"http\"}";
 
 	public void init() throws Exception {
 		String token = providerManager.createToken("admin", adminPassword);
@@ -55,7 +55,7 @@ public class CoreAPIsPublisher {
 			api.setVisibility("PUBLIC");
 
 			api.setIsDefaultVersion(true);
-			api.setEndpointConfig(ENDPOINT_CONFIG);			
+			api.setEndpointConfig(env.resolvePlaceholders(ENDPOINT_CONFIG));			
 			
 			API result = pub.publishAPI(api, token);
 			pub.changeAPIStatus(result.getId(), "Publish", token);
