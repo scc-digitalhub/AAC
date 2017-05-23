@@ -75,6 +75,7 @@ public class Utils {
 		res.setServiceId(s.getId());
 		res.setResourceDefinitions(JsonUtils.toJSON(s.getResource()));
 		res.setResourceMappings(JsonUtils.toJSON(s.getResourceMapping()));
+		res.setApiKey(s.getApiKey());
 		return res;
 	} 
 	/**

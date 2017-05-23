@@ -141,6 +141,7 @@ public class WSO2Manager {
 		sd.setOwnerId(registration.getUserId());		
 		sd.setResourceDefinitions(new ArrayList<String>().toString());
 		sd.setResourceMappings(resourcesToJSON(service.getResources()));
+		sd.setApiKey(service.getApiKey());
 		
 		sd = serviceRepository.save(sd);
 		
@@ -182,8 +183,12 @@ public class WSO2Manager {
 	}
 	
 	public void deleteResource(String resourceName) throws Exception {
-		if (serviceRepository.findOne(resourceName) != null) {
-			serviceRepository.delete(resourceName);
+		ServiceDescriptor sd = serviceRepository.findByAPIKey(resourceName); 
+		
+		if (sd != null) {
+			List<Resource> resources = resourceRepository.findByService(sd);
+			resourceRepository.delete(resources);			
+			serviceRepository.delete(sd);
 		}
 	}
 	

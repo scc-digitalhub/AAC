@@ -36,6 +36,8 @@
 				type="resourceDeclaration" />
 			<xsd:element minOccurs="0" maxOccurs="unbounded" name="resourceMapping"
 				type="resourceMapping" />
+			<xsd:element minOccurs="0" maxOccurs="1" name="apiKey"
+				type="xsd:string" />				
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required" />
 		<xsd:attribute name="name" type="xsd:string" use="required" />

@@ -10,6 +10,8 @@ public class AACService {
 	private String serviceName;
 	private String description;
 	
+	private String apiKey;
+	
 	private List<AACResource> resources;
 	
 	public AACService() {
@@ -38,6 +40,14 @@ public class AACService {
 
 	public void setResources(List<AACResource> resources) {
 		this.resources = resources;
+	}
+
+	public String getApiKey() {
+		return apiKey;
+	}
+
+	public void setApiKey(String apiKey) {
+		this.apiKey = apiKey;
 	}
 
 	

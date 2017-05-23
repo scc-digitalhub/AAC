@@ -32,6 +32,7 @@
 	      authority="ROLE_CLIENT" roles="accountmanager">
 	      <description>Account profile of the platform users. Read access only.</description>
 	    </resourceMapping>
+	    <apiKey>admin-AAC-1.0.0</apiKey>
     </service>
 					  	
   <service name="User management service" id="smartcommunity.usermanagement">

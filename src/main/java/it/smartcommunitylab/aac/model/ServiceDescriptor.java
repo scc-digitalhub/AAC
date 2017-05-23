@@ -42,6 +42,8 @@ public class ServiceDescriptor {
 	
 	private String ownerId;
 	
+	private String apiKey;
+	
 	public String getServiceId() {
 		return serviceId;
 	}
@@ -84,4 +86,11 @@ public class ServiceDescriptor {
 	public void setOwnerId(String ownerId) {
 		this.ownerId = ownerId;
 	}
+	
+	public String getApiKey() {
+		return apiKey;
+	}
+	public void setApiKey(String apiKey) {
+		this.apiKey = apiKey;
+	}	
 }

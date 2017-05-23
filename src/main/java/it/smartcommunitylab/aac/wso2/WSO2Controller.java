@@ -204,8 +204,6 @@ public class WSO2Controller {
 	public @ResponseBody void deleteResources(HttpServletResponse response, @PathVariable("resourceName") String resourceName) throws Exception {
 		try {
 			
-			
-			
 			wso2Manager.deleteResource(resourceName);
 		} catch (Exception e) {
 			e.printStackTrace();

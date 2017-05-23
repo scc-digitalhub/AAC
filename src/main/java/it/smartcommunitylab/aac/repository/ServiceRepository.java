@@ -35,5 +35,8 @@ public interface ServiceRepository extends JpaRepository<ServiceDescriptor, Stri
 	public List<ServiceDescriptor> findByOwnerId(String ownerId);
 	
 	@Query("select s from ServiceDescriptor s where s.ownerId IS NULL")
-	public List<ServiceDescriptor> findByNullOwnerId();	
+	public List<ServiceDescriptor> findByNullOwnerId();
+	
+	@Query("select s from ServiceDescriptor s where s.apiKey=?1")
+	public ServiceDescriptor findByAPIKey(String apiKey);	
 }
