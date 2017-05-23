@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.apimanager;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -32,21 +33,27 @@ public class CoreAPIsPublisher {
 
 	public void init() throws Exception {
 		String token = providerManager.createToken("admin", adminPassword);
+		
+		publishAPI("api/profile-api.json", "AAC", "AAC User Profile APIs", token);
 
-		Map apis = pub.findAPI("AAC", token);
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private void publishAPI(String json, String name, String description, String token) throws IOException{
+		Map apis = pub.findAPI(name, token);
 
 		List list = (List) apis.get("list");
 //		System.err.println(apis);
 		if (list.isEmpty()) {
 //			ObjectMapper mapper = new ObjectMapper();
 
-			String swagger = Resources.toString(Resources.getResource("swagger-api.json"), Charsets.UTF_8);
+			String swagger = Resources.toString(Resources.getResource(json), Charsets.UTF_8);
 			swagger = env.resolvePlaceholders(swagger);			
 			
 			API api = new API();
 
-			api.setName("AAC");
-			api.setDescription("AAC APIs");
+			api.setName(name);
+			api.setDescription(description);
 			api.setContext("/aac");
 			api.setVersion("1.0.0");
 			api.setProvider("admin");
@@ -61,7 +68,6 @@ public class CoreAPIsPublisher {
 			pub.changeAPIStatus(result.getId(), "Publish", token);
 //			System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		}
-
 	}
 
 }
