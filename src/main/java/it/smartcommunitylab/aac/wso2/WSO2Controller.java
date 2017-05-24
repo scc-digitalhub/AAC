@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.wso2;
 
+import java.net.URLDecoder;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
@@ -204,7 +206,9 @@ public class WSO2Controller {
 	public @ResponseBody void deleteResources(HttpServletResponse response, @PathVariable("resourceName") String resourceName) throws Exception {
 		try {
 			
-			wso2Manager.deleteResource(resourceName);
+			String name = URLDecoder.decode(resourceName, "UTF-8");
+			
+			wso2Manager.deleteResource(name);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
