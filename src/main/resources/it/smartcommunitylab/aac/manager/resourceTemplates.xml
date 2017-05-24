@@ -67,27 +67,23 @@
       uri="user.roles.me" authority="ROLE_USER">
       <description>Read roles of the current user.</description>
     </resourceMapping>
-
     <resourceMapping id="user.roles.write" name="Write user roles"
       uri="user.roles.write" authority="ROLE_CLIENT" roles="ROLE_PROVIDER">
       <description>Modify the roles of the specified user within a tenant.</description>
     </resourceMapping>
-
     <resourceMapping id="user.roles.read" name="Read user roles"
       uri="user.roles.read" authority="ROLE_CLIENT" roles="ROLE_PROVIDER">
       <description>Read the roles of the specified user within a tenant.</description>
     </resourceMapping>
-
     <resourceMapping id="user.roles.read.all" name="Read arbitrary user roles"
       uri="user.roles.read.all" authority="ROLE_CLIENT" roles="rolemanager">
       <description>Read the roles of any user.</description>
     </resourceMapping>
-
     <resourceMapping id="client.roles.read.all" name="Read client app roles"
       uri="client.roles.read.all" authority="ROLE_CLIENT" roles="rolemanager">
       <description>Read the roles of any app client.</description>
     </resourceMapping>
-
+	<apiKey>admin-AACRoles-1.0.0</apiKey>
   </service>      
     			  	 
 </services>

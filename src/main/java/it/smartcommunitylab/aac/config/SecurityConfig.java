@@ -361,6 +361,34 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	// }
 
 	@Bean
+	protected ResourceServerConfiguration rolesResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/*userroles/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*userroles/**")
+						.permitAll()
+						.antMatchers("/userroles/me").access("#oauth2.hasScope('user.roles.me')")
+						.antMatchers("/userroles/all/user").access("#oauth2.hasScope('user.roles.read.all')")
+						.antMatchers("/userroles/tenant/user").access("#oauth2.hasScope('user.roles.read')")
+						.antMatchers("/userroles/client").access("#oauth2.hasScope('client.roles.read.all')")
+						.antMatchers("/userroles/user").access("#oauth2.hasScope('user.roles.write')")
+						.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(6);
+		return resource;
+	}	
+	
+	@Bean
 	protected ResourceServerConfiguration wso2ClientResources() {
 		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
 			public void setConfigurers(List<ResourceServerConfigurer> configurers) {

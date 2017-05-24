@@ -34,12 +34,12 @@ public class CoreAPIsPublisher {
 	public void init() throws Exception {
 		String token = providerManager.createToken("admin", adminPassword);
 		
-		publishAPI("api/profile-api.json", "AAC", "AAC User Profile APIs", token);
-
+		publishAPI("api/profile-api.json", "AAC", "AAC User Profile APIs", "/aacprofile", token);
+		publishAPI("api/roles-api.json", "AACRoles", "AAC User Roles APIs", "/aacroles", token);
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private void publishAPI(String json, String name, String description, String token) throws IOException{
+	private void publishAPI(String json, String name, String description, String context, String token) throws IOException{
 		Map apis = pub.findAPI(name, token);
 
 		List list = (List) apis.get("list");
@@ -54,7 +54,7 @@ public class CoreAPIsPublisher {
 
 			api.setName(name);
 			api.setDescription(description);
-			api.setContext("/aac");
+			api.setContext(context);
 			api.setVersion("1.0.0");
 			api.setProvider("admin");
 			api.setApiDefinition(swagger);
