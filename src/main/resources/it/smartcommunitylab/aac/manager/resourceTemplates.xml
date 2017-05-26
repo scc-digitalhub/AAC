@@ -89,19 +89,18 @@
 		<apiKey>admin-AACRoles-1.0.0</apiKey>
 	</service>
 
-
 	<service name="Authorization Service" id="carbon.super-AACAuthorization-1.0.0">
 		<description>Core service for managing peer-to-peer authorizations and
 			authorization schemas</description>
 
 		<resourceMapping id="authorization.manage" name="Modify authorizations"
-			uri="authorization.write" authority="ROLE_CLIENT">
-			<description></description>
+			uri="authorization.manage" authority="ROLE_CLIENT">
+			<description>Modify authorizations</description>
 		</resourceMapping>
 		<resourceMapping id="authorization.schema.manage"
-			name="Manage authorization schema" uri="authorization.schema.write"
+			name="Manage authorization schema" uri="authorization.schema.manage"
 			authority="ROLE_CLIENT">
-			<description></description>
+			<description>Manage authorization schema</description>
 		</resourceMapping>
 		<apiKey>admin-AACAuthorization-1.0.0</apiKey>
 	</service>

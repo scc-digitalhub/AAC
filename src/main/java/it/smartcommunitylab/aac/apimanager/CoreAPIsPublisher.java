@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
@@ -36,6 +37,7 @@ public class CoreAPIsPublisher {
 		
 		publishAPI("api/profile-api.json", "AAC", "AAC User Profile APIs", "/aacprofile", token);
 		publishAPI("api/roles-api.json", "AACRoles", "AAC User Roles APIs", "/aacroles", token);
+		publishAPI("api/authorization-api.json", "AACAuthorization", "AAC Authorization APIs", "/aacauthorization", token);
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -45,7 +47,7 @@ public class CoreAPIsPublisher {
 		List list = (List) apis.get("list");
 //		System.err.println(apis);
 		if (list.isEmpty()) {
-//			ObjectMapper mapper = new ObjectMapper();
+			ObjectMapper mapper = new ObjectMapper();
 
 			String swagger = Resources.toString(Resources.getResource(json), Charsets.UTF_8);
 			swagger = env.resolvePlaceholders(swagger);			
@@ -66,7 +68,7 @@ public class CoreAPIsPublisher {
 			
 			API result = pub.publishAPI(api, token);
 			pub.changeAPIStatus(result.getId(), "Publish", token);
-//			System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+			System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		}
 	}
 

@@ -184,7 +184,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/oauth/authorize", "/eauth/**").authenticated().antMatchers("/", "/dev**")
 				.hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
 				.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN").antMatchers("/mgmt/**")
-				.hasAnyAuthority("ROLE_PROVIDER").antMatchers("/authorization/**").permitAll().and().exceptionHandling()
+				.hasAnyAuthority("ROLE_PROVIDER").and().exceptionHandling()
 				.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
 				.accessDeniedPage("/accesserror").and().logout().logoutSuccessUrl("/login").permitAll().and().csrf()
 				.disable().addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class);
@@ -431,5 +431,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(8);
 		return resource;
 	}
+	
+	
+	@Bean
+	protected ResourceServerConfiguration authorizationResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/*authorization/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*authorization/**")
+						.permitAll()
+						.antMatchers("/authorization/**").access("#oauth2.hasScope('authorization.schema.write')")
+						.antMatchers("/authorization/*/schema/**").access("#oauth2.hasScope('authorization.write')")
+						.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(9);
+		return resource;
+	}		
+	
 
 }
