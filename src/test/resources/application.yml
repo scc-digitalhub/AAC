@@ -69,9 +69,9 @@ logging:
 
 api:
   store:
-    endpoint: https://localhost:9443/api/am/store/v0.10 
+    endpoint: https://localhost:9443/api/am/store/v0.11 
   publisher:
-    endpoint: https://localhost:9443/api/am/publisher/v0.10
+    endpoint: https://localhost:9443/api/am/publisher/v0.11
   identity:
     endpoint: https://localhost:9443/services/IdentityApplicationManagementService
     password: admin    
