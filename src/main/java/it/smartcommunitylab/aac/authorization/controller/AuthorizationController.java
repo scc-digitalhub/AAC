@@ -118,7 +118,6 @@ public class AuthorizationController {
 	@ExceptionHandler(UnauthorizedDomainException.class)
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "not authorized for requested domain")
 	public void unauthorizedDomain() {
-		System.out.println("HERE");
 	}	
 
 }
