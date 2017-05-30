@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.authorization.AuthorizationHelper;
 import it.smartcommunitylab.aac.authorization.AuthorizationSchemaHelper;
 import it.smartcommunitylab.aac.authorization.NotValidResourceException;
@@ -48,6 +49,7 @@ import it.smartcommunitylab.aac.authorization.model.FQname;
 import it.smartcommunitylab.aac.authorization.model.Resource;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.ResourceManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
@@ -79,6 +81,10 @@ public class AuthorizationControllerTest {
 	private ResourceRepository resourceRepository;	
 	@Autowired
 	private UserRepository userRepository;	
+	@Autowired
+	private RoleManager roleManager;	
+	@Autowired
+	private APIProviderManager apiProviderManager;	
 	
 	private MockMvc mockMvc;
 	
@@ -95,6 +101,11 @@ public class AuthorizationControllerTest {
 		providerServiceAdapter.init();
 
 		User user = userRepository.findByName("admin");
+		if (user == null) {
+			user = roleManager.init();
+		}
+		apiProviderManager.init(user.getId());
+		
 		user.getRoles().add(testRole);
 		userRepository.save(user);
 		
