@@ -448,8 +448,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/*authorization/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*authorization/**")
 						.permitAll()
-						.antMatchers("/authorization/**").access("#oauth2.hasScope('authorization.schema.manage')")
-						.antMatchers("/authorization/*/schema/**").access("#oauth2.hasScope('authorization.manage')")
+						.antMatchers("/authorization/**").access("#oauth2.hasScope('authorization.manage')")
+						.antMatchers("/authorization/*/schema/**").access("#oauth2.hasScope('authorization.schema.manage')")
 						.and().csrf().disable();
 			}
 
