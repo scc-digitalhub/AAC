@@ -148,6 +148,14 @@ public class AuthorizationControllerTest {
 	}
 
 	@Test
+	public void loadSchema() throws Exception {
+		String json = "{'domain':'domain', 'nodes':[]}";
+		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain/schema/load")
+				.contentType(MediaType.APPLICATION_JSON).content(json).header("Authorization", getToken());
+		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+	}
+
+	@Test
 	public void getSchemaFail() throws Exception {
 		RequestBuilder request = MockMvcRequestBuilders.get("/authorization/test/schema/qname-node")
 				.header("Authorization", getToken());

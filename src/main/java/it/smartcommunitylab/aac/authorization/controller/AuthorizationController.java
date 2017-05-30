@@ -36,69 +36,83 @@ public class AuthorizationController {
 	private AuthorizationHelper authorizationHelper;
 	@Autowired
 	private AuthorizationSchemaHelper authorizationSchemaHelper;
-	
+
 	@Autowired
-	private UserRepository userRepository;	
+	private UserRepository userRepository;
 	@Autowired
-	private ResourceServerTokenServices resourceServerTokenServices;	
+	private ResourceServerTokenServices resourceServerTokenServices;
 	@Autowired
-	private ClientDetailsRepository clientDetailsRepository;	
-	
+	private ClientDetailsRepository clientDetailsRepository;
+
 	@RequestMapping(value = "/authorization/{domain}/{id}", method = RequestMethod.DELETE)
-	public void removeAuthorization(HttpServletRequest request, @PathVariable String domain, @PathVariable String id) throws UnauthorizedDomainException {
+	public void removeAuthorization(HttpServletRequest request, @PathVariable String domain, @PathVariable String id)
+			throws UnauthorizedDomainException {
 		checkDomain(request, domain);
 		authorizationHelper.remove(id);
 	}
 
 	@RequestMapping(value = "/authorization/{domain}", method = RequestMethod.POST)
 	public AuthorizationDTO insertAuthorization(HttpServletRequest request, @PathVariable String domain,
-			@RequestBody AuthorizationDTO authorizationDTO) throws NotValidResourceException, UnauthorizedDomainException {
+			@RequestBody AuthorizationDTO authorizationDTO)
+			throws NotValidResourceException, UnauthorizedDomainException {
 		checkDomain(request, domain);
 		return convert(authorizationHelper.insert(convert(domain, authorizationDTO)));
 	}
 
 	@RequestMapping(value = "/authorization/{domain}/validate", method = RequestMethod.POST)
-	public boolean validateAuthorization(HttpServletRequest request, @PathVariable String domain, @RequestBody AuthorizationDTO authorization) throws UnauthorizedDomainException {
+	public boolean validateAuthorization(HttpServletRequest request, @PathVariable String domain,
+			@RequestBody AuthorizationDTO authorization) throws UnauthorizedDomainException {
 		checkDomain(request, domain);
 		return authorizationHelper.validate(convert(domain, authorization));
 	}
 
 	@RequestMapping(value = "/authorization/{domain}/schema", method = RequestMethod.POST)
-	public void addRootChildToSchema(HttpServletRequest request, @PathVariable String domain, @RequestBody AuthorizationNodeDTO node)
-			throws AuthorizationNodeAlreadyExist, UnauthorizedDomainException {
+	public void addRootChildToSchema(HttpServletRequest request, @PathVariable String domain,
+			@RequestBody AuthorizationNodeDTO node) throws AuthorizationNodeAlreadyExist, UnauthorizedDomainException {
 		checkDomain(request, domain);
 		authorizationSchemaHelper.addRootChild(convert(domain, node));
 	}
 
 	@RequestMapping(value = "/authorization/{domain}/schema/{parentQname}", method = RequestMethod.POST)
-	public void addChildToSchema(HttpServletRequest request, @PathVariable String domain, @RequestBody AuthorizationNodeDTO childNode,
-			@PathVariable String parentQname) throws AuthorizationNodeAlreadyExist, UnauthorizedDomainException {
+	public void addChildToSchema(HttpServletRequest request, @PathVariable String domain,
+			@RequestBody AuthorizationNodeDTO childNode, @PathVariable String parentQname)
+			throws AuthorizationNodeAlreadyExist, UnauthorizedDomainException {
 		checkDomain(request, domain);
 		authorizationSchemaHelper.addChild(new FQname(domain, parentQname), convert(domain, childNode));
 	}
 
 	@RequestMapping(value = "/authorization/{domain}/schema/{qname}", method = RequestMethod.GET)
-	public AuthorizationNodeDTO getNode(HttpServletRequest request, @PathVariable String domain, @PathVariable String qname) throws UnauthorizedDomainException {
+	public AuthorizationNodeDTO getNode(HttpServletRequest request, @PathVariable String domain,
+			@PathVariable String qname) throws UnauthorizedDomainException {
 		checkDomain(request, domain);
 		return convert(authorizationSchemaHelper.getNode(new FQname(domain, qname)));
 	}
 
 	@RequestMapping(value = "/authorization/{domain}/schema/validate", method = RequestMethod.POST)
-	public boolean validateResource(HttpServletRequest request, @PathVariable String domain, @RequestBody AuthorizationResourceDTO resource) throws UnauthorizedDomainException {
+	public boolean validateResource(HttpServletRequest request, @PathVariable String domain,
+			@RequestBody AuthorizationResourceDTO resource) throws UnauthorizedDomainException {
 		checkDomain(request, domain);
 		return authorizationSchemaHelper.isValid(AuthorizationConverter.convert(domain, resource));
 	}
-	
+
+	@RequestMapping(value = "/authorization/{domain}/schema/load", method = RequestMethod.POST)
+	public void loadSchema(HttpServletRequest request, @PathVariable String domain,
+			org.springframework.http.HttpEntity<String> httpEntity)
+			throws UnauthorizedDomainException, AuthorizationNodeAlreadyExist {
+		checkDomain(request, domain);
+		authorizationSchemaHelper.loadJson(httpEntity.getBody());
+	}
+
 	private void checkDomain(HttpServletRequest request, String domain) throws UnauthorizedDomainException {
 		String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
 		OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 		String clientId = auth.getOAuth2Request().getClientId();
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 		Long developerId = client.getDeveloperId();
-		
-		User developer = userRepository.findOne(developerId);	
+
+		User developer = userRepository.findOne(developerId);
 		String role = "authorization_" + domain;
-		
+
 		if (!developer.getRoles().stream().filter(x -> role.equals(x.getRole())).findFirst().isPresent()) {
 			throw new UnauthorizedDomainException();
 		}
@@ -114,10 +128,10 @@ public class AuthorizationController {
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "resource in authorization is not valid")
 	public void notValidResource() {
 	}
-	
+
 	@ExceptionHandler(UnauthorizedDomainException.class)
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "not authorized for requested domain")
 	public void unauthorizedDomain() {
-	}	
+	}
 
 }
