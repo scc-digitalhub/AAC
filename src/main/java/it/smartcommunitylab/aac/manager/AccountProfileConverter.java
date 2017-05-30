@@ -44,6 +44,10 @@ public class AccountProfileConverter {
 				minProfile.addAttribute(account, a.getKey(), a.getValue());
 			}
 		}
+		minProfile.setName(user.getName());
+		minProfile.setSurname(user.getSurname());
+		minProfile.setUserId(user.getId().toString());		
+		
 		return minProfile;
 	}
 

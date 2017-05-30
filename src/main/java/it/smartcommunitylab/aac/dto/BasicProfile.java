@@ -15,9 +15,6 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement(name = "BasicProfile")
 public class BasicProfile {
 	
 	private String name;

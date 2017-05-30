@@ -24,7 +24,7 @@ import java.util.Map;
  * @author raman
  *
  */
-public class AccountProfile {
+public class AccountProfile extends BasicProfile {
 
 	private Map<String,Map<String,String>> attributes;
 	
