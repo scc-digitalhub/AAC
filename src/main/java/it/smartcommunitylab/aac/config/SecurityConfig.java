@@ -299,14 +299,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**")
-						.permitAll().antMatchers("/basicprofile/all")
-						.access("#oauth2.hasScope('profile.basicprofile.all')").antMatchers("/basicprofile/me")
-						.access("#oauth2.hasScope('profile.basicprofile.me')").antMatchers("/accountprofile/all")
-						.access("#oauth2.hasScope('profile.accountprofile.all')").antMatchers("/accountprofile/me")
-						.access("#oauth2.hasScope('profile.accountprofile.me')").and().csrf().disable();
+				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
+						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('profile.basicprofile.all')")
+						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('profile.basicprofile.all')")
+						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('profile.basicprofile.me')")
+						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('profile.accountprofile.all')")
+						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('profile.accountprofile.me')")				
+						.and().csrf().disable();
 			}
-
 		}));
 		resource.setOrder(4);
 		return resource;
