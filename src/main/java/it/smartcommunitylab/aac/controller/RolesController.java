@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.controller;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,10 +28,12 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.common.base.Splitter;
 
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.manager.RoleManager;
@@ -63,7 +64,7 @@ public class RolesController {
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/me")
 	public @ResponseBody
-	Set	<Role> getRoles(HttpServletResponse response) throws Exception {
+	Set<Role> getRoles(HttpServletResponse response) throws Exception {
 		try {
 			Long userId = userManager.getUserId();
 			if (userId == null) {
@@ -81,7 +82,7 @@ public class RolesController {
 	
 	@RequestMapping(method = RequestMethod.PUT, value = "/userroles/user/{userId}")
 	public @ResponseBody
-	void addRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId, @RequestBody List<String> roles) throws Exception {
+	void addRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId, @RequestParam String roles) throws Exception {
 		try {
 			User user = userRepository.findOne(userId);
 			if (user == null) {
@@ -99,7 +100,7 @@ public class RolesController {
 			Role provider = developer.getRoles().stream().filter(x -> "ROLE_PROVIDER".equals(x.getRole())).findFirst().get();
 			String tenant = provider.getContext();			
 			
-			Set<Role> fullRoles = roles.stream().map(x -> new Role(ROLE_SCOPE.application, x, tenant)).collect(Collectors.toSet());
+			Set<Role> fullRoles = Splitter.on(",").splitToList(roles).stream().map(x -> new Role(ROLE_SCOPE.application, x, tenant)).collect(Collectors.toSet());
 			user.getRoles().addAll(fullRoles);
 			
 			userRepository.save(user);
@@ -110,7 +111,7 @@ public class RolesController {
 	
 	@RequestMapping(method = RequestMethod.DELETE, value = "/userroles/user/{userId}")
 	public @ResponseBody
-	void deleteRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId, @RequestBody List<String> roles) throws Exception {
+	void deleteRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId, @RequestParam String roles) throws Exception {
 		try {
 			User user = userRepository.findOne(userId);
 			if (user == null) {
@@ -128,7 +129,7 @@ public class RolesController {
 			Role provider = developer.getRoles().stream().filter(x -> "ROLE_PROVIDER".equals(x.getRole())).findFirst().get();
 			String tenant = provider.getContext();			
 			
-			Set<Role> fullRoles = roles.stream().map(x -> new Role(ROLE_SCOPE.application, x, tenant)).collect(Collectors.toSet());
+			Set<Role> fullRoles = Splitter.on(",").splitToList(roles).stream().map(x -> new Role(ROLE_SCOPE.application, x, tenant)).collect(Collectors.toSet());
 			user.getRoles().removeAll(fullRoles);
 			
 			userRepository.save(user);
@@ -139,7 +140,7 @@ public class RolesController {
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/all/user/{userId}")
 	public @ResponseBody
-	Set	<Role> getAllRoles(HttpServletResponse response, @PathVariable Long userId) throws Exception {
+	Set<Role> getAllRoles(HttpServletResponse response, @PathVariable Long userId) throws Exception {
 		try {
 			User user = userRepository.findOne(userId);
 			if (user == null) {
@@ -157,7 +158,7 @@ public class RolesController {
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/tenant/user/{userId}")
 	public @ResponseBody
-	Set	<Role> getTenantRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId) throws Exception {
+	Set<Role> getTenantRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId) throws Exception {
 		try {
 			User user = userRepository.findOne(userId);
 			if (user == null) {
@@ -186,7 +187,7 @@ public class RolesController {
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/client")
 	public @ResponseBody
-	Set	<Role> getClientRoles(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	Set<Role> getClientRoles(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		try {
 			String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
 			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);

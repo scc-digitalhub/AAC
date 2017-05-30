@@ -214,16 +214,11 @@
 					"format": "int64"
 				},
 				{
-					"in": "body",
 					"name": "roles",
+					"in": "query",
 					"description": "roles",
 					"required": true,
-					"schema": {
-						"type": "array",
-						"items": {
-							"type": "string"
-						}
-					}
+					"type": "string"
 				}],
 				"responses": {
 					"200": {
@@ -260,16 +255,11 @@
 					"format": "int64"
 				},
 				{
-					"in": "body",
 					"name": "roles",
+					"in": "query",
 					"description": "roles",
 					"required": true,
-					"schema": {
-						"type": "array",
-						"items": {
-							"type": "string"
-						}
-					}
+					"type": "string"
 				}],
 				"responses": {
 					"200": {
