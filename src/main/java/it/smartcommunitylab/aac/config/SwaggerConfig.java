@@ -16,8 +16,9 @@ public class SwaggerConfig {
     public Docket api() { 
         return new Docket(DocumentationType.SWAGGER_2)  
           .select()                                  
-          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.controller"))
-          .paths(PathSelectors.regex("/.*profile.*|/resources.*"))    
+//          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.controller"))
+          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.authorization.controller"))
+          .paths(PathSelectors.regex("/authorization.*"))    
           .build();                                           
     }
 }

@@ -29,12 +29,8 @@ import org.springframework.web.servlet.ModelAndView;
  *
  */
 @Component
-class GlobalDefaultExceptionHandler implements HandlerExceptionResolver, Ordered {
+class GlobalDefaultExceptionHandler implements HandlerExceptionResolver {
     public static final String DEFAULT_ERROR_VIEW = "redirect:/error";
-
-	    public int getOrder() {
-	        return Integer.MIN_VALUE;
-	     }
 
 	    public ModelAndView resolveException(
 	        HttpServletRequest aReq, HttpServletResponse aRes,

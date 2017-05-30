@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.controller;
 
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,7 +84,7 @@ public class ResourceAccessController {
 	@RequestMapping(method = RequestMethod.GET, value = "/resources/access")
 	public @ResponseBody Boolean canAccessResource(@RequestParam String scope, HttpServletRequest request) {
 		try {
-			String parsedToken = parseHeaderToken(request);
+			String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
 			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 			Collection<String> actualScope = auth.getOAuth2Request().getScope();
 			Collection<String> scopeSet = StringUtils.commaDelimitedListToSet(scope);
@@ -103,7 +102,7 @@ public class ResourceAccessController {
 		AACTokenValidation response = new AACTokenValidation();
 		
 		try {
-			String parsedToken = parseHeaderToken(request);
+			String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
 			
 			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 			
@@ -122,9 +121,6 @@ public class ResourceAccessController {
 			String userId = null;
 			
 			System.err.println(auth.getPrincipal());
-			if (auth.getPrincipal() != null) {
-				System.err.println(auth.getPrincipal().getClass());
-			}
 			
 			if (auth.getPrincipal() instanceof User) {
 				User principal = (User)auth.getPrincipal();
@@ -188,22 +184,6 @@ public class ResourceAccessController {
 		return Utils.getUserNameAtTenant(email, domain);
 	}	
 	
-	private String parseHeaderToken(HttpServletRequest request) {
-		@SuppressWarnings("unchecked")
-		Enumeration<String> headers = request.getHeaders("Authorization");
-		while (headers.hasMoreElements()) { // typically there is only one (most servers enforce that)
-			String value = headers.nextElement();
-			if ((value.toLowerCase().startsWith(OAuth2AccessToken.BEARER_TYPE.toLowerCase()))) {
-				String authHeaderValue = value.substring(OAuth2AccessToken.BEARER_TYPE.length()).trim();
-				int commaIndex = authHeaderValue.indexOf(',');
-				if (commaIndex > 0) {
-					authHeaderValue = authHeaderValue.substring(0, commaIndex);
-				}
-				return authHeaderValue;
-			}
-		}
 
-		return null;
-	}	
 
 }

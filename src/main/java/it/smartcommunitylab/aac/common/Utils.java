@@ -16,10 +16,14 @@
 
 package it.smartcommunitylab.aac.common;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.StringUtils;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
@@ -75,6 +79,7 @@ public class Utils {
 		res.setServiceId(s.getId());
 		res.setResourceDefinitions(JsonUtils.toJSON(s.getResource()));
 		res.setResourceMappings(JsonUtils.toJSON(s.getResourceMapping()));
+		res.setApiKey(s.getApiKey());
 		return res;
 	} 
 	/**
@@ -129,5 +134,24 @@ public class Utils {
 		}
 		return new String[] {tenant, "carbon.super"};
 	}	
+	
+	public static String parseHeaderToken(HttpServletRequest request) {
+		@SuppressWarnings("unchecked")
+		Enumeration<String> headers = request.getHeaders("Authorization");
+		while (headers.hasMoreElements()) { // typically there is only one (most servers enforce that)
+			String value = headers.nextElement();
+			if ((value.toLowerCase().startsWith(OAuth2AccessToken.BEARER_TYPE.toLowerCase()))) {
+				String authHeaderValue = value.substring(OAuth2AccessToken.BEARER_TYPE.length()).trim();
+				int commaIndex = authHeaderValue.indexOf(',');
+				if (commaIndex > 0) {
+					authHeaderValue = authHeaderValue.substring(0, commaIndex);
+				}
+				return authHeaderValue;
+			}
+		}
+
+		return null;
+	}		
+	
 	
 }

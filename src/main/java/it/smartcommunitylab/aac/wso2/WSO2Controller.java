@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.wso2;
 
+import java.net.URLDecoder;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
@@ -180,7 +182,7 @@ public class WSO2Controller {
 	}		
 	
 	
-	@RequestMapping(value = "/wso2/resources/{userName}", method = RequestMethod.POST)
+	@RequestMapping(value = "/wso2/resources/{userName:.+}", method = RequestMethod.POST)
 	public @ResponseBody void createResources(HttpServletResponse response, @RequestBody AACService service, @PathVariable("userName") String userName) throws Exception {
 		try {
 			
@@ -203,7 +205,10 @@ public class WSO2Controller {
 	@RequestMapping(value = "/wso2/resources/{resourceName:.+}", method = RequestMethod.DELETE)
 	public @ResponseBody void deleteResources(HttpServletResponse response, @PathVariable("resourceName") String resourceName) throws Exception {
 		try {
-			wso2Manager.deleteResource(resourceName);
+			
+			String name = URLDecoder.decode(resourceName, "UTF-8");
+			
+			wso2Manager.deleteResource(name);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());

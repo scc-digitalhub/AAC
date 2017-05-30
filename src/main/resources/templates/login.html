@@ -37,7 +37,7 @@
   <img class="logo" src="img/ls_logo.png" alt="SmartCommunity" />
   <div class="clear"></div>
   
-  <div class="row" th:if="${session.authorities.internal} != null">
+  <div class="row" th:if="${session.authorities.get('internal')} != null">
     <div class="col-md-offset-4 col-md-4">
       <div class="panel panel-default">
       <h4 style="text-align:center" th:text="#{lbl_login_title}">AAC Login</h4>

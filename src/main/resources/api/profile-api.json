@@ -17,7 +17,7 @@
 			{
 				"description": "Basic profile of the platform users. Read access only.",
 				"name": "Read all basic profiles",
-				"roles": "",
+				"roles": "profilemanager",
 				"key": "profile.basicprofile.all"
 			},
 			{
@@ -42,8 +42,8 @@
 			"url": "http://www.apache.org/licenses/LICENSE-2.0"
 		}
 	},
-	"host": "localhost:8080",
-	"basePath": "/aac",
+	"host": "${server.host}",
+	"basePath": "${server.contextPath}",
 	"tags": [{
 		"name": "basic-profile-controller",
 		"description": "Basic Profile Controller"
