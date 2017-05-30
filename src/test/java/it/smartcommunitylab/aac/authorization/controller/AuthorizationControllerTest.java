@@ -65,31 +65,31 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 public class AuthorizationControllerTest {
 
 	private static final String TEST = "TEST";
-	
+
 	private final static String BEARER = "Bearer ";
-	
+
 	@Autowired
 	private WebApplicationContext ctx;
-	
+
 	@Autowired
 	private ResourceManager resourceManager;
 	@Autowired
-	private ProviderServiceAdapter providerServiceAdapter;	
+	private ProviderServiceAdapter providerServiceAdapter;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
-	private ResourceRepository resourceRepository;	
+	private ResourceRepository resourceRepository;
 	@Autowired
-	private UserRepository userRepository;	
+	private UserRepository userRepository;
 	@Autowired
-	private RoleManager roleManager;	
+	private RoleManager roleManager;
 	@Autowired
-	private APIProviderManager apiProviderManager;	
-	
+	private APIProviderManager apiProviderManager;
+
 	private MockMvc mockMvc;
-	
+
 	private ObjectMapper jsonMapper;
-	private ClientDetails client;	
+	private ClientDetails client;
 
 	private Role testRole = new Role(ROLE_SCOPE.application, "authorization_domain", "carbon.super");
 
@@ -105,28 +105,29 @@ public class AuthorizationControllerTest {
 			user = roleManager.init();
 		}
 		apiProviderManager.init(user.getId());
-		
+
 		user.getRoles().add(testRole);
 		userRepository.save(user);
-		
+
 		client = clientDetailsRepository.findByClientId(TEST);
 		if (client == null) {
 			client = createTestClient(user.getId());
 		}
 	}
-	
+
 	@After
 	public void tearDown() throws Exception {
 		User user = userRepository.findByName("admin");
 		user.getRoles().remove(testRole);
 		userRepository.save(user);
-	}	
+	}
 
 	@Test
 	public void addRootChild() throws Exception {
 		AuthorizationNode node = new AuthorizationNode(new FQname("domain", "A"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain/schema")
-				.contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(node)).header("Authorization", getToken());
+				.contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(node))
+				.header("Authorization", getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 	}
 
@@ -134,25 +135,29 @@ public class AuthorizationControllerTest {
 	public void addChildAuthorizationNode() throws Exception {
 		AuthorizationNode node = new AuthorizationNode(new FQname("domain", "A"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain/schema/parent-qname")
-				.content(jsonMapper.writeValueAsString(node)).contentType(MediaType.APPLICATION_JSON).header("Authorization", getToken());
+				.content(jsonMapper.writeValueAsString(node)).contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 	}
 
 	@Test
 	public void getSchema() throws Exception {
-		RequestBuilder request = MockMvcRequestBuilders.get("/authorization/domain/schema/qname-node").header("Authorization", getToken());
+		RequestBuilder request = MockMvcRequestBuilders.get("/authorization/domain/schema/qname-node")
+				.header("Authorization", getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 	}
-	
+
 	@Test
 	public void getSchemaFail() throws Exception {
-		RequestBuilder request = MockMvcRequestBuilders.get("/authorization/test/schema/qname-node").header("Authorization", getToken());
+		RequestBuilder request = MockMvcRequestBuilders.get("/authorization/test/schema/qname-node")
+				.header("Authorization", getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is4xxClientError());
-	}	
+	}
 
 	@Test
 	public void removeAuthorization() throws Exception {
-		RequestBuilder request = MockMvcRequestBuilders.delete("/authorization/domain/my-auth").header("Authorization", getToken());
+		RequestBuilder request = MockMvcRequestBuilders.delete("/authorization/domain/my-auth").header("Authorization",
+				getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 	}
 
@@ -163,7 +168,8 @@ public class AuthorizationControllerTest {
 		Authorization auth = new Authorization(new AuthorizationUser("subject", "type"), "action", resource,
 				new AuthorizationUser("entity", "type"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain")
-				.content(jsonMapper.writeValueAsString(auth)).contentType(MediaType.APPLICATION_JSON).header("Authorization", getToken());
+				.content(jsonMapper.writeValueAsString(auth)).contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 	}
 
@@ -174,7 +180,8 @@ public class AuthorizationControllerTest {
 		Authorization auth = new Authorization(new AuthorizationUser("subject", "type"), "action", resource,
 				new AuthorizationUser("entity", "type"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain/validate")
-				.content(jsonMapper.writeValueAsString(auth)).contentType(MediaType.APPLICATION_JSON).header("Authorization", getToken());
+				.content(jsonMapper.writeValueAsString(auth)).contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
 				.andExpect(MockMvcResultMatchers.content().string("false"));
 	}
@@ -190,28 +197,32 @@ public class AuthorizationControllerTest {
 		resource.setValues(Arrays.asList(nodeValue));
 		ObjectMapper jsonMapper = new ObjectMapper();
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain/schema/validate")
-				.content(jsonMapper.writeValueAsString(resource)).contentType(MediaType.APPLICATION_JSON).header("Authorization", getToken());
+				.content(jsonMapper.writeValueAsString(resource)).contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", getToken());
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 	}
-	
+
 	private String getToken() throws Exception {
-		RequestBuilder request = MockMvcRequestBuilders.post("/oauth/token?" + "client_id=" + client.getClientId() + "&client_secret=" + client.getClientSecret() + "&grant_type=client_credentials&scope=authorization.manage authorization.schema.manage");
+		RequestBuilder request = MockMvcRequestBuilders.post(
+				"/oauth/token?" + "client_id=" + client.getClientId() + "&client_secret=" + client.getClientSecret()
+						+ "&grant_type=client_credentials&scope=authorization.manage authorization.schema.manage");
 		String response = mockMvc.perform(request).andReturn().getResponse().getContentAsString();
 		Map responseMap = jsonMapper.readValue(response, Map.class);
-		String token = BEARER + (String)responseMap.get("access_token");
+		String token = BEARER + (String) responseMap.get("access_token");
 		System.err.println(token);
-		return token;		
+		return token;
 	}
-	
+
 	private String getOauthToken() throws Exception {
-		RequestBuilder request = MockMvcRequestBuilders.post("/oauth/token?" + "client_id=" + client.getClientId() + "&client_secret=" + client.getClientSecret() + "&grant_type=client_credentials");		
+		RequestBuilder request = MockMvcRequestBuilders.post("/oauth/token?" + "client_id=" + client.getClientId()
+				+ "&client_secret=" + client.getClientSecret() + "&grant_type=client_credentials");
 		String response = mockMvc.perform(request).andReturn().getResponse().getContentAsString();
 		Map responseMap = jsonMapper.readValue(response, Map.class);
-		String token = (String)responseMap.get("access_token");
+		String token = (String) responseMap.get("access_token");
 		System.err.println("OT: " + token);
 		return token;
-	}	
-	
+	}
+
 	private ClientDetails createTestClient(long developerId) throws Exception {
 		ClientDetailsEntity entity = new ClientDetailsEntity();
 		ClientAppInfo info = new ClientAppInfo();
@@ -223,26 +234,28 @@ public class AuthorizationControllerTest {
 		entity.setDeveloperId(developerId);
 		entity.setClientSecret(UUID.randomUUID().toString());
 		entity.setClientSecretMobile(UUID.randomUUID().toString());
-		
+
 		String resourcesId = "";
-		it.smartcommunitylab.aac.model.Resource r = resourceRepository.findByServiceIdAndResourceType("carbon.super-AACAuthorization-1.0.0", "authorization.manage");
+		it.smartcommunitylab.aac.model.Resource r = resourceRepository
+				.findByServiceIdAndResourceType("carbon.super-AACAuthorization-1.0.0", "authorization.manage");
 		resourcesId += r.getResourceId();
-		r = resourceRepository.findByServiceIdAndResourceType("carbon.super-AACAuthorization-1.0.0", "authorization.schema.manage");
+		r = resourceRepository.findByServiceIdAndResourceType("carbon.super-AACAuthorization-1.0.0",
+				"authorization.schema.manage");
 		resourcesId += "," + r.getResourceId();
 		entity.setResourceIds(resourcesId);
-		
+
 		entity.setName(TEST);
 		entity.setScope("authorization.manage,authorization.schema.manage");
-		
+
 		entity = clientDetailsRepository.save(entity);
 		return entity;
-	}		
-	
+	}
+
 }
 
 @TestConfiguration
 @EnableWebMvc // without it mockMvc post thrown an HTTP 415 ERROR
-@ComponentScan(basePackages = { "it.smartcommunitylab.aac"})
+@ComponentScan(basePackages = { "it.smartcommunitylab.aac" })
 class AuthorizationControllerTestConfig {
 
 	@Bean
@@ -311,7 +324,6 @@ class AuthorizationControllerTestConfig {
 			@Override
 			public AuthorizationSchemaHelper addRootChild(AuthorizationNode child)
 					throws AuthorizationNodeAlreadyExist {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
@@ -339,6 +351,12 @@ class AuthorizationControllerTestConfig {
 			public Set<AuthorizationNode> getAllChildren(FQname qname) {
 				// TODO Auto-generated method stub
 				return null;
+			}
+
+			@Override
+			public void loadJson(String jsonString) {
+				// TODO Auto-generated method stub
+
 			}
 		};
 	}
