@@ -122,6 +122,7 @@ public class AuthorizationControllerTest {
 				.content(jsonMapper.writeValueAsString(resource)).contentType(MediaType.APPLICATION_JSON);
 		mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 	}
+
 }
 
 @TestConfiguration
@@ -194,7 +195,6 @@ class AuthorizationControllerTestConfig {
 			@Override
 			public AuthorizationSchemaHelper addRootChild(AuthorizationNode child)
 					throws AuthorizationNodeAlreadyExist {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
@@ -222,6 +222,12 @@ class AuthorizationControllerTestConfig {
 			public Set<AuthorizationNode> getAllChildren(FQname qname) {
 				// TODO Auto-generated method stub
 				return null;
+			}
+
+			@Override
+			public void loadJson(String jsonString) {
+				// TODO Auto-generated method stub
+
 			}
 		};
 	}
