@@ -158,7 +158,7 @@ public class RolesController {
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/user/{userId}")
 	public @ResponseBody
-	Set<Role> getTenantRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId) throws Exception {
+	Set<Role> getRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId) throws Exception {
 		try {
 			User user = userRepository.findOne(userId);
 			if (user == null) {
