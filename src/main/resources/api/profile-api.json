@@ -318,7 +318,7 @@
 		}
 	},
 	"definitions": {
-		"MapÂ«string,stringÂ»": {
+		"Map«string,string»": {
 			"type": "object",
 			"additionalProperties": {
 				"type": "string"
@@ -389,8 +389,17 @@
 				"accounts": {
 					"type": "object",
 					"additionalProperties": {
-						"$ref": "#/definitions/MapÂ«string,stringÂ»"
+						"$ref": "#/definitions/Map«string,string»"
 					}
+				},
+				"name": {
+					"type": "string"
+				},
+				"surname": {
+					"type": "string"
+				},
+				"userId": {
+					"type": "string"
 				}
 			}
 		},
