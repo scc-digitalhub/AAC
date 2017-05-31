@@ -4,13 +4,13 @@
 		"apim": {
 			"x-wso2-scopes": [{
 				"description": "",
-				"name": "Authorization schema",
+				"name": "Authorization management",
 				"roles": "",
 				"key": "authorization.manage"
 			},
 			{
 				"description": "",
-				"name": "Authorization",
+				"name": "Authorization schema management",
 				"roles": "",
 				"key": "authorization.schema.manage"
 			}
