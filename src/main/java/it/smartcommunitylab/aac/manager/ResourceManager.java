@@ -698,6 +698,26 @@ public class ResourceManager {
 	}
 
 	/**
+	 * @param apiKey
+	 * @return all the roles associated to the fixed service resources
+	 */
+	public Set<String> getResourceRoles(String apiKey) {
+		ServiceDescriptor sd = serviceRepository.findByAPIKey(apiKey); 
+		
+		if (sd != null) {
+			Set<String> result = new HashSet<>();
+			List<Resource> resources = resourceRepository.findByService(sd);
+			resources.forEach(r -> {
+				if (r.getResourceParameter() == null && StringUtils.hasText(r.getRoles())) {
+					result.addAll(StringUtils.commaDelimitedListToSet(r.getRoles()));
+				} 
+			});
+			return result;
+		}
+		return Collections.emptySet();
+	}
+	
+	/**
 	 * @return all the services of the specified user
 	 */
 	public List<Service> getServiceObjects(String ownerId) {

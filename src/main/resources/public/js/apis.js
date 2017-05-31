@@ -2,7 +2,7 @@ angular.module('aac.controllers.apis', [])
 /**
  * Single API view controller
  */
-.controller('APIController', function($scope, $location, $routeParams, Data, Utils) {
+.controller('APIController', function($scope, $location, $routeParams, $uibModal, Data, Utils) {
 	$scope.page = {
 	  offset: 0,
 	  limit: 25,
@@ -29,28 +29,51 @@ angular.module('aac.controllers.apis', [])
 	var load = function() {
 		Data.getAPI($routeParams.apiId).then(function(data){
 			$scope.api = data;
-			if (data.roles && data.roles.length > 0) {
-				loadSubscriptions();
-			}
+			loadSubscriptions();
 		}, Utils.showError);	
 	}
 	load();
 	
+	$scope.addRole = function(){
+		$scope.roles.map[$scope.roles.custom] = true;
+		$scope.roles.custom = null;
+	}
+	
 	// toggle roles of the subscribed user
-	$scope.toggleRoles = function(sub) {
-		// has less roles as required: assign all
-		if ($scope.api.roles.length > sub.roles.length) {
-			Data.updateUserRoles($routeParams.apiId, sub.subscriber, $scope.api.roles).then(function(newRoles) {
-				sub.roles = newRoles;
-			  	Utils.showSuccess();
-			}, Utils.showError);
-		// otherwise remove all the roles	
-		} else {
-			Data.updateUserRoles($routeParams.apiId, sub.subscriber, null, sub.roles).then(function(newRoles) {
-				sub.roles = newRoles;
-				Utils.showSuccess();
-			}, Utils.showError);
+	$scope.changeRoles = function(sub) {
+		var roleMap = {};
+		if (sub.roles){
+			sub.roles.forEach(function(r){
+				roleMap[r] = true;
+			});
 		}
+		if ($scope.api.applicationRoles) {
+			$scope.api.applicationRoles.forEach(function(r) {
+				if (roleMap[r] == null) {
+					roleMap[r] = false;
+				}
+			});
+		}	
+		$scope.roles = {map: roleMap, sub: sub};
+		$scope.rolesDlg = $uibModal.open({
+	      ariaLabelledBy: 'modal-title',
+	      ariaDescribedBy: 'modal-body',
+	      templateUrl: 'html/roles.modal.html',
+	      scope: $scope,
+	      size: 'lg'
+	    });
+
+	}
+	$scope.updateRoles = function() {
+		Data.updateUserRoles($routeParams.apiId, $scope.roles.sub.subscriber, $scope.roles.map, $scope.roles.sub.roles).then(function(newRoles) {
+			$scope.api.subscriptions.list.forEach(function(s) {
+				if (s.subscriber == $scope.roles.sub.subscriber) {
+					s.roles = newRoles;
+				}
+			});
+			$scope.rolesDlg.dismiss();
+			Utils.showSuccess();
+		}, Utils.showError);
 	}
 })
 

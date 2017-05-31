@@ -27,10 +27,10 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.StringUtils;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
-
 import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.model.ServiceDescriptor;
+import it.smartcommunitylab.aac.wso2.model.API;
 
 /**
  * Common methods and functions
@@ -153,5 +153,7 @@ public class Utils {
 		return null;
 	}		
 	
-	
+	public static String getAPIKey(API api) {
+		return api.getProvider() + "-" + api.getName() + "-"+ api.getVersion();
+	} 
 }

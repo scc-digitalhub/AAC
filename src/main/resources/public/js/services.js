@@ -91,28 +91,44 @@ angular.module('aac.services', [])
 	 * Read roles required by the API scopes
 	 */
 	dataService.getRolesOfAPI = function(api) {
-		var res = [];
-		var apiDef = JSON.parse(api.apiDefinition);
-		if (   apiDef 
-		    && apiDef['x-wso2-security'] 
-		    && apiDef['x-wso2-security']['apim'] 
-		    && apiDef['x-wso2-security']['apim']['x-wso2-scopes']) 
-		{
-			apiDef['x-wso2-security']['apim']['x-wso2-scopes'].forEach(function(s) {
-				if (s.roles) {
-					s.roles.split(',').forEach(function(r){
-						res.push(r.trim());
-					});
-				}
-			});
-		}
-		return res;
+		return api.applicationRoles;
+//		var res = [];
+//		var apiDef = JSON.parse(api.apiDefinition);
+//		if (   apiDef 
+//		    && apiDef['x-wso2-security'] 
+//		    && apiDef['x-wso2-security']['apim'] 
+//		    && apiDef['x-wso2-security']['apim']['x-wso2-scopes']) 
+//		{
+//			apiDef['x-wso2-security']['apim']['x-wso2-scopes'].forEach(function(s) {
+//				if (s.roles) {
+//					s.roles.split(',').forEach(function(r){
+//						res.push(r.trim());
+//					});
+//				}
+//			});
+//		}
+//		return res;
 	}
 	/**
 	 * Update roles of the specified user: roles to add and to remove
 	 */
-	dataService.updateUserRoles = function(apiId, user, toAdd, toRemove) {
+	dataService.updateUserRoles = function(apiId, user, map, old) {
 		var deferred = $q.defer();
+		var toAdd = [];
+		var toRemove = [];
+		if (!old) old = [];
+		old.forEach(function(r) {
+			if (map[r] == false) {
+				toRemove.push(r);
+			}
+			map[r] = null;
+		});
+		for (var r in map) {
+			if (map[r] == true) {
+				toAdd.push(r);
+			}
+		}
+		
 		var body = {
 			user: user,
 			addRoles: toAdd,
@@ -123,6 +139,8 @@ angular.module('aac.services', [])
 		}, function(err) {
 			deferred.reject(err);
 		});
+//		console.log(body);
+//		deferred.resolve(old);
 		return deferred.promise;		
 	}
 	/**

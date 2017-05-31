@@ -5,7 +5,7 @@
 	</div>
 	<div class="app-description">
 	  <div class="row"> 
-	    <div class="col-md-2"><img ng-src="{{!!api.thumbnailUri ? api.thumbnailUri :'../img/defaultPhoto.png'}}" width="100%"></div>
+	    <div class="col-md-2"><img ng-src="{{!!api.thumbnailUri ? api.thumbnailUri :'./img/defaultPhoto.png'}}" width="100%"></div>
 	    <div class="col-md-10">
 				<table class="table">
 					<tr>
@@ -37,7 +37,7 @@
         <td>{{sub.appName}}<br/>({{sub.applicationId}})</td>
         <td>{{sub.status}}</td>
         <td>{{sub.roles.join(', ')}}</td>
-        <td><a ng-click="toggleRoles(sub)">Toggle roles</a></td>
+        <td><a ng-click="changeRoles(sub)">Change roles</a></td>
       </tr>
     </table>
     <div class="text-center">

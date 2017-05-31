@@ -16,22 +16,6 @@
 
 package it.smartcommunitylab.aac.apimanager;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.Response;
-import it.smartcommunitylab.aac.model.Response.RESPONSE;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.wso2.model.API;
-import it.smartcommunitylab.aac.wso2.model.APIInfo;
-import it.smartcommunitylab.aac.wso2.model.DataList;
-import it.smartcommunitylab.aac.wso2.model.RoleModel;
-import it.smartcommunitylab.aac.wso2.model.Subscription;
-import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
-import it.smartcommunitylab.aac.wso2.services.UserManagementService;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -56,6 +40,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.apimanager.model.AACAPI;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.ResourceManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.Response.RESPONSE;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.wso2.model.API;
+import it.smartcommunitylab.aac.wso2.model.APIInfo;
+import it.smartcommunitylab.aac.wso2.model.DataList;
+import it.smartcommunitylab.aac.wso2.model.RoleModel;
+import it.smartcommunitylab.aac.wso2.model.Subscription;
+import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
+import it.smartcommunitylab.aac.wso2.services.UserManagementService;
+
 /**
  * @author raman
  *
@@ -75,6 +78,8 @@ public class APIMgtController {
 	private UserManager userManager;	
 	@Autowired
 	private APIRoleManager apiRoleManager;	
+	@Autowired
+	private ResourceManager resourceManager;	
 	
 	@GetMapping("/mgmt/apis")
 	public @ResponseBody DataList<APIInfo> getAPIs(
@@ -85,13 +90,15 @@ public class APIMgtController {
 	}
 	
 	@GetMapping("/mgmt/apis/{apiId}")
-	public @ResponseBody API getAPI(@PathVariable String apiId) throws Exception {
+	public @ResponseBody AACAPI getAPI(@PathVariable String apiId) throws Exception {
 		API api = pub.getAPI(apiId, getToken());
 		
 		if (api.getThumbnailUri() != null) {
 			api.setThumbnailUri("/mgmt"+api.getThumbnailUri());
 		}
-		return api;
+		AACAPI result = new AACAPI(api);
+		result.setApplicationRoles(resourceManager.getResourceRoles(Utils.getAPIKey(api)));
+		return result;
 	}
 	
 	@GetMapping("/mgmt/apis/{apiId}/thumbnail")

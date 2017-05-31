@@ -1,0 +1,21 @@
+<div class="modal-header">
+  <h3 class="modal-title" id="modal-title">Change roles</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <div class="form-inline">
+	  <div class="form-group">
+	    <label for="domain">Custom role</label>
+	    <input type="text" class="form-control" id="domain" placeholder="Role" ng-model="roles.custom">
+	  </div>
+    <button type="button" class="btn btn-default" ng-click="addRole()" ng-disabled="!roles.custom">Add</button>
+  </div>
+  <div class="checkbox" ng-repeat="(r,checked) in roles.map">
+    <label>
+      <input type="checkbox" ng-model="roles.map[r]">{{r}}
+    </label>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" type="button" ng-click="updateRoles()">Update</button>
+  <button class="btn btn-warning" type="button" ng-click="rolesDlg.dismiss()">Cancel</button>
+</div>
