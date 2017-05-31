@@ -62,6 +62,7 @@ public class CoreAPIsPublisher {
 			api.setApiDefinition(swagger);
 			api.setStatus("CREATED");
 			api.setVisibility("PUBLIC");
+			api.setSubscriptionAvailability("all_tenants");
 
 			api.setIsDefaultVersion(true);
 			api.setEndpointConfig(env.resolvePlaceholders(ENDPOINT_CONFIG));			
