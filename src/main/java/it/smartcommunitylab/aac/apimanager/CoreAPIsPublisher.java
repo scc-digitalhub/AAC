@@ -46,7 +46,7 @@ public class CoreAPIsPublisher {
 
 		List list = (List) apis.get("list");
 //		System.err.println(apis);
-		if (list.isEmpty()) {
+		if (list.isEmpty() || !list.stream().anyMatch(x -> name.equals(((Map)x).get("name")))) {
 			ObjectMapper mapper = new ObjectMapper();
 
 			String swagger = Resources.toString(Resources.getResource(json), Charsets.UTF_8);
@@ -68,7 +68,7 @@ public class CoreAPIsPublisher {
 			
 			API result = pub.publishAPI(api, token);
 			pub.changeAPIStatus(result.getId(), "Publish", token);
-			System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+//			System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		}
 	}
 
