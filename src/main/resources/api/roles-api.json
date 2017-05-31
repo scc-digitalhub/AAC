@@ -157,7 +157,7 @@
 				}
 			}
 		},
-		"/userroles/tenant/user/{userId}": {
+		"/userroles/user/{userId}": {
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"user.roles.read",					
@@ -194,9 +194,7 @@
 						"description": "Not Found"
 					}
 				}
-			}
-		},
-		"/userroles/user/{userId}": {
+			},		
 			"put": {
 				"x-auth-type":"Application",
 				"x-scope":"user.roles.write",			

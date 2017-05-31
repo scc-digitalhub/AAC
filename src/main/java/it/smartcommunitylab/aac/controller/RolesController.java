@@ -156,7 +156,7 @@ public class RolesController {
 	}	
 	
 	
-	@RequestMapping(method = RequestMethod.GET, value = "/userroles/tenant/user/{userId}")
+	@RequestMapping(method = RequestMethod.GET, value = "/userroles/user/{userId}")
 	public @ResponseBody
 	Set<Role> getTenantRoles(HttpServletRequest request, HttpServletResponse response, @PathVariable Long userId) throws Exception {
 		try {

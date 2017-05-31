@@ -377,9 +377,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						.permitAll()
 						.antMatchers("/userroles/me").access("#oauth2.hasScope('user.roles.me')")
 						.antMatchers("/userroles/all/user").access("#oauth2.hasScope('user.roles.read.all')")
-						.antMatchers("/userroles/tenant/user").access("#oauth2.hasScope('user.roles.read')")
+						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('user.roles.read')")
+						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
+						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
 						.antMatchers("/userroles/client").access("#oauth2.hasScope('client.roles.read.all')")
-						.antMatchers("/userroles/user").access("#oauth2.hasScope('user.roles.write')")
 						.and().csrf().disable();
 			}
 
