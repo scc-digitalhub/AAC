@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -11,9 +13,11 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 
 import it.smartcommunitylab.aac.wso2.model.API;
+import it.smartcommunitylab.aac.wso2.model.CorsConfiguration;
 import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
 
 @Component
@@ -63,12 +67,19 @@ public class CoreAPIsPublisher {
 			api.setStatus("CREATED");
 			api.setVisibility("PUBLIC");
 			api.setSubscriptionAvailability("all_tenants");
-
 			api.setIsDefaultVersion(true);
 			api.setEndpointConfig(env.resolvePlaceholders(ENDPOINT_CONFIG));			
 			
+			CorsConfiguration cors = new CorsConfiguration();
+			cors.setCorsConfigurationEnabled(true);
+			cors.setAccessControlAllowOrigins(Lists.newArrayList("*"));
+			cors.setAccessControlAllowHeaders(Lists.newArrayList("authorization", "Access-Control-Allow-Origin", "Content-Type", "SOAPAction"));
+			cors.setAccessControlAllowMethods(Lists.newArrayList("GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"));
+			api.setCorsConfiguration(cors);
+			
 			API result = pub.publishAPI(api, token);
 			pub.changeAPIStatus(result.getId(), "Publish", token);
+			
 //			System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		}
 	}
