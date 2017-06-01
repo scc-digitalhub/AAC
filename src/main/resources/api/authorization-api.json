@@ -219,7 +219,7 @@
 				}
 			}
 		},
-		"/authorization/{domain}/schema/{parentQname}": {
+		"/authorization/{domain}/schema/{qname}": {
 			"post": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.schema.manage",			
@@ -268,9 +268,7 @@
 						"description": "Not Found"
 					}
 				}
-			}
-		},
-		"/authorization/{domain}/schema/{qname}": {
+			},
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.schema.manage",			
