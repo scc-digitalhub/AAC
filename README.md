@@ -16,5 +16,5 @@ Local config:
  - Config log folder as `-Daac.log.folder=LOG_FOLDER_PATH` (if system property is not setted, application will use default value: `WORKING_DIRECTORY/logs`)
 
 Execution:
- - run the project with Maven: ``mvn -Drun.profiles=local spring-boot:run`` 
+- run the project with Maven: ``mvn -Drun.profiles=local -Djavax.net.ssl.trustStore="C:/bin/wso2am-2.1.0/repository/resources/security/wso2carbon.jks" -Djavax.net.ssl.trustStorePassword="wso2carbon" -Djavax.net.ssl.trustStoreType="JKS" spring-boot:run``  
  
