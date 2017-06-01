@@ -128,6 +128,50 @@
 				}
 			}
 		},
+		"/authorization/{domain}/schema/load": {
+			"post": {
+				"x-auth-type":"Application",
+				"x-scope":"authorization.schema.manage",				
+				"tags": ["authorization-controller"],
+				"summary": "loadSchema",
+				"operationId": "loadSchemaUsingPOST",
+				"consumes": ["application/json"],
+				"produces": ["*/*"],
+				"parameters": [{
+					"name": "domain",
+					"in": "path",
+					"description": "domain",
+					"required": true,
+					"type": "string"
+				},
+				{
+					"in": "body",
+					"name": "httpEntity",
+					"description": "httpEntity",
+					"required": false,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"201": {
+						"description": "Created"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},		
 		"/authorization/{domain}/schema/validate": {
 			"post": {
 				"x-auth-type":"Application",
