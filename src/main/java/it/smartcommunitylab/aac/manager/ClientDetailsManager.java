@@ -16,13 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
-import it.smartcommunitylab.aac.model.ClientAppBasic;
-import it.smartcommunitylab.aac.model.ClientAppInfo;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,6 +35,14 @@ import org.springframework.util.StringUtils;
 
 import com.google.common.base.Joiner;
 
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
+import it.smartcommunitylab.aac.model.ClientAppInfo;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
+
 /**
  * Support for the management of client app registration details
  * @author raman
@@ -59,6 +60,9 @@ public class ClientDetailsManager {
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private AttributesAdapter attributesAdapter;
+	@Autowired
+	private ResourceRepository resourceRepository;	
+	
 	/**
 	 * Generate new value to be used as clientId (String)
 	 * @return
@@ -195,7 +199,21 @@ public class ClientDetailsManager {
 			
 			client.setAdditionalInformation(info.toJson());
 			client.setRedirectUri(Utils.normalizeValues(data.getRedirectUris()));
-			client.setScope(data.getScope());
+			
+			if (data.getScope() != null) {
+				client.setScope(data.getScope());
+
+				String resourcesId = "";
+				for (String resource : client.getScope()) {
+					it.smartcommunitylab.aac.model.Resource r = resourceRepository.findByResourceUri(resource);
+					if (r != null) {
+						resourcesId += "," + r.getResourceId();
+					}
+				}
+				resourcesId = resourcesId.replaceFirst(",", "");
+				client.setResourceIds(resourcesId);
+			}
+			
 			client.setParameters(data.getParameters());
 		} catch (Exception e) {
 			log .error("failed to convert an object: "+e.getMessage(), e);

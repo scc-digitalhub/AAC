@@ -90,6 +90,7 @@ public class WSO2Controller {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
+		app.setScope(null);
 		ClientAppBasic resApp = wso2Manager.updateClient(clientId, app);
 		
 		return resApp;
