@@ -34,6 +34,8 @@ public class APIRoleManager {
 			final String domain = info[1];			
 			
 			List<User> users = userRepository.findByAttributeEntities("internal", "email", name);
+			if (users == null || users.size() == 0) continue;
+			
 			User user = users.get(0);
 			
 			Set<Role> userRoles = user.getRoles();
