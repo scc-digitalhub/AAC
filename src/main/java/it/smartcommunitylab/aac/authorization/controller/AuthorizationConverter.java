@@ -41,8 +41,11 @@ public class AuthorizationConverter {
 	}
 
 	private static AuthorizationUser convert(AuthorizationUserDTO authorizationUser) {
-		AuthorizationUser convertedObj = new AuthorizationUser(authorizationUser.getId(), authorizationUser.getType());
-		return convertedObj;
+		if (authorizationUser != null) {
+			AuthorizationUser convertedObj = new AuthorizationUser(authorizationUser.getId(), authorizationUser.getType());
+			return convertedObj;
+		}
+		return null;
 	}
 
 	public static AuthorizationDTO convert(Authorization authorization) {
