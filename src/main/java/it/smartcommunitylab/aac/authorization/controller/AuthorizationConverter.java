@@ -50,13 +50,7 @@ public class AuthorizationConverter {
 		if (authorization != null) {
 			convertedObj = new AuthorizationDTO();
 			convertedObj.setAction(authorization.getAction());
-			AuthorizationUserDTO entity = new AuthorizationUserDTO();
-			entity.setId(authorization.getEntity().getId());
-			entity.setType(authorization.getEntity().getType());
-			convertedObj.setEntity(entity);
-			AuthorizationUserDTO subject = new AuthorizationUserDTO();
-			subject.setId(authorization.getSubject().getId());
-			subject.setType(authorization.getSubject().getType());
+			convertedObj.setEntity(convert(authorization.getEntity()));
 			convertedObj.setSubject(convert(authorization.getSubject()));
 			convertedObj.setId(authorization.getId());
 
