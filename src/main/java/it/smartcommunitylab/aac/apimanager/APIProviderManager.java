@@ -91,7 +91,13 @@ public class APIProviderManager {
 	/** APIMananger email */
 	public static final String EMAIL_ATTR = "email";
 
-	private static final String API_MGT_CLIENT_ID = "API_MGT_CLIENT_ID";
+	@Value("${adminClient.id}")
+	private String apiMgtClientId;
+	@Value("${adminClient.secret}")
+	private String apiMgtClientSecret;	
+	@Value("${application.url}")
+	private String clientCallback;	
+	
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create", "apim:api_publish"};
 	/** Predefined tenant role PROVIDER (API provider) */
@@ -116,7 +122,7 @@ public class APIProviderManager {
 	private RoleManager roleManager;
 	
 	public void init(long developerId) throws Exception {
-		if (clientDetailsRepository.findByClientId(API_MGT_CLIENT_ID) == null) {
+		if (clientDetailsRepository.findByClientId(apiMgtClientId) == null) {
 			createAPIMgmtClient(developerId);
 		}
 	}
@@ -275,7 +281,7 @@ public class APIProviderManager {
 	 * @throws Exception 
 	 */
 	private ClientDetails getAPIMgmtClient() throws Exception {
-		ClientDetails client = clientDetailsRepository.findByClientId(API_MGT_CLIENT_ID);
+		ClientDetails client = clientDetailsRepository.findByClientId(apiMgtClientId);
 //		if (client == null) {
 //			ClientDetails entity = createAPIMgmtClient();
 //			client = entity;
@@ -286,14 +292,15 @@ public class APIProviderManager {
 	private ClientDetails createAPIMgmtClient(long developerId) throws Exception {
 		ClientDetailsEntity entity = new ClientDetailsEntity();
 		ClientAppInfo info = new ClientAppInfo();
-		info.setName(API_MGT_CLIENT_ID);
+		info.setName(apiMgtClientId);
 		entity.setAdditionalInformation(info.toJson());
-		entity.setClientId(API_MGT_CLIENT_ID);
+		entity.setClientId(apiMgtClientId);
 		entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT_TRUSTED.name());
 		entity.setAuthorizedGrantTypes(defaultGrantTypes());
 		entity.setDeveloperId(developerId);
-		entity.setClientSecret(generateClientSecret());
+		entity.setClientSecret(apiMgtClientSecret);
 		entity.setClientSecretMobile(generateClientSecret());
+		entity.setRedirectUri(clientCallback);
 		
 		String resourcesId = "";
 		it.smartcommunitylab.aac.model.Resource r = resourceRepository.findByServiceIdAndResourceType(SMARTCOMMUNITY_APIMANAGEMENT, CLIENTMANAGEMENT);
@@ -302,7 +309,7 @@ public class APIProviderManager {
 		resourcesId += "," + r.getResourceId();
 		entity.setResourceIds(resourcesId);
 		
-		entity.setName(API_MGT_CLIENT_ID);
+		entity.setName(apiMgtClientId);
 		entity.setScope(MANAGEMENT_SCOPES + "," + Joiner.on(",").join(API_MGT_SCOPES));
 		
 		entity = clientDetailsRepository.save(entity);
