@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +26,7 @@ import it.smartcommunitylab.aac.authorization.beans.AuthorizationResourceDTO;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeAlreadyExist;
 import it.smartcommunitylab.aac.authorization.model.FQname;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
@@ -133,5 +135,14 @@ public class AuthorizationController {
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "not authorized for requested domain")
 	public void unauthorizedDomain() {
 	}
+	
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ExceptionHandler(Exception.class)
+	@ResponseBody
+	ErrorInfo handleBadRequest(HttpServletRequest req, Exception ex) {
+		StackTraceElement ste = ex.getStackTrace()[0];
+		return new ErrorInfo(req.getRequestURL().toString(), ex.getClass().getTypeName(), ste.getClassName(),
+				ste.getLineNumber());
+	}	
 
 }
