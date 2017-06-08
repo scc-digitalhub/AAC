@@ -13,6 +13,8 @@ public class AACTokenValidation {
 	private String[] scope;
 	
 	private boolean applicationToken;
+	
+	private String grantType;
 
 	public boolean isValid() {
 		return valid;
@@ -76,6 +78,14 @@ public class AACTokenValidation {
 
 	public void setApplicationToken(boolean applicationToken) {
 		this.applicationToken = applicationToken;
+	}
+
+	public String getGrantType() {
+		return grantType;
+	}
+
+	public void setGrantType(String grantType) {
+		this.grantType = grantType;
 	}
 	
 	
