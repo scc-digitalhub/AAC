@@ -58,6 +58,10 @@ oauth-providers:
 admin:
   password: admin
 
+adminClient:
+  id: API_MGT_CLIENT_ID
+  secret: 
+
 mail:
   username: user@gmail.com
   password: 123
