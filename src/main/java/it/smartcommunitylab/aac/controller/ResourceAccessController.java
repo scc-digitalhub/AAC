@@ -147,10 +147,11 @@ public class ResourceAccessController {
 			response.setUserId(userId);
 			response.setClientId(clientId);
 			response.setScope(Iterables.toArray(auth.getOAuth2Request().getScope(), String.class));
+			response.setGrantType(auth.getOAuth2Request().getGrantType());
 			
 			long now = System.currentTimeMillis();
 			response.setIssuedTime(now);
-			response.setValidityPeriod(storedToken.getExpiresIn() * 1000L);
+			response.setValidityPeriod(storedToken.getExpiresIn());
 
 			response.setValid(true);
 			
