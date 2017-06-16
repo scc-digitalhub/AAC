@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
@@ -20,10 +21,10 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
+import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
@@ -134,9 +135,9 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 				scopes = clientDetails.getScope();
 			}			
 			
-			if (client.getParameters() != null) {
-				scopes = checkUserScopes(requestParameters, scopes, clientDetails);
-			}
+//			if (client.getParameters() != null) {
+			scopes = checkUserScopes(requestParameters, scopes, clientDetails);
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -149,9 +150,12 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 
 		User user = null;
 		Long userId = null;
+		
+		boolean isUser = true;
 		if ("client_credentials".equals(requestParameters.get("grant_type"))) {
 			userId = client.getDeveloperId();
 			user = userRepository.findOne(userId);
+			isUser = false;
 		} else if ("password".equals(requestParameters.get("grant_type"))) {
 			String userName = requestParameters.get("username");
 			List<User> users = userRepository.findByAttributeEntities("internal", "email", userName);
@@ -162,17 +166,21 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 			userId = userManager.getUserId();
 			user = userRepository.findOne(userId);
 		}
-			
 
 		if (user != null) {
-			Set<String> roleNames = Sets.newHashSet();
-			for (Role role : user.getRoles()) {
-				roleNames.add(role.getRole());
-			}
-
+			Set<String> roleNames = user.getRoles().stream().map(x -> x.getRole()).collect(Collectors.toSet());
 			for (String scope : scopes) {
 				Resource resource = resourceRepository.findByResourceUri(scope);
 				if (resource != null) {
+					boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
+					boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
+					if (isUser && !isResourceUser) {
+						continue;
+					}
+					if (!isUser && !isResourceClient) {
+						continue;
+					}
+					
 					if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
 						Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
 						if (!Sets.intersection(roleNames, roles).isEmpty()) {
@@ -183,7 +191,6 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 					}
 				}
 			}
-
 		}
 
 		if (newScopes.isEmpty()) {
