@@ -107,6 +107,7 @@ public class ResourceAccessController {
 			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 			
 			OAuth2AccessToken storedToken = tokenStore.getAccessToken(auth);
+			long expiresIn = storedToken.getExpiresIn();
 			
 			String clientId = auth.getOAuth2Request().getClientId();
 			
@@ -151,7 +152,7 @@ public class ResourceAccessController {
 			
 			long now = System.currentTimeMillis();
 			response.setIssuedTime(now);
-			response.setValidityPeriod(storedToken.getExpiresIn());
+			response.setValidityPeriod(expiresIn);
 
 			response.setValid(true);
 			

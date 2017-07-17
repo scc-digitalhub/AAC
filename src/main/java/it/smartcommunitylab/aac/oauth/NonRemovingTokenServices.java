@@ -153,8 +153,15 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	private OAuth2AccessToken createAccessToken(OAuth2Authentication authentication, OAuth2RefreshToken refreshToken) {
 		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(UUID.randomUUID().toString());
 		int validitySeconds = getAccessTokenValiditySeconds(authentication.getOAuth2Request());
+		
 		if (validitySeconds > 0) {
 			token.setExpiration(new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
+		} else {
+			if (authentication.isClientOnly()) {
+				token.setExpiration(new Date(Long.MAX_VALUE));	
+			} else {
+				token.setExpiration(new Date(System.currentTimeMillis() + (60 * 60 * 12 * 1000L)));
+			}
 		}
 		token.setRefreshToken(refreshToken);
 		token.setScope(authentication.getOAuth2Request().getScope());
