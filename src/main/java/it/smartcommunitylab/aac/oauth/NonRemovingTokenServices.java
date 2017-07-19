@@ -166,6 +166,8 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		token.setRefreshToken(refreshToken);
 		token.setScope(authentication.getOAuth2Request().getScope());
 
+		logger.info("Created token " + token.getValue() + " expires at " + token.getExpiration());
+		
 		return token;
 	}
 	@Override

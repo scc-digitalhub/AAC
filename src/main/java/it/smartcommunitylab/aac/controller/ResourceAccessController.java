@@ -153,6 +153,8 @@ public class ResourceAccessController {
 			long now = System.currentTimeMillis();
 			response.setIssuedTime(now);
 			response.setValidityPeriod(expiresIn);
+			
+			logger.info("Requested token " + parsedToken + " expires in " + response.getValidityPeriod());
 
 			response.setValid(true);
 			
