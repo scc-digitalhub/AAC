@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
@@ -98,8 +100,8 @@ public class ResourceAccessController {
 	}
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/resources/token")
-	public @ResponseBody AACTokenValidation getTokenInfo(HttpServletRequest request) {
-		AACTokenValidation response = new AACTokenValidation();
+	public @ResponseBody AACTokenValidation getTokenInfo(HttpServletRequest request, HttpServletResponse response) {
+		AACTokenValidation result = new AACTokenValidation();
 		
 		try {
 			String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
@@ -144,28 +146,34 @@ public class ResourceAccessController {
 				}
 			}
 			
-			response.setUsername(userName);
-			response.setUserId(userId);
-			response.setClientId(clientId);
-			response.setScope(Iterables.toArray(auth.getOAuth2Request().getScope(), String.class));
-			response.setGrantType(auth.getOAuth2Request().getGrantType());
+			result.setUsername(userName);
+			result.setUserId(userId);
+			result.setClientId(clientId);
+			result.setScope(Iterables.toArray(auth.getOAuth2Request().getScope(), String.class));
+			result.setGrantType(auth.getOAuth2Request().getGrantType());
 			
 			long now = System.currentTimeMillis();
-			response.setIssuedTime(now);
-			response.setValidityPeriod(expiresIn);
+			result.setIssuedTime(now);
+			result.setValidityPeriod(expiresIn);
 			
-			logger.info("Requested token " + parsedToken + " expires in " + response.getValidityPeriod());
+			logger.info("Requested token " + parsedToken + " expires in " + result.getValidityPeriod());
 
-			response.setValid(true);
+			result.setValid(true);
 			
-			response.setApplicationToken(response.getUserId() == null);
+			result.setApplicationToken(result.getUserId() == null);
 			
 //			System.err.println(mapper.writeValueAsString(response));			
+		} catch (InvalidTokenException e) {
+			logger.error("Invalid token: "+ e.getMessage());
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			return null;
 		} catch (Exception e) {
-			logger.error("Error validating token: "+e.getMessage());
+			logger.error("Error getting info for token: "+ e.getMessage());
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return null;
 		}
 		
-		return response;
+		return result;
 	}	
 	
 	/**
