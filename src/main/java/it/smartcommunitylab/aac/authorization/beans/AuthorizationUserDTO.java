@@ -1,25 +1,25 @@
 package it.smartcommunitylab.aac.authorization.beans;
 
 public class AuthorizationUserDTO {
-	private String id;
+	private AccountAttributeDTO accountAttribute;
 	private String type;
 
 	public AuthorizationUserDTO() {
 
 	}
 
-	public AuthorizationUserDTO(String id, String type) {
+	public AuthorizationUserDTO(AccountAttributeDTO accountAttribute, String type) {
 		super();
-		this.id = id;
+		this.accountAttribute = accountAttribute;
 		this.type = type;
 	}
 
-	public String getId() {
-		return id;
+	public AccountAttributeDTO getAccountAttribute() {
+		return accountAttribute;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setAccountAttribute(AccountAttributeDTO accountAttribute) {
+		this.accountAttribute = accountAttribute;
 	}
 
 	public String getType() {

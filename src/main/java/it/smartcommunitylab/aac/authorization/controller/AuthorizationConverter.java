@@ -3,18 +3,22 @@ package it.smartcommunitylab.aac.authorization.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.smartcommunitylab.aac.authorization.beans.AccountAttributeDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationNodeDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationNodeParamDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationNodeValueDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationResourceDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationUserDTO;
+import it.smartcommunitylab.aac.authorization.beans.RequestedAuthorizationDTO;
+import it.smartcommunitylab.aac.authorization.model.AccountAttribute;
 import it.smartcommunitylab.aac.authorization.model.Authorization;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNode;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeParam;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeValue;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationUser;
 import it.smartcommunitylab.aac.authorization.model.FQname;
+import it.smartcommunitylab.aac.authorization.model.RequestedAuthorization;
 import it.smartcommunitylab.aac.authorization.model.Resource;
 
 public class AuthorizationConverter {
@@ -40,9 +44,16 @@ public class AuthorizationConverter {
 		return convertedObj;
 	}
 
+	public static RequestedAuthorization convert(String domain, RequestedAuthorizationDTO authorization) {
+		RequestedAuthorization convertedObj = new RequestedAuthorization(authorization.getAction(),
+				convert(domain, authorization.getResource()), convert(authorization.getEntity()));
+		return convertedObj;
+	}
+
 	private static AuthorizationUser convert(AuthorizationUserDTO authorizationUser) {
 		if (authorizationUser != null) {
-			AuthorizationUser convertedObj = new AuthorizationUser(authorizationUser.getId(), authorizationUser.getType());
+			AuthorizationUser convertedObj = new AuthorizationUser(convert(authorizationUser.getAccountAttribute()),
+					authorizationUser.getType());
 			return convertedObj;
 		}
 		return null;
@@ -52,7 +63,7 @@ public class AuthorizationConverter {
 		AuthorizationDTO convertedObj = null;
 		if (authorization != null) {
 			convertedObj = new AuthorizationDTO();
-			convertedObj.setAction(authorization.getAction());
+			convertedObj.setAction(authorization.getActions());
 			convertedObj.setEntity(convert(authorization.getEntity()));
 			convertedObj.setSubject(convert(authorization.getSubject()));
 			convertedObj.setId(authorization.getId());
@@ -67,14 +78,36 @@ public class AuthorizationConverter {
 		AuthorizationUserDTO convertedObj = null;
 		if (authorizationUser != null) {
 			convertedObj = new AuthorizationUserDTO();
-			convertedObj.setId(authorizationUser.getId());
+			convertedObj.setAccountAttribute(convert(authorizationUser.getAccountAttribute()));
 			convertedObj.setType(authorizationUser.getType());
 		}
 		return convertedObj;
 	}
 
+	private static AccountAttributeDTO convert(AccountAttribute accountAttribute) {
+		AccountAttributeDTO convertedObj = null;
+		if (accountAttribute != null) {
+			convertedObj = new AccountAttributeDTO();
+			convertedObj.setAccountName(accountAttribute.getAccountName());
+			convertedObj.setAttributeName(accountAttribute.getAttributeName());
+			convertedObj.setAttributeValue(accountAttribute.getAttributeValue());
+		}
+
+		return convertedObj;
+	}
+
+	private static AccountAttribute convert(AccountAttributeDTO accountAttribute) {
+		AccountAttribute convertedObj = null;
+		if (accountAttribute != null) {
+			convertedObj = new AccountAttribute(accountAttribute.getAccountName(), accountAttribute.getAttributeName(),
+					accountAttribute.getAttributeValue());
+		}
+
+		return convertedObj;
+	}
+
 	private static AuthorizationResourceDTO convert(Resource resource) {
-		AuthorizationResourceDTO convertedObj = new AuthorizationResourceDTO();
+		AuthorizationResourceDTO convertedObj = null;
 		if (resource != null) {
 			convertedObj = new AuthorizationResourceDTO();
 			convertedObj.setQnameRef(resource.getFqnameRef().getQname());

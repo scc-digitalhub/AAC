@@ -40,12 +40,14 @@ import it.smartcommunitylab.aac.authorization.AuthorizationSchemaHelper;
 import it.smartcommunitylab.aac.authorization.NotValidResourceException;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationNodeValueDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationResourceDTO;
+import it.smartcommunitylab.aac.authorization.model.AccountAttribute;
 import it.smartcommunitylab.aac.authorization.model.Authorization;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNode;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeAlreadyExist;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeValue;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationUser;
 import it.smartcommunitylab.aac.authorization.model.FQname;
+import it.smartcommunitylab.aac.authorization.model.RequestedAuthorization;
 import it.smartcommunitylab.aac.authorization.model.Resource;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.ResourceManager;
@@ -173,8 +175,10 @@ public class AuthorizationControllerTest {
 	public void insertAuthorization() throws Exception {
 		Resource resource = new Resource(new FQname("domain", "A"),
 				Arrays.asList(new AuthorizationNodeValue("A", "a", "a_value")));
-		Authorization auth = new Authorization(new AuthorizationUser("subject", "type"), "action", resource,
-				new AuthorizationUser("entity", "type"));
+		AccountAttribute subjectAttribute = new AccountAttribute("account", "name", "subject");
+		AccountAttribute entityAttribute = new AccountAttribute("account", "name", "entity");
+		Authorization auth = new Authorization(new AuthorizationUser(subjectAttribute, "type"), "action", resource,
+				new AuthorizationUser(entityAttribute, "type"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain")
 				.content(jsonMapper.writeValueAsString(auth)).contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", getToken());
@@ -185,8 +189,10 @@ public class AuthorizationControllerTest {
 	public void validateAuthorization() throws Exception {
 		Resource resource = new Resource(new FQname("domain", "A"),
 				Arrays.asList(new AuthorizationNodeValue("A", "a", "a_value")));
-		Authorization auth = new Authorization(new AuthorizationUser("subject", "type"), "action", resource,
-				new AuthorizationUser("entity", "type"));
+		AccountAttribute subjectAttribute = new AccountAttribute("account", "name", "subject");
+		AccountAttribute entityAttribute = new AccountAttribute("account", "name", "entity");
+		Authorization auth = new Authorization(new AuthorizationUser(subjectAttribute, "type"), "action", resource,
+				new AuthorizationUser(entityAttribute, "type"));
 		RequestBuilder request = MockMvcRequestBuilders.post("/authorization/domain/validate")
 				.content(jsonMapper.writeValueAsString(auth)).contentType(MediaType.APPLICATION_JSON)
 				.header("Authorization", getToken());
@@ -276,7 +282,7 @@ class AuthorizationControllerTestConfig {
 		return new AuthorizationHelper() {
 
 			@Override
-			public boolean validate(Authorization auth) {
+			public boolean validate(RequestedAuthorization auth) {
 				// TODO Auto-generated method stub
 				return false;
 			}

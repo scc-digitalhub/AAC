@@ -1,9 +1,11 @@
 package it.smartcommunitylab.aac.authorization.beans;
 
+import java.util.List;
+
 public class AuthorizationDTO {
 	private String id;
 	private AuthorizationUserDTO subject;
-	private String action;
+	private List<String> action;
 	private AuthorizationResourceDTO resource;
 	private AuthorizationUserDTO entity;
 
@@ -23,11 +25,11 @@ public class AuthorizationDTO {
 		this.subject = subject;
 	}
 
-	public String getAction() {
+	public List<String> getAction() {
 		return action;
 	}
 
-	public void setAction(String action) {
+	public void setAction(List<String> action) {
 		this.action = action;
 	}
 

@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.authorization.NotValidResourceException;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationNodeDTO;
 import it.smartcommunitylab.aac.authorization.beans.AuthorizationResourceDTO;
+import it.smartcommunitylab.aac.authorization.beans.RequestedAuthorizationDTO;
 import it.smartcommunitylab.aac.authorization.model.AuthorizationNodeAlreadyExist;
 import it.smartcommunitylab.aac.authorization.model.FQname;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -63,7 +64,7 @@ public class AuthorizationController {
 
 	@RequestMapping(value = "/authorization/{domain}/validate", method = RequestMethod.POST)
 	public boolean validateAuthorization(HttpServletRequest request, @PathVariable String domain,
-			@RequestBody AuthorizationDTO authorization) throws UnauthorizedDomainException {
+			@RequestBody RequestedAuthorizationDTO authorization) throws UnauthorizedDomainException {
 		checkDomain(request, domain);
 		return authorizationHelper.validate(convert(domain, authorization));
 	}
@@ -135,7 +136,7 @@ public class AuthorizationController {
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "not authorized for requested domain")
 	public void unauthorizedDomain() {
 	}
-	
+
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
@@ -143,6 +144,6 @@ public class AuthorizationController {
 		StackTraceElement ste = ex.getStackTrace()[0];
 		return new ErrorInfo(req.getRequestURL().toString(), ex.getClass().getTypeName(), ste.getClassName(),
 				ste.getLineNumber());
-	}	
+	}
 
 }
