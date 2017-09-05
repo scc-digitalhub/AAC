@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -142,10 +143,8 @@ public class RolesController {
 		return user.getRoles();
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/userroles/user/{userId}")
-	public @ResponseBody Set<Role> getRoles(HttpServletRequest request, HttpServletResponse response,
-			@PathVariable Long userId) throws Exception {
-
+	private Set<Role> getUserRoles(HttpServletRequest request, HttpServletResponse response,
+			Long userId) throws IOException {
 		User user = userRepository.findOne(userId);
 		if (user == null) {
 			response.sendError(HttpStatus.NOT_ACCEPTABLE.value(), "User " + userId + " not found.");
@@ -168,7 +167,35 @@ public class RolesController {
 
 		return roles;
 	}
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/userroles/user/{userId}")
+	public @ResponseBody Set<Role> getRolesByUserId(HttpServletRequest request, HttpServletResponse response,
+			@PathVariable Long userId) throws Exception {
+		return getUserRoles(request, response, userId);
+	}
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/userroles/token/{token}")
+	public @ResponseBody Set<Role> getRolesByToken(
+			@PathVariable String token,
+			HttpServletRequest request, 
+			HttpServletResponse response) throws Exception {
+		OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(token);
+		String clientId = auth.getOAuth2Request().getClientId();
+		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+		Long developerId = client.getDeveloperId();
+		return getUserRoles(request, response, developerId);
+	}	
 
+	@RequestMapping(method = RequestMethod.GET, value = "/userroles/client/{clientId}")
+	public @ResponseBody Set<Role> getRolesByClientId(
+			@PathVariable String clientId,
+			HttpServletRequest request, 
+			HttpServletResponse response) throws Exception {
+		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+		Long developerId = client.getDeveloperId();
+		return getUserRoles(request, response, developerId);
+	}
+	
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/client")
 	public @ResponseBody Set<Role> getClientRoles(HttpServletRequest request, HttpServletResponse response)
 			throws Exception {
