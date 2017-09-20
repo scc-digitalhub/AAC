@@ -27,8 +27,12 @@ app.run(function($rootScope){
 app.config(function($routeProvider) {
     $routeProvider
     .when("/apps", {
-    	controller  : 'AppController', 
+    	controller  : 'AppListController', 
         templateUrl : "html/apps.html"
+    })
+    .when("/apps/:clientId", {
+    	controller  : 'AppController', 
+        templateUrl : "html/app.html"
     })
     .when("/admin", {
     	controller  : 'AdminController', 

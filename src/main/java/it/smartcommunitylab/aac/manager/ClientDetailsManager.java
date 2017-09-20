@@ -104,7 +104,7 @@ public class ClientDetailsManager {
 		res.setClientSecret(e.getClientSecret());
 		res.setClientSecretMobile(e.getClientSecretMobile());
 		res.setGrantedTypes(e.getAuthorizedGrantTypes());
-		
+		res.setUserName(e.getDeveloperId().toString());
 		// approval status
 		res.setIdentityProviderApproval(new HashMap<String, Boolean>());
 		// request status
@@ -296,6 +296,14 @@ public class ClientDetailsManager {
 	 */
 	public List<ClientAppBasic> getByDeveloperId(Long userId) {
 		return convertToClientApps(clientDetailsRepository.findByDeveloperId(userId));
+	}
+	
+	/**
+	 * @param clientId
+	 * @return  {@link ClientAppBasic} object representing client app
+	 */
+	public ClientAppBasic getByClientId(String clientId) {
+		return convertToClientApp(clientDetailsRepository.findByClientId(clientId));
 	}
 	/**
 	 * Create new Client from {@link ClientAppBasic} descriptor

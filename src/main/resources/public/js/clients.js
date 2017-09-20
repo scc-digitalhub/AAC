@@ -1,4 +1,5 @@
 angular.module('aac.controllers.clients', [])
+
 /**
  * App management controller.
  * @param $scope
@@ -6,7 +7,49 @@ angular.module('aac.controllers.clients', [])
  * @param $http
  * @param $timeout
  */
-.controller('AppController', function ($scope, $resource, $http, $timeout, $location) {
+.controller('AppListController', function ($scope, $resource, $http, $timeout, $location) {
+	$scope.apps = null;
+	
+	// resource reference for the app API
+	var ClientAppBasic = $resource('dev/apps/:clientId', {}, {
+		query : { method : 'GET' }
+	});
+
+	/**
+	 * Initialize the app: load list of the developer's apps and reset views
+	 */
+	var init = function() {
+		ClientAppBasic.query(function(response){
+			if (response.responseCode == 'OK') {
+				$scope.error = '';
+				var apps = response.data;
+				$scope.apps = apps;
+			} else {
+				$scope.error = 'Failed to load apps: '+response.errorMessage;
+			}	
+		});
+	};
+	init();
+	
+	
+	/**
+	 * switch to different client
+	 */
+	$scope.switchClient = function(client) {
+		$location.path('/apps/'+client);
+	};
+})
+
+
+/**
+ * App management controller.
+ * @param $scope
+ * @param $resource
+ * @param $routeParams
+ * @param $http
+ * @param $timeout
+ */
+.controller('AppController', function ($scope, $resource, $routeParams, $http, $timeout, $location) {
 	// current client
 	$scope.app = null;
 	// current client ID
@@ -72,21 +115,15 @@ angular.module('aac.controllers.clients', [])
 	 * Initialize the app: load list of the developer's apps and reset views
 	 */
 	var init = function() {
-		ClientAppBasic.query(function(response){
+		ClientAppBasic.query({clientId: $routeParams.clientId},function(response){
 			if (response.responseCode == 'OK') {
 				$scope.error = '';
-				var apps = response.data;
-				$scope.apps = apps;
-				if (apps.length > 0) {
-					$scope.app = angular.copy(apps[0]);
-					$scope.initGrantTypes($scope.app);
-					$scope.clientId = apps[0].clientId;
-					$scope.switchClientView('overview');
-				} else {
-					$scope.clientId = 'none';
-					$scope.app = null;
-					$scope.switchClientView('overview');
-				}
+				var app = response.data;
+				$scope.app = angular.copy(app);
+				$scope.initGrantTypes($scope.app);
+				$scope.clientId = app.clientId;
+				$scope.switchClientView('overview');
+
 			} else {
 				$scope.error = 'Failed to load apps: '+response.errorMessage;
 			}	
@@ -122,7 +159,7 @@ angular.module('aac.controllers.clients', [])
 	$scope.showGrantTypes = function(app) {
 		var arr = [];
 		if (app.grantedTypes) app.grantedTypes.forEach(function(gt) {
-			arr.push($scope.GTLabels[gt]);
+			if (!!$scope.GTLabels[gt]) arr.push($scope.GTLabels[gt]);
 		});
 		return arr.join(', ');
 	}
@@ -240,21 +277,6 @@ angular.module('aac.controllers.clients', [])
 			}	
 		});
 	}
-	
-	/**
-	 * switch to different client
-	 */
-	$scope.switchClient = function(client) {
-		for (var i = 0; i < $scope.apps.length; i++) {
-			if ($scope.apps[i].clientId == client) {
-				$scope.clientId = $scope.apps[i].clientId;
-				$scope.app = angular.copy($scope.apps[i]);
-				$scope.initGrantTypes($scope.app);	
-				$scope.switchClientView('overview');
-				return;
-			}
-		}
-	};
 
 	/**
 	 * delete client app

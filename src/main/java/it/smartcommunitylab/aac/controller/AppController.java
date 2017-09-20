@@ -98,6 +98,32 @@ public class AppController {
 	}
 	
 	/**
+	 * Read the 
+	 * @return {@link Response} entity containing the list of client app {@link ClientAppBasic} descriptors
+	 */
+	@RequestMapping("/dev/apps/{clientId}")
+	public @ResponseBody Response getApp(@PathVariable String clientId) {
+		Response response = new Response();
+		response.setResponseCode(RESPONSE.OK);
+		try {
+			// read the app associated to the client
+			ClientAppBasic app = clientDetailsAdapter.getByClientId(clientId);
+			if (!app.getUserName().equals(userManager.getUserId().toString())) {
+				response.setResponseCode(RESPONSE.ERROR);
+				response.setErrorMessage("Unauthorized");				
+			} else {
+				response.setData(app);
+			}
+			
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			response.setResponseCode(RESPONSE.ERROR);
+			response.setErrorMessage(e.getMessage());
+		}
+		return response;
+	}
+	
+	/**
 	 * create a new client app given a container with the name only
 	 * @param appData
 	 * @return {@link Response} entity containing the stored app {@link ClientAppBasic} descriptor
