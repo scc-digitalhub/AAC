@@ -78,7 +78,7 @@ public class WSO2Controller {
 		
 		return resApp;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			return null;
 		}
@@ -95,7 +95,7 @@ public class WSO2Controller {
 		
 		return resApp;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			return null;
 		}
@@ -110,7 +110,7 @@ public class WSO2Controller {
 		wso2Manager.updateValidity(clientId, validity);
 		
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 	}	
@@ -124,7 +124,7 @@ public class WSO2Controller {
 		wso2Manager.updateClientScope(clientId, scope);
 		
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 	}	
@@ -148,7 +148,7 @@ public class WSO2Controller {
 			return resApp;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			return null;
 		}
@@ -164,7 +164,7 @@ public class WSO2Controller {
 
 			response.setStatus(HttpStatus.OK.value());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 	}	
@@ -197,7 +197,7 @@ public class WSO2Controller {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 
@@ -211,7 +211,7 @@ public class WSO2Controller {
 			
 			wso2Manager.deleteResource(name);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 

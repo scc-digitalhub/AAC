@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.common.RegistrationException;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
@@ -25,6 +23,8 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import it.smartcommunitylab.aac.common.RegistrationException;
+
 /**
  * @author raman
  *
@@ -41,6 +43,8 @@ import org.thymeleaf.context.Context;
 @Component
 public class MailSender {
 
+	private static final Logger logger = LoggerFactory.getLogger(MailSender.class);
+	
 	private static JavaMailSenderImpl mailSender = null;
     
 	@Value("${mail.username}")
@@ -102,7 +106,7 @@ public class MailSender {
 			// Send mail
 			mailSender.send(mimeMessage);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			throw new RegistrationException(e);
 		}
 	}

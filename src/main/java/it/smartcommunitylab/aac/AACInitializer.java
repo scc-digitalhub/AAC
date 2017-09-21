@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -26,6 +28,8 @@ public class AACInitializer implements ApplicationListener<ApplicationReadyEvent
 	private ProviderServiceAdapter providerServiceAdapter;
 	@Autowired
 	private CoreAPIsPublisher coreAPIsPublisher;
+
+	private static final Logger logger = LoggerFactory.getLogger(AACInitializer.class);
 	
 //	@PostConstruct
 	public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -36,7 +40,7 @@ public class AACInitializer implements ApplicationListener<ApplicationReadyEvent
 		apiProviderManager.init(admin.getId());
 		coreAPIsPublisher.init();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger .error(e.getMessage(), e);
 //			System.exit(0);
 		}
 	}

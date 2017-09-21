@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
@@ -32,6 +34,8 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 
 public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFactory {
 
+	Logger logger = LoggerFactory.getLogger(CustomOAuth2RequestFactory.class);
+	
 	@Autowired
 	private ClientDetailsService clientDetailsService;
 	
@@ -139,7 +143,7 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 			scopes = checkUserScopes(requestParameters, scopes, clientDetails);
 //			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 
 		return scopes;

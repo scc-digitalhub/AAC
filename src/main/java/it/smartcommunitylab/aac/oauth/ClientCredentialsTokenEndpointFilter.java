@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -79,22 +80,16 @@ public class ClientCredentialsTokenEndpointFilter extends
 		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 		Set<String> grantTypes = clientDetails.getAuthorizedGrantTypes();
 		if (grantTypes == null || !grantTypes.contains(grant_type)) {
-//			 //check if trusted client
-//			if ("password".equals(grant_type)) {
-//				boolean isTrusted = false;
-//				if (clientDetails.getAuthorities() != null) {
-//					for (GrantedAuthority ga : clientDetails.getAuthorities())
-//						if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(ga.getAuthority())) {
-//							isTrusted = true;
-//							break;
-//						}
-//				}
-//				if (!isTrusted) {
-//					throw new BadCredentialsException("Unauthorized grant type: " + grant_type);
-//				}
-//			} else{
-//				throw new BadCredentialsException("Unauthorized grant type: " + grant_type);
-//			}
+			throw new BadCredentialsException("Unauthorized grant type: " + grant_type);
+		}
+		 //check if trusted client for password-based access
+		if ("password".equals(grant_type)) {
+			ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
+			if (!info.getIdentityProviders().containsKey(Config.IDP_INTERNAL) ||
+			   ClientAppInfo.APPROVED != info.getIdentityProviders().get(Config.IDP_INTERNAL)) 
+			{
+				throw new BadCredentialsException("Unauthorized grant type: " + grant_type);				
+			}
 		}
 		
 		String clientSecretServer = clientDetails.getClientSecret();

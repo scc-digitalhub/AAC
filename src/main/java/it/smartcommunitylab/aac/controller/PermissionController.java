@@ -454,7 +454,6 @@ public class PermissionController {
 			rp = resourceManager.updateResourceParameterVisibility(id, vis);
 			response.setData(rp);
 		} catch (Exception e) {
-			e.printStackTrace();
 			logger.error("Failure Failure updating resource parameter visibility: "+e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
 			response.setResponseCode(RESPONSE.ERROR);

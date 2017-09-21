@@ -105,7 +105,7 @@ public class RegistrationManager {
 			return reg;
 		} catch (Exception e) {
 			// repository.delete(reg);
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			throw new RegistrationException(e);
 		}
 	}
@@ -176,7 +176,7 @@ public class RegistrationManager {
 			return globalUser;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			throw new RegistrationException(e);
 		}
 	}

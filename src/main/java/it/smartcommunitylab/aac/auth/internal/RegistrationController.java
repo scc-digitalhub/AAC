@@ -30,6 +30,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -63,6 +64,9 @@ import it.smartcommunitylab.aac.model.Registration;
 @Controller
 @RequestMapping
 public class RegistrationController {
+
+
+	protected static final Logger logger = Logger.getLogger(RegistrationController.class);
 
 	@Autowired
 	private RegistrationManager manager;
@@ -156,7 +160,7 @@ public class RegistrationController {
 			model.addAttribute("error", e.getClass().getSimpleName());
 			return "registration/register";
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			model.addAttribute("error", RegistrationException.class.getSimpleName());
 			return "registration/register";
 		}
@@ -188,10 +192,10 @@ public class RegistrationController {
 		} catch(AlreadyRegisteredException e) {
 			res.setStatus(HttpStatus.CONFLICT.value());
 		} catch (RegistrationException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 	}
@@ -220,7 +224,7 @@ public class RegistrationController {
 			manager.resendConfirm(username);
 			return "registration/regsuccess";
 		} catch (RegistrationException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			model.addAttribute("error", e.getClass().getSimpleName());
 			return "registration/resend";
 		}
@@ -244,7 +248,7 @@ public class RegistrationController {
 				return "registration/changepwd";
 			}
 		} catch (RegistrationException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			model.addAttribute("error", e.getClass().getSimpleName());
 			return "registration/confirmerror";
 		}
@@ -284,7 +288,7 @@ public class RegistrationController {
 			apiProviderManager.updatePassword(userMail, reg.getPassword());
 			manager.updatePassword(userMail, reg.getPassword());
 		} catch (RegistrationException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			model.addAttribute("error", e.getClass().getSimpleName());
 			return "registration/changepwd";
 		}

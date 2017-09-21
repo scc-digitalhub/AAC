@@ -86,7 +86,7 @@ public class AdminController {
 			}
 			result.setData(list);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			result.setResponseCode(RESPONSE.ERROR);
 			result.setErrorMessage(e.getMessage());
 		}
@@ -120,7 +120,7 @@ public class AdminController {
 			}
 			result.setData(list);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			result.setResponseCode(RESPONSE.ERROR);
 			result.setErrorMessage(e.getMessage());
 		}
