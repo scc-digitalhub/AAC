@@ -21,10 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
@@ -63,11 +64,16 @@ public class NativeTokenGranter extends AbstractTokenGranter {
 		
 		List<GrantedAuthority> list = Collections.<GrantedAuthority> singletonList(new SimpleGrantedAuthority("ROLE_USER"));
 
-		Authentication user = new UsernamePasswordAuthenticationToken(nativeUser.getId().toString(), null, list);
-		
+//		Authentication user = new UsernamePasswordAuthenticationToken(nativeUser.getId().toString(), null, list);
+//		
 		tokenRequest.setScope(providerService.userScopes(nativeUser, tokenRequest.getScope(), true));
 		
-		OAuth2Authentication authentication = new OAuth2Authentication(tokenRequest.createOAuth2Request(client), user);
+		UserDetails user = new org.springframework.security.core.userdetails.User(nativeUser.getId().toString(), "", list);
+		AbstractAuthenticationToken a = new AACAuthenticationToken(user, null, authority, list);
+		a.setDetails(authority);
+		SecurityContextHolder.getContext().setAuthentication(a);
+		
+		OAuth2Authentication authentication = new OAuth2Authentication(tokenRequest.createOAuth2Request(client), a);
 		return authentication;
 	}
 }
