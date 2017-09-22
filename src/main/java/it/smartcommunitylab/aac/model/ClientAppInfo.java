@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.model;
 
 import java.util.Map;
 
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -37,7 +38,6 @@ public class ClientAppInfo {
 	
 	private String name;
 
-	private boolean nativeAppsAccess;
 	private String nativeAppSignatures;
 
 	private Map<String, Boolean> resourceApprovals;
@@ -45,6 +45,10 @@ public class ClientAppInfo {
 	private Map<String, Integer> identityProviders;
 	
 	private String scope;
+	
+	static {
+		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
 	
 	public static ClientAppInfo convert(Map<String,Object> map) {
 		return mapper.convertValue(map, ClientAppInfo.class);
@@ -66,20 +70,6 @@ public class ClientAppInfo {
 	 */
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	/**
-	 * @return
-	 */
-	public boolean isNativeAppsAccess() {
-		return nativeAppsAccess;
-	}
-
-	/**
-	 * @param nativeAppsAccess the nativeAppsAccess to set
-	 */
-	public void setNativeAppsAccess(boolean nativeAppsAccess) {
-		this.nativeAppsAccess = nativeAppsAccess;
 	}
 
 	/**

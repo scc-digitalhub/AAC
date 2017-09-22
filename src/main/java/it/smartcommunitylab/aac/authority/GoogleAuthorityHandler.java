@@ -19,8 +19,6 @@ package it.smartcommunitylab.aac.authority;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import eu.trentorise.smartcampus.network.JsonUtils;
 import eu.trentorise.smartcampus.network.RemoteConnector;
 import eu.trentorise.smartcampus.network.RemoteException;
@@ -38,20 +36,10 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
  * @author raman
  *
  */
-public class GoogleAuthorityHandler implements AuthorityHandler {
-
-	private static final String TOKEN_PARAM = "token";
-	
+public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 
 	@Override
-	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String,String> map, AuthorityMapping mapping) {
-		String token = request.getParameter(TOKEN_PARAM);
-		if (token == null) {
-			token = map.get(TOKEN_PARAM);
-		}
-		if (token == null) {
-			throw new IllegalArgumentException("Empty token");
-		}
+	public Map<String, String> extractAttributes(String token, Map<String,String> map, AuthorityMapping mapping) throws SecurityException  {
 		
 		try {
 			Map<String, Object> result = null;

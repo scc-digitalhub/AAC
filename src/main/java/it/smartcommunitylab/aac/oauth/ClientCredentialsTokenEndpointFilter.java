@@ -94,10 +94,9 @@ public class ClientCredentialsTokenEndpointFilter extends
 		
 		String clientSecretServer = clientDetails.getClientSecret();
 		
-		if ("authorization_code".equals(grant_type) || "refresh_token".equals(grant_type) || "password".equals(grant_type)) {
-			ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
+		if ("authorization_code".equals(grant_type) || "refresh_token".equals(grant_type) || "password".equals(grant_type) || "native".equals(grant_type)) {
 			String clientSecretMobile = clientDetails.getClientSecretMobile();
-			if (clientSecretMobile.equals(clientSecret) && !info.isNativeAppsAccess()) {
+			if (clientSecretMobile.equals(clientSecret) && !grantTypes.contains(Config.GRANT_TYPE_NATIVE)) {
 				throw new BadCredentialsException("Native app access is not enabled");
 			}
 			// TODO Check the native app hash

@@ -28,15 +28,11 @@
             <th>Grant types</th>
             <td>
              <table class="idps">
-               <tr ng-repeat="(k,v) in grantTypes">
+               <tr ng-repeat="(k,v) in grantTypes" ng-if="!!GTLabels[k]">
                <td>{{GTLabels[k]}} </td><td> <input type="checkbox" ng-model="grantTypes[k]"></td><td></td>
                </tr>
              </table>
             </td>
-        </tr>
-        <tr>
-            <th>Native app access</th>
-            <td><input type="checkbox" ng-model="app.nativeAppsAccess"></td>
         </tr>
 <!--    
         <tr  ng-show="app.nativeAppsAccess">

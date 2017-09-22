@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBException;
@@ -29,13 +30,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Sets;
+
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.Authority;
+import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.AttributeRepository;
 import it.smartcommunitylab.aac.repository.AuthorityRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -54,7 +61,9 @@ public class ProviderServiceAdapter {
 	private UserRepository userRepository;
 	@Autowired
 	private AttributeRepository attributeRepository;
-	
+	@Autowired
+	private ResourceRepository resourceRepository;	
+
 	
 	public void init() throws JAXBException, IOException {
 		attrAdapter.init();
@@ -78,8 +87,24 @@ public class ProviderServiceAdapter {
 		}
 		// read received attribute values
 		Map<String, String> attributes = attrAdapter.getAttributes(auth.getName(), map, req);
-		List<Attribute> list = extractIdentityAttributes(auth, attributes, true);
 		
+		return findAndUpdate(auth, attributes);
+	}
+
+	public User updateNativeUser(String authority, String token, Map<String, String> params) {
+		Authority auth = authorityRepository.findByRedirectUrl(authority);
+		if (auth == null) {
+			throw new IllegalArgumentException("Unknown authority URL: " + authority);
+		}
+		// read received attribute values
+		Map<String, String> attributes = attrAdapter.getNativeAttributes(auth.getName(), token, params);
+		
+		return findAndUpdate(auth, attributes);
+	}
+	
+	private User findAndUpdate(Authority auth, Map<String, String> attributes) {
+		List<Attribute> list = extractIdentityAttributes(auth, attributes, true);
+
 		// find user by identity attributes
 		List<User> users = userRepository.getUsersByAttributes(list);
 		if (users == null)
@@ -144,5 +169,34 @@ public class ProviderServiceAdapter {
 	 */
 	private List<Attribute> extractIdentityAttributes(Authority auth, Map<String, String> attributes, boolean all) {
 		return attrAdapter.findAllIdentityAttributes(auth, attributes, all);
+	}
+	
+	
+	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
+		Set<String> newScopes = Sets.newHashSet();
+		Set<String> roleNames = user.getRoles().stream().map(x -> x.getRole()).collect(Collectors.toSet());
+		for (String scope : scopes) {
+			Resource resource = resourceRepository.findByResourceUri(scope);
+			if (resource != null) {
+				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
+				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
+				if (isUser && !isResourceUser) {
+					continue;
+				}
+				if (!isUser && !isResourceClient) {
+					continue;
+				}
+				
+				if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
+					Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
+					if (!Sets.intersection(roleNames, roles).isEmpty()) {
+						newScopes.add(scope);
+					}
+				} else {
+					newScopes.add(scope);
+				}
+			}
+		}
+		return newScopes;
 	}
 }
