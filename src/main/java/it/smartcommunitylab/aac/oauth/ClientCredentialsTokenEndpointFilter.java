@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 public class ClientCredentialsTokenEndpointFilter extends
 	org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter {
 
-	private ClientDetailsRepository clientDetailsRepository = null;
+	protected ClientDetailsRepository clientDetailsRepository = null;
 
 	private boolean allowOnlyPost = false;
 
@@ -45,7 +45,6 @@ public class ClientCredentialsTokenEndpointFilter extends
 		this.clientDetailsRepository = clientDetailsRepository;
 	}
 
-
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request,
 			HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
@@ -54,15 +53,15 @@ public class ClientCredentialsTokenEndpointFilter extends
 			throw new HttpRequestMethodNotSupportedException(request.getMethod(), new String[] { "POST" });
 		}
 
-		String clientId = request.getParameter(OAuth2Utils.CLIENT_ID);
-		String clientSecret = request.getParameter("client_secret");
-
 		// If the request is already authenticated we can assume that this
 		// filter is not needed
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication != null && authentication.isAuthenticated()) {
 			return authentication;
 		}
+
+		String clientId = request.getParameter(OAuth2Utils.CLIENT_ID);
+		String clientSecret = request.getParameter("client_secret");
 
 		if (clientId == null) {
 			throw new BadCredentialsException("No client credentials presented");
@@ -73,50 +72,77 @@ public class ClientCredentialsTokenEndpointFilter extends
 		}
 
 		clientId = clientId.trim();
-		UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(clientId,
-				clientSecret);
+
+		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
+		if (clientDetails == null) {
+			throw new BadCredentialsException("No client found");
+		}
 
 		String grant_type = request.getParameter(OAuth2Utils.GRANT_TYPE);
-		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
-		Set<String> grantTypes = clientDetails.getAuthorizedGrantTypes();
-		if (grantTypes == null || !grantTypes.contains(grant_type)) {
-			throw new BadCredentialsException("Unauthorized grant type: " + grant_type);
-		}
+		Set<String> grantTypes = checkGrantTypes(clientDetails, grant_type);
+		
 		 //check if trusted client for password-based access
 		if ("password".equals(grant_type)) {
-			ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
-			if (!info.getIdentityProviders().containsKey(Config.IDP_INTERNAL) ||
-			   ClientAppInfo.APPROVED != info.getIdentityProviders().get(Config.IDP_INTERNAL)) 
-			{
-				throw new BadCredentialsException("Unauthorized grant type: " + grant_type);				
-			}
+			checkInternalIdP(clientDetails);
 		}
 		
 		String clientSecretServer = clientDetails.getClientSecret();
 		
 		if ("authorization_code".equals(grant_type) || "refresh_token".equals(grant_type) || "password".equals(grant_type) || "native".equals(grant_type)) {
-			String clientSecretMobile = clientDetails.getClientSecretMobile();
-			if (clientSecretMobile.equals(clientSecret) && !grantTypes.contains(Config.GRANT_TYPE_NATIVE)) {
-				throw new BadCredentialsException("Native app access is not enabled");
-			}
-			// TODO Check the native app hash
-			
-			if (!clientSecretServer.equals(clientSecret) && !clientSecretMobile.equals(clientSecret)) {
-                throw new BadCredentialsException(messages.getMessage(
-                        "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
-			}
+			checkCredentialsWithMobile(clientSecret, clientDetails, grantTypes, clientSecretServer);
 		} else {
-			if (!clientSecretServer.equals(clientSecret)) {
-                throw new BadCredentialsException(messages.getMessage(
-                        "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
-			}
+			checkCredentials(clientSecret, clientSecretServer);
 		}
+		return createAuthentication(clientId, clientDetails, clientSecretServer);
+	}
+
+	protected void checkCredentials(String clientSecret, String clientSecretServer) {
+		if (!clientSecretServer.equals(clientSecret)) {
+		    throw new BadCredentialsException(messages.getMessage(
+		            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+		}
+	}
+
+	protected void checkCredentialsWithMobile(String clientSecret, ClientDetailsEntity clientDetails,
+			Set<String> grantTypes, String clientSecretServer) {
+		String clientSecretMobile = clientDetails.getClientSecretMobile();
+		if (clientSecretMobile.equals(clientSecret) && !grantTypes.contains(Config.GRANT_TYPE_NATIVE)) {
+			throw new BadCredentialsException("Native app access is not enabled");
+		}
+		// TODO Check the native app hash
+		
+		if (!clientSecretServer.equals(clientSecret) && !clientSecretMobile.equals(clientSecret)) {
+		    throw new BadCredentialsException(messages.getMessage(
+		            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+		}
+	}
+	
+	protected UsernamePasswordAuthenticationToken createAuthentication(String clientId, ClientDetailsEntity clientDetails, String clientSecretServer) {
+		UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(clientId, clientSecretServer);
 		User user = new User(clientId, clientSecretServer, clientDetails.getAuthorities());
         UsernamePasswordAuthenticationToken result = 
         		new UsernamePasswordAuthenticationToken(user,
                 authRequest.getCredentials(), user.getAuthorities());
         result.setDetails(authRequest.getDetails());
-        return result;
+		return result;
+	}
+
+
+	protected void checkInternalIdP(ClientDetailsEntity clientDetails) {
+		ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
+		if (!info.getIdentityProviders().containsKey(Config.IDP_INTERNAL) ||
+		   ClientAppInfo.APPROVED != info.getIdentityProviders().get(Config.IDP_INTERNAL)) 
+		{
+			throw new BadCredentialsException("Unauthorized ause of internal IdP");				
+		}
+	}
+
+	protected Set<String> checkGrantTypes(ClientDetailsEntity clientDetails, String grant_type) {
+		Set<String> grantTypes = clientDetails.getAuthorizedGrantTypes();
+		if (grantTypes == null || !grantTypes.contains(grant_type)) {
+			throw new BadCredentialsException("Unauthorized grant type: " + grant_type);
+		}
+		return grantTypes;
 	}
 
 

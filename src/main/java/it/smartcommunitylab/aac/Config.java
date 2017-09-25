@@ -63,6 +63,9 @@ public class Config {
 
 	public static final String GRANT_TYPE_NATIVE = "native";
 
+	/** Predefined scope for user creation and management */
+	public static final Object SCOPE_USERMANAGEMENT = "usermanagement";
+
 	
 
 	/**

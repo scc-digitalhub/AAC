@@ -60,6 +60,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
 import it.smartcommunitylab.aac.model.MockDataMappings;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
+import it.smartcommunitylab.aac.oauth.ClientCredentialsRegistrationFilter;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ContextExtender;
 import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
@@ -89,6 +90,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
+
+	@Autowired
+	private ClientDetailsRepository clientDetailsRepository;
 
 	@Autowired
 	private DataSource dataSource;
@@ -337,9 +341,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				resources.resourceId(null);
 			}
 
+			Filter endpointFilter() throws Exception {
+				ClientCredentialsRegistrationFilter filter = new ClientCredentialsRegistrationFilter(clientDetailsRepository);
+				filter.setFilterProcessesUrl("/internal/register/rest");
+				filter.setAuthenticationManager(authenticationManagerBean());
+				// need to initialize success/failure handlers
+				filter.afterPropertiesSet();
+				return filter;
+			}
+			
 			public void configure(HttpSecurity http) throws Exception {
+				http.addFilterAfter(endpointFilter(), BasicAuthenticationFilter.class);
+				
 				http.antMatcher("/internal/register/rest").authorizeRequests().anyRequest()
-						.access("#oauth2.hasScope('usermanagement')").and().csrf().disable();
+						.fullyAuthenticated().and().csrf().disable();
 			}
 
 		}));
