@@ -61,6 +61,8 @@ public class Config {
 	/** Predefined system role ADMIN */
 	public static final String R_ADMIN = "ROLE_ADMIN";
 
+	public static final String GRANT_TYPE_NATIVE = "native";
+
 	
 
 	/**

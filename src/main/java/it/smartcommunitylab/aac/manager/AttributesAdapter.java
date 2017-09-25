@@ -36,6 +36,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -43,6 +44,8 @@ import com.google.common.collect.Multimap;
 
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
+import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
+import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jaxbmodel.Authorities;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
@@ -68,6 +71,8 @@ public class AttributesAdapter {
 
 	@Autowired
 	private AuthorityHandlerContainer authorityHandlerManager;
+	@Autowired
+	private NativeAuthorityHandlerContainer nativeAuthorityHandlerManager;
 	
 	/**
 	 * Load attributes from the XML descriptor.
@@ -275,6 +280,24 @@ public class AttributesAdapter {
 //			}
 //		}
 		return list;
+	}
+
+	/**
+	 * @param name
+	 * @param token
+	 * @param params
+	 * @return
+	 */
+	public Map<String, String> getNativeAttributes(String authority, String token, Map<String, String> params) {
+		NativeAuthorityHandler authorityHandler = nativeAuthorityHandlerManager.getAuthorityHandler(authority);
+		if (authorityHandler == null) {
+			throw new InvalidGrantException("Invalid authority: "+ authority);
+		}
+		AuthorityMapping mapping = authorities.get(authority);
+		if (mapping == null) {
+			throw new InvalidGrantException("Unsupported authority: " + authority);
+		}
+		return authorityHandler.extractAttributes(token, params, mapping);
 	}
 
 }

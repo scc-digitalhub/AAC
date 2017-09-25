@@ -79,14 +79,17 @@ angular.module('aac.controllers.clients', [])
 			authorization_code: 'Authorization Code',
 			password: 'Password',
 			client_credentials: 'Client Credentials',
-			refresh_token: 'Refresh token'
+			refresh_token: 'Refresh token',
+			native: 'Native'
+			
 	}
 	$scope.grantTypes = {
 			implicit: false,
 			authorization_code: false,
 			password: false,
 			client_credentials: false,
-			refresh_token: false
+			refresh_token: false,
+			native: false
 	}
 	
 	// resource reference for the app API

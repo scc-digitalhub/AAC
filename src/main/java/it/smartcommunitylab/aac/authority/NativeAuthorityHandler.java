@@ -14,30 +14,26 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.common;
+package it.smartcommunitylab.aac.authority;
+
+import java.util.Map;
+
+import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 
 /**
+ * An interface to handle native login Identity Provider authentication with IdP-specific tokens
  * @author raman
  *
  */
-public class ResourceException extends RuntimeException {
-	private static final long serialVersionUID = -3713058847321448029L;
+public interface NativeAuthorityHandler {
 
-	public ResourceException() {
-		super();
-	}
+	/**
+	 * Extract the authentication attributes of the Identity Provider authority
+	 * @param token 
+	 * @param map with custom parameters of the original request
+	 * @param mapping {@link AuthorityMapping} descriptor for the authority
+	 * @return user attributes
+	 */
+	Map<String,String> extractAttributes(String token, Map<String, String> map, AuthorityMapping mapping) throws SecurityException ;
 
-	public ResourceException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public ResourceException(String message) {
-		super(message);
-	}
-
-	public ResourceException(Throwable cause) {
-		super(cause);
-	}
-
-	
 }

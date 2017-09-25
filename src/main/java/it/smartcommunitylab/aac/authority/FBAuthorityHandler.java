@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -42,23 +40,13 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
  * @author raman
  *
  */
-public class FBAuthorityHandler implements AuthorityHandler {
+public class FBAuthorityHandler implements NativeAuthorityHandler {
 
-	private static final String TOKEN_PARAM = "token";
-	
 	@Override
-	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String,String> map, AuthorityMapping mapping) {
-		String token = request.getParameter(TOKEN_PARAM);
-		if (token == null) {
-			token = map.get(TOKEN_PARAM);
-		}
-		if (token == null) {
-			throw new IllegalArgumentException("Empty token");
-		}
-		
+	public Map<String, String> extractAttributes(String token, Map<String,String> map, AuthorityMapping mapping) throws SecurityException {
 		try {
 			// first, we have to validate that the token is a correct platform token
-			String s = RemoteConnector.getJSON("https://graph.facebook.com", "/v2.2/me?fields=name,first_name,last_name,picture,email&access_token="+token, null);
+			String s = RemoteConnector.getJSON("https://graph.facebook.com", "/v2.9/me?fields=name,first_name,last_name,picture,email&access_token="+token, null);
 			
 			return extractAttributes(s, mapping);
 		} catch (Exception e) {

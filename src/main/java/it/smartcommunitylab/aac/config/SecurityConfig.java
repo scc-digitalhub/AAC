@@ -39,7 +39,9 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.CompositeTokenGranter;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
+import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -52,6 +54,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
 import it.smartcommunitylab.aac.model.MockDataMappings;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
@@ -62,6 +66,7 @@ import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.MockDataAwareOAuth2SuccessHandler;
+import it.smartcommunitylab.aac.oauth.NativeTokenGranter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
@@ -225,6 +230,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Autowired
 		private ClientDetailsRepository clientDetailsRepository;
 
+		@Autowired
+		private ProviderServiceAdapter providerServiceAdapter;
+		
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
 			return new AutoJdbcAuthorizationCodeServices(dataSource);
@@ -232,7 +240,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Bean
 		public OAuth2RequestFactory getOAuth2RequestFactory() throws PropertyVetoException {
-			CustomOAuth2RequestFactory result = new CustomOAuth2RequestFactory();
+			CustomOAuth2RequestFactory<UserManager> result = new CustomOAuth2RequestFactory<>();
 			return result;
 
 		}
@@ -273,9 +281,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Override
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 			endpoints.tokenStore(tokenStore).userApprovalHandler(userApprovalHandler)
-					.authenticationManager(authenticationManager).requestFactory(
-
-							getOAuth2RequestFactory())
+					.authenticationManager(authenticationManager)
+					.tokenGranter(tokenGranter(endpoints))
+					.requestFactory(getOAuth2RequestFactory())
 					.tokenServices(getTokenServices());
 		}
 
@@ -284,6 +292,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			oauthServer.addTokenEndpointAuthenticationFilter(endpointFilter());
 		}
 
+		private TokenGranter tokenGranter(final AuthorizationServerEndpointsConfigurer endpoints) {
+			List<TokenGranter> granters = new ArrayList<TokenGranter>(Arrays.asList(endpoints.getTokenGranter()));
+			granters.add(new NativeTokenGranter(providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
+			return new CompositeTokenGranter(granters);
+		}
 	}
 
 	@Bean

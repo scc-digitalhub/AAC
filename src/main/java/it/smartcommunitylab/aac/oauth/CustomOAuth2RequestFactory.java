@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,16 +19,13 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
 import org.springframework.security.oauth2.provider.TokenRequest;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
-import it.smartcommunitylab.aac.Config.AUTHORITY;
+import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFactory {
@@ -46,7 +42,7 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 	private UserRepository userRepository;
 	
 	@Autowired
-	private ResourceRepository resourceRepository;	
+	private ProviderServiceAdapter providerService;	
 
 	@Autowired
 	private UserManager userManager;
@@ -172,29 +168,7 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 		}
 
 		if (user != null) {
-			Set<String> roleNames = user.getRoles().stream().map(x -> x.getRole()).collect(Collectors.toSet());
-			for (String scope : scopes) {
-				Resource resource = resourceRepository.findByResourceUri(scope);
-				if (resource != null) {
-					boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
-					boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
-					if (isUser && !isResourceUser) {
-						continue;
-					}
-					if (!isUser && !isResourceClient) {
-						continue;
-					}
-					
-					if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
-						Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
-						if (!Sets.intersection(roleNames, roles).isEmpty()) {
-							newScopes.add(scope);
-						}
-					} else {
-						newScopes.add(scope);
-					}
-				}
-			}
+			newScopes = providerService.userScopes(user, scopes, isUser);
 		}
 
 		if (newScopes.isEmpty()) {

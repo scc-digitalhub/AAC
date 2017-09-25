@@ -14,30 +14,38 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.common;
+package it.smartcommunitylab.aac.authority;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Container of custom authority handlers.
+ * 
  * @author raman
- *
+ * 
  */
-public class ResourceException extends RuntimeException {
-	private static final long serialVersionUID = -3713058847321448029L;
+public class NativeAuthorityHandlerContainer {
 
-	public ResourceException() {
+	private Map<String, NativeAuthorityHandler> handlerMap = null;
+
+	public NativeAuthorityHandlerContainer(Map<String, NativeAuthorityHandler> handlerMap) {
 		super();
+		this.handlerMap = handlerMap;
 	}
 
-	public ResourceException(String message, Throwable cause) {
-		super(message, cause);
+	/**
+	 * 
+	 * @param authority
+	 * @return handler for the specific authority. If not present, the default
+	 *         {@link DefaultAuthorityHandler} is returned.
+	 */
+	public NativeAuthorityHandler getAuthorityHandler(String authority) {
+		if (handlerMap.containsKey(authority)) {
+			return handlerMap.get(authority);
+		}
+		return null;
 	}
 
-	public ResourceException(String message) {
-		super(message);
-	}
-
-	public ResourceException(Throwable cause) {
-		super(cause);
-	}
-
-	
 }

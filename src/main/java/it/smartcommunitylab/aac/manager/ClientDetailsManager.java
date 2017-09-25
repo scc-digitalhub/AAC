@@ -119,7 +119,6 @@ public class ClientDetailsManager {
 		
 		ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
 		if (info != null) {
-			res.setNativeAppsAccess(info.isNativeAppsAccess());
 			res.setNativeAppSignatures(info.getNativeAppSignatures());
 			if (info.getIdentityProviders() != null) {
 				for (String key : info.getIdentityProviders().keySet()) {
@@ -175,7 +174,6 @@ public class ClientDetailsManager {
 				info = ClientAppInfo.convert(client.getAdditionalInformation());
 			}
 			info.setName(data.getName());
-			info.setNativeAppsAccess(data.isNativeAppsAccess());
 			info.setNativeAppSignatures(Utils.normalizeValues(data.getNativeAppSignatures()));
 			Set<String> types = data.getGrantedTypes();
 			client.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(types));

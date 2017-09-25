@@ -11,12 +11,13 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import com.google.common.collect.Maps;
 
-import it.smartcommunitylab.aac.authority.AnonymousAuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
 import it.smartcommunitylab.aac.authority.FBAuthorityHandler;
 import it.smartcommunitylab.aac.authority.GoogleAuthorityHandler;
+import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
+import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
 import it.smartcommunitylab.aac.oauth.CachedResourceStorage;
 
 @Configuration 
@@ -30,15 +31,20 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public AuthorityHandlerContainer getAuthorityHandlerContainer() {
 		Map<String, AuthorityHandler> map = Maps.newTreeMap();
+		AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
+		return bean;
+	}
+
+	@Bean
+	public NativeAuthorityHandlerContainer getNativeAuthorityHandlerContainer() {
+		Map<String, NativeAuthorityHandler> map = Maps.newTreeMap();
 		
 		GoogleAuthorityHandler gh = new GoogleAuthorityHandler();
 		map.put("googlelocal", gh);
 		FBAuthorityHandler fh = new FBAuthorityHandler();
 		map.put("facebooklocal", fh);
-		AnonymousAuthorityHandler ah = new AnonymousAuthorityHandler();
-		map.put("anonymous", ah);
 		
-		AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
+		NativeAuthorityHandlerContainer bean = new NativeAuthorityHandlerContainer(map);
 		
 		return bean;
 	}
