@@ -45,6 +45,8 @@ import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -189,14 +191,34 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/eauth/authorize/**").permitAll()
-				.antMatchers("/oauth/authorize", "/eauth/**").authenticated().antMatchers("/", "/dev**")
-				.hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
-				.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN").antMatchers("/mgmt/**")
-				.hasAnyAuthority("ROLE_PROVIDER").and().exceptionHandling()
-				.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
-				.accessDeniedPage("/accesserror").and().logout().logoutSuccessUrl("/login").permitAll().and().csrf()
-				.disable().addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class);
+		http
+		.authorizeRequests()
+			.antMatchers("/eauth/authorize/**").permitAll()
+			.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
+			.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
+			.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
+			.antMatchers("/mgmt/**").hasAnyAuthority("ROLE_PROVIDER")
+		.and()
+		.exceptionHandling()
+			.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+			.accessDeniedPage("/accesserror")
+		.and()
+		.logout()
+			.logoutSuccessHandler(logoutSuccessHandler()).permitAll()
+		.and()
+		.csrf()
+			.disable()
+		.addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class);
+	}
+
+	/**
+	 * @return
+	 */
+	private LogoutSuccessHandler logoutSuccessHandler() {
+		SimpleUrlLogoutSuccessHandler handler = new SimpleUrlLogoutSuccessHandler();
+		handler.setDefaultTargetUrl("/");
+		handler.setTargetUrlParameter("target");
+		return handler;
 	}
 
 	@Override

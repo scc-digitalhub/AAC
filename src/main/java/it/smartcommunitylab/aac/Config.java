@@ -65,7 +65,6 @@ public class Config {
 
 	/** Predefined scope for user creation and management */
 	public static final Object SCOPE_USERMANAGEMENT = "usermanagement";
-
 	
 
 	/**
