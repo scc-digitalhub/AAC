@@ -213,4 +213,15 @@ public class APIMgtController {
 		return result;
 
     }
+	
+	@ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Response processGenericError(Exception ex) {
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.ERROR);
+		result.setErrorMessage(ex.getMessage());
+		return result;
+
+    }
 }
