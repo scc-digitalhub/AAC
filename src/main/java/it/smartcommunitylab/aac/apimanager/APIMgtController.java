@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.apimanager;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -45,11 +46,13 @@ import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.apimanager.model.AACAPI;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.common.WrapperException;
 import it.smartcommunitylab.aac.manager.ResourceManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.wso2.model.API;
 import it.smartcommunitylab.aac.wso2.model.APIInfo;
@@ -123,11 +126,20 @@ public class APIMgtController {
 
 
 	@PutMapping("/mgmt/apis/{apiId}/userroles")
-	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws Exception 
-	{
+	public @ResponseBody List<String> updateRoles(@PathVariable String apiId, @RequestBody RoleModel roleModel) throws Exception {
 //		umService.updateRoles(roleModel, roleModel.getUser(), userManager.getProviderDomain());
 //		List<String> roles = pub.getUserAPIRoles(apiId, roleModel.getUser(), userManager.getProviderDomain(), getToken());
-		return apiRoleManager.updateLocalRoles(roleModel);
+		User user = userManager.getUser();
+		String tenant = null;
+		
+		try {
+		Role provider = user.getRoles().stream().filter(x -> UserManager.R_PROVIDER.equals(x.getRole())).findFirst().get();
+		tenant = provider.getContext();
+		} catch (NoSuchElementException e) {
+			throw new WrapperException("User has no ROLE_PROVIDER role", e);
+		}
+		
+		return apiRoleManager.updateLocalRoles(roleModel, tenant);
 	} 
 	
 
@@ -213,4 +225,16 @@ public class APIMgtController {
 		return result;
 
     }
+	
+	@ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Response processServerError(Exception ex) {
+		Response result = new Response();
+		result.setResponseCode(RESPONSE.ERROR);
+		result.setErrorMessage(ex.getMessage());
+		return result;
+
+    }	
+	
 }

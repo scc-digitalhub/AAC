@@ -44,11 +44,11 @@ public class APIRoleManager {
 		}
 	}	
 	
-	public List<String> updateLocalRoles(RoleModel roleModel) {
+	public List<String> updateLocalRoles(RoleModel roleModel, String loggedTenant) {
 		String info[] = Utils.extractInfoFromTenant(roleModel.getUser());
 		
 		final String name = info[0];
-		final String domain = info[1];
+		final String domain = loggedTenant; // info[1];
 		
 		List<User> users = userRepository.findByAttributeEntities("internal", "email", name);
 		User user = users.get(0);
