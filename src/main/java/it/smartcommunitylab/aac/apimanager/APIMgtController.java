@@ -57,6 +57,7 @@ import it.smartcommunitylab.aac.wso2.model.DataList;
 import it.smartcommunitylab.aac.wso2.model.RoleModel;
 import it.smartcommunitylab.aac.wso2.model.Subscription;
 import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
+import it.smartcommunitylab.aac.wso2.services.APIStoreService;
 import it.smartcommunitylab.aac.wso2.services.UserManagementService;
 
 /**
@@ -68,6 +69,9 @@ public class APIMgtController {
 
 	@Autowired
 	private APIPublisherService pub;
+	@Autowired
+	private APIStoreService store;	
+	
 	@Autowired
 	private UserManagementService umService;
 	@Autowired
@@ -131,6 +135,19 @@ public class APIMgtController {
 	} 
 	
 
+	
+	@GetMapping("/mgmt/applications/{applicationName}")
+	public @ResponseBody DataList<APIInfo> getApplications(@PathVariable String applicationName) throws Exception {
+		store.getApplication(applicationName, getToken());
+		return null;
+	}	
+	
+	@GetMapping("/mgmt/applications/{applicationName}/subscriptions")
+	public @ResponseBody List<Subscription> getSubscriptions(@PathVariable String applicationName) throws Exception {
+		String token = getToken();
+		List<Subscription> subscriptions = store.getSubscriptions(applicationName, token);
+		return subscriptions;
+	}		
 	
 	
 	/**
