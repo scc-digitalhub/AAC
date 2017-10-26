@@ -25,9 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -39,6 +41,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
+import it.smartcommunitylab.aac.apimanager.APIProviderManager;
+import it.smartcommunitylab.aac.apimanager.model.ExtendedService;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
@@ -54,6 +58,10 @@ import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceParameterRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
+import it.smartcommunitylab.aac.wso2.model.App;
+import it.smartcommunitylab.aac.wso2.model.Subscription;
+import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
+import it.smartcommunitylab.aac.wso2.services.APIStoreService;
 
 /**
  * Controller for managing the permissions of the apps
@@ -78,6 +86,13 @@ public class PermissionController {
 	private ResourceParameterRepository resourceParameterRepository;
 	@Autowired
 	private UserManager userManager;
+	
+	@Autowired
+	private APIPublisherService pub;
+	@Autowired
+	private APIStoreService store;		
+	@Autowired
+	private APIProviderManager providerManager;	
 	
 	/**
 	 * Save permissions requested by the app.
@@ -165,21 +180,96 @@ public class PermissionController {
 	 * @param clientId
 	 * @return {@link Response} entity containing the service {@link Service} descriptors
 	 */
-	@RequestMapping(value="/dev/services/{clientId}",method=RequestMethod.GET)
-	public @ResponseBody Response getServices(@PathVariable String clientId) {
+	@RequestMapping(value = "/dev/services/{clientId}", method = RequestMethod.GET)
+	public @ResponseBody Response getServices(@PathVariable String clientId) throws Exception {
 		Response response = new Response();
 		response.setResponseCode(RESPONSE.OK);
 		try {
 			userManager.checkClientIdOwnership(clientId);
-			response.setData(resourceManager.getServiceObjects());
+
+			List<Service> services = resourceManager.getServiceObjects();
+
+			ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+			
+			String token = providerManager.createToken();
+
+			try {
+				List<Subscription> subscriptions = store.getSubscriptions(client.getName(), token);
+
+				ObjectMapper mapper = new ObjectMapper();
+
+				List<ExtendedService> extServices = services.stream().map(s -> mapper.convertValue(s, ExtendedService.class)).collect(Collectors.toList());
+				
+				for (ExtendedService service: extServices) {
+					if (service.getApiKey() != null) {
+						String parts[] = service.getApiKey().split("-");
+						Map map1 = pub.findAPI(parts[1], token);
+						List<Map> list = (List<Map>)map1.get("list");
+						for (Map map2: list) {
+							if (parts[0].equals((String)map2.get("provider")) && parts[1].equals((String)map2.get("name")) && parts[2].equals((String)map2.get("version"))) {
+								service.setApiId((String)map2.get("id"));
+							}
+						}
+					}
+				}	
+				
+				extServices.forEach(x -> {
+					Subscription sub = subscriptions.stream().filter(y -> y.getApiIdentifier().replace("@", "-AT-").equals(x.getApiKey())).findFirst().orElse(null);
+					if (sub != null) {
+						x.setApiId(null);
+						x.setSubscriptionId(sub.getSubscriptionId());
+					}
+				});
+
+				response.setData(extServices);
+			} catch (Exception e) {
+				logger.error("Failure reading subscriptions from wso2: " + e.getMessage(), e);
+				response.setData(services);
+			}
 		} catch (Exception e) {
-			logger.error("Failure reading permissions model: "+e.getMessage(),e);
+			logger.error("Failure reading permissions model: " + e.getMessage(), e);
 			response.setErrorMessage(e.getMessage());
 			response.setResponseCode(RESPONSE.ERROR);
 		}
-		
+
 		return response;
-	} 
+	}
+	
+	@RequestMapping(value="/dev/services/unsubscribe/{subscriptionId}",method=RequestMethod.DELETE)
+	public @ResponseBody Response unsubscribe(@PathVariable String subscriptionId) throws Exception {
+		Response response = new Response();
+		response.setResponseCode(RESPONSE.OK);
+		try {
+			logger.info("Unsubscribing, id = " + subscriptionId);
+			store.unsubscribe(subscriptionId, providerManager.createToken());
+		} catch (Exception e) {
+			logger.error("Failure unsubscribing: " + e.getMessage(),e);
+			response.setErrorMessage(e.getMessage());
+			response.setResponseCode(RESPONSE.ERROR);
+		}
+		return response;
+	} 	
+	
+	@RequestMapping(value="/dev/services/subscribe/{apiIdentifier}/{clientId}",method=RequestMethod.GET)
+	public @ResponseBody Response subscribe(@PathVariable String apiIdentifier,@PathVariable String clientId) throws Exception {
+		Response response = new Response();
+		response.setResponseCode(RESPONSE.OK);
+		try {
+			String token = providerManager.createToken();
+			
+			ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+			App app = store.getApplication(client.getName(), token);
+			String applicationId = app.getApplicationId();
+			
+			logger.info("Subscribing, applicationId = " + applicationId + ", apiId = " + apiIdentifier);
+			store.subscribe(apiIdentifier, applicationId, providerManager.createToken());
+		} catch (Exception e) {
+			logger.error("Failure subscribing: " + e.getMessage(),e);
+			response.setErrorMessage(e.getMessage());
+			response.setResponseCode(RESPONSE.ERROR);
+		}
+		return response;
+	}	
 
 	/**
 	 * Read services defined by the current user
