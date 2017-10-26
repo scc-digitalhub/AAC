@@ -49,7 +49,7 @@ angular.module('aac.controllers.clients', [])
  * @param $http
  * @param $timeout
  */
-.controller('AppController', function ($scope, $resource, $routeParams, $http, $timeout, $location) {
+.controller('AppController', function ($scope, $resource, $routeParams, $http, $timeout, $location, Data) {
 	// current client
 	$scope.app = null;
 	// current client ID
@@ -112,8 +112,23 @@ angular.module('aac.controllers.clients', [])
 	
 	// resource reference for the services API
 	var AppServices = $resource('dev/services/:clientId', {}, {
-		query : {method : 'GET'}
+		query : {method : 'GET'},
 	});
+	
+	var UnsubscribeService = $resource('dev/services/unsubscribe/:subscriptionId', {}, {
+		unsubscribe : {method : 'DELETE'}
+	});
+	
+	var SubscribeService = $resource('dev/services/subscribe/:apiIdentifier/:clientId', {}, {
+		subscribe : {method : 'GET'}
+	});		
+	
+	// resource reference for the app API
+	var AppSubscriptions = $resource('mgmt/applications/:applicationName/subscriptions', {}, {
+		query : { method : 'GET' }
+	});	
+	
+	
 	/**
 	 * Initialize the app: load list of the developer's apps and reset views
 	 */
@@ -222,6 +237,35 @@ angular.module('aac.controllers.clients', [])
 			loadPermissions(item, function() {
 				$('#myModal').modal({keyboard:false});
 			});
+	};
+	
+	/**
+	 * Unsubscribe
+	 */
+	$scope.unsubscribe = function(subscriptionId) {
+		UnsubscribeService.unsubscribe({subscriptionId: subscriptionId},function(response){
+			if (response.responseCode == 'OK') {
+				$scope.viewPermissions();
+			} else {
+				$scope.error = 'Failed to unsubscribe: '+response.responseCode;
+			}	
+		});	
+	};
+		
+	/**
+	 * Subscribe
+	 */
+	$scope.subscribe = function(apiIdentifier) {
+		console.log($scope.app.name)
+		console.log(apiIdentifier)
+		SubscribeService.subscribe({apiIdentifier:apiIdentifier,clientId:$scope.clientId},function(response){
+			if (response.responseCode == 'OK') {
+				$scope.viewPermissions();
+			} else {
+				$scope.error = 'Failed to Subscribe: '+response.responseCode;
+			}	
+		});			
+		
 	};
 	
 	/**
