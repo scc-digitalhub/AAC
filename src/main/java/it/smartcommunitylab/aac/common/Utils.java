@@ -92,6 +92,7 @@ public class Utils {
 		res.setDescription(s.getDescription());
 		res.setId(s.getServiceId());
 		res.setName(s.getServiceName());
+		res.setApiKey(s.getApiKey());
 		res.getResource().clear();
 		res.getResource().addAll(JsonUtils.toObjectList(s.getResourceDefinitions(), ResourceDeclaration.class));
 		res.getResourceMapping().clear();
