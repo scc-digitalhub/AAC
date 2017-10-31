@@ -3,7 +3,7 @@ application:
   internalUrl: http://localhost:8080/aac  
 
 jdbc:
-  url: jdbc:mysql://localhost:3306/aac
+  url: jdbc:mysql://localhost:3306/aac?autoReconnect=true&useSSL=false
   user: ac
   password: ac
 
