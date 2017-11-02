@@ -120,7 +120,7 @@ public class APIMgtController {
 			@RequestParam(required=false, defaultValue="25") Integer limit) throws Exception 
 	{
 		DataList<Subscription> subs = pub.getSubscriptions(apiId, userManager.getProviderDomain(), offset, limit, getToken());
-		apiRoleManager.fillRoles(subs);
+		apiRoleManager.fillRoles(subs, userManager.getProviderDomain());
 		return subs;
 	}
 	
@@ -131,7 +131,7 @@ public class APIMgtController {
 	{
 //		umService.updateRoles(roleModel, roleModel.getUser(), userManager.getProviderDomain());
 //		List<String> roles = pub.getUserAPIRoles(apiId, roleModel.getUser(), userManager.getProviderDomain(), getToken());
-		return apiRoleManager.updateLocalRoles(roleModel);
+		return apiRoleManager.updateLocalRoles(roleModel,userManager.getProviderDomain());
 	} 
 	
 
