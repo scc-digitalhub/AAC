@@ -1,7 +1,8 @@
 # AAC
 
 ## Prerequisites
- - Create a mysql user with username=ac/password=ac and change its AAC schema privileges 
+ - Create a mysql user with username=ac/password=ac and change its AAC schema privileges
+ - Mongodb (needed for aac.authorization)
 
 ## Quickstart project build
  - git clone https://github.com/smartcommunitylab/API-Manager.git
