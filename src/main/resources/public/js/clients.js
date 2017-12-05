@@ -561,4 +561,21 @@ angular.module('aac.controllers.clients', [])
 			win.close();
 		};
 	};
+	
+	$scope.copyBearer = function(token) {
+//		console.log(navigator);
+//		console.log(navigator.clipboard);
+//		navigator.clipboard.writeText("Bearer " + token).then(function() {
+//			}, function() {
+//			});
+		
+		var textField = document.createElement('textarea');
+	    textField.innerText = "Bearer " + token;
+	    document.body.appendChild(textField);
+	    textField.select();
+	    document.execCommand('copy');
+	    textField.remove();		
+		
+	}
+	
 });
