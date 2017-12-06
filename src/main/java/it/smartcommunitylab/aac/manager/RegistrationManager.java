@@ -82,12 +82,43 @@ public class RegistrationManager {
 			lang = "en";
 		}
 
+//		Registration existing = getUserByEmail(email);
+//		if (existing != null) {
+//			throw new AlreadyRegisteredException("User is already registered");
+//		}
+//
+//		Registration reg = new Registration();
+//		try {
+//			reg.setName(name);
+//			reg.setSurname(surname);
+//			reg.setEmail(email);
+//			reg.setConfirmed(false);
+//			Calendar c = Calendar.getInstance();
+//			c.add(Calendar.DATE, 1);
+//			reg.setConfirmationDeadline(c.getTime());
+//			String key = generateKey();
+//			reg.setConfirmationKey(key);
+//			reg.setPassword(PasswordHash.createHash(password));
+//			reg.setLang(lang);
+//			repository.save(reg);
+//			sendConfirmationMail(reg, key);
+//			return reg;
+//		} catch (Exception e) {
+//			// repository.delete(reg);
+//			logger.error(e.getMessage(), e);
+//			throw new RegistrationException(e);
+//		}
 		Registration existing = getUserByEmail(email);
-		if (existing != null) {
+		// case when for some reason arrives duplicate call: return existing registration in 
+		if (existing != null && existing.isConfirmed()) {
 			throw new AlreadyRegisteredException("User is already registered");
 		}
-
+		else if (existing != null) {
+			return existing;
+		}
+		
 		Registration reg = new Registration();
+		String key;
 		try {
 			reg.setName(name);
 			reg.setSurname(surname);
@@ -96,16 +127,32 @@ public class RegistrationManager {
 			Calendar c = Calendar.getInstance();
 			c.add(Calendar.DATE, 1);
 			reg.setConfirmationDeadline(c.getTime());
-			String key = generateKey();
+			key = generateKey();
 			reg.setConfirmationKey(key);
 			reg.setPassword(PasswordHash.createHash(password));
 			reg.setLang(lang);
 			repository.save(reg);
+		} catch (NoSuchAlgorithmException e1) {
+			logger.error("Error saving (NoSuchAlgorithmException)", e1);
+			throw  new RegistrationException(e1);
+		} catch (InvalidKeySpecException e1) {
+			logger.error("Error saving (InvalidKeySpecException)", e1);
+			throw  new RegistrationException(e1);
+		} catch (Exception e1) {
+			// failed to save: check there exist one already
+			existing = getUserByEmail(email);
+			if (existing != null) {
+				return existing;
+			}
+			logger.error("Error saving (save)", e1);
+			throw  new RegistrationException(e1);
+		}
+
+		try {
 			sendConfirmationMail(reg, key);
 			return reg;
 		} catch (Exception e) {
-			// repository.delete(reg);
-			logger.error(e.getMessage(), e);
+			logger.error("Error saving (Send email)", e);
 			throw new RegistrationException(e);
 		}
 	}
@@ -124,13 +171,15 @@ public class RegistrationManager {
 			throw new InvalidDataException();
 		}
 
-		existing.setConfirmed(true);
-		existing.setConfirmationKey(null);
-		existing.setConfirmationDeadline(null);
-		User globalUser = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(existing), null);
-		existing.setUserId("" + globalUser.getId());
-
-		repository.save(existing);
+		
+		if (!existing.isConfirmed()) {
+			existing.setConfirmed(true);
+//			existing.setConfirmationKey(null);
+//			existing.setConfirmationDeadline(null);
+			User globalUser = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(existing), null);
+			existing.setUserId(""+globalUser.getId());
+			repository.save(existing);
+		}
 
 		return existing;
 	}

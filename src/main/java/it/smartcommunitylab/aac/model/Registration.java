@@ -39,6 +39,7 @@ public class Registration implements Serializable {
 	@GeneratedValue
 	private Long id;
 	
+	@Column(unique=true)
 	private String email;
 	private String name;
 	private String surname;
