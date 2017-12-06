@@ -31,6 +31,6 @@
 </table>
 
 <table class="table">
-    <tr><td><a ng-click="getClientToken()">Get client credentials flow token</a></td><td>{{clientToken}}</td></tr>
-    <tr><td><a ng-click="getImplicitToken()">Get implicit flow token</a></td><td>{{implicitToken}}</td></tr>
+    <tr><td><a ng-click="getClientToken()">Get client credentials flow token</a></td><td>{{clientToken}}</td><td ng-if="clientToken"><a ng-click="copyBearer(clientToken)">Copy Bearer</a></td></tr>
+    <tr><td><a ng-click="getImplicitToken()">Get implicit flow token</a></td><td>{{implicitToken}}</td><td ng-if="implicitToken"><a ng-click="copyBearer(implicitToken)">Copy Bearer</a></td></tr>
 </table>
