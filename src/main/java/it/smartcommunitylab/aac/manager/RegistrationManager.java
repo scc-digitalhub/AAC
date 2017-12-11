@@ -225,10 +225,15 @@ public class RegistrationManager {
 		if (existing == null) {
 			throw new NotRegisteredException();
 		}
+		
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DATE, 1);
+		// if there were duplicate calls too close in time, simply ignore		
+		if (!existing.isConfirmed() && existing.getConfirmationDeadline() != null && c.getTimeInMillis() - existing.getConfirmationDeadline().getTime() < 2000) {
+			return;
+		}
 		try {
 			existing.setConfirmed(false);
-			Calendar c = Calendar.getInstance();
-			c.add(Calendar.DATE, 1);
 			existing.setConfirmationDeadline(c.getTime());
 			String key = generateKey();
 			existing.setConfirmationKey(key);
@@ -244,10 +249,14 @@ public class RegistrationManager {
 		if (existing == null) {
 			throw new NotRegisteredException();
 		}
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DATE, 1);
+		// if there were duplicate calls too close in time, simply ignore		
+		if (!existing.isConfirmed() && existing.getConfirmationDeadline() != null && c.getTimeInMillis() - existing.getConfirmationDeadline().getTime() < 2000) {
+			return;
+		}		
 		try {
 			existing.setConfirmed(false);
-			Calendar c = Calendar.getInstance();
-			c.add(Calendar.DATE, 1);
 			existing.setConfirmationDeadline(c.getTime());
 			String key = generateKey();
 			existing.setConfirmationKey(key);
