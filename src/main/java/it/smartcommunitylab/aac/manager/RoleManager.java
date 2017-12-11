@@ -54,7 +54,7 @@ public class RoleManager {
 	private String adminPassword;	
 
 	@Autowired
-	private RegistrationManager registrationManager;
+	private RegistrationService registrationService;
 	
 	@Autowired
 	private UserRepository userRepository;	
@@ -62,7 +62,7 @@ public class RoleManager {
 	
 	public User init() {
 		try {
-			User admin = registrationManager.registerOffline("admin", "admin", "admin", adminPassword, null, false, null);
+			User admin = registrationService.registerOffline("admin", "admin", "admin", adminPassword, null, false, null);
 			Role role = new Role(ROLE_SCOPE.system, Config.R_ADMIN, null);
 			Role providerRole = new Role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, "carbon.super");
 			

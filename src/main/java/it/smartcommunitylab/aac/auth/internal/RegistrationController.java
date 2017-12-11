@@ -54,7 +54,7 @@ import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RegistrationService;
 import it.smartcommunitylab.aac.model.Registration;
 
 /**
@@ -69,7 +69,7 @@ public class RegistrationController {
 	protected static final Logger logger = Logger.getLogger(RegistrationController.class);
 
 	@Autowired
-	private RegistrationManager manager;
+	private RegistrationService regService;
 	@Autowired
 	private APIProviderManager apiProviderManager;
 	
@@ -90,7 +90,7 @@ public class RegistrationController {
 			HttpServletRequest req) 
 	{
 		try {
-			Registration user = manager.getUser(username, password);
+			Registration user = regService.getUser(username, password);
 			String target = (String)req.getSession().getAttribute("redirect");
 			try {
 				if (!StringUtils.hasText(target)) {
@@ -154,7 +154,7 @@ public class RegistrationController {
 		try {
 			apiProviderManager.createAPIUser(reg);
 
-			manager.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
+			regService.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 			return "registration/regsuccess";
 		} catch (RegistrationException e) {
 			model.addAttribute("error", e.getClass().getSimpleName());
@@ -188,7 +188,7 @@ public class RegistrationController {
         }
 		try {
 			apiProviderManager.createAPIUser(reg);
-			manager.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
+			regService.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 		} catch(AlreadyRegisteredException e) {
 			res.setStatus(HttpStatus.CONFLICT.value());
 		} catch (RegistrationException e) {
@@ -221,7 +221,7 @@ public class RegistrationController {
 	@RequestMapping(value = "/internal/resend", method = RequestMethod.POST)
 	public String resendConfirm(Model model, @RequestParam String username) {
 		try {
-			manager.resendConfirm(username);
+			regService.resendConfirm(username);
 			return "registration/regsuccess";
 		} catch (RegistrationException e) {
 			logger.error(e.getMessage(), e);
@@ -239,7 +239,7 @@ public class RegistrationController {
 	@RequestMapping("/internal/confirm")
 	public String confirm(Model model, @RequestParam String confirmationCode, HttpServletRequest req) {
 		try {
-			Registration user = manager.confirm(confirmationCode);
+			Registration user = regService.confirm(confirmationCode);
 			if (user.getPassword() != null && !user.isChangeOnFirstAccess()) {
 				return "registration/confirmsuccess";
 			} else {
@@ -261,7 +261,7 @@ public class RegistrationController {
 	@RequestMapping(value = "/internal/reset", method = RequestMethod.POST)
 	public String reset(Model model, @RequestParam String username) {
 		try {
-			manager.resetPassword(username);
+			regService.resetPassword(username);
 		} catch (RegistrationException e) {
 			model.addAttribute("error", e.getClass().getSimpleName());
 			return "registration/resetpwd";
@@ -286,7 +286,7 @@ public class RegistrationController {
 		
 		try {
 			apiProviderManager.updatePassword(userMail, reg.getPassword());
-			manager.updatePassword(userMail, reg.getPassword());
+			regService.updatePassword(userMail, reg.getPassword());
 		} catch (RegistrationException e) {
 			logger.error(e.getMessage(), e);
 			model.addAttribute("error", e.getClass().getSimpleName());

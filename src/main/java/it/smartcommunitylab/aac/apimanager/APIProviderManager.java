@@ -57,6 +57,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.manager.MailSender;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RegistrationService;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
@@ -117,7 +118,7 @@ public class APIProviderManager {
 	@Autowired
 	private UserManagementService umService;
 	@Autowired
-	private RegistrationManager regManager;
+	private RegistrationService regService;
 	@Autowired
 	private RoleManager roleManager;
 	
@@ -142,7 +143,7 @@ public class APIProviderManager {
 		String password = generatePassword();
 		String key =  RandomStringUtils.randomAlphanumeric(24);
 		// create registration data and user attributes
-		User created = regManager.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang(), true, key);
+		User created = regService.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang(), true, key);
 		Role providerRole = new Role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, provider.getDomain());
 		roleManager.addRole(created, providerRole);
 

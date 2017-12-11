@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -53,7 +54,7 @@ import it.smartcommunitylab.aac.repository.RegistrationRepository;
  *
  */
 @Component
-@Transactional
+@Transactional(rollbackFor=Throwable.class, propagation=Propagation.REQUIRES_NEW)
 public class RegistrationManager {
 
 	protected static final Logger logger = Logger.getLogger(RegistrationManager.class);
@@ -66,48 +67,25 @@ public class RegistrationManager {
 
 	@Autowired
 	private MailSender sender;
-
+	
 	@Resource(name = "messageSource")
-	private MessageSource messageSource;
-
+    private MessageSource messageSource;
+	
 	@Autowired
 	private ProviderServiceAdapter providerServiceAdapter;
-
+	
 	public Registration register(String name, String surname, String email, String password, String lang) throws RegistrationException {
-		if (!StringUtils.hasText(name) || !StringUtils.hasText(surname) || !StringUtils.hasText(email) || !StringUtils.hasText(password)) {
+		if (!StringUtils.hasText(name) || 
+			!StringUtils.hasText(surname) ||
+			!StringUtils.hasText(email) ||
+			!StringUtils.hasText(password)) {
 			throw new InvalidDataException();
 		}
-
+		
 		if (lang == null) {
 			lang = "en";
 		}
-
-//		Registration existing = getUserByEmail(email);
-//		if (existing != null) {
-//			throw new AlreadyRegisteredException("User is already registered");
-//		}
-//
-//		Registration reg = new Registration();
-//		try {
-//			reg.setName(name);
-//			reg.setSurname(surname);
-//			reg.setEmail(email);
-//			reg.setConfirmed(false);
-//			Calendar c = Calendar.getInstance();
-//			c.add(Calendar.DATE, 1);
-//			reg.setConfirmationDeadline(c.getTime());
-//			String key = generateKey();
-//			reg.setConfirmationKey(key);
-//			reg.setPassword(PasswordHash.createHash(password));
-//			reg.setLang(lang);
-//			repository.save(reg);
-//			sendConfirmationMail(reg, key);
-//			return reg;
-//		} catch (Exception e) {
-//			// repository.delete(reg);
-//			logger.error(e.getMessage(), e);
-//			throw new RegistrationException(e);
-//		}
+		
 		Registration existing = getUserByEmail(email);
 		// case when for some reason arrives duplicate call: return existing registration in 
 		if (existing != null && existing.isConfirmed()) {
@@ -156,7 +134,7 @@ public class RegistrationManager {
 			throw new RegistrationException(e);
 		}
 	}
-
+	
 	public Registration confirm(String confirmationToken) throws RegistrationException {
 		Registration existing;
 		try {
@@ -170,7 +148,6 @@ public class RegistrationManager {
 		if (existing.getConfirmationDeadline().before(new Date())) {
 			throw new InvalidDataException();
 		}
-
 		
 		if (!existing.isConfirmed()) {
 			existing.setConfirmed(true);
@@ -180,6 +157,7 @@ public class RegistrationManager {
 			existing.setUserId(""+globalUser.getId());
 			repository.save(existing);
 		}
+		
 
 		return existing;
 	}
@@ -235,7 +213,7 @@ public class RegistrationManager {
 	 * @return
 	 */
 	private Map<String, String> toMap(Registration existing) {
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String,String> map = new HashMap<String, String>();
 		map.put("name", existing.getName());
 		map.put("surname", existing.getSurname());
 		map.put("email", existing.getEmail());
@@ -280,7 +258,7 @@ public class RegistrationManager {
 			throw new RegistrationException(e);
 		}
 	}
-
+	
 	public void updatePassword(String email, String password) throws RegistrationException {
 		Registration existing = getUserByEmail(email);
 		if (existing == null) {
@@ -294,7 +272,8 @@ public class RegistrationManager {
 			throw new RegistrationException(e);
 		}
 	}
-
+	
+	
 	public Registration getUser(String email, String password) throws RegistrationException {
 		Registration existing = getUserByEmail(email);
 		if (existing == null) {
@@ -306,28 +285,26 @@ public class RegistrationManager {
 		if (existing.getPassword() == null) {
 			throw new InvalidPasswordException();
 		}
-
+		
 		boolean matches = false;
 		try {
 			matches = PasswordHash.validatePassword(password, existing.getPassword());
 		} catch (Exception e) {
 			throw new RegistrationException(e);
-		}
-
+		} 
+		
 		if (!matches) {
 			throw new InvalidPasswordException();
 		}
 		return existing;
 	}
-
+	
 	private Registration getUserByEmail(String email) {
 		return repository.findByEmail(email);
 	}
-
 	private Registration getUserByToken(String confirmationToken) {
 		return repository.findByConfirmationKey(confirmationToken);
 	}
-
 	private String generateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
 		String rnd = UUID.randomUUID().toString();
 		return rnd;
