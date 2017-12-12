@@ -41,6 +41,9 @@ public class RegistrationService {
 	public Registration confirm(String confirmationToken) throws RegistrationException {
 		return manager.confirm(confirmationToken);
 	}
+	public Registration getUserByPwdResetToken(String confirmationToken) throws RegistrationException {
+		return manager.getUserByPwdResetToken(confirmationToken);
+	}
 
 	public void resendConfirm(String email) throws RegistrationException {
 		manager.resendConfirm(email);
