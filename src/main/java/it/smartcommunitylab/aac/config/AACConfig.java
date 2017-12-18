@@ -11,11 +11,13 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import com.google.common.collect.Maps;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
 import it.smartcommunitylab.aac.authority.FBAuthorityHandler;
 import it.smartcommunitylab.aac.authority.GoogleAuthorityHandler;
+import it.smartcommunitylab.aac.authority.InternalAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
 import it.smartcommunitylab.aac.oauth.CachedResourceStorage;
@@ -31,6 +33,7 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public AuthorityHandlerContainer getAuthorityHandlerContainer() {
 		Map<String, AuthorityHandler> map = Maps.newTreeMap();
+		map.put(Config.IDP_INTERNAL, getInternalHandler());
 		AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
 		return bean;
 	}
@@ -52,6 +55,10 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public DefaultAuthorityHandler getDefaultHandler() {
 		return new DefaultAuthorityHandler();
+	}
+	@Bean
+	public InternalAuthorityHandler getInternalHandler() {
+		return new InternalAuthorityHandler();
 	}
 
 	@Bean

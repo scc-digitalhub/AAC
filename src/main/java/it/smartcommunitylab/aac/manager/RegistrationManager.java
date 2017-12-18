@@ -324,7 +324,7 @@ public class RegistrationManager {
 		return existing;
 	}
 	
-	private Registration getUserByEmail(String email) {
+	public Registration getUserByEmail(String email) {
 		return repository.findByEmail(email);
 	}
 	private Registration getUserByToken(String confirmationToken) {
