@@ -46,10 +46,6 @@ import com.google.common.collect.Sets;
 @Component
 public class RoleManager {
 
-	@Autowired
-	@Value("${security.adminfile}")
-	private Resource adminFile;
-	
 	@Value("${admin.password}")
 	private String adminPassword;	
 

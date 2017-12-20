@@ -27,9 +27,9 @@ public class CoreAPIsPublisher {
 	private APIPublisherService pub;
 	@Autowired
 	private APIProviderManager providerManager;
-	
-	 @Autowired
-	 private ConfigurableEnvironment env;
+
+	@Autowired
+	private ConfigurableEnvironment env;
 
 	@Value("${admin.password}")
 	private String adminPassword;
@@ -38,24 +38,25 @@ public class CoreAPIsPublisher {
 
 	public void init() throws Exception {
 		String token = providerManager.createToken("admin", adminPassword);
-		
+
 		publishAPI("api/profile-api.json", "AAC", "AAC User Profile APIs", "/aacprofile", token);
 		publishAPI("api/roles-api.json", "AACRoles", "AAC User Roles APIs", "/aacroles", token);
 		publishAPI("api/authorization-api.json", "AACAuthorization", "AAC Authorization APIs", "/aacauthorization", token);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
-	private void publishAPI(String json, String name, String description, String context, String token) throws IOException{
+	private void publishAPI(String json, String name, String description, String context, String token)
+			throws IOException {
 		Map apis = pub.findAPI(name, token);
 
 		List list = (List) apis.get("list");
-//		System.err.println(apis);
-		if (list.isEmpty() || !list.stream().anyMatch(x -> name.equals(((Map)x).get("name")))) {
+		// System.err.println(apis);
+		if (list.isEmpty() || !list.stream().anyMatch(x -> name.equals(((Map) x).get("name")))) {
 			ObjectMapper mapper = new ObjectMapper();
 
 			String swagger = Resources.toString(Resources.getResource(json), Charsets.UTF_8);
-			swagger = env.resolvePlaceholders(swagger);			
-			
+			swagger = env.resolvePlaceholders(swagger);
+
 			API api = new API();
 
 			api.setName(name);
@@ -68,19 +69,20 @@ public class CoreAPIsPublisher {
 			api.setVisibility("PUBLIC");
 			api.setSubscriptionAvailability("all_tenants");
 			api.setIsDefaultVersion(true);
-			api.setEndpointConfig(env.resolvePlaceholders(ENDPOINT_CONFIG));			
-			
+			api.setEndpointConfig(env.resolvePlaceholders(ENDPOINT_CONFIG));
+
 			CorsConfiguration cors = new CorsConfiguration();
 			cors.setCorsConfigurationEnabled(true);
 			cors.setAccessControlAllowOrigins(Lists.newArrayList("*"));
-			cors.setAccessControlAllowHeaders(Lists.newArrayList("authorization", "Access-Control-Allow-Origin", "Content-Type", "SOAPAction"));
+			cors.setAccessControlAllowHeaders(
+					Lists.newArrayList("authorization", "Access-Control-Allow-Origin", "Content-Type", "SOAPAction"));
 			cors.setAccessControlAllowMethods(Lists.newArrayList("GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"));
 			api.setCorsConfiguration(cors);
-			
+
 			API result = pub.publishAPI(api, token);
 			pub.changeAPIStatus(result.getId(), "Publish", token);
-			
-//			System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+
+			// System.err.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		}
 	}
 

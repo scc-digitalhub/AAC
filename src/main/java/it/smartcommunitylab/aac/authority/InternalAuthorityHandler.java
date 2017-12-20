@@ -25,8 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.model.Registration;
+import it.smartcommunitylab.aac.repository.RegistrationRepository;
 
 /**
  * Extract user attributes for the user identified by the request parameter 'token'. 
@@ -42,7 +42,7 @@ import it.smartcommunitylab.aac.model.Registration;
 public class InternalAuthorityHandler implements AuthorityHandler {
 
 	@Autowired
-	private RegistrationManager manager;
+	private RegistrationRepository repository;
 
 	@Override
 	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String,String> map, AuthorityMapping mapping) {
@@ -50,7 +50,7 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 		if (request != null) email = request.getParameter("email");
 		if (email == null) email = map.get("email");
 		
-		Registration user = manager.getUserByEmail(email);
+		Registration user = repository.findByEmail(email);
 		if (user == null) {
 			throw new SecurityException("Error finding internal user " +email);
 		}

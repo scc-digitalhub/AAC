@@ -510,4 +510,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}		
 	
 
+	@Bean
+	protected ResourceServerConfiguration apiKeyResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/apikey/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/apikey/**")
+						.permitAll()
+						.antMatchers("/apikey/**").fullyAuthenticated()
+						.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(10);
+		return resource;
+	}	
 }

@@ -137,7 +137,6 @@ public class Utils {
 	}	
 	
 	public static String parseHeaderToken(HttpServletRequest request) {
-		@SuppressWarnings("unchecked")
 		Enumeration<String> headers = request.getHeaders("Authorization");
 		while (headers.hasMoreElements()) { // typically there is only one (most servers enforce that)
 			String value = headers.nextElement();

@@ -33,7 +33,7 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public AuthorityHandlerContainer getAuthorityHandlerContainer() {
 		Map<String, AuthorityHandler> map = Maps.newTreeMap();
-//		map.put(Config.IDP_INTERNAL, getInternalHandler());
+		map.put(Config.IDP_INTERNAL, getInternalHandler());
 		AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
 		return bean;
 	}

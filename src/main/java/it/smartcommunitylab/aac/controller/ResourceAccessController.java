@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.controller;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,16 +42,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.keymanager.model.AACTokenValidation;
+import it.smartcommunitylab.aac.dto.AACTokenValidation;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
-import it.smartcommunitylab.aac.oauth.ResourceServices;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.wso2.services.Utils;
 
 /**
  * Controller for remote check the access to the resource
@@ -65,8 +59,6 @@ public class ResourceAccessController {
 
 	private static Log logger = LogFactory.getLog(ResourceAccessController.class);
 	@Autowired
-	private ResourceServices resourceServices;
-	@Autowired
 	private ResourceServerTokenServices resourceServerTokenServices;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
@@ -74,7 +66,7 @@ public class ResourceAccessController {
 	@Autowired
 	private AutoJdbcTokenStore tokenStore;
 	@Autowired
-	private UserRepository userRepository;	
+	private UserManager userManager;	
 	
 	/**
 	 * Check the access to the specified resource using the client app token header
@@ -99,6 +91,7 @@ public class ResourceAccessController {
 		return false;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@RequestMapping(method = RequestMethod.GET, value = "/resources/token")
 	public @ResponseBody AACTokenValidation getTokenInfo(HttpServletRequest request, HttpServletResponse response) {
 		AACTokenValidation result = new AACTokenValidation();
@@ -128,8 +121,7 @@ public class ResourceAccessController {
 			if (auth.getPrincipal() instanceof User) {
 				User principal = (User)auth.getPrincipal();
 				userId = principal.getUsername();
-				it.smartcommunitylab.aac.model.User user = userRepository.findOne(Long.parseLong(userId));
-				userName = getWSO2Name(user);
+				userName = userManager.getUserInternalName(Long.parseLong(userId));
 //			} if (auth.getPrincipal() instanceof it.smartcommunitylab.aac.model.User) { 
 //				it.smartcommunitylab.aac.model.User principal = (it.smartcommunitylab.aac.model.User)auth.getPrincipal();
 //				userId = principal.getId().toString();
@@ -137,7 +129,7 @@ public class ResourceAccessController {
 			} else {
 				ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 				if (client.getParameters() != null) {
-					Map parameters = mapper.readValue(client.getParameters(), Map.class);
+					Map<String,?> parameters = mapper.readValue(client.getParameters(), Map.class);
 					userName = (String)parameters.get("username");
 				} else {
 //					it.smartcommunitylab.aac.model.User user = userRepository.findOne(Long.parseLong(userId));
@@ -175,26 +167,7 @@ public class ResourceAccessController {
 		
 		return result;
 	}	
-	
-	/**
-	 * @param user
-	 * @return
-	 */
-	private String getWSO2Name(it.smartcommunitylab.aac.model.User user) {
-		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, "ROLE_PROVIDER");
 
-		String email = user.attributeValue(Config.IDP_INTERNAL, "email");
-		if (email == null) return null;
-		
-		String domain = null;
-		if (providerRoles.isEmpty()) domain = "carbon.super";
-		else {
-			Role role = providerRoles.iterator().next();
-			domain = role.getContext();
-		}
-		
-		return Utils.getUserNameAtTenant(email, domain);
-	}	
 	
 
 

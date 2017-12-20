@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.google.common.base.Splitter;
 
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.ErrorInfo;
@@ -55,8 +54,6 @@ public class RolesController {
 	@Autowired
 	private UserRepository userRepository;
 
-	@Autowired
-	private RoleManager roleManager;
 	@Autowired
 	private UserManager userManager;
 	@Autowired
@@ -154,20 +151,9 @@ public class RolesController {
 		String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
 		OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 		String clientId = auth.getOAuth2Request().getClientId();
-		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-		Long developerId = client.getDeveloperId();
-
-		User developer = userRepository.findOne(developerId);
-		Role provider = developer.getRoles().stream().filter(x -> "ROLE_PROVIDER".equals(x.getRole())).findFirst()
-				.get();
-		String tenant = provider.getContext();
-
-		Set<Role> roles = user.getRoles().stream().filter(x -> tenant.equals(x.getContext()))
-				.collect(Collectors.toSet());
-
-		return roles;
+		return userManager.getUserRolesByClient(user, clientId);
 	}
-	
+
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/user/{userId}")
 	public @ResponseBody Set<Role> getRolesByUserId(HttpServletRequest request, HttpServletResponse response,
 			@PathVariable Long userId) throws Exception {

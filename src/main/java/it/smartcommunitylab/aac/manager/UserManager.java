@@ -16,21 +16,28 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.services.Utils;
 
 /**
  * Logged in user data manager. 
@@ -125,4 +132,61 @@ public class UserManager {
 		return role.getContext();
 	}
 
+	/**
+	 * @param l
+	 * @return
+	 */
+	public String getUserInternalName(long userId) {
+		User user = userRepository.findOne(userId);
+		if (user == null) throw new EntityNotFoundException("No user found: "+userId);
+		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, "ROLE_PROVIDER");
+
+		String email = user.attributeValue(Config.IDP_INTERNAL, "email");
+		if (email == null) return null;
+		
+		String domain = null;
+		if (providerRoles.isEmpty()) domain = "carbon.super";
+		else {
+			Role role = providerRoles.iterator().next();
+			domain = role.getContext();
+		}
+		
+		return Utils.getUserNameAtTenant(email, domain);
+	}	
+	
+	/**
+	 * Get all the roles of the user for the specified clientId
+	 * @param user
+	 * @param clientId
+	 * @return
+	 */
+	public Set<Role> getUserRolesByClient(User user, String clientId) {
+		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+		Long developerId = client.getDeveloperId();
+
+		User developer = userRepository.findOne(developerId);
+		Optional<Role> provider = developer.getRoles().stream().filter(x -> "ROLE_PROVIDER".equals(x.getRole())).findFirst();
+		if (!provider.isPresent()) {
+			return Collections.emptySet();
+		}
+		String tenant = provider.get().getContext();
+
+		Set<Role> roles = user.getRoles().stream().filter(x -> tenant.equals(x.getContext()))
+				.collect(Collectors.toSet());
+
+		return roles;
+	}
+	
+	/**
+	 * Get all the roles of the user for the specified clientId
+	 * @param user
+	 * @param clientId
+	 * @return
+	 */
+	public Set<Role> getUserRolesByClient(Long userId, String clientId) {
+		User user = userRepository.findOne(userId);
+		if (user == null) throw new EntityNotFoundException("No user found: "+userId);
+		return getUserRolesByClient(user, clientId);
+	}
+	
 }

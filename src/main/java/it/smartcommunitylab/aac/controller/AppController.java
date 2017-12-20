@@ -20,11 +20,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.smartcommunitylab.aac.apikey.APIKeyManager;
+import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
@@ -53,7 +63,9 @@ public class AppController {
 	private ClientDetailsManager clientDetailsAdapter;
 	@Autowired
 	private UserManager userManager;
-	
+	@Autowired
+	private APIKeyManager keyManager;
+
 	/**
 	 * Retrieve the with the user data: currently on the username is added.
 	 * @return
@@ -213,4 +225,66 @@ public class AppController {
 		return response;
 	}
 
+	/**
+	 * Delete a specified API key
+	 * @param apiKey
+	 * @return
+	 */
+	@DeleteMapping(value = "/dev/apikey/{clientId}/{apiKey:.*}")
+	public @ResponseBody ResponseEntity<Void> deleteKey(@PathVariable String clientId, @PathVariable String apiKey) {
+		APIKey key = keyManager.findKey(apiKey);
+		if (key != null) {
+			try {
+				userManager.checkClientIdOwnership(clientId);
+				keyManager.deleteKey(apiKey);
+			} catch (SecurityException e) {
+				return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+			}
+		}
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+	
+	/**
+	 * Delete a specified API key
+	 * @param apiKey
+	 * @return 
+	 */
+	@PutMapping(value = "/dev/apikey/{clientId}/{apiKey:.*}")
+	public @ResponseBody ResponseEntity<APIKey> updateKey(@RequestBody APIKey body, @PathVariable String clientId, @PathVariable String apiKey) {
+		APIKey key = keyManager.findKey(apiKey);
+		if (key != null) {
+			try {
+				userManager.checkClientIdOwnership(clientId);
+				if (body.getValidity() != null && body.getValidity() > 0) {
+					keyManager.updateKeyValidity(apiKey, body.getValidity());
+				}
+				if (body.getAdditionalInformation() != null) {
+					keyManager.updateKeyData(apiKey, body.getAdditionalInformation());
+				}
+				return new ResponseEntity<APIKey>(keyManager.findKey(apiKey), HttpStatus.UNAUTHORIZED);
+			} catch (SecurityException e) {
+				return new ResponseEntity<APIKey>(HttpStatus.UNAUTHORIZED);
+			}
+		}
+		return new ResponseEntity<APIKey>(HttpStatus.NOT_FOUND);
+	}	
+	/**
+	 * Create an API key with the specified properties (validity and additional info)
+	 * @param apiKey
+	 * @return created entity
+	 */
+	@PostMapping(value = "/dev/apikey/{clientId}")
+	public @ResponseBody ResponseEntity<APIKey> createKey(@RequestBody APIKey body, @PathVariable String clientId) {
+		try {
+			APIKey keyObj = keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation());
+			return new ResponseEntity<APIKey>(keyObj, HttpStatus.UNAUTHORIZED);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<APIKey>(HttpStatus.NOT_FOUND);
+		}
+	}	
+	
+	@GetMapping(value = "/dev/apikey/{clientId}")
+	public @ResponseBody ResponseEntity<List<APIKey>> getClientKeys(@PathVariable String clientId) {
+		return new ResponseEntity<List<APIKey>>(keyManager.getClientKeys(clientId), HttpStatus.OK);
+	}	
 }
