@@ -49,16 +49,17 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 		String email = null;
 		if (request != null) email = request.getParameter("email");
 		if (email == null) email = map.get("email");
-		
+
 		Registration user = repository.findByEmail(email);
 		if (user == null) {
-			throw new SecurityException("Error finding internal user " +email);
+			return map;
+		} else {
+			Map<String, String> result = new HashMap<String, String>();
+			result.put("email", user.getEmail());
+			result.put(Config.NAME_ATTR, user.getName());
+			result.put(Config.SURNAME_ATTR, user.getSurname());
+			return result;
 		}
-		Map<String, String> result = new HashMap<String, String>();
-		result.put("email", user.getEmail());
-		result.put(Config.NAME_ATTR, user.getName());
-		result.put(Config.SURNAME_ATTR, user.getSurname());
 		
-		return result;
 	}
 }
