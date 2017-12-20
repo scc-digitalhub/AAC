@@ -56,7 +56,6 @@ import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.manager.MailSender;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RegistrationService;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
