@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -54,7 +53,7 @@ import it.smartcommunitylab.aac.repository.RegistrationRepository;
  *
  */
 @Component
-@Transactional(rollbackFor=Throwable.class, propagation=Propagation.REQUIRES_NEW)
+@Transactional(rollbackFor=Throwable.class)
 public class RegistrationManager {
 
 	protected static final Logger logger = Logger.getLogger(RegistrationManager.class);
