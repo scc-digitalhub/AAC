@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.authorization.AuthorizationHelper;
 import it.smartcommunitylab.aac.authorization.AuthorizationSchemaHelper;
 import it.smartcommunitylab.aac.authorization.NotValidResourceException;
@@ -33,6 +35,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 @RestController
+@Api(tags = {"AAC Authorization"})
 public class AuthorizationController {
 
 	@Autowired
@@ -47,6 +50,7 @@ public class AuthorizationController {
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 
+	@ApiOperation(value="Delete authorization")
 	@RequestMapping(value = "/authorization/{domain}/{id}", method = RequestMethod.DELETE)
 	public void removeAuthorization(HttpServletRequest request, @PathVariable String domain, @PathVariable String id)
 			throws UnauthorizedDomainException {
@@ -54,6 +58,7 @@ public class AuthorizationController {
 		authorizationHelper.remove(id);
 	}
 
+	@ApiOperation(value="Create authorization")
 	@RequestMapping(value = "/authorization/{domain}", method = RequestMethod.POST)
 	public AuthorizationDTO insertAuthorization(HttpServletRequest request, @PathVariable String domain,
 			@RequestBody AuthorizationDTO authorizationDTO)
@@ -62,6 +67,7 @@ public class AuthorizationController {
 		return convert(authorizationHelper.insert(convert(domain, authorizationDTO)));
 	}
 
+	@ApiOperation(value="Validate authorization")
 	@RequestMapping(value = "/authorization/{domain}/validate", method = RequestMethod.POST)
 	public boolean validateAuthorization(HttpServletRequest request, @PathVariable String domain,
 			@RequestBody RequestedAuthorizationDTO authorization) throws UnauthorizedDomainException {
@@ -69,6 +75,7 @@ public class AuthorizationController {
 		return authorizationHelper.validate(convert(domain, authorization));
 	}
 
+	@ApiOperation(value="Add authorization schema root element")
 	@RequestMapping(value = "/authorization/{domain}/schema", method = RequestMethod.POST)
 	public void addRootChildToSchema(HttpServletRequest request, @PathVariable String domain,
 			@RequestBody AuthorizationNodeDTO node) throws AuthorizationNodeAlreadyExist, UnauthorizedDomainException {
@@ -76,6 +83,7 @@ public class AuthorizationController {
 		authorizationSchemaHelper.addRootChild(convert(domain, node));
 	}
 
+	@ApiOperation(value="Add authorization schema element")
 	@RequestMapping(value = "/authorization/{domain}/schema/{parentQname}", method = RequestMethod.POST)
 	public void addChildToSchema(HttpServletRequest request, @PathVariable String domain,
 			@RequestBody AuthorizationNodeDTO childNode, @PathVariable String parentQname)
@@ -84,6 +92,7 @@ public class AuthorizationController {
 		authorizationSchemaHelper.addChild(new FQname(domain, parentQname), convert(domain, childNode));
 	}
 
+	@ApiOperation(value="Get authorization schema node")
 	@RequestMapping(value = "/authorization/{domain}/schema/{qname}", method = RequestMethod.GET)
 	public AuthorizationNodeDTO getNode(HttpServletRequest request, @PathVariable String domain,
 			@PathVariable String qname) throws UnauthorizedDomainException {
@@ -91,6 +100,7 @@ public class AuthorizationController {
 		return convert(authorizationSchemaHelper.getNode(new FQname(domain, qname)));
 	}
 
+	@ApiOperation(value="Validate schema resource")
 	@RequestMapping(value = "/authorization/{domain}/schema/validate", method = RequestMethod.POST)
 	public boolean validateResource(HttpServletRequest request, @PathVariable String domain,
 			@RequestBody AuthorizationResourceDTO resource) throws UnauthorizedDomainException {
@@ -98,6 +108,7 @@ public class AuthorizationController {
 		return authorizationSchemaHelper.isValid(AuthorizationConverter.convert(domain, resource));
 	}
 
+	@ApiOperation(value="Load authorization schema")
 	@RequestMapping(value = "/authorization/{domain}/schema/load", method = RequestMethod.POST)
 	public void loadSchema(HttpServletRequest request, @PathVariable String domain,
 			org.springframework.http.HttpEntity<String> httpEntity)

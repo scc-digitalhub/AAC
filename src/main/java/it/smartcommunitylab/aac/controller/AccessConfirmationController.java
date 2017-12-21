@@ -37,11 +37,13 @@ import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Controller for retrieving the model for and displaying the confirmation page for access to a protected resource.
  * 
  */
+@ApiIgnore
 @Controller
 @SessionAttributes("authorizationRequest")
 public class AccessConfirmationController {

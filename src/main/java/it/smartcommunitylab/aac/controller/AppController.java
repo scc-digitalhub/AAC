@@ -47,6 +47,7 @@ import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Controller for performing the basic operations over the 
@@ -54,6 +55,7 @@ import it.smartcommunitylab.aac.model.Response.RESPONSE;
  * @author raman
  *
  */
+@ApiIgnore
 @Controller
 public class AppController {
 

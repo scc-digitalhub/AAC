@@ -56,6 +56,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.manager.RegistrationService;
 import it.smartcommunitylab.aac.model.Registration;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * @author raman
@@ -82,6 +83,7 @@ public class RegistrationController {
 	 * @param req
 	 * @return
 	 */
+	@ApiIgnore
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public String login(
 			Model model,
@@ -125,6 +127,7 @@ public class RegistrationController {
 	 * @param req
 	 * @return
 	 */
+	@ApiIgnore
 	@RequestMapping("/internal/register")
 	public String regPage(Model model,
 			HttpServletRequest req) {
@@ -140,6 +143,7 @@ public class RegistrationController {
 	 * @param req
 	 * @return
 	 */
+	@ApiIgnore
 	@RequestMapping(value = "/internal/register", method = RequestMethod.POST)
 	public String register(Model model, 
 			@ModelAttribute("reg") @Valid RegistrationBean reg,
@@ -205,6 +209,7 @@ public class RegistrationController {
 	 * @param username
 	 * @return
 	 */
+	@ApiIgnore
 	@RequestMapping(value = "/internal/resend")
 	public String resendPage() {
 		return "registration/resend";
@@ -216,6 +221,7 @@ public class RegistrationController {
 	 * @param username
 	 * @return
 	 */
+	@ApiIgnore
 	@RequestMapping(value = "/internal/resend", method = RequestMethod.POST)
 	public String resendConfirm(Model model, @RequestParam String username) {
 		try {
@@ -234,6 +240,7 @@ public class RegistrationController {
 	 * @param confirmationCode
 	 * @return
 	 */
+	@ApiIgnore
 	@RequestMapping("/internal/confirm")
 	public String confirm(Model model, @RequestParam String confirmationCode, HttpServletRequest req) {
 		try {
@@ -252,10 +259,12 @@ public class RegistrationController {
 		}
 	}
 	
+	@ApiIgnore
 	@RequestMapping(value = "/internal/reset", method = RequestMethod.GET)
 	public String resetPage() {
 		return "registration/resetpwd";
 	}
+	@ApiIgnore
 	@RequestMapping(value = "/internal/reset", method = RequestMethod.POST)
 	public String reset(Model model, @RequestParam String username) {
 		try {
@@ -266,6 +275,7 @@ public class RegistrationController {
 		}
 		return "registration/resetsuccess";
 	}
+	@ApiIgnore
 	@RequestMapping(value = "/internal/changepwd", method = RequestMethod.POST)
 	public String changePwd(Model model, 
 			@ModelAttribute("reg") @Valid RegistrationBean reg,

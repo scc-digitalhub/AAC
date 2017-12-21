@@ -43,12 +43,14 @@ import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Access to the administration resources.
  * @author raman
  *
  */
+@ApiIgnore
 @Controller
 public class AdminController {
 

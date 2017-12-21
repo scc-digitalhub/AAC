@@ -58,12 +58,13 @@ import it.smartcommunitylab.aac.wso2.model.RoleModel;
 import it.smartcommunitylab.aac.wso2.model.Subscription;
 import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
 import it.smartcommunitylab.aac.wso2.services.APIStoreService;
-import it.smartcommunitylab.aac.wso2.services.UserManagementService;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * @author raman
  *
  */
+@ApiIgnore
 @Controller
 public class APIMgtController {
 
@@ -72,8 +73,6 @@ public class APIMgtController {
 	@Autowired
 	private APIStoreService store;	
 	
-	@Autowired
-	private UserManagementService umService;
 	@Autowired
 	private APIProviderManager providerManager;
 	@Autowired

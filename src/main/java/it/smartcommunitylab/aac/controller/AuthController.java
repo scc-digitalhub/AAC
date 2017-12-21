@@ -59,10 +59,12 @@ import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Controller for developer console entry points
  */
+@ApiIgnore
 @Controller
 public class AuthController {
 

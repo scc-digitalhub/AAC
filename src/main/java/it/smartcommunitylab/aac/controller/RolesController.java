@@ -38,6 +38,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.base.Splitter;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -49,6 +51,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 import it.smartcommunitylab.aac.wso2.services.UserManagementService;
 
 @Controller
+@Api(tags = {"AAC Roles"})
 public class RolesController {
 
 	@Autowired
@@ -63,6 +66,7 @@ public class RolesController {
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 
+	@ApiOperation(value="Get roles of a current user")
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/me")
 	public @ResponseBody Set<Role> getRoles(HttpServletResponse response) throws Exception {
 		Long userId = userManager.getUserId();
@@ -75,6 +79,7 @@ public class RolesController {
 		return user.getRoles();
 	}
 
+	@ApiOperation(value="Add roles to a specific user")
 	@RequestMapping(method = RequestMethod.PUT, value = "/userroles/user/{userId}")
 	public @ResponseBody void addRoles(HttpServletRequest request, HttpServletResponse response,
 			@PathVariable Long userId, @RequestParam String roles) throws Exception {
@@ -102,6 +107,7 @@ public class RolesController {
 		userRepository.save(user);
 	}
 
+	@ApiOperation(value="Delete roles for a specific user")
 	@RequestMapping(method = RequestMethod.DELETE, value = "/userroles/user/{userId}")
 	public @ResponseBody void deleteRoles(HttpServletRequest request, HttpServletResponse response,
 			@PathVariable Long userId, @RequestParam String roles) throws Exception {
@@ -129,6 +135,7 @@ public class RolesController {
 		userRepository.save(user);
 	}
 
+	@ApiOperation(value="Get all roles of a specific user")
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/all/user/{userId}")
 	public @ResponseBody Set<Role> getAllRoles(HttpServletResponse response, @PathVariable Long userId)
 			throws Exception {
@@ -154,12 +161,14 @@ public class RolesController {
 		return userManager.getUserRolesByClient(user, clientId);
 	}
 
+	@ApiOperation(value="Get roles of a specific user in a domain")
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/user/{userId}")
 	public @ResponseBody Set<Role> getRolesByUserId(HttpServletRequest request, HttpServletResponse response,
 			@PathVariable Long userId) throws Exception {
 		return getUserRoles(request, response, userId);
 	}
 	
+	@ApiOperation(value="Get roles of a client token owner")
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/token/{token}")
 	public @ResponseBody Set<Role> getRolesByToken(
 			@PathVariable String token,
@@ -172,6 +181,7 @@ public class RolesController {
 		return getUserRoles(request, response, developerId);
 	}	
 
+	@ApiOperation(value="Get roles of a client owner")
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/client/{clientId}")
 	public @ResponseBody Set<Role> getRolesByClientId(
 			@PathVariable String clientId,
@@ -182,6 +192,7 @@ public class RolesController {
 		return getUserRoles(request, response, developerId);
 	}
 	
+	@ApiOperation(value="Get roles of a client owner by token")
 	@RequestMapping(method = RequestMethod.GET, value = "/userroles/client")
 	public @ResponseBody Set<Role> getClientRoles(HttpServletRequest request, HttpServletResponse response)
 			throws Exception {

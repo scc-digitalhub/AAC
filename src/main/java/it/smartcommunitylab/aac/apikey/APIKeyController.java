@@ -35,6 +35,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.manager.UserManager;
 
@@ -43,6 +45,7 @@ import it.smartcommunitylab.aac.manager.UserManager;
  *
  */
 @Controller
+@Api(tags = { "AACApiKey" })
 public class APIKeyController {
 
 	@Autowired
@@ -52,7 +55,8 @@ public class APIKeyController {
 	@Autowired
 	private ResourceServerTokenServices resourceServerTokenServices;
 
-	@GetMapping(value = "/resources/apikey/(apiKey:.*)")
+	@ApiOperation(value="Validate key")
+	@GetMapping(value = "/apikeycheck/{apiKey:.*}")
 	public @ResponseBody ResponseEntity<APIKey> findKey(@PathVariable String apiKey) {
 		APIKey key = keyManager.findKey(apiKey);
 		if (key != null && !key.hasExpired()) {
@@ -67,6 +71,7 @@ public class APIKeyController {
 	 * @param apiKey
 	 * @return
 	 */
+	@ApiOperation(value="Delete key")
 	@DeleteMapping(value = "/apikey/{apiKey:.*}")
 	public @ResponseBody ResponseEntity<Void> deleteKey(HttpServletRequest request, @PathVariable String apiKey) {
 		APIKey key = keyManager.findKey(apiKey);
@@ -87,6 +92,7 @@ public class APIKeyController {
 	 * @param apiKey
 	 * @return
 	 */
+	@ApiOperation(value="List keys")
 	@GetMapping(value = "/apikey")
 	public @ResponseBody ResponseEntity<List<APIKey>> getKeys(HttpServletRequest request) {
 			try {
@@ -102,6 +108,7 @@ public class APIKeyController {
 	 * @param apiKey
 	 * @return 
 	 */
+	@ApiOperation(value="Update key")
 	@PutMapping(value = "/apikey/{apiKey:.*}")
 	public @ResponseBody ResponseEntity<APIKey> updateKey(HttpServletRequest request, @RequestBody APIKey body, @PathVariable String apiKey) {
 		APIKey key = keyManager.findKey(apiKey);
@@ -127,6 +134,7 @@ public class APIKeyController {
 	 * @param apiKey
 	 * @return created entity
 	 */
+	@ApiOperation(value="Create key")
 	@PostMapping(value = "/apikey")
 	public @ResponseBody ResponseEntity<APIKey> createKey(HttpServletRequest request, @RequestBody APIKey body) {
 		try {

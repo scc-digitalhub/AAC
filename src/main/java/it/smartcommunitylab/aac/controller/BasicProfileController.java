@@ -35,6 +35,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.AccountProfiles;
 import it.smartcommunitylab.aac.dto.BasicProfile;
@@ -48,6 +50,7 @@ import it.smartcommunitylab.aac.model.ErrorInfo;
  *
  */
 @Controller
+@Api(tags = { "AAC User profile" })
 public class BasicProfileController {
 
 	private Log logger = LogFactory.getLog(getClass());
@@ -57,12 +60,14 @@ public class BasicProfileController {
 	@Autowired
 	private BasicProfileManager profileManager;
 
+	@ApiOperation(value="Get basic profile of a user")
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/all/{userId}")
 	public @ResponseBody BasicProfile getUser(HttpServletResponse response, @PathVariable("userId") String userId)
 			throws IOException {
 		return profileManager.getBasicProfileById(userId);
 	}
 
+	@ApiOperation(value="Get basic profile of all users")
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/all")
 	public @ResponseBody BasicProfiles searchUsers(HttpServletResponse response,
 			@RequestParam(value = "filter", required = false) String fullNameFilter) throws IOException {
@@ -79,6 +84,7 @@ public class BasicProfileController {
 		return profiles;
 	}
 
+	@ApiOperation(value="Get basic profile of a current user")
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/me")
 	public @ResponseBody BasicProfile findProfile(HttpServletResponse response) throws IOException {
 		Long user = userManager.getUserId();
@@ -89,6 +95,7 @@ public class BasicProfileController {
 		return profileManager.getBasicProfileById(user.toString());
 	}
 
+	@ApiOperation(value="Get basic profile of specified users")
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/profiles")
 	public @ResponseBody BasicProfiles findProfiles(HttpServletResponse response, @RequestParam List<String> userIds) {
 		BasicProfiles profiles = new BasicProfiles();
@@ -96,6 +103,7 @@ public class BasicProfileController {
 		return profiles;
 	}
 
+	@ApiOperation(value="Get account data of a current user")
 	@RequestMapping(method = RequestMethod.GET, value = "/accountprofile/me")
 	public @ResponseBody AccountProfile findAccountProfile(HttpServletResponse response) throws IOException {
 		Long user = userManager.getUserId();
@@ -106,6 +114,7 @@ public class BasicProfileController {
 		return profileManager.getAccountProfileById(user.toString());
 	}
 
+	@ApiOperation(value="Get account profiles of specified users")
 	@RequestMapping(method = RequestMethod.GET, value = "/accountprofile/profiles")
 	public @ResponseBody AccountProfiles findAccountProfiles(HttpServletResponse response,
 			@RequestParam List<String> userIds) throws IOException {

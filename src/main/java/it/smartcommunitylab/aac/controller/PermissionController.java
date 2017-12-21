@@ -62,12 +62,14 @@ import it.smartcommunitylab.aac.wso2.model.App;
 import it.smartcommunitylab.aac.wso2.model.Subscription;
 import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
 import it.smartcommunitylab.aac.wso2.services.APIStoreService;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Controller for managing the permissions of the apps
  * @author raman
  *
  */
+@ApiIgnore
 @Controller
 public class PermissionController {
 

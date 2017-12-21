@@ -42,6 +42,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.dto.AACTokenValidation;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -55,6 +57,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  *
  */
 @Controller
+@Api(tags = { "AAC Token Info" })
 public class ResourceAccessController {
 
 	private static Log logger = LogFactory.getLog(ResourceAccessController.class);
@@ -75,6 +78,7 @@ public class ResourceAccessController {
 	 * @param request
 	 * @return
 	 */
+	@ApiOperation(value="Check scope access for token")
 	@RequestMapping(method = RequestMethod.GET, value = "/resources/access")
 	public @ResponseBody Boolean canAccessResource(@RequestParam String scope, HttpServletRequest request) {
 		try {
@@ -92,6 +96,7 @@ public class ResourceAccessController {
 	}
 	
 	@SuppressWarnings("unchecked")
+	@ApiOperation(value="Get token info")
 	@RequestMapping(method = RequestMethod.GET, value = "/resources/token")
 	public @ResponseBody AACTokenValidation getTokenInfo(HttpServletRequest request, HttpServletResponse response) {
 		AACTokenValidation result = new AACTokenValidation();
