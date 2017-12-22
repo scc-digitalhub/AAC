@@ -179,6 +179,46 @@
 				}
 			}
 		},
+    "/apikeycheck": {
+      "get": {
+        "x-auth-type":"None",
+        "tags": [
+          "AACApiKey"
+        ],
+        "summary": "Validate key as parameter",
+        "operationId": "findKeyByParamUsingGET",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [{
+          "name": "apiKey",
+          "in": "query",
+          "description": "apiKey",
+          "required": true,
+          "type": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/APIKey"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
 		"/apikeycheck/{apiKey}": {
 			"get": {
         "x-auth-type":"None",

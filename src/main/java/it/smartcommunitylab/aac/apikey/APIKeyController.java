@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -68,6 +69,16 @@ public class APIKeyController {
 		throw new EntityNotFoundException();
 	}
 	
+	@ApiOperation(value="Validate key as parameter")
+	@GetMapping(value = "/apikeycheck")
+	public @ResponseBody APIKey findKeyByParam(@RequestParam String apiKey) throws EntityNotFoundException {
+		APIKey key = keyManager.findKey(apiKey);
+		
+		if (key != null && !key.hasExpired()) {
+			return key;
+		}
+		throw new EntityNotFoundException();
+	}
 	
 	/**
 	 * Delete a specified API key
