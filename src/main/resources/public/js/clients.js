@@ -103,6 +103,10 @@ angular.module('aac.controllers.clients', [])
 	var ClientAppPermissions = $resource('dev/permissions/:clientId/:serviceId', {}, {
 		update : { method : 'PUT' },		
 	});
+	// resource reference for the permissions API
+	var ClientAppKeys = $resource('dev/apikey/:clientId/:apiKey', {}, {
+		update : { method : 'PUT' },		
+	});
 
 	// resource reference for the resources API
 	var ClientAppResourceParam = $resource('dev/resourceparams/:id', {}, {
@@ -294,6 +298,10 @@ angular.module('aac.controllers.clients', [])
 		$scope.switchClientView('permissions');
 		loadServices();
 	};
+	$scope.viewKeys = function() {
+		$scope.switchClientView('keys');
+		loadKeys();
+	};
 
 	/**
 	 * load permissions of the current app.
@@ -307,6 +315,99 @@ angular.module('aac.controllers.clients', [])
 				callback();
 			} else {
 				$scope.error = 'Failed to load app permissions: '+response.errorMessage;
+			}	
+		});
+	}
+	
+	
+	/**
+	 * delete client app key
+	 */
+	$scope.deleteKey = function(item) {
+		if (confirm('Are you sure you want to delete?')) {
+			var newClient = new ClientAppKeys();
+			newClient.$remove({clientId:$scope.clientId, apiKey: item.apiKey},function(response){
+				if (response.responseCode == 'OK') {
+					$scope.error = '';
+					loadKeys();
+				} else {
+					$scope.error = 'Failed to remove key: '+response.errorMessage;
+				}	
+			});
+	    }
+	};
+	
+	/**
+	 * edit API key - open a form 
+	 */
+	$scope.editKey = function(item) {
+		$scope.currentAPIKey = angular.copy(item);
+		$scope.currentAPIKey.scope = $scope.currentAPIKey.scope.join(', ');
+		$('#keyModal').modal({keyboard:false});
+	};
+	/**
+	 * New API key - open a form 
+	 */
+	$scope.newKey = function() {
+		$scope.currentAPIKey = {};
+		$('#keyModal').modal({keyboard:false});
+	};
+	
+	$scope.saveAPIKey = function(key) {
+		if (key.validity <= 0) {
+			key.validity = null;
+		}
+		if (!!key.scope) {			
+			key.scope = key.scope.replace(' ', '');
+			key.scope = key.scope.split(',');
+		} else {
+			key.scope = [];
+		}
+		var newClient = new ClientAppKeys(key);
+		$('#keyModal').modal('hide');
+		if (key.apiKey != null) {
+			newClient.$update({clientId:$scope.clientId, apiKey:key.apiKey},function(response){
+				if (response.responseCode == 'OK') {
+					$scope.error = '';
+					loadKeys();
+				} else {
+					$scope.error = 'Failed to save api key: '+response.errorMessage;
+				}
+			}, function(err) {
+				$scope.error = 'Failed to save api key: '+err.message;
+			});
+		} else {
+			newClient.$save({clientId:$scope.clientId}, function(response){
+				if (response.responseCode == 'OK') {
+					$scope.error = '';
+					loadKeys();
+				} else {
+					$scope.error = 'Failed to save api key: '+response.errorMessage;
+				}
+			}, function(err) {
+				$scope.error = 'Failed to save api key: '+response.errorMessage;
+			});
+		}
+		
+	}
+	
+	/**
+	 * load keys of the current app.
+	 */
+	function loadKeys() {
+		var newClient = new ClientAppKeys();
+		newClient.$get({clientId:$scope.clientId}, function(response) {
+			if (response.responseCode == 'OK') {
+				$scope.error = '';
+				if (response.data) {
+					var now = new Date().getTime();
+					response.data.forEach(function(key) {
+						key.expired = key.validity && key.validity > 0 && now > key.validity + key.issuedTime;
+					});
+				}
+				$scope.apiKeys = response.data;
+			} else {
+				$scope.error = 'Failed to load app keys: '+response.errorMessage;
 			}	
 		});
 	}

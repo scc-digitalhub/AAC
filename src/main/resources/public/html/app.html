@@ -36,6 +36,8 @@
 						ng-click="viewSettings()">Settings</a></li>
 					<li class="{{activeView('permissions')}}"><a href
 						ng-click="viewPermissions()">API Access</a></li>
+          <li class="{{activeView('keys')}}"><a href
+            ng-click="viewKeys()">API Keys</a></li>
 				</ul>
 				<div ng-include="'./html/'+clientView+'.html'"></div>
 			</div>

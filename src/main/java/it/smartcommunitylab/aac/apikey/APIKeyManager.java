@@ -96,6 +96,7 @@ public class APIKeyManager {
 		if (entity != null) {
 			APIKey result = new APIKey(entity);
 			keyCache.put(key, result);
+			return result;
 		}
 		return null;
 	} 
@@ -150,6 +151,32 @@ public class APIKeyManager {
 		}
 		throw new EntityNotFoundException(key);
 	} 
+	
+	/**
+	 * Update key scopes. 
+	 * @param key
+	 * @param data
+	 * @return
+	 * @throws #{@link EntityNotFoundException} if the key does not exists
+	 */
+	public APIKey updateKeyScopes(String key, Set<String> scopes) throws EntityNotFoundException {
+		APIKeyEntity entity = keyRepo.findOne(key);
+		if (entity != null) {
+			if (scopes != null) {
+				ClientDetailsEntity client = clientRepo.findByClientId(entity.getClientId());
+				Set<String> targetScopes = new HashSet<>(scopes);
+				targetScopes.retainAll(client.getScope());
+				entity.setScope(StringUtils.collectionToCommaDelimitedString(targetScopes));
+			}
+
+			keyRepo.save(entity);
+			APIKey result = new APIKey(entity);
+			log.debug("Update API Key data "+key);
+			keyCache.put(key, result);
+			return result;
+		}
+		throw new EntityNotFoundException(key);
+	} 
 	/**
 	 * Create a new key for the specified client app
 	 * @param clientId
@@ -171,7 +198,7 @@ public class APIKeyManager {
 		entity.setIssuedTime(System.currentTimeMillis());
 		entity.setUserId(client.getDeveloperId());
 		entity.setUsername(userManager.getUserInternalName(client.getDeveloperId()));
-		entity.setRoles(APIKey.toRolesString(userManager.getUserRolesByClient(client.getDeveloperId(), clientId)));
+		entity.setRoles(APIKey.toRolesString(userManager.getUserRoles(client.getDeveloperId())));
 		if (scopes != null && !scopes.isEmpty()) {
 			Set<String> targetScopes = new HashSet<>(scopes);
 			targetScopes.retainAll(client.getScope());

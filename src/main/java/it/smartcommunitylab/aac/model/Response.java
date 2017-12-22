@@ -28,6 +28,22 @@ public class Response {
 	private Object data;
 	private RESPONSE responseCode;
 	private String errorMessage;
+	
+	public static Response ok(Object data) {
+		Response res = new Response();
+		res.setResponseCode(RESPONSE.OK);
+		res.setData(data);
+		return res;
+	}
+	
+	public static Response error(String message) {
+		Response res = new Response();
+		res.setResponseCode(RESPONSE.ERROR);
+		res.setErrorMessage(message);
+		return res;
+	}
+
+	
 	/**
 	 * @return the data
 	 */

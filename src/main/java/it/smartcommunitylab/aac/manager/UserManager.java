@@ -188,5 +188,17 @@ public class UserManager {
 		if (user == null) throw new EntityNotFoundException("No user found: "+userId);
 		return getUserRolesByClient(user, clientId);
 	}
+
+	/**
+	 * @param developerId
+	 * @return
+	 */
+	public Set<Role> getUserRoles(Long developerId) {
+		User user = userRepository.findOne(getUserId());
+		if (user != null) {
+			return user.getRoles();
+		}
+		return Collections.emptySet();
+	}
 	
 }

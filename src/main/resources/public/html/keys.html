@@ -1,0 +1,56 @@
+  <br>
+  <div class="row">
+    <div class="col-md-12 text-right">
+            <button class="btn btn-primary" type="button"
+          ng-click="newKey()">New API Key</button>
+    
+    </div>
+  </div>
+  <br>
+  <table class="table table-bordered">
+    <tr ng-repeat="item in apiKeys">
+      <td width="100%"> 
+      <bold><a ng-click="editKey(item)">{{item.apiKey}}</a></bold>
+      <br><span ng-if="!!item.scope && item.scope.length > 0">Scopes: <b>{{item.scope.join(', ')}}</b></span>
+      </td>
+      <td>
+        <span class="text-danger" ng-if="item.expired">Expired</span>
+        <span class="text-success" ng-if="!item.expired">Valid</span>
+      </td>
+      <td nowrap><a ng-click="deleteKey(item)">Delete</a> <a ng-click="editKey(item)">Modify</a></td>
+    </tr>
+  </table>
+
+<form ng-submit="saveAPIKey(currentAPIKey)">
+<div class="modal fade bs-modal-lg" id="keyModal" tabindex="-1" role="dialog" aria-labelledby="keym" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="keym">API Key: {{currentAPIKey.apiKey ? currentAPIKey.apiKey : 'New API Key'}}</h4>
+      </div>
+      <div class="modal-body">
+					<table class="table">
+						<tr>
+							<th>Validity</th>
+							<td><input class="form-control"
+								placeholder="Key validity (milliseconds)" type="number"
+								ng-model="currentAPIKey.validity"></td>
+						</tr>
+						<tr>
+							<th>Scope</th>
+							<td><input class="form-control"
+								placeholder="Scopes (comma-separated)" type="text"
+								ng-model="currentAPIKey.scope"></td>
+						</tr>
+					</table>
+				</div>
+      <div class="modal-footer">
+         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         <button type="submit" class="btn btn-primary">Save</button>
+      </div>      
+    </div>
+  </div>
+</div>
+</form>  
+            

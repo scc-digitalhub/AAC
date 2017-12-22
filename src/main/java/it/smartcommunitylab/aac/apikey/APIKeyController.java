@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.dto.APIKey;
-import it.smartcommunitylab.aac.manager.UserManager;
 
 /**
  * @author raman
