@@ -79,3 +79,12 @@ div.authorities {
 	font-weight: bold;
 	color: red;
 }
+
+.scope-row {
+  border-bottom: 1px solid #ddd;
+  margin: 0 !important;
+}
+
+.scope-row > div {
+  padding: 5px 15px 5px 0px;
+}

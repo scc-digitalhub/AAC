@@ -13,8 +13,8 @@
 						    <p>{{service.description}}</p>
 						    <div>
 					        <ul class="nav nav-tabs">
-					            <li class="{{activePermView('avail')}}" ><a data-toggle="tab"  ng-click="switchPermView('avail')">Available Resources</a></li>
-					            <li class="{{activePermView('own')}}" ><a data-toggle="tab"  ng-click="switchPermView('own')">Own Resources</a></li>
+					            <li class="{{activePermView('avail')}}" ><a data-toggle="tab"  ng-click="switchPermView('avail')">Scopes</a></li>
+					            <!-- li class="{{activePermView('own')}}" ><a data-toggle="tab"  ng-click="switchPermView('own')">Own Resources</a></li -->
 					        </ul>
 					        <div ng-switch on="permView">
 					            <div  ng-switch-when="own">
@@ -45,15 +45,17 @@
 					                   <hr class="hr-min">
 					            </div>
 					            <div ng-switch-default>
-					             <div ng-repeat="(key,arr) in permissions.availableResources">
-					                <div ng-repeat="r in arr" class="row">
-					                    <div class="col-md-1">{{r.resourceParameter.value}}</div>
-					                  <div class="col-md-5"><strong>{{r.resourceUri}}</strong></div>
-					                  <div class="col-md-4">{{r.name}}</div>
-					                    <div class="col-md-1">{{toAuthority(r.authority)}}</div>
-					                    <div class="col-md-1"><input type="checkbox" ng-model="permissions.selectedResources[r.resourceId]"> <span class="{{permissionIcon(permissions.resourceApprovals[r.resourceId])}}"></span></div>
-					                </div>
-					             </div>
+                        <div ng-repeat="(key,arr) in permissions.availableResources">
+					                <div ng-repeat="r in arr" class="row scope-row">
+ 					                  <div class="col-md-5">
+					                   <strong>{{r.resourceUri}}</strong><br/>
+					                   <span ng-if="r.roles">(Roles: {{r.roles}})</span>
+					                  </div>
+					                  <div class="col-md-5">{{r.name}}</div>
+				                    <div class="col-md-1">{{toAuthority(r.authority)}}</div>
+				                    <div class="col-md-1 text-right"><input type="checkbox" ng-model="permissions.selectedResources[r.resourceId]"> <span class="{{permissionIcon(permissions.resourceApprovals[r.resourceId])}}"></span></div>
+ 					                </div>
+                        </div>
 					            </div>
 					        </div>
 					     </div>

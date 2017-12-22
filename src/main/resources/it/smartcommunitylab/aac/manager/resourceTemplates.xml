@@ -36,6 +36,14 @@
 		<apiKey>admin-AAC-1.0.0</apiKey>
 	</service>
 
+  <service name="API Key management service" id="carbon.super-AACKeys-1.0.0">
+    <description>Core service for managing API Keys for key-based client app security.
+    </description>
+
+    <apiKey>admin-AACKeys-1.0.0</apiKey>
+  </service>
+  
+  
 	<service name="User management service" id="smartcommunity.usermanagement">
 		<description>Core service for managing basic user profiles.
 		</description>
