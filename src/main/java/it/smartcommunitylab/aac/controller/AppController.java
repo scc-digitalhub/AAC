@@ -278,7 +278,7 @@ public class AppController {
 	@PostMapping(value = "/dev/apikey/{clientId}")
 	public @ResponseBody ResponseEntity<APIKey> createKey(@RequestBody APIKey body, @PathVariable String clientId) {
 		try {
-			APIKey keyObj = keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation());
+			APIKey keyObj = keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation(), body.getScope());
 			return new ResponseEntity<APIKey>(keyObj, HttpStatus.UNAUTHORIZED);
 		} catch (EntityNotFoundException e) {
 			return new ResponseEntity<APIKey>(HttpStatus.NOT_FOUND);

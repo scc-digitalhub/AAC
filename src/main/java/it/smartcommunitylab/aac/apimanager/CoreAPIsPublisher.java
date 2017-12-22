@@ -42,6 +42,7 @@ public class CoreAPIsPublisher {
 		publishAPI("api/profile-api.json", "AAC", "AAC User Profile APIs", "/aacprofile", token);
 		publishAPI("api/roles-api.json", "AACRoles", "AAC User Roles APIs", "/aacroles", token);
 		publishAPI("api/authorization-api.json", "AACAuthorization", "AAC Authorization APIs", "/aacauthorization", token);
+		publishAPI("api/key-api.json", "AACKeys", "AAC API Key APIs", "/aacapikey", token);
 	}
 
 	@SuppressWarnings("rawtypes")

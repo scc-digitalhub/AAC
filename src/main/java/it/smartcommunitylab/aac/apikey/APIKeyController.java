@@ -21,19 +21,22 @@ import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -48,21 +51,22 @@ import it.smartcommunitylab.aac.manager.UserManager;
 @Api(tags = { "AACApiKey" })
 public class APIKeyController {
 
+	private Log log = LogFactory.getLog(getClass());
+
 	@Autowired
 	private APIKeyManager keyManager;
-	@Autowired
-	private UserManager userManager;
 	@Autowired
 	private ResourceServerTokenServices resourceServerTokenServices;
 
 	@ApiOperation(value="Validate key")
 	@GetMapping(value = "/apikeycheck/{apiKey:.*}")
-	public @ResponseBody ResponseEntity<APIKey> findKey(@PathVariable String apiKey) {
+	public @ResponseBody APIKey findKey(@PathVariable String apiKey) throws EntityNotFoundException {
 		APIKey key = keyManager.findKey(apiKey);
+		
 		if (key != null && !key.hasExpired()) {
-			return new ResponseEntity<APIKey>(key, HttpStatus.OK);
+			return key;
 		}
-		return new ResponseEntity<APIKey>(HttpStatus.NOT_FOUND);
+		throw new EntityNotFoundException();
 	}
 	
 	
@@ -73,18 +77,15 @@ public class APIKeyController {
 	 */
 	@ApiOperation(value="Delete key")
 	@DeleteMapping(value = "/apikey/{apiKey:.*}")
-	public @ResponseBody ResponseEntity<Void> deleteKey(HttpServletRequest request, @PathVariable String apiKey) {
+	public @ResponseBody void deleteKey(HttpServletRequest request, @PathVariable String apiKey) throws SecurityException {
 		APIKey key = keyManager.findKey(apiKey);
 		if (key != null) {
-			try {
-				String clientId = getClientId(request);
-				userManager.checkClientIdOwnership(clientId);
-				keyManager.deleteKey(apiKey);
-			} catch (SecurityException e) {
-				return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+			String clientId = getClientId(request);
+			if (!clientId.equals(key.getClientId())) {
+				throw new SecurityException();
 			}
+			keyManager.deleteKey(apiKey);
 		}
-		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 
 	/**
@@ -94,13 +95,9 @@ public class APIKeyController {
 	 */
 	@ApiOperation(value="List keys")
 	@GetMapping(value = "/apikey")
-	public @ResponseBody ResponseEntity<List<APIKey>> getKeys(HttpServletRequest request) {
-			try {
-				String clientId = getClientId(request);
-				return new ResponseEntity<List<APIKey>>(keyManager.getClientKeys(clientId), HttpStatus.OK);
-			} catch (SecurityException e) {
-				return new ResponseEntity<List<APIKey>>(HttpStatus.UNAUTHORIZED);
-			}
+	public @ResponseBody List<APIKey> getKeys(HttpServletRequest request) throws SecurityException {
+		String clientId = getClientId(request);
+		return keyManager.getClientKeys(clientId);
 	}
 
 	/**
@@ -110,24 +107,23 @@ public class APIKeyController {
 	 */
 	@ApiOperation(value="Update key")
 	@PutMapping(value = "/apikey/{apiKey:.*}")
-	public @ResponseBody ResponseEntity<APIKey> updateKey(HttpServletRequest request, @RequestBody APIKey body, @PathVariable String apiKey) {
+	public @ResponseBody APIKey updateKey(HttpServletRequest request, @RequestBody APIKey body, @PathVariable String apiKey) throws SecurityException, EntityNotFoundException {
 		APIKey key = keyManager.findKey(apiKey);
 		if (key != null) {
-			try {
-				String clientId = getClientId(request);
-				userManager.checkClientIdOwnership(clientId);
-				if (body.getValidity() != null && body.getValidity() > 0) {
-					keyManager.updateKeyValidity(apiKey, body.getValidity());
-				}
-				if (body.getAdditionalInformation() != null) {
-					keyManager.updateKeyData(apiKey, body.getAdditionalInformation());
-				}
-				return new ResponseEntity<APIKey>(keyManager.findKey(apiKey), HttpStatus.UNAUTHORIZED);
-			} catch (SecurityException e) {
-				return new ResponseEntity<APIKey>(HttpStatus.UNAUTHORIZED);
+			String clientId = getClientId(request);
+			if (!clientId.equals(key.getClientId())) {
+				throw new SecurityException();
 			}
+
+			if (body.getValidity() != null && body.getValidity() > 0) {
+				keyManager.updateKeyValidity(apiKey, body.getValidity());
+			}
+			if (body.getAdditionalInformation() != null) {
+				keyManager.updateKeyData(apiKey, body.getAdditionalInformation());
+			}
+			return keyManager.findKey(apiKey);
 		}
-		return new ResponseEntity<APIKey>(HttpStatus.NOT_FOUND);
+		throw new EntityNotFoundException();
 	}	
 	/**
 	 * Create an API key with the specified properties (validity and additional info)
@@ -136,14 +132,10 @@ public class APIKeyController {
 	 */
 	@ApiOperation(value="Create key")
 	@PostMapping(value = "/apikey")
-	public @ResponseBody ResponseEntity<APIKey> createKey(HttpServletRequest request, @RequestBody APIKey body) {
-		try {
-			String clientId = getClientId(request);
-			APIKey keyObj = keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation());
-			return new ResponseEntity<APIKey>(keyObj, HttpStatus.UNAUTHORIZED);
-		} catch (EntityNotFoundException e) {
-			return new ResponseEntity<APIKey>(HttpStatus.NOT_FOUND);
-		}
+	public @ResponseBody APIKey createKey(HttpServletRequest request, @RequestBody APIKey body) throws EntityNotFoundException {
+		String clientId = getClientId(request);
+		APIKey keyObj = keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation(), body.getScope());
+		return keyObj;
 	}	
 
 
@@ -160,5 +152,21 @@ public class APIKeyController {
 		}
 	}
 	
+	@ExceptionHandler(EntityNotFoundException.class)
+	@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "Key or client does not exist")
+	public void notFound() {
+	}
+
+	@ExceptionHandler(SecurityException.class)
+	@ResponseStatus(code = HttpStatus.UNAUTHORIZED, reason = "Operation not permitted")
+	public void unauthorized() {
+	}
+
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ExceptionHandler(Exception.class)
+	@ResponseBody
+	public void handleBadRequest(HttpServletRequest req, Exception ex) {
+		log.error("Error processing API Key operation", ex);
+	}
 	
 }

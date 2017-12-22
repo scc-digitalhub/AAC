@@ -52,7 +52,7 @@
 	"host": "${server.host}",
 	"basePath": "${server.contextPath}",
 	"tags": [{
-		"name": "roles-controller",
+		"name": "AAC Roles",
 		"description": "Roles Controller"
 	}],
 	"paths": {
@@ -60,7 +60,7 @@
 			"get": {
 				"x-auth-type":"Application User",
 				"x-scope":"user.roles.read.all",			
-				"tags": ["roles-controller"],
+				"tags": ["AAC Roles"],
 				"summary": "getAllRoles",
 				"operationId": "getAllRolesUsingGET",
 				"consumes": ["application/json"],
@@ -99,7 +99,7 @@
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"client.roles.read.all",				
-				"tags": ["roles-controller"],
+				"tags": ["AAC Roles"],
 				"summary": "getClientRoles",
 				"operationId": "getClientRolesUsingGET",
 				"consumes": ["application/json"],
@@ -130,7 +130,7 @@
 			"get": {
 				"x-auth-type":"Application User",
 				"x-scope":"user.roles.me",				
-				"tags": ["roles-controller"],
+				"tags": ["AAC Roles"],
 				"summary": "getRoles",
 				"operationId": "getRolesUsingGET",
 				"consumes": ["application/json"],
@@ -161,7 +161,7 @@
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"user.roles.read",					
-				"tags": ["roles-controller"],
+				"tags": ["AAC Roles"],
 				"summary": "getTenantRoles",
 				"operationId": "getTenantRolesUsingGET",
 				"consumes": ["application/json"],
@@ -198,7 +198,7 @@
 			"put": {
 				"x-auth-type":"Application",
 				"x-scope":"user.roles.write",			
-				"tags": ["roles-controller"],
+				"tags": ["AAC Roles"],
 				"summary": "addRoles",
 				"operationId": "addRolesUsingPUT",
 				"consumes": ["application/json"],
@@ -239,7 +239,7 @@
 			"delete": {
 				"x-auth-type":"Application",
 				"x-scope":"user.roles.write",				
-				"tags": ["roles-controller"],
+				"tags": ["AAC Roles"],
 				"summary": "deleteRoles",
 				"operationId": "deleteRolesUsingDELETE",
 				"consumes": ["application/json"],

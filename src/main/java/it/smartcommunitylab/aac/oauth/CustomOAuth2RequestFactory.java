@@ -129,8 +129,6 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 
 		try {
-			ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-			
 			if ((scopes == null || scopes.isEmpty())) {
 				scopes = clientDetails.getScope();
 			}			

@@ -45,11 +45,11 @@
 	"host": "${server.host}",
 	"basePath": "${server.contextPath}",
 	"tags": [{
-		"name": "basic-profile-controller",
+		"name": "AAC User profile",
 		"description": "Basic Profile Controller"
 	},
 	{
-		"name": "resource-access-controller",
+		"name": "AAC Token Info",
 		"description": "Resource Access Controller"
 	}],
 	"paths": {
@@ -57,7 +57,7 @@
 			"get": {
 				"x-auth-type":"Application User",
 				"x-scope":"profile.accountprofile.me",
-				"tags": ["basic-profile-controller"],
+				"tags": ["AAC User profile"],
 				"summary": "findAccountProfile",
 				"operationId": "findAccountProfileUsingGET",
 				"consumes": ["application/json"],
@@ -85,7 +85,7 @@
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"profile.accountprofile.all",
-				"tags": ["basic-profile-controller"],
+				"tags": ["AAC User profile"],
 				"summary": "findAccountProfiles",
 				"operationId": "findAccountProfilesUsingGET",
 				"consumes": ["application/json"],
@@ -124,7 +124,7 @@
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"profile.basicprofile.all",
-				"tags": ["basic-profile-controller"],
+				"tags": ["AAC User profile"],
 				"summary": "searchUsers",
 				"operationId": "searchUsersUsingGET",
 				"consumes": ["application/json"],
@@ -159,7 +159,7 @@
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"profile.basicprofile.all",
-				"tags": ["basic-profile-controller"],
+				"tags": ["AAC User profile"],
 				"summary": "getUser",
 				"operationId": "getUserUsingGET",
 				"consumes": ["application/json"],
@@ -194,7 +194,7 @@
 			"get": {
 				"x-auth-type":"Application User",
 				"x-scope":"profile.basicprofile.me",
-				"tags": ["basic-profile-controller"],
+				"tags": ["AAC User profile"],
 				"summary": "findProfile",
 				"operationId": "findProfileUsingGET",
 				"consumes": ["application/json"],
@@ -222,7 +222,7 @@
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"profile.basicprofile.all",
-				"tags": ["basic-profile-controller"],
+				"tags": ["AAC User profile"],
 				"summary": "findProfiles",
 				"operationId": "findProfilesUsingGET",
 				"consumes": ["application/json"],
@@ -259,7 +259,7 @@
 		},
 		"/resources/access": {
 			"get": {
-				"tags": ["resource-access-controller"],
+				"tags": ["AAC Token Info"],
 				"summary": "canAccessResource",
 				"operationId": "canAccessResourceUsingGET",
 				"consumes": ["application/json"],
@@ -292,7 +292,7 @@
 		},
 		"/resources/token": {
 			"get": {
-				"tags": ["resource-access-controller"],
+				"tags": ["AAC Token Info"],
 				"summary": "getTokenInfo",
 				"operationId": "getTokenInfoUsingGET",
 				"consumes": ["application/json"],
@@ -318,7 +318,7 @@
 		}
 	},
 	"definitions": {
-		"Map«string,string»": {
+		"Mapï¿½string,stringï¿½": {
 			"type": "object",
 			"additionalProperties": {
 				"type": "string"
@@ -389,7 +389,7 @@
 				"accounts": {
 					"type": "object",
 					"additionalProperties": {
-						"$ref": "#/definitions/Map«string,string»"
+						"$ref": "#/definitions/Mapï¿½string,stringï¿½"
 					}
 				},
 				"name": {

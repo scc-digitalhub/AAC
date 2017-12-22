@@ -1,0 +1,293 @@
+
+{
+	"swagger": "2.0",
+	"info": {
+		"description": "Authorization and Authentication Control APIs - API Key validation and management",
+		"version": "1.0.0",
+		"title": "AAC API - API Access Key management",
+		"contact": {
+			"name": "Smart Community Lab",
+			"url": "www.smartcommunitylab.it",
+			"email": "info@smartcommunitylab.it"
+		},
+		"license": {
+			"name": "Apache License, Version 2.0",
+			"url": "http://www.apache.org/licenses/LICENSE-2.0"
+		}
+	},
+  "host": "${server.host}",
+  "basePath": "${server.contextPath}",
+	"tags": [{
+		"name": "AACApiKey",
+		"description": "API Key Controller"
+	}],
+	"paths": {
+		"/apikey": {
+			"get": {
+        "x-auth-type":"Application",
+				"tags": [
+					"AACApiKey"
+				],
+				"summary": "List keys",
+				"operationId": "getKeysUsingGET",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/APIKey"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			},
+			"post": {
+        "x-auth-type":"Application",
+				"tags": [
+					"AACApiKey"
+				],
+				"summary": "Create key",
+				"operationId": "createKeyUsingPOST",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "body",
+					"description": "body",
+					"required": true,
+					"schema": {
+						"$ref": "#/definitions/APIKey"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/APIKey"
+						}
+					},
+					"201": {
+						"description": "Created"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		},
+		"/apikey/{apiKey}": {
+			"put": {
+        "x-auth-type":"Application",
+				"tags": [
+					"AACApiKey"
+				],
+				"summary": "Update key",
+				"operationId": "updateKeyUsingPUT",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
+				"parameters": [{
+					"name": "apiKey",
+					"in": "path",
+					"description": "apiKey",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/APIKey"
+						}
+					},
+					"201": {
+						"description": "Created"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			},
+			"delete": {
+        "x-auth-type":"Application",
+				"tags": [
+					"AACApiKey"
+				],
+				"summary": "Delete key",
+				"operationId": "deleteKeyUsingDELETE",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
+				"parameters": [{
+					"name": "apiKey",
+					"in": "path",
+					"description": "apiKey",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"204": {
+						"description": "No Content"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					}
+				}
+			}
+		},
+		"/apikeycheck/{apiKey}": {
+			"get": {
+        "x-auth-type":"None",
+				"tags": [
+					"AACApiKey"
+				],
+				"summary": "Validate key",
+				"operationId": "findKeyUsingGET",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
+				"parameters": [{
+					"name": "apiKey",
+					"in": "path",
+					"description": "apiKey",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/APIKey"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"APIKey": {
+			"type": "object",
+			"properties": {
+				"additionalInformation": {
+					"type": "object"
+				},
+				"apiKey": {
+					"type": "string"
+				},
+				"clientId": {
+					"type": "string"
+				},
+				"issuedTime": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"roles": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Role"
+					}
+				},
+				"scope": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"userId": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"username": {
+					"type": "string"
+				},
+				"validity": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"Role": {
+			"type": "object",
+			"properties": {
+				"authority": {
+					"type": "string"
+				},
+				"context": {
+					"type": "string"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"role": {
+					"type": "string"
+				},
+				"scope": {
+					"type": "string",
+					"enum": [
+						"system",
+						"application",
+						"tenant",
+						"user"
+					]
+				}
+			}
+		}
+	}
+}

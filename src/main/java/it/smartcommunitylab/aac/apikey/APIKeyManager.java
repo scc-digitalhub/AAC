@@ -17,8 +17,10 @@
 package it.smartcommunitylab.aac.apikey;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -155,9 +158,10 @@ public class APIKeyManager {
 	 * @return
 	 * @throws #{@link EntityNotFoundException} if the specified client does not exist 
 	 */
-	public APIKey createKey(String clientId, Long validity, Map<String, Object> data) throws EntityNotFoundException {
+	public APIKey createKey(String clientId, Long validity, Map<String, Object> data, Set<String> scopes) throws EntityNotFoundException {
 		ClientDetailsEntity client = clientRepo.findByClientId(clientId);
 		if (client == null) throw new EntityNotFoundException("Client not found: "+clientId);
+		
 		
 		APIKeyEntity entity = new APIKeyEntity();
 		entity.setAdditionalInformation(APIKey.toDataString(data));
@@ -168,6 +172,11 @@ public class APIKeyManager {
 		entity.setUserId(client.getDeveloperId());
 		entity.setUsername(userManager.getUserInternalName(client.getDeveloperId()));
 		entity.setRoles(APIKey.toRolesString(userManager.getUserRolesByClient(client.getDeveloperId(), clientId)));
+		if (scopes != null && !scopes.isEmpty()) {
+			Set<String> targetScopes = new HashSet<>(scopes);
+			targetScopes.retainAll(client.getScope());
+			entity.setScope(StringUtils.collectionToCommaDelimitedString(targetScopes));
+		}
 		keyRepo.save(entity);
 		log.debug("Saved API Key  "+entity.getApiKey());
 

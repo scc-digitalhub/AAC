@@ -31,7 +31,6 @@ public class AACInitializer implements ApplicationListener<ApplicationReadyEvent
 
 	private static final Logger logger = LoggerFactory.getLogger(AACInitializer.class);
 	
-//	@PostConstruct
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		try {
 		resourceManager.init();

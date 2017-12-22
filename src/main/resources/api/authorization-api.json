@@ -33,7 +33,7 @@
 	"host": "${server.host}",
 	"basePath": "${server.contextPath}",
 	"tags": [{
-		"name": "authorization-controller",
+		"name": "AAC Authorization",
 		"description": "Authorization Controller"
 	}],
 	"paths": {
@@ -41,7 +41,7 @@
 			"post": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.manage",			
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "insertAuthorization",
 				"operationId": "insertAuthorizationUsingPOST",
 				"consumes": ["application/json"],
@@ -88,7 +88,7 @@
 			"post": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.schema.manage",			
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "addRootChildToSchema",
 				"operationId": "addRootChildToSchemaUsingPOST",
 				"consumes": ["application/json"],
@@ -132,7 +132,7 @@
 			"post": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.schema.manage",				
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "loadSchema",
 				"operationId": "loadSchemaUsingPOST",
 				"consumes": ["application/json"],
@@ -176,7 +176,7 @@
 			"post": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.schema.manage",			
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "validateResource",
 				"operationId": "validateResourceUsingPOST",
 				"consumes": ["application/json"],
@@ -223,7 +223,7 @@
 			"post": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.schema.manage",			
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "addChildToSchema",
 				"operationId": "addChildToSchemaUsingPOST",
 				"consumes": ["application/json"],
@@ -272,7 +272,7 @@
 			"get": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.schema.manage",			
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "getNode",
 				"operationId": "getNodeUsingGET",
 				"consumes": ["application/json"],
@@ -314,7 +314,7 @@
 			"post": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.manage",			
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "validateAuthorization",
 				"operationId": "validateAuthorizationUsingPOST",
 				"consumes": ["application/json"],
@@ -361,7 +361,7 @@
 			"delete": {
 				"x-auth-type":"Application",
 				"x-scope":"authorization.manage",			
-				"tags": ["authorization-controller"],
+				"tags": ["AAC Authorization"],
 				"summary": "removeAuthorization",
 				"operationId": "removeAuthorizationUsingDELETE",
 				"consumes": ["application/json"],

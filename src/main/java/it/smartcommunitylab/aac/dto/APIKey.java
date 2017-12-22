@@ -59,7 +59,11 @@ public class APIKey {
 		this.apiKey = entity.getApiKey();
 		this.clientId = entity.getClientId();
 		if (entity.getAdditionalInformation() != null) {
-			this.additionalInformation = objectMapper.convertValue(entity.getAdditionalInformation(), Map.class);
+			try {
+				this.additionalInformation = objectMapper.readValue(entity.getAdditionalInformation(), Map.class);
+			} catch (Exception e) {
+				this.additionalInformation = Collections.emptyMap();
+			}
 		}
 		this.userId = entity.getUserId();
 		this.username = entity.getUsername();
@@ -181,7 +185,7 @@ public class APIKey {
 	 */
 	public boolean hasExpired() {
 		if (getValidity() != null && getValidity() > 0) {
-			return getIssuedTime() + getValidity() > System.currentTimeMillis();
+			return getIssuedTime() + getValidity() < System.currentTimeMillis();
 		}
 		return false;
 	}

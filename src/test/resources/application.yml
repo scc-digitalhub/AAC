@@ -5,9 +5,9 @@ application:
   url: http://localhost:8080/aac
 
 jdbc:
-  dialect: org.hibernate.dialect.MySQLDialect
-  driver: com.mysql.jdbc.Driver
-  url: jdbc:mysql://localhost:3306/aactest
+  dialect: org.hibernate.dialect.H2Dialect
+  driver: org.h2.Driver
+  url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
   user: ac
   password: ac
 
@@ -56,6 +56,10 @@ oauth-providers:
 admin:
   password: admin
 
+adminClient:
+  id: API_MGT_CLIENT_ID
+  secret: 123456789
+
 mail:
   username: info@smartcommunitylab.it
   password: 
@@ -82,3 +86,22 @@ api:
     endpoint: https://localhost:9443/services/TenantMgtAdminService
     password: admin      
     
+    
+swagger:
+  title: 
+    AAC: AAC API - Profile and token info 
+    AACApiKey: AAC API - API Access Key management
+    AACAuthorization: AAC API - Authorization management 
+    AACRoles: AAC API - Role management 
+  description: 
+    AAC: Authorization and Authentication Control APIs - Profile and token info 
+    AACApiKey: Authorization and Authentication Control APIs - API Key validation and management
+    AACAuthorization: Authorization and Authentication Control APIs - Authorization management 
+    AACRoles: Authorization and Authentication Control APIs - Role managment
+  version: 1.0.0
+  license: Apache License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
+  contact:
+    name:  Smart Community Lab
+    url: www.smartcommunitylab.it
+    email: info@smartcommunitylab.it    
