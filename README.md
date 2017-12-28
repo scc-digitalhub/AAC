@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/SIMPATICOProject/aac.svg?branch=master)](https://travis-ci.org/SIMPATICOProject/aac)
+
+[![codecov](https://codecov.io/gh/SIMPATICOProject/aac/branch/master/graph/badge.svg)](https://codecov.io/gh/SIMPATICOProject/aac)
+
 # AAC
 
 ## Prerequisites
