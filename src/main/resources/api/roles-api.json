@@ -58,7 +58,7 @@
 	"paths": {
 		"/userroles/all/user/{userId}": {
 			"get": {
-				"x-auth-type":"Application User",
+				"x-auth-type":"Application",
 				"x-scope":"user.roles.read.all",			
 				"tags": ["AAC Roles"],
 				"summary": "getAllRoles",
