@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.wso2.services.Utils;
 public class UserManager {
 
 	public static final String R_PROVIDER = "ROLE_PROVIDER";
+	public static final String R_ROLEMANAGER = "rolemanager";
 	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;

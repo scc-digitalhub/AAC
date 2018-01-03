@@ -145,6 +145,8 @@ public class APIProviderManager {
 		User created = regService.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang(), true, key);
 		Role providerRole = new Role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, provider.getDomain());
 		roleManager.addRole(created, providerRole);
+		Role roleManagerRole = new Role(ROLE_SCOPE.application, UserManager.R_ROLEMANAGER, provider.getDomain());
+		roleManager.addRole(created, roleManagerRole);
 
 		try {
 			umService.createPublisher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());

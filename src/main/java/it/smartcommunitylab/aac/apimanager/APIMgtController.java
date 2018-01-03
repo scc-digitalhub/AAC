@@ -105,7 +105,7 @@ public class APIMgtController {
 	}
 	
 	@GetMapping("/mgmt/apis/{apiId}/thumbnail")
-	public @ResponseBody byte[] getAPI(@PathVariable String apiId, HttpServletResponse res) throws Exception {
+	public @ResponseBody byte[] getAPIImage(@PathVariable String apiId, HttpServletResponse res) throws Exception {
 		API api = pub.getAPI(apiId, getToken());
 		res.setContentType(MediaType.IMAGE_JPEG_VALUE);
 		if (api.getThumbnailUri() != null) return pub.getAPIThumbnail(apiId, getToken());

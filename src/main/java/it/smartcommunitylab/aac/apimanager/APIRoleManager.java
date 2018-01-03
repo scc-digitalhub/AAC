@@ -38,7 +38,7 @@ public class APIRoleManager {
 			User user = users.get(0);
 			
 			Set<Role> userRoles = user.getRoles();
-			List<String> roleNames = userRoles.stream().filter(x -> domain.equals(x.getContext()) && ROLE_SCOPE.application.equals(x.getScope())).map(r -> r.getRole()).collect(Collectors.toList());
+			List<String> roleNames = userRoles.stream().filter(x -> domain.equals(x.getContext())).map(r -> r.getRole()).collect(Collectors.toList());
 			sub.setRoles(roleNames);
 		}
 	}	
