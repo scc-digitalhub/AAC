@@ -275,6 +275,7 @@ public class RegistrationManager {
 		try {
 //			existing.setConfirmed(false);
 			existing.setConfirmationDeadline(c.getTime());
+			existing.setChangeOnFirstAccess(false);
 			String key = generateKey();
 			existing.setConfirmationKey(key);
 //			existing.setPassword(null);
@@ -361,7 +362,7 @@ public class RegistrationManager {
 		String lang = reg.getLang();
 		Map<String, Object> vars = new HashMap<String, Object>();
 		vars.put("user", user);
-		vars.put("url", applicationURL + "/internal/confirm?confirmationCode=" + key);
+		vars.put("url", applicationURL + "/internal/confirm?reset=true&confirmationCode=" + key);
 		String subject = messageSource.getMessage("reset.subject", null, Locale.forLanguageTag(reg.getLang()));
 		sender.sendEmail(reg.getEmail(), "mail/reset_" + lang, subject, vars);
 	}

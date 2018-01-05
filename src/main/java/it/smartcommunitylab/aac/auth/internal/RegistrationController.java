@@ -242,21 +242,35 @@ public class RegistrationController {
 	 */
 	@ApiIgnore
 	@RequestMapping("/internal/confirm")
-	public String confirm(Model model, @RequestParam String confirmationCode, HttpServletRequest req) {
-		try {
-			Registration user = regService.confirm(confirmationCode);
-			if (user.getPassword() != null && !user.isChangeOnFirstAccess()) {
-				return "registration/confirmsuccess";
-			} else {
+	public String confirm(Model model, @RequestParam String confirmationCode, @RequestParam(required=false) Boolean reset, HttpServletRequest req) {
+		if (Boolean.TRUE.equals(reset)) {
+			try {
+				Registration user = regService.getUserByPwdResetToken(confirmationCode);
 				req.getSession().setAttribute("changePwdEmail", user.getEmail());
 				model.addAttribute("reg", new RegistrationBean());
-				return "registration/changepwd";
-			}
-		} catch (RegistrationException e) {
-			logger.error(e.getMessage(), e);
-			model.addAttribute("error", e.getClass().getSimpleName());
-			return "registration/confirmerror";
+				return "registration/changepwd";				
+			} catch (RegistrationException e) {
+				e.printStackTrace();
+				model.addAttribute("error", e.getClass().getSimpleName());
+				return "registration/confirmerror";
+			}		
+		} else {
+			try {
+				Registration user = regService.confirm(confirmationCode);
+				if (!user.isChangeOnFirstAccess()) {
+					return "registration/confirmsuccess";
+				} else {
+					req.getSession().setAttribute("changePwdEmail", user.getEmail());
+					model.addAttribute("reg", new RegistrationBean());
+					return "registration/changepwd";
+				}
+			} catch (RegistrationException e) {
+				e.printStackTrace();
+				model.addAttribute("error", e.getClass().getSimpleName());
+				return "registration/confirmerror";
+			}		
 		}
+
 	}
 	
 	@ApiIgnore
