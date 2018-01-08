@@ -41,25 +41,33 @@ import it.smartcommunitylab.aac.repository.RegistrationRepository;
  */
 public class InternalAuthorityHandler implements AuthorityHandler {
 
+	private static final String USERNAME_ATTRIBUTE = "email";
+	
 	@Autowired
 	private RegistrationRepository repository;
 
 	@Override
 	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String,String> map, AuthorityMapping mapping) {
 		String email = null;
-		if (request != null) email = request.getParameter("email");
-		if (email == null) email = map.get("email");
+		if (request != null) email = request.getParameter(USERNAME_ATTRIBUTE);
+		if (email == null) email = map.get(USERNAME_ATTRIBUTE);
 
 		Registration user = repository.findByEmail(email);
 		if (user == null) {
 			return map;
 		} else {
 			Map<String, String> result = new HashMap<String, String>();
-			result.put("email", user.getEmail());
+			result.put(USERNAME_ATTRIBUTE, user.getEmail());
 			result.put(Config.NAME_ATTR, user.getName());
 			result.put(Config.SURNAME_ATTR, user.getSurname());
 			return result;
 		}
-		
 	}
+
+	@Override
+	public String extractUsername(Map<String, String> map) {
+		return map.get(USERNAME_ATTRIBUTE);
+	}
+	
+	
 }

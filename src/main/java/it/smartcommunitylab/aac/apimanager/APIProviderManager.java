@@ -163,9 +163,8 @@ public class APIProviderManager {
 	 */
 	public void updatePassword(String email, String newPassword) {
 		try {
-			List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, email);
-			if (users != null && !users.isEmpty()) {
-				User user = users.get(0);
+			User user = userRepository.findByUsername(email);
+			if (user != null) {
 				Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
 				if (providerRoles != null && providerRoles.size() == 1) {
 					Role providerRole = providerRoles.iterator().next();
@@ -235,10 +234,10 @@ public class APIProviderManager {
 	public String createToken(String username, String password) throws Exception {
 		Map<String, String> requestParameters = new HashMap<>();
 
-		List<User> users = userRepository.findByAttributeEntities("internal", "email", username);
+		User userObj = userRepository.findByUsername(username);
 
-		if (users != null && !users.isEmpty()) {
-			Long userId = users.get(0).getId();
+		if (userObj != null) {
+			Long userId = userObj.getId();
 
 			requestParameters.put("username", username);
 			requestParameters.put("password", password);
@@ -249,7 +248,7 @@ public class APIProviderManager {
 			ClientDetails clientDetails = getAPIMgmtClient();
 			TokenRequest tokenRequest = new TokenRequest(requestParameters, clientDetails.getClientId(), scopes(), "password");
 			OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
-			Collection<? extends GrantedAuthority> list = authorities(users.get(0));
+			Collection<? extends GrantedAuthority> list = authorities(userObj);
 			OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, new UsernamePasswordAuthenticationToken(user, "", list));
 			OAuth2AccessToken accessToken = tokenService.createAccessToken(oAuth2Authentication);
 			return accessToken.getValue();
@@ -348,11 +347,10 @@ public class APIProviderManager {
 		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
 		if (providerRoles.isEmpty()) return null;
 		
-		String email = user.attributeValue(Config.IDP_INTERNAL, EMAIL_ATTR);
-		if (email == null) return null;
+		String username = user.getUsername();
 		Role role = providerRoles.iterator().next();
 		
-		return Utils.getUserNameAtTenant(email, role.getContext());
+		return Utils.getUserNameAtTenant(username, role.getContext());
 	}
 	
 	/**

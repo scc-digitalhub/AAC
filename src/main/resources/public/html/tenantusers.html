@@ -1,0 +1,33 @@
+<div class="container">
+<div class="row">
+  <!--/span-->
+  <div class="col-md-12 well">
+		 <div class="header">
+		   <h1>API Provider Users</h1>
+		 </div>
+		  <div class="row">
+		    <div class="col-md-12 text-right">
+		            <button class="btn btn-primary" type="button"
+		          ng-click="newUser()">New user</button>
+		    
+		    </div>
+		  </div>
+		  <table class="table table-hover">
+		   <tr ng-repeat="user in users" ng-click="changeRoles(user)">
+		     <td>
+		       <a><strong>{{user.username}}</strong></a>
+		     </td>
+		     <td>
+		      {{user.roles.join(', ')}}
+		     </td>
+		   </tr>
+		 </table>
+		 <div class="text-center">
+  		<ul uib-pagination total-items="page.totalItems" ng-model="page.currentPage" items-per-page="page.limit" max-size="1" class="pagination-sm" ng-change="pageChanged()"></ul>
+		 </div>    
+   </div>
+  <!--/span-->
+</div>
+<!--/row-->
+</div>
+

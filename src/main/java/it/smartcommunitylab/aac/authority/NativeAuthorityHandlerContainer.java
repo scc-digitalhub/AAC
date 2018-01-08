@@ -18,8 +18,6 @@ package it.smartcommunitylab.aac.authority;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
  * Container of custom authority handlers.
  * 

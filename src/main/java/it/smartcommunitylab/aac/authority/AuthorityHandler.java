@@ -38,4 +38,10 @@ public interface AuthorityHandler {
 	 */
 	Map<String,String> extractAttributes(HttpServletRequest request, Map<String, String> map, AuthorityMapping mapping);
 
+	/**
+	 * Extract username from the identified authority parameters
+	 * @param map
+	 * @return
+	 */
+	String extractUsername(Map<String, String> map);
 }

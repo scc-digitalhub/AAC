@@ -333,6 +333,9 @@
 				"surname": {
 					"type": "string"
 				},
+        "username": {
+          "type": "string"
+        },
 				"userId": {
 					"type": "string"
 				}

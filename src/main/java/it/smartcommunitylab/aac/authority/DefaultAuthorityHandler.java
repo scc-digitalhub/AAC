@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jaxbmodel.Attributes;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 
@@ -79,6 +80,11 @@ public class DefaultAuthorityHandler implements AuthorityHandler {
 			param = request.getHeader(key);
 		}
 		return param;
+	}
+
+	@Override
+	public String extractUsername(Map<String, String> map) {
+		return map.get(Config.USERNAME_ATTR);
 	}
 
 }

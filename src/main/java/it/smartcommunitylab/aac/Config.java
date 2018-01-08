@@ -29,6 +29,8 @@ public class Config {
 	public static final String NAME_ATTR = "it.smartcommunitylab.aac.givenname";
 	/** User surname attribute alias */
 	public static final String SURNAME_ATTR = "it.smartcommunitylab.aac.surname";
+	/** User surname attribute alias */
+	public static final String USERNAME_ATTR = "it.smartcommunitylab.aac.username";
 	/** Internal Attribute Authority */ 
 	public static final String IDP_INTERNAL = "internal";
 	

@@ -24,7 +24,7 @@
   <authorityMapping name="google" url="google" public="true" useParams="true">
       <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
-      <attributes>email</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <attributes>name</attributes>
       <attributes>link</attributes>
       <identifyingAttributes>email</identifyingAttributes>
@@ -32,13 +32,13 @@
   <authorityMapping name="facebook" url="facebook" public="true" useParams="true">
       <attributes alias="it.smartcommunitylab.aac.givenname">first_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
-      <attributes>email</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
   </authorityMapping>
   <authorityMapping name="googlelocal" url="googlelocal" public="true" web="false">
       <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
-      <attributes>email</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <attributes>name</attributes>
       <attributes>link</attributes>
       <identifyingAttributes>id</identifyingAttributes>
@@ -46,7 +46,7 @@
   <authorityMapping name="facebooklocal" url="facebooklocal" public="true" web="false">
       <attributes alias="it.smartcommunitylab.aac.givenname">first_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
-      <attributes>email</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
   </authorityMapping>
   <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="true">
@@ -80,7 +80,7 @@
       <attributes>pat_attribute_titolo</attributes>
       <attributes>pat_attribute_subjectdn</attributes>
       <attributes>pat_attribute_issuerdn</attributes>
-      <attributes>pat_attribute_base64</attributes>
+      <attributes>pat_attribute_codicefiscale</attributes>
       <identifyingAttributes>pat_attribute_codicefiscale</identifyingAttributes>
   </authorityMapping>
 

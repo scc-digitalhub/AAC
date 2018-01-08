@@ -16,13 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,13 +23,23 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
+
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.model.DataList;
+import it.smartcommunitylab.aac.wso2.model.RoleModel;
+import it.smartcommunitylab.aac.wso2.model.Subscription;
 
 /**
  * Used to check whether the user has the administrator rights.
@@ -109,6 +112,12 @@ public class RoleManager {
 		Pageable pageable = new PageRequest(page, pageSize);
 		return userRepository.findByFullRole(role, scope, context, pageable);
 	}
+
+	public List<User> findUsersByContext(ROLE_SCOPE scope, String context, int page, int pageSize) {
+		Pageable pageable = new PageRequest(page, pageSize);
+		return userRepository.findByRoleContext(scope, context, pageable);
+	}
+
 	
 	public List<GrantedAuthority> buildAuthorities(User user) {
 		Set<Role> roles = getRoles(user);
@@ -119,49 +128,47 @@ public class RoleManager {
 	}
 	
 	
-//	public List<GrantedAuthority> buildAuthorities(User user, String provider) {
-//		List<GrantedAuthority> list = new LinkedList<>();
-//		list.add(new SimpleGrantedAuthority(ROLE.user.roleName()));
-//
-//		Set<Identity> identityAttrs = new HashSet<Identity>();
-//		for (Attribute a : user.getAttributeEntities()) {
-//			if (a.getAuthority().getName().equals(provider) && 
-//				attributesAdapter.isIdentityAttr(a)) {
-//				identityAttrs.add(new Identity(provider, a.getKey(), a.getValue(), null));
-//			}
-//		}
-//		try {
-//			for (Identity test : readIdentities()) {
-//				if (identityAttrs.contains(test)) {
-//					list.add(new SimpleGrantedAuthority(ROLE.valueOf(test.getRole()).roleName()));
-//				}
-//			}
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		return list;
-//	}
-//	
-//	public boolean checkAccount(Set<Identity> identityStrings, ROLE role) throws Exception {
-//		for (Identity test : readIdentities()) {
-//			if (role.name().equals(test.getRole()) && identityStrings.contains(test)) return true;
-//		}
-//		return false;
-//	}
-//	
-//	private List<Identity> readIdentities() throws IOException {
-//		List<Identity> res = new LinkedList<>();
-//		BufferedReader reader = new BufferedReader(new InputStreamReader(adminFile.getInputStream()));
-//		String line = null;
-//		while ((line = reader.readLine()) != null) {
-//			if (line.startsWith("#")) continue;
-//
-//			String[] arr = line.split(";");
-//			if (arr.length != 4) continue;
-//				
-//			Identity test = new Identity(arr[0].trim(), arr[1].trim(), arr[2].trim(), arr[3].trim().toLowerCase());
-//			res.add(test);
-//		}
-//		return res;
-//	}
+	public void fillRoles(DataList<Subscription> subs, String domain) {
+		for (Subscription sub: subs.getList()) {
+			String subscriber = sub.getSubscriber();
+			String info[] = Utils.extractInfoFromTenant(subscriber);
+			final String name = info[0];
+			
+			User user = userRepository.findByUsername(name);
+			
+			Set<Role> userRoles = user.getRoles();
+			List<String> roleNames = userRoles.stream().filter(x -> domain.equals(x.getContext())).map(r -> r.getRole()).collect(Collectors.toList());
+			sub.setRoles(roleNames);
+		}
+	}	
+	
+	public List<String> updateLocalRoles(RoleModel roleModel, String domain) {
+		String info[] = Utils.extractInfoFromTenant(roleModel.getUser());
+		
+		final String name = info[0];
+		
+		User user = userRepository.findByUsername(name);
+
+		Set<Role> userRoles = new HashSet<Role>(user.getRoles());
+
+		if (roleModel.getRemoveRoles() != null) {
+			for (String role : roleModel.getRemoveRoles()) {
+				Role r = new Role(ROLE_SCOPE.application, role, domain);
+				userRoles.remove(r);
+			}
+		}
+		if (roleModel.getAddRoles() != null) {
+			for (String role : roleModel.getAddRoles()) {
+				Role r = new Role(ROLE_SCOPE.application, role, domain);
+				userRoles.add(r);
+			}
+		}
+		user.getRoles().clear();
+		user.getRoles().addAll(userRoles);
+
+		userRepository.save(user);
+		
+		return userRoles.stream().filter(x -> domain.equals(x.getContext()) && ROLE_SCOPE.application.equals(x.getScope())).map(r -> r.getRole()).collect(Collectors.toList());
+	}	
+
 }

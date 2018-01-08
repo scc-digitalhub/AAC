@@ -38,7 +38,7 @@
   <h1 th:text="#{lbl_oauth_error}">AAC OAuth2 Error</h1>
 
   <div id="content">
-	<p><span th:text="${message}">Error </span> (<span th:text="${error.summary}">Summary</span>)</p>
+	<p th:if="${error != null}"><span th:text="${message}">Error </span> (<span th:text="${error.summary}">Summary</span>)</p>
 	<p th:text="#{lbl_oauth_text}">Please go back to your client application and try again, or contact the administrator for support</p>
   </div>
 

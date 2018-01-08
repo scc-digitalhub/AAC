@@ -56,6 +56,24 @@ angular.module('aac.services', [])
 		return deferred.promise;
 	}
 	/**
+	 * Read a specific page of the tenant users matching the role 
+	 */
+	dataService.getProviderUsers = function(offset, limit, role) {
+		var deferred = $q.defer();
+		var conf = {};
+		conf.params = {
+			offset: offset,
+			limit: limit,
+			query: role
+		}
+		$http.get('mgmt/users', conf).then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
+	/**
 	 * Read the API with the specified ID
 	 */
 	dataService.getAPI = function(apiId) {
@@ -109,10 +127,8 @@ angular.module('aac.services', [])
 //		}
 //		return res;
 	}
-	/**
-	 * Update roles of the specified user: roles to add and to remove
-	 */
-	dataService.updateUserRoles = function(apiId, user, map, old) {
+	
+	var updateUserRoles = function(user, map, old, url) {
 		var deferred = $q.defer();
 		var toAdd = [];
 		var toRemove = [];
@@ -134,7 +150,7 @@ angular.module('aac.services', [])
 			addRoles: toAdd,
 			removeRoles: toRemove
 		};
-		$http.put('mgmt/apis/'+apiId+'/userroles',body).then(function(data){
+		$http.put(url,body).then(function(data){
 			deferred.resolve(data.data);
 		}, function(err) {
 			deferred.reject(err);
@@ -143,6 +159,22 @@ angular.module('aac.services', [])
 //		deferred.resolve(old);
 		return deferred.promise;		
 	}
+	
+	/**
+	 * Update roles of the specified user: roles to add and to remove.
+	 * API Subscribers are considered (registered users with email)
+	 */
+	dataService.updateUserRoles = function(user, map, old) {
+		return updateUserRoles(user, map, old, 'mgmt/apis/userroles');
+	}
+	/**
+	 * Update roles of the specified user: roles to add and to remove.
+	 * Arbitrary users are considered
+	 */
+	dataService.updateUserRolesById = function(user, map, old) {
+		return updateUserRoles(user, map, old, 'mgmt/apis/useridroles');
+	}
+	
 	/**
 	 * Read Service Providers corresponding to the specified app (PRODUCTION and SANDBOX)
 	 */

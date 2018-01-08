@@ -36,4 +36,11 @@ public interface NativeAuthorityHandler {
 	 */
 	Map<String,String> extractAttributes(String token, Map<String, String> map, AuthorityMapping mapping) throws SecurityException ;
 
+	/**
+	 * Extract username from the identified authority parameters
+	 * @param map
+	 * @return
+	 */
+	String extractUsername(Map<String, String> map);
+
 }

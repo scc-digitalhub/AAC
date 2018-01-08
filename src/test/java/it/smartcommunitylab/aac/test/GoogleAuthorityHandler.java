@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
  * @author raman
  *
  */
-public class GoogleAuthorityHandler implements AuthorityHandler{
+public class GoogleAuthorityHandler implements AuthorityHandler {
 
 	@Override
 	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String, String> map, AuthorityMapping mapping) {
@@ -40,6 +40,14 @@ public class GoogleAuthorityHandler implements AuthorityHandler{
 		result.put("email", "mario.rossi@gmail.com");
 		
 		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see it.smartcommunitylab.aac.authority.AuthorityHandler#extractUsername(java.util.Map)
+	 */
+	@Override
+	public String extractUsername(Map<String, String> map) {
+		return map.get("email");
 	}
 
 }

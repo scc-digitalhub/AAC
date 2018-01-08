@@ -65,7 +65,7 @@ angular.module('aac.controllers.apis', [])
 
 	}
 	$scope.updateRoles = function() {
-		Data.updateUserRoles($routeParams.apiId, $scope.roles.sub.subscriber, $scope.roles.map, $scope.roles.sub.roles).then(function(newRoles) {
+		Data.updateUserRoles($scope.roles.sub.subscriber, $scope.roles.map, $scope.roles.sub.roles).then(function(newRoles) {
 			$scope.api.subscriptions.list.forEach(function(s) {
 				if (s.subscriber == $scope.roles.sub.subscriber) {
 					s.roles = newRoles;
@@ -110,4 +110,101 @@ angular.module('aac.controllers.apis', [])
     $scope.goAPI = function(api) {
     	$location.path('/apis/'+api.id);
     }
+})
+
+/**
+ * List of APIs controller
+ */
+.controller('TenantUsersController', function($scope, $location, $uibModal, Data, Utils) {
+
+	var reset = function() {
+		$scope.page = {
+		  offset: 0,
+		  limit: 25,
+		  totalItems: 0,
+		  currentPage: 1
+		};		
+	}
+	
+	// page changed
+	$scope.pageChanged = function() {
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadData();
+	};
+
+	// load APIs
+	var loadData = function(){
+	    Data.getProviderUsers($scope.page.offset, $scope.page.limit).then(function(data){
+	    	$scope.users = data.list;
+			var count = (($scope.page.currentPage-1) * $scope.page.limit + data.count);
+			$scope.page.totalItems = 
+				data.count < $scope.page.limit ? count : (count + 1);			
+	    }, Utils.showError);
+	}
+	reset();
+	loadData();
+
+	// toggle roles of the subscribed user
+	$scope.changeRoles = function(sub) {
+		var roleMap = {};
+		if (sub.roles){
+			sub.roles.forEach(function(r){
+				roleMap[r] = true;
+			});
+		}
+		$scope.roles = {map: roleMap, sub: sub};
+		$scope.rolesDlg = $uibModal.open({
+	      ariaLabelledBy: 'modal-title',
+	      ariaDescribedBy: 'modal-body',
+	      templateUrl: 'html/roles.modal.html',
+	      scope: $scope,
+	      size: 'lg'
+	    });
+	}
+	
+	// toggle roles of the subscribed user
+	$scope.newUser = function(sub) {
+		var roleMap = {};
+		$scope.roles = {map: roleMap, sub: {username: null, usernameRequired: true}};
+		$scope.rolesDlg = $uibModal.open({
+	      ariaLabelledBy: 'modal-title',
+	      ariaDescribedBy: 'modal-body',
+	      templateUrl: 'html/roles.modal.html',
+	      scope: $scope,
+	      size: 'lg'
+	    });
+	}
+
+	$scope.hasRoles = function(map){
+		var res = false;
+		for (var r in map) res |= map[r];
+		return res;
+	}
+	
+	// save roles
+	$scope.updateRoles = function() {
+		Data.updateUserRoles($scope.roles.sub.username, $scope.roles.map, $scope.roles.sub.roles).then(function(newRoles) {
+			$scope.users.forEach(function(u) {
+				if (newRoles == null || newRoles.length == 0) {
+					loadData();
+				}
+				else if (u.userId == $scope.roles.sub.userId) {
+					u.roles = newRoles;
+				}
+			});
+			if ($scope.roles.sub.usernameRequired) {
+				reset();
+				loadData();
+			}
+			$scope.rolesDlg.dismiss();
+			Utils.showSuccess();
+			$scope.roles = null;
+		}, Utils.showError);
+	}
+	
+	$scope.addRole = function(){
+		$scope.roles.map[$scope.roles.custom] = true;
+		$scope.roles.custom = null;
+	}
+	
 })

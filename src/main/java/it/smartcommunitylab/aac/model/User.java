@@ -66,6 +66,8 @@ public class User implements Serializable {
 	private String surname;
 	private String fullName;
 	
+	private String username;
+	
 	public User() {
 		super();
 		this.roles = Sets.newHashSet();
@@ -85,8 +87,6 @@ public class User implements Serializable {
 		this.attributeEntities = attrs;
 		this.roles = Sets.newHashSet();
 	}
-
-
 
 	public Long getId() {
 		return id;
@@ -134,11 +134,22 @@ public class User implements Serializable {
 	}
 
 	public String getFullName() {
+		if (fullName == null) {
+			fullName = surname + " "+ name;
+		}
 		return fullName;
 	}
 
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 
@@ -154,12 +165,8 @@ public class User implements Serializable {
 	}
 	
 	public boolean hasRole(ROLE_SCOPE scope, String role, String context) {
-		// TODO
-		return false;
-	}
-	public boolean hasRole(ROLE_SCOPE scope, String role) {
-		// TODO
-		return false;
+		return roles
+		.stream().anyMatch(r -> scope.equals(r.getScope()) && role.equals(r.getRole()) && (context == null && r.getContext() == null || context != null && context.equals(r.getContext())));
 	}
 	
 	public Set<Role> role(ROLE_SCOPE scope, String role) {
@@ -177,4 +184,5 @@ public class User implements Serializable {
 		if (attr.isPresent()) return attr.get().getValue();
 		return null;
 	}
+
 }

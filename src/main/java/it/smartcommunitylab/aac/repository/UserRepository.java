@@ -15,15 +15,15 @@
  */
 package it.smartcommunitylab.aac.repository;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-import it.smartcommunitylab.aac.model.User;
-
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.model.User;
 /**
  * Persistent repository of {@link User} entities
  * @author raman
@@ -38,13 +38,17 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 	@Query("select u from User u where u.fullName like ?1")
 	List<User> findByFullNameLike(String text);
 	
-	@Query("select u from User u left join u.attributeEntities a where a.authority.name=?1 and a.key=?2 and a.value=?3")
+	@Query("select distinct u from User u left join u.attributeEntities a where a.authority.name=?1 and a.key=?2 and a.value=?3")
 	List<User> findByAttributeEntities(String authority, String attribute, String value);
 
-	@Query("select u from User u left join u.roles r where r.role=?1 and r.scope=?2 and r.context=?3")
+	User findByUsername(String username);
+
+	@Query("select distinct u from User u left join u.roles r where r.role=?1 and r.scope=?2 and r.context=?3")
 	List<User> findByFullRole(String role, ROLE_SCOPE scope, String context, Pageable pageable);
 	
-	@Query("select u from User u left join u.roles r where r.role=?1 and r.scope=?2")
+	@Query("select distinct u from User u left join u.roles r where r.role=?1 and r.scope=?2")
 	List<User> findByPartialRole(String role, ROLE_SCOPE scope, Pageable pageable);	
+	@Query("select distinct u from User u left join u.roles r where r.scope=?1 and r.context=?2")
+	List<User> findByRoleContext(ROLE_SCOPE scope, String context, Pageable pageable);
 	
 }

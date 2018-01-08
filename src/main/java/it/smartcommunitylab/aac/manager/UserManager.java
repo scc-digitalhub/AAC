@@ -30,7 +30,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
@@ -107,7 +106,7 @@ public class UserManager {
 	 */
 	public String getUserFullName() {
 		User user =  userRepository.findOne(getUserId());
-		return user.getName() + " "+user.getSurname();
+		return user.getFullName();
 	}
 
 	/**
@@ -142,9 +141,6 @@ public class UserManager {
 		if (user == null) throw new EntityNotFoundException("No user found: "+userId);
 		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, "ROLE_PROVIDER");
 
-		String email = user.attributeValue(Config.IDP_INTERNAL, "email");
-		if (email == null) return null;
-		
 		String domain = null;
 		if (providerRoles.isEmpty()) domain = "carbon.super";
 		else {
@@ -152,7 +148,7 @@ public class UserManager {
 			domain = role.getContext();
 		}
 		
-		return Utils.getUserNameAtTenant(email, domain);
+		return Utils.getUserNameAtTenant(user.getUsername(), domain);
 	}	
 	
 	/**

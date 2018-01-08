@@ -16,7 +16,8 @@ import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
 import it.smartcommunitylab.aac.authority.FBAuthorityHandler;
-import it.smartcommunitylab.aac.authority.GoogleAuthorityHandler;
+import it.smartcommunitylab.aac.authority.FBNativeAuthorityHandler;
+import it.smartcommunitylab.aac.authority.GoogleNativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.InternalAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
@@ -34,6 +35,8 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	public AuthorityHandlerContainer getAuthorityHandlerContainer() {
 		Map<String, AuthorityHandler> map = Maps.newTreeMap();
 		map.put(Config.IDP_INTERNAL, getInternalHandler());
+		FBAuthorityHandler fh = new FBAuthorityHandler();
+		map.put("facebook", fh);
 		AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
 		return bean;
 	}
@@ -42,9 +45,9 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	public NativeAuthorityHandlerContainer getNativeAuthorityHandlerContainer() {
 		Map<String, NativeAuthorityHandler> map = Maps.newTreeMap();
 		
-		GoogleAuthorityHandler gh = new GoogleAuthorityHandler();
+		GoogleNativeAuthorityHandler gh = new GoogleNativeAuthorityHandler();
 		map.put("googlelocal", gh);
-		FBAuthorityHandler fh = new FBAuthorityHandler();
+		FBNativeAuthorityHandler fh = new FBNativeAuthorityHandler();
 		map.put("facebooklocal", fh);
 		
 		NativeAuthorityHandlerContainer bean = new NativeAuthorityHandlerContainer(map);

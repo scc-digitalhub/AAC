@@ -20,6 +20,7 @@ app.run(function($rootScope){
 		if (!next.$$route || !next.$$route.originalPath) return;
 		if (next.$$route.originalPath.indexOf('/apps') == 0)  $rootScope.currentView = 'apps';
 		if (next.$$route.originalPath.indexOf('/apis') == 0)  $rootScope.currentView = 'apis';
+		if (next.$$route.originalPath.indexOf('/tenantusers') == 0)  $rootScope.currentView = 'tenantusers';
 		if (next.$$route.originalPath.indexOf('/admin') == 0)  $rootScope.currentView = 'admin';
 	});	
 })
@@ -41,6 +42,10 @@ app.config(function($routeProvider) {
     .when("/apis", {
     	controller  : 'APIListController', 
         templateUrl : "html/apis.html"
+    })
+    .when("/tenantusers", {
+    	controller  : 'TenantUsersController', 
+        templateUrl : "html/tenantusers.html"
     })
     .when("/apis/:apiId", {
     	controller  : 'APIController', 

@@ -125,12 +125,16 @@ public class ProviderServiceAdapter {
 		if (users.isEmpty()) {
 			user = new User(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR), new HashSet<Attribute>(list));
 			user.getRoles().add(Role.systemUser());
+			user.setUsername(attributes.get(Config.USERNAME_ATTR));
 			user = userRepository.saveAndFlush(user);
 		} else {
 			user = users.get(0);
 			attributeRepository.deleteInBatch(user.getAttributeEntities());
 			user.setAttributeEntities(new HashSet<Attribute>(list));
 			user.updateNames(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR));
+			if (user.getUsername() == null) {
+				user.setUsername(attributes.get(Config.USERNAME_ATTR));
+			}
 			userRepository.saveAndFlush(user);
 		}
 		return user;

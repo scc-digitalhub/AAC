@@ -19,7 +19,7 @@ public class BasicProfile {
 	
 	private String name;
 	private String surname;
-	
+	private String username;
 	private String userId;
 
 	public String getName() {
@@ -45,4 +45,14 @@ public class BasicProfile {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	
+	
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 import eu.trentorise.smartcampus.network.JsonUtils;
 import eu.trentorise.smartcampus.network.RemoteConnector;
 import eu.trentorise.smartcampus.network.RemoteException;
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jaxbmodel.Attributes;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 
@@ -36,7 +37,7 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
  * @author raman
  *
  */
-public class GoogleAuthorityHandler implements NativeAuthorityHandler {
+public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 
 	@Override
 	public Map<String, String> extractAttributes(String token, Map<String,String> map, AuthorityMapping mapping) throws SecurityException  {
@@ -58,6 +59,11 @@ public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 		}
 	}
 
+	@Override
+	public String extractUsername(Map<String, String> map) {
+		if (map.get(Config.USERNAME_ATTR) != null) return map.get(Config.USERNAME_ATTR);
+		return map.get("id") + "@google";
+	}
 
 	/**
 	 * @param token
@@ -82,7 +88,7 @@ public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 	 * @param result
 	 * @return
 	 */
-	public boolean validAuidence(Map<String, Object> result) {
+	private boolean validAuidence(Map<String, Object> result) {
 		return true;//googleClientIds.contains(result.get("audience"));
 	}
 
@@ -94,7 +100,7 @@ public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 	 * @throws RemoteException
 	 */
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> validateV1(String token) throws SecurityException, RemoteException {
+	private Map<String, Object> validateV1(String token) throws SecurityException, RemoteException {
 		// first, we have to validate that the token is a correct platform token
 		String s = RemoteConnector.getJSON("https://www.googleapis.com", "/oauth2/v1/tokeninfo?access_token="+token, null);
 		Map<String,Object> result = JsonUtils.toObject(s, Map.class);

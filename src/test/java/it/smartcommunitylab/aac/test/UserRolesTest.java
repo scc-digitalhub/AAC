@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.test;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.After;
@@ -18,10 +19,13 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
+import it.smartcommunitylab.aac.repository.RoleRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.wso2.model.RoleModel;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -29,10 +33,12 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 public class UserRolesTest {
 
 	private static final String TESTAPP = "testapp";
+	private static final String TENANTUSERNAME = "testusertenant";
 	private static final String USERNAME = "testuser";
 	private static final String USERNAME2 = "testuser2";
 	private static final String CUSTOM_ROLE = "ROLE_CUSTOM";
 	private static final String CUSTOM_ROLE_VALUE = "value";
+	private static final String TESTTENANT = "test.tenant";
 
 	@Autowired
 	private RegistrationManager registrationManager;	
@@ -44,6 +50,8 @@ public class UserRolesTest {
 	
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private RoleRepository roleRepository;
 	
 	@Autowired
 	private RegistrationRepository registrationRepository;		
@@ -53,9 +61,14 @@ public class UserRolesTest {
 	private Role role3 = new Role(ROLE_SCOPE.user, Config.R_ADMIN, TESTAPP);
 	private Role role4 = new Role(ROLE_SCOPE.tenant, CUSTOM_ROLE, CUSTOM_ROLE_VALUE);
 	private User user;
+	private User tenantuser;
 	
 	@Before
-	public void createUser() {
+	public void init() {
+		createUser();
+	}
+	
+	private void createUser() {
 		user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
 		user.setRoles(Sets.newHashSet(role1));
 		userRepository.save(user);		
@@ -64,6 +77,7 @@ public class UserRolesTest {
 	@After
 	public void deleteUser() {
 		registrationRepository.deleteAll();
+		roleRepository.deleteAll();
 		userRepository.deleteAll();
 	}	
 	
@@ -130,5 +144,34 @@ public class UserRolesTest {
 		
 	}
 	
+	private void createTenantProvider() {
+		tenantuser = registrationManager.registerOffline("NAME", "SURNAME", TENANTUSERNAME, "password", null, false, null);
+		Role providerRole = new Role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, TESTTENANT);
+		roleManager.addRole(tenantuser, providerRole);
+		Role roleManagerRole = new Role(ROLE_SCOPE.application, UserManager.R_ROLEMANAGER, TESTTENANT);
+		roleManager.addRole(tenantuser, roleManagerRole);
+	}
+	
+	@Test
+	public void testTenantRoles() {
+		createTenantProvider();
+		User created = regManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
+
+		// update with roleModel
+		RoleModel model = new RoleModel();
+		model.setAddRoles(Collections.singletonList(CUSTOM_ROLE));
+		model.setUser(USERNAME2);
+		roleManager.updateLocalRoles(model, TESTTENANT);
+		List<User> list = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, "email", USERNAME2);
+		Assert.assertEquals(1, list.size());
+		created = list.get(0);
+		Assert.assertTrue(created.hasRole(ROLE_SCOPE.application, CUSTOM_ROLE, TESTTENANT));
+		
+		list = roleManager.findUsersByContext(ROLE_SCOPE.application, TESTTENANT, 0, 100);
+		Assert.assertEquals(2, list.size());
+		list = roleManager.findUsersByContext(ROLE_SCOPE.application, TESTTENANT, 1, 100);
+		Assert.assertEquals(0, list.size());
+		
+	}
 	
 }

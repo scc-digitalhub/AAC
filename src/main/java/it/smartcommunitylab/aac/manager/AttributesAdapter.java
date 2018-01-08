@@ -42,6 +42,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
@@ -60,7 +61,6 @@ import it.smartcommunitylab.aac.repository.AuthorityRepository;
  * 
  */
 @Component
-
 public class AttributesAdapter {
 
 	@Autowired
@@ -139,6 +139,9 @@ public class AttributesAdapter {
 //		if (!handler.extractAttributes(request)) throw new SecurityException("Invalid attributes for authority "+authority);
 		
 		Map<String, String> attrs = handler.extractAttributes(request, map, mapping);
+		if (attrs.get(Config.USERNAME_ATTR) == null) {
+			attrs.put(Config.USERNAME_ATTR, handler.extractUsername(attrs));
+		}
 		return attrs;
 	}
 
@@ -297,7 +300,11 @@ public class AttributesAdapter {
 		if (mapping == null) {
 			throw new InvalidGrantException("Unsupported authority: " + authority);
 		}
-		return authorityHandler.extractAttributes(token, params, mapping);
+		Map<String, String> extracted = authorityHandler.extractAttributes(token, params, mapping);
+		if (extracted.get(Config.USERNAME_ATTR) == null) {
+			extracted.put(Config.USERNAME_ATTR, authorityHandler.extractUsername(extracted));
+		}
+		return extracted;
 	}
 
 }
