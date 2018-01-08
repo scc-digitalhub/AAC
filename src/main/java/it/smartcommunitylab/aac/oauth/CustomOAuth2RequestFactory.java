@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,9 +19,11 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
 import org.springframework.security.oauth2.provider.TokenRequest;
+import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -125,7 +128,16 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 	}
 
 	private Set<String> extractScopes(Map<String, String> requestParameters, String clientId) {
-		Set<String> scopes = OAuth2Utils.parseParameterList(requestParameters.get(OAuth2Utils.SCOPE));
+		// consider both spaces and commas as separators
+		String scope = requestParameters.get(OAuth2Utils.SCOPE);
+		Set<String> scopes = new HashSet<>();
+		if (!StringUtils.isEmpty(scope)) {
+			String[] scopeArr = scope.split(",");
+			for (String s :  scopeArr) {
+				scopes.addAll(OAuth2Utils.parseParameterList(s));
+			}
+		}		
+		
 		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 
 		try {
@@ -156,7 +168,7 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 			isUser = false;
 		} else if ("password".equals(requestParameters.get("grant_type"))) {
 			String userName = requestParameters.get("username");
-			List<User> users = userRepository.findByAttributeEntities("internal", "email", userName);
+			List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, "email", userName);
 			if (users != null && !users.isEmpty()) {
 				user = users.get(0);
 			}
