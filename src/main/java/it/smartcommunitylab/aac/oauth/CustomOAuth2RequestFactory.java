@@ -162,7 +162,8 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 		Long userId = null;
 		
 		boolean isUser = true;
-		if ("client_credentials".equals(requestParameters.get("grant_type"))) {
+		if ("client_credentials".equals(requestParameters.get("grant_type")) ||
+			"authorization_code".equals(requestParameters.get("grant_type"))) {
 			userId = client.getDeveloperId();
 			user = userRepository.findOne(userId);
 			isUser = false;
