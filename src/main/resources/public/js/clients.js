@@ -342,7 +342,7 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.editKey = function(item) {
 		$scope.currentAPIKey = angular.copy(item);
-		$scope.currentAPIKey.scope = $scope.currentAPIKey.scope.join(', ');
+		$scope.currentAPIKey.scope = $scope.currentAPIKey.scope != null ? $scope.currentAPIKey.scope.join(', ') : '';
 		$('#keyModal').modal({keyboard:false});
 	};
 	/**
