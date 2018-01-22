@@ -201,6 +201,11 @@ public class PermissionController {
 				ObjectMapper mapper = new ObjectMapper();
 
 				List<ExtendedService> extServices = services.stream().map(s -> mapper.convertValue(s, ExtendedService.class)).collect(Collectors.toList());
+				extServices.forEach(x -> {
+					if (x.getApiKey() != null) {
+						x.setApiKey(x.getApiKey().replace("-AT-", "@"));
+					}
+				});
 				
 				for (ExtendedService service: extServices) {
 					if (service.getApiKey() != null) {
@@ -215,13 +220,21 @@ public class PermissionController {
 					}
 				}	
 				
-				extServices.forEach(x -> {
-					Subscription sub = subscriptions.stream().filter(y -> y.getApiIdentifier().replace("@", "-AT-").equals(x.getApiKey())).findFirst().orElse(null);
-					if (sub != null) {
+				if (subscriptions != null) {
+					extServices.forEach(x -> {
+						Subscription sub = subscriptions.stream().filter(y -> y.getApiIdentifier().equals(x.getApiKey())).findFirst().orElse(null);
+						if (sub != null) {
+							x.setApiId(null);
+							x.setSubscriptionId(sub.getSubscriptionId());
+						}
+					});
+				} else {
+					extServices.forEach(x -> {
 						x.setApiId(null);
-						x.setSubscriptionId(sub.getSubscriptionId());
-					}
-				});
+						x.setSubscriptionId(null);
+					});
+					
+				}
 
 				response.setData(extServices);
 			} catch (Exception e) {
