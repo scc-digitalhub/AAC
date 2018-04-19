@@ -73,6 +73,17 @@ angular.module('aac.controllers.clients', [])
 	$scope.clientToken = null;
 	// implicit flow token of the current app
 	$scope.implicitToken = null;
+	// configuration specific for different IdPs
+	$scope.providerConfig = {
+			google: [
+				{label:"Google Client ID", value: "client_id", required: true},
+				{label:"Google Client Secret", value: "client_secret", required: true, type: "password"}				
+			],
+			facebook: [
+				{label:"Facebook Client ID", value: "client_id", required: true},
+				{label:"Facebook Client Secret", value: "client_secret", required: true, type: "password"}				
+			],
+	};
 
 	$scope.GTLabels = {
 			implicit: 'Implicit',

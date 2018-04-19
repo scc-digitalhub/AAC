@@ -39,7 +39,8 @@ public class ClientAppBasic {
 	private Set<String> grantedTypes;
 
 	private boolean nativeAppsAccess;
-	private String nativeAppSignatures;
+	private Map<String, Map<String, Object>> providerConfigurations;
+	private String mobileAppSchema;
 
 	private Map<String,Boolean> identityProviders;
 	private Map<String,Boolean> identityProviderApproval;
@@ -122,18 +123,6 @@ public class ClientAppBasic {
 		this.nativeAppsAccess = nativeAppsAccess;
 	}
 	/**
-	 * @return the nativeAppSignatures
-	 */
-	public String getNativeAppSignatures() {
-		return nativeAppSignatures;
-	}
-	/**
-	 * @param nativeAppSignatures the nativeAppSignatures to set
-	 */
-	public void setNativeAppSignatures(String nativeAppSignatures) {
-		this.nativeAppSignatures = nativeAppSignatures;
-	}
-	/**
 	 * @return the clientSecretMobile
 	 */
 	public String getClientSecretMobile() {
@@ -193,5 +182,17 @@ public class ClientAppBasic {
 	}
 	public void setParameters(String parameters) {
 		this.parameters = parameters;
+	}
+	public Map<String, Map<String, Object>> getProviderConfigurations() {
+		return providerConfigurations;
+	}
+	public void setProviderConfigurations(Map<String, Map<String, Object>> providerConfigurations) {
+		this.providerConfigurations = providerConfigurations;
+	}
+	public String getMobileAppSchema() {
+		return mobileAppSchema;
+	}
+	public void setMobileAppSchema(String nativeAppSchema) {
+		this.mobileAppSchema = nativeAppSchema;
 	}
 }

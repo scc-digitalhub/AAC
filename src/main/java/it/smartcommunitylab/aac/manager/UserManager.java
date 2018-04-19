@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,8 @@ import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 import it.smartcommunitylab.aac.wso2.services.Utils;
@@ -86,7 +89,13 @@ public class UserManager {
 	 * @return the authority value (string)
 	 */
 	public String getUserAuthority() {
-		return SecurityContextHolder.getContext().getAuthentication().getDetails().toString();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication instanceof AACAuthenticationToken) {
+			AACAuthenticationToken aacToken = (AACAuthenticationToken)authentication;
+			AACOAuthRequest request = (AACOAuthRequest) aacToken.getDetails();
+			return request.getAuthority();
+		}
+		return null;
 	}
 
 	/**

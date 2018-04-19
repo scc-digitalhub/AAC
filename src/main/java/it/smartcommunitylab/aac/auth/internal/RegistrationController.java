@@ -43,11 +43,13 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
@@ -121,6 +123,14 @@ public class RegistrationController {
 			return "login";
 		}
 	}
+	
+	@RequestMapping("/auth/internal-oauth/callback")
+	public ModelAndView loginOAuth(HttpServletRequest req) throws Exception {
+		
+		return new ModelAndView("redirect:/eauth/internal");
+	}
+
+	
 	/**
 	 * Redirect to registration page
 	 * @param model

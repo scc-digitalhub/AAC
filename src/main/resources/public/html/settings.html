@@ -1,4 +1,4 @@
-<form ng-submit="saveSettings()" role="form">
+<form ng-submit="saveSettings()" role="form" name="settingsForm">
     <table class="table table-bordered">
         <tr>
             <th>name</th>
@@ -34,6 +34,13 @@
              </table>
             </td>
         </tr>
+        <tr>
+            <th>Mobile app schema</th>
+            <td><input type="text" class="form-control"
+                placeholder="specify your custom mobile app schema"
+                ng-model="app.mobileAppSchema"></td>
+        </tr>
+        
 <!--    
         <tr  ng-show="app.nativeAppsAccess">
             <th>Native app signatures</th>
@@ -45,11 +52,23 @@
 	        <td>
 	           <table class="idps">
 	             <tr ng-repeat="(k,v) in app.identityProviders">
-	             <td>{{k}} </td><td> <input type="checkbox" ng-model="app.identityProviders[k]"></td><td><span class="{{idpIcon(v,app.identityProviderApproval[k])}}"></span></td>
+	             <td>{{k}} </td>
+	             <td>
+	             <input type="checkbox" ng-model="app.identityProviders[k]"></td>
+	             <td>
+	             <span class="{{idpIcon(v,app.identityProviderApproval[k])}}"></span>
+	             </td>
+	             <td width="100%">
+	             <div ng-if="providerConfig[k] && app.identityProviders[k]">
+	               <div ng-repeat="pConf in providerConfig[k]">
+	               <label>{{pConf.label}}<span ng-if="pConf.required"> (Required)</span></label><input type="{{pConf.type ? pConf.type: 'text'}}" class="form-control" placeholder="{{pConf.label}}" ng-required="pConf.required" ng-model="app.providerConfigurations[k][pConf.value]">
+	               </div>
+	             </div>
+	             </td>
 	             </tr>
 	           </table>
 	        </td>
         </tr>
     </table>
-    <button type="submit" class="btn btn-primary">Save settings</button>
+    <button type="submit" class="btn btn-primary" ng-disabled="settingsForm.$invalid">Save settings</button>
 </form>

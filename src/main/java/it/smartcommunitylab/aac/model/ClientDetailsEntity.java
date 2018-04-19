@@ -62,6 +62,9 @@ public class ClientDetailsEntity implements ClientDetails {
 	@Column(name = "client_secret_mobile",nullable = false)
 	private String clientSecretMobile;
 
+	@Column(name = "mobile_app_schema", unique=true)
+	private String mobileAppSchema; 
+	
 	@Column(name = "resource_ids",columnDefinition="LONGTEXT")
 	private String resourceIds;
 	
@@ -352,5 +355,13 @@ public class ClientDetailsEntity implements ClientDetails {
 
 	public void setParameters(String parameters) {
 		this.parameters = parameters;
+	}
+
+	public String getMobileAppSchema() {
+		return mobileAppSchema;
+	}
+
+	public void setMobileAppSchema(String mobileAppSchema) {
+		this.mobileAppSchema = mobileAppSchema;
 	}
 }

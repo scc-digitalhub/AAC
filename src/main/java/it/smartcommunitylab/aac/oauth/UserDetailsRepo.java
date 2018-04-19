@@ -35,8 +35,14 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  */
 public class UserDetailsRepo implements UserDetailsService {
 
-	@Autowired
 	private UserRepository userRepository;
+
+	public UserDetailsRepo(UserRepository userRepository) {
+		super();
+		this.userRepository = userRepository;
+	}
+
+
 
 	@Override
 	public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {

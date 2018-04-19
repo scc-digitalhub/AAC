@@ -31,6 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mobile.device.Device;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -40,6 +42,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -52,12 +55,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.manager.AttributesAdapter;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
+import it.smartcommunitylab.aac.manager.MobileAuthManager;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.UserRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -67,6 +74,10 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @Controller
 public class AuthController {
+
+	@Value("${application.url}")
+	private String applicationURL;
+
 
 	@Autowired
 	private UserRepository userRepository;
@@ -83,6 +94,12 @@ public class AuthController {
 
 	@Autowired
 	private RoleManager roleManager;
+	
+	@Autowired(required=false)
+	private RememberMeServices rememberMeServices;
+	
+	@Autowired(required=false)
+	private MobileAuthManager mobileAuthManager;
 	
 	private RequestCache requestCache = new HttpSessionRequestCache();
 
@@ -132,8 +149,8 @@ public class AuthController {
 					model.put("message", "No Identity Providers assigned to the app");
 					return new ModelAndView("oauth_error", model);
 				}
-				req.getSession().setAttribute("client_id", clientId);
-				if (resultAuthorities.size() == 1) {
+				req.getSession().setAttribute(OAuth2Utils.CLIENT_ID, clientId);
+				if (resultAuthorities.size() == 1 && !resultAuthorities.containsKey(Config.IDP_INTERNAL)) {
 					return new ModelAndView("redirect:"
 							+ Utils.filterRedirectURL(resultAuthorities.keySet().iterator().next()));
 				}
@@ -155,22 +172,54 @@ public class AuthController {
 	 * @throws Exception
 	 */
 	@RequestMapping("/eauth/authorize")
-	public ModelAndView authorise(
+	public ModelAndView authorise(Device device,
 			HttpServletRequest req,
 			@RequestParam(value = "authorities", required = false) String loginAuthorities)
 			throws Exception {
 		Map<String, Object> model = new HashMap<String, Object>();
 
-		String clientId = req.getParameter("client_id");
+		String clientId = req.getParameter(OAuth2Utils.CLIENT_ID);
 		if (clientId == null || clientId.isEmpty()) {
 			model.put("message", "Missing client_id");
 			return new ModelAndView("oauth_error", model);
 		}
+		// each time create new OAuth request
+		ClientAppBasic client = clientDetailsAdapter.getByClientId(clientId);
+		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, client.getScope(), client.getName());
+		if (req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
+			AACOAuthRequest old = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
+			oauthRequest.setAuthority(old.getAuthority());
+			// update existing session data
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			AbstractAuthenticationToken a = new AACAuthenticationToken(auth.getPrincipal(), null, oauthRequest.getAuthority(), auth.getAuthorities());
+			a.setDetails(oauthRequest);
+			SecurityContextHolder.getContext().setAuthentication(a);
+		}
+		req.getSession().setAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST, oauthRequest);
 		
-		String target = prepareRedirect(req, "/oauth/authorize");
+		String target = prepareRedirect(req, "/eauth/pre-authorize");
 		return new ModelAndView("redirect:"+target);
 	}
 
+	@RequestMapping("/eauth/pre-authorize")
+	public ModelAndView preauthorise(HttpServletRequest req) throws Exception {
+		
+		AACOAuthRequest oauthRequest = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
+		String target = prepareRedirect(req, "/oauth/authorize");
+		req.getSession().setAttribute("redirect", target);
+
+		if (oauthRequest != null && oauthRequest.isMobile2FactorRequested()) {
+//			Boolean done2factor = (Boolean) req.getSession().getAttribute("done2factor");
+//			if (!Boolean.TRUE.equals(done2factor)) {
+				oauthRequest.unsetMobile2FactorConfirmed();
+				return new ModelAndView("forward:/mobile2factor");
+//			}
+//			req.getSession().setAttribute("done2factor", false);
+		} 
+		
+		return new ModelAndView("forward:"+target);
+	}	
+	
 	/**
 	 * Entry point for resource access authorization request. Redirects to the
 	 * login page of the specific identity provider
@@ -244,7 +293,7 @@ public class AuthController {
 		if (nTarget == null)
 			return new ModelAndView("redirect:/logout");
 
-		String clientId = (String) req.getSession().getAttribute("client_id");
+		String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
 		if (clientId != null) {
 			Set<String> idps = clientDetailsAdapter
 					.getIdentityProviders(clientId);
@@ -255,16 +304,24 @@ public class AuthController {
 			}
 		}
 
+		AACOAuthRequest oauthRequest = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
+		if (oauthRequest != null) {
+			oauthRequest.setAuthority(authorityUrl);
+			req.getSession().setAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST, oauthRequest);
+		}
+		
+		
 		target = nTarget;
 		
 		Authentication old = SecurityContextHolder.getContext().getAuthentication();
 		if (old != null && old instanceof AACAuthenticationToken) {
-			if (!authorityUrl.equals(old.getDetails())) {
+			AACOAuthRequest oldDetails = (AACOAuthRequest) old.getDetails();
+			if (!authorityUrl.equals(oldDetails.getAuthority())) {
 	            new SecurityContextLogoutHandler().logout(req, res, old);
 		        SecurityContextHolder.getContext().setAuthentication(null);
 
 				req.getSession().setAttribute("redirect", target);
-				req.getSession().setAttribute("client_id", clientId);
+				req.getSession().setAttribute(OAuth2Utils.CLIENT_ID, clientId);
 		        
 				return new ModelAndView("redirect:"+Utils.filterRedirectURL(authorityUrl));
 			}
@@ -284,11 +341,54 @@ public class AuthController {
 		
 		UserDetails user = new User(userEntity.getId().toString(), "", list);
 		AbstractAuthenticationToken a = new AACAuthenticationToken(user, null, authorityUrl, list);
-		a.setDetails(authorityUrl);
+		a.setDetails(oauthRequest);
 
 		SecurityContextHolder.getContext().setAuthentication(a);
-
+		
+		if (rememberMeServices != null) {
+			rememberMeServices.loginSuccess(req, res, a);
+		}
+		
 		return new ModelAndView("redirect:" + target);
+	}
+
+	/**
+	 * Mobile 2-factor request endpoint
+	 * @param req
+	 * @param res
+	 * @return provider-specific redirect to an endpoint on a mobile browser
+	 */
+	@RequestMapping("/mobile2factor")
+	public ModelAndView mobile2Factor(HttpServletRequest req, HttpServletResponse res) 
+	{
+		AACOAuthRequest oauthRequest = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
+		if (oauthRequest == null) {
+			return new ModelAndView("redirect:/logout");
+		}
+
+		String target = mobileAuthManager.init2FactorCheck(req, applicationURL+"/mobile2factor-callback/" + mobileAuthManager.provider());
+		return new ModelAndView("redirect:" + target);
+	}
+
+	/**
+	 * Callback for mobile 2-factor authentication. 
+	 * @param req
+	 * @param res
+	 * @param provider
+	 * @return
+	 */
+	@RequestMapping("/mobile2factor-callback/{provider}")
+	public ModelAndView mobile2FactorCallback(HttpServletRequest req, HttpServletResponse res, @PathVariable String provider) 
+	{
+		AACOAuthRequest oauthRequest = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
+		if (oauthRequest == null) {
+			return new ModelAndView("redirect:/logout");
+		}
+
+		mobileAuthManager.callback2FactorCheck(req);
+		oauthRequest.setMobile2FactorConfirmed();
+		req.getSession().setAttribute("done2factor", true);
+		return new ModelAndView("forward:/eauth/" + oauthRequest.getAuthority());
 	}
 
 	/**

@@ -55,7 +55,7 @@
     </div>
   </div>
             
-  <div class="text-center">
+  <div class="text-center" th:if="${session.authorities.size() > 1}">
     <p th:text="#{lbl_login_providers}">Login with</p>
     <ul class="pprovider">
            <li th:each="entry : ${session.authorities.entrySet()}" th:if="'internal' != ${entry.key}">

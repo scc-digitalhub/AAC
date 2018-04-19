@@ -31,12 +31,16 @@ import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import it.smartcommunitylab.aac.Config;
 
 /**
  * @author raman
@@ -50,8 +54,12 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	private Log logger = LogFactory.getLog(getClass());
 	private static final Logger traceUserLogger = Logger.getLogger("traceUserToken");
 
+	private static final int SCOPE_OPERATION_CONFIRMED_DURATION = 30;
+
 	/** threshold for access token */
 	protected int tokenThreshold = 10*60;
+
+	protected TokenEnhancer tokenEnhancer;
 	
 	/**
 	 * Do not remove access token if expired
@@ -155,7 +163,8 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		int validitySeconds = getAccessTokenValiditySeconds(authentication.getOAuth2Request());
 
 		if (!authentication.isClientOnly()) {
-			token.setExpiration(new Date(System.currentTimeMillis() + (60 * 60 * 12 * 1000L)));
+			
+			token.setExpiration(new Date(System.currentTimeMillis() + (getUserAccessTokenValiditySeconds(authentication.getOAuth2Request()) * 1000L)));
 		} else if (validitySeconds > 0) {
 			token.setExpiration(new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
 		} else {
@@ -166,9 +175,15 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		token.setScope(authentication.getOAuth2Request().getScope());
 
 		logger.info("Created token " + token.getValue() + " expires at " + token.getExpiration());
-		
-		return token;
+		return tokenEnhancer != null ? tokenEnhancer.enhance(token, authentication) : token;
 	}
+
+	@Override
+	public void setTokenEnhancer(TokenEnhancer accessTokenEnhancer) {
+		super.setTokenEnhancer(accessTokenEnhancer);
+		this.tokenEnhancer = accessTokenEnhancer;
+	}
+
 	@Override
 	public void setTokenStore(TokenStore tokenStore) {
 		super.setTokenStore(tokenStore);
@@ -187,6 +202,13 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	protected boolean isExpired(OAuth2RefreshToken refreshToken) {
 		return false;
 	}
+
+	protected int getUserAccessTokenValiditySeconds(OAuth2Request clientAuth) {
+		if (clientAuth.getScope().contains(Config.SCOPE_OPERATION_CONFIRMED)) return SCOPE_OPERATION_CONFIRMED_DURATION;
+		return 60*60*12;
+	}
+	
+	
 	
 	
 }

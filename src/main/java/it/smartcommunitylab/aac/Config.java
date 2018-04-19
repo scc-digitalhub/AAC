@@ -40,6 +40,18 @@ public class Config {
 	/** Resource visibility values: either only the specific app can see, or all the apps of the current developer, or any app */
 	public enum RESOURCE_VISIBILITY {CLIENT_APP,DEVELOPER,PUBLIC}
 
+	/** Requesting device type */
+	public enum DEVICE_TYPE {MOBILE, TABLET, DESKTOP, UNKNOWN, WEBVIEW};
+	
+	/** operation scope requiring strong 2-factor authentication */
+	public static final String SCOPE_OPERATION_CONFIRMED = "operation.confirmed";
+	
+	/** Session attribute holding AAC OAuth2 request context */
+	public static final String SESSION_ATTR_AAC_OAUTH_REQUEST = "aacOAuthRequest";
+
+	public static final String PARAM_REMEMBER_ME= "remember-me";
+	public static final String COOKIE_REMEMBER_ME= "aacrememberme";
+	
 	/** ROLE SCOPES */ 
 	public enum ROLE_SCOPE {
 		system ("SCOPE_SYSTEM"), 
