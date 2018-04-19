@@ -74,6 +74,8 @@ import org.yaml.snakeyaml.Yaml;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.FileEmailIdentitySource;
+import it.smartcommunitylab.aac.manager.IdentitySource;
 import it.smartcommunitylab.aac.manager.OAuth2ClientDetailsProviderImpl;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -211,6 +213,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public InternalPasswordEncoder getInternalPasswordEncoder() {
 		return new InternalPasswordEncoder();
+	}
+
+	@Bean
+	public IdentitySource getIdentitySource() {
+		return new FileEmailIdentitySource();
 	}
 
 	private Filter extOAuth2Filter() throws Exception {

@@ -64,6 +64,11 @@ public class CIEAuthManager implements MobileAuthManager {
 	@Value("${security.cie.defaultsp}")
 	private String defaultSp;
 	
+	@Autowired
+	private IdentitySource identitySource;
+	@Autowired
+	private BasicProfileManager profileManager;
+	
 	@Override
 	public String provider() {
 		return CIE_PROVIDER;
@@ -243,7 +248,7 @@ public class CIEAuthManager implements MobileAuthManager {
     private boolean identitiesMatch(X509Certificate certificate, String userName) {
         String codeFromCertificate = parseCN(certificate.getSubjectX500Principal().getName());
         log.info("identityFromCertificate: " + codeFromCertificate);
-        String codeFromDB = "CBLFRD99E12N921N";//getCNFromDB(userName);
+        String codeFromDB = getStoredCN(userName);
         log.info("codeFromDB: " + codeFromDB);
         return codeFromCertificate.trim().toLowerCase().equals(codeFromDB.trim().toLowerCase());
     }
@@ -268,9 +273,8 @@ public class CIEAuthManager implements MobileAuthManager {
         return cert != null ? cert.getCertificate() : null;
     }
 
-    private String getCNFromDB(String username) {
-        UserCertificate cert = repo.findByUsernameAndProvider(username, CIE_PROVIDER);
-        return cert != null && cert.getCn() != null ? cert.getCn() : "";
+    private String getStoredCN(String username) {
+    	return identitySource.getUserIdentity(CIE_PROVIDER, Long.parseLong(username), profileManager.getAccountProfileById(username));
     }
 
     private boolean isValidX509Cert(X509Certificate cert) {

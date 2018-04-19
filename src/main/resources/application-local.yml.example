@@ -62,6 +62,8 @@ security:
     idp: Smart Community
     pattern: "Inserisci il PIN per accedere a %1$s tramite %2$s"
     defaultsp: Smart Community  
+identity:
+  source: file:///filename 
     
 admin:
   password: admin
