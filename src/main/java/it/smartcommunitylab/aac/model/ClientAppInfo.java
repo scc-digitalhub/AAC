@@ -38,13 +38,13 @@ public class ClientAppInfo {
 	
 	private String name;
 
-	private String nativeAppSignatures;
-
 	private Map<String, Boolean> resourceApprovals;
 	
 	private Map<String, Integer> identityProviders;
 	
 	private String scope;
+	
+	private Map<String, Map<String, Object>> providerConfigurations;
 	
 	static {
 		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -100,20 +100,6 @@ public class ClientAppInfo {
 		this.identityProviders = identityProviders;
 	}
 
-	/**
-	 * @return the nativeAppSignatures
-	 */
-	public String getNativeAppSignatures() {
-		return nativeAppSignatures;
-	}
-
-	/**
-	 * @param nativeAppSignatures the nativeAppSignatures to set
-	 */
-	public void setNativeAppSignatures(String nativeAppSignatures) {
-		this.nativeAppSignatures = nativeAppSignatures;
-	}
-
 	public String getScope() {
 		return scope;
 	}
@@ -121,6 +107,13 @@ public class ClientAppInfo {
 	public void setScope(String scope) {
 		this.scope = scope;
 	}
-	
+
+	public Map<String, Map<String, Object>> getProviderConfigurations() {
+		return providerConfigurations;
+	}
+
+	public void setProviderConfigurations(Map<String, Map<String, Object>> providerConfigurations) {
+		this.providerConfigurations = providerConfigurations;
+	}
 	
 }

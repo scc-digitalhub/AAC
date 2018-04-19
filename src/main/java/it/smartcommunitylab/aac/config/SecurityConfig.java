@@ -16,7 +16,6 @@
 package it.smartcommunitylab.aac.config;
 
 import java.beans.PropertyVetoException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,6 +61,9 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -69,27 +71,36 @@ import org.springframework.web.filter.CompositeFilter;
 import org.springframework.web.filter.CorsFilter;
 import org.yaml.snakeyaml.Yaml;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.manager.OAuth2ClientDetailsProviderImpl;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
 import it.smartcommunitylab.aac.model.MockDataMappings;
+import it.smartcommunitylab.aac.oauth.AACRememberMeServices;
+import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsRegistrationFilter;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ContextExtender;
-import it.smartcommunitylab.aac.oauth.CustomOAuth2RequestFactory;
+import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
+import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.MockDataAwareOAuth2SuccessHandler;
+import it.smartcommunitylab.aac.oauth.MultitenantOAuth2ClientAuthenticationProcessingFilter;
 import it.smartcommunitylab.aac.oauth.NativeTokenGranter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
+import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
+import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Configuration
 @EnableOAuth2Client
@@ -105,11 +116,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${security.restricted}")
 	private boolean restrictedAccess;
 
+	@Value("${security.rememberme.key}")
+	private String remembermeKey;
+
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	@Autowired
 	private DataSource dataSource;
@@ -126,6 +143,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return bean;
 	}
 
+	@Bean 
+	public PersistentTokenBasedRememberMeServices rememberMeServices() {
+		AACRememberMeServices service = new AACRememberMeServices(remembermeKey, new UserDetailsRepo(userRepository), persistentTokenRepository());
+        service.setCookieName(Config.COOKIE_REMEMBER_ME);
+        service.setParameter(Config.PARAM_REMEMBER_ME);
+        service.setTokenValiditySeconds(3600 * 24 * 60); // two month
+		return service;
+	}
+	
+	@Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl tokenRepositoryImpl = new JdbcTokenRepositoryImpl();
+        tokenRepositoryImpl.setDataSource(dataSource);
+        return tokenRepositoryImpl;
+    }
+	
 	@Bean
 	public UserDetailsService getInternalUserDetailsService() {
 		return new InternalUserDetailsRepo();
@@ -135,6 +168,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public ClientDetailsRowMapper getClientDetailsRowMapper() {
 		return new ClientDetailsRowMapper();
 	}
+	
+	@Bean
+	public OAuth2ClientDetailsProvider getOAuth2ClientDetailsProvider() throws PropertyVetoException {
+		return new OAuth2ClientDetailsProviderImpl(clientDetailsRepository);
+	}
+
 
 	@Bean
 	public APIProviderManager tokenEmitter() {
@@ -174,7 +213,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new InternalPasswordEncoder();
 	}
 
-	private Filter extOAuth2Filter() throws IOException {
+	private Filter extOAuth2Filter() throws Exception {
 		CompositeFilter filter = new CompositeFilter();
 		List<Filter> filters = new ArrayList<>();
 		List<ClientResources> providers = oauthProviders().getProviders();
@@ -187,8 +226,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	}
 
-	private Filter extOAuth2Filter(ClientResources client, String path, String target) throws IOException {
-		OAuth2ClientAuthenticationProcessingFilter filter = new OAuth2ClientAuthenticationProcessingFilter(path);
+	private Filter extOAuth2Filter(ClientResources client, String path, String target) throws Exception {
+		OAuth2ClientAuthenticationProcessingFilter filter = new MultitenantOAuth2ClientAuthenticationProcessingFilter(client.getProvider(), path, getOAuth2ClientDetailsProvider());
 
 		Yaml yaml = new Yaml();
 		MockDataMappings data = yaml.loadAs(dataMapping.getInputStream(), MockDataMappings.class);
@@ -220,6 +259,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.and()
 		.logout()
 			.logoutSuccessHandler(logoutSuccessHandler()).permitAll()
+		.and()
+		.rememberMe()
+			.key(remembermeKey)
+			.rememberMeServices(rememberMeServices())
 		.and()
 		.csrf()
 			.disable()
@@ -281,7 +324,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Bean
 		public OAuth2RequestFactory getOAuth2RequestFactory() throws PropertyVetoException {
-			CustomOAuth2RequestFactory<UserManager> result = new CustomOAuth2RequestFactory<>();
+			AACOAuth2RequestFactory<UserManager> result = new AACOAuth2RequestFactory<>();
 			return result;
 
 		}
@@ -294,6 +337,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			bean.setSupportRefreshToken(true);
 			bean.setReuseRefreshToken(true);
 			bean.setClientDetailsService(clientDetailsService);
+			bean.setTokenEnhancer(new AACTokenEnhancer());
 			return bean;
 		}
 
@@ -325,6 +369,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					.authenticationManager(authenticationManager)
 					.tokenGranter(tokenGranter(endpoints))
 					.requestFactory(getOAuth2RequestFactory())
+					.requestValidator(new AACOAuth2RequestValidator())
 					.tokenServices(getTokenServices());
 		}
 

@@ -35,20 +35,6 @@
       <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
   </authorityMapping>
-  <authorityMapping name="googlelocal" url="googlelocal" public="true" web="false">
-      <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
-      <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
-      <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
-      <attributes>name</attributes>
-      <attributes>link</attributes>
-      <identifyingAttributes>id</identifyingAttributes>
-  </authorityMapping>
-  <authorityMapping name="facebooklocal" url="facebooklocal" public="true" web="false">
-      <attributes alias="it.smartcommunitylab.aac.givenname">first_name</attributes>
-      <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
-      <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
-      <identifyingAttributes>id</identifyingAttributes>
-  </authorityMapping>
   <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="true">
       <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">surname</attributes>
@@ -86,14 +72,11 @@
 
   <authorityMatching>
       <authority name="google" attribute="email"/>
-      <authority name="googlelocal" attribute="email"/>
       <authority name="facebook" attribute="email"/>
-      <authority name="facebooklocal" attribute="email"/>
       <authority name="internal" attribute="email"/>
   </authorityMatching>
   <authorityMatching>
       <authority name="facebook" attribute="id"/>
-      <authority name="facebooklocal" attribute="id"/>
   </authorityMatching>
 
 </authorities>

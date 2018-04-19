@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
@@ -31,9 +32,9 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
-public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFactory {
+public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactory {
 
-	Logger logger = LoggerFactory.getLogger(CustomOAuth2RequestFactory.class);
+	Logger logger = LoggerFactory.getLogger(AACOAuth2RequestFactory.class);
 	
 	@Autowired
 	private ClientDetailsService clientDetailsService;
@@ -143,10 +144,31 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 		try {
 			if ((scopes == null || scopes.isEmpty())) {
 				scopes = clientDetails.getScope();
-			}			
+			}		
+			
+			boolean addStrongOperationScope = false;
+			if (scopes.contains(Config.SCOPE_OPERATION_CONFIRMED)) {
+				Object authDetails = SecurityContextHolder.getContext().getAuthentication().getDetails();
+				if (authDetails != null && authDetails instanceof AACOAuthRequest) {
+					if (((AACOAuthRequest)authDetails).isMobile2FactorConfirmed()) {
+						addStrongOperationScope = true;
+					}
+					// clear for unpropriate access
+					((AACOAuthRequest)authDetails).unsetMobile2FactorConfirmed();
+				}
+			}
 			
 //			if (client.getParameters() != null) {
 			scopes = checkUserScopes(requestParameters, scopes, clientDetails);
+			if (addStrongOperationScope) {
+				scopes.add(Config.SCOPE_OPERATION_CONFIRMED);
+			} else {
+				scopes.remove(Config.SCOPE_OPERATION_CONFIRMED);
+			}
+			if (scopes.isEmpty()) {
+				scopes.add("default");
+			}
+
 //			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -162,12 +184,12 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 		Long userId = null;
 		
 		boolean isUser = true;
-		if ("client_credentials".equals(requestParameters.get("grant_type")) ||
-			"authorization_code".equals(requestParameters.get("grant_type"))) {
+		if ("client_credentials".equals(requestParameters.get(OAuth2Utils.GRANT_TYPE))/* ||
+			"authorization_code".equals(requestParameters.get(OAuth2Utils.GRANT_TYPE))*/) {
 			userId = client.getDeveloperId();
 			user = userRepository.findOne(userId);
 			isUser = false;
-		} else if ("password".equals(requestParameters.get("grant_type"))) {
+		} else if ("password".equals(requestParameters.get(OAuth2Utils.GRANT_TYPE))) {
 			String userName = requestParameters.get("username");
 			List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, "email", userName);
 			if (users != null && !users.isEmpty()) {
@@ -182,9 +204,6 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 			newScopes = providerService.userScopes(user, scopes, isUser);
 		}
 
-		if (newScopes.isEmpty()) {
-			newScopes.add("default");
-		}
 		return newScopes;
 
 		// if (!securityContextAccessor.isUser()) {

@@ -116,10 +116,10 @@ public class ClientDetailsManager {
 		res.setName(e.getName());
 		res.setScope(Joiner.on(",").join(e.getScope()));
 		res.setParameters(e.getParameters());
+		res.setMobileAppSchema(e.getMobileAppSchema());
 		
 		ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
 		if (info != null) {
-			res.setNativeAppSignatures(info.getNativeAppSignatures());
 			if (info.getIdentityProviders() != null) {
 				for (String key : info.getIdentityProviders().keySet()) {
 					switch (info.getIdentityProviders().get(key)) {
@@ -139,6 +139,7 @@ public class ClientDetailsManager {
 					}
 				}
 			}
+			res.setProviderConfigurations(info.getProviderConfigurations());
 		}
 
 		res.setRedirectUris(StringUtils.collectionToCommaDelimitedString(e.getRegisteredRedirectUri()));
@@ -174,7 +175,11 @@ public class ClientDetailsManager {
 				info = ClientAppInfo.convert(client.getAdditionalInformation());
 			}
 			info.setName(data.getName());
-			info.setNativeAppSignatures(Utils.normalizeValues(data.getNativeAppSignatures()));
+			if (StringUtils.hasText(data.getMobileAppSchema())) {
+				client.setMobileAppSchema(data.getMobileAppSchema());
+			} else {
+				client.setMobileAppSchema(generateSchema(client.getClientId()));
+			}
 			Set<String> types = data.getGrantedTypes();
 			client.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(types));
 			if (info.getIdentityProviders() == null) {
@@ -191,6 +196,10 @@ public class ClientDetailsManager {
 						}
 					} else {
 						info.getIdentityProviders().remove(key);
+					}
+					if (data.getProviderConfigurations() != null && data.getProviderConfigurations().containsKey(key)) {
+						if (info.getProviderConfigurations() == null) info.setProviderConfigurations(new HashMap<>());
+						info.getProviderConfigurations().put(key, data.getProviderConfigurations().get(key));
 					}
 				}
 			}
@@ -219,6 +228,7 @@ public class ClientDetailsManager {
 		}
 		return client;
 	}
+
 	/**
 	 * Validate correctness of the data specified for the app
 	 * @param client
@@ -424,4 +434,12 @@ public class ClientDetailsManager {
 		}
 		
 	}
+	
+	/**
+	 * @return generate schema identifier
+	 */
+	private String generateSchema(String clientId) {
+		return clientId;
+	}
+	
 }
