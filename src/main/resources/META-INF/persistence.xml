@@ -13,5 +13,6 @@
 		<class>it.smartcommunitylab.aac.model.Authority</class>
 		<class>it.smartcommunitylab.aac.model.ClientDetailsEntity</class>
     <class>it.smartcommunitylab.aac.model.APIKeyEntity</class>
+    <class>it.smartcommunitylab.aac.model.UserCertificate</class>
 	</persistence-unit>
 </persistence>
