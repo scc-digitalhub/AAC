@@ -30,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mobile.device.Device;
@@ -78,6 +80,7 @@ public class AuthController {
 	@Value("${application.url}")
 	private String applicationURL;
 
+	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
 	@Autowired
 	private UserRepository userRepository;
@@ -209,12 +212,8 @@ public class AuthController {
 		req.getSession().setAttribute("redirect", target);
 
 		if (oauthRequest != null && oauthRequest.isMobile2FactorRequested()) {
-//			Boolean done2factor = (Boolean) req.getSession().getAttribute("done2factor");
-//			if (!Boolean.TRUE.equals(done2factor)) {
-				oauthRequest.unsetMobile2FactorConfirmed();
-				return new ModelAndView("forward:/mobile2factor");
-//			}
-//			req.getSession().setAttribute("done2factor", false);
+			oauthRequest.unsetMobile2FactorConfirmed();
+			return new ModelAndView("forward:/mobile2factor");
 		} 
 		
 		return new ModelAndView("forward:"+target);
@@ -244,8 +243,6 @@ public class AuthController {
 	 * Endpoint for Access Denied exception page
 	 * 
 	 * @param req
-	 * @param authority
-	 *            identity provider alias
 	 * @return
 	 * @throws Exception
 	 */
@@ -385,9 +382,12 @@ public class AuthController {
 			return new ModelAndView("redirect:/logout");
 		}
 
-		mobileAuthManager.callback2FactorCheck(req);
-		oauthRequest.setMobile2FactorConfirmed();
-		req.getSession().setAttribute("done2factor", true);
+		try {
+			mobileAuthManager.callback2FactorCheck(req);
+			oauthRequest.setMobile2FactorConfirmed();
+		} catch (SecurityException e) {
+			logger.error("mobile 2 factor auth failed: "+ e.getMessage());
+		}
 		return new ModelAndView("forward:/eauth/" + oauthRequest.getAuthority());
 	}
 

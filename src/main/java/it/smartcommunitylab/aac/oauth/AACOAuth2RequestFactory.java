@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
+import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -156,6 +157,9 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 					// clear for unpropriate access
 					((AACOAuthRequest)authDetails).unsetMobile2FactorConfirmed();
 				}
+				if (!addStrongOperationScope) {
+					throw new InvalidScopeException("The operation.confirmed scope is not authorized by user");
+				}
 			}
 			
 //			if (client.getParameters() != null) {
@@ -170,6 +174,8 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 			}
 
 //			}
+		} catch (InvalidScopeException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
