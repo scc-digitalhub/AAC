@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.Config;
@@ -175,6 +176,8 @@ public class CIEAuthManager implements MobileAuthManager {
 	 * @return username from the security context.
 	 */
 	private String getUsername() {
+		log.debug("authentication "+SecurityContextHolder.getContext().getAuthentication());
+		log.debug("prinicipal "+SecurityContextHolder.getContext().getAuthentication().getPrincipal());
 		return userManager.getUserId().toString();
 	}
 
