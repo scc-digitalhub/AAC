@@ -58,6 +58,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.manager.AttributesAdapter;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
@@ -189,11 +190,12 @@ public class AuthController {
 		// each time create new OAuth request
 		ClientAppBasic client = clientDetailsAdapter.getByClientId(clientId);
 		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, client.getScope(), client.getName());
-		if (req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth.getAuthorities() != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(AUTHORITY.ROLE_USER.toString())) &&
+			req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
 			AACOAuthRequest old = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
 			oauthRequest.setAuthority(old.getAuthority());
 			// update existing session data
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			AbstractAuthenticationToken a = new AACAuthenticationToken(auth.getPrincipal(), null, oauthRequest.getAuthority(), auth.getAuthorities());
 			a.setDetails(oauthRequest);
 			SecurityContextHolder.getContext().setAuthentication(a);

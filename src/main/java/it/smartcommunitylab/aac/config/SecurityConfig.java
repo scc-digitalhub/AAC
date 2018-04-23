@@ -253,9 +253,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http
-		.anonymous().disable()
 		.authorizeRequests()
-			.antMatchers("/eauth/pre-authorize").authenticated()
 			.antMatchers("/eauth/authorize/**").permitAll()
 			.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
 			.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
