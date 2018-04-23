@@ -255,6 +255,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http
 		.anonymous().disable()
 		.authorizeRequests()
+			.antMatchers("/eauth/pre-authorize").authenticated()
 			.antMatchers("/eauth/authorize/**").permitAll()
 			.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
 			.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
