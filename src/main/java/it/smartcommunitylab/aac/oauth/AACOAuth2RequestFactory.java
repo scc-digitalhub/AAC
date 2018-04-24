@@ -202,8 +202,12 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 				user = users.get(0);
 			}
 		} else {
-			userId = userManager.getUserId();
-			user = userRepository.findOne(userId);
+			try {
+				userId = userManager.getUserId();
+				user = userRepository.findOne(userId);
+			} catch (Exception e) {
+				// Not a user ID as expected, live null
+			}
 		}
 
 		if (user != null) {

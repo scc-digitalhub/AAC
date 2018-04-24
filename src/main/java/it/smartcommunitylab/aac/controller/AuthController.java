@@ -200,6 +200,9 @@ public class AuthController {
 			a.setDetails(oauthRequest);
 			SecurityContextHolder.getContext().setAuthentication(a);
 		}
+		if (StringUtils.isEmpty(oauthRequest.getAuthority()) && loginAuthorities != null) {
+			oauthRequest.setAuthority(loginAuthorities.split(",")[0].trim());
+		}
 		req.getSession().setAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST, oauthRequest);
 		
 		String target = prepareRedirect(req, "/eauth/pre-authorize");
