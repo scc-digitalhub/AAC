@@ -294,6 +294,7 @@ public class APIProviderManager {
 		ClientDetailsEntity entity = new ClientDetailsEntity();
 		ClientAppInfo info = new ClientAppInfo();
 		info.setName(apiMgtClientId);
+		info.setDisplayName(apiMgtClientId);
 		entity.setAdditionalInformation(info.toJson());
 		entity.setClientId(apiMgtClientId);
 		entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT_TRUSTED.name());

@@ -4,7 +4,13 @@
             <th>name</th>
             <td>
             <input type="text" class="form-control"
-                placeholder="app_name" ng-model="app.name" required></td>
+                placeholder="app name" ng-model="app.name" required></td>
+        </tr>
+        <tr>
+            <th>display name</th>
+            <td>
+            <input type="text" class="form-control"
+                placeholder="display name" ng-model="app.displayName" required></td>
         </tr>
         <tr>
             <th>clientId</th>
@@ -34,13 +40,13 @@
              </table>
             </td>
         </tr>
-        <tr>
+<!--         <tr>
             <th>Mobile app schema</th>
             <td><input type="text" class="form-control"
                 placeholder="specify your custom mobile app schema"
                 ng-model="app.mobileAppSchema"></td>
         </tr>
-        
+ -->        
 <!--    
         <tr  ng-show="app.nativeAppsAccess">
             <th>Native app signatures</th>

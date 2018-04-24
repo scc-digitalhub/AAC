@@ -19,6 +19,8 @@ package it.smartcommunitylab.aac.model;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Application descriptor.
  * @author raman
@@ -34,7 +36,7 @@ public class ClientAppBasic {
 	private String clientId;
 	private String clientSecret;
 	private String clientSecretMobile;
-	private String name;
+	private String name, displayName;
 	private String redirectUris;
 	private Set<String> grantedTypes;
 
@@ -158,6 +160,13 @@ public class ClientAppBasic {
 	public void setIdentityProviderApproval(
 			Map<String, Boolean> identityProviderApproval) {
 		this.identityProviderApproval = identityProviderApproval;
+	}
+	
+	public String getDisplayName() {
+		return StringUtils.isEmpty(displayName) ? name : displayName;
+	}
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
 	}
 	/**
 	 * @return

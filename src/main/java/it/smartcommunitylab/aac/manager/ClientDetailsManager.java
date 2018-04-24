@@ -114,12 +114,14 @@ public class ClientDetailsManager {
 		}
 
 		res.setName(e.getName());
+		res.setDisplayName(res.getName());
 		res.setScope(Joiner.on(",").join(e.getScope()));
 		res.setParameters(e.getParameters());
 		res.setMobileAppSchema(e.getMobileAppSchema());
 		
 		ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
 		if (info != null) {
+			res.setDisplayName(info.getDisplayName());
 			if (info.getIdentityProviders() != null) {
 				for (String key : info.getIdentityProviders().keySet()) {
 					switch (info.getIdentityProviders().get(key)) {
@@ -175,6 +177,7 @@ public class ClientDetailsManager {
 				info = ClientAppInfo.convert(client.getAdditionalInformation());
 			}
 			info.setName(data.getName());
+			info.setDisplayName(data.getDisplayName());
 			if (StringUtils.hasText(data.getMobileAppSchema())) {
 				client.setMobileAppSchema(data.getMobileAppSchema());
 			} else {

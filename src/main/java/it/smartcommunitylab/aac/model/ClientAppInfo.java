@@ -36,7 +36,7 @@ public class ClientAppInfo {
 
 	private static ObjectMapper mapper = new ObjectMapper();
 	
-	private String name;
+	private String name, displayName;
 
 	private Map<String, Boolean> resourceApprovals;
 	
@@ -115,5 +115,12 @@ public class ClientAppInfo {
 	public void setProviderConfigurations(Map<String, Map<String, Object>> providerConfigurations) {
 		this.providerConfigurations = providerConfigurations;
 	}
-	
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
 }
