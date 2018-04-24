@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mobile.device.Device;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.RememberMeAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -332,7 +333,7 @@ public class AuthController {
 		List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(nTarget), "UTF-8");
 
 		it.smartcommunitylab.aac.model.User userEntity = null;
-		if (old != null && old instanceof AACAuthenticationToken) {
+		if (old != null && (old instanceof AACAuthenticationToken || old instanceof RememberMeAuthenticationToken)) {
 			String userId = old.getName();
 			userEntity = userRepository.findOne(Long.parseLong(userId));
 		} else {
