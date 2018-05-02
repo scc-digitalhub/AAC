@@ -6,12 +6,12 @@
 	<version>1.0</version>
 	<!-- <packaging>war</packaging> -->
 	<name>aac</name>
-	
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.4.2.RELEASE</version>
-	</parent>	
+	</parent>
 
 	<properties>
 		<jasperreports.version>4.7.0</jasperreports.version>
@@ -20,23 +20,23 @@
 	</properties>
 
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
- 		</dependency>
-    <dependency>
-      <groupId>org.springframework.mobile</groupId>
-      <artifactId>spring-mobile-device</artifactId>
-    </dependency>
-    <dependency>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.mobile</groupId>
+			<artifactId>spring-mobile-device</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -46,64 +46,74 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
-		</dependency>		
-		
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-devtools</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-
-		
- 		<dependency>
-		  <groupId>org.apache.tomcat.embed</groupId>
-		  <artifactId>tomcat-embed-jasper</artifactId>
-		  <scope>provided</scope>
-		</dependency>		
-	
-		
- 		<dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-thymeleaf</artifactId>
-    </dependency>
-
-    <!-- Google authentication -->
-    <dependency>
-      <groupId>com.google.api-client</groupId>
-      <artifactId>google-api-client</artifactId>
-      <version>1.21.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.api-client</groupId>
-      <artifactId>google-api-client-servlet</artifactId>
-      <version>1.21.0</version>
-    </dependency>
+		</dependency>
 
 		<dependency>
-		  <groupId>com.github.scribejava</groupId>
-		  <artifactId>scribejava-apis</artifactId>
-		  <version>2.2.2</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
 		</dependency>
-    
-    <!-- SCO -->
+
+
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-jasper</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<!-- Google authentication -->
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>1.21.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client-servlet</artifactId>
+			<version>1.21.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.scribejava</groupId>
+			<artifactId>scribejava-apis</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+
+		<!-- SCO -->
 		<dependency>
 			<groupId>eu.trentorise.smartcampus</groupId>
 			<artifactId>smartcampus.client.commons</artifactId>
 			<version>2.0.1</version>
 		</dependency>
-    <dependency>
-      <groupId>it.smartcommunitylab.aac.wso2</groupId>
-      <artifactId>wso2-integration</artifactId>
-      <version>${wso2integration.version}</version>
-    </dependency>
-     
-     <dependency>
-    	<groupId>it.smartcommunitylab.aac.authorization</groupId>
-		<artifactId>aac-authorization</artifactId>
-		<version>0.3.0-SNAPSHOT</version>
-    </dependency>
-		
-		
+		<dependency>
+			<groupId>it.smartcommunitylab.aac.wso2</groupId>
+			<artifactId>wso2-integration</artifactId>
+			<version>${wso2integration.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-codec.wso2</groupId>
+					<artifactId>commons-codec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.axis2.wso2</groupId>
+					<artifactId>axis2-client</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>it.smartcommunitylab.aac.authorization</groupId>
+			<artifactId>aac-authorization</artifactId>
+			<version>0.3.0-SNAPSHOT</version>
+		</dependency>
+
+
 
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -114,18 +124,18 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 			<type>jar</type>
-		</dependency>		
-	
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
-		</dependency>		
-		
+		</dependency>
+
 
 		<!-- JPA 2.0 -->
 		<dependency>
@@ -134,11 +144,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>com.h2database</groupId>
-		    <artifactId>h2</artifactId>
-		    <scope>test</scope>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -153,7 +163,7 @@
 			<artifactId>slf4j-log4j12</artifactId>
 		</dependency>
 
-		
+
 
 		<dependency>
 			<groupId>c3p0</groupId>
@@ -175,40 +185,40 @@
 		</dependency>
 		<!-- Use to bean validation -->
 
-    <dependency>
-        <groupId>javax.mail</groupId>
-        <artifactId>mail</artifactId>
-        <version>1.4</version>
-    </dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4</version>
+		</dependency>
 
-    <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>activation</artifactId>
-        <version>1.1</version>
-    </dependency>
-    
-	<dependency>
-		<groupId>commons-logging</groupId>
-		<artifactId>commons-logging</artifactId>
-		<version>1.2</version>
-	</dependency>    
-	
-	<dependency>
-		<groupId>io.springfox</groupId>
-		<artifactId>springfox-swagger2</artifactId>
-		<version>2.7.0</version>
-	</dependency>
-	<dependency>
-		<groupId>io.springfox</groupId>
-		<artifactId>springfox-swagger-ui</artifactId>
-		<version>2.7.0</version>
-	</dependency>	
-	
-    <dependency>
-        <groupId>org.yaml</groupId>
-        <artifactId>snakeyaml</artifactId>
-    </dependency>    
-    
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -217,11 +227,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-        <addResources>true</addResources>
-        <executable>true</executable>
+					<addResources>true</addResources>
+					<executable>true</executable>
 				</configuration>
-			</plugin>		
- 			<plugin>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxb2-maven-plugin</artifactId>
 				<version>1.6</version>
