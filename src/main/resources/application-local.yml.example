@@ -55,6 +55,9 @@ oauth-providers:
       resource:        
         userInfoUri: https://dev.smartcommunitylab.it/aac/accountprofile/me
 
+authorization:
+  roleprrefix: carbon.super:authorization_
+
 security:
   rememberme:
     key: 12345

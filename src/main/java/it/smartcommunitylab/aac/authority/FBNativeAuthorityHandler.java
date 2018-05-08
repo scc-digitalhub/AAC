@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.util.StringUtils;
 
 import eu.trentorise.smartcampus.network.RemoteConnector;
 import it.smartcommunitylab.aac.Config;

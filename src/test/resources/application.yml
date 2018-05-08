@@ -22,6 +22,15 @@ security:
   adminfile: 
   basic:
       enabled: false
+  rememberme:
+    key: 12345
+  cie:
+    idp: Smart Community
+    pattern: "Inserisci il PIN per accedere a %1$s tramite %2$s"
+    defaultsp: Smart Community
+
+identity:
+  source: file:///path/to/identities.txt    
 
 oauth-providers:
   providers:
@@ -52,6 +61,9 @@ oauth-providers:
       resource:        
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
         preferTokenInfo: true        
+
+authorization:
+  roleprrefix: carbon.super:authorization_
 
 admin:
   password: admin

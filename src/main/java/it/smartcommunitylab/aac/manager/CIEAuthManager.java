@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.Config;
@@ -57,8 +58,6 @@ public class CIEAuthManager implements MobileAuthManager {
 	
 	@Autowired
 	private UserCertificateRepository repo;
-	@Autowired
-	private UserManager userManager;
 	
 	@Value("${security.cie.idp}")
 	private String idp;
@@ -150,7 +149,7 @@ public class CIEAuthManager implements MobileAuthManager {
                 	}
                 }
                 if (cert != null) {
-                    boolean certIsOk = true;//isOkSigned(knownSource, r1, signature, convertToX509Cert(cert));
+                    boolean certIsOk = isOkSigned(knownSource, r1, signature, convertToX509Cert(cert));
                     boolean identitiesMatch = identitiesMatch(x509Certificate, username);
                     if (certIsOk && identitiesMatch) {
                         if ( request.getSession().getAttribute("invalidSignature") != null) {
@@ -176,9 +175,8 @@ public class CIEAuthManager implements MobileAuthManager {
 	 * @return username from the security context.
 	 */
 	private String getUsername() {
-		log.debug("authentication "+SecurityContextHolder.getContext().getAuthentication());
-		log.debug("prinicipal "+SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-		return userManager.getUserId().toString();
+		UserDetails details = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		return details.getUsername();
 	}
 
 	/**

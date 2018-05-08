@@ -44,21 +44,6 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @Controller
 public class WSO2Controller {
-
-//	@Autowired
-//	private UserRepository userRepository;
-//	@Autowired
-//	private ClientDetailsRepository clientDetailsRepository;
-//	@Autowired
-//	private ResourceRepository resourceRepository;
-//	@Autowired
-//	private APIProviderManager providerManager;
-//	@Autowired
-//	private ClientDetailsManager clientDetailsManager;	
-//	@Autowired
-//	private RegistrationRepository registrationRepository;
-//	@Autowired
-//	private ResourceManager resourceManager;
 	
 	@Autowired
 	private WSO2Manager wso2Manager;
@@ -71,14 +56,15 @@ public class WSO2Controller {
 	@RequestMapping(value = "/wso2/client/{userName:.+}", method=RequestMethod.POST)
 	public @ResponseBody ClientAppBasic createClient(HttpServletResponse response, @RequestBody ClientAppBasic app, @PathVariable("userName") String userName) throws Exception {
 		try {
-		ClientAppBasic resApp = wso2Manager.createClient(app, userName);
-		
-		if (resApp == null) {
-			response.setStatus(HttpStatus.NOT_FOUND.value());
-			return null;
-		}
-		
-		return resApp;
+			String un = Utils.extractUserFromTenant(userName);
+			ClientAppBasic resApp = wso2Manager.createClient(app, un);
+			
+			if (resApp == null) {
+				response.setStatus(HttpStatus.NOT_FOUND.value());
+				return null;
+			}
+			
+			return resApp;
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
