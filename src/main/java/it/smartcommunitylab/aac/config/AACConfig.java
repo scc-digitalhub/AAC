@@ -12,6 +12,8 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.apimanager.APIManager;
+import it.smartcommunitylab.aac.apimanager.WSO2APIManager;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
@@ -25,6 +27,11 @@ import it.smartcommunitylab.aac.oauth.CachedResourceStorage;
 
 @Configuration 
 public class AACConfig extends WebMvcConfigurerAdapter {
+	
+	@Bean
+	public APIManager getAPIManager() {
+		return new WSO2APIManager();
+	}
 	
 	@Bean
 	public CachedResourceStorage getResourceStorage() {

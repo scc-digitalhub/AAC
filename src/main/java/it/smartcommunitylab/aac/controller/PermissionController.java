@@ -41,8 +41,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
+import it.smartcommunitylab.aac.apimanager.APIManager;
 import it.smartcommunitylab.aac.apimanager.APIProviderManager;
+import it.smartcommunitylab.aac.apimanager.model.AACAPI;
+import it.smartcommunitylab.aac.apimanager.model.DataList;
 import it.smartcommunitylab.aac.apimanager.model.ExtendedService;
+import it.smartcommunitylab.aac.apimanager.model.Subscription;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
@@ -58,10 +62,6 @@ import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceParameterRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
-import it.smartcommunitylab.aac.wso2.model.App;
-import it.smartcommunitylab.aac.wso2.model.Subscription;
-import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
-import it.smartcommunitylab.aac.wso2.services.APIStoreService;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -90,9 +90,7 @@ public class PermissionController {
 	private UserManager userManager;
 	
 	@Autowired
-	private APIPublisherService pub;
-	@Autowired
-	private APIStoreService store;		
+	private APIManager apiManager;
 	@Autowired
 	private APIProviderManager providerManager;	
 	
@@ -196,7 +194,7 @@ public class PermissionController {
 			String token = providerManager.createToken();
 
 			try {
-				List<Subscription> subscriptions = store.getSubscriptions(client.getName(), token);
+				List<Subscription> subscriptions = apiManager.getSubscriptions(client.getName(), token);
 
 				ObjectMapper mapper = new ObjectMapper();
 
@@ -210,11 +208,12 @@ public class PermissionController {
 				for (ExtendedService service: extServices) {
 					if (service.getApiKey() != null) {
 						String parts[] = service.getApiKey().split("-");
-						Map map1 = pub.findAPI(parts[1], token);
-						List<Map> list = (List<Map>)map1.get("list");
-						for (Map map2: list) {
-							if (parts[0].equals((String)map2.get("provider")) && parts[1].equals((String)map2.get("name")) && parts[2].equals((String)map2.get("version"))) {
-								service.setApiId((String)map2.get("id"));
+						DataList<AACAPI> apis = apiManager.findAPI(parts[1], token);
+						if (apis != null && apis.getList() != null) {
+							for (AACAPI api : apis.getList()) {
+								if (parts[0].equals(api.getProvider()) && parts[1].equals(api.getName()) && parts[2].equals(api.getVersion())) {
+									service.setApiId(api.getId());
+								}
 							}
 						}
 					}
@@ -256,7 +255,7 @@ public class PermissionController {
 		response.setResponseCode(RESPONSE.OK);
 		try {
 			logger.info("Unsubscribing, id = " + subscriptionId);
-			store.unsubscribe(subscriptionId, providerManager.createToken());
+			apiManager.unsubscribe(subscriptionId, providerManager.createToken());
 		} catch (Exception e) {
 			logger.error("Failure unsubscribing: " + e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());
@@ -273,11 +272,10 @@ public class PermissionController {
 			String token = providerManager.createToken();
 			
 			ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-			App app = store.getApplication(client.getName(), token);
-			String applicationId = app.getApplicationId();
+			String applicationId = apiManager.getApplicationId(client.getName(), token);
 			
 			logger.info("Subscribing, applicationId = " + applicationId + ", apiId = " + apiIdentifier);
-			store.subscribe(apiIdentifier, applicationId, providerManager.createToken());
+			apiManager.subscribe(apiIdentifier, applicationId, providerManager.createToken());
 		} catch (Exception e) {
 			logger.error("Failure subscribing: " + e.getMessage(),e);
 			response.setErrorMessage(e.getMessage());

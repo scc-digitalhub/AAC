@@ -114,13 +114,15 @@ public class Role implements Serializable, GrantedAuthority {
 
 	@Override
 	public String getAuthority() {
-		StringBuilder sb = new StringBuilder();
-		if (context != null) {
+		if (ROLE_SCOPE.application.equals(scope)  && context != null) {
+			StringBuilder sb = new StringBuilder();
 			sb.append(context);
 			sb.append(':');
+			sb.append(role);
+			return sb.toString();
+		} else {
+			return role;
 		}
-		sb.append(role);
-		return sb.toString();
 	}
 
 }

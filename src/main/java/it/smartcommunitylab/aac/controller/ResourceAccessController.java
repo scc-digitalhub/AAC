@@ -121,7 +121,7 @@ public class ResourceAccessController {
 			String userName = null;
 			String userId = null;
 			
-			System.err.println(auth.getPrincipal());
+//			System.err.println(auth.getPrincipal());
 			
 			if (auth.getPrincipal() instanceof User) {
 				User principal = (User)auth.getPrincipal();

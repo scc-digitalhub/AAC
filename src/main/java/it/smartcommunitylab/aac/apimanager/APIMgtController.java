@@ -44,8 +44,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.apimanager.model.AACAPI;
+import it.smartcommunitylab.aac.apimanager.model.DataList;
+import it.smartcommunitylab.aac.apimanager.model.RoleModel;
+import it.smartcommunitylab.aac.apimanager.model.Subscription;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.UserDTO;
 import it.smartcommunitylab.aac.manager.ResourceManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
@@ -53,13 +55,6 @@ import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.wso2.model.API;
-import it.smartcommunitylab.aac.wso2.model.APIInfo;
-import it.smartcommunitylab.aac.wso2.model.DataList;
-import it.smartcommunitylab.aac.wso2.model.RoleModel;
-import it.smartcommunitylab.aac.wso2.model.Subscription;
-import it.smartcommunitylab.aac.wso2.services.APIPublisherService;
-import it.smartcommunitylab.aac.wso2.services.APIStoreService;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -70,10 +65,8 @@ import springfox.documentation.annotations.ApiIgnore;
 @Controller
 public class APIMgtController {
 
-	@Autowired
-	private APIPublisherService pub;
-	@Autowired
-	private APIStoreService store;	
+	@Autowired 
+	private APIManager apiManager;
 	
 	@Autowired
 	private APIProviderManager providerManager;
@@ -87,30 +80,30 @@ public class APIMgtController {
 	private ResourceManager resourceManager;	
 
 	@GetMapping("/mgmt/apis")
-	public @ResponseBody DataList<APIInfo> getAPIs(
+	public @ResponseBody DataList<AACAPI> getAPIs(
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
 			@RequestParam(required=false, defaultValue="25") Integer limit, 
 			@RequestParam(required=false, defaultValue="") String query) throws Exception {
-		return pub.getAPIs(offset, limit, query, getToken());
+		return apiManager.getAPIs(offset, limit, query, getToken());
 	}
 	
 	@GetMapping("/mgmt/apis/{apiId}")
 	public @ResponseBody AACAPI getAPI(@PathVariable String apiId) throws Exception {
-		API api = pub.getAPI(apiId, getToken());
 		
-		if (api.getThumbnailUri() != null) {
-			api.setThumbnailUri("/mgmt"+api.getThumbnailUri());
-		}
-		AACAPI result = new AACAPI(api);
-		result.setApplicationRoles(resourceManager.getResourceRoles(Utils.getAPIKey(api)));
+		AACAPI result = apiManager.getAPI(apiId, getToken());
+		result.setApplicationRoles(resourceManager.getResourceRoles(getAPIKey(result)));
 		return result;
 	}
 	
+	private String getAPIKey(AACAPI api) {
+		return api.getProvider() + "-" + api.getName() + "-"+ api.getVersion();
+	} 
+
 	@GetMapping("/mgmt/apis/{apiId}/thumbnail")
 	public @ResponseBody byte[] getAPIImage(@PathVariable String apiId, HttpServletResponse res) throws Exception {
-		API api = pub.getAPI(apiId, getToken());
+		AACAPI api = apiManager.getAPI(apiId, getToken());
 		res.setContentType(MediaType.IMAGE_JPEG_VALUE);
-		if (api.getThumbnailUri() != null) return pub.getAPIThumbnail(apiId, getToken());
+		if (api.getThumbnailUri() != null) return apiManager.getAPIThumbnail(apiId, getToken());
 		return null;
 	}
 
@@ -120,7 +113,7 @@ public class APIMgtController {
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
 			@RequestParam(required=false, defaultValue="25") Integer limit) throws Exception 
 	{
-		DataList<Subscription> subs = pub.getSubscriptions(apiId, userManager.getProviderDomain(), offset, limit, getToken());
+		DataList<Subscription> subs = apiManager.getSubscriptions(apiId, userManager.getProviderDomain(), offset, limit, getToken());
 		apiRoleManager.fillRoles(subs, userManager.getProviderDomain());
 		return subs;
 	}
@@ -130,8 +123,6 @@ public class APIMgtController {
 	@PutMapping("/mgmt/apis/userroles")
 	public @ResponseBody List<String> updateRoles(@RequestBody RoleModel roleModel) throws Exception 
 	{
-//		umService.updateRoles(roleModel, roleModel.getUser(), userManager.getProviderDomain());
-//		List<String> roles = pub.getUserAPIRoles(apiId, roleModel.getUser(), userManager.getProviderDomain(), getToken());
 		return apiRoleManager.updateLocalRoles(roleModel,userManager.getProviderDomain());
 	} 
 	
@@ -158,20 +149,12 @@ public class APIMgtController {
 		return dataList;
 	}
 
-	
-	@GetMapping("/mgmt/applications/{applicationName}")
-	public @ResponseBody DataList<APIInfo> getApplications(@PathVariable String applicationName) throws Exception {
-		store.getApplication(applicationName, getToken());
-		return null;
-	}	
-	
 	@GetMapping("/mgmt/applications/{applicationName}/subscriptions")
 	public @ResponseBody List<Subscription> getSubscriptions(@PathVariable String applicationName) throws Exception {
 		String token = getToken();
-		List<Subscription> subscriptions = store.getSubscriptions(applicationName, token);
+		List<Subscription> subscriptions = apiManager.getSubscriptions(applicationName, token);
 		return subscriptions;
 	}		
-	
 	
 	/**
 	 * @return 

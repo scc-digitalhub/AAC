@@ -48,7 +48,6 @@ import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.wso2.services.UserManagementService;
 
 @Controller
 @Api(tags = {"AAC Roles"})
@@ -59,8 +58,6 @@ public class RolesController {
 
 	@Autowired
 	private UserManager userManager;
-	@Autowired
-	UserManagementService userManagementService;
 	@Autowired
 	private ResourceServerTokenServices resourceServerTokenServices;
 	@Autowired

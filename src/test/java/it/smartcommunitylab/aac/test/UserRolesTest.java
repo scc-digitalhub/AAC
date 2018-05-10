@@ -17,6 +17,7 @@ import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.apimanager.model.RoleModel;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -25,7 +26,6 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.RoleRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.wso2.model.RoleModel;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest

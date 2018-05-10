@@ -18,13 +18,13 @@ package it.smartcommunitylab.aac.apimanager.model;
 
 import java.util.Set;
 
-import it.smartcommunitylab.aac.wso2.model.API;
-
 /**
  * @author raman
  *
  */
-public class AACAPI extends API {
+public class AACAPI  {
+
+	private String id, name, description, context, version, provider, status, thumbnailUri;
 
 	private Set<String> applicationRoles;
 
@@ -33,28 +33,70 @@ public class AACAPI extends API {
 		super();
 	}
 
-	public AACAPI(API api) {
-		super();
-		this.setApiDefinition(api.getApiDefinition());
-		this.setContext(api.getContext());
-		this.setDescription(api.getDescription());
-		this.setEndpointConfig(api.getEndpointConfig());
-		this.setId(api.getId());
-		this.setIsDefaultVersion(api.getIsDefaultVersion());
-		this.setName(api.getName());
-		this.setProvider(api.getProvider());
-		this.setResponseCaching(api.getResponseCaching());
-		this.setStatus(api.getStatus());
-		this.setThumbnailUri(api.getThumbnailUri());
-		this.setTiers(api.getTiers());
-		this.setTransport(api.getTransport());
-		this.setVersion(api.getVersion());
-		this.setVisibility(api.getVisibility());
-		this.setVisibleRoles(api.getVisibleRoles());
-		this.setVisibleTenants(api.getVisibleTenants());
-		this.setWsdlUri(api.getWsdlUri());
-		
+	public String getId() {
+		return id;
 	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getContext() {
+		return context;
+	}
+
+	public void setContext(String context) {
+		this.context = context;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public String getProvider() {
+		return provider;
+	}
+
+	public void setProvider(String provider) {
+		this.provider = provider;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getThumbnailUri() {
+		return thumbnailUri;
+	}
+
+	public void setThumbnailUri(String thumbnailUri) {
+		this.thumbnailUri = thumbnailUri;
+	}
+
 
 	public Set<String> getApplicationRoles() {
 		return applicationRoles;
