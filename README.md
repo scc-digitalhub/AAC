@@ -157,6 +157,7 @@ In case you run the tool from the IDE, add the profile configuration to the VM p
 
 To enable the authorization module, add the corresponding profile to the profile list (comma-separated)
 
+Once started, the AAC tool UI is available at ``http://localhost:8080/aac``.
 
 ### 3.1. Execution under API Manager integration
 
@@ -270,6 +271,8 @@ A successful response is returned as a JSON object, similar to the following:
 Finally, if the API Manager is used, the token may be obtained directly from the API Manager console.   
     
 ## 5. AAC API
+  
+The Swagger UI for the AAC API is available at ``http://localhost:8080/aac/swagger-ui.html``.   
   
 ### 5.1. Profile API  
 To obtain the basic user data the following call should be performed:   
