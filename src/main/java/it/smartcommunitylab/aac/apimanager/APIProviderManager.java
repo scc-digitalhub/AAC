@@ -85,12 +85,14 @@ public class APIProviderManager {
 	/** APIMananger email */
 	public static final String EMAIL_ATTR = "email";
 
-	@Value("${adminClient.id}")
+	@Value("${api.adminClient.id}")
 	private String apiMgtClientId;
-	@Value("${adminClient.secret}")
+	@Value("${api.adminClient.secret}")
 	private String apiMgtClientSecret;	
 	@Value("${application.url}")
 	private String clientCallback;	
+	@Value("${authorization.roleprrefix}")
+	private String prefix;
 	
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create", "apim:api_publish"};
@@ -117,7 +119,7 @@ public class APIProviderManager {
 	
 	
 	public void init(long developerId) throws Exception {
-		if (clientDetailsRepository.findByClientId(apiMgtClientId) == null) {
+		if (apiMgtClientId != null && clientDetailsRepository.findByClientId(apiMgtClientId) == null) {
 			createAPIMgmtClient(developerId);
 		}
 	}

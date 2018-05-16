@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.wso2;
+package it.smartcommunitylab.aac.apimanager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Component
 //@Transactional
-public class WSO2Manager {
+public class APIManagerProviderService {
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;

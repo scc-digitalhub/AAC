@@ -36,7 +36,7 @@ import it.smartcommunitylab.aac.dto.AccountProfile;
  */
 public class FileEmailIdentitySource implements IdentitySource {
 
-	@Value("${identity.source}")
+	@Value("${security.identity.source}")
 	private Resource source;
 	
 	@Override

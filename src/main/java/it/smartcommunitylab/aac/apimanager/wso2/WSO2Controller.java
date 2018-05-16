@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package it.smartcommunitylab.aac.wso2;
+package it.smartcommunitylab.aac.apimanager.wso2;
 
 import java.net.URLDecoder;
 
@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import it.smartcommunitylab.aac.apimanager.APIManagerProviderService;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.keymanager.model.AACService;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
@@ -46,7 +47,7 @@ import springfox.documentation.annotations.ApiIgnore;
 public class WSO2Controller {
 	
 	@Autowired
-	private WSO2Manager wso2Manager;
+	private APIManagerProviderService wso2Manager;
 	
 	@Autowired
 	private TokenStore tokenStore;	

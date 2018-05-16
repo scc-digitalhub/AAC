@@ -38,6 +38,26 @@ angular.module('aac.controllers.clients', [])
 	$scope.switchClient = function(client) {
 		$location.path('/apps/'+client);
 	};
+	
+	/**
+	 * create new client app
+	 */
+	$scope.newClient = function() {
+		var n = prompt("Create new client app", "client name");
+		if (n != null && n.trim().length > 0) {
+			var newClient = new ClientAppBasic({name:n});
+			newClient.$save(function(response){
+				if (response.responseCode == 'OK') {
+					$scope.error = '';
+					var app = response.data;
+					$scope.apps.push(app);
+					$scope.switchClient(app.clientId);
+				} else {
+					$scope.error = 'Failed to create new app: '+response.errorMessage;
+				}
+			});
+		}
+	};
 })
 
 
@@ -446,32 +466,12 @@ angular.module('aac.controllers.clients', [])
 			newClient.$remove({clientId:$scope.clientId},function(response){
 				if (response.responseCode == 'OK') {
 					$scope.error = '';
-					init();
+					$location.path('/apps');
 				} else {
 					$scope.error = 'Failed to remove app: '+response.errorMessage;
 				}	
 			});
 	    }
-	};
-
-	/**
-	 * create new client app
-	 */
-	$scope.newClient = function() {
-		var n = prompt("Create new client app", "client name");
-		if (n != null && n.trim().length > 0) {
-			var newClient = new ClientAppBasic({name:n});
-			newClient.$save(function(response){
-				if (response.responseCode == 'OK') {
-					$scope.error = '';
-					var app = response.data;
-					$scope.apps.push(app);
-					$scope.switchClient(app.clientId);
-				} else {
-					$scope.error = 'Failed to create new app: '+response.errorMessage;
-				}
-			});
-		}
 	};
 
 	/**

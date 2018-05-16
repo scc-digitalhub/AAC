@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.apimanager;
+package it.smartcommunitylab.aac.apimanager.wso2;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +28,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 
+import it.smartcommunitylab.aac.apimanager.APIManager;
 import it.smartcommunitylab.aac.apimanager.model.AACAPI;
 import it.smartcommunitylab.aac.apimanager.model.DataList;
 import it.smartcommunitylab.aac.apimanager.model.Subscription;
@@ -46,7 +47,7 @@ import it.smartcommunitylab.aac.wso2.services.Utils;
  */
 public class WSO2APIManager implements APIManager {
 
-	private final static String ENDPOINT_CONFIG = "{\"production_endpoints\":{\"url\":\"${application.internalUrl}\",\"config\":null},\"sandbox_endpoints\":{\"url\":\"${application.internalUrl}\",\"config\":null},\"endpoint_type\":\"http\"}";
+	private final static String ENDPOINT_CONFIG = "{\"production_endpoints\":{\"url\":\"${api.internalUrl}\",\"config\":null},\"sandbox_endpoints\":{\"url\":\"${api.internalUrl}\",\"config\":null},\"endpoint_type\":\"http\"}";
 
 	@Autowired
 	private ConfigurableEnvironment env;
