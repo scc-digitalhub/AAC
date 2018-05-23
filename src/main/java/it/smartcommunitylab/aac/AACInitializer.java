@@ -40,7 +40,6 @@ public class AACInitializer implements ApplicationListener<ApplicationReadyEvent
 		coreAPIsPublisher.init();
 		} catch (Exception e) {
 			logger .error(e.getMessage(), e);
-//			System.exit(0);
 		}
 	}
 	

@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.apimanager;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,7 +28,7 @@ import java.util.UUID;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -44,9 +43,6 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.wso2.carbon.tenant.mgt.stub.TenantMgtAdminServiceExceptionException;
-import org.wso2.carbon.um.ws.api.stub.ClaimValue;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import com.google.common.base.Joiner;
 
@@ -66,8 +62,6 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.wso2.services.UserManagementService;
-import it.smartcommunitylab.aac.wso2.services.Utils;
 
 /**
  * @author raman
@@ -91,12 +85,14 @@ public class APIProviderManager {
 	/** APIMananger email */
 	public static final String EMAIL_ATTR = "email";
 
-	@Value("${adminClient.id}")
+	@Value("${api.adminClient.id}")
 	private String apiMgtClientId;
-	@Value("${adminClient.secret}")
+	@Value("${api.adminClient.secret}")
 	private String apiMgtClientSecret;	
 	@Value("${application.url}")
 	private String clientCallback;	
+	@Value("${authorization.roleprrefix}")
+	private String prefix;
 	
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create", "apim:api_publish"};
@@ -115,14 +111,15 @@ public class APIProviderManager {
 	@Autowired
 	private ResourceRepository resourceRepository;
 	@Autowired
-	private UserManagementService umService;
-	@Autowired
 	private RegistrationService regService;
 	@Autowired
 	private RoleManager roleManager;
+	@Autowired
+	private APIManager apiManager;
+	
 	
 	public void init(long developerId) throws Exception {
-		if (clientDetailsRepository.findByClientId(apiMgtClientId) == null) {
+		if (apiMgtClientId != null && clientDetailsRepository.findByClientId(apiMgtClientId) == null) {
 			createAPIMgmtClient(developerId);
 		}
 	}
@@ -149,9 +146,9 @@ public class APIProviderManager {
 		roleManager.addRole(created, roleManagerRole);
 
 		try {
-			umService.createPublisher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());
+			apiManager.createPublisher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());
 			sendConfirmationMail(provider, key);
-		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
+		} catch (Exception e) {
 			throw new RegistrationException(e.getMessage());
 		}
 		
@@ -168,14 +165,14 @@ public class APIProviderManager {
 				Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
 				if (providerRoles != null && providerRoles.size() == 1) {
 					Role providerRole = providerRoles.iterator().next();
-					umService.updatePublisherPassword(email, providerRole.getContext(), newPassword);
+					apiManager.updatePublisherPassword(email, providerRole.getContext(), newPassword);
 				} else {
-					umService.updateNormalUserPassword(email, newPassword);
+					apiManager.updatePassword(email, newPassword);
 				}
 			} else {
 				throw new RegistrationException("User does not exist");
 			}	
-		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | TenantMgtAdminServiceExceptionException e) {
+		} catch (Exception e) {
 			throw new RegistrationException(e.getMessage());
 		}
 	}
@@ -185,13 +182,8 @@ public class APIProviderManager {
 	 */
 	public void createAPIUser(RegistrationBean reg) {
 		try {
-			ClaimValue[] claims = new ClaimValue[]{
-					Utils.createClaimValue("http://wso2.org/claims/emailaddress", reg.getEmail()),
-					Utils.createClaimValue("http://wso2.org/claims/givenname", reg.getName()),
-					Utils.createClaimValue("http://wso2.org/claims/lastname", reg.getSurname())
-			};
-			umService.createSubscriber(reg.getEmail(), reg.getPassword(), claims);
-		} catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+			apiManager.createUser(reg.getEmail(), reg.getPassword(), reg.getName(), reg.getSurname());
+		} catch (Exception e) {
 			throw new RegistrationException(e.getMessage());
 		}	
 	}
@@ -351,7 +343,7 @@ public class APIProviderManager {
 		String username = user.getUsername();
 		Role role = providerRoles.iterator().next();
 		
-		return Utils.getUserNameAtTenant(username, role.getContext());
+		return it.smartcommunitylab.aac.common.Utils.getUserNameAtTenant(username, role.getContext());
 	}
 	
 	/**

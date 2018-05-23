@@ -112,12 +112,17 @@ public class Role implements Serializable, GrantedAuthority {
 		return scope + " " + role + (context == null ? "" : " - " + context) + " [" + id + "]";
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.security.core.GrantedAuthority#getAuthority()
-	 */
 	@Override
 	public String getAuthority() {
-		return role;
+		if (ROLE_SCOPE.application.equals(scope)  && context != null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(context);
+			sb.append(':');
+			sb.append(role);
+			return sb.toString();
+		} else {
+			return role;
+		}
 	}
 
 }

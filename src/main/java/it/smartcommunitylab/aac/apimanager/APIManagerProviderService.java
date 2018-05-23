@@ -1,8 +1,6 @@
-package it.smartcommunitylab.aac.wso2;
+package it.smartcommunitylab.aac.apimanager;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,66 +8,52 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Lists;
-import com.google.api.client.util.Maps;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
-import it.smartcommunitylab.aac.apimanager.APIProviderManager;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jaxbmodel.Authority;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.keymanager.model.AACResource;
 import it.smartcommunitylab.aac.keymanager.model.AACService;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
-import it.smartcommunitylab.aac.manager.ResourceManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.ServiceDescriptor;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.ServiceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Component
 //@Transactional
-public class WSO2Manager {
+public class APIManagerProviderService {
 
-	@Autowired
-	private UserRepository userRepository;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private ResourceRepository resourceRepository;
 	@Autowired
-	private APIProviderManager providerManager;
-	@Autowired
 	private ClientDetailsManager clientDetailsManager;	
 	@Autowired
-	private RegistrationRepository registrationRepository;
-	@Autowired
-	private ResourceManager resourceManager;	
+	private UserRepository userRepository;
 	@Autowired
 	private ServiceRepository serviceRepository;
 	
 	public ClientAppBasic createClient(ClientAppBasic app, String userName) throws Exception {
-		String un = Utils.extractUserFromTenant(userName);
+		User user = userRepository.findByUsername(userName);
 		
-		Registration registration = registrationRepository.findByEmail(un);
-		
-		if (registration == null) {
+		if (user == null) {
 			return null;
 		}
 		
-		ClientAppBasic resApp = clientDetailsManager.createOrUpdate(app, Long.parseLong(registration.getUserId()));
+		ClientAppBasic resApp = clientDetailsManager.createOrUpdate(app, user.getId());
 		resApp.setRedirectUris(app.getRedirectUris());
 		resApp.setGrantedTypes(app.getGrantedTypes());
 		clientDetailsManager.update(resApp.getClientId(), resApp);
@@ -95,8 +79,8 @@ public class WSO2Manager {
 		clientDetailsRepository.save(entity);
 	}	
 	
-	public void updateClientScope(String consumerKey, String scope) throws Exception {
-		ClientDetailsEntity entity = clientDetailsRepository.findByClientId(consumerKey);
+	public void updateClientScope(String clientId, String scope) throws Exception {
+		ClientDetailsEntity entity = clientDetailsRepository.findByClientId(clientId);
 		Set<String> oldScope = entity.getScope();
 		oldScope.addAll(Splitter.on(",").splitToList(scope));
 		entity.setScope(Joiner.on(",").join(oldScope));
@@ -129,11 +113,11 @@ public class WSO2Manager {
 	
 	public boolean createResource(AACService service, String userName) throws Exception {
 		
-		Registration registration = registrationRepository.findByEmail(userName);
+		User user = userRepository.findByUsername(userName);
 		
-		if (registration == null) {
+		if (user == null) {
 			return false;
-		}		
+		}
 		
 		String serviceId = service.getServiceName();
 		
@@ -141,7 +125,7 @@ public class WSO2Manager {
 		sd.setServiceId(serviceId);
 		sd.setServiceName(serviceId);
 		sd.setDescription(service.getDescription());
-		sd.setOwnerId(registration.getUserId());		
+		sd.setOwnerId(user.getId().toString());		
 		sd.setResourceDefinitions(new ArrayList<String>().toString());
 		sd.setResourceMappings(resourcesToJSON(service.getResources()));
 		sd.setApiKey(service.getApiKey());
@@ -199,9 +183,7 @@ public class WSO2Manager {
 	private String resourcesToJSON(List<AACResource> resources) throws Exception {
 		List<ResourceMapping> list = Lists.newArrayList();
 		for (AACResource resource: resources) {
-			Map<String, Object> map = Maps.newTreeMap();
 			ResourceMapping rm = new ResourceMapping();
-			
 			rm.setId(resource.getResourceUri());
 			rm.setName(resource.getName());
 			rm.setDescription(resource.getDescription());

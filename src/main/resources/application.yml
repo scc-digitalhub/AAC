@@ -1,27 +1,25 @@
-server:
-  host: localhost:8080
-  contextPath: /aac
-
-jdbc:
-  dialect: org.hibernate.dialect.MySQLDialect
-  driver: com.mysql.jdbc.Driver
-
+# RESOURCE MESSAGES
 spring:
   messages:
     basename: resources/internal
     encoding: UTF-8
 
-
+# BASIC SECURITY PROPERTIES
 security:
   restricted: false
   basic:
       enabled: false
+  cie: # CIE 2-factor authentication properties
+    idp: Smart Community
+    pattern: "Inserisci il PIN per accedere a %1$s tramite %2$s"
+    defaultsp: Smart Community
 
-
+# LOGGING CONFIGURATION
 logging:
   level:
-    org.springframework.security: INFO
+    ROOT: INFO
 
+# SWAGGER 
 swagger:
   title: 
     AAC: AAC API - Profile and token info 
@@ -40,3 +38,11 @@ swagger:
     name:  Smart Community Lab
     url: www.smartcommunitylab.it
     email: info@smartcommunitylab.it
+    
+---
+spring:
+  profiles: authorization
+# ROLE PREFIX FOR AUTHORIZATION CHECK
+authorization:
+  roleprrefix: carbon.super:authorization_
+    

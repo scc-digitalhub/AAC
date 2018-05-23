@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.model;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Application descriptor.

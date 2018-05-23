@@ -81,6 +81,9 @@ import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
 import it.smartcommunitylab.aac.model.MockDataMappings;
+import it.smartcommunitylab.aac.oauth.AACJDBCClientDetailsService;
+import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
+import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.AACRememberMeServices;
 import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
@@ -88,8 +91,6 @@ import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsRegistrationFilter;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ContextExtender;
-import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
-import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.MockDataAwareOAuth2SuccessHandler;
@@ -98,8 +99,8 @@ import it.smartcommunitylab.aac.oauth.NativeTokenGranter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
-import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
+import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -141,7 +142,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public JdbcClientDetailsService getClientDetails() throws PropertyVetoException {
-		JdbcClientDetailsService bean = new JdbcClientDetailsService(dataSource);
+		JdbcClientDetailsService bean = new AACJDBCClientDetailsService(dataSource);
 		bean.setRowMapper(getClientDetailsRowMapper());
 		return bean;
 	}
@@ -169,7 +170,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public ClientDetailsRowMapper getClientDetailsRowMapper() {
-		return new ClientDetailsRowMapper();
+		return new ClientDetailsRowMapper(userRepository);
 	}
 	
 	@Bean
@@ -318,8 +319,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		private AuthenticationManager authenticationManager;
 
 		@Autowired
-		private ClientDetailsService clientDetailsService;
-		@Autowired
 		private ClientDetailsRepository clientDetailsRepository;
 
 		@Autowired
@@ -344,7 +343,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			bean.setTokenStore(tokenStore);
 			bean.setSupportRefreshToken(true);
 			bean.setReuseRefreshToken(true);
-			bean.setClientDetailsService(clientDetailsService);
+			bean.setClientDetailsService(getClientDetails());
 			bean.setTokenEnhancer(new AACTokenEnhancer());
 			return bean;
 		}
@@ -368,7 +367,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Override
 		public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-			clients.jdbc(dataSource).clients(clientDetailsService);
+			clients.withClientDetails(getClientDetails());
 		}
 
 		@Override
