@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/smartcommunitylab/AAC.svg?branch=master)](https://travis-ci.org/smartcommunitylab/AAC)
+
 # AAC
 Authentication and Authorization Control Module.
 
