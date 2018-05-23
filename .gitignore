@@ -25,3 +25,4 @@ aac.log
 
 *.log
 /logs/
+/.settings/
