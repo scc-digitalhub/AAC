@@ -75,7 +75,7 @@ angular.module('aac.controllers.admin', [])
 	};
 })
 
-.controller('APIProviderController', function ($uibModal, $scope, APIProviders, Utils) {
+.controller('APIProviderController', function ($scope, APIProviders, Utils) {
 
 	var resetPage = function(){
 		$scope.page = {
@@ -108,20 +108,25 @@ angular.module('aac.controllers.admin', [])
 	$scope.createProvider = function() {
 		$scope.providerDlg.close();
 		APIProviders.createProvider($scope.provider).then(function(){
+			$('#providerModal').modal('hide');
 			Utils.showSuccess();
 			resetPage();
 			loadData();
 		},Utils.showError);
 	}
+	$scope.dismiss = function(){
+		$('#providerModal').modal('hide');
+	}
 	
 	$scope.newProvider = function(){
 		$scope.provider = {};
-		$scope.providerDlg = $uibModal.open({
-	      ariaLabelledBy: 'modal-title',
-	      ariaDescribedBy: 'modal-body',
-	      templateUrl: 'html/provider.modal.html',
-	      scope: $scope,
-	      size: 'lg'
-	    });
+		$('#providerModal').modal({backdrop: 'static', focus: true})
+//		$scope.providerDlg = $uibModal.open({
+//	      ariaLabelledBy: 'modal-title',
+//	      ariaDescribedBy: 'modal-body',
+//	      templateUrl: 'html/provider.modal.html',
+//	      scope: $scope,
+//	      size: 'lg'
+//	    });
 	}
 })

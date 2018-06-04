@@ -26,7 +26,7 @@ public class Response {
 	public enum RESPONSE {OK,ERROR};
 	
 	private Object data;
-	private RESPONSE responseCode;
+	private RESPONSE responseCode = RESPONSE.OK;
 	private String errorMessage;
 	
 	public static Response ok(Object data) {

@@ -39,11 +39,11 @@
       <div class="container">
 	      <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
 	      <div class="clear"></div>
-        <div class="row">
+        <div class="row justify-content-center">
           <div class="col-md-offset-4 col-md-4">
             <div class="panel panel-default">
             <h4 style="text-align:center"><fmt:message bundle="${res}" key="lbl_confirm_error_title" /></h4>
-            <c:if test="${error != null}"><div class="error"><fmt:message bundle="${res}" key="${error}" /></div></c:if>
+            <c:if test="${error != null}"><div class="error text-center"><fmt:message bundle="${res}" key="${error}" /></div></c:if>
             <div>&nbsp;</div>
             <div class="col-md-12 form-group">
               <a class="btn" href="resend

@@ -1,16 +1,33 @@
 <div class="container">
-<div class="row" ng-controller="AdminController">
+<div class="row">
+  <div class="col-3">
+    <div class="nav flex-column nav-tabs" id="v-pills-tab" role="tablist" aria-orientation="vertical">      
+      <a class="nav-link" ng-class="{'active':adminView == 'approvals'}" ng-click="adminView='approvals'" id="v-pills-app-tab" data-toggle="pill"  role="tab" aria-controls="v-pills-app" aria-selected="false">App Aprovals</a>
+      <a class="nav-link" ng-class="{'active':adminView == 'idps'}" ng-click="adminView='idps'" id="v-pills-idp-tab" data-toggle="pill"  role="tab" aria-controls="v-pills-idp" aria-selected="false">IdP Approvals</a>
+      <a class="nav-link" ng-class="{'active':adminView == 'providers'}" ng-click="adminView='providers'" id="v-pills-provider-tab" data-toggle="pill" role="tab" aria-controls="v-pills-provider" aria-selected="false">API Providers</a>
+    </div>
+  </div>
+  <div class="col-9">
+    <div class="tab-content" id="v-pills-tabContent">
+	    <div class="alert alert-danger" ng-show="error != ''">{{error}}</div>
+	    <div class="alert alert-success" ng-show="info != ''">{{info}}</div>
+      <div class="tab-pane fade show active" id="v-pills-app" role="tabpanel" aria-labelledby="v-pills-app-tab">
+        <div ng-include="'./html/'+adminView+'.html'"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- <div class="row" ng-controller="AdminController">
   <div class="col-md-2">
-    <div class="sidebar-nav well">
-       <ul class="nav nav-pills nav-stacked">
-         <li ng-class="{'active':adminView == 'approvals'}"><a ng-click="adminView='approvals';title='App Approvals'">App approvals</a></li>
-         <li ng-class="{'active':adminView == 'idps'}"><a ng-click="adminView='idps';title='IdP Approvals'">IdP approvals</a></li>
-         <li ng-class="{'active':adminView == 'providers'}"><a ng-click="adminView='providers';title='API Providers'">API Providers</a></li>
+    <div class="sidebar-nav">
+       <ul class="nav nav-pills flex-column">
+         <li class="nav-item" ng-class="{'active':adminView == 'approvals'}"><a ng-click="adminView='approvals';title='App Approvals'">App approvals</a></li>
+         <li class="nav-item" ng-class="{'active':adminView == 'idps'}"><a ng-click="adminView='idps';title='IdP Approvals'">IdP approvals</a></li>
+         <li class="nav-item" ng-class="{'active':adminView == 'providers'}"><a ng-click="adminView='providers';title='API Providers'">API Providers</a></li>
        </ul>
     </div>
-    <!--/.well -->
   </div>
-  <!--/span-->
+  /span
   <div class="col-md-9 well">
     <div class="alert alert-danger" ng-show="error != ''">{{error}}</div>
     <div class="alert alert-success" ng-show="info != ''">{{info}}</div>
@@ -21,7 +38,7 @@
     </div>
     <div ng-include="'./html/'+adminView+'.html'"></div>
   </div>
-  <!--/span-->
+  /span
 </div>
-<!--/row-->
+ --><!--/row-->
 </div>

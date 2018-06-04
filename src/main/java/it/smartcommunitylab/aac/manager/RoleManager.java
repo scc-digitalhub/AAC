@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -148,6 +150,7 @@ public class RoleManager {
 		final String name = info[0];
 		
 		User user = userRepository.findByUsername(name);
+		if (user == null) throw new EntityNotFoundException("User "+name + " does not exist");
 
 		Set<Role> userRoles = new HashSet<Role>(user.getRoles());
 

@@ -1,15 +1,15 @@
 <form ng-submit="saveSettings()" role="form" name="settingsForm">
-    <table class="table table-bordered">
+    <table class="table table-bordered align-middle">
         <tr>
             <th>name</th>
             <td>
-            <input type="text" class="form-control"
+            <input type="text" class="form-control form-control-sm"
                 placeholder="app name" ng-model="app.name" required></td>
         </tr>
         <tr>
             <th>display name</th>
             <td>
-            <input type="text" class="form-control"
+            <input type="text" class="form-control form-control-sm"
                 placeholder="display name" ng-model="app.displayName" required></td>
         </tr>
         <tr>
@@ -26,7 +26,7 @@
         </tr>
         <tr>
             <th>redirect Web server URLs</th>
-            <td><input type="text" class="form-control"
+            <td><input type="text" class="form-control form-control-sm"
                 placeholder="specify your (comma-separated) web app addresses"
                 ng-model="app.redirectUris"></td>
         </tr>
@@ -42,7 +42,7 @@
         </tr>
 <!--         <tr>
             <th>Mobile app schema</th>
-            <td><input type="text" class="form-control"
+            <td><input type="text" class="form-control form-control-sm"
                 placeholder="specify your custom mobile app schema"
                 ng-model="app.mobileAppSchema"></td>
         </tr>
@@ -50,7 +50,7 @@
 <!--    
         <tr  ng-show="app.nativeAppsAccess">
             <th>Native app signatures</th>
-            <td><input type="text" class="form-control" placeholder="specify your (comma-separated) app signatures" ng-model="app.nativeAppSignatures"></td>
+            <td><input type="text" class="form-control form-control-sm" placeholder="specify your (comma-separated) app signatures" ng-model="app.nativeAppSignatures"></td>
         </tr>
 -->        
         <tr>
@@ -67,7 +67,7 @@
 	             <td width="100%">
 	             <div ng-if="providerConfig[k] && app.identityProviders[k]">
 	               <div ng-repeat="pConf in providerConfig[k]">
-	               <label>{{pConf.label}}<span ng-if="pConf.required"> (Required)</span></label><input type="{{pConf.type ? pConf.type: 'text'}}" class="form-control" placeholder="{{pConf.label}}" ng-required="pConf.required" ng-model="app.providerConfigurations[k][pConf.value]">
+	               <label>{{pConf.label}}<span ng-if="pConf.required"> (Required)</span></label><input type="{{pConf.type ? pConf.type: 'text'}}" class="form-control form-control-sm" placeholder="{{pConf.label}}" ng-required="pConf.required" ng-model="app.providerConfigurations[k][pConf.value]">
 	               </div>
 	             </div>
 	             </td>
@@ -76,5 +76,5 @@
 	        </td>
         </tr>
     </table>
-    <button type="submit" class="btn btn-primary" ng-disabled="settingsForm.$invalid">Save settings</button>
+    <button type="submit" class="btn btn-primary float-right" ng-disabled="!settingsForm.$dirty || settingsForm.$invalid">Save settings</button>
 </form>

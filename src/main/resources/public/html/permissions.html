@@ -1,12 +1,14 @@
-  <table class="table table-bordered">
-	  <tr ng-repeat="item in services">
-	    <td> 
-	    <bold><a ng-click="changeServicePermissions(item)">{{item.name}}</a></bold>
-	    <p/>
-      {{item.description}}
+  <table class="table border-bottom">
+    <tr ng-repeat="item in services">
+      <td class="align-middle"> 
+      <bold><a href ng-click="changeServicePermissions(item)">{{item.name}}</a></bold>
+      <br/>{{item.description}}
       </td>
-      <td><a ng-if="item.apiId != null" class="btn btn-mini btn-success pull-right" ng-click="subscribe(item.apiId)">Subscribe</a><a ng-if="item.subscriptionId != null" class="btn btn-mini btn-danger pull-right" ng-click="unsubscribe(item.subscriptionId)">Unsubscribe</a></td>
-	  </tr>
+      <td  class="align-middle text-right">
+      <button class="btn btn-link text-success" ng-if="item.apiId != null" ng-click="subscribe(item.apiId)">Subscribe</button>
+      <button class="btn btn-link btn-danger " ng-if="item.subscriptionId != null" ng-click="unsubscribe(item.subscriptionId)">Unsubscribe</button>
+      </td>
+    </tr>
   </table>
   <div ng-include="'./html/service-perm.html'"></div>
 

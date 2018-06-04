@@ -1,7 +1,7 @@
 <div>
 	<div class="header">
-		<h1>API: {{api.name}}</h1>
-		<h4 ng-if="!!api.description">{{api.description}}</h4>
+		<h3>API: {{api.name}}</h3>
+		<p ng-if="!!api.description">{{api.description}}</p>
 	</div>
 	<div class="app-description">
 	  <div class="row"> 
@@ -9,19 +9,19 @@
 	    <div class="col-md-10">
 				<table class="table">
 					<tr>
-						<td>Version</td>
+						<th>Version</th>
 						<td>{{api.version}}</td>
 					</tr>
 					<tr>
-						<td>Status</td>
+						<th>Status</th>
 						<td>{{api.status}}</td>
 					</tr>
 		      <tr>
-		        <td>Provider</td>
+		        <th>Provider</th>
 		        <td>{{api.provider}}</td>
 		      </tr>
           <tr>
-            <td>Required roles</td>
+            <th>Required roles</th>
             <td>{{api.roles.length >0 ? api.roles.join(', ') : 'No roles assigned'}}</td>
           </tr>
 				</table>
@@ -30,19 +30,31 @@
 	</div>
 	<div>
 	  <h2>Manage role assignment</h2>
-    <table class="table">
+    <table class="table border-bottom table-hover">
       <thead><tr><th>User</th><th>App</th><th>Status</th><th>Roles</th><th></th></tr></thead>
       <tr ng-repeat="sub in api.subscriptions.list">
-        <td>{{sub.subscriber}}</td>
-        <td>{{sub.appName}}<br/>({{sub.applicationId}})</td>
-        <td>{{sub.status}}</td>
-        <td>{{sub.roles.join(', ')}}</td>
-        <td><a ng-click="changeRoles(sub)">Change roles</a></td>
+        <td class="align-middle">{{sub.subscriber}}</td>
+        <td class="align-middle">{{sub.appName}}<br/>({{sub.applicationId}})</td>
+        <td class="align-middle">{{sub.status}}</td>
+        <td class="align-middle">{{sub.roles.join(', ')}}</td>
+        <td class="align-middle"><button class="btn btn-link" ng-click="changeRoles(sub)">Change roles</button></td>
       </tr>
     </table>
     <div class="text-center">
-      <ul uib-pagination total-items="page.totalItems" ng-model="page.currentPage" items-per-page="page.limit" max-size="1" class="pagination-sm" ng-change="pageChanged()"></ul>		
+        <ul class="pagination justify-content-center">
+          <li class="page-item" ng-class="{disabled: page.currentPage == 1}">
+            <a class="page-link" href ng-click="prevPage()">&laquo;</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href>{{page.currentPage}}</a>
+          </li>
+          <li class="page-item"  ng-class="{disabled: !api || !api.subscriptions || api.subscriptions.list.length < page.limit}">
+            <a class="page-link" href ng-click="nextPage()">&raquo;</a>
+          </li>
+        </ul>
     </div>    
 	</div>
 
 </div>
+
+<div ng-include="'./html/roles.modal.html'"></div>

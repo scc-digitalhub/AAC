@@ -143,6 +143,9 @@ public class MultitenantOAuth2ClientAuthenticationProcessingFilter extends OAuth
 	@SuppressWarnings("unchecked")
 	protected OAuth2RestOperations getClientTemplate(HttpServletRequest request) {
 		final String clientId = (String) request.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
+		if (clientId == null) {
+			return restTemplate;
+		}
 		ClientDetails clientDetails = detailsProvider.getClientDetails(clientId);
 		if (clientDetails == null) {
 			throw new BadCredentialsException("Unknown client");

@@ -2,7 +2,6 @@ var app = angular.module('dev', [
 	'ngRoute',
 	'ngResource',
 	'angularSpinner',
-	'ui.bootstrap',
 	'aac.services', 
 	'aac.controllers.main', 
 	'aac.controllers.clients', 
@@ -13,6 +12,7 @@ var app = angular.module('dev', [
 
 app.config(function ($httpProvider) {
 	  $httpProvider.interceptors.push('loadingHttpInterceptor');
+	  $httpProvider.interceptors.push('accessDeniedInterceptor');
 	})
 
 app.run(function($rootScope){
@@ -73,6 +73,29 @@ app.factory('loadingHttpInterceptor', function ($q, $window, usSpinnerService) {
 		}
 	};
 })
+
+app.factory('accessDeniedInterceptor', function ($q, $location, $window) {
+	return {
+        request: function(config) {
+            config.headers = config.headers || {};
+            return config;
+        },
+        response: function(response) {
+            if (response.data.code == 401) {
+        	    window.document.location = "./logout";
+            }
+            return response || $q.when(response);
+        },
+		responseError: function(error) {
+            if (error.status == 401) {
+        	    window.document.location = "./logout";
+            }
+            return error || $q.when(error);
+		}
+    };
+})
+
+
 ;
 
 /**

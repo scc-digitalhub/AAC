@@ -39,7 +39,7 @@
       <div class="container">
         <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
         <div class="clear"></div>
-        <div class="row">
+        <div class="row justify-content-center">
           <div class="col-md-offset-4 col-md-4">
             <div class="panel panel-default">
             <!-- <form:form modelAttribute="reg"> -->
@@ -50,26 +50,30 @@
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_name} + '*: '"></label>
                   <input class="form-control" th:field="*{name}" />
-                  <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                 </div>
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_surname} + '*: '"></label>
                   <input class="form-control" th:field="*{surname}" />
-                  <div th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}"></div>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}"></div>
                 </div>
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_user} + '*: '"></label>
                   <input class="form-control" th:field="*{email}" />
-                  <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                 </div>
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_pwd} + '*: '"></label>
                   <input class="form-control" type="password" th:field="*{password}" />
-                  <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                  <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
                 </div>
-                <div class="col-md-12 form-group">
-                  <button class="btn btn-primary" th:text="#{lbl_reg_btn}"></button>
-                  <a class="btn" href="../login" th:text="#{lbl_cancel}"></a>
+                <div class="row">
+	                <div class="col-md-6 form-group">
+	                  <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+	                </div>
+	                <div class="col-md-6 form-group">
+	                  <a class="btn btn-block" href="../login" th:text="#{lbl_cancel}"></a>
+	                </div>
                 </div>
                 <div>&nbsp;</div>
             </form>

@@ -39,7 +39,7 @@
       <div class="container">
 	      <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
 	      <div class="clear"></div>
-        <div class="row">
+        <div class="row justify-content-center">
           <div class="col-md-offset-4 col-md-4">
             <div class="panel panel-default">
             <h4 style="text-align:center" th:text="#{lbl_resend_title}"></h4>
@@ -48,10 +48,14 @@
                 <div class="error" th:if="${error} != null" th:text="${error}">Error text</div>
                 <div>&nbsp;</div>
                 <div class="col-md-12 form-group"><label th:text="#{lbl_user}" >: </label><input class="form-control" type="text" name="username"/></div>
-                <div class="col-md-12 form-group">
-                  <button class="btn btn-primary" th:text="#{lbl_resend_btn}" ></button>
-                  <a class="btn" href="../login" th:text="#{lbl_cancel}" ></a>
+                <div class="row">
+                <div class="col-md-6 form-group">
+                  <button class="btn  btn-block btn-primary" th:text="#{lbl_resend_btn}" ></button>
                 </div>  
+                <div class="col-md-6 form-group">
+                  <a class="btn btn-block" href="../login" th:text="#{lbl_cancel}" ></a>
+                </div>  
+                </div>
                 <div>&nbsp;</div>
             </form>
             </div>

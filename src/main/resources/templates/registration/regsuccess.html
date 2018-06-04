@@ -39,15 +39,19 @@
       <div class="container">
 	      <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
 	      <div class="clear"></div>
-        <div class="row">
+        <div class="row justify-content-center">
           <div class="col-md-offset-4 col-md-4">
             <div class="panel panel-default">
             <h4 style="text-align:center" th:text="#{lbl_confirm_title}"></h4>
             <div>&nbsp;</div>
             <p th:text="#{lbl_confirm_text}"></p>
-            <div class="col-md-12 form-group">
-              <a class="btn" href="resend" th:text="#{lbl_resend}" ></a>
-              <a class="btn" href="../login" th:text="#{lbl_login}" ></a>
+            <div class="row">
+            <div class="col-md-6 form-group">
+              <a class="btn btn-block btn-primary" href="resend" th:text="#{lbl_resend}" ></a>
+            </div>
+            <div class="col-md-6 form-group">
+              <a class="btn btn-block" href="../login" th:text="#{lbl_login}" ></a>
+            </div>
             </div>
             <div>&nbsp;</div>
             </div>

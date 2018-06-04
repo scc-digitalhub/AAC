@@ -1,25 +1,36 @@
 <div class="container">
 <div class="row">
   <!--/span-->
-  <div class="col-md-12 well">
-		 <div class="header">
-		   <h1>APIs</h1>
+  <div class="col-md-12 p-3">
+		 <div class="mb-3">
+		   <h3>APIs</h3>
 		 </div>
-		  <table class="table table-hover">
+		  <table class="table border-bottom table-hover">
 		   <tr ng-repeat="api in apis" ng-click="goAPI(api)">
-		     <td>
-		       <a><strong>{{api.name}}</strong></a><br><span ng-if="!!api.description">({{api.description}})</span> 
+		     <td class="align-middle">
+		       <a href><strong>{{api.name}}</strong></a><br><span ng-if="!!api.description">({{api.description}})</span> 
 		     </td>
-		     <td>
+		     <td class="align-middle">
 		      {{api.version}}
 		     </td>
-		     <td>
+		     <td class="align-middle">
 		      {{api.status}}
 		     </td>
+         <td class="text-right"><button class="btn btn-link">Details</td>
 		   </tr>
 		 </table>
 		 <div class="text-center">
-  		<ul uib-pagination total-items="page.totalItems" ng-model="page.currentPage" items-per-page="page.limit" max-size="1" class="pagination-sm" ng-change="pageChanged()"></ul>
+        <ul class="pagination justify-content-center">
+          <li class="page-item" ng-class="{disabled: page.currentPage == 1}">
+            <a class="page-link" href ng-click="prevPage()">&laquo;</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href>{{page.currentPage}}</a>
+          </li>
+          <li class="page-item"  ng-class="{disabled: apis.length < page.limit}">
+            <a class="page-link" href ng-click="nextPage()">&raquo;</a>
+          </li>
+        </ul>
 		 </div>    
    </div>
   <!--/span-->

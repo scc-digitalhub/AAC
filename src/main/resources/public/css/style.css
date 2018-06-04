@@ -88,3 +88,27 @@ div.authorities {
 .scope-row > div {
   padding: 5px 15px 5px 0px;
 }
+.sidebar-nav {
+  padding: 9px 0;
+}
+table.idps, table.idps th, table.idps td {  
+  border: none;
+  vertical-align: top;  
+}
+table.idps td {
+  padding: 4px 8px;
+}  
+table.idps td .form-control {
+  margin-bottom: 8px;
+}
+table.align-middle th {
+	vertical-align: middle;
+}
+input.form-control-sm  {
+	font-size: 0.8125rem !important;
+}
+
+
+.invalid-feedback {
+	display: inherit !important;
+}

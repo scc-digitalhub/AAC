@@ -49,7 +49,7 @@ public class AACRememberMeServices extends PersistentTokenBasedRememberMeService
 		if (oauthRequest != null && oauthRequest.isRememberMe()) {
 			return true;
 		}
-		return true;
+		return false;
 	}
 	
 	

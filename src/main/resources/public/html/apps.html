@@ -1,24 +1,16 @@
 <div class="container">
-<div class="row">
-  <!--/span-->
-  <div class="col-md-12 well">
-     <div class="header">
-       <div class="row">
-       <div class="col col-md-6"><h1>Client Apps</h1></div>
-       <div class="col col-md-6 text-right"><button class="btn btn-primary text-right" type="button" ng-click="newClient()">New app</button></div>
-       </div>
-     </div>
-       
-     </div>
-      <table class="table table-hover">
-       <tr ng-repeat="item in apps" ng-click="switchClient(item.clientId)">
-         <td>
-           <a><strong>{{item.name}}</strong></a>
-         </td>
-       </tr>
-     </table>
-   </div>
-  <!--/span-->
-</div>
-<!--/row-->
+	<div class="row mb-3">
+		<div class="col col-md-6 p-3">
+			<h3>Client Apps</h3>
+		</div>
+		<div class="col col-md-6 text-right">
+			<button class="btn btn-primary text-right" type="button" ng-click="newClient()">New app</button>
+		</div>
+	</div>
+	<table class="table table-hover border-bottom">
+		<tr ng-repeat="item in apps" ng-click="switchClient(item.clientId)">
+			<td class="align-middle"><a href><strong>{{item.displayName}}</strong></a><br>{{item.name}}</td>
+     <td class="text-right"><button class="btn btn-link">Details</td>
+		</tr>
+	</table>
 </div>

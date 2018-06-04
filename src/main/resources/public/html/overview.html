@@ -1,4 +1,4 @@
-<table class="table table-bordered">
+<table class="table table-bordered align-middle">
     <tr>
         <th>name</th>
         <td>{{app.name}}</td>
@@ -21,7 +21,7 @@
     </tr>
     <tr>
         <th>redirect Web server URLs</th>
-        <td>{{app.redirectUris}}</td>
+        <td>{{app.redirectUris.split(',').join(', ')}}</td>
     </tr>
     <tr>
         <th>Grant types</th>
@@ -34,7 +34,7 @@
     
 </table>
 
-<table class="table">
-    <tr><td><a ng-click="getClientToken()">Get client credentials flow token</a></td><td>{{clientToken}}</td><td ng-if="clientToken"><a ng-click="copyBearer(clientToken)">Copy Bearer</a></td></tr>
-    <tr><td><a ng-click="getImplicitToken()">Get implicit flow token</a></td><td>{{implicitToken}}</td><td ng-if="implicitToken"><a ng-click="copyBearer(implicitToken)">Copy Bearer</a></td></tr>
+<table class="table table-borderless">
+    <tr><td><a href ng-click="getClientToken()">Get client credentials flow token</a></td><td>{{clientToken}}</td><td ng-if="clientToken"><a ng-click="copyBearer(clientToken)">Copy Bearer</a></td></tr>
+    <tr><td><a href ng-click="getImplicitToken()">Get implicit flow token</a></td><td>{{implicitToken}}</td><td ng-if="implicitToken"><a ng-click="copyBearer(implicitToken)">Copy Bearer</a></td></tr>
 </table>

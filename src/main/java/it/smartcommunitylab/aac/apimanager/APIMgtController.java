@@ -53,7 +53,6 @@ import it.smartcommunitylab.aac.manager.ResourceManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Response;
-import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.model.User;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -195,7 +194,6 @@ public class APIMgtController {
 		
 		providerManager.createAPIProvider(provider);
 		Response result = new Response();
-		result.setResponseCode(RESPONSE.OK);
 		return result;
 	}
 	
@@ -204,10 +202,7 @@ public class APIMgtController {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
     public Response processAccessError(AccessDeniedException ex) {
-		Response result = new Response();
-		result.setResponseCode(RESPONSE.ERROR);
-		result.setErrorMessage(ex.getMessage());
-		return result;
+		return Response.error(ex.getMessage());
     }
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -220,31 +215,20 @@ public class APIMgtController {
         
         fieldErrors.forEach(fe -> builder.append(fe.getDefaultMessage()).append("\n"));
         
-		Response result = new Response();
-		result.setResponseCode(RESPONSE.ERROR);
-		result.setErrorMessage(builder.toString());
-		return result;
+		return Response.error(builder.toString());
     }
 	
 	@ExceptionHandler(RegistrationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
     public Response processRegistrationError(RegistrationException ex) {
-		Response result = new Response();
-		result.setResponseCode(RESPONSE.ERROR);
-		result.setErrorMessage(ex.getMessage());
-		return result;
-
+		return Response.error(ex.getMessage());
     }
 	
 	@ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public Response processGenericError(Exception ex) {
-		Response result = new Response();
-		result.setResponseCode(RESPONSE.ERROR);
-		result.setErrorMessage(ex.getMessage());
-		return result;
-
+		return Response.error(ex.getMessage());
     }
 }

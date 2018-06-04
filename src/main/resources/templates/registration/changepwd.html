@@ -39,19 +39,19 @@
       <div class="container">
         <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
         <div class="clear"></div>
-        <div class="row">
+        <div class="row justify-content-center">
           <div class="col-md-offset-4 col-md-4">
             <div class="panel panel-default">
             <form action="#" th:action="@{changepwd}" th:object="${reg}" method="post">
                 <div>&nbsp;</div>
-                <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
+                <div class="error text-cenrer" th:if="${error} != null" th:text="#{${error}}">Error text</div>
                 <div>&nbsp;</div>
 				  <div class="col-md-12 form-group">
                   <label th:text="#{lbl_pwd}  + '*: '" ></label>
                   <input class="form-control" type="password" th:field="*{password}" />
 				  <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
                 </div>
-                <div class="col-md-12 form-group">
+                <div class="col-md-12 form-group text-center">
                   <button class="btn btn-primary" th:text="#{lbl_reg_btn}" ></button>
                 </div>
                 <div>&nbsp;</div>

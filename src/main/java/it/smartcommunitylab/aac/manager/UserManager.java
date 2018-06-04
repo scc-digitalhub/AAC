@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -61,8 +62,9 @@ public class UserManager {
 	/**
 	 * Check that the specified client is owned by the currently logged user
 	 * @param clientId
+	 * @throws AccessDeniedException 
 	 */
-	public void checkClientIdOwnership(String clientId) {
+	public void checkClientIdOwnership(String clientId) throws AccessDeniedException {
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 		if (client == null || !client.getDeveloperId().equals(getUserId())) {
 			throw new SecurityException("Attempt modifyung non-owned client app data");
@@ -72,16 +74,25 @@ public class UserManager {
 	/**
 	 * Get the user from the Spring Security Context
 	 * @return
+	 * @throws AccessDeniedException 
 	 */
-	private UserDetails getUserDetails(){
-		return (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	private UserDetails getUserDetails() throws AccessDeniedException{
+		try {
+			return (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		} catch (Exception e) {
+			throw new AccessDeniedException("Incorrect user");
+		}
 	}
 	
 	/**
 	 * @return the user ID (long) from the user object in Spring Security Context
 	 */
-	public Long getUserId() {
-		return Long.parseLong(getUserDetails().getUsername());
+	public Long getUserId() throws AccessDeniedException {
+		try {
+			return Long.parseLong(getUserDetails().getUsername());
+		} catch (Exception e) {
+			throw new AccessDeniedException("Incorrect username format");
+		}
 	}
 
 	/**
@@ -112,8 +123,9 @@ public class UserManager {
 	 * Read the signed user name from the user attributes
 	 * @param user
 	 * @return
+	 * @throws AccessDeniedException 
 	 */
-	public String getUserFullName() {
+	public String getUserFullName() throws AccessDeniedException {
 		User user =  userRepository.findOne(getUserId());
 		return user.getFullName();
 	}
@@ -121,13 +133,14 @@ public class UserManager {
 	/**
 	 * Get user DB object
 	 * @return {@link User} object
+	 * @throws AccessDeniedException 
 	 */
-	public User getUser() {
+	public User getUser() throws AccessDeniedException {
 		User user = userRepository.findOne(getUserId());
 		return user;
 	}
 	
-	public String getProviderDomain() {
+	public String getProviderDomain() throws AccessDeniedException {
 		User user = getUser();
 		if (user == null) {
 			return null;
@@ -198,8 +211,9 @@ public class UserManager {
 	/**
 	 * @param developerId
 	 * @return
+	 * @throws AccessDeniedException 
 	 */
-	public Set<Role> getUserRoles(Long developerId) {
+	public Set<Role> getUserRoles(Long developerId) throws AccessDeniedException {
 		User user = userRepository.findOne(getUserId());
 		if (user != null) {
 			return user.getRoles();

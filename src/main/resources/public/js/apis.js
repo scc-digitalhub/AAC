@@ -2,18 +2,29 @@ angular.module('aac.controllers.apis', [])
 /**
  * Single API view controller
  */
-.controller('APIController', function($scope, $location, $routeParams, $uibModal, Data, Utils) {
+.controller('APIController', function($scope, $location, $routeParams, Data, Utils) {
 	$scope.page = {
 	  offset: 0,
-	  limit: 25,
+	  limit: 10,
 	  totalItems: 0,
 	  currentPage: 1
+	};
+	$scope.nextPage = function() {
+		$scope.page.currentPage++;
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadSubscriptions();
+	};
+	$scope.prevPage = function() {
+		$scope.page.currentPage--;
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadSubscriptions();
 	};
 		
 	// load API subscriptions
 	var loadSubscriptions = function() {
 		Data.getAPISubscriptions($routeParams.apiId, $scope.page.offset, $scope.page.limit).then(function(subs){
 			$scope.api.subscriptions = subs;
+	    	if (!subs.count) subs.count = subs.list.length;
 			var count = (($scope.page.currentPage-1) * $scope.page.limit + subs.count);
 			$scope.page.totalItems = 
 				subs.count < $scope.page.limit ? count : (count + 1);			
@@ -55,13 +66,15 @@ angular.module('aac.controllers.apis', [])
 			});
 		}	
 		$scope.roles = {map: roleMap, sub: sub};
-		$scope.rolesDlg = $uibModal.open({
-	      ariaLabelledBy: 'modal-title',
-	      ariaDescribedBy: 'modal-body',
-	      templateUrl: 'html/roles.modal.html',
-	      scope: $scope,
-	      size: 'lg'
-	    });
+		$('#rolesModal').modal({backdrop: 'static', focus: true})
+//
+//		$scope.rolesDlg = $uibModal.open({
+//	      ariaLabelledBy: 'modal-title',
+//	      ariaDescribedBy: 'modal-body',
+//	      templateUrl: 'html/roles.modal.html',
+//	      scope: $scope,
+//	      size: 'lg'
+//	    });
 
 	}
 	$scope.updateRoles = function() {
@@ -71,10 +84,14 @@ angular.module('aac.controllers.apis', [])
 					s.roles = newRoles;
 				}
 			});
-			$scope.rolesDlg.dismiss();
+			$('#rolesModal').modal('hide');
 			Utils.showSuccess();
 		}, Utils.showError);
 	}
+	$scope.dismiss = function(){
+		$('#rolesModal').modal('hide');
+	}
+
 })
 
 /**
@@ -83,9 +100,19 @@ angular.module('aac.controllers.apis', [])
 .controller('APIListController', function($scope, $location, Data, Utils) {
 	$scope.page = {
 	  offset: 0,
-	  limit: 25,
+	  limit: 10,
 	  totalItems: 0,
 	  currentPage: 1
+	};
+	$scope.nextPage = function() {
+		$scope.page.currentPage++;
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadData();
+	};
+	$scope.prevPage = function() {
+		$scope.page.currentPage--;
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadData();
 	};
 
 	// page changed
@@ -98,6 +125,7 @@ angular.module('aac.controllers.apis', [])
 	var loadData = function(){
 	    Data.getAPIs($scope.page.offset, $scope.page.limit).then(function(data){
 	    	$scope.apis = data.list;
+	    	if (!data.count) data.count = data.list.length;
 			var count = (($scope.page.currentPage-1) * $scope.page.limit + data.count);
 			$scope.page.totalItems = 
 				data.count < $scope.page.limit ? count : (count + 1);			
@@ -115,12 +143,12 @@ angular.module('aac.controllers.apis', [])
 /**
  * List of APIs controller
  */
-.controller('TenantUsersController', function($scope, $location, $uibModal, Data, Utils) {
+.controller('TenantUsersController', function($scope, $location, Data, Utils) {
 
 	var reset = function() {
 		$scope.page = {
 		  offset: 0,
-		  limit: 25,
+		  limit: 10,
 		  totalItems: 0,
 		  currentPage: 1
 		};		
@@ -131,16 +159,28 @@ angular.module('aac.controllers.apis', [])
 		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
 		loadData();
 	};
+	$scope.nextPage = function() {
+		$scope.page.currentPage++;
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadData();
+	};
+	$scope.prevPage = function() {
+		$scope.page.currentPage--;
+		$scope.page.offset = ($scope.page.currentPage - 1) * $scope.page.limit;
+		loadData();
+	};
 
 	// load APIs
 	var loadData = function(){
 	    Data.getProviderUsers($scope.page.offset, $scope.page.limit).then(function(data){
 	    	$scope.users = data.list;
+	    	if (!data.count) data.count = data.list.length;
 			var count = (($scope.page.currentPage-1) * $scope.page.limit + data.count);
 			$scope.page.totalItems = 
 				data.count < $scope.page.limit ? count : (count + 1);			
 	    }, Utils.showError);
 	}
+	
 	reset();
 	loadData();
 
@@ -153,26 +193,15 @@ angular.module('aac.controllers.apis', [])
 			});
 		}
 		$scope.roles = {map: roleMap, sub: sub};
-		$scope.rolesDlg = $uibModal.open({
-	      ariaLabelledBy: 'modal-title',
-	      ariaDescribedBy: 'modal-body',
-	      templateUrl: 'html/roles.modal.html',
-	      scope: $scope,
-	      size: 'lg'
-	    });
+
+		$('#rolesModal').modal({backdrop: 'static', focus: true})
 	}
 	
 	// toggle roles of the subscribed user
 	$scope.newUser = function(sub) {
 		var roleMap = {};
 		$scope.roles = {map: roleMap, sub: {username: null, usernameRequired: true}};
-		$scope.rolesDlg = $uibModal.open({
-	      ariaLabelledBy: 'modal-title',
-	      ariaDescribedBy: 'modal-body',
-	      templateUrl: 'html/roles.modal.html',
-	      scope: $scope,
-	      size: 'lg'
-	    });
+		$('#rolesModal').modal({backdrop: 'static', focus: true})
 	}
 
 	$scope.hasRoles = function(map){
@@ -196,10 +225,16 @@ angular.module('aac.controllers.apis', [])
 				reset();
 				loadData();
 			}
-			$scope.rolesDlg.dismiss();
+			$('#rolesModal').modal('hide');
 			Utils.showSuccess();
 			$scope.roles = null;
-		}, Utils.showError);
+		}, function(err) {
+			$('#rolesModal').modal('hide');
+			Utils.showError(err);
+		});
+	}
+	$scope.dismiss = function(){
+		$('#rolesModal').modal('hide');
 	}
 	
 	$scope.addRole = function(){

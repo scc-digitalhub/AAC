@@ -1,18 +1,18 @@
 <div class="container">
 <div class="row">
 	<!--/span-->
-	<div class="col-md-12 well">
+	<div class="col-md-12">
 		<div class="alert alert-danger" ng-show="error != ''">{{error}}</div>
 		<div class="alert alert-success" ng-show="info != ''">{{info}}</div>
-		<div class="row">
-			<div class="col-md-9" ng-switch on="clientId">
+		<div class="row mb-3">
+			<div class="col-md-9 p-3" ng-switch on="clientId">
 				<div ng-switch-when="none">&nbsp;</div>
 				<div ng-switch-default>
-					<strong>{{app.name}}</strong>
+					<h3>Client Application: {{app.name}}</h3>
 				</div>
 			</div>
 			<div class="col-md-3 text-right">
-				<div ng-if="clientId != null" >
+				<div ng-if="clientId != null && clientView == 'overview'" >
 					<button class="btn btn-danger col-md-5 col-md-offset-6" type="button"
 						ng-click="removeClient()">Delete</button>
 				</div>
@@ -25,18 +25,26 @@
 				<p>Start registering your applications here.</p>
 			</div>
 			<div ng-switch-default>
-				<ul class="nav nav-tabs">
-					<li class="{{activeView('overview')}}"><a href
-						ng-click="viewOverview()">Overview</a></li>
-					<li class="{{activeView('settings')}}"><a href
-						ng-click="viewSettings()">Settings</a></li>
-					<li class="{{activeView('permissions')}}"><a href
-						ng-click="viewPermissions()">API Access</a></li>
-          <li class="{{activeView('keys')}}"><a href
-            ng-click="viewKeys()">API Keys</a></li>
-				</ul>
-				<div ng-include="'./html/'+clientView+'.html'"></div>
-			</div>
+				<ul class="nav nav-tabs nav-fill">
+				  <li class="nav-item">
+				    <a class="nav-link {{activeView('overview')}}" href ng-click="viewOverview()">Overview</a>
+				  </li>
+          <li class="nav-item">
+            <a class="nav-link  {{activeView('settings')}}" href ng-click="viewSettings()">Settings</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link  {{activeView('permissions')}}" href ng-click="viewPermissions()">API Access</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link  {{activeView('keys')}}" href ng-click="viewKeys()">API Keys</a>
+          </li>
+				</ul>			
+				<div class="tab-content pt-3">
+				  <div class="tab-pane fade show active">
+            <div ng-include="'./html/'+clientView+'.html'"></div>
+				  </div>
+				</div>			
+  		</div>
 		</div>
 	</div>
 	<!--/span-->

@@ -20,13 +20,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityNotFoundException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.apikey.APIKeyManager;
@@ -44,7 +49,6 @@ import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.Response;
-import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -96,16 +100,9 @@ public class AppController {
 	@RequestMapping("/dev/apps")
 	public @ResponseBody Response getAppList() {
 		Response response = new Response();
-		response.setResponseCode(RESPONSE.OK);
-		try {
-			// read all the apps associated to the signed user 
-			List<ClientAppBasic> list = clientDetailsAdapter.getByDeveloperId(userManager.getUserId());
-			response.setData(list);
-		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-			response.setResponseCode(RESPONSE.ERROR);
-			response.setErrorMessage(e.getMessage());
-		}
+		// read all the apps associated to the signed user 
+		List<ClientAppBasic> list = clientDetailsAdapter.getByDeveloperId(userManager.getUserId());
+		response.setData(list);
 		return response;
 	}
 	
@@ -116,22 +113,14 @@ public class AppController {
 	@RequestMapping("/dev/apps/{clientId}")
 	public @ResponseBody Response getApp(@PathVariable String clientId) {
 		Response response = new Response();
-		response.setResponseCode(RESPONSE.OK);
-		try {
-			// read the app associated to the client
-			ClientAppBasic app = clientDetailsAdapter.getByClientId(clientId);
-			if (!app.getUserName().equals(userManager.getUserId().toString())) {
-				response.setResponseCode(RESPONSE.ERROR);
-				response.setErrorMessage("Unauthorized");				
-			} else {
-				response.setData(app);
-			}
-			
-		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-			response.setResponseCode(RESPONSE.ERROR);
-			response.setErrorMessage(e.getMessage());
+		// read the app associated to the client
+		ClientAppBasic app = clientDetailsAdapter.getByClientId(clientId);
+		if (!app.getUserName().equals(userManager.getUserId().toString())) {
+			throw new AccessDeniedException("Unauthorized");
+		} else {
+			response.setData(app);
 		}
+		
 		return response;
 	}
 	
@@ -144,14 +133,7 @@ public class AppController {
 	@RequestMapping(method=RequestMethod.POST,value="/dev/apps")
 	public @ResponseBody Response saveEmpty(@RequestBody ClientAppBasic appData) throws Exception {
 		Response response = new Response();
-		response.setResponseCode(RESPONSE.OK);
-		try {
-			response.setData(clientDetailsAdapter.create(appData, userManager.getUserId()));
-		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-			response.setResponseCode(RESPONSE.ERROR);
-			response.setErrorMessage(e.getMessage());
-		}
+		response.setData(clientDetailsAdapter.create(appData, userManager.getUserId()));
 		return response;
 	}
 
@@ -168,18 +150,11 @@ public class AppController {
 	 */
 	protected Response reset(String clientId, boolean resetClientSecretMobile) {
 		Response response = new Response();
-		response.setResponseCode(RESPONSE.OK);
-		try {
-			userManager.checkClientIdOwnership(clientId);
-			if (resetClientSecretMobile) {
-				response.setData(clientDetailsAdapter.resetClientSecretMobile(clientId));
-			} else {
-				response.setData(clientDetailsAdapter.resetClientSecret(clientId));
-			}
-		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-			response.setResponseCode(RESPONSE.ERROR);
-			response.setErrorMessage(e.getMessage());
+		userManager.checkClientIdOwnership(clientId);
+		if (resetClientSecretMobile) {
+			response.setData(clientDetailsAdapter.resetClientSecretMobile(clientId));
+		} else {
+			response.setData(clientDetailsAdapter.resetClientSecret(clientId));
 		}
 		return response;
 	}
@@ -192,15 +167,8 @@ public class AppController {
 	@RequestMapping(method=RequestMethod.DELETE,value="/dev/apps/{clientId}")
 	public @ResponseBody Response delete(@PathVariable String clientId) {
 		Response response = new Response();
-		response.setResponseCode(RESPONSE.OK);
-		try {
-			userManager.checkClientIdOwnership(clientId);
-			response.setData(clientDetailsAdapter.delete(clientId));
-		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-			response.setResponseCode(RESPONSE.ERROR);
-			response.setErrorMessage(e.getMessage());
-		}
+		userManager.checkClientIdOwnership(clientId);
+		response.setData(clientDetailsAdapter.delete(clientId));
 		return response;
 	}
 
@@ -213,15 +181,8 @@ public class AppController {
 	@RequestMapping(method=RequestMethod.PUT,value="/dev/apps/{clientId}")
 	public @ResponseBody Response update(@RequestBody ClientAppBasic data, @PathVariable String clientId) {
 		Response response = new Response();
-		response.setResponseCode(RESPONSE.OK);
-		try {
-			userManager.checkClientIdOwnership(clientId);
-			response.setData(clientDetailsAdapter.update(clientId, data));
-		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-			response.setResponseCode(RESPONSE.ERROR);
-			response.setErrorMessage(e.getMessage());
-		}
+		userManager.checkClientIdOwnership(clientId);
+		response.setData(clientDetailsAdapter.update(clientId, data));
 		return response;
 	}
 
@@ -234,12 +195,8 @@ public class AppController {
 	public @ResponseBody Response deleteKey(@PathVariable String clientId, @PathVariable String apiKey) {
 		APIKey key = keyManager.findKey(apiKey);
 		if (key != null) {
-			try {
-				userManager.checkClientIdOwnership(clientId);
-				keyManager.deleteKey(apiKey);
-			} catch (SecurityException e) {
-				return Response.error(e.getMessage());
-			}
+			userManager.checkClientIdOwnership(clientId);
+			keyManager.deleteKey(apiKey);
 		}
 		return Response.ok(null);
 	}
@@ -253,21 +210,17 @@ public class AppController {
 	public @ResponseBody Response updateKey(@RequestBody APIKey body, @PathVariable String clientId, @PathVariable String apiKey) {
 		APIKey key = keyManager.findKey(apiKey);
 		if (key != null) {
-			try {
-				userManager.checkClientIdOwnership(clientId);
-				if (body.getValidity() != null && body.getValidity() > 0) {
-					key = keyManager.updateKeyValidity(apiKey, body.getValidity());
-				}
-				if (body.getAdditionalInformation() != null) {
-					key = keyManager.updateKeyData(apiKey, body.getAdditionalInformation());
-				}
-				if (body.getScope() != null) {
-					key = keyManager.updateKeyScopes(apiKey, body.getScope());
-				}
-				return Response.ok(key);
-			} catch (SecurityException e) {
-				return Response.error(e.getMessage());
+			userManager.checkClientIdOwnership(clientId);
+			if (body.getValidity() != null && body.getValidity() > 0) {
+				key = keyManager.updateKeyValidity(apiKey, body.getValidity());
 			}
+			if (body.getAdditionalInformation() != null) {
+				key = keyManager.updateKeyData(apiKey, body.getAdditionalInformation());
+			}
+			if (body.getScope() != null) {
+				key = keyManager.updateKeyScopes(apiKey, body.getScope());
+			}
+			return Response.ok(key);
 		}
 		return Response.error("Key not found");
 	}	
@@ -278,16 +231,41 @@ public class AppController {
 	 */
 	@PostMapping(value = "/dev/apikey/{clientId}")
 	public @ResponseBody Response createKey(@RequestBody APIKey body, @PathVariable String clientId) {
-		try {
-			APIKey keyObj = keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation(), body.getScope());
-			return Response.ok(keyObj);
-		} catch (EntityNotFoundException e) {
-			return Response.error(e.getMessage());
-		}
+		APIKey keyObj = keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation(), body.getScope());
+		return Response.ok(keyObj);
 	}	
 	
 	@GetMapping(value = "/dev/apikey/{clientId}")
 	public @ResponseBody Response getClientKeys(@PathVariable String clientId) {
 		return Response.ok(keyManager.getClientKeys(clientId));
 	}	
+	
+	@ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseBody
+    public Response processAccessError(AccessDeniedException ex) {
+		return Response.error(ex.getMessage());
+    }
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processValidationError(MethodArgumentNotValidException ex) {
+        BindingResult br = ex.getBindingResult();
+        List<FieldError> fieldErrors = br.getFieldErrors();
+        StringBuilder builder = new StringBuilder();
+        
+        fieldErrors.forEach(fe -> builder.append(fe.getDefaultMessage()).append("\n"));
+        
+		return Response.error(builder.toString());
+    }
+	
+	
+	@ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public Response processGenericError(Exception ex) {
+		logger.error(ex.getMessage(), ex);
+		return Response.error(ex.getMessage());
+    }
 }

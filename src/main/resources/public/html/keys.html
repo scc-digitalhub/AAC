@@ -7,39 +7,42 @@
     </div>
   </div>
   <br>
-  <table class="table table-bordered">
+  <table class="table align-middle border-bottom" ng-if="apiKeys && apiKeys.length > 0">
     <tr ng-repeat="item in apiKeys">
-      <td width="100%"> 
+      <td class="align-middle "> 
       <bold><a ng-click="editKey(item)">{{item.apiKey}}</a></bold>
-      <br><span ng-if="!!item.scope && item.scope.length > 0">Scopes: <b>{{item.scope.join(', ')}}</b></span>
+      <br><span>Scopes: <b>{{ !!item.scope && item.scope.length > 0 ? item.scope.join(', ') :'-'}}</b></span>
       </td>
-      <td>
+      <td class="align-middle">{{item.validity ? ((item.validity + item.issuedTime)|date:'dd/MM/yyyy HH:mm') : 'Non expiring'}}</td>
+      <td class="align-middle ">
         <span class="text-danger" ng-if="item.expired">Expired</span>
         <span class="text-success" ng-if="!item.expired">Valid</span>
       </td>
-      <td nowrap><a ng-click="deleteKey(item)">Delete</a> <a ng-click="editKey(item)">Modify</a></td>
+      <td nowrap  class="align-middle text-right"><button class="btn btn-link" ng-click="deleteKey(item)">Delete</button> <button class="btn btn-link" ng-click="editKey(item)">Modify</button></td>
     </tr>
   </table>
+  <div ng-if="!apiKeys || apiKeys.length == 0">
+  <h5>No API Keys present</h5>
+  </div>
 
 <form ng-submit="saveAPIKey(currentAPIKey)">
 <div class="modal fade bs-modal-lg" id="keyModal" tabindex="-1" role="dialog" aria-labelledby="keym" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <div class="modal-header bg-primary text-white">
         <h4 class="modal-title" id="keym">API Key: {{currentAPIKey.apiKey ? currentAPIKey.apiKey : 'New API Key'}}</h4>
       </div>
       <div class="modal-body">
-					<table class="table">
+					<table class="table align-middle border-bottom">
 						<tr>
 							<th>Validity</th>
-							<td><input class="form-control"
+							<td><input class="form-control form-control-sm"
 								placeholder="Key validity (milliseconds)" type="number"
 								ng-model="currentAPIKey.validity"></td>
 						</tr>
 						<tr>
 							<th>Scope</th>
-							<td><input class="form-control"
+							<td><input class="form-control form-control-sm"
 								placeholder="Scopes (comma-separated)" type="text"
 								ng-model="currentAPIKey.scope"></td>
 						</tr>
