@@ -32,7 +32,8 @@ DB Configuration is performed via the JDBC driver configuration, e.g. for MySQL
       password: ac
 
 The schema and the user with the privileges should have been already configured.
- 
+**IMPORTANT!** The default configuration already contains MySQL driver version 5.1.40. In case a newer version of the DB is used, update the driver version in ``pom.xml`` accordingly.
+
 ### 2.2. AAC Endpoint Configuration
 
 The way the AAC is exposed is configured via the following properties:
