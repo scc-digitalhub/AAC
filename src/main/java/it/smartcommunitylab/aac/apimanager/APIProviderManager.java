@@ -91,8 +91,6 @@ public class APIProviderManager {
 	private String apiMgtClientSecret;	
 	@Value("${application.url}")
 	private String clientCallback;	
-	@Value("${authorization.roleprrefix}")
-	private String prefix;
 	
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
 	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create", "apim:api_publish"};
