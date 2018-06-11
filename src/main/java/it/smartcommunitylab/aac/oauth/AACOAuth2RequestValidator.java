@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.oauth;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
@@ -43,6 +44,9 @@ public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
 	
 	private void validateScope(Set<String> requestScopes, Set<String> clientScopes) {
 
+		// handle default case
+		if (Collections.singleton("default").equals(requestScopes)) return;
+		
 		if (clientScopes != null && !clientScopes.isEmpty()) {
 			for (String scope : requestScopes) {
 				if (Config.SCOPE_OPERATION_CONFIRMED.equals(scope)) continue;

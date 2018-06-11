@@ -19,7 +19,7 @@
   <div class="row"><p/></div>
   <div class="row">
     <div class="col-md-11"><strong>Service permission parameters</strong></div>
-    <div class="col-md-1 pull-right"><a class="btn btn-xs btn-primary"  ng-click="editParameter()"><span class="glyphicon glyphicon-plus"></span></a></div>
+    <div class="col-md-1 pull-right"><a class="btn btn-xs btn-primary"  ng-click="editParameter()"><span class="fas fa-plus"></span></a></div>
     <hr class="hr-min"/>
   </div>
 
@@ -28,15 +28,15 @@
       <div class="col-md-3">{{resource.name}}</div>
       <div class="col-md-4">{{resource.description}}</div>
       <div class="col-md-2 pull-right">
-        <a class="btn btn-xs btn-default pull-right"  ng-click="removeParameter(resource)"><span class="glyphicon glyphicon-minus"></span></a>
-        <a class="btn btn-xs btn-default pull-right"  ng-click="editParameter(resource)"><span class="glyphicon glyphicon-pencil"></span></a>
+        <a class="btn btn-xs btn-default pull-right"  ng-click="removeParameter(resource)"><span class="fas fa-minus"></span></a>
+        <a class="btn btn-xs btn-default pull-right"  ng-click="editParameter(resource)"><span class="fas fa-pencil"></span></a>
       </div>
   </div>
   
   <div class="row"><p/></div>
   <div class="row">
     <div class="col-md-11"><strong>Service permission mappings</strong></div>
-    <div class="col-md-1 pull-right"><a class="btn btn-xs btn-primary"  ng-click="editMapping()"><span class="glyphicon glyphicon-plus"></span></a></div>
+    <div class="col-md-1 pull-right"><a class="btn btn-xs btn-primary"  ng-click="editMapping()"><span class="fas fa-plus"></span></a></div>
     <hr class="hr-min"/>
   </div>
 
@@ -46,8 +46,8 @@
       <div class="col-md-4">{{mapping.description}}</div>
       <div class="col-md-1">{{toAuthority(mapping.authority)}}</div>
       <div class="col-md-2 pull-right">
-        <a class="btn btn-xs btn-default pull-right"  ng-click="removeMapping(mapping)"><span class="glyphicon glyphicon-minus"></span></a>
-        <a class="btn btn-xs btn-default pull-right"  ng-click="editMapping(mapping)"><span class="glyphicon glyphicon-pencil"></span></a>
+        <a class="btn btn-xs btn-default pull-right"  ng-click="removeMapping(mapping)"><span class="fas fa-minus"></span></a>
+        <a class="btn btn-xs btn-default pull-right"  ng-click="editMapping(mapping)"><span class="fas fa-pencil"></span></a>
       </div>
   </div>
   

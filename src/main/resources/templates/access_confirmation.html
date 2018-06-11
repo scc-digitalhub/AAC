@@ -38,7 +38,7 @@
     <div class="clear"></div>
 
   <div class="confirmation-content container-fluid">
-    <div class="row">
+    <div class="row justify-content-center">
       <div class="col-md-offset-4 col-md-4">
 
       <div class="error" th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null and !(session.SPRING_SECURITY_LAST_EXCEPTION instanceof org.springframework.security.oauth2.common.exceptions.UnapprovedClientAuthenticationException)}">
@@ -53,15 +53,15 @@
         <li th:each="r : ${resources}" th:text="${r.name}"></li>
       </ul>
 
-      <div class="row">
-        <div class="col-xs-3 col-xs-offset-3 text-right">
-	      <form  id="confirmationForm" name="confirmationForm" action="authorize" method="post">
+      <div class="row justify-content-center">
+        <div class="col-md-6 text-right">
+	      <form  id="confirmationForm" name="confirmationForm" action="../oauth/authorize" method="post">
 	        <input name="user_oauth_approval" value="true" type="hidden"/>
 	        <label><input class="btn btn-primary" name="authorize" th:attr="value=#{lbl_approval_do_authorize}" type="submit"/></label>
 	      </form>
         </div>
-        <div class="col-xs-3">
-	      <form id="denialForm" name="denialForm" action="authorize" method="post">
+        <div class="col-md-6">
+	      <form id="denialForm" name="denialForm" action="../oauth/authorize" method="post">
 	        <input name="user_oauth_approval" value="false" type="hidden"/>
 	        <label><input class="btn" name="deny" th:attr="value=#{lbl_approval_do_deny}" type="submit"/></label>
 	      </form>

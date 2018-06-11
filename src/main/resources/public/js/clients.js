@@ -219,9 +219,9 @@ angular.module('aac.controllers.clients', [])
 	
 	$scope.idpIcon = function(req,app) {
 		if (!req) return null;
-		if (app == null) return 'glyphicon glyphicon-time';
-		if (app) return 'glyphicon glyphicon-ok';
-		return 'glyphicon glyphicon-remove';
+		if (app == null) return 'fas fa-clock';
+		if (app) return 'fas fa-check';
+		return 'fas fa-ban';
 	};
 	
 	/**
@@ -580,9 +580,9 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.permissionIcon = function(val) {
 		switch (val){
-		case 1: return 'glyphicon glyphicon-ok';
-		case 2: return 'glyphicon glyphicon-remove';
-		case 3: return 'glyphicon glyphicon-time';
+		case 1: return 'fas fa-check';
+		case 2: return 'fas fa-ban';
+		case 3: return 'fas fa-clock';
 		default: return null;
 		}
 		
@@ -599,8 +599,8 @@ angular.module('aac.controllers.clients', [])
 	 * return icon for the app access type
 	 */
 	$scope.statusIcon = function(val) {
-		if (val) return 'glyphicon glyphicon-ok';
-		else return 'glyphicon glyphicon-remove';
+		if (val) return 'fas fa-check';
+		else return 'fas fa-ban';
 	};
 	/**
 	 * reset value for client id or secret
