@@ -284,7 +284,11 @@ angular.module('aac.services', [])
 	providersService.createProvider = function(provider) {
 		var deferred = $q.defer();
 		$http.post('admin/apiproviders', provider).then(function(data){
-			deferred.resolve(data.data);
+			if (data.status >= 300) {
+				deferred.reject(data);
+			} else {
+				deferred.resolve(data.data);
+			}
 		}, function(err) {
 			deferred.reject(err);
 		});

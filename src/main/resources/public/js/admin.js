@@ -106,9 +106,8 @@ angular.module('aac.controllers.admin', [])
 
 	// create provider
 	$scope.createProvider = function() {
-		$scope.providerDlg.close();
+		$('#providerModal').modal('hide');
 		APIProviders.createProvider($scope.provider).then(function(){
-			$('#providerModal').modal('hide');
 			Utils.showSuccess();
 			resetPage();
 			loadData();

@@ -490,12 +490,6 @@ angular.module('aac.controllers.clients', [])
 				var app = response.data;
 				$scope.app = angular.copy(app);
 				$scope.initGrantTypes($scope.app);
-				for (var i = 0; i < $scope.apps.length; i++) {
-					if ($scope.apps[i].clientId == app.clientId) {
-						$scope.apps[i] = app;
-						return;
-					}
-				}
 			} else {
 				$scope.error = 'Failed to save settings: '+response.errorMessage;
 			}
