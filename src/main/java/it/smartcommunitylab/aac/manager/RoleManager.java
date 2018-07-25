@@ -38,7 +38,6 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apimanager.model.DataList;
 import it.smartcommunitylab.aac.apimanager.model.RoleModel;
 import it.smartcommunitylab.aac.apimanager.model.Subscription;
-import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
@@ -80,12 +79,11 @@ public class RoleManager {
 			Arrays.asList(defaultContextSpaces).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
 		}
 		User admin = null;
-		try {
+		admin = userRepository.findByUsername("admin");
+		if (admin == null) {
 			admin = registrationService.registerOffline("admin", "admin", "admin", adminPassword, null, false, null);
-		} catch (AlreadyRegisteredException e1) {
-			admin = userRepository.findByName("admin");
 		}
-		admin.setRoles(roles);
+		admin.getRoles().addAll(roles);
 		userRepository.saveAndFlush(admin);
 		return admin;
 	}
