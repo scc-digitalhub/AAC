@@ -45,6 +45,8 @@ The way the AAC is exposed is configured via the following properties:
 
 The following security properties MUST be configured for the production environment:
 - ``admin.password``: the password for the AAC administrator user.
+- ``admin.contexts``: default role contexts managed by the platform. Defaults to ``apimanager, authorization, components``
+- ``admin.contextSpaces``: default role spaces associated to the admin. Defaults to ``apimanager/carbon.super`` (used by WSO2 API Manager as a default tenant)
 - ``security.rememberme.key``: the secret key used to sign the remember me cookie.
 
 For the user registration and the corresponding communications (email verification, password reset, etc), the 
@@ -106,6 +108,7 @@ Out of the box, AAC supports this functionality for the WSO2 API Manager. To con
 the WSO2 API Manager, it is necessary to define the following properties
 
     api:
+      contextSpace: apimanager  
       adminClient:
         id: API_MGT_CLIENT_ID
         secret: YOUR_API_MNGMT_CLIENT_SECRET
@@ -300,6 +303,10 @@ The owner of the space may perform the following functionalities:
 The operation of user role management and space management may be performed either via API or through
 the AAC console. 
 
+Some of the role spaces may be pre-configured for the AAC. These include:
+- ``apimanager``: Role space for the API Manager tenants.
+- ``authorization``: Role space for managing the Authorization API grant tenants.
+- ``components``: Role space for managing tenants of various platform components. 
 
     
 ## 6. AAC API
