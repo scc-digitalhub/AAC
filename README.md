@@ -273,11 +273,40 @@ A successful response is returned as a JSON object, similar to the following:
     
 Finally, if the API Manager is used, the token may be obtained directly from the API Manager console.   
     
-## 5. AAC API
+## 5. Data Model
+
+### 5.1. Roles
+
+In AAC the roles are contextualized in order to support varios multitenancy scenarios. The general idea is 
+that the roles are associated to the role *spaces* uniquely identified by their namespace and managed
+by the space *owners*. A user may have different roles in different spaces and the authorization
+control for individual organizations, components, and deployment may be performed within the corresponding space. 
+More specifically, each role is represented as a tuple with
+
+- *context*, defining the "parent" space of roles (if any)
+- *space*, defining the specific role space value. Together with the context form the unique role namespace 
+- *role*, defining the specific role value for the space.
+
+In this way, the spaces may be hierarchically structured (e.g., departments of an organization may have their
+own role space within the specific organization space).
+
+Syntactically, the role is therefore represented in the following form: ``<context>/<space>:<role>``. To represent
+the owner of the space the role therefore should have the following signature: ``<context>/<space>:ROLE_PROVIDER``.
+
+The owner of the space may perform the following functionalities:
+- associate/remove users to/from the arbitrary roles in the owned spaces (including other owners).
+- create new child spaces within the owned ones. This is achieved through creation of the corresponding owner roles for the child space being created: ``<parentcontext>/<parentspace>/<childspace>:ROLE_PROVIDER``.
+
+The operation of user role management and space management may be performed either via API or through
+the AAC console. 
+
+
+    
+## 6. AAC API
   
 The Swagger UI for the AAC API is available at ``http://localhost:8080/aac/swagger-ui.html``.   
   
-### 5.1. Profile API  
+### 6.1. Profile API  
 To obtain the basic user data the following call should be performed:   
 
     GET /aac/basicprofile/me HTTPS/1.1 
@@ -318,7 +347,7 @@ If the token is valid, this returns the user data, e.g.,:
       }
     }
 
-### 5.2. Token API
+### 6.2. Token API
 
 To validate the token, i.e., to check the token is not expired and is associated to proper scopes the following call
 should be performed (optionally, the scope to be checked is passed as *scope* query parameter, comma-separated):
@@ -355,7 +384,7 @@ The data provided represents the information about the app, the user, validity, 
           "grantType": "implicit"
         }
 
-### 5.3. Role API
+### 6.3. Role API
 
 The role API allows for the checking the role of the specific users. More details can be found on the
 Swagger documentation.

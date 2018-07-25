@@ -28,9 +28,9 @@ security:
     idp: Smart Community
     pattern: "Inserisci il PIN per accedere a %1$s tramite %2$s"
     defaultsp: Smart Community
+  identity: # IDENTITY MAPPING SOURCE FILE
+    source: file:///path/to/identities.txt
 
-identity:
-  source: file:///path/to/identities.txt    
 
 oauth-providers:
   providers:
@@ -63,10 +63,12 @@ oauth-providers:
         preferTokenInfo: true        
 
 authorization:
-  roleprrefix: carbon.super:authorization_
+  contextSpace: authorization
 
 admin:
   password: admin
+  contexts: apimanager
+  contextSpaces: apimanager/carbon.super  
 
 adminClient:
   id: API_MGT_CLIENT_ID
@@ -84,6 +86,11 @@ logging:
     org.springframework.security: DEBUG
 
 api:
+  contextSpace: apimanager
+  adminClient:
+    id: API_MGT_CLIENT_ID
+    secret: YOUR_API_MNGMT_CLIENT_SECRET
+  internalUrl: http://localhost:8080/aac  
   store:
     endpoint: https://localhost:9443/api/am/store/v0.10 
   publisher:

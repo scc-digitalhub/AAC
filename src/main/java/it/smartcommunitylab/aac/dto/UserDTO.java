@@ -17,10 +17,9 @@
 
 package it.smartcommunitylab.aac.dto;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 
 /**
@@ -31,7 +30,7 @@ public class UserDTO {
 
 	private String userId, fullname, username;
 
-	private Set<String> roles;
+	private Set<Role> roles;
 	
 	public String getUserId() {
 		return userId;
@@ -52,22 +51,18 @@ public class UserDTO {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-	public Set<String> getRoles() {
+	public Set<Role> getRoles() {
 		return roles;
 	}
-	public void setRoles(Set<String> roles) {
+	public void setRoles(Set<Role> roles) {
 		this.roles = roles;
 	}
-	public static UserDTO fromUser(User user, String context, ROLE_SCOPE scope) {
+	public static UserDTO fromUser(User user, String context, String space) {
 		UserDTO res = new UserDTO();
 		res.setFullname(user.getFullName());
 		res.setUserId(user.getId().toString());
 		res.setUsername(user.getUsername());
-		res.setRoles(new HashSet<String>());
-		user.getRoles().forEach(r -> {
-			if ((context == null && r.getContext() == null || context != null && context.equals(r.getContext())) &&
-				(scope == null || scope.equals(r.getScope())))  res.getRoles().add(r.getRole());
-		});
+		res.setRoles(user.spaceRole(context, space));
 		return res;
 	}
 }

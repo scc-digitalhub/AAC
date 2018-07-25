@@ -18,13 +18,13 @@ package it.smartcommunitylab.aac.manager;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,7 +32,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
@@ -51,13 +51,13 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Transactional
 public class UserManager {
 
-	public static final String R_PROVIDER = "ROLE_PROVIDER";
-	public static final String R_ROLEMANAGER = "rolemanager";
-	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Value("${api.contextSpace}")
+	private String apiProviderContext;
 
 	/**
 	 * Check that the specified client is owned by the currently logged user
@@ -140,34 +140,31 @@ public class UserManager {
 		return user;
 	}
 	
-	public String getProviderDomain() throws AccessDeniedException {
+	public Set<Role> getOwnedSpaceAt(String context) throws AccessDeniedException {
 		User user = getUser();
 		if (user == null) {
 			return null;
 		}
-		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, R_PROVIDER);
-		if (providerRoles.isEmpty()) return null;
-		
-		
-		Role role = providerRoles.iterator().next();
-		
-		return role.getContext();
+		Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, context);
+		if (providerRoles.isEmpty()) return Collections.emptySet();
+		return providerRoles;
 	}
 
 	/**
+	 * TODO to be replaced. Currently constructs name as the `email @ apimanager-tenant`   
 	 * @param l
 	 * @return
 	 */
 	public String getUserInternalName(long userId) {
 		User user = userRepository.findOne(userId);
 		if (user == null) throw new EntityNotFoundException("No user found: "+userId);
-		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, "ROLE_PROVIDER");
+		Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
 
 		String domain = null;
 		if (providerRoles.isEmpty()) domain = "carbon.super";
 		else {
 			Role role = providerRoles.iterator().next();
-			domain = role.getContext();
+			domain = role.getSpace();
 		}
 		
 		return Utils.getUserNameAtTenant(user.getUsername(), domain);
@@ -184,13 +181,12 @@ public class UserManager {
 		Long developerId = client.getDeveloperId();
 
 		User developer = userRepository.findOne(developerId);
-		Optional<Role> provider = developer.getRoles().stream().filter(x -> "ROLE_PROVIDER".equals(x.getRole())).findFirst();
-		if (!provider.isPresent()) {
+		Set<String> providerSpaces = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
+		if (providerSpaces.isEmpty()) {
 			return Collections.emptySet();
 		}
-		String tenant = provider.get().getContext();
 
-		Set<Role> roles = user.getRoles().stream().filter(x -> tenant.equals(x.getContext()))
+		Set<Role> roles = user.getRoles().stream().filter(x -> providerSpaces.contains(x.canonicalSpace()))
 				.collect(Collectors.toSet());
 
 		return roles;

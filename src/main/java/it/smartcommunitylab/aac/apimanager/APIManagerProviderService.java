@@ -58,9 +58,6 @@ public class APIManagerProviderService {
 		resApp.setGrantedTypes(app.getGrantedTypes());
 		clientDetailsManager.update(resApp.getClientId(), resApp);
 		
-		// TODO: remove!
-//		clientDetailsManager.delete(resApp.getClientId());
-		
 		return resApp;
 	}	
 	

@@ -56,15 +56,15 @@ angular.module('aac.services', [])
 		return deferred.promise;
 	}
 	/**
-	 * Read a specific page of the tenant users matching the role 
+	 * Read a specific page of the users matching the specified context 
 	 */
-	dataService.getProviderUsers = function(offset, limit, role) {
+	dataService.getContextUsers = function(offset, limit, context) {
 		var deferred = $q.defer();
 		var conf = {};
 		conf.params = {
 			offset: offset,
 			limit: limit,
-			query: role
+			context: context
 		}
 		$http.get('mgmt/users', conf).then(function(data){
 			deferred.resolve(data.data);
@@ -73,6 +73,34 @@ angular.module('aac.services', [])
 		});
 		return deferred.promise;
 	}
+	/**
+	 * Read a specific page of the owners matching the specified context 
+	 */
+	dataService.getContextOwners = function(offset, limit, context) {
+		var deferred = $q.defer();
+		var conf = {};
+		conf.params = {
+			offset: offset,
+			limit: limit,
+			context: context
+		}
+		$http.get('mgmt/spaceowners', conf).then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
+	dataService.getMyContexts = function() {
+		var deferred = $q.defer();
+		$http.get('mgmt/spaceowners/me').then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
+	
 	/**
 	 * Read the API with the specified ID
 	 */
@@ -167,14 +195,21 @@ angular.module('aac.services', [])
 	dataService.updateUserRoles = function(user, map, old) {
 		return updateUserRoles(user, map, old, 'mgmt/apis/userroles');
 	}
+	
 	/**
 	 * Update roles of the specified user: roles to add and to remove.
-	 * Arbitrary users are considered
+	 * User roles are considered in the context
 	 */
-	dataService.updateUserRolesById = function(user, map, old) {
-		return updateUserRoles(user, map, old, 'mgmt/apis/useridroles');
+	dataService.updateUserRolesInContext = function(user, map, old, context) {
+		return updateUserRoles(user, map, old, 'mgmt/userroles?context='+context);
 	}
-	
+
+	/**
+	 * Update child spaces of the specified user: space ownership roles to add and to remove.
+	 */
+	dataService.updateOwnersInContext = function(user, map, old, context) {
+		return updateUserRoles(user, map, old, 'mgmt/spaceowners?context='+context);
+	}
 	/**
 	 * Read Service Providers corresponding to the specified app (PRODUCTION and SANDBOX)
 	 */

@@ -22,7 +22,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.model.User;
 /**
  * Persistent repository of {@link User} entities
@@ -43,12 +42,13 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
 	User findByUsername(String username);
 
-	@Query("select distinct u from User u left join u.roles r where r.role=?1 and r.scope=?2 and r.context=?3")
-	List<User> findByFullRole(String role, ROLE_SCOPE scope, String context, Pageable pageable);
-	
-	@Query("select distinct u from User u left join u.roles r where r.role=?1 and r.scope=?2")
-	List<User> findByPartialRole(String role, ROLE_SCOPE scope, Pageable pageable);	
-	@Query("select distinct u from User u left join u.roles r where r.scope=?1 and r.context=?2")
-	List<User> findByRoleContext(ROLE_SCOPE scope, String context, Pageable pageable);
-	
+	@Query("select distinct u from User u left join u.roles r where r.role=?1 and (r.context=?2 or ?2 is null and r.context is null) and (r.space = ?3 or ?3 is null and r.space is null)")
+	List<User> findByFullRole(String role, String context, String space, Pageable pageable);
+
+	@Query("select distinct u from User u left join u.roles r where r.role=?1 and (r.context=?2 or ?2 is null and r.context is null)")
+	List<User> findByRole(String role, String context, Pageable pageable);
+
+	@Query("select distinct u from User u left join u.roles r where (r.context=?1 or ?1 is null and r.context is null) and (r.space = ?2 or ?2 is null and r.space is null)")
+	List<User> findByRoleContext(String context, String space, Pageable pageable);
+
 }

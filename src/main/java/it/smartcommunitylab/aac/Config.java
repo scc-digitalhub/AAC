@@ -51,29 +51,14 @@ public class Config {
 
 	public static final String PARAM_REMEMBER_ME= "remember-me";
 	public static final String COOKIE_REMEMBER_ME= "aacrememberme";
-	
-	/** ROLE SCOPES */ 
-	public enum ROLE_SCOPE {
-		system ("SCOPE_SYSTEM"), 
-		application ("SCOPE_APPLICATION"),
-		tenant ("SCOPE_TENANT"),
-		user ("SCOPE_USER");
-		
-		private final String scopeName;
 
-		private ROLE_SCOPE(String scopeName) {
-			this.scopeName = scopeName;
-		}
-		
-		public String scopeName(){
-			return scopeName;
-		}
-	};
 	
 	/** Predefined system role USER */
 	public static final String R_USER = "ROLE_USER";
 	/** Predefined system role ADMIN */
 	public static final String R_ADMIN = "ROLE_ADMIN";
+	/** Predefined system role R_PROVIDER */
+	public static final String R_PROVIDER = "ROLE_PROVIDER";
 
 	public static final String GRANT_TYPE_NATIVE = "native";
 

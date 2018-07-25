@@ -260,7 +260,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
 			.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
 			.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
-			.antMatchers("/mgmt/**").hasAnyAuthority("ROLE_PROVIDER")
 		.and()
 		.exceptionHandling()
 			.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))

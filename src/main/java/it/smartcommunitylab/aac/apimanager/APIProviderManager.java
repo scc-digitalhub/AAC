@@ -47,7 +47,6 @@ import org.springframework.util.StringUtils;
 import com.google.common.base.Joiner;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
@@ -115,7 +114,9 @@ public class APIProviderManager {
 	@Autowired
 	private APIManager apiManager;
 	
-	
+	@Value("${api.contextSpace}")
+	private String apiProviderContext;
+
 	public void init(long developerId) throws Exception {
 		if (apiMgtClientId != null && clientDetailsRepository.findByClientId(apiMgtClientId) == null) {
 			createAPIMgmtClient(developerId);
@@ -127,9 +128,9 @@ public class APIProviderManager {
 		List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, provider.getEmail());
 		if (users != null && !users.isEmpty()) {
 			User user = users.get(0);
-			Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
+			Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
 			// if the existing user is already a provider for a different domain, throw an exception
-			if (!providerRoles.isEmpty() && !providerRoles.iterator().next().getContext().equals(provider.getDomain())) {
+			if (!providerRoles.isEmpty() && !providerRoles.iterator().next().getSpace().equals(provider.getDomain())) {
 				throw new AlreadyRegisteredException("A user with the same username is already registered locally");
 			}
 		}
@@ -138,10 +139,8 @@ public class APIProviderManager {
 		String key =  RandomStringUtils.randomAlphanumeric(24);
 		// create registration data and user attributes
 		User created = regService.registerOffline(provider.getName(), provider.getSurname(), provider.getEmail(), password, provider.getLang(), true, key);
-		Role providerRole = new Role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER, provider.getDomain());
+		Role providerRole = new Role(apiProviderContext, provider.getDomain(), Config.R_PROVIDER);
 		roleManager.addRole(created, providerRole);
-		Role roleManagerRole = new Role(ROLE_SCOPE.application, UserManager.R_ROLEMANAGER, provider.getDomain());
-		roleManager.addRole(created, roleManagerRole);
 
 		try {
 			apiManager.createPublisher(provider.getDomain(), provider.getEmail(), password, provider.getName(), provider.getSurname());
@@ -160,10 +159,10 @@ public class APIProviderManager {
 		try {
 			User user = userRepository.findByUsername(email);
 			if (user != null) {
-				Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
+				Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
 				if (providerRoles != null && providerRoles.size() == 1) {
 					Role providerRole = providerRoles.iterator().next();
-					apiManager.updatePublisherPassword(email, providerRole.getContext(), newPassword);
+					apiManager.updatePublisherPassword(email, providerRole.getSpace(), newPassword);
 				} else {
 					apiManager.updatePassword(email, newPassword);
 				}
@@ -335,13 +334,13 @@ public class APIProviderManager {
 	private String getAPIManagerName() {
 		User user = userManager.getUser();
 		if (user == null) return null;
-		Set<Role> providerRoles = user.role(ROLE_SCOPE.tenant, UserManager.R_PROVIDER);
+		Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
 		if (providerRoles.isEmpty()) return null;
 		
 		String username = user.getUsername();
 		Role role = providerRoles.iterator().next();
 		
-		return it.smartcommunitylab.aac.common.Utils.getUserNameAtTenant(username, role.getContext());
+		return it.smartcommunitylab.aac.common.Utils.getUserNameAtTenant(username, role.getSpace());
 	}
 	
 	/**
