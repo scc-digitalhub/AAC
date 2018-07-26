@@ -19,7 +19,7 @@
 				only.</description>
 		</resourceMapping>
 		<resourceMapping id="profile.basicprofile.all" name="Read all basic profiles"
-			uri="profile.basicprofile.all" authority="ROLE_ANY" roles="profilemanager">
+			uri="profile.basicprofile.all" authority="ROLE_ANY" roles="apimanager/carbon.super:profilemanager">
 			<description>Basic profile of the platform users. Read access only.
 			</description>
 		</resourceMapping>
@@ -29,7 +29,7 @@
 				access only.</description>
 		</resourceMapping>
 		<resourceMapping id="profile.accountprofile.all" name="Read all account profiles"
-			uri="profile.accountprofile.all" authority="ROLE_CLIENT" roles="accountmanager">
+			uri="profile.accountprofile.all" authority="ROLE_CLIENT" roles="apimanager/carbon.super:accountmanager">
 			<description>Account profile of the platform users. Read access only.
 			</description>
 		</resourceMapping>

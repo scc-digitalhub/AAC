@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 import javax.xml.bind.JAXBContext;
@@ -57,6 +58,7 @@ import it.smartcommunitylab.aac.jaxbmodel.Services;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.ResourceParameter;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.ServiceDescriptor;
 import it.smartcommunitylab.aac.oauth.ResourceStorage;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -709,7 +711,7 @@ public class ResourceManager {
 			List<Resource> resources = resourceRepository.findByService(sd);
 			resources.forEach(r -> {
 				if (r.getResourceParameter() == null && StringUtils.hasText(r.getRoles())) {
-					result.addAll(StringUtils.commaDelimitedListToSet(r.getRoles()));
+					result.addAll(StringUtils.commaDelimitedListToSet(r.getRoles()).stream().map(rs -> Role.parse(rs).getRole()).collect(Collectors.toSet()));
 				} 
 			});
 			return result;

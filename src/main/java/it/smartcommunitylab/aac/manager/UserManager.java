@@ -210,7 +210,7 @@ public class UserManager {
 	 * @throws AccessDeniedException 
 	 */
 	public Set<Role> getUserRoles(Long developerId) throws AccessDeniedException {
-		User user = userRepository.findOne(getUserId());
+		User user = userRepository.findOne(developerId);
 		if (user != null) {
 			return user.getRoles();
 		}

@@ -108,7 +108,7 @@ public class UserRolesTest {
 		Assert.assertFalse(roleManager.hasRole(user, role1));
 		Assert.assertTrue(roleManager.hasRole(user, role2));
 		
-		roleManager.updateRoles(user, Sets.newHashSet(role1), Collections.emptySet());
+		roleManager.updateRoles(user, Sets.newHashSet(role1), Sets.newHashSet(role2));
 		
 		user = userRepository.findOne(id);
 		

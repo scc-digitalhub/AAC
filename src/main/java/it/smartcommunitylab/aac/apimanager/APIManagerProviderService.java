@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,7 @@ import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.ServiceDescriptor;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -45,7 +47,9 @@ public class APIManagerProviderService {
 	private UserRepository userRepository;
 	@Autowired
 	private ServiceRepository serviceRepository;
-	
+	@Value("${api.contextSpace}")
+	private String apiProviderContext;
+
 	public ClientAppBasic createClient(ClientAppBasic app, String userName) throws Exception {
 		User user = userRepository.findByUsername(userName);
 		
@@ -108,7 +112,7 @@ public class APIManagerProviderService {
 		clientDetailsRepository.delete(entity);
 	}	
 	
-	public boolean createResource(AACService service, String userName) throws Exception {
+	public boolean createResource(AACService service, String userName, String tenant) throws Exception {
 		
 		User user = userRepository.findByUsername(userName);
 		
@@ -151,7 +155,10 @@ public class APIManagerProviderService {
 			resource.setResourceUri(id);
 			resource.setAuthority(Config.AUTHORITY.ROLE_ANY);
 			resource.setVisibility(RESOURCE_VISIBILITY.PUBLIC);
-			resource.setRoles(Joiner.on(",").join(aacResource.getRoles()));
+			// convert role to canonical form: context/space:role in the API Manager context
+			if (aacResource.getRoles() != null) {
+				resource.setRoles(Joiner.on(",").join(aacResource.getRoles().stream().map(r -> new Role(apiProviderContext, tenant, r).getAuthority()).collect(Collectors.toSet())));				
+			}
 			
 			resource.setService(sd);
 			

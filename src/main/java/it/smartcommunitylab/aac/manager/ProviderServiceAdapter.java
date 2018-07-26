@@ -178,7 +178,7 @@ public class ProviderServiceAdapter {
 	
 	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
 		Set<String> newScopes = Sets.newHashSet();
-		Set<String> roleNames = user.getRoles().stream().map(x -> x.getRole()).collect(Collectors.toSet());
+		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
 		for (String scope : scopes) {
 			Resource resource = resourceRepository.findByResourceUri(scope);
 			if (resource != null) {
