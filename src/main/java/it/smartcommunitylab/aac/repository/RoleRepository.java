@@ -15,10 +15,11 @@
  */
 package it.smartcommunitylab.aac.repository;
 
-import it.smartcommunitylab.aac.model.Role;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import it.smartcommunitylab.aac.model.Role;
 /**
  * Persistent repository of {@link Role} entities
  */

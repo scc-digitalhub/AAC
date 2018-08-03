@@ -177,9 +177,9 @@ public class WSO2Controller {
 		try {
 			
 			String un = userName.replace("-AT-", "@");
-			un = Utils.extractUserFromTenant(un);
+			String[] info = Utils.extractInfoFromTenant(un);
 			
-			boolean ok = wso2Manager.createResource(service, un);
+			boolean ok = wso2Manager.createResource(service, info[0], info[1]);
 
 			if (!ok) {
 				response.setStatus(HttpStatus.BAD_REQUEST.value());

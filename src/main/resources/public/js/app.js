@@ -21,8 +21,14 @@ app.run(function($rootScope){
 		if (next.$$route.originalPath.indexOf('/apps') == 0)  $rootScope.currentView = 'apps';
 		if (next.$$route.originalPath.indexOf('/apis') == 0)  $rootScope.currentView = 'apis';
 		if (next.$$route.originalPath.indexOf('/tenantusers') == 0)  $rootScope.currentView = 'tenantusers';
+		if (next.$$route.originalPath.indexOf('/tenantowners') == 0)  $rootScope.currentView = 'tenantowners';
 		if (next.$$route.originalPath.indexOf('/admin') == 0)  $rootScope.currentView = 'admin';
 	});	
+	
+	$rootScope.roles = ROLES;
+	$rootScope.providerContexts = CONTEXTS;
+	$rootScope.isAPIProvider = API_PROVIDER;
+	
 })
 
 app.config(function($routeProvider) {
@@ -46,6 +52,10 @@ app.config(function($routeProvider) {
     .when("/tenantusers", {
     	controller  : 'TenantUsersController', 
         templateUrl : "html/tenantusers.html"
+    })
+    .when("/tenantowners", {
+    	controller  : 'TenantOwnersController', 
+        templateUrl : "html/tenantowners.html"
     })
     .when("/apis/:apiId", {
     	controller  : 'APIController', 
@@ -90,7 +100,7 @@ app.factory('accessDeniedInterceptor', function ($q, $location, $window) {
             if (error.status == 401) {
         	    window.document.location = "./logout";
             }
-            return error || $q.when(error);
+            return $q.reject(error);
 		}
     };
 })

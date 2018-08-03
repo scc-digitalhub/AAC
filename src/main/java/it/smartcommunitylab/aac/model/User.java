@@ -34,8 +34,6 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.client.util.Sets;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
-
 /**
  * DB entity representing the user: user ID, social ID, and the attributes
  * @author raman
@@ -164,15 +162,50 @@ public class User implements Serializable {
 		setFullName((getName()+" "+getSurname()).trim().toLowerCase());
 	}
 	
-	public boolean hasRole(ROLE_SCOPE scope, String role, String context) {
+	public boolean hasRole(String role, String context, String space) {
 		return roles
-		.stream().anyMatch(r -> scope.equals(r.getScope()) && role.equals(r.getRole()) && (context == null && r.getContext() == null || context != null && context.equals(r.getContext())));
+		.stream().anyMatch(r -> {
+			return 	   role.equals(r.getRole()) 
+					&& (context == null && r.getContext() == null || context != null && context.equals(r.getContext()))
+					&& (space == null && r.getSpace() == null || space != null && space.equals(r.getSpace()));
+		});
 	}
 	
-	public Set<Role> role(ROLE_SCOPE scope, String role) {
+	/**
+	 * Get all the SpaceRoles at the specified context
+	 * @param role
+	 * @param context
+	 * @return
+	 */
+	public Set<Role> contextRole(String role, String context) {
 		return roles
 		.stream()
-		.filter(r -> { return r.getScope().equals(scope) && r.getRole().equals(role); })
+		.filter(r -> r.getRole().equals(role) && (context == null && r.getContext() == null || context != null && context.equals(r.getContext())) )
+		.collect(Collectors.toSet());
+	}
+	
+	/**
+	 * Get all the SpaceRoles with the specified role value
+	 * @param role
+	 * @param context
+	 * @return
+	 */
+	public Set<Role> contextRole(String role) {
+		return roles
+		.stream()
+		.filter(r -> r.getRole().equals(role))
+		.collect(Collectors.toSet());
+	}
+	/**
+	 * Get all the SpaceRoles at the specified space
+	 * @param context
+	 * @param space
+	 * @return
+	 */
+	public Set<Role> spaceRole(String context, String space) {
+		return roles
+		.stream()
+		.filter(r -> (space == null && r.getSpace() == null || space != null && space.equals(r.getSpace())) && (context == null && r.getContext() == null || context != null && context.equals(r.getContext())) )
 		.collect(Collectors.toSet());
 	}
 	

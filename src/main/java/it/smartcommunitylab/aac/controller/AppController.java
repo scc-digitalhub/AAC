@@ -19,6 +19,8 @@ package it.smartcommunitylab.aac.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,12 +45,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apikey.APIKeyManager;
 import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.Role;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -89,7 +93,11 @@ public class AppController {
 		
 		String username = userManager.getUserFullName();
 		model.put("username",username);
-		model.put("roles", userManager.getUserRoles());
+		Set<String> userRoles = userManager.getUserRoles();
+		model.put("roles", userRoles);
+		model.put("contexts", userManager.getUser().getRoles().stream().filter(r -> r.getRole().equals(Config.R_PROVIDER)).map(Role::canonicalSpace).collect(Collectors.toSet()));
+		String check = ":"+Config.R_PROVIDER;
+		model.put("apiProvider", userRoles.stream().anyMatch(s -> s.endsWith(check)));
 		return new ModelAndView("index", model);
 	}
 	

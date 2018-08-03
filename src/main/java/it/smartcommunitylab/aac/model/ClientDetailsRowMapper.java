@@ -31,8 +31,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -82,7 +82,7 @@ public class ClientDetailsRowMapper implements RowMapper<ClientDetails> {
 		if (developer != null) {
 			List<GrantedAuthority> list = new LinkedList<GrantedAuthority>();
 			if (details.getAuthorities() != null) list.addAll(details.getAuthorities());
-			list.addAll(developer.getRoles().stream().filter(r -> r.getScope().equals(ROLE_SCOPE.tenant) || r.getScope().equals(ROLE_SCOPE.application)).collect(Collectors.toList()));
+			list.addAll(developer.getRoles().stream().filter(r -> !StringUtils.isEmpty(r.getContext())).collect(Collectors.toList()));
 			details.setAuthorities(list);
 		}
 		return details;

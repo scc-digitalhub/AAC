@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.controller;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
@@ -40,10 +43,11 @@ import com.google.common.base.Splitter;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import it.smartcommunitylab.aac.Config.ROLE_SCOPE;
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.ErrorInfo;
+import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -93,15 +97,26 @@ public class RolesController {
 		Long developerId = client.getDeveloperId();
 
 		User developer = userRepository.findOne(developerId);
-		Role provider = developer.getRoles().stream().filter(x -> "ROLE_PROVIDER".equals(x.getRole())).findFirst()
-				.get();
-		String tenant = provider.getContext();
-
-		Set<Role> fullRoles = Splitter.on(",").splitToList(roles).stream()
-				.map(x -> new Role(ROLE_SCOPE.application, x, tenant)).collect(Collectors.toSet());
+		Set<Role> fullRoles = parseAndCheckRoles(roles);
+		// role should be in the same space or in the same context if it is ROLE_PROVIDER
+		Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
+		if (fullRoles.stream()
+				.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
+			throw new IllegalArgumentException("Can add roles to the owned space or create new child space owners");
+		}
 		user.getRoles().addAll(fullRoles);
-
 		userRepository.save(user);
+	}
+
+	protected Set<Role> parseAndCheckRoles(String roles) {
+		Set<Role> fullRoles = new HashSet<>();
+		List<String> input = Splitter.on(",").splitToList(roles);
+		for (String roleString : input) {
+			Role role = Role.parse(roleString);
+			fullRoles.add(role);
+		}
+		if (fullRoles.isEmpty()) throw new IllegalArgumentException("Invalid input roles");
+		return fullRoles;
 	}
 
 	@ApiOperation(value="Delete roles for a specific user")
@@ -121,27 +136,22 @@ public class RolesController {
 		Long developerId = client.getDeveloperId();
 
 		User developer = userRepository.findOne(developerId);
-		Role provider = developer.getRoles().stream().filter(x -> "ROLE_PROVIDER".equals(x.getRole())).findFirst()
-				.get();
-		String tenant = provider.getContext();
+		Set<Role> fullRoles = parseAndCheckRoles(roles);
+		// cannot remove ROLE_PROVIDER of the same user
+		Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
+		if (developerId == userId && fullRoles.stream()
+				.anyMatch(role -> Config.R_PROVIDER.equals(role.getRole()))) {
+			throw new IllegalArgumentException("Cannot remove space ownership for the same user");
+		}
+		// can remove roles in the same space or ROLE_PROVIDERs of subspaces
+		if (fullRoles.stream()
+				.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
+			throw new IllegalArgumentException("Can delete roles only within owned spaces");
+		}
 
-		Set<Role> fullRoles = Splitter.on(",").splitToList(roles).stream()
-				.map(x -> new Role(ROLE_SCOPE.application, x, tenant)).collect(Collectors.toSet());
 		user.getRoles().removeAll(fullRoles);
 
 		userRepository.save(user);
-	}
-
-	@ApiOperation(value="Get all roles of a specific user")
-	@RequestMapping(method = RequestMethod.GET, value = "/userroles/all/user/{userId}")
-	public @ResponseBody Set<Role> getAllRoles(HttpServletResponse response, @PathVariable Long userId)
-			throws Exception {
-		User user = userRepository.findOne(userId);
-		if (user == null) {
-			response.sendError(HttpStatus.NOT_ACCEPTABLE.value(), "User " + userId + " not found.");
-			return null;
-		}
-		return user.getRoles();
 	}
 
 	private Set<Role> getUserRoles(HttpServletRequest request, HttpServletResponse response,
@@ -174,6 +184,7 @@ public class RolesController {
 		OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(token);
 		String clientId = auth.getOAuth2Request().getClientId();
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+		// find the user - owner of the client app represented by the token
 		Long developerId = client.getDeveloperId();
 		return getUserRoles(request, response, developerId);
 	}	
@@ -204,6 +215,20 @@ public class RolesController {
 			return developer.getRoles();
 	}
 
+	@ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseBody
+    Response processAccessError(AccessDeniedException ex) {
+		return Response.error(ex.getMessage());
+    }
+
+	@ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processValidationError(IllegalArgumentException ex) {
+		return Response.error(ex.getMessage());
+    }
+
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
@@ -211,5 +236,4 @@ public class RolesController {
 		StackTraceElement ste = ex.getStackTrace()[0];
 		return new ErrorInfo(req.getRequestURL().toString(), ex.getClass().getTypeName(), ste.getClassName(), ste.getLineNumber());
 	}
-
 }

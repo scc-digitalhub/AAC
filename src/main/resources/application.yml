@@ -44,5 +44,5 @@ spring:
   profiles: authorization
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
-  roleprrefix: carbon.super:authorization_
+  contextSpace: authorization
     

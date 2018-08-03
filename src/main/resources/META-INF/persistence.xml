@@ -6,8 +6,8 @@
 		<class>it.smartcommunitylab.aac.model.Resource</class>
 		<class>it.smartcommunitylab.aac.model.ResourceParameter</class>
 		<class>it.smartcommunitylab.aac.model.ServiceDescriptor</class>
-		<class>it.smartcommunitylab.aac.model.Role</class>
 		<class>it.smartcommunitylab.aac.model.Registration</class>
+    <class>it.smartcommunitylab.aac.model.Role</class>
 		<class>it.smartcommunitylab.aac.model.User</class>
 		<class>it.smartcommunitylab.aac.model.Attribute</class>
 		<class>it.smartcommunitylab.aac.model.Authority</class>

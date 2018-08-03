@@ -1,7 +1,7 @@
 <div class="container">
   <div class="row mb-3">
     <div class="col col-md-6 p-3">
-      <h3>User Roles</h3>
+      <h3>Space Owners</h3>
     </div>
     <div class="col col-md-6 text-right">
       <button class="btn btn-primary text-right" type="button" ng-click="newUser()">New user</button>
@@ -10,7 +10,7 @@
   <div class="row mb-3">
     <div class="col p-3">
 		  <div class="form-group">
-		    <label for="exampleFormControlSelect1">Role Context</label>
+		    <label for="exampleFormControlSelect1">Parent Space</label>
 		    <select ng-model="contexts.selected" class="form-control" id="context" ng-change="loadData()">
 		      <option ng-repeat="ctx in contexts.all">{{ctx}}</option>
 		    </select>
@@ -47,4 +47,4 @@
 
 </div>
 
-<div ng-include="'./html/roles.modal.html'"></div>
+<div ng-include="'./html/spaces.modal.html'"></div>

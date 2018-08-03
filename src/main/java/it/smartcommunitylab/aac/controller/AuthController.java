@@ -319,7 +319,7 @@ public class AuthController {
 		Authentication old = SecurityContextHolder.getContext().getAuthentication();
 		if (old != null && old instanceof AACAuthenticationToken) {
 			AACOAuthRequest oldDetails = (AACOAuthRequest) old.getDetails();
-			if (!authorityUrl.equals(oldDetails.getAuthority())) {
+			if (oldDetails != null && !authorityUrl.equals(oldDetails.getAuthority())) {
 	            new SecurityContextLogoutHandler().logout(req, res, old);
 		        SecurityContextHolder.getContext().setAuthentication(null);
 

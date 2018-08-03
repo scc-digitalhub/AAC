@@ -40,6 +40,14 @@
         padding-bottom: 60px;
       }
     </style>
+    <script th:inline="javascript">
+	  /*<![CDATA[*/
+	    ROLES = [[${roles}]];
+	    CONTEXTS = [[${contexts}]];
+	    API_PROVIDER = [[${apiProvider}]];
+	    /*]]>*/
+	  </script> 
+    
     <script src="lib/angular/angular.min.js"></script>
     <script src="lib/angular/angular-resource.min.js"></script>
     <script src="lib/angular/angular-route.min.js"></script>
@@ -72,9 +80,10 @@
 		  <div class="collapse navbar-collapse" id="navbarSupportedContent">
 		    <ul class="navbar-nav mr-auto">
           <li class="nav-link"  data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
-          <li class="nav-link" th:if="${roles.contains('ROLE_PROVIDER')}" data-ng-class="{'active': currentView == 'apis'}"><a data-ng-click="go('apis')">APIs</a></li>
-          <li class="nav-link"  th:if="${roles.contains('ROLE_PROVIDER')}" data-ng-class="{'active': currentView == 'tenantusers'}"><a data-ng-click="go('tenantusers')">Provider Users</a></li>
-          <li class="nav-link"  th:if="${roles.contains('ROLE_ADMIN')}" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
+          <li class="nav-link" ng-if="isAPIProvider" data-ng-class="{'active': currentView == 'apis'}"><a data-ng-click="go('apis')">APIs</a></li>
+          <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantusers'}"><a data-ng-click="go('tenantusers')">User Roles</a></li>
+          <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantowners'}"><a data-ng-click="go('tenantowners')">Space Owners</a></li>
+          <li class="nav-link"  ng-if="roles.indexOf('ROLE_ADMIN') >= 0" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
         </ul>
         
         <ul class="nav navbar-nav ml-auto">
