@@ -24,6 +24,8 @@ import javax.persistence.Table;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import it.smartcommunitylab.aac.Config;
 
 /**
@@ -32,6 +34,7 @@ import it.smartcommunitylab.aac.Config;
  */
 @Entity
 @Table(name="space_role")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Role implements GrantedAuthority {
 
 	private static final long serialVersionUID = -3036514846005728961L;

@@ -17,14 +17,16 @@
 package it.smartcommunitylab.aac.dto;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 
 import it.smartcommunitylab.aac.model.APIKeyEntity;
 import it.smartcommunitylab.aac.model.Role;
@@ -73,9 +75,10 @@ public class APIKey {
 			this.scope = StringUtils.commaDelimitedListToSet(entity.getScope()); 
 		}
 		if (entity.getRoles() != null) {
-			TypeReference<Role> tr = new TypeReference<Role>() {};
+			CollectionType javaType = objectMapper.getTypeFactory()
+				      .constructCollectionType(List.class, Role.class);
 			try {
-				this.roles = objectMapper.readValue(entity.getRoles(), tr);
+				this.roles = new HashSet<>(objectMapper.readValue(entity.getRoles(), javaType));
 			} catch (Exception e) {
 				this.roles = Collections.emptySet();
 			} 
