@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.manager;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -163,6 +164,7 @@ public class RoleManager {
 	
 	public List<GrantedAuthority> buildAuthorities(User user) {
 		Set<Role> roles = getRoles(user);
+		if (roles == null || roles.isEmpty()) roles = Collections.singleton(Role.systemUser());
 		List<GrantedAuthority> list = roles.stream().collect(Collectors.toList());
 		return list;
 	}
