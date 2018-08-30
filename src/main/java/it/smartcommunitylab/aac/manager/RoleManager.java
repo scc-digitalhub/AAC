@@ -164,7 +164,7 @@ public class RoleManager {
 	
 	public List<GrantedAuthority> buildAuthorities(User user) {
 		Set<Role> roles = getRoles(user);
-		if (roles == null || roles.isEmpty()) roles = Collections.singleton(Role.systemUser());
+		roles.add(Role.systemUser());
 		List<GrantedAuthority> list = roles.stream().collect(Collectors.toList());
 		return list;
 	}
