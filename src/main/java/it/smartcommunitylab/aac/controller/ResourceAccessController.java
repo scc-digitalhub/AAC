@@ -120,29 +120,32 @@ public class ResourceAccessController {
 			
 			String userName = null;
 			String userId = null;
+			boolean applicationToken = false;
 			
 //			System.err.println(auth.getPrincipal());
 			
 			if (auth.getPrincipal() instanceof User) {
 				User principal = (User)auth.getPrincipal();
 				userId = principal.getUsername();
-				userName = userManager.getUserInternalName(Long.parseLong(userId));
 //			} if (auth.getPrincipal() instanceof it.smartcommunitylab.aac.model.User) { 
 //				it.smartcommunitylab.aac.model.User principal = (it.smartcommunitylab.aac.model.User)auth.getPrincipal();
 //				userId = principal.getId().toString();
 //				userName = getWSO2Name(user);
 			} else {
 				ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-				if (client.getParameters() != null) {
-					Map<String,?> parameters = mapper.readValue(client.getParameters(), Map.class);
-					userName = (String)parameters.get("username");
-				} else {
-//					it.smartcommunitylab.aac.model.User user = userRepository.findOne(Long.parseLong(userId));
-					userName = "admin";
-					userName = (String)auth.getPrincipal();
-				}
+				applicationToken = true;
+				userId = ""+client.getDeveloperId();				
+//				if (client.getParameters() != null) {
+//					Map<String,?> parameters = mapper.readValue(client.getParameters(), Map.class);
+//					userName = (String)parameters.get("username");
+//				} else {
+////					it.smartcommunitylab.aac.model.User user = userRepository.findOne(Long.parseLong(userId));
+//					userName = "admin";
+//					userName = (String)auth.getPrincipal();
+//				}
 			}
-			
+			userName = userManager.getUserInternalName(Long.parseLong(userId));
+
 			result.setUsername(userName);
 			result.setUserId(userId);
 			result.setClientId(clientId);
@@ -157,7 +160,7 @@ public class ResourceAccessController {
 
 			result.setValid(true);
 			
-			result.setApplicationToken(result.getUserId() == null);
+			result.setApplicationToken(applicationToken);
 			
 //			System.err.println(mapper.writeValueAsString(response));			
 		} catch (InvalidTokenException e) {
