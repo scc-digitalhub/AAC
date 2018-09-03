@@ -186,7 +186,7 @@ public class UserManager {
 			return Collections.emptySet();
 		}
 
-		Set<Role> roles = user.getRoles().stream().filter(x -> providerSpaces.contains(x.canonicalSpace()))
+		Set<Role> roles = user.getRoles().stream().filter(x -> providerSpaces.contains(x.getContext()))
 				.collect(Collectors.toSet());
 
 		return roles;
