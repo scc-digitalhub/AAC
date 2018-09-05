@@ -7,7 +7,7 @@ angular.module('aac.controllers.clients', [])
  * @param $http
  * @param $timeout
  */
-.controller('AppListController', function ($scope, $resource, $http, $timeout, $location) {
+.controller('AppListController', function ($scope, $resource, $http, $timeout, $location, Utils) {
 	$scope.apps = null;
 	
 	// resource reference for the app API
@@ -21,13 +21,12 @@ angular.module('aac.controllers.clients', [])
 	var init = function() {
 		ClientAppBasic.query(function(response){
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
 				var apps = response.data;
 				$scope.apps = apps;
 			} else {
-				$scope.error = 'Failed to load apps: '+response.errorMessage;
+				Utils.showError('Failed to load apps: '+response.errorMessage);
 			}	
-		});
+		}, Utils.showError);
 	};
 	init();
 	
@@ -48,14 +47,13 @@ angular.module('aac.controllers.clients', [])
 			var newClient = new ClientAppBasic({name:n});
 			newClient.$save(function(response){
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
 					var app = response.data;
 					$scope.apps.push(app);
 					$scope.switchClient(app.clientId);
 				} else {
-					$scope.error = 'Failed to create new app: '+response.errorMessage;
+					Utils.showError('Failed to create new app: '+response.errorMessage);
 				}
-			});
+			}, Utils.showError);
 		}
 	};
 })
@@ -69,17 +67,13 @@ angular.module('aac.controllers.clients', [])
  * @param $http
  * @param $timeout
  */
-.controller('AppController', function ($scope, $resource, $routeParams, $http, $timeout, $location, Data) {
+.controller('AppController', function ($scope, $resource, $routeParams, $http, $timeout, $location, Data, Utils) {
 	// current client
 	$scope.app = null;
 	// current client ID
 	$scope.clientId = 'none';
 	// current view (overview/settings/permissions)
 	$scope.clientView = 'overview';
-	// error message
-	$scope.error = '';
-	// info message
-	$scope.info = '';
 	$scope.services = null;
 	// permissions of the current client and services
 	$scope.permissions = null;
@@ -170,7 +164,6 @@ angular.module('aac.controllers.clients', [])
 	var init = function() {
 		ClientAppBasic.query({clientId: $routeParams.clientId},function(response){
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
 				var app = response.data;
 				$scope.app = angular.copy(app);
 				$scope.initGrantTypes($scope.app);
@@ -178,9 +171,9 @@ angular.module('aac.controllers.clients', [])
 				$scope.switchClientView('overview');
 
 			} else {
-				$scope.error = 'Failed to load apps: '+response.errorMessage;
+				Utils.showError('Failed to load apps: '+response.errorMessage);
 			}	
-		});
+		}, Utils.showError);
 	};
 	init();
 
@@ -248,8 +241,6 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.switchClientView = function(view) {
 		$scope.clientView = view;
-		$scope.error = '';
-		$scope.info = '';
 		
 		$scope.clientToken = null;  
 		$scope.implicitToken = null;  
@@ -260,8 +251,6 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.switchPermView = function(view) {
 		$scope.permView = view;
-		$scope.error = '';
-		$scope.info = '';
 	};
 
 	/**
@@ -282,9 +271,9 @@ angular.module('aac.controllers.clients', [])
 			if (response.responseCode == 'OK') {
 				$scope.viewPermissions();
 			} else {
-				$scope.error = 'Failed to unsubscribe: '+response.responseCode;
+				Utils.showError('Failed to unsubscribe: '+response.responseCode);
 			}	
-		});	
+		}, Utils.showError);
 	};
 		
 	/**
@@ -297,9 +286,9 @@ angular.module('aac.controllers.clients', [])
 			if (response.responseCode == 'OK') {
 				$scope.viewPermissions();
 			} else {
-				$scope.error = 'Failed to Subscribe: '+response.responseCode;
+				Utils.showError('Failed to subscribe: '+response.responseCode);
 			}	
-		});			
+		}, Utils.showError);
 		
 	};
 	
@@ -341,13 +330,12 @@ angular.module('aac.controllers.clients', [])
 		var newClient = new ClientAppPermissions();
 		newClient.$get({clientId:$scope.clientId, serviceId: service.id}, function(response) {
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
 				$scope.permissions = response.data;
 				callback();
 			} else {
-				$scope.error = 'Failed to load app permissions: '+response.errorMessage;
+				Utils.showError('Failed to load app permissions: '+response.errorMessage);
 			}	
-		});
+		}, Utils.showError);
 	}
 	
 	
@@ -359,12 +347,11 @@ angular.module('aac.controllers.clients', [])
 			var newClient = new ClientAppKeys();
 			newClient.$remove({clientId:$scope.clientId, apiKey: item.apiKey},function(response){
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
 					loadKeys();
 				} else {
-					$scope.error = 'Failed to remove key: '+response.errorMessage;
+					Utils.showError('Failed to remove key: '+response.errorMessage);
 				}	
-			});
+			}, Utils.showError);
 	    }
 	};
 	
@@ -399,25 +386,21 @@ angular.module('aac.controllers.clients', [])
 		if (key.apiKey != null) {
 			newClient.$update({clientId:$scope.clientId, apiKey:key.apiKey},function(response){
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
 					loadKeys();
 				} else {
-					$scope.error = 'Failed to save api key: '+response.errorMessage;
+					Utils.showError('Failed to save api key: '+response.errorMessage);
 				}
 			}, function(err) {
-				$scope.error = 'Failed to save api key: '+err.message;
+				Utils.showError('Failed to save api key: '+err.message);
 			});
 		} else {
 			newClient.$save({clientId:$scope.clientId}, function(response){
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
 					loadKeys();
 				} else {
-					$scope.error = 'Failed to save api key: '+response.errorMessage;
+					Utils.showError('Failed to save api key: '+response.data.errorMessage);
 				}
-			}, function(err) {
-				$scope.error = 'Failed to save api key: '+response.errorMessage;
-			});
+			}, Utils.showError);
 		}
 		
 	}
@@ -429,7 +412,6 @@ angular.module('aac.controllers.clients', [])
 		var newClient = new ClientAppKeys();
 		newClient.$get({clientId:$scope.clientId}, function(response) {
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
 				if (response.data) {
 					var now = new Date().getTime();
 					response.data.forEach(function(key) {
@@ -438,9 +420,9 @@ angular.module('aac.controllers.clients', [])
 				}
 				$scope.apiKeys = response.data;
 			} else {
-				$scope.error = 'Failed to load app keys: '+response.errorMessage;
+				Utils.showError('Failed to load app keys: '+response.errorMessage);
 			}	
-		});
+		}, Utils.showError);
 	}
 	/**
 	 * load services available
@@ -449,12 +431,11 @@ angular.module('aac.controllers.clients', [])
 		var newClient = new AppServices();
 		newClient.$query({clientId:$scope.clientId}, function(response) {
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
 				$scope.services = response.data;
 			} else {
-				$scope.error = 'Failed to load app permissions: '+response.errorMessage;
+				Utils.showError('Failed to load app permissions: '+response.errorMessage);
 			}	
-		});
+		}, Utils.showError);
 	}
 
 	/**
@@ -465,12 +446,11 @@ angular.module('aac.controllers.clients', [])
 			var newClient = new ClientAppBasic();
 			newClient.$remove({clientId:$scope.clientId},function(response){
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
 					$location.path('/apps');
 				} else {
-					$scope.error = 'Failed to remove app: '+response.errorMessage;
+					Utils.showError('Failed to remove app: '+response.errorMessage);
 				}	
-			});
+			}, Utils.showError);
 	    }
 	};
 
@@ -484,16 +464,14 @@ angular.module('aac.controllers.clients', [])
 		var newClient = new ClientAppBasic($scope.app);
 		newClient.$update({clientId:$scope.clientId}, function(response) {
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
-				$scope.info = 'App settings saved!';
-
+				Utils.showSuccess();
 				var app = response.data;
 				$scope.app = angular.copy(app);
 				$scope.initGrantTypes($scope.app);
 			} else {
-				$scope.error = 'Failed to save settings: '+response.errorMessage;
+				Utils.showError('Failed to save settings: '+response.errorMessage);
 			}
-		});
+		}, Utils.showError);
 	};
 	/**
 	 * Save current app permissions
@@ -503,13 +481,12 @@ angular.module('aac.controllers.clients', [])
 		perm.$update({clientId:$scope.clientId, serviceId:service.id}, function(response) {
 			$('#myModal').modal('hide');
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
-				$scope.info = 'App permissions saved!';
+				Utils.showSuccess();
 				$scope.permissions = response.data;
 			} else {
-				$scope.error = 'Failed to save app permissions: '+response.errorMessage;
+				Utils.showError('Failed to save app permissions: '+response.errorMessage);
 			}	
-		});
+		}, Utils.showError);
 	};
 	/**
 	 * create new resource parameter value for the specified resource parameter, service, and client app
@@ -523,12 +500,11 @@ angular.module('aac.controllers.clients', [])
 		perm.$create(function(response) {
 			$('#myModal').modal('hide');
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
-				$scope.info = 'Resource added!';
+				Utils.showSuccess();
 			} else {
-				$scope.error = 'Failed to save own resource: '+response.errorMessage;
+				Utils.showError('Failed to save own resource: '+response.errorMessage);
 			}	
-		});
+		}, Utils.showError);
 	};
 
 	
@@ -541,12 +517,11 @@ angular.module('aac.controllers.clients', [])
 			perm.$delete({id:r.id},function(response){
 				$('#myModal').modal('hide');
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
-					$scope.info = 'Resource removed!';
+					Utils.showSuccess();
 				} else {
-					$scope.error = 'Failed to remove resource: '+response.errorMessage;
+					Utils.showError('Failed to remove resource: '+response.errorMessage);
 				}	
-			});
+			}, Utils.showError);
 	    }
 	};
 
@@ -559,13 +534,11 @@ angular.module('aac.controllers.clients', [])
 			perm.$changeVis({id:r.id,vis:r.visibility},function(response){
 				$('#myModal').modal('hide');
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
-					$scope.info = 'Resource visibility updated!';
+					Utils.showSuccess();
 				} else {
-					$scope.error = 'Failed to change resource visibility: '+response.errorMessage;
-					$scope.info = '';
+					Utils.showError('Failed to change resource visibility: '+response.errorMessage);
 				}	
-			});
+			}, Utils.showError);
 	    }
 	};
 
@@ -604,8 +577,7 @@ angular.module('aac.controllers.clients', [])
 			var newClient = new ClientAppBasic($scope.app);
 			newClient.$reset({clientId:$scope.clientId,reset:param}, function(response) {
 				if (response.responseCode == 'OK') {
-					$scope.error = '';
-					$scope.info = param + ' successfully reset!';
+					Utils.showSuccess();
 
 					var app = response.data;
 					for (var i = 0; i < $scope.apps.length; i++) {
@@ -620,9 +592,9 @@ angular.module('aac.controllers.clients', [])
 						}
 					}
 				} else {
-					$scope.error = 'Failed to reset '+param+': '+response.errorMessage;
+					Utils.showError('Failed to reset '+param+': '+response.errorMessage);
 				}
-			});
+			}, Utils.showError);
 		}
 	};
 	/**
@@ -638,7 +610,7 @@ angular.module('aac.controllers.clients', [])
 		.success(function(data) {
 			$scope.clientToken = data.access_token;
 		}).error(function(data) {
-			$scope.error = data.error_description;
+			Utils.showError(data.error_description);
 		});
 	};
 	/**
@@ -646,8 +618,7 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.getImplicitToken = function() {
 		if ($scope.app.grantedTypes.indexOf('implicit') < 0) {
-			$scope.info = '';
-			$scope.error = 'Implicit token requires Implict grant type selected!';
+			Utils.showError('Implicit token requires Implict grant type selected!');
 			return;
 		}
 		var hostport = $location.host()+(($location.absUrl().indexOf(':'+$location.port())>0)?(":"+$location.port()):"");
@@ -660,8 +631,7 @@ angular.module('aac.controllers.clients', [])
 				if (at) {
 					$scope.implicitToken = at;
 				} else {
-					$scope.info = '';
-					$scope.error = 'Problem retrieving the token!';
+					Utils.showError('Problem retrieving the token!');
 				}
 			},100);
 			win.close();

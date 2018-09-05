@@ -112,3 +112,30 @@ input.form-control-sm  {
 .invalid-feedback {
 	display: inherit !important;
 }
+
+@media (min-width: 576px) {
+  .alert {
+      max-width: 540px;
+  }
+}
+@media (min-width: 768px) {
+  .alert {
+      max-width: 720px;
+  }
+}
+@media (min-width: 992px) {
+  .alert {
+      max-width: 960px;
+  }
+}
+@media (min-width: 1200px) {
+	.alert {
+	    max-width: 1140px;
+	}
+}
+
+.alert {
+  position: fixed;
+  top: 100px;
+  width: 100%;
+}

@@ -279,12 +279,12 @@ angular.module('aac.services', [])
 	 * Show error bar
 	 */
 	utils.showError = function(msg) {
-		$rootScope.errorMsg = msg.data.errorMessage;
+		$rootScope.errorMsg = (typeof msg === 'string') ? msg : msg.data.errorMessage;
 		$rootScope.showError = true;
 		$timeout(function(){
 			$rootScope.showError = false;
 			$rootScope.errorMsg = null;
-		}, 5000);
+		}, 4000);
 	}
 	
 	return utils;
