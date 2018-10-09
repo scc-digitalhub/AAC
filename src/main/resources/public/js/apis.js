@@ -193,7 +193,7 @@ angular.module('aac.controllers.apis', [])
 			Data.getMyContexts().then(function(data) {
 				$scope.contexts.all = data;
 				$scope.contexts.selected = data && data.length > 0 ? data[0] : null;
-				loadUsers();
+				if ($scope.contexts.selected) loadUsers();
 			}, Utils.showError);
 		} else {
 			loadUsers();
@@ -319,7 +319,7 @@ angular.module('aac.controllers.apis', [])
 			Data.getMyContexts().then(function(data) {
 				$scope.contexts.all = data;
 				$scope.contexts.selected = data && data.length > 0 ? data[0] : null;
-				loadUsers();
+				if ($scope.contexts.selected) loadUsers();
 			}, Utils.showError);
 		} else {
 			loadUsers();

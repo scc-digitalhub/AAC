@@ -26,7 +26,7 @@ app.run(function($rootScope){
 	});	
 	
 	$rootScope.roles = ROLES;
-	$rootScope.providerContexts = CONTEXTS;
+	$rootScope.providerContexts = !!CONTEXTS && CONTEXTS.length > 0 ? CONTEXTS:null;
 	$rootScope.isAPIProvider = API_PROVIDER;
 	
 })
