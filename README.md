@@ -399,7 +399,7 @@ Swagger documentation.
 
 ## 7. Docker image build 
 
-1 - Download java and maven
-2 - Copy jdk1.8.0 and apache-maven folder to dockerfiles
-3 - Run this command:
+1 - Download java and maven.<br>
+2 - Copy jdk1.8.0 and apache-maven folder to dockerfiles.<br>
+3 - Run this command:<br>
   docker build -t aac:latest .
