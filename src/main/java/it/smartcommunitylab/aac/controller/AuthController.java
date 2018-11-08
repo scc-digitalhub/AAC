@@ -192,7 +192,7 @@ public class AuthController {
 		ClientAppBasic client = clientDetailsAdapter.getByClientId(clientId);
 		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, client.getScope(), client.getDisplayName());
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth.getAuthorities() != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(AUTHORITY.ROLE_USER.toString())) &&
+		if (auth != null && auth.getAuthorities() != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(AUTHORITY.ROLE_USER.toString())) &&
 			req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
 			AACOAuthRequest old = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
 			oauthRequest.setAuthority(old.getAuthority());

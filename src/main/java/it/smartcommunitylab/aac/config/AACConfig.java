@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.config;
 import java.util.Locale;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -24,10 +25,14 @@ import it.smartcommunitylab.aac.authority.InternalAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
 import it.smartcommunitylab.aac.oauth.CachedResourceStorage;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 @Configuration 
 public class AACConfig extends WebMvcConfigurerAdapter {
-	
+
+	@Autowired
+	private ClientDetailsRepository clientDetailsRepository;
+
 	@Bean
 	public APIManager getAPIManager() {
 		return new WSO2APIManager();
@@ -52,10 +57,10 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	public NativeAuthorityHandlerContainer getNativeAuthorityHandlerContainer() {
 		Map<String, NativeAuthorityHandler> map = Maps.newTreeMap();
 		
-		GoogleNativeAuthorityHandler gh = new GoogleNativeAuthorityHandler();
-		map.put("googlelocal", gh);
+		GoogleNativeAuthorityHandler gh = new GoogleNativeAuthorityHandler(clientDetailsRepository);
+		map.put("google", gh);
 		FBNativeAuthorityHandler fh = new FBNativeAuthorityHandler();
-		map.put("facebooklocal", fh);
+		map.put("facebook", fh);
 		
 		NativeAuthorityHandlerContainer bean = new NativeAuthorityHandlerContainer(map);
 		

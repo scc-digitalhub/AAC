@@ -19,12 +19,18 @@ package it.smartcommunitylab.aac.authority;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.oauth2.common.util.OAuth2Utils;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.web.client.RestTemplate;
+
 import eu.trentorise.smartcampus.network.JsonUtils;
 import eu.trentorise.smartcampus.network.RemoteConnector;
 import eu.trentorise.smartcampus.network.RemoteException;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jaxbmodel.Attributes;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 /**
  * Extract user attributes for the user identified by the request parameter 'token'. 
@@ -39,6 +45,16 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
  */
 public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 
+	private ClientDetailsRepository clientDetailsRepository;
+	private RestTemplate restTemplate = new RestTemplate();
+
+	/**
+	 * @param detailsProvider
+	 */
+	public GoogleNativeAuthorityHandler(ClientDetailsRepository clientDetailsRepository) {
+		this.clientDetailsRepository = clientDetailsRepository;
+	}
+
 	@Override
 	public Map<String, String> extractAttributes(String token, Map<String,String> map, AuthorityMapping mapping) throws SecurityException  {
 		
@@ -52,10 +68,15 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 			if (result == null) {
 				result = validateV1(token);
 			}
+			// validate audience: Google client Id
+			Map<String, String> providerConfig = getProviderConfig(map.get(OAuth2Utils.CLIENT_ID), "google");
+			if (!providerConfig.get(OAuth2Utils.CLIENT_ID).equals(result.get("aud"))) {
+				throw new SecurityException("Invalid Google Client ID");
+			}
 			
 			return extractAttributes(result, mapping);
 		} catch (RemoteException e) {
-			throw new SecurityException("Error validating google token " +token + ": " + e.getMessage());
+			throw new SecurityException("Error validating google token : " + e.getMessage());
 		}
 	}
 
@@ -73,23 +94,13 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> validateV3(String token) throws SecurityException, RemoteException {
-		String s = RemoteConnector.getJSON("https://www.googleapis.com", "/oauth2/v3/tokeninfo?id_token="+token, null);
+		String s = restTemplate.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token="+token, String.class);
 		Map<String,Object> result = JsonUtils.toObject(s, Map.class);
-		if (result == null || !validAuidence(result) || !result.containsKey("sub")) {
+		if (result == null || !result.containsKey("sub")) {
 			throw new SecurityException("Incorrect google token "+ token+": "+s);
 		}
 		result.put("id", result.get("sub"));
 		return result;
-	}
-
-
-	/**
-	 * Check whether the token client audience matches what is expected
-	 * @param result
-	 * @return
-	 */
-	private boolean validAuidence(Map<String, Object> result) {
-		return true;//googleClientIds.contains(result.get("audience"));
 	}
 
 
@@ -104,7 +115,7 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 		// first, we have to validate that the token is a correct platform token
 		String s = RemoteConnector.getJSON("https://www.googleapis.com", "/oauth2/v1/tokeninfo?access_token="+token, null);
 		Map<String,Object> result = JsonUtils.toObject(s, Map.class);
-		if (result == null || !validAuidence(result)) {
+		if (result == null) {
 			throw new SecurityException("Incorrect google token "+ token+": "+s);
 		}
 		// second, we have to get the user information
@@ -138,5 +149,22 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 			}
 		}
 		return attrs;	
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected Map<String, String> getProviderConfig(String clientId, String authority) {
+		ClientDetails clientDetails = clientDetailsRepository.findByClientId(clientId);
+		if (clientDetails == null) {
+			throw new BadCredentialsException("Unknown client");
+		}
+		if (clientDetails.getAdditionalInformation() != null && 
+			clientDetails.getAdditionalInformation().containsKey("providerConfigurations") &&
+			((Map<String, Object>)clientDetails.getAdditionalInformation().get("providerConfigurations")).get(authority) != null) 
+		{
+			Map<String, String> config = (Map<String, String>) ((Map<String, Object>)clientDetails.getAdditionalInformation().get("providerConfigurations")).get(authority);
+			return config;
+		}
+		throw new BadCredentialsException("Invalid client configuration");
+		
 	}
 }

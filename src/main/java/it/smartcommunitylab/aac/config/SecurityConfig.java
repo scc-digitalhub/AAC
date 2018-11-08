@@ -36,6 +36,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
@@ -251,10 +252,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return filter;
 	}
 
+//	@Override
+//	public void configure(WebSecurity web) throws Exception {
+//	    web.ignoring()
+//	    .antMatchers("/eauth/authorize/**");
+//	}
+	
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 		http
-		.anonymous().disable()
+//		.anonymous().disable()
 		.authorizeRequests()
 			.antMatchers("/eauth/authorize/**").permitAll()
 			.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
