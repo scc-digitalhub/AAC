@@ -166,6 +166,9 @@ angular.module('aac.controllers.clients', [])
 			if (response.responseCode == 'OK') {
 				var app = response.data;
 				$scope.app = angular.copy(app);
+				$scope.redirectUris = ($scope.app.redirectUris || '').split(',').map(function(r) {
+					return {text: r.trim()};
+				});
 				$scope.initGrantTypes($scope.app);
 				$scope.clientId = app.clientId;
 				$scope.switchClientView('overview');
@@ -460,6 +463,11 @@ angular.module('aac.controllers.clients', [])
 	$scope.saveSettings = function() {
 		var newGt = [];
 		for (var k in $scope.grantTypes) if ($scope.grantTypes[k]) newGt.push(k);
+		if ($scope.redirectUris) {
+			$scope.app.redirectUris = $scope.redirectUris.map(function(r) {
+				return r.text;
+			}).join(',');
+		}
 		$scope.app.grantedTypes = newGt;
 		var newClient = new ClientAppBasic($scope.app);
 		newClient.$update({clientId:$scope.clientId}, function(response) {

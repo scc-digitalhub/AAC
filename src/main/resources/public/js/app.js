@@ -2,6 +2,7 @@ var app = angular.module('dev', [
 	'ngRoute',
 	'ngResource',
 	'angularSpinner',
+	'ngTagsInput',
 	'aac.services', 
 	'aac.controllers.main', 
 	'aac.controllers.clients', 
