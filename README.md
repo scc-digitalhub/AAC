@@ -152,7 +152,7 @@ configuration requires the log folder path defined with ``aac.log.folder`` prope
  
 ### 2.8. OpenID Configuration 
 
-AAC provide a basic implementation of the OpenID protocol. The implementation is based on the MitreID project (https://mitreid.org/).
+AAC provide a basic implementation of the OpenID protocol. The implementation is based on the [MitreID](https://mitreid.org/) project.
  
 To configure the issuer, it is necessary to specify the OpenID issuer URL:
     
@@ -160,7 +160,12 @@ To configure the issuer, it is necessary to specify the OpenID issuer URL:
     openid:
       issuer: http://localhost:8080/aac
       
-The metadata is available at ``.well-known/openid-configuration``.
+OpenID extension requires RSA keys for JWT signature. The project ships with the pre-packaged generated key. The key MUST be replaced with your specific value in production environment. To generate new key please follow the instructions available [here](https://github.com/mitreid-connect/json-web-key-generator). 
+
+The resulting key should be placed in the resources (i.e., src/main/resources).
+
+      
+The OpenId metadata is available at ``/.well-known/openid-configuration``.
 
 ## 3. Execution
 
