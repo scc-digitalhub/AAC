@@ -101,8 +101,8 @@ public class OIDCTokenEnhancer  {
 
 		idClaims.issueTime(new Date());
 
-		if (client.getAccessTokenValiditySeconds() != null) {
-			Date expiration = new Date(System.currentTimeMillis() + (client.getAccessTokenValiditySeconds() * 1000L));
+		if (accessToken.getExpiration() != null) {
+			Date expiration = accessToken.getExpiration();
 			idClaims.expirationTime(expiration);
 		}
 
