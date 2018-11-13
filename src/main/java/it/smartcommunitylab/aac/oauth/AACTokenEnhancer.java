@@ -16,12 +16,15 @@
 
 package it.smartcommunitylab.aac.oauth;
 
+import java.util.Collections;
+
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 
 /**
  * Handle token result for 'operation.confirmed' scope: remove refresh token.
@@ -30,11 +33,24 @@ import it.smartcommunitylab.aac.Config;
  */
 public class AACTokenEnhancer implements TokenEnhancer {
 
+	
+	private OIDCTokenEnhancer tokenEnhancer;
+	/**
+	 * @param tokenEnhancer
+	 */
+	public AACTokenEnhancer(OIDCTokenEnhancer tokenEnhancer) {
+		this.tokenEnhancer = tokenEnhancer;
+	}
+
 	@Override
 	public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
 		if (accessToken.getScope().contains(Config.SCOPE_OPERATION_CONFIRMED)) {
 			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
 			token.setRefreshToken(null);
+		}
+		if (accessToken.getScope().contains(Config.OPENID_SCOPE)) {
+			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
+			token.setAdditionalInformation(Collections.singletonMap("id_token", tokenEnhancer.createIdToken(accessToken, authentication).serialize()));
 		}
 		return accessToken;
 	}

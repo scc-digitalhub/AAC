@@ -244,7 +244,7 @@ public class MetadataEndpoint {
 			m.put("jwks_uri", baseUrl + JWKSetPublishingEndpoint.URL);
 //			m.put("registration_endpoint", baseUrl + DynamicClientRegistrationEndpoint.URL);
 			m.put("scopes_supported", getAvailableScopes()); // these are the scopes that you can dynamically register for, which is what matters for discovery
-			m.put("response_types_supported", Lists.newArrayList("code", "token")); // we don't support these yet: , "id_token", "id_token token"));
+			m.put("response_types_supported", Lists.newArrayList("code", "token", "id_token", "id_token token"));
 			m.put("grant_types_supported", grantTypes);
 			//acr_values_supported
 			m.put("subject_types_supported", Lists.newArrayList("public", "pairwise"));

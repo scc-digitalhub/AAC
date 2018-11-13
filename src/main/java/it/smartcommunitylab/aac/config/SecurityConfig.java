@@ -36,7 +36,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
@@ -103,6 +102,7 @@ import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
+import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
@@ -329,6 +329,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Autowired
 		private ProviderServiceAdapter providerServiceAdapter;
+		@Autowired
+		private OIDCTokenEnhancer tokenEnhancer;
 		
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
@@ -350,7 +352,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			bean.setSupportRefreshToken(true);
 			bean.setReuseRefreshToken(true);
 			bean.setClientDetailsService(getClientDetails());
-			bean.setTokenEnhancer(new AACTokenEnhancer());
+			bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));
 			return bean;
 		}
 
