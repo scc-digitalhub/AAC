@@ -92,3 +92,6 @@ api:
     endpoint: https://localhost:9443/services/TenantMgtAdminService
     password: admin      
     
+# OPEN ID
+openid:
+  issuer: http://localhost:8080/aac

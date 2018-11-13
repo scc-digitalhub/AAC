@@ -49,7 +49,9 @@ public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
 		
 		if (clientScopes != null && !clientScopes.isEmpty()) {
 			for (String scope : requestScopes) {
-				if (Config.SCOPE_OPERATION_CONFIRMED.equals(scope)) continue;
+				if (Config.SCOPE_OPERATION_CONFIRMED.equals(scope) ||
+					Config.OPENID_SCOPE.equals(scope) ||
+					"default".equals(scope)) continue;
 				if (!clientScopes.contains(scope)) {
 					throw new InvalidScopeException("Invalid scope: " + scope, clientScopes);
 				}

@@ -417,9 +417,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
 						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('profile.basicprofile.all')")
 						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('profile.basicprofile.all')")
-						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('profile.basicprofile.me')")
+						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('"+Config.BASIC_PROFILE_SCOPE+"')")
 						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('profile.accountprofile.all')")
-						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('profile.accountprofile.me')")				
+						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('"+Config.ACCOUNT_PROFILE_SCOPE+"')")				
 						.and().csrf().disable();
 			}
 		}));
@@ -606,6 +606,30 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		}));
 		resource.setOrder(10);
+		return resource;
+	}	
+	
+	@Bean
+	protected ResourceServerConfiguration openidResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/userinfo").authorizeRequests()
+						.antMatchers(HttpMethod.OPTIONS, "/userinfo").permitAll()
+						.antMatchers("/userinfo").access("#oauth2.hasScope('openid')")
+						.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(11);
 		return resource;
 	}	
 }

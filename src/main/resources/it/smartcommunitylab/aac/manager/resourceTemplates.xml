@@ -18,6 +18,15 @@
 			<description>Basic profile of the current platform user. Read access
 				only.</description>
 		</resourceMapping>
+    <resourceMapping id="profile" name="Read user's basic profile"
+      uri="profile" authority="ROLE_USER">
+      <description>Basic user profile data (name, surname, email). Read access
+        only.</description>
+    </resourceMapping>
+    <resourceMapping id="email" name="Read user's email"
+      uri="email" authority="ROLE_USER">
+      <description>Basic user's email.</description>
+    </resourceMapping>
 		<resourceMapping id="profile.basicprofile.all" name="Read all basic profiles"
 			uri="profile.basicprofile.all" authority="ROLE_ANY" roles="apimanager/carbon.super:profilemanager">
 			<description>Basic profile of the platform users. Read access only.

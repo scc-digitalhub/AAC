@@ -172,6 +172,7 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 			if (scopes.isEmpty()) {
 				scopes.add("default");
 			}
+			scopes.add(Config.OPENID_SCOPE);
 
 //			}
 		} catch (InvalidScopeException e) {

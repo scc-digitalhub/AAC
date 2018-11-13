@@ -150,6 +150,17 @@ The logging settings may be configured via standard Spring Boot properties, e.g.
 The project relies on the Logback configuration (see ``src/main/resources/logback.xml``). The default 
 configuration requires the log folder path defined with ``aac.log.folder`` property. (if the property is not set, application will use default value: `WORKING_DIRECTORY/logs`). 
  
+### 2.8. OpenID Configuration 
+
+AAC provide a basic implementation of the OpenID protocol. The implementation is based on the MitreID project (https://mitreid.org/).
+ 
+To configure the issuer, it is necessary to specify the OpenID issuer URL:
+    
+    # OPEN ID
+    openid:
+      issuer: http://localhost:8080/aac
+      
+The metadata is available at ``.well-known/openid-configuration``.
 
 ## 3. Execution
 
@@ -314,7 +325,7 @@ Some of the role spaces may be pre-configured for the AAC. These include:
 The Swagger UI for the AAC API is available at ``http://localhost:8080/aac/swagger-ui.html``.   
   
 ### 6.1. Profile API  
-To obtain the basic user data the following call should be performed:   
+To obtain the basic user data the following call should be performed (scope ``profile.basicprofile.me``):   
 
     GET /aac/basicprofile/me HTTPS/1.1 
     Host: aacserver.com 
@@ -330,7 +341,7 @@ If the token is valid, this returns the user data:
     "username": "mario@gmail.com"
     }  
 
-To obtain the account-related data (e.g., the Identity Provider-specific attributes),  the following call should be performed:   
+To obtain the account-related data (e.g., the Identity Provider-specific attributes),  the following call should be performed  (scope ``profile.accountprofile.me``):   
 
     GET /aac/accountprofile/me HTTPS/1.1 
     Host: aacserver.com 
@@ -395,6 +406,27 @@ The data provided represents the information about the app, the user, validity, 
 
 The role API allows for the checking the role of the specific users. More details can be found on the
 Swagger documentation.
+
+### 6.4. OpenID API
+
+The OpenID userinfo endpoint allows for getting the standard user info claims (scopes ``profile``, ``email``). The response is provided
+in the form of JSON object or JWT token.
+
+    GET /aac/userinfo HTTPS/1.1 
+    Host: aacserver.com 
+    Accept: application/json 
+    Authorization: Bearer <token-value>  
+
+The data provided represents the subset of standard OpenID claims.
+
+      {
+        "sub": "123456789",
+        "name": "Mario Rossi",
+        "preferred_username": "rossi@mario.com",
+        "given_name": "Mario",
+        "family_name": "Rossi",
+        "email": "rossi@mario.com",
+      }
 
 
 ## 7. Docker image build 

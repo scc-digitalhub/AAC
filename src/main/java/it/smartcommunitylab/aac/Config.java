@@ -62,8 +62,21 @@ public class Config {
 
 	public static final String GRANT_TYPE_NATIVE = "native";
 
+	/** Open ID connect scope */
+	public static final String OPENID_SCOPE = "openid";
 	/** Predefined scope for user creation and management */
-	public static final Object SCOPE_USERMANAGEMENT = "usermanagement";
+	public static final String SCOPE_USERMANAGEMENT = "usermanagement";
+	public static final String ACCOUNT_PROFILE_SCOPE = "profile.accountprofile.me";
+	public static final String BASIC_PROFILE_SCOPE = "profile.basicprofile.me";
+	public static final String EMAIL_SCOPE = "email";
+
+	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
+	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
+	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC = "encrypted_response_enc";
+	public static final String CLIENT_PARAM_JWKS = "jwks";
+	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
+
+
 	
 
 	/**

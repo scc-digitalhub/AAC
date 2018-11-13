@@ -92,7 +92,7 @@ public class APIProviderManager {
 	private String clientCallback;	
 	
 	private static final String[] GRANT_TYPES = new String []{"password","client_credentials", "implicit"};
-	private static final String[] API_MGT_SCOPES = new String[]{"openid","apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create", "apim:api_publish"};
+	private static final String[] API_MGT_SCOPES = new String[]{Config.OPENID_SCOPE,"apim:subscribe","apim:api_view","apim:subscription_view","apim:api_create", "apim:api_publish"};
 	/** Predefined tenant role PROVIDER (API provider) */
 	
 	
