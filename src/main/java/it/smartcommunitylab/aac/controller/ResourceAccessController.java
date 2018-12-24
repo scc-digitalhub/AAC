@@ -79,6 +79,7 @@ public class ResourceAccessController {
 	 */
 	@ApiOperation(value="Check scope access for token")
 	@RequestMapping(method = RequestMethod.GET, value = "/resources/access")
+	@Deprecated
 	public @ResponseBody Boolean canAccessResource(@RequestParam String scope, HttpServletRequest request) {
 		try {
 			String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
@@ -94,9 +95,9 @@ public class ResourceAccessController {
 		return false;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@ApiOperation(value="Get token info")
 	@RequestMapping(method = RequestMethod.GET, value = "/resources/token")
+	@Deprecated
 	public @ResponseBody AACTokenValidation getTokenInfo(HttpServletRequest request, HttpServletResponse response) {
 		AACTokenValidation result = new AACTokenValidation();
 		

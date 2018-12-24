@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.apikey.controller;
+package it.smartcommunitylab.aac.apikey.test;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
@@ -160,7 +160,9 @@ public class APIKeyControllerTest {
 		APIKey resKey = jsonMapper.readValue(string, APIKey.class);
 
 		// search key
-		RequestBuilder validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey());
+		RequestBuilder validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey())
+				.header("Authorization", token);
+				
 		result = mockMvc.perform(validate);
 		result.andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 		string = result.andReturn().getResponse().getContentAsString();
@@ -168,7 +170,8 @@ public class APIKeyControllerTest {
 		Assert.assertEquals(resKey.getClientId(), client.getClientId());
 		
 		Thread.sleep(3000L);
-		validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey());
+		validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey())
+				.header("Authorization", token);
 		result = mockMvc.perform(validate);
 		result.andExpect(MockMvcResultMatchers.status().isNotFound());
 		
@@ -241,7 +244,8 @@ public class APIKeyControllerTest {
 
 		// validate
 		Thread.sleep(4000L);
-		RequestBuilder validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey());
+		RequestBuilder validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey())
+				.header("Authorization", token);
 		result = mockMvc.perform(validate);
 		result.andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 
@@ -251,7 +255,8 @@ public class APIKeyControllerTest {
 		result = mockMvc.perform(delete);
 		result.andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 		// validate
-		validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey());
+		validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey())
+				.header("Authorization", token);
 		result = mockMvc.perform(validate);
 		result.andExpect(MockMvcResultMatchers.status().isNotFound());
 	}

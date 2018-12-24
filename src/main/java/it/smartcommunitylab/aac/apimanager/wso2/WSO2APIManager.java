@@ -20,6 +20,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.wso2.carbon.um.ws.api.stub.ClaimValue;
@@ -47,6 +49,8 @@ import it.smartcommunitylab.aac.wso2.services.Utils;
  */
 public class WSO2APIManager implements APIManager {
 
+	private static final Logger log = LoggerFactory.getLogger(WSO2APIManager.class);
+	
 	private final static String ENDPOINT_CONFIG = "{\"production_endpoints\":{\"url\":\"${api.internalUrl}\",\"config\":null},\"sandbox_endpoints\":{\"url\":\"${api.internalUrl}\",\"config\":null},\"endpoint_type\":\"http\"}";
 
 	@Autowired
@@ -288,12 +292,17 @@ public class WSO2APIManager implements APIManager {
 	 */
 	@Override
 	public void createUser(String email, String password, String name, String surname) throws Exception {
-		ClaimValue[] claims = new ClaimValue[] {
-				Utils.createClaimValue("http://wso2.org/claims/emailaddress", email),
-				Utils.createClaimValue("http://wso2.org/claims/givenname", name),
-				Utils.createClaimValue("http://wso2.org/claims/lastname", surname) 
-		};
-		umService.createSubscriber(email, password, claims);
+		
+		try {
+			ClaimValue[] claims = new ClaimValue[] {
+					Utils.createClaimValue("http://wso2.org/claims/emailaddress", email),
+					Utils.createClaimValue("http://wso2.org/claims/givenname", name),
+					Utils.createClaimValue("http://wso2.org/claims/lastname", surname) 
+			};
+			umService.createSubscriber(email, password, claims);
+		} catch (Exception e) {
+			log.error(e.getMessage());;
+		}
 	}
 
 
@@ -312,7 +321,11 @@ public class WSO2APIManager implements APIManager {
 	 */
 	@Override
 	public void updatePassword(String email, String newPassword) throws Exception {
-		umService.updateNormalUserPassword(email, newPassword);	
+		try {
+			umService.updateNormalUserPassword(email, newPassword);	
+		} catch (Exception e) {
+			log.error(e.getMessage());;
+		}
 	}
 
 

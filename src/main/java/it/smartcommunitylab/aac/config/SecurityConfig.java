@@ -97,6 +97,7 @@ import it.smartcommunitylab.aac.oauth.MultitenantOAuth2ClientAuthenticationProce
 import it.smartcommunitylab.aac.oauth.NativeTokenGranter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
+import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
@@ -462,32 +463,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return resource;
 	}
 
-	// @Bean
-	// protected ResourceServerConfiguration apiMgmtResources() {
-	// ResourceServerConfiguration resource = new ResourceServerConfiguration()
-	// {
-	// public void setConfigurers(List<ResourceServerConfigurer> configurers) {
-	// super.setConfigurers(configurers);
-	// }
-	// };
-	// resource.setConfigurers(Arrays.<ResourceServerConfigurer> asList(new
-	// ResourceServerConfigurerAdapter() {
-	// public void configure(ResourceServerSecurityConfigurer resources) throws
-	// Exception { resources.resourceId(null); }
-	// public void configure(HttpSecurity http) throws Exception {
-	// http
-	// .antMatcher("/mgmt/apis")
-	// .authorizeRequests()
-	// .antMatchers(HttpMethod.OPTIONS, "/mgmt/apis").permitAll()
-	// .anyRequest().authenticated()
-	// .and().csrf().disable();
-	// }
-	//
-	// }));
-	// resource.setOrder(6);
-	// return resource;
-	// }
-
 	@Bean
 	protected ResourceServerConfiguration rolesResources() {
 		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
@@ -600,10 +575,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/apikey/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/apikey/**")
-						.permitAll()
-						.antMatchers("/apikey/**").fullyAuthenticated()
-						.and().csrf().disable();
+				http.regexMatcher("/apikey(.*)").authorizeRequests()
+						.regexMatchers("/apikey(.*)").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+						.and().httpBasic()
+						.and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+				
+				http.csrf().disable();
 			}
 
 		}));
@@ -633,5 +610,28 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		}));
 		resource.setOrder(11);
 		return resource;
-	}	
+	}
+	
+	@Bean
+	protected ResourceServerConfiguration tokenIntrospectionResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/token_introspection").authorizeRequests()
+						.antMatchers("/token_introspection").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+						.and().httpBasic()
+						.and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+			}
+		}));
+		resource.setOrder(12);
+		return resource;
+	}
 }

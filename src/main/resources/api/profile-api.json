@@ -2,31 +2,12 @@
 	"swagger": "2.0",
 	"x-wso2-security": {
 		"apim": {
-			"x-wso2-scopes": [{
-				"description": "Account profile of the platform users. Read access only.",
-				"name": "Read all account profiles",
-				"roles": "accountmanager",
-				"key": "profile.accountprofile.all"
-			},
-			{
-				"description": "Account profile of the current platform user. Read access only.",
-				"name": "Read user's account profile",
-				"roles": "",
-				"key": "profile.accountprofile.me"
-			},
-			{
-				"description": "Basic profile of the platform users. Read access only.",
-				"name": "Read all basic profiles",
-				"roles": "profilemanager",
-				"key": "profile.basicprofile.all"
-			},
-			{
+			"x-wso2-scopes": {
 				"description": "Basic profile of the current platform user. Read access only.",
 				"name": "Read user's basic profile",
 				"roles": "",
 				"key": "profile.basicprofile.me"
 			}
-			]
 		}
 	},
 	"info": {
@@ -45,23 +26,25 @@
 	"host": "${server.host}",
 	"basePath": "${server.contextPath}",
 	"tags": [{
-		"name": "AAC User profile",
-		"description": "Basic Profile Controller"
-	},
-	{
 		"name": "AAC Token Info",
 		"description": "Resource Access Controller"
 	}],
 	"paths": {
 		"/accountprofile/me": {
 			"get": {
-				"x-auth-type":"Application User",
-				"x-scope":"profile.accountprofile.me",
-				"tags": ["AAC User profile"],
+				"x-auth-type": "Application User",
+				"x-scope": "profile.accountprofile.me",
+				"tags": [
+					"AAC User profile"
+				],
 				"summary": "findAccountProfile",
 				"operationId": "findAccountProfileUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"responses": {
 					"200": {
 						"description": "OK",
@@ -83,13 +66,19 @@
 		},
 		"/accountprofile/profiles": {
 			"get": {
-				"x-auth-type":"Application",
-				"x-scope":"profile.accountprofile.all",
-				"tags": ["AAC User profile"],
+				"x-auth-type": "Application",
+				"x-scope": "profile.accountprofile.all",
+				"tags": [
+					"AAC User profile"
+				],
 				"summary": "findAccountProfiles",
 				"operationId": "findAccountProfilesUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"parameters": [{
 					"name": "userIds",
 					"in": "query",
@@ -122,13 +111,19 @@
 		},
 		"/basicprofile/all": {
 			"get": {
-				"x-auth-type":"Application",
-				"x-scope":"profile.basicprofile.all",
-				"tags": ["AAC User profile"],
+				"x-auth-type": "Application",
+				"x-scope": "profile.basicprofile.all",
+				"tags": [
+					"AAC User profile"
+				],
 				"summary": "searchUsers",
 				"operationId": "searchUsersUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"parameters": [{
 					"name": "filter",
 					"in": "query",
@@ -157,13 +152,19 @@
 		},
 		"/basicprofile/all/{userId}": {
 			"get": {
-				"x-auth-type":"Application",
-				"x-scope":"profile.basicprofile.all",
-				"tags": ["AAC User profile"],
+				"x-auth-type": "Application",
+				"x-scope": "profile.basicprofile.all",
+				"tags": [
+					"AAC User profile"
+				],
 				"summary": "getUser",
 				"operationId": "getUserUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"parameters": [{
 					"name": "userId",
 					"in": "path",
@@ -192,13 +193,19 @@
 		},
 		"/basicprofile/me": {
 			"get": {
-				"x-auth-type":"Application User",
-				"x-scope":"profile.basicprofile.me",
-				"tags": ["AAC User profile"],
+				"x-auth-type": "Application User",
+				"x-scope": "profile.basicprofile.me",
+				"tags": [
+					"AAC User profile"
+				],
 				"summary": "findProfile",
 				"operationId": "findProfileUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"responses": {
 					"200": {
 						"description": "OK",
@@ -220,13 +227,19 @@
 		},
 		"/basicprofile/profiles": {
 			"get": {
-				"x-auth-type":"Application",
-				"x-scope":"profile.basicprofile.all",
-				"tags": ["AAC User profile"],
+				"x-auth-type": "Application",
+				"x-scope": "profile.basicprofile.all",
+				"tags": [
+					"AAC User profile"
+				],
 				"summary": "findProfiles",
 				"operationId": "findProfilesUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"parameters": [{
 					"name": "userIds",
 					"in": "query",
@@ -259,11 +272,17 @@
 		},
 		"/resources/access": {
 			"get": {
-				"tags": ["AAC Token Info"],
+				"tags": [
+					"AAC Token Info"
+				],
 				"summary": "canAccessResource",
 				"operationId": "canAccessResourceUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"parameters": [{
 					"name": "scope",
 					"in": "query",
@@ -287,22 +306,72 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"deprecated": true
 			}
 		},
 		"/resources/token": {
 			"get": {
-				"tags": ["AAC Token Info"],
+				"tags": [
+					"AAC Token Info"
+				],
 				"summary": "getTokenInfo",
 				"operationId": "getTokenInfoUsingGET",
-				"consumes": ["application/json"],
-				"produces": ["*/*"],
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
 				"responses": {
 					"200": {
 						"description": "OK",
 						"schema": {
 							"$ref": "#/definitions/AACTokenValidation"
 						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"deprecated": true
+			}
+		},
+		"/token_introspection": {
+			"post": {
+				"tags": [
+					"AAC Token Introspection (ITEF RFC7662)"
+				],
+				"summary": "Get token metadata",
+				"operationId": "getTokenInfoUsingPOST",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
+				"parameters": [{
+					"name": "token",
+					"in": "query",
+					"description": "token",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/AACTokenIntrospection"
+						}
+					},
+					"201": {
+						"description": "Created"
 					},
 					"401": {
 						"description": "Unauthorized"
@@ -333,9 +402,9 @@
 				"surname": {
 					"type": "string"
 				},
-        "username": {
-          "type": "string"
-        },
+				"username": {
+					"type": "string"
+				},
 				"userId": {
 					"type": "string"
 				}

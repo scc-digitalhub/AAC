@@ -124,3 +124,7 @@ swagger:
     name:  Smart Community Lab
     url: www.smartcommunitylab.it
     email: info@smartcommunitylab.it    
+    
+# OPEN ID
+openid:
+  issuer: http://localhost:8080/aac

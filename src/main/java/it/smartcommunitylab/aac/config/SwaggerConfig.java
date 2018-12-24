@@ -15,19 +15,31 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.config;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import springfox.documentation.builders.AuthorizationCodeGrantBuilder;
+import springfox.documentation.builders.OAuthBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.ClientCredentialsGrant;
 import springfox.documentation.service.Contact;
+import springfox.documentation.service.GrantType;
+import springfox.documentation.service.SecurityReference;
+import springfox.documentation.service.SecurityScheme;
+import springfox.documentation.service.TokenEndpoint;
+import springfox.documentation.service.TokenRequestEndpoint;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -35,8 +47,14 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfig {                       
 	
+	private static final String CLIENT_SECRET = "<your-client-secret>";
+	private static final String CLIENT_ID = "<your-client-id>";
+
 	@Autowired
 	private SwaggerConf conf;
+	
+	@Value("${application.url}")
+	private String AUTH_SERVER;
 	
 	@Bean
 	@ConfigurationProperties("swagger")
@@ -44,6 +62,7 @@ public class SwaggerConfig {
 		return new SwaggerConf();
 	}
 
+	/*************************** API Key Management API **********************/ 
     @Bean
     public Docket apiApiKey() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -52,8 +71,18 @@ public class SwaggerConfig {
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
           .paths(PathSelectors.regex("/apikey.*"))
-          .build();                                           
+          .build()                                          
+          .securitySchemes(Arrays.asList(
+        		  securitySchemeApp(new AuthorizationScope[0])
+        		  ))
+          .securityContexts(Arrays.asList(
+        		  securityContext(new AuthorizationScope[0], "/apikey.*", "application")
+        		  ));                                           
     }
+	/*************************************************************************/ 
+    
+    
+	/***************** Core AAC API - PROFILES, TOKEN INTROSPECTION **********/ 
     @Bean
     public Docket apiAac() { 
         return new Docket(DocumentationType.SWAGGER_2)
@@ -61,10 +90,39 @@ public class SwaggerConfig {
           .apiInfo(apiInfo(conf.title.get("AAC"), conf.description.get("AAC")))
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
-          .paths(PathSelectors.regex("(/.*profile.*)|(/resources.*)"))
-          .build();                                           
+          .paths(PathSelectors.regex("(/.*profile.*)|(/resources.*)|(/token_introspection)"))
+          .build()
+          .securitySchemes(Arrays.asList(
+        		  securitySchemeUser(aacScopesUser()), 
+        		  securitySchemeApp(aacScopesApp())
+        		  ))
+          .securityContexts(Arrays.asList(
+        		  securityContext(aacScopesUser(), ".*profile/me", "spring_oauth"),
+        		  securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)|(/token_introspection)", "application")
+        		  ));                                           
     }
-    @Bean
+    
+	private AuthorizationScope[] aacScopesUser() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("profile.basicprofile.me", "Basic profile of the current platform user. Read access only."),
+				new AuthorizationScope("profile", "Basic user profile data (name, surname, email). Read access only."),
+				new AuthorizationScope("email", "Basic user's email."), 
+				new AuthorizationScope("profile.accountprofile.me", "Account profile of the current platform user. Read access only."), 
+		};
+		return scopes;
+	}
+	private AuthorizationScope[] aacScopesApp() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("profile.basicprofile.all", "Basic profile of the platform users. Read access only."), 
+				new AuthorizationScope("profile.accountprofile.all", "Account profile of the platform users. Read access only."), 
+		};
+		return scopes;
+	}
+	/*************************************************************************/ 
+    
+    
+	/******************************* AUTHORIZATION API ***********************/ 
+	@Bean
     public Docket apiAuthorization() { 
         return new Docket(DocumentationType.SWAGGER_2)
           .groupName("AACAuthorization")
@@ -72,8 +130,27 @@ public class SwaggerConfig {
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
           .paths(PathSelectors.regex("/authorization.*"))
-          .build();                                           
+          .build()          
+          .securitySchemes(Arrays.asList(
+        		  securitySchemeApp(authorizationScopesApp())
+        		  ))
+          .securityContexts(Arrays.asList(
+        		  securityContext(authorizationScopesApp(), "/authorization.*", "application")
+        		  ));                                           
+                                           
     }
+	private AuthorizationScope[] authorizationScopesApp() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("authorization.manage", "Modify authorizations"), 
+				new AuthorizationScope("authorization.schema.manage", "Manage authorization schema"), 
+		};
+		return scopes;
+	}
+	
+	/*************************************************************************/ 
+    
+    
+	/******************************* ROLES API *******************************/ 
     @Bean
     public Docket apiRoles() { 
         return new Docket(DocumentationType.SWAGGER_2)
@@ -82,8 +159,34 @@ public class SwaggerConfig {
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
           .paths(PathSelectors.regex("/userroles.*"))
-          .build();                                           
+          .build()
+          .securitySchemes(Arrays.asList(
+        		  securitySchemeUser(rolesScopesUser()), 
+        		  securitySchemeApp(rolesScopesApp())
+        		  ))
+          .securityContexts(Arrays.asList(
+        		  securityContext(rolesScopesUser(), "/userroles/me", "spring_oauth"),
+        		  securityContext(rolesScopesApp(), "(/userroles/user.*)|(/userroles/client.*)|(/userroles/token.*)", "application")
+        		  ));                                           
+
     }    
+    
+	private AuthorizationScope[] rolesScopesUser() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("user.roles.me", "Read roles of the current user.")
+		};
+		return scopes;
+	}
+	private AuthorizationScope[] rolesScopesApp() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("user.roles.write", "Modify the roles of the specified user within a tenant."), 
+				new AuthorizationScope("user.roles.read", "Read the roles of the specified user within a tenant."), 
+				new AuthorizationScope("user.roles.read.all", "Read the roles of any user."), 
+				new AuthorizationScope("client.roles.read.all", "Read the roles of any app client."), 
+		};
+		return scopes;
+	}
+	/*************************************************************************/ 
     
     public ApiInfo apiInfo(String title, String description) {
         return new ApiInfo(
@@ -95,9 +198,32 @@ public class SwaggerConfig {
           conf.license, 
           conf.licenseUrl, 
           Collections.emptyList());
-   }
+    }
     
-   public static class SwaggerConf {
+	private SecurityScheme securitySchemeUser(AuthorizationScope[] scopes) {
+		GrantType acGrantType = new AuthorizationCodeGrantBuilder()
+				.tokenEndpoint(new TokenEndpoint(AUTH_SERVER + "/oauth/token", "oauthtoken"))
+				.tokenRequestEndpoint(new TokenRequestEndpoint(AUTH_SERVER + "/eauth/authorize", CLIENT_ID, CLIENT_SECRET)).build();
+		SecurityScheme oauth = new OAuthBuilder().name("spring_oauth")
+				.grantTypes(Arrays.asList(acGrantType)).scopes(Arrays.asList(scopes)).build();
+		return oauth;
+	}
+	private SecurityScheme securitySchemeApp(AuthorizationScope[] scopes) {
+		GrantType ccGrantType = new ClientCredentialsGrant(AUTH_SERVER + "/oauth/token");
+
+		SecurityScheme oauth = new OAuthBuilder().name("application")
+				.grantTypes(Arrays.asList(ccGrantType)).scopes(Arrays.asList(scopes)).build();
+		return oauth;
+	}
+	
+	private SecurityContext securityContext(AuthorizationScope[] scopes, String path, String type) {
+        return SecurityContext.builder()
+        		.securityReferences(Arrays.asList(new SecurityReference(type, scopes)))
+        		.forPaths(PathSelectors.regex(path))
+        		.build();
+    }
+    
+    public static class SwaggerConf {
 		private HashMap<String, String> title;
 		private HashMap<String, String> description;
 		private HashMap<String, String> contact;
