@@ -17,10 +17,11 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.springframework.util.StringUtils;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,7 +35,9 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.model.User;
 
@@ -66,7 +69,16 @@ public class NativeTokenGranter extends AbstractTokenGranter {
 
 //		Authentication user = new UsernamePasswordAuthenticationToken(nativeUser.getId().toString(), null, list);
 //		
-		tokenRequest.setScope(providerService.userScopes(nativeUser, tokenRequest.getScope(), true));
+		Set<String> scopes = new HashSet<>(tokenRequest.getScope());
+		scopes.remove("default");
+		scopes.remove(Config.OPENID_SCOPE);
+		
+		if ((scopes == null || scopes.isEmpty())) {
+			scopes = client.getScope();
+		}		
+		Set<String> newScopes = providerService.userScopes(nativeUser, scopes, true); 
+		newScopes.add(Config.OPENID_SCOPE);
+		tokenRequest.setScope(newScopes);
 		
 		UserDetails user = new org.springframework.security.core.userdetails.User(nativeUser.getId().toString(), "", list);
 		AbstractAuthenticationToken a = new AACAuthenticationToken(user, null, authority, list);
