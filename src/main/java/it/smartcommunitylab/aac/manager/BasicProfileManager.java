@@ -64,6 +64,19 @@ public class BasicProfileManager {
 			throw new IllegalStateException("Problem reading users: "+e.getMessage());
 		}
 	}
+	
+	/**
+	 * @param userName
+	 * @return
+	 */
+	public BasicProfile getUser(String userName) {
+		try {
+			return BasicProfileConverter.toBasicProfile(userRepository.findByUsername(userName.toLowerCase()));
+		} catch (Exception e) {
+			throw new IllegalStateException("Problem reading users: "+e.getMessage());
+		}
+	}
+	
 	/**
 	 * returns all minimal set of
 	 * users who match part of name
@@ -122,5 +135,4 @@ public class BasicProfileManager {
 		}
 		return list;
 	}
-
 }

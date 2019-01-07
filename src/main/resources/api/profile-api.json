@@ -130,7 +130,13 @@
 					"description": "filter",
 					"required": false,
 					"type": "string"
-				}],
+				},{
+          "name": "username",
+          "in": "query",
+          "description": "username (e.g., email)",
+          "required": false,
+          "type": "string"
+        }],
 				"responses": {
 					"200": {
 						"description": "OK",

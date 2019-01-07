@@ -17,11 +17,13 @@
 package it.smartcommunitylab.aac.controller;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,11 +72,14 @@ public class BasicProfileController {
 	@ApiOperation(value="Get basic profile of all users")
 	@RequestMapping(method = RequestMethod.GET, value = "/basicprofile/all")
 	public @ResponseBody BasicProfiles searchUsers(HttpServletResponse response,
-			@RequestParam(value = "filter", required = false) String fullNameFilter) throws IOException {
+			@RequestParam(value = "filter", required = false) String fullNameFilter,
+			@RequestParam(value = "username", required = false) String userName) throws IOException {
 		List<BasicProfile> list;
-		if (fullNameFilter != null && !fullNameFilter.isEmpty()) {
+		if (!StringUtils.isEmpty(userName)) {
+			list = Collections.singletonList(profileManager.getUser(userName));
+		}
+		else if (!StringUtils.isEmpty(fullNameFilter)) {
 			list = profileManager.getUsers(fullNameFilter);
-
 		} else {
 			list = profileManager.getUsers();
 		}
