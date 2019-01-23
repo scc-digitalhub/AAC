@@ -172,6 +172,14 @@ public class User implements Serializable {
 	}
 	
 	/**
+	 * Check if the user is admin. An admin can be recognized by the organizations:ROLE_PROVIDER role.
+	 * @return true if user is admin, false otherwise
+	 */
+	public boolean isAdmin() {
+		return hasRole("ROLE_PROVIDER", null, "organizations");
+	}
+	
+	/**
 	 * Get all the SpaceRoles at the specified context
 	 * @param role
 	 * @param context

@@ -98,11 +98,13 @@ public class RolesController {
 
 		User developer = userRepository.findOne(developerId);
 		Set<Role> fullRoles = parseAndCheckRoles(roles);
-		// role should be in the same space or in the same context if it is ROLE_PROVIDER
-		Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
-		if (fullRoles.stream()
-				.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
-			throw new IllegalArgumentException("Can add roles to the owned space or create new child space owners");
+		if (!developer.isAdmin()) {
+			// role should be in the same space or in the same context if it is ROLE_PROVIDER
+			Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
+			if (fullRoles.stream()
+					.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
+				throw new IllegalArgumentException("Can add roles to the owned space or create new child space owners");
+			}
 		}
 		user.getRoles().addAll(fullRoles);
 		userRepository.save(user);
@@ -137,18 +139,20 @@ public class RolesController {
 
 		User developer = userRepository.findOne(developerId);
 		Set<Role> fullRoles = parseAndCheckRoles(roles);
-		// cannot remove ROLE_PROVIDER of the same user
-		Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
-		if (developerId == userId && fullRoles.stream()
-				.anyMatch(role -> Config.R_PROVIDER.equals(role.getRole()))) {
-			throw new IllegalArgumentException("Cannot remove space ownership for the same user");
-		}
-		// can remove roles in the same space or ROLE_PROVIDERs of subspaces
-		if (fullRoles.stream()
-				.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
-			throw new IllegalArgumentException("Can delete roles only within owned spaces");
-		}
 
+		if (!developer.isAdmin()) {
+			// cannot remove ROLE_PROVIDER of the same user
+			Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
+			if (developerId == userId && fullRoles.stream()
+					.anyMatch(role -> Config.R_PROVIDER.equals(role.getRole()))) {
+				throw new IllegalArgumentException("Cannot remove space ownership for the same user");
+			}
+			// can remove roles in the same space or ROLE_PROVIDERs of subspaces
+			if (fullRoles.stream()
+					.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
+				throw new IllegalArgumentException("Can delete roles only within owned spaces");
+			}
+		}
 		user.getRoles().removeAll(fullRoles);
 
 		userRepository.save(user);
