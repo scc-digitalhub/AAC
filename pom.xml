@@ -266,15 +266,17 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxb2-maven-plugin</artifactId>
-				<version>1.6</version>
+				<version>2.4</version>
 				<executions>
 					<execution>
 						<id>SmartCommunity</id>
 						<configuration>
-							<schemaDirectory>src/main/resources/jaxb/binding</schemaDirectory>
+              <sources>
+                <source>src/main/resources/jaxb/binding</source>
+              </sources>						
 							<outputDirectory>src/main/generated-sources</outputDirectory>
 							<clearOutputDir>false</clearOutputDir>
-							<arguments>-Xvalue-constructor</arguments>
+							<noPackageLevelAnnotations>true</noPackageLevelAnnotations>
 							<locale>en</locale>
 						</configuration>
 						<goals>
