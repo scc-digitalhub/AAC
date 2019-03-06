@@ -15,7 +15,7 @@
 	<properties>
 		<jasperreports.version>4.7.0</jasperreports.version>
 		<tomcat.version>7.0.75</tomcat.version>
-		<wso2integration.version>0.0.1.SNAPSHOT</wso2integration.version>
+		<wso2integration.version>0.0.2.SNAPSHOT</wso2integration.version>
 		<profile.authorization />
 	</properties>
 
