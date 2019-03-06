@@ -71,10 +71,12 @@ public class WSO2APIManager implements APIManager {
 		Map apis = pub.findAPI(name, token);
 
 		List list = (List) apis.get("list");
+		log.info("Checking publish API {} ...", name);
 		// System.err.println(apis);
 		if (list.isEmpty() || !list.stream().anyMatch(x -> name.equals(((Map) x).get("name")))) {
 			String swagger = Resources.toString(Resources.getResource(jsonModel), Charsets.UTF_8);
 			swagger = env.resolvePlaceholders(swagger);
+			log.info("Publishing API {}", name);
 
 			API api = new API();
 
