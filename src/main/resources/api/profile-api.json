@@ -2,12 +2,12 @@
 	"swagger": "2.0",
 	"x-wso2-security": {
 		"apim": {
-			"x-wso2-scopes": {
+			"x-wso2-scopes": [{
 				"description": "Basic profile of the current platform user. Read access only.",
 				"name": "Read user's basic profile",
 				"roles": "",
 				"key": "profile.basicprofile.me"
-			}
+			}]
 		}
 	},
 	"info": {
