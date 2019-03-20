@@ -99,7 +99,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@Column(nullable = false)
 	private Long developerId;
 	
-	@Column(name = "parameters")
+	@Column(name = "parameters",columnDefinition="LONGTEXT")
 	private String parameters;	
 	
 
