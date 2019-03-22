@@ -1,47 +1,33 @@
 {
 	"swagger": "2.0",
-	"x-wso2-security": {
-		"apim": {
-			"x-wso2-scopes": [{
-				"description": "Basic profile of the current platform user. Read access only.",
-				"name": "Read user's basic profile",
-				"roles": "",
-				"key": "profile.basicprofile.me"
-			}]
-		}
-	},
 	"info": {
-		"description": "Api Documentation",
-		"version": "1.0",
-		"title": "Api Documentation",
-		"termsOfService": "urn:tos",
+		"description": "Authorization and Authentication Control APIs - Profile and token info",
+		"version": "1.0.0",
+		"title": "AAC",
 		"contact": {
-			
+			"name": "Smart Community Lab",
+			"url": "www.smartcommunitylab.it",
+			"email": "info@smartcommunitylab.it"
 		},
 		"license": {
-			"name": "Apache 2.0",
+			"name": "Apache License, Version 2.0",
 			"url": "http://www.apache.org/licenses/LICENSE-2.0"
 		}
 	},
-	"host": "${server.host}",
-	"basePath": "${server.contextPath}",
+  "host": "${server.host}",
+  "basePath": "${server.contextPath}",
 	"tags": [{
-		"name": "AAC Token Info",
-		"description": "Resource Access Controller"
+		"name": "AAC User profile",
+		"description": "Basic Profile Controller"
 	}],
 	"paths": {
 		"/accountprofile/me": {
 			"get": {
-				"x-auth-type": "Application User",
-				"x-scope": "profile.accountprofile.me",
 				"tags": [
 					"AAC User profile"
 				],
-				"summary": "findAccountProfile",
+				"summary": "Get account data of a current user",
 				"operationId": "findAccountProfileUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -61,21 +47,22 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+        "security": [{
+          "application": []
+        }],
+				"x-auth-type": "Application User",
+				"x-throttling-tier": "Unlimited",
+				"x-scope": "profile.accountprofile.me"
 			}
 		},
 		"/accountprofile/profiles": {
 			"get": {
-				"x-auth-type": "Application",
-				"x-scope": "profile.accountprofile.all",
 				"tags": [
 					"AAC User profile"
 				],
-				"summary": "findAccountProfiles",
+				"summary": "Get account profiles of specified users",
 				"operationId": "findAccountProfilesUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -106,37 +93,35 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security": [{
+					"application": [
+						"profile.basicprofile.all",
+						"profile.accountprofile.all"
+					]
+				}],
+				"x-auth-type": "Application",
+				"x-throttling-tier": "Unlimited",
+				"x-scope": "profile.accountprofile.all"
 			}
 		},
 		"/basicprofile/all": {
 			"get": {
-				"x-auth-type": "Application",
-				"x-scope": "profile.basicprofile.all",
 				"tags": [
 					"AAC User profile"
 				],
-				"summary": "searchUsers",
+				"summary": "Get basic profile of all users",
 				"operationId": "searchUsersUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
 				"parameters": [{
-					"name": "filter",
+					"name": "username",
 					"in": "query",
-					"description": "filter",
+					"description": "username",
 					"required": false,
 					"type": "string"
-				},{
-          "name": "username",
-          "in": "query",
-          "description": "username (e.g., email)",
-          "required": false,
-          "type": "string"
-        }],
+				}],
 				"responses": {
 					"200": {
 						"description": "OK",
@@ -153,21 +138,25 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security": [{
+					"application": [
+						"profile.basicprofile.all",
+						"profile.accountprofile.all"
+					]
+				}],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited",
+				"x-scope": "profile.basicprofile.all"
 			}
 		},
 		"/basicprofile/all/{userId}": {
 			"get": {
-				"x-auth-type": "Application",
-				"x-scope": "profile.basicprofile.all",
 				"tags": [
 					"AAC User profile"
 				],
-				"summary": "getUser",
+				"summary": "Get basic profile of a user",
 				"operationId": "getUserUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -194,21 +183,25 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security": [{
+					"application": [
+						"profile.basicprofile.all",
+						"profile.accountprofile.all"
+					]
+				}],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited",
+				"x-scope": "profile.basicprofile.all"
 			}
 		},
 		"/basicprofile/me": {
 			"get": {
-				"x-auth-type": "Application User",
-				"x-scope": "profile.basicprofile.me",
 				"tags": [
 					"AAC User profile"
 				],
-				"summary": "findProfile",
+				"summary": "Get basic profile of a current user",
 				"operationId": "findProfileUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -228,21 +221,22 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+        "security": [{
+          "application": []
+        }],
+				"x-auth-type": "Application User",
+				"x-throttling-tier": "Unlimited",
+				"x-scope": "profile.basicprofile.me"
 			}
 		},
 		"/basicprofile/profiles": {
 			"get": {
-				"x-auth-type": "Application",
-				"x-scope": "profile.basicprofile.all",
 				"tags": [
 					"AAC User profile"
 				],
-				"summary": "findProfiles",
+				"summary": "Get basic profile of specified users",
 				"operationId": "findProfilesUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -273,7 +267,16 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security":[ {
+					"application": [
+						"profile.basicprofile.all",
+						"profile.accountprofile.all"
+					]
+				}],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited",
+				"x-scope": "profile.basicprofile.all"
 			}
 		},
 		"/resources/access": {
@@ -281,11 +284,8 @@
 				"tags": [
 					"AAC Token Info"
 				],
-				"summary": "canAccessResource",
+				"summary": "Check scope access for token",
 				"operationId": "canAccessResourceUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -313,7 +313,9 @@
 						"description": "Not Found"
 					}
 				},
-				"deprecated": true
+				"deprecated": true,
+				"x-auth-type": "None",
+				"x-throttling-tier": "Unlimited"
 			}
 		},
 		"/resources/token": {
@@ -321,11 +323,8 @@
 				"tags": [
 					"AAC Token Info"
 				],
-				"summary": "getTokenInfo",
+				"summary": "Get token info",
 				"operationId": "getTokenInfoUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -346,7 +345,9 @@
 						"description": "Not Found"
 					}
 				},
-				"deprecated": true
+				"deprecated": true,
+				"x-auth-type": "None",
+				"x-throttling-tier": "Unlimited"
 			}
 		},
 		"/token_introspection": {
@@ -388,33 +389,95 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+        "security": [{
+          "application": []
+        }],
+				"x-auth-type": "None",
+				"x-throttling-tier": "Unlimited"
+			}
+		}
+	},
+	"securityDefinitions": {
+		"application": {
+			"type": "oauth2",
+			"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
+			"flow": "application",
+			"scopes": {
+				"profile.basicprofile.all": "Basic profile of the platform users. Read access only.",
+				"profile.accountprofile.all": "Account profile of the platform users. Read access only."
+			}
+		},
+		"spring_oauth": {
+			"type": "oauth2",
+			"authorizationUrl": "${server.host}${server.contextPath}/eauth/authorize",
+			"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
+			"flow": "accessCode",
+			"scopes": {
+				"profile.basicprofile.me": "Basic profile of the current platform user. Read access only.",
+				"profile": "Basic user profile data (name, surname, email). Read access only.",
+				"email": "Basic user's email.",
+				"profile.accountprofile.me": "Account profile of the current platform user. Read access only."
 			}
 		}
 	},
 	"definitions": {
-		"Map�string,string�": {
-			"type": "object",
-			"additionalProperties": {
-				"type": "string"
-			}
-		},
-		"BasicProfile": {
+		"AACTokenIntrospection": {
 			"type": "object",
 			"properties": {
-				"name": {
+				"aac_am_tenant": {
 					"type": "string"
 				},
-				"surname": {
+				"aac_applicationToken": {
+					"type": "boolean"
+				},
+				"aac_grantType": {
+					"type": "string"
+				},
+				"aac_user_id": {
+					"type": "string"
+				},
+				"active": {
+					"type": "boolean"
+				},
+				"aud": {
+					"type": "string"
+				},
+				"client_id": {
+					"type": "string"
+				},
+				"exp": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"iat": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"iss": {
+					"type": "string"
+				},
+				"jti": {
+					"type": "string"
+				},
+				"nbf": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"scope": {
+					"type": "string"
+				},
+				"sub": {
+					"type": "string"
+				},
+				"token_type": {
 					"type": "string"
 				},
 				"username": {
 					"type": "string"
-				},
-				"userId": {
-					"type": "string"
 				}
-			}
+			},
+			"title": "AACTokenIntrospection"
 		},
 		"AACTokenValidation": {
 			"type": "object",
@@ -423,6 +486,9 @@
 					"type": "boolean"
 				},
 				"clientId": {
+					"type": "string"
+				},
+				"grantType": {
 					"type": "string"
 				},
 				"issuedTime": {
@@ -448,18 +514,8 @@
 					"type": "integer",
 					"format": "int64"
 				}
-			}
-		},
-		"AccountProfiles": {
-			"type": "object",
-			"properties": {
-				"profiles": {
-					"type": "array",
-					"items": {
-						"$ref": "#/definitions/AccountProfile"
-					}
-				}
-			}
+			},
+			"title": "AACTokenValidation"
 		},
 		"AccountProfile": {
 			"type": "object",
@@ -467,7 +523,10 @@
 				"accounts": {
 					"type": "object",
 					"additionalProperties": {
-						"$ref": "#/definitions/Map�string,string�"
+						"type": "object",
+						"additionalProperties": {
+							"type": "string"
+						}
 					}
 				},
 				"name": {
@@ -478,8 +537,42 @@
 				},
 				"userId": {
 					"type": "string"
+				},
+				"username": {
+					"type": "string"
 				}
-			}
+			},
+			"title": "AccountProfile"
+		},
+		"AccountProfiles": {
+			"type": "object",
+			"properties": {
+				"profiles": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/AccountProfile"
+					}
+				}
+			},
+			"title": "AccountProfiles"
+		},
+		"BasicProfile": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"surname": {
+					"type": "string"
+				},
+				"userId": {
+					"type": "string"
+				},
+				"username": {
+					"type": "string"
+				}
+			},
+			"title": "BasicProfile"
 		},
 		"BasicProfiles": {
 			"type": "object",
@@ -490,7 +583,50 @@
 						"$ref": "#/definitions/BasicProfile"
 					}
 				}
+			},
+			"title": "BasicProfiles"
+		},
+		"Map«string,string»": {
+			"type": "object",
+			"title": "Map«string,string»",
+			"additionalProperties": {
+				"type": "string"
 			}
+		}
+	},
+	"x-wso2-security": {
+		"apim": {
+			"x-wso2-scopes": [{
+        "description": "Basic profile of the current platform user. Read access only.",
+        "name": "Read user's basic profile",
+        "roles": "",
+        "key": "profile.basicprofile.me"
+      },{
+        "description": "Basic user profile data (name, surname, email). Read access only.",
+        "name": "Read user's basic profile",
+        "roles": "",
+        "key": "profile"
+      },{
+        "description": "Read user's email.",
+        "name": "Basic user's email",
+        "roles": "",
+        "key": "email"
+      },{
+        "description": "Basic profile of the platform users. Read access only.",
+        "name": "Read all basic profiles",
+        "roles": "profilemanager",
+        "key": "profile.basicprofile.all"
+      },{
+        "description": "Account profile of the current platform user. Read access only.",
+        "name": "Read user's account profile",
+        "roles": "",
+        "key": "profile.accountprofile.me"
+      },{
+        "description": "Account profile of the platform users. Read access only.",
+        "name": "Read all account profiles",
+        "roles": "accountmanager",
+        "key": "profile.accountprofile.all"
+      }]
 		}
 	}
 }

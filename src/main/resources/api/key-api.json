@@ -24,15 +24,11 @@
 	"paths": {
 		"/apikey": {
 			"get": {
-        "x-auth-type":"Application",
 				"tags": [
 					"AACApiKey"
 				],
 				"summary": "List keys",
 				"operationId": "getKeysUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -55,10 +51,14 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security": [{
+					"application": []
+				}],
+				"x-auth-type": "Application",
+				"x-throttling-tier": "Unlimited"
 			},
 			"post": {
-        "x-auth-type":"Application",
 				"tags": [
 					"AACApiKey"
 				],
@@ -98,12 +98,16 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security": [{
+					"application": []
+				}],
+				"x-auth-type": "Application",
+				"x-throttling-tier": "Unlimited"
 			}
 		},
 		"/apikey/{apiKey}": {
 			"put": {
-        "x-auth-type":"Application",
 				"tags": [
 					"AACApiKey"
 				],
@@ -141,18 +145,19 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security": [{
+					"application": []
+				}],
+				"x-auth-type": "Application",
+				"x-throttling-tier": "Unlimited"
 			},
 			"delete": {
-        "x-auth-type":"Application",
 				"tags": [
 					"AACApiKey"
 				],
 				"summary": "Delete key",
 				"operationId": "deleteKeyUsingDELETE",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -176,60 +181,62 @@
 					"403": {
 						"description": "Forbidden"
 					}
-				}
+				},
+				"security": [{
+					"application": []
+				}],
+				"x-auth-type": "Application",
+				"x-throttling-tier": "Unlimited"
 			}
 		},
-    "/apikeycheck": {
-      "get": {
-        "x-auth-type":"None",
-        "tags": [
-          "AACApiKey"
-        ],
-        "summary": "Validate key as parameter",
-        "operationId": "findKeyByParamUsingGET",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "*/*"
-        ],
-        "parameters": [{
-          "name": "apiKey",
-          "in": "query",
-          "description": "apiKey",
-          "required": true,
-          "type": "string"
-        }],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/APIKey"
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
+		"/apikeycheck": {
+			"get": {
+				"tags": [
+					"AACApiKey"
+				],
+				"summary": "Validate key as parameter",
+				"operationId": "findKeyByParamUsingGET",
+				"produces": [
+					"*/*"
+				],
+				"parameters": [{
+					"name": "apiKey",
+					"in": "query",
+					"description": "apiKey",
+					"required": true,
+					"type": "string"
+				}],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/APIKey"
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [{
+					"application": []
+				}],
+				"x-auth-type": "None",
+				"x-throttling-tier": "Unlimited"
+			}
+		},
 		"/apikeycheck/{apiKey}": {
 			"get": {
-        "x-auth-type":"None",
 				"tags": [
 					"AACApiKey"
 				],
 				"summary": "Validate key",
 				"operationId": "findKeyUsingGET",
-				"consumes": [
-					"application/json"
-				],
 				"produces": [
 					"*/*"
 				],
@@ -256,8 +263,20 @@
 					"404": {
 						"description": "Not Found"
 					}
-				}
+				},
+				"security": [{
+					"application": []
+				}],
+				"x-auth-type": "None",
+				"x-throttling-tier": "Unlimited"
 			}
+		}
+	},
+	"securityDefinitions": {
+		"application": {
+			"type": "oauth2",
+			"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
+			"flow": "application"
 		}
 	},
 	"definitions": {
@@ -300,7 +319,8 @@
 					"type": "integer",
 					"format": "int64"
 				}
-			}
+			},
+			"title": "APIKey"
 		},
 		"Role": {
 			"type": "object",
@@ -318,16 +338,11 @@
 				"role": {
 					"type": "string"
 				},
-				"scope": {
-					"type": "string",
-					"enum": [
-						"system",
-						"application",
-						"tenant",
-						"user"
-					]
+				"space": {
+					"type": "string"
 				}
-			}
+			},
+			"title": "Role"
 		}
 	}
 }

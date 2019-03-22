@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Lists;
@@ -156,7 +157,7 @@ public class APIManagerProviderService {
 			resource.setAuthority(Config.AUTHORITY.ROLE_ANY);
 			resource.setVisibility(RESOURCE_VISIBILITY.PUBLIC);
 			// convert role to canonical form: context/space:role in the API Manager context
-			if (aacResource.getRoles() != null) {
+			if (aacResource.getRoles() != null && aacResource.getRoles().size() > 0 && !StringUtils.isEmpty(StringUtils.collectionToDelimitedString(aacResource.getRoles(), "").trim())) {
 				resource.setRoles(Joiner.on(",").join(aacResource.getRoles().stream().map(r -> new Role(apiProviderContext, tenant, r).getAuthority()).collect(Collectors.toSet())));				
 			}
 			
