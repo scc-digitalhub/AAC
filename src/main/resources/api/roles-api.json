@@ -422,7 +422,7 @@
 "securityDefinitions": {
 "application": {
 "type": "oauth2",
-"tokenUrl": "http://localhost:8080/aac/oauth/token",
+"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
 "flow": "application",
 "scopes": {
 "user.roles.write": "Modify the roles of the specified user within a tenant.",
@@ -433,8 +433,8 @@
 },
 "spring_oauth": {
 "type": "oauth2",
-"authorizationUrl": "http://localhost:8080/aac/eauth/authorize",
-"tokenUrl": "http://localhost:8080/aac/oauth/token",
+"authorizationUrl": "${server.host}${server.contextPath}/eauth/authorize",
+"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
 "flow": "accessCode",
 "scopes": {
 "user.roles.me": "Read roles of the current user."

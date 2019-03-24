@@ -582,7 +582,7 @@
 "securityDefinitions": {
 "application": {
 "type": "oauth2",
-"tokenUrl": "https://am-test.smartcommunitylab.it/aac/oauth/token",
+"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
 "flow": "application",
 "scopes": {
 "authorization.manage": "Modify authorizations",
