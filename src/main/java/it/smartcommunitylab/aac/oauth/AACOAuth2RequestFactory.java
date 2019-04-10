@@ -35,6 +35,8 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 
 public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactory {
 
+	private static final String NONCE = "nonce";
+
 	Logger logger = LoggerFactory.getLogger(AACOAuth2RequestFactory.class);
 	
 	@Autowired
@@ -87,6 +89,9 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 				Collections.<String, String> emptyMap(), clientId, scopes, null, null, false, state, redirectUri,
 				responseTypes);
 
+		if (authorizationParameters.containsKey(NONCE)) {
+			request.getExtensions().put(NONCE, authorizationParameters.get(NONCE));
+		}
 		ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);		
 		request.setResourceIdsAndAuthoritiesFromClientDetails(clientDetails);
 
