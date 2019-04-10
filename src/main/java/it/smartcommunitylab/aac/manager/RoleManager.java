@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.manager;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
@@ -40,8 +40,10 @@ import it.smartcommunitylab.aac.apimanager.model.DataList;
 import it.smartcommunitylab.aac.apimanager.model.RoleModel;
 import it.smartcommunitylab.aac.apimanager.model.Subscription;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -67,6 +69,8 @@ public class RoleManager {
 	
 	@Autowired
 	private UserRepository userRepository;	
+	@Autowired
+	private ClientDetailsRepository clientDetailsRepository;	
 	
 	
 	public User init() {
@@ -265,4 +269,69 @@ public class RoleManager {
 		
 		return user.contextRole(Config.R_PROVIDER, parentContext).stream().map(r -> r.getSpace()).collect(Collectors.toList());
 	}	
+	
+	public Set<Role> getRoles(Long userId) throws Exception {
+		User user = userRepository.findOne(userId);
+		return user.getRoles();
+	}
+
+	// TODO: manage APIM roles 
+	// - create API Manager tenant on the fly and associate the user
+	// - update roles for the tenant
+	public void addRoles(Long userId, String clientId, String roles) throws Exception {
+		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+		Long developerId = client.getDeveloperId();
+		User user = userRepository.findOne(userId);
+
+		User developer = userRepository.findOne(developerId);
+		Set<Role> fullRoles = parseAndCheckRoles(roles);
+		if (!developer.isAdmin()) {
+			// role should be in the same space or in the same context if it is ROLE_PROVIDER
+			Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
+			if (fullRoles.stream()
+					.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
+				throw new IllegalArgumentException("Can add roles to the owned space or create new child space owners");
+			}
+		}
+		user.getRoles().addAll(fullRoles);
+		userRepository.save(user);
+	}
+
+	protected Set<Role> parseAndCheckRoles(String roles) {
+		Set<Role> fullRoles = new HashSet<>();
+		List<String> input = Splitter.on(",").splitToList(roles);
+		for (String roleString : input) {
+			Role role = Role.parse(roleString);
+			fullRoles.add(role);
+		}
+		if (fullRoles.isEmpty()) throw new IllegalArgumentException("Invalid input roles");
+		return fullRoles;
+	}
+
+	public void deleteRoles(Long userId, String clientId, String roles) throws Exception {
+
+		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+		Long developerId = client.getDeveloperId();
+
+		User developer = userRepository.findOne(developerId);
+		Set<Role> fullRoles = parseAndCheckRoles(roles);
+
+		if (!developer.isAdmin()) {
+			// cannot remove ROLE_PROVIDER of the same user
+			Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
+			if (developerId == userId && fullRoles.stream()
+					.anyMatch(role -> Config.R_PROVIDER.equals(role.getRole()))) {
+				throw new IllegalArgumentException("Cannot remove space ownership for the same user");
+			}
+			// can remove roles in the same space or ROLE_PROVIDERs of subspaces
+			if (fullRoles.stream()
+					.anyMatch(role -> !acceptedDomains.contains(role.canonicalSpace())  && !(acceptedDomains.contains(role.getContext()) && Config.R_PROVIDER.equals(role.getRole())))) {
+				throw new IllegalArgumentException("Can delete roles only within owned spaces");
+			}
+		}
+		User user = userRepository.findOne(userId);
+		user.getRoles().removeAll(fullRoles);
+		userRepository.save(user);
+	}
+
 }

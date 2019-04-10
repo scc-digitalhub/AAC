@@ -123,6 +123,11 @@ public class APIProviderManager {
 		}
 	}
 	
+	// TODO relax:
+	// - create tenant with default username/password
+	// - associate user to the tenant as admin
+	// - allow the user to be associated to more tenants
+	// - reset password if the user already exists?
 	public void createAPIProvider(APIProvider provider) throws RegistrationException {
 		//check user exists.
 		List<User> users = userRepository.findByAttributeEntities(Config.IDP_INTERNAL, EMAIL_ATTR, provider.getEmail());

@@ -240,7 +240,7 @@ public class MetadataEndpoint {
 			m.put("token_endpoint", baseUrl + "oauth/token");
 			m.put("userinfo_endpoint", baseUrl + UserInfoEndpoint.URL);
 			//check_session_iframe
-//			m.put("end_session_endpoint", baseUrl + EndSessionEndpoint.URL);
+			m.put("end_session_endpoint", baseUrl + EndSessionEndpoint.URL);
 			m.put("jwks_uri", baseUrl + JWKSetPublishingEndpoint.URL);
 //			m.put("registration_endpoint", baseUrl + DynamicClientRegistrationEndpoint.URL);
 			m.put("scopes_supported", getAvailableScopes()); // these are the scopes that you can dynamically register for, which is what matters for discovery

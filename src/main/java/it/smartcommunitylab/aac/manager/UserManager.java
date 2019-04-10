@@ -220,5 +220,13 @@ public class UserManager {
 	public String getUserAsClient() {
 		return (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
+
+	/**
+	 * @param userId
+	 * @return
+	 */
+	public User findOne(Long userId) {
+		return userRepository.findOne(userId);
+	}
 	
 }
