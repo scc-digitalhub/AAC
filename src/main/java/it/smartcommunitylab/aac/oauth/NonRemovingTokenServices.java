@@ -121,7 +121,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 				localtokenStore.removeAccessToken(existingAccessToken);
 			}
 			else {
-				return existingAccessToken;
+				return tokenEnhancer != null ? tokenEnhancer.enhance(existingAccessToken, authentication) : existingAccessToken;
 			}
 		}
 
