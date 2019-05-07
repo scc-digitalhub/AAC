@@ -238,6 +238,7 @@ public class MetadataEndpoint {
 			m.put("issuer", issuer);
 			m.put("authorization_endpoint", baseUrl + "eauth/authorize");
 			m.put("token_endpoint", baseUrl + "oauth/token");
+			m.put("token_introspection_endpoint", baseUrl + "/token_introspection");
 			m.put("userinfo_endpoint", baseUrl + UserInfoEndpoint.URL);
 			//check_session_iframe
 			m.put("end_session_endpoint", baseUrl + EndSessionEndpoint.URL);
