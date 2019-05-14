@@ -38,12 +38,14 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.dto.BasicProfile;
+import it.smartcommunitylab.aac.model.Role;
 
 @Component(UserInfoView.VIEWNAME)
 public class UserInfoView extends AbstractView {
@@ -52,6 +54,7 @@ public class UserInfoView extends AbstractView {
 	public static final String AUTHORIZED_CLAIMS = "authorizedClaims";
 	public static final String SCOPE = "scope";
 	public static final String USER_INFO = "userInfo";
+	public static final String ROLES = "roles";
 
 	public static final String VIEWNAME = "userInfoView";
 
@@ -117,7 +120,9 @@ public class UserInfoView extends AbstractView {
 		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "given_name");
 		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "family_name");
 		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "email");
-
+		
+		//roles - custom
+		scopesToClaims.put("user.roles.me", "authorities");
 	}
 
 	/*
@@ -148,7 +153,11 @@ public class UserInfoView extends AbstractView {
 		if (model.get(REQUESTED_CLAIMS) != null) {
 			requestedClaims = jsonParser.parse((String) model.get(REQUESTED_CLAIMS)).getAsJsonObject();
 		}
-		JsonObject json = toJsonFromRequestObj(userInfo, scope, authorizedClaims, requestedClaims);
+		
+		@SuppressWarnings("unchecked")
+		Set<Role> roles = (Set<Role>)model.get(ROLES);
+		
+		JsonObject json = toJsonFromRequestObj(userInfo, roles, scope, authorizedClaims, requestedClaims);
 
 		writeOut(json, model, request, response);
 	}
@@ -177,14 +186,19 @@ public class UserInfoView extends AbstractView {
 	 * @param requestedClaims the claims requested in the RequestObject
 	 * @return the filtered JsonObject result
 	 */
-	private JsonObject toJsonFromRequestObj(BasicProfile ui, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {
-
+	private JsonObject toJsonFromRequestObj(BasicProfile ui, Set<Role> roles, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {
+		
 		// get the base object
 		JsonObject obj = toJson(ui);
-
+		
+		//append roles as authorities list
+		Set<String> authorities = getAuthoritiesForRolesSet(roles);
+		obj.add("authorities", toJson(authorities));		
+		
 		Set<String> allowedByScope = getClaimsForScopeSet(scope);
 		Set<String> authorizedByClaims = extractUserInfoClaimsIntoSet(authorizedClaims);
 		Set<String> requestedByClaims = extractUserInfoClaimsIntoSet(requestedClaims);
+				
 
 		// Filter claims by performing a manual intersection of claims that are allowed by the given scope, requested, and authorized.
 		// We cannot use Sets.intersection() or similar because Entry<> objects will evaluate to being unequal if their values are
@@ -224,6 +238,17 @@ public class UserInfoView extends AbstractView {
 
 		return obj;
 	}
+	
+	private JsonArray toJson(Set<String> roles) {
+				
+		JsonArray arr = new JsonArray();
+		for(String role : roles) {
+			//role is authority
+			arr.add(role);
+		}
+		
+		return arr;
+	}
 
 	/**
 	 * Pull the claims that have been targeted into a set for processing.
@@ -254,6 +279,16 @@ public class UserInfoView extends AbstractView {
 		Set<String> result = new HashSet<>();
 		for (String scope : scopes) {
 			result.addAll(getClaimsForScope(scope));
+		}
+		return result;
+	}
+	
+	public Set<String> getAuthoritiesForRolesSet(Set<Role> roles) {
+		Set<String> result = new HashSet<>();
+		if(roles != null) {
+			for (Role role : roles) {
+				result.add(role.getAuthority());
+			}
 		}
 		return result;
 	}
