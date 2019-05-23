@@ -24,6 +24,7 @@ import javax.servlet.Filter;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -56,6 +57,7 @@ import org.springframework.security.oauth2.provider.CompositeTokenGranter;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -134,6 +136,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private DataSource dataSource;
+
+	@Autowired
+	private OIDCTokenEnhancer tokenEnhancer;
+	@Autowired
+	private TokenStore tokenStore;
 
 	@Bean
 	public AutoJdbcTokenStore getTokenStore() throws PropertyVetoException {
@@ -217,6 +224,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new FileEmailIdentitySource();
 	}
 
+	@Bean("appTokenServices")
+	public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
+		NonRemovingTokenServices bean = new NonRemovingTokenServices();
+		bean.setTokenStore(tokenStore);
+		bean.setSupportRefreshToken(true);
+		bean.setReuseRefreshToken(true);
+		bean.setClientDetailsService(getClientDetails());
+		bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));
+		return bean;
+	}
+	
 	private Filter extOAuth2Filter() throws Exception {
 		CompositeFilter filter = new CompositeFilter();
 		List<Filter> filters = new ArrayList<>();
@@ -324,8 +342,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Autowired
 		private ProviderServiceAdapter providerServiceAdapter;
+		
 		@Autowired
-		private OIDCTokenEnhancer tokenEnhancer;
+		@Qualifier("appTokenServices")
+		private AuthorizationServerTokenServices resourceServerTokenServices;
 		
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
@@ -341,16 +361,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		// @Bean("appTokenServices")
 		
-		public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
-			NonRemovingTokenServices bean = new NonRemovingTokenServices();
-			bean.setTokenStore(tokenStore);
-			bean.setSupportRefreshToken(true);
-			bean.setReuseRefreshToken(true);
-			bean.setClientDetailsService(getClientDetails());
-			bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));
-			return bean;
-		}
-
 		@Bean
 		public UserApprovalHandler getUserApprovalHandler() throws PropertyVetoException {
 			UserApprovalHandler bean = new UserApprovalHandler();
@@ -380,7 +390,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					.tokenGranter(tokenGranter(endpoints))
 					.requestFactory(getOAuth2RequestFactory())
 					.requestValidator(new AACOAuth2RequestValidator())
-					.tokenServices(getTokenServices());
+					.tokenServices(resourceServerTokenServices);
 		}
 
 		@Override

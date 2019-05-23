@@ -4,10 +4,6 @@
       <bold><a href ng-click="changeServicePermissions(item)">{{item.name}}</a></bold>
       <br/>{{item.description}}
       </td>
-      <td  class="align-middle text-right">
-      <button class="btn btn-link text-success" ng-if="item.apiId != null" ng-click="subscribe(item.apiId)">Subscribe</button>
-      <button class="btn btn-link btn-danger " ng-if="item.subscriptionId != null" ng-click="unsubscribe(item.subscriptionId)">Unsubscribe</button>
-      </td>
     </tr>
   </table>
   <div ng-include="'./html/service-perm.html'"></div>
