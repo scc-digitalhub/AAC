@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.openid.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +36,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.manager.BasicProfileManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.view.HttpCodeView;
 import it.smartcommunitylab.aac.openid.view.UserInfoJWTView;
@@ -61,6 +64,9 @@ public class UserInfoEndpoint {
 
 	@Autowired
 	private ClientDetailsRepository clientRepo;
+	
+	@Autowired
+	private RoleManager roleManager;
 
 	/**
 	 * Logger for this class
@@ -94,7 +100,13 @@ public class UserInfoEndpoint {
 		model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.getOAuth2Request().getExtensions().get("claims"));
 
 		model.addAttribute(UserInfoView.USER_INFO, profile);
-
+		
+		try {
+			Set<Role> roles = roleManager.getRoles(user.getId());
+			model.addAttribute(UserInfoView.ROLES, roles);
+		} catch (Exception rex) {
+			logger.error("error fetching roles for user "+user.getId());
+		}
 		// content negotiation
 
 		// start off by seeing if the client has registered for a signed/encrypted JWT from here
