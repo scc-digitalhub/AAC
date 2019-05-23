@@ -27,7 +27,6 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.StringUtils;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
-import it.smartcommunitylab.aac.apimanager.model.AACAPI;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.model.ServiceDescriptor;
@@ -156,7 +155,4 @@ public class Utils {
 		return null;
 	}		
 	
-	public static String getAPIKey(AACAPI api) {
-		return api.getProvider() + "-" + api.getName() + "-"+ api.getVersion();
-	} 
 }

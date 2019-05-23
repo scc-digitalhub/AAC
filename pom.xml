@@ -15,7 +15,6 @@
 	<properties>
 		<jasperreports.version>4.7.0</jasperreports.version>
 		<tomcat.version>7.0.75</tomcat.version>
-		<wso2integration.version>0.0.2.SNAPSHOT</wso2integration.version>
 		<profile.authorization />
 	</properties>
 
@@ -90,21 +89,6 @@
 			<groupId>eu.trentorise.smartcampus</groupId>
 			<artifactId>smartcampus.client.commons</artifactId>
 			<version>2.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>it.smartcommunitylab.aac.wso2</groupId>
-			<artifactId>wso2-integration</artifactId>
-			<version>${wso2integration.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-codec.wso2</groupId>
-					<artifactId>commons-codec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.axis2.wso2</groupId>
-					<artifactId>axis2-client</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -226,6 +210,14 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>
+		
+		    <!-- https://mvnrepository.com/artifact/org.bouncycastle/bctls-jdk15on -->
+    <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bctls-jdk15on</artifactId>
+        <version>1.61</version>
+    </dependency>
+		
 	</dependencies>
 
 	<profiles>

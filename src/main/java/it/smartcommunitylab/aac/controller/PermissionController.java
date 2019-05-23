@@ -25,11 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -48,12 +46,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
-import it.smartcommunitylab.aac.apimanager.APIManager;
-import it.smartcommunitylab.aac.apimanager.APIProviderManager;
-import it.smartcommunitylab.aac.apimanager.model.AACAPI;
-import it.smartcommunitylab.aac.apimanager.model.DataList;
-import it.smartcommunitylab.aac.apimanager.model.ExtendedService;
-import it.smartcommunitylab.aac.apimanager.model.Subscription;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
@@ -94,11 +86,6 @@ public class PermissionController {
 	private ResourceParameterRepository resourceParameterRepository;
 	@Autowired
 	private UserManager userManager;
-	
-	@Autowired
-	private APIManager apiManager;
-	@Autowired
-	private APIProviderManager providerManager;	
 	
 	/**
 	 * Save permissions requested by the app.
@@ -179,82 +166,11 @@ public class PermissionController {
 		userManager.checkClientIdOwnership(clientId);
 
 		List<Service> services = resourceManager.getServiceObjects();
-
-		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-		
-		String token = providerManager.createToken();
-
-		try {
-			List<Subscription> subscriptions = apiManager.getSubscriptions(client.getName(), token);
-
-			ObjectMapper mapper = new ObjectMapper();
-
-			List<ExtendedService> extServices = services.stream().map(s -> mapper.convertValue(s, ExtendedService.class)).collect(Collectors.toList());
-			extServices.forEach(x -> {
-				if (x.getApiKey() != null) {
-					x.setApiKey(x.getApiKey().replace("-AT-", "@"));
-				}
-			});
-			
-			for (ExtendedService service: extServices) {
-				if (service.getApiKey() != null) {
-					String parts[] = service.getApiKey().split("-");
-					DataList<AACAPI> apis = apiManager.findAPI(parts[1], token);
-					if (apis != null && apis.getList() != null) {
-						for (AACAPI api : apis.getList()) {
-							if (parts[0].equals(api.getProvider()) && parts[1].equals(api.getName()) && parts[2].equals(api.getVersion())) {
-								service.setApiId(api.getId());
-							}
-						}
-					}
-				}
-			}	
-			
-			if (subscriptions != null) {
-				extServices.forEach(x -> {
-					Subscription sub = subscriptions.stream().filter(y -> y.getApiIdentifier().equals(x.getApiKey())).findFirst().orElse(null);
-					if (sub != null) {
-						x.setApiId(null);
-						x.setSubscriptionId(sub.getSubscriptionId());
-					}
-				});
-			} else {
-				extServices.forEach(x -> {
-					x.setApiId(null);
-					x.setSubscriptionId(null);
-				});
-				
-			}
-
-			response.setData(extServices);
-		} catch (Exception e) {
-			logger.error("Failure reading subscriptions from wso2: " + e.getMessage(), e);
-			response.setData(services);
-		}
+		response.setData(services);
 
 		return response;
 	}
-	
-	@RequestMapping(value="/dev/services/unsubscribe/{subscriptionId}",method=RequestMethod.DELETE)
-	public @ResponseBody Response unsubscribe(@PathVariable String subscriptionId) throws Exception {
-		Response response = new Response();
-		logger.info("Unsubscribing, id = " + subscriptionId);
-		apiManager.unsubscribe(subscriptionId, providerManager.createToken());
-		return response;
-	} 	
-	
-	@RequestMapping(value="/dev/services/subscribe/{apiIdentifier}/{clientId}",method=RequestMethod.GET)
-	public @ResponseBody Response subscribe(@PathVariable String apiIdentifier,@PathVariable String clientId) throws Exception {
-		Response response = new Response();
-		String token = providerManager.createToken();
-		
-		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-		String applicationId = apiManager.getApplicationId(client.getName(), token);
-		
-		logger.info("Subscribing, applicationId = " + applicationId + ", apiId = " + apiIdentifier);
-		apiManager.subscribe(apiIdentifier, applicationId, providerManager.createToken());
-		return response;
-	}	
+
 
 	/**
 	 * Read services defined by the current user

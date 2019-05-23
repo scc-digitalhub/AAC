@@ -17,7 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apimanager.model.RoleModel;
+import it.smartcommunitylab.aac.dto.RoleModel;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.Role;

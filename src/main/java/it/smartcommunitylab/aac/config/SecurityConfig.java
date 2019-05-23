@@ -71,7 +71,6 @@ import org.springframework.web.filter.CorsFilter;
 import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.manager.FileEmailIdentitySource;
 import it.smartcommunitylab.aac.manager.IdentitySource;
@@ -179,11 +178,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new OAuth2ClientDetailsProviderImpl(clientDetailsRepository);
 	}
 
-
-	@Bean
-	public APIProviderManager tokenEmitter() {
-		return new APIProviderManager();
-	}
 
 	@Bean
 	public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
@@ -346,7 +340,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		}
 
 		// @Bean("appTokenServices")
-
+		
 		public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
 			NonRemovingTokenServices bean = new NonRemovingTokenServices();
 			bean.setTokenStore(tokenStore);

@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.apimanager.model;
+package it.smartcommunitylab.aac.dto;
 
 import java.util.List;
 

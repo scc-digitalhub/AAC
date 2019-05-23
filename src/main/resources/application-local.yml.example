@@ -74,23 +74,6 @@ security:
 # API-MANAGEMENT PROPERTIES
 api:
   contextSpace: apimanager
-  adminClient:
-    id: API_MGT_CLIENT_ID
-    secret: YOUR_API_MNGMT_CLIENT_SECRET
-  internalUrl: http://localhost:8080/aac  
-  store:
-    endpoint: https://localhost:9443/api/am/store/v0.11 
-  publisher:
-    endpoint: https://localhost:9443/api/am/publisher/v0.11
-  identity:
-    endpoint: https://localhost:9443/services/IdentityApplicationManagementService
-    password: admin    
-  usermgmt:
-    endpoint: https://localhost:9443/services/RemoteUserStoreManagerService
-    password: admin    
-  multitenancy:
-    endpoint: https://localhost:9443/services/TenantMgtAdminService
-    password: admin      
     
 # OPEN ID
 openid:
