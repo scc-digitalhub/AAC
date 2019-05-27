@@ -21,5 +21,6 @@ RUN chown aac:aac /opt/java/openjdk/jre/lib/security/cacerts
 WORKDIR ${USER_HOME}
 COPY --chown=aac:aac --from=mvn /tmp/target/aac.jar ${USER_HOME}
 COPY --chown=aac:aac init.sh ${USER_HOME}
+COPY --chown=aac:aac ./src/main/resources/application-local.yml.env ${USER_HOME}/application-local.yml
 USER aac
 ENTRYPOINT "/home/aac/init.sh"
