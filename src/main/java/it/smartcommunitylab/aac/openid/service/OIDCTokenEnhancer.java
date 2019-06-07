@@ -2,6 +2,7 @@
 package it.smartcommunitylab.aac.openid.service;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,7 +30,14 @@ import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 
+import it.smartcommunitylab.aac.dto.BasicProfile;
+import it.smartcommunitylab.aac.manager.BasicProfileManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.openid.view.UserInfoView;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 /**
  * Default implementation of service to create specialty OpenID Connect tokens.
@@ -64,11 +72,21 @@ public class OIDCTokenEnhancer  {
 	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
 	@Autowired
 	private ClientDetailsRepository clientRepository;
+	
+    @Autowired
+    private UserManager userManager;
 
+    @Autowired
+    private BasicProfileManager profileManager;
+
+    @Autowired
+    private RoleManager roleManager;
+    
 	public JWT createIdToken(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
 		OAuth2Request request = authentication.getOAuth2Request();
 		String clientId = request.getClientId();
-
+		User user = userManager.getUser();
+		
 		ClientDetailsEntity client = clientRepository.findByClientId(clientId);
 		
 		SignedJWT signed = createJWT(client, accessToken, authentication);
@@ -116,6 +134,41 @@ public class OIDCTokenEnhancer  {
 			idClaims.claim("nonce", nonce);
 		}
 
+		//add additional claims for scopes
+		if(user != null) {
+            BasicProfile profile = profileManager.getBasicProfileById(user.getId().toString());
+    
+    		
+    		if(request.getScope().contains("profile")) {
+    		    idClaims.claim("username", profile.getUsername());
+    	        idClaims.claim("preferred_username", profile.getUsername());
+    
+                idClaims.claim("given_name", profile.getName());
+                idClaims.claim("family_name", profile.getSurname());
+                idClaims.claim("name", profile.getSurname() + " " + profile.getName());
+    	        
+    		}
+    		
+    		if(request.getScope().contains("email")) {
+                idClaims.claim("email", profile.getUsername());
+    		}
+    		
+            if(request.getScope().contains("user.roles.me")) {
+              try {
+                    Set<Role> roles = roleManager.getRoles(user.getId());
+                    Set<String> result = new HashSet<>();
+                    if(roles != null) {
+                        for (Role role : roles) {
+                            result.add(role.getAuthority());
+                        }
+                    }
+                    idClaims.claim("roles", result.toArray(new String[0]));
+                } catch (Exception rex) {
+                    logger.error("error fetching roles for user "+user.getId());
+                }
+            }
+		}
+		
 		Set<String> responseTypes = request.getResponseTypes();
 
 		if (responseTypes.contains("token")) {
