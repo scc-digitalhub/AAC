@@ -150,14 +150,6 @@ To enable the authorization module, add the corresponding profile to the profile
 
 Once started, the AAC tool UI is available at ``http://localhost:8080/aac``.
 
-### 3.1. Execution under API Manager integration
-
-When used with the WSO2 API Manager, it is necessary to have the API Manager self-signed certificate enabled. 
-This can be achieved importing the certificate into the Java keystore. Otherwise, use these options instead:
-
-- run the project with Maven: ``mvn -Plocal -Djavax.net.ssl.trustStore="/path/to/wso2am-2.1.0/repository/resources/security/wso2carbon.jks" -Djavax.net.ssl.trustStorePassword="wso2carbon" -Djavax.net.ssl.trustStoreType="JKS" spring-boot:run``  
-- From IDE instead run with ``-Dspring.profiles.active=local -Djavax.net.ssl.trustStore="/path/to/wso2am-2.1.0/repository/resources/security/wso2carbon.jks" -Djavax.net.ssl.trustStorePassword="wso2carbon" -Djavax.net.ssl.trustStoreType="JKS"``
-
 
 ## 4. Usage Scenarios
 

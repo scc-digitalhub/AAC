@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
@@ -106,10 +107,14 @@ public class PKCEAwareTokenGranter extends AuthorizationCodeTokenGranter {
 		// Combine the parameters adding the new ones last so they override if there are any clashes
 		combinedParameters.putAll(parameters);
 		
+		Authentication oldAuth = SecurityContextHolder.getContext().getAuthentication();
+		Authentication userAuth = storedAuth.getUserAuthentication();
+		
+		SecurityContextHolder.getContext().setAuthentication(userAuth);
 		// Make a new stored request with the combined parameters
 		OAuth2Request finalStoredOAuth2Request = pendingOAuth2Request.createOAuth2Request(combinedParameters);
 		
-		Authentication userAuth = storedAuth.getUserAuthentication();
+		SecurityContextHolder.getContext().setAuthentication(oldAuth);
 		
 		return new OAuth2Authentication(finalStoredOAuth2Request, userAuth);
 
