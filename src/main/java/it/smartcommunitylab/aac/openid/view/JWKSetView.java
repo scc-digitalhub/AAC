@@ -27,10 +27,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.view.AbstractView;
 
+import com.google.common.net.HttpHeaders;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 
@@ -42,6 +44,10 @@ import com.nimbusds.jose.jwk.JWKSet;
 public class JWKSetView extends AbstractView {
 
 	public static final String VIEWNAME = "jwkSet";
+	
+    @Value("${security.cache.jwks}")
+	private String cacheControl;
+    
 	/**
 	 * Logger for this class
 	 */
@@ -53,6 +59,8 @@ public class JWKSetView extends AbstractView {
 
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
+		//set cache-control to sane values to override default spring
+		response.setHeader(HttpHeaders.CACHE_CONTROL, cacheControl);
 
 		//BiMap<String, PublicKey> keyMap = (BiMap<String, PublicKey>) model.get("keys");
 		Map<String, JWK> keys = (Map<String, JWK>) model.get("keys");

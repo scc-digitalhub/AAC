@@ -9,6 +9,8 @@ security:
   redirects:
       matchports: true
       matchsubdomains: true
+  cache:
+      jwks: no-cache #set cacheable with "public, max-age=3600, must-revalidate, no-transform"
   restricted: false
   basic:
       enabled: false
