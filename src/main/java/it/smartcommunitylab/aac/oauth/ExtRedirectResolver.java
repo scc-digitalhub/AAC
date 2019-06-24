@@ -16,8 +16,7 @@
 
 package it.smartcommunitylab.aac.oauth;
 
-import javax.servlet.ServletContext;
-
+import javax.servlet.ServletContext;import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 
@@ -34,12 +33,20 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 	
 	private static String path = null;
 	
+	@Value("${security.redirects.matchports}")
+	private boolean configMatchPorts;
+	
+	@Value("${security.redirects.matchsubdomains}")
+    private boolean configMatchSubDomains;
+	
 	/**
 	 * @param context
 	 */
 	public ExtRedirectResolver(ServletContext context) {
 		super();
 		path = testTokenPath(context);
+		this.setMatchPorts(configMatchPorts);
+		this.setMatchSubdomains(configMatchSubDomains);
 	}
 
 	public static String testTokenPath(ServletContext ctx) {

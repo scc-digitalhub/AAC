@@ -6,6 +6,9 @@ spring:
 
 # BASIC SECURITY PROPERTIES
 security:
+  redirects:
+      matchports: true
+      matchsubdomains: true
   restricted: false
   basic:
       enabled: false
