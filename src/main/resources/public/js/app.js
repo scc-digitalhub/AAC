@@ -58,10 +58,6 @@ app.config(function($routeProvider) {
     	controller  : 'TenantOwnersController', 
         templateUrl : "html/tenantowners.html"
     })
-    .when("/apis/:apiId", {
-    	controller  : 'APIController', 
-        templateUrl : "html/apis.api.html"
-    })
     .otherwise("/apps");
 })
 

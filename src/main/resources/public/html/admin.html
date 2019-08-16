@@ -4,7 +4,6 @@
     <div class="nav flex-column nav-tabs" id="v-pills-tab" role="tablist" aria-orientation="vertical">      
       <a class="nav-link" ng-class="{'active':adminView == 'approvals'}" ng-click="adminView='approvals'" id="v-pills-app-tab" data-toggle="pill"  role="tab" aria-controls="v-pills-app" aria-selected="false">App Aprovals</a>
       <a class="nav-link" ng-class="{'active':adminView == 'idps'}" ng-click="adminView='idps'" id="v-pills-idp-tab" data-toggle="pill"  role="tab" aria-controls="v-pills-idp" aria-selected="false">IdP Approvals</a>
-      <a class="nav-link" ng-class="{'active':adminView == 'providers'}" ng-click="adminView='providers'" id="v-pills-provider-tab" data-toggle="pill" role="tab" aria-controls="v-pills-provider" aria-selected="false">API Providers</a>
     </div>
   </div>
   <div class="col-9">
@@ -17,28 +16,5 @@
     </div>
   </div>
 </div>
-<!-- <div class="row" ng-controller="AdminController">
-  <div class="col-md-2">
-    <div class="sidebar-nav">
-       <ul class="nav nav-pills flex-column">
-         <li class="nav-item" ng-class="{'active':adminView == 'approvals'}"><a ng-click="adminView='approvals';title='App Approvals'">App approvals</a></li>
-         <li class="nav-item" ng-class="{'active':adminView == 'idps'}"><a ng-click="adminView='idps';title='IdP Approvals'">IdP approvals</a></li>
-         <li class="nav-item" ng-class="{'active':adminView == 'providers'}"><a ng-click="adminView='providers';title='API Providers'">API Providers</a></li>
-       </ul>
-    </div>
-  </div>
-  /span
-  <div class="col-md-9 well">
-    <div class="alert alert-danger" ng-show="error != ''">{{error}}</div>
-    <div class="alert alert-success" ng-show="info != ''">{{info}}</div>
-    <div class="row">
-      <div class="span7">
-          <strong>{{title}}</strong>
-      </div>
-    </div>
-    <div ng-include="'./html/'+adminView+'.html'"></div>
-  </div>
-  /span
-</div>
- --><!--/row-->
+
 </div>

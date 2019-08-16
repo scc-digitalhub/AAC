@@ -30,8 +30,8 @@
             <appender-ref ref="FILE" />
 	</logger>	
 	
-	<logger name="org.springframework.security" level="ERROR" additivity="false">
-            <appender-ref ref="FILE" />
+	<logger name="org.springframework.security" level="TRACE" additivity="false">
+            <appender-ref ref="STDOUT" />
 	</logger>		
 	
 

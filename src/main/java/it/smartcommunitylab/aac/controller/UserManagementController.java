@@ -36,8 +36,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apimanager.model.DataList;
-import it.smartcommunitylab.aac.apimanager.model.RoleModel;
+import it.smartcommunitylab.aac.dto.DataList;
+import it.smartcommunitylab.aac.dto.RoleModel;
 import it.smartcommunitylab.aac.dto.UserDTO;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;

@@ -36,10 +36,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apimanager.model.DataList;
-import it.smartcommunitylab.aac.apimanager.model.RoleModel;
-import it.smartcommunitylab.aac.apimanager.model.Subscription;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.dto.RoleModel;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
@@ -172,26 +170,6 @@ public class RoleManager {
 		List<GrantedAuthority> list = roles.stream().collect(Collectors.toList());
 		return list;
 	}
-	
-	/**
-	 * Update subscriptions - set roles from the specified context/space
-	 * @param subs
-	 * @param context
-	 * @param space
-	 */
-	public void fillRoles(DataList<Subscription> subs, String context, String space) {
-		for (Subscription sub: subs.getList()) {
-			String subscriber = sub.getSubscriber();
-			String info[] = Utils.extractInfoFromTenant(subscriber);
-			final String name = info[0];
-			
-			User user = userRepository.findByUsername(name);
-			
-			Set<Role> userRoles = user.spaceRole(context, space);
-			List<String> roleNames = userRoles.stream().map(r -> r.getRole()).collect(Collectors.toList());
-			sub.setRoles(roleNames);
-		}
-	}	
 	
 	/**
 	 * Update user roles at the specified context/space according to the specified model add/delete.

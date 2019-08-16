@@ -84,7 +84,6 @@
 		  <div class="collapse navbar-collapse" id="navbarSupportedContent">
 		    <ul class="navbar-nav mr-auto">
           <li class="nav-link"  data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
-          <li class="nav-link" ng-if="isAPIProvider" data-ng-class="{'active': currentView == 'apis'}"><a data-ng-click="go('apis')">APIs</a></li>
           <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantusers'}"><a data-ng-click="go('tenantusers')">User Roles</a></li>
           <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantowners'}"><a data-ng-click="go('tenantowners')">Space Owners</a></li>
           <li class="nav-link"  ng-if="roles.indexOf('ROLE_ADMIN') >= 0" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>

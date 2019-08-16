@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package it.smartcommunitylab.aac.apimanager.wso2;
+package it.smartcommunitylab.aac.apim;
 
 import java.net.URLDecoder;
 
@@ -36,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import it.smartcommunitylab.aac.apimanager.APIManagerProviderService;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.keymanager.model.AACService;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
@@ -44,15 +43,15 @@ import springfox.documentation.annotations.ApiIgnore;
 
 @ApiIgnore
 @Controller
-public class WSO2Controller {
+public class APIMClientController {
 	
 	@Autowired
-	private APIManagerProviderService wso2Manager;
+	private APIMProviderService wso2Manager;
 	
 	@Autowired
 	private TokenStore tokenStore;	
 	
-	private static final Log logger = LogFactory.getLog(WSO2Controller.class);
+	private static final Log logger = LogFactory.getLog(APIMClientController.class);
 	
 	@RequestMapping(value = "/wso2/client/{userName:.+}", method=RequestMethod.POST)
 	public @ResponseBody ClientAppBasic createClient(HttpServletResponse response, @RequestBody ClientAppBasic app, @PathVariable("userName") String userName) throws Exception {

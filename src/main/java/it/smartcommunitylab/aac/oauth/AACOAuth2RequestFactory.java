@@ -167,7 +167,8 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 				}
 			}
 			
-//			if (client.getParameters() != null) {
+			boolean requestedOpenidScope = scopes.contains(Config.OPENID_SCOPE);
+			
 			scopes = checkUserScopes(requestParameters, scopes, clientDetails);
 			if (addStrongOperationScope) {
 				scopes.add(Config.SCOPE_OPERATION_CONFIRMED);
@@ -177,9 +178,8 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 			if (scopes.isEmpty()) {
 				scopes.add("default");
 			}
-			scopes.add(Config.OPENID_SCOPE);
-
-//			}
+			if (requestedOpenidScope) scopes.add(Config.OPENID_SCOPE);
+			
 		} catch (InvalidScopeException e) {
 			throw e;
 		} catch (Exception e) {

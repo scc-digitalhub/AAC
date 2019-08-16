@@ -43,7 +43,6 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,7 +51,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apimanager.APIProviderManager;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
@@ -73,8 +71,6 @@ public class RegistrationController {
 
 	@Autowired
 	private RegistrationService regService;
-	@Autowired
-	private APIProviderManager apiProviderManager;
 	
 	/**
 	 * Login the user 
@@ -164,8 +160,6 @@ public class RegistrationController {
 			return "registration/register";
         }
 		try {
-			apiProviderManager.createAPIUser(reg);
-
 			regService.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 			return "registration/regsuccess";
 		} catch (RegistrationException e) {
@@ -199,7 +193,6 @@ public class RegistrationController {
 			return;
         }
 		try {
-			apiProviderManager.createAPIUser(reg);
 			regService.register(reg.getName(), reg.getSurname(), reg.getEmail(), reg.getPassword(), reg.getLang());
 		} catch(AlreadyRegisteredException e) {
 			res.setStatus(HttpStatus.CONFLICT.value());
@@ -317,7 +310,6 @@ public class RegistrationController {
 		req.getSession().removeAttribute("changePwdEmail");
 		
 		try {
-			apiProviderManager.updatePassword(userMail, reg.getPassword());
 			regService.updatePassword(userMail, reg.getPassword());
 		} catch (RegistrationException e) {
 			logger.error(e.getMessage(), e);

@@ -101,45 +101,14 @@ for the provider, and relations to the other providers' attributes (e.g., via em
 defines the Google authentication attributes. Specifically, the ``email`` attribute is used to uniquely identify
 Google users.  
 
-### 2.5. API Manager Integration
 
-AAC is designed to provide the OAuth2.0 authorization server functionality for the API Management gateways. Specifically, AAC provides components and APIs for creating client apps, managing the API models and scopes.
-Out of the box, AAC supports this functionality for the WSO2 API Manager. To configure the integration with
-the WSO2 API Manager, it is necessary to define the following properties
-
-    api:
-      contextSpace: apimanager  
-      adminClient:
-        id: API_MGT_CLIENT_ID
-        secret: YOUR_API_MNGMT_CLIENT_SECRET
-      internalUrl: http://localhost:8080/aac  
-      store:
-        endpoint: https://localhost:9443/api/am/store/v0.11 
-      publisher:
-        endpoint: https://localhost:9443/api/am/publisher/v0.11
-      identity:
-        endpoint: https://localhost:9443/services/IdentityApplicationManagementService
-        password: admin    
-      usermgmt:
-        endpoint: https://localhost:9443/services/RemoteUserStoreManagerService
-        password: admin    
-      multitenancy:
-        endpoint: https://localhost:9443/services/TenantMgtAdminService
-        password: admin
-
-The configuration defines the Web service endpoints for accessing the API Manager store API, publisher, API,
-user management API, and tenant management API. The admin client id and secret should be the same as the one
-configured in the WSO2 API Manager installation. The ``internalUrl`` represents the AAC API endpoint to
-be seen from the API Manager for the publication of the core AAC APIs (profile management, role management,
-token validation, key management, etc).
-
-### 2.6. Authorization Module
+### 2.5. Authorization Module
 
 AAC allows for integration of the authorization module, where it is possible to configure the access rights for
 the user at the level of data. To enable the authorization module, the corresponding ``authorization`` Maven profile
 should be activated. 
  
-### 2.7. Logging Configuration 
+### 2.6. Logging Configuration 
 
 The logging settings may be configured via standard Spring Boot properties, e.g., for the log level
 
@@ -150,7 +119,7 @@ The logging settings may be configured via standard Spring Boot properties, e.g.
 The project relies on the Logback configuration (see ``src/main/resources/logback.xml``). The default 
 configuration requires the log folder path defined with ``aac.log.folder`` property. (if the property is not set, application will use default value: `WORKING_DIRECTORY/logs`). 
  
-### 2.8. OpenID Configuration 
+### 2.7. OpenID Configuration 
 
 AAC provide a basic implementation of the OpenID protocol. The implementation is based on the [MitreID](https://mitreid.org/) project.
  
@@ -180,14 +149,6 @@ In case you run the tool from the IDE, add the profile configuration to the VM p
 To enable the authorization module, add the corresponding profile to the profile list (comma-separated)
 
 Once started, the AAC tool UI is available at ``http://localhost:8080/aac``.
-
-### 3.1. Execution under API Manager integration
-
-When used with the WSO2 API Manager, it is necessary to have the API Manager self-signed certificate enabled. 
-This can be achieved importing the certificate into the Java keystore. Otherwise, use these options instead:
-
-- run the project with Maven: ``mvn -Plocal -Djavax.net.ssl.trustStore="/path/to/wso2am-2.1.0/repository/resources/security/wso2carbon.jks" -Djavax.net.ssl.trustStorePassword="wso2carbon" -Djavax.net.ssl.trustStoreType="JKS" spring-boot:run``  
-- From IDE instead run with ``-Dspring.profiles.active=local -Djavax.net.ssl.trustStore="/path/to/wso2am-2.1.0/repository/resources/security/wso2carbon.jks" -Djavax.net.ssl.trustStorePassword="wso2carbon" -Djavax.net.ssl.trustStoreType="JKS"``
 
 
 ## 4. Usage Scenarios

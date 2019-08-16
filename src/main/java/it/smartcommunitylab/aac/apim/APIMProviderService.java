@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.apimanager;
+package it.smartcommunitylab.aac.apim;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Component
 //@Transactional
-public class APIManagerProviderService {
+public class APIMProviderService {
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
