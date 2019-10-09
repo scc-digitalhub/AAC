@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.util.Collections;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -33,17 +35,20 @@ import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
  */
 public class AACTokenEnhancer implements TokenEnhancer {
 
-	
+    private static final Logger logger = LoggerFactory.getLogger(AACTokenEnhancer.class);
+    
 	private OIDCTokenEnhancer tokenEnhancer;
 	/**
 	 * @param tokenEnhancer
 	 */
 	public AACTokenEnhancer(OIDCTokenEnhancer tokenEnhancer) {
+	    logger.debug("create AACTokenEnhancer with OIDCTokenEnhancer");
 		this.tokenEnhancer = tokenEnhancer;
 	}
 
 	@Override
 	public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
+	    logger.debug("enhance for token" +accessToken);
 		if (accessToken.getScope().contains(Config.SCOPE_OPERATION_CONFIRMED)) {
 			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
 			token.setRefreshToken(null);
