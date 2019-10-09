@@ -149,4 +149,13 @@ public class AACOAuthRequest implements Serializable {
 	public String getClientApp() {
 		return clientApp;
 	}
+
+    @Override
+    public String toString() {
+        return "AACOAuthRequest [clientId=" + clientId + ", clientApp=" + clientApp + ", redirectUri=" + redirectUri
+                + ", scopes=" + scopes + ", device=" + device + ", grantType=" + grantType + ", rememberMe="
+                + rememberMe + ", strongAuthConfirmed=" + strongAuthConfirmed + ", authority=" + authority + "]";
+    }
+	
+	
 }
