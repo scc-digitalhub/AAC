@@ -28,8 +28,8 @@ import org.springframework.security.crypto.codec.Utf8;
  */
 public class AACOAuth2Utils {
 	public static final String CODE_CHALLENGE = "code_challenge";
-	public static final Object CODE_VERIFIER = "code_verifier";
-	public static final Object CODE_CHALLENGE_METHOD = "code_challenge_method";
+	public static final String CODE_VERIFIER = "code_verifier";
+	public static final String CODE_CHALLENGE_METHOD = "code_challenge_method";
 
 	/**
     * Generates the code challenge from a given code verifier and code challenge method.

@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -67,10 +68,6 @@ public class ClientCredentialsTokenEndpointFilter extends
 			throw new BadCredentialsException("No client credentials presented");
 		}
 
-		if (clientSecret == null) {
-			clientSecret = "";
-		}
-
 		clientId = clientId.trim();
 
 		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
@@ -85,8 +82,17 @@ public class ClientCredentialsTokenEndpointFilter extends
 		if ("password".equals(grant_type)) {
 			checkInternalIdP(clientDetails);
 		}
-		
 		String clientSecretServer = clientDetails.getClientSecret();
+		// specific case: PKCE allows for not having client_secret. Will be checked by granter
+		if (StringUtils.isEmpty(clientSecret) && "authorization_code".equals(grant_type)) {
+			String verifier = request.getParameter(AACOAuth2Utils.CODE_VERIFIER);
+			if (StringUtils.isEmpty(verifier)) {
+			    throw new BadCredentialsException(messages.getMessage(
+			            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+			} else {
+				return createAuthentication(clientId, clientDetails, clientSecretServer);
+			}
+		}
 		
 		if ("authorization_code".equals(grant_type) || "refresh_token".equals(grant_type) || "password".equals(grant_type) || "native".equals(grant_type)) {
 			checkCredentialsWithMobile(clientSecret, clientDetails, grantTypes, clientSecretServer);
