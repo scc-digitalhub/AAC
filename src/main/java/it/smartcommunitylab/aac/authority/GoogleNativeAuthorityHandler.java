@@ -17,11 +17,14 @@
 package it.smartcommunitylab.aac.authority;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
@@ -70,8 +73,16 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 			}
 			// validate audience: Google client Id
 			Map<String, String> providerConfig = getProviderConfig(map.get(OAuth2Utils.CLIENT_ID), "google");
-			if (!providerConfig.get(OAuth2Utils.CLIENT_ID).equals(result.get("aud"))) {
-				throw new SecurityException("Invalid Google Client ID");
+			Set<String> clientIds = new HashSet<>();
+			if (providerConfig.containsKey(OAuth2Utils.CLIENT_ID)) {
+				clientIds.add(providerConfig.get(OAuth2Utils.CLIENT_ID));
+			}
+			// extra client IDs to check
+			if (providerConfig.containsKey("client_ids")) {
+				clientIds.addAll(StringUtils.commaDelimitedListToSet(providerConfig.get("client_ids")));
+			}
+			if (!clientIds.contains(result.get("aud"))) {
+				throw new SecurityException("Invalid Google Client ID: " + result.get("aud"));
 			}
 			
 			return extractAttributes(result, mapping);
@@ -94,7 +105,7 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> validateV3(String token) throws SecurityException, RemoteException {
-		String s = restTemplate.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token="+token, String.class);
+		String s = restTemplate.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token="+token, String.class);
 		Map<String,Object> result = JsonUtils.toObject(s, Map.class);
 		if (result == null || !result.containsKey("sub")) {
 			throw new SecurityException("Incorrect google token "+ token+": "+s);

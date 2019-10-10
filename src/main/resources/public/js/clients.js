@@ -91,7 +91,8 @@ angular.module('aac.controllers.clients', [])
 	$scope.providerConfig = {
 			google: [
 				{label:"Google Client ID", value: "client_id", required: true},
-				{label:"Google Client Secret", value: "client_secret", required: true, type: "password"}				
+				{label:"Google Client Secret", value: "client_secret", required: true, type: "password"},
+				{label:"Google Client IDs for id_token validation", value: "client_ids", required: false}
 			],
 			facebook: [
 				{label:"Facebook Client ID", value: "client_id", required: true},
