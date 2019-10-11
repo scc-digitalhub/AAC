@@ -82,6 +82,7 @@ import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
 import it.smartcommunitylab.aac.model.MockDataMappings;
 import it.smartcommunitylab.aac.oauth.AACJDBCClientDetailsService;
+import it.smartcommunitylab.aac.oauth.AACJwtTokenConverter;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.AACRememberMeServices;
@@ -124,6 +125,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Value("${security.rememberme.key}")
 	private String remembermeKey;
+	
+    @Value("${security.oauth2.jwt}")
+    private boolean oauth2UseJwt;
 
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
@@ -138,7 +142,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	private DataSource dataSource;
 
 	@Autowired
-	private OIDCTokenEnhancer tokenEnhancer;
+	private OIDCTokenEnhancer tokenEnhancer;	
+	
+	@Autowired
+	private AACJwtTokenConverter tokenConverter;
+	
 	@Autowired
 	private TokenStore tokenStore;
 
@@ -231,7 +239,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		bean.setSupportRefreshToken(true);
 		bean.setReuseRefreshToken(true);
 		bean.setClientDetailsService(getClientDetails());
-		bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));
+		if (oauth2UseJwt) {
+		    bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer, tokenConverter));
+		} else {
+	        bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));		    
+		}
+
 		return bean;
 	}
 	
