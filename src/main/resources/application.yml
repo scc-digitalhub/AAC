@@ -4,6 +4,12 @@ spring:
     basename: resources/internal
     encoding: UTF-8
 
+# DB CONFIGURATION
+jdbc:
+  dialect: org.hibernate.dialect.MySQLDialect
+  show-sql: false
+
+
 # BASIC SECURITY PROPERTIES
 security:
   redirects:
