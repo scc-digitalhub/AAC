@@ -75,7 +75,9 @@ public class DatabaseConfig {
 		
 		HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
 		adapter.setDatabasePlatform(env.getProperty("jdbc.dialect"));
-		adapter.setShowSql(true);
+		if (Boolean.parseBoolean(env.getProperty("jdbc.show-sql", "false"))) {
+		    adapter.setShowSql(true);
+		}
 		adapter.setGenerateDdl(true);
 		bean.setJpaVendorAdapter(adapter);
 		
