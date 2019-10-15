@@ -15,6 +15,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
@@ -57,6 +58,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     private static final Logger logger = LoggerFactory.getLogger(AACJwtTokenConverter.class);
 
     @Autowired
+    @Qualifier("oauthJWKSetKeyStore")
     private JWKSetKeyStore jwtKeyStore;
 
     @Autowired
@@ -73,10 +75,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
     private Map<String, String> customHeaders = new HashMap<>();
 
-    @Value("${security.oauth2.kid}")
+    @Value("${oauth2.kid}")
     private String kid;
 
-    @Value("${security.oauth2.key}")
+    @Value("${oauth2.key}")
     private String key;
 
     // re-declare objects from parent

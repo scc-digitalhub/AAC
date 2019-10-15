@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.openid;
+package it.smartcommunitylab.aac.config;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -22,6 +22,7 @@ import java.security.spec.InvalidKeySpecException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 
 import com.nimbusds.jose.JOSEException;
@@ -40,7 +41,7 @@ import it.smartcommunitylab.aac.openid.service.JWTSigningAndValidationService;
 @Configuration
 public class OpenIDConfig {
 
-	@Value("classpath:/keystore.jwks")
+    @Value("${openid.keystore}")
 	private Resource location;
 	
 	@Bean()
@@ -52,6 +53,7 @@ public class OpenIDConfig {
 	}
 
 	@Bean()
+	@Primary
 	public JWKSetKeyStore getJWKSetKeyStore() {
 		JWKSetKeyStore keystore = new JWKSetKeyStore();
 		keystore.setLocation(location);

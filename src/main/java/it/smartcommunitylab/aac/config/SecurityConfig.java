@@ -126,7 +126,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${security.rememberme.key}")
 	private String remembermeKey;
 	
-    @Value("${security.oauth2.jwt}")
+    @Value("${oauth2.jwt}")
     private boolean oauth2UseJwt;
 
 	@Autowired
