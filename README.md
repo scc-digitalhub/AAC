@@ -131,10 +131,80 @@ To configure the issuer, it is necessary to specify the OpenID issuer URL:
       
 OpenID extension requires RSA keys for JWT signature. The project ships with the pre-packaged generated key. The key MUST be replaced with your specific value in production environment. To generate new key please follow the instructions available [here](https://github.com/mitreid-connect/json-web-key-generator). 
 
-The resulting key should be placed in the resources (i.e., src/main/resources).
+The resulting key should be placed in the resources (i.e., src/main/resources). Alternatively, it is possible to override the default keystore via configuration by setting the following property 
+
+    # OPEN ID
+    openid:
+      keystore: file:///absolute/path/to/keystore.jwks
+
+The keystore can contain more than one key. By providing the id of the key via ```kid``` property, we can instruct AAC to select a specific key within those available. If not provided, the software will look for a key named ```rsa1``` by default.
+
+
+    # OPEN ID
+    openid:
+      kid: rsakeyid
 
       
 The OpenId metadata is available at ``/.well-known/openid-configuration``.
+
+### 2.8 OAuth2 JWT Configuration
+
+By default, AAC provides oauth ```access_tokens``` and ```refresh_tokens``` as *opaque strings*. If needed, AAC can issue bearer tokens as *JSON Web Tokens* (JWT) containing a subset of the standard OpenID claims.
+
+To globally enable JWT mode set the following property to ```true```:
+
+    # OAUTH2
+    oauth2:
+      jwt: true
+
+
+> **Note:** switching from opaque tokens to JWT on an existing setup could require a flush of all the tokens already issued. Otherwise, as long as refresh tokens are valid, AAC will continue to provide the same tokens to clients. Only new requests will receive JWTs. To perform the flush, simply clear the content of both the tables *oauth_access_token* and *oauth_refresh_token* from the db console.
+
+Since JWTs should be cryptographically signed by issuers, AAC provides 2 different working modes when dealing with JWTs:
+
+  * use a **symmetric key**, via HMAC algorithm
+  * use a **public/private keypair**, via RSA algorithm
+
+By default, AAC works with HMAC signatures for JWTs. HMAC employs a *secret key*, known only to the parties, which is used for both the signature and the validation. As such, HMAC-*signed* tokens can ensure the *integrity* of the content, but not the identity of the issuer: any party knowing the secret key can forge them. A viable solution to mitigate such risk is to restrict the usage of keys, by providing each client with a unique secret instead of using a globally-shared key known to each and every client. Given that clients already possess a ```client_secret``` for authenticated flows, AAC can use this unique string to sign tokens. This way, only legitimate clients, already in possess of the required secret, will be able to verify the JWT signature, while others should reject the token.
+
+If issuer verification is needed, AAC can alternatively sign tokens via RSA with a public/private keypair. By sharing only the public key, clients can independently verify that the *issuer* possesses the correct private key and thus protect themselves from tokens forged from other clients.
+
+In order to configure the type of signature employed, we can configure AAC in **one** of the following modes.
+
+
+    # OAUTH2 with per-client secret
+    # specify a blank shared-key and key-id
+    oauth2:
+      jwt: true
+      key:
+      kid:
+
+    # OAUTH2 with global shared secret
+    # specify a shared-key and a blank key-id
+    oauth2:
+      jwt: true
+      key: some-shared-global-secret
+      kid:
+
+    # OAUTH2 with RSA keypair
+    # specify a blank shared-key and provide key-id and keystore
+    oauth2:
+      jwt: true
+      key:
+      kid: rsakeyid
+      keystore:  file:///absolute/path/to/keystore.jwks
+
+
+When using RSA, users will need to provide a custom keystore, to avoid using the one included in the classpath (see the OpenID section for further instructions).
+
+The default configuration when enabling JWT is to adopt HMAC with a per-client secret key, to ensure the broadest compatibility. Not all clients fully support RSA signed tokens. Check before switching modes.
+
+> *Note:* Using a globally shared secret key is actively discouraged. It is provided only to support specific deployment scenarios where all the parties are trusted and the communication is restricted to private networks. Choose one between *per-client HMAC* and *public/private RSA*.
+
+
+At the moment, AAC does not support *encryption* for JWTs. Given the lack of confidentiality when dealing with non-encrypted JWTs (which in essence are just base64-encoded json), users should double check information included in claims, to avoid leaking private or sensible data over insecure channels.
+
+> **Important**: Do not put secret information in the claims of a JWT unless it is encrypted.
 
 ## 3. Execution
 

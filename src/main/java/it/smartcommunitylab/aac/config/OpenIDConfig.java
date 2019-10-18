@@ -43,11 +43,15 @@ public class OpenIDConfig {
 
     @Value("${openid.keystore}")
 	private Resource location;
+    
+
+    @Value("${openid.kid}")
+    private String kid;
 	
 	@Bean()
 	public JWTSigningAndValidationService getJWTSigningAndValidationService() throws NoSuchAlgorithmException, InvalidKeySpecException {
 		DefaultJWTSigningAndValidationService service = new DefaultJWTSigningAndValidationService(getJWKSetKeyStore());
-		service.setDefaultSignerKeyId("rsa1");
+		service.setDefaultSignerKeyId(kid);
 		service.setDefaultSigningAlgorithmName("RS256");
 		return service;
 	}
