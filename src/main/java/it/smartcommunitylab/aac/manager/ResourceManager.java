@@ -691,7 +691,8 @@ public class ResourceManager {
 	 * @return all the services
 	 */
 	public List<Service> getServiceObjects() {
-		List<ServiceDescriptor> services = serviceRepository.findAll();
+		// only services with resources attached
+		List<ServiceDescriptor> services = serviceRepository.findWithResources();
 		List<Service> res = new ArrayList<Service>();
 		for (ServiceDescriptor sd : services) {
 			res.add(Utils.toServiceObject(sd));

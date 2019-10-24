@@ -17,9 +17,7 @@ package it.smartcommunitylab.aac.openid.view;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,41 +25,39 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.servlet.view.AbstractView;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.dto.BasicProfile;
-import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.manager.ClaimManager;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.User;
 
 @Component(UserInfoView.VIEWNAME)
 public class UserInfoView extends AbstractView {
 
+	public static final String CLIENT = "client";
 	public static final String REQUESTED_CLAIMS = "requestedClaims";
 	public static final String AUTHORIZED_CLAIMS = "authorizedClaims";
 	public static final String SCOPE = "scope";
 	public static final String USER_INFO = "userInfo";
-	public static final String ROLES = "roles";
 
 	public static final String VIEWNAME = "userInfoView";
 
 	private static JsonParser jsonParser = new JsonParser();
 	
-	private SetMultimap<String, String> scopesToClaims = HashMultimap.create();
-
+	@Autowired
+	private ClaimManager claimManager;
+	
 	/**
 	 * Logger for this class
 	 */
@@ -86,45 +82,6 @@ public class UserInfoView extends AbstractView {
 
 	}).create();
 
-	public UserInfoView() {
-		super();
-		// standard
-		scopesToClaims.put("openid", "sub");
-		// standard
-		scopesToClaims.put("profile", "name");
-		scopesToClaims.put("profile", "preferred_username");
-		scopesToClaims.put("profile", "given_name");
-		scopesToClaims.put("profile", "family_name");
-		scopesToClaims.put("profile", "middle_name");
-		scopesToClaims.put("profile", "nickname");
-		scopesToClaims.put("profile", "profile");
-		scopesToClaims.put("profile", "picture");
-		scopesToClaims.put("profile", "website");
-		scopesToClaims.put("profile", "gender");
-		scopesToClaims.put("profile", "zoneinfo");
-		scopesToClaims.put("profile", "locale");
-		scopesToClaims.put("profile", "updated_at");
-		scopesToClaims.put("profile", "birthdate");
-		// standard
-		scopesToClaims.put("email", "email");
-		scopesToClaims.put("email", "email_verified");
-		// standard
-		scopesToClaims.put("phone", "phone_number");
-		scopesToClaims.put("phone", "phone_number_verified");
-		// standard
-		scopesToClaims.put("address", "address");
-		
-		// aac-specific
-		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "name");
-		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "preferred_username");
-		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "given_name");
-		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "family_name");
-		scopesToClaims.put(Config.BASIC_PROFILE_SCOPE, "email");
-		
-		//roles - custom
-		scopesToClaims.put("user.roles.me", "authorities");
-	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -136,8 +93,9 @@ public class UserInfoView extends AbstractView {
 	@Override
 	protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
 
-		BasicProfile userInfo = (BasicProfile) model.get(USER_INFO);
-
+		User userId = (User) model.get(USER_INFO);
+		ClientDetailsEntity client = (ClientDetailsEntity) model.get(CLIENT);
+		
 		@SuppressWarnings("unchecked")
 		Set<String> scope = (Set<String>) model.get(SCOPE);
 
@@ -154,15 +112,12 @@ public class UserInfoView extends AbstractView {
 			requestedClaims = jsonParser.parse((String) model.get(REQUESTED_CLAIMS)).getAsJsonObject();
 		}
 		
-		@SuppressWarnings("unchecked")
-		Set<Role> roles = (Set<Role>)model.get(ROLES);
-		
-		JsonObject json = toJsonFromRequestObj(userInfo, roles, scope, authorizedClaims, requestedClaims);
+		Map<String, Object> json = toJsonFromRequestObj(userId, client, scope, authorizedClaims, requestedClaims);
 
 		writeOut(json, model, request, response);
 	}
 
-	protected void writeOut(JsonObject json, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
+	protected void writeOut(Map<String, Object> json, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
 		try {
 			Writer out = response.getWriter();
 			gson.toJson(json, out);
@@ -180,116 +135,15 @@ public class UserInfoView extends AbstractView {
 	 * Claims requested in requestObj.userinfo.claims are added to any
 	 * claims corresponding to requested scopes, if any.
 	 *
-	 * @param ui the UserInfo to filter
+	 * @param user the User to filter
+	 * @param client to filter
 	 * @param scope the allowed scopes to filter by
 	 * @param authorizedClaims the claims authorized by the client or user
 	 * @param requestedClaims the claims requested in the RequestObject
 	 * @return the filtered JsonObject result
 	 */
-	private JsonObject toJsonFromRequestObj(BasicProfile ui, Set<Role> roles, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {
-		
-		// get the base object
-		JsonObject obj = toJson(ui);
-		
-		//append roles as authorities list
-		Set<String> authorities = getAuthoritiesForRolesSet(roles);
-		obj.add("authorities", toJson(authorities));		
-		
-		Set<String> allowedByScope = getClaimsForScopeSet(scope);
-		Set<String> authorizedByClaims = extractUserInfoClaimsIntoSet(authorizedClaims);
-		Set<String> requestedByClaims = extractUserInfoClaimsIntoSet(requestedClaims);
-				
-
-		// Filter claims by performing a manual intersection of claims that are allowed by the given scope, requested, and authorized.
-		// We cannot use Sets.intersection() or similar because Entry<> objects will evaluate to being unequal if their values are
-		// different, whereas we are only interested in matching the Entry<>'s key values.
-		JsonObject result = new JsonObject();
-		for (Entry<String, JsonElement> entry : obj.entrySet()) {
-
-			if (allowedByScope.contains(entry.getKey())
-					|| authorizedByClaims.contains(entry.getKey())) {
-				// it's allowed either by scope or by the authorized claims (either way is fine with us)
-
-				if (requestedByClaims.isEmpty() || requestedByClaims.contains(entry.getKey())) {
-					// the requested claims are empty (so we allow all), or they're not empty and this claim was specifically asked for
-					result.add(entry.getKey(), entry.getValue());
-				} // otherwise there were specific claims requested and this wasn't one of them
-			}
-		}
-
-		return result;
+	private Map<String, Object> toJsonFromRequestObj(User user, ClientDetailsEntity client, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {		
+		return claimManager.createUserClaims(user, client, scope, authorizedClaims, requestedClaims);
 	}
 
-	/**
-	 * @param ui
-	 * @return
-	 */
-	private JsonObject toJson(BasicProfile ui) {
-
-		JsonObject obj = new JsonObject();
-		obj.addProperty("sub", ui.getUserId());
-
-		obj.addProperty("name", ui.getSurname() + " " + ui.getName());
-		obj.addProperty("preferred_username", ui.getUsername());
-		obj.addProperty("given_name", ui.getName());
-		obj.addProperty("family_name", ui.getSurname());
-
-		obj.addProperty("email", ui.getUsername());
-
-		return obj;
-	}
-	
-	private JsonArray toJson(Set<String> roles) {
-				
-		JsonArray arr = new JsonArray();
-		for(String role : roles) {
-			//role is authority
-			arr.add(role);
-		}
-		
-		return arr;
-	}
-
-	/**
-	 * Pull the claims that have been targeted into a set for processing.
-	 * Returns an empty set if the input is null.
-	 * @param claims the claims request to process
-	 */
-	private Set<String> extractUserInfoClaimsIntoSet(JsonObject claims) {
-		Set<String> target = new HashSet<>();
-		if (claims != null) {
-			JsonObject userinfoAuthorized = claims.getAsJsonObject("userinfo");
-			if (userinfoAuthorized != null) {
-				for (Entry<String, JsonElement> entry : userinfoAuthorized.entrySet()) {
-					target.add(entry.getKey());
-				}
-			}
-		}
-		return target;
-	}
-	
-	public Set<String> getClaimsForScope(String scope) {
-		if (scopesToClaims.containsKey(scope)) {
-			return scopesToClaims.get(scope);
-		} else {
-			return new HashSet<>();
-		}
-	}
-	public Set<String> getClaimsForScopeSet(Set<String> scopes) {
-		Set<String> result = new HashSet<>();
-		for (String scope : scopes) {
-			result.addAll(getClaimsForScope(scope));
-		}
-		return result;
-	}
-	
-	public Set<String> getAuthoritiesForRolesSet(Set<Role> roles) {
-		Set<String> result = new HashSet<>();
-		if(roles != null) {
-			for (Role role : roles) {
-				result.add(role.getAuthority());
-			}
-		}
-		return result;
-	}
 }

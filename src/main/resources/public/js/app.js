@@ -8,7 +8,8 @@ var app = angular.module('dev', [
 	'aac.controllers.clients', 
 	'aac.controllers.customservices', 
 	'aac.controllers.apis', 
-	'aac.controllers.admin' 
+	'aac.controllers.admin',
+	'ui.ace'
 	]);
 
 app.config(function ($httpProvider) {

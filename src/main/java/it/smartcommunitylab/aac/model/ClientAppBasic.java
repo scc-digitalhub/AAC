@@ -47,6 +47,9 @@ public class ClientAppBasic {
 	private Map<String,Boolean> identityProviders;
 	private Map<String,Boolean> identityProviderApproval;
 
+	private Set<String> uniqueSpaces;
+	private String claimMapping; 
+	
 	private String userName;
 	private String scope;
 	
@@ -203,5 +206,29 @@ public class ClientAppBasic {
 	}
 	public void setMobileAppSchema(String nativeAppSchema) {
 		this.mobileAppSchema = nativeAppSchema;
+	}
+	/**
+	 * @return the uniqueSpaces
+	 */
+	public Set<String> getUniqueSpaces() {
+		return uniqueSpaces;
+	}
+	/**
+	 * @param uniqueSpaces the uniqueSpaces to set
+	 */
+	public void setUniqueSpaces(Set<String> uniqueSpaces) {
+		this.uniqueSpaces = uniqueSpaces;
+	}
+	/**
+	 * @return the claimMapping
+	 */
+	public String getClaimMapping() {
+		return claimMapping;
+	}
+	/**
+	 * @param claimMapping the claimMapping to set
+	 */
+	public void setClaimMapping(String claimMapping) {
+		this.claimMapping = claimMapping;
 	}
 }

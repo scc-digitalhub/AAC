@@ -62,7 +62,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@Column(name = "client_secret_mobile",nullable = false)
 	private String clientSecretMobile;
 
-	@Column(name = "mobile_app_schema", unique=true)
+	@Column(name = "mobile_app_schema", unique=true,columnDefinition="LONGTEXT")
 	private String mobileAppSchema; 
 	
 	@Column(name = "resource_ids",columnDefinition="LONGTEXT")

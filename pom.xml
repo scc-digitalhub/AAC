@@ -207,7 +207,7 @@
 		<dependency>
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
-			<version>5.4</version>
+			<version>8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -219,6 +219,13 @@
         <groupId>org.bouncycastle</groupId>
         <artifactId>bctls-jdk15on</artifactId>
         <version>1.61</version>
+    </dependency>
+		
+		<!-- Nashorn Sandbox -->
+		<dependency>
+	    <groupId>org.javadelight</groupId>
+	    <artifactId>delight-nashorn-sandbox</artifactId>
+	    <version>0.1.26</version>
     </dependency>
 		
 	</dependencies>

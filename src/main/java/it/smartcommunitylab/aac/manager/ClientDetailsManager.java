@@ -142,9 +142,12 @@ public class ClientDetailsManager {
 				}
 			}
 			res.setProviderConfigurations(info.getProviderConfigurations());
+			res.setClaimMapping(info.getClaimMapping());
+			res.setUniqueSpaces(info.getUniqueSpaces());
 		}
 
 		res.setRedirectUris(StringUtils.collectionToCommaDelimitedString(e.getRegisteredRedirectUri()));
+		
 		return res;
 	}
 	/**
@@ -207,6 +210,9 @@ public class ClientDetailsManager {
 				}
 			}
 			
+			info.setClaimMapping(data.getClaimMapping());
+			info.setUniqueSpaces(data.getUniqueSpaces());
+			
 			client.setAdditionalInformation(info.toJson());
 			client.setRedirectUri(Utils.normalizeValues(data.getRedirectUris()));
 			
@@ -225,6 +231,7 @@ public class ClientDetailsManager {
 			}
 			
 			client.setParameters(data.getParameters());
+			
 		} catch (Exception e) {
 			log .error("failed to convert an object: "+e.getMessage(), e);
 			return null;

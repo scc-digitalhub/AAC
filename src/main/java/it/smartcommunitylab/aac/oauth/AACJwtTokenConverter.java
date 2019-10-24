@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,19 +35,16 @@ import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Lists;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.RSAKey;
 
-import it.smartcommunitylab.aac.dto.BasicProfile;
-import it.smartcommunitylab.aac.manager.BasicProfileManager;
-import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.service.JWKSetKeyStore;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -67,12 +63,6 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     @Autowired
     private UserManager userManager;
 
-    @Autowired
-    private BasicProfileManager profileManager;
-
-    @Autowired
-    private RoleManager roleManager;
-
     private Map<String, String> customHeaders = new HashMap<>();
 
     @Value("${oauth2.kid}")
@@ -80,6 +70,9 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
     @Value("${oauth2.key}")
     private String key;
+
+	@Autowired
+	private ClaimManager claimManager;
 
     // re-declare objects from parent
     private Signer signer;
@@ -161,12 +154,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
         // fetch client and reformat token
         String clientId = request.getClientId();
-        // set only this client as audience for token - also needs fix in encode due to
-        // tokenConverter misbehavior
-        claims.put(AUD, Lists.newArrayList(clientId));
-
-//        // reset additional claims for scopes to a list instead of an array
-//        info.put("scope", String.join(" ", request.getScope()));
+        ClientDetailsEntity client = clientRepository.findByClientId(clientId);
 
         User user = null;
         try {
@@ -186,88 +174,22 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         if (user != null) {
             logger.debug("fetch profile via profilemanager");
 
-            BasicProfile profile = profileManager.getBasicProfileById(user.getId().toString());
-
-            // add basic profile claims as alternatives to "user_name"
-            claims.put("username", profile.getUsername());
-            claims.put("preferred_username", profile.getUsername());
-
-            if (request.getScope().contains("profile")) {
-                claims.put("given_name", profile.getName());
-                claims.put("family_name", profile.getSurname());
-                claims.put("name", profile.getSurname() + " " + profile.getName());
+            Set<String> scope = new HashSet<>(request.getScope());
+            if (!scope.contains(Config.OPENID_SCOPE)) {
+            	scope.add(Config.OPENID_SCOPE);
             }
-
-            if (request.getScope().contains("email")) {
-                claims.put("email", profile.getUsername());
-            }
-
-            if (request.getScope().contains("user.roles.me")) {
-                try {
-                    Set<Role> roles = roleManager.getRoles(user.getId());
-                    if (roles != null) {
-
-                        // build roles list as plain array
-                        Set<String> rolesList = new HashSet<>();
-                        for (Role role : roles) {
-                            rolesList.add(role.getAuthority());
-                        }
-                        claims.put("roles", rolesList.toArray(new String[0]));
-
-                        // build also as realm/resource claims
-                        Set<String> realmRoles = new HashSet<>();
-                        for (Role role : roles) {
-                            if (StringUtils.isEmpty(role.getContext()) && StringUtils.isEmpty(role.getSpace())) {
-                                realmRoles.add(role.getRole());
-                            }
-                        }
-                        net.minidev.json.JSONObject realmRoleObj = new net.minidev.json.JSONObject();
-                        realmRoleObj.put("roles", realmRoles.toArray(new String[0]));
-                        claims.put("realm_access", realmRoleObj);
-
-                        Map<String, Set<String>> resourceRoles = new HashMap<>();
-                        for (Role role : roles) {
-                            // role is context/space:role
-                            if (!StringUtils.isEmpty(role.getContext()) && !StringUtils.isEmpty(role.getSpace())) {
-                                // put as context/space:role
-                                String key = role.getContext() + "/" + role.getSpace();
-                                if (!resourceRoles.containsKey(key)) {
-                                    resourceRoles.put(key, new HashSet<String>());
-                                }
-                                resourceRoles.get(key).add(role.getRole());
-                            } else if (!StringUtils.isEmpty(role.getContext())
-                                    && StringUtils.isEmpty(role.getSpace())) {
-                                // put as context:role
-                                if (!resourceRoles.containsKey(role.getContext())) {
-                                    resourceRoles.put(role.getContext(), new HashSet<String>());
-                                }
-                                resourceRoles.get(role.getContext()).add(role.getRole());
-                            }
-                        }
-
-                        net.minidev.json.JSONObject resourceRolesObj = new net.minidev.json.JSONObject();
-                        for (String res : resourceRoles.keySet()) {
-                            net.minidev.json.JSONObject resObj = new net.minidev.json.JSONObject();
-                            resObj.put("roles", resourceRoles.get(res).toArray(new String[0]));
-                            resourceRolesObj.put(res, resObj);
-                        }
-                        claims.put("resource_access", resourceRolesObj);
-
-                        // also build list of "groups" (as plain array)
-                        // define a group as context+space, ignoring role
-                        Set<String> groups = new HashSet<>();
-                        for (Role role : roles) {
-                            if (!StringUtils.isEmpty(role.getContext()) && !StringUtils.isEmpty(role.getSpace())) {
-                                groups.add(role.getContext() + "/" + role.getSpace());
-                            }
-                        }
-                        claims.put("groups", groups.toArray(new String[0]));
-                    }
-                } catch (Exception rex) {
-                    logger.error("error fetching roles for user " + user.getId());
-                }
-            }
+            Map<String, Object> userClaims = claimManager.createUserClaims(user, client, scope, null, null);
+            // set directly, ignore extracted
+            userClaims.remove("sub");
+            claims.putAll(userClaims);
         }
+        // set only this client as audience for token - also needs fix in encode due to
+        // tokenConverter misbehavior
+        claims.put(AUD, Lists.newArrayList(clientId));
+
+//        // reset additional claims for scopes to a list instead of an array
+//        info.put("scope", String.join(" ", request.getScope()));
+
 
         // save claims and encode
         result.setAdditionalInformation(claims);

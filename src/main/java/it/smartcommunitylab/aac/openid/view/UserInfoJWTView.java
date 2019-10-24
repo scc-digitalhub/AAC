@@ -35,7 +35,6 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -60,8 +59,6 @@ import it.smartcommunitylab.aac.openid.service.SymmetricKeyJWTValidatorCacheServ
 @Component(UserInfoJWTView.VIEWNAME)
 public class UserInfoJWTView extends UserInfoView {
 
-	public static final String CLIENT = "client";
-
 	/**
 	 * Logger for this class
 	 */
@@ -85,7 +82,7 @@ public class UserInfoJWTView extends UserInfoView {
 	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
 
 	@Override
-	protected void writeOut(JsonObject json, Map<String, Object> model,
+	protected void writeOut(Map<String, Object> json, Map<String, Object> model,
 			HttpServletRequest request, HttpServletResponse response) {
 
 		try {

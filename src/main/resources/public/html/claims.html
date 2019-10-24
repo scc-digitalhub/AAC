@@ -1,0 +1,22 @@
+<form role="form" name="claimsForm">
+    <table class="table table-bordered align-middle">
+        <tr>
+            <th width="30%">Unique Role Spaces</th>
+            <td>
+            <tags-input type="url" placeholder="Add a role space" class="form-control form-control-sm" ng-model="uniqueSpaces"></tags-input>
+             </td>
+        </tr>
+        <tr>
+            <th>Custom Claim Mapping Function <span ng-if="claimEnabled.checked">(<a href="" ng-click="validateClaims()">Validate</a>)</span>
+              <br/><br/>
+              <div ng-if="validationResult">result: <pre>{{validationResult | json:4}}</pre></div>
+              <div class="text-danger" ng-if="validationError">{{validationError}}</div>
+            </th>
+            <td>
+            <div>Enable <input type="checkbox" ng-model="claimEnabled.checked"  ng-change="toggleClaimMapping()"></div>
+            <div ui-ace="aceOption" ng-model="app.claimMapping"></div>
+             </td>
+        </tr>
+    </table>
+    <button type="button" ng-click="saveClaims()" class="btn btn-primary float-right" ng-disabled="!claimsForm.$dirty || claimsForm.$invalid">Save</button>
+</form>

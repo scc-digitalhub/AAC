@@ -118,6 +118,8 @@ angular.module('aac.controllers.clients', [])
 			native: false
 	}
 	
+	$scope.claimEnabled = {checked: false};
+	
 	// resource reference for the app API
 	var ClientAppBasic = $resource('dev/apps/:clientId', {}, {
 		query : { method : 'GET' },
@@ -158,11 +160,16 @@ angular.module('aac.controllers.clients', [])
 		query : { method : 'GET' }
 	});	
 	
+	// resource reference for the claim validation API
+	var ClientClaimValidation = $resource('dev/apps/:clientId/claimmapping/validate', {}, {
+		validate : { method : 'POST' },		
+	});
+
 	
 	/**
 	 * Initialize the app: load list of the developer's apps and reset views
 	 */
-	var init = function() {
+	var init = function() {	    
 		ClientAppBasic.query({clientId: $routeParams.clientId},function(response){
 			if (response.responseCode == 'OK') {
 				var app = response.data;
@@ -170,10 +177,11 @@ angular.module('aac.controllers.clients', [])
 				$scope.redirectUris = ($scope.app.redirectUris || '').split(',').map(function(r) {
 					return {text: r.trim()};
 				});
+				$scope.uniqueSpaces = ($scope.app.uniqueSpaces || []);
 				$scope.initGrantTypes($scope.app);
 				$scope.clientId = app.clientId;
+				$scope.claimEnabled.checked = !!app.claimMapping;
 				$scope.switchClientView('overview');
-
 			} else {
 				Utils.showError('Failed to load apps: '+response.errorMessage);
 			}	
@@ -313,6 +321,12 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.viewSettings = function() {
 		$scope.switchClientView('settings');
+	};
+	/**
+	 * switch to app 'roles and claims'
+	 */
+	$scope.viewClaims = function() {
+		$scope.switchClientView('claims');
 	};
 	/**
 	 * switch to app 'permissions'
@@ -482,6 +496,64 @@ angular.module('aac.controllers.clients', [])
 			}
 		}, Utils.showError);
 	};
+	/**
+	 * Save current app claim and role data
+	 */
+	$scope.saveClaims = function() {
+		if ($scope.uniqueSpaces) {
+			$scope.uniqueSpaces = $scope.uniqueSpaces ? $scope.uniqueSpaces.filter(function(r) { return r && r.text}) : [];
+			$scope.app.uniqueSpaces = $scope.uniqueSpaces.map(function(r) {
+				return r.text;
+			});
+		}
+		var newClient = new ClientAppBasic($scope.app);
+		newClient.$update({clientId:$scope.clientId}, function(response) {
+			if (response.responseCode == 'OK') {
+				Utils.showSuccess();
+				var app = response.data;
+				$scope.app = angular.copy(app);
+				$scope.initGrantTypes($scope.app);
+			} else {
+				Utils.showError('Failed to save claims: '+response.errorMessage);
+			}
+		}, Utils.showError);
+	};
+	/**
+	 * Toggle claim mapping text
+	 */
+	$scope.toggleClaimMapping = function() {
+		if (!!$scope.app.claimMapping) {
+			$scope.app.claimMapping = null;
+		} else {
+			$scope.app.claimMapping = 'function claimMapping(claims) {\n   return {};\n}';
+		}
+	}
+	$scope.aceOption = {
+	    mode: 'javascript',
+	    theme: 'monokai',
+	    maxLines: 30,
+        minLines: 6,	
+//        autoScrollEditorIntoView: true
+	  };
+	
+	$scope.validateClaims = function() {
+		$scope.validationResult = '';
+		$scope.validationError = '';
+		var newClient = new ClientClaimValidation($scope.app);
+		newClient.$validate({clientId:$scope.clientId}, function(response) {
+			if (response.responseCode == 'ERROR') {
+				$scope.validationError = response.errorMessage; 			
+				
+			} else {
+				$scope.validationResult = response.data;
+			}
+		}, function(e) {
+			$scope.validationResult = '';
+			$scope.validationError = e; 			
+		});
+	}
+	
+	
 	/**
 	 * Save current app permissions
 	 */

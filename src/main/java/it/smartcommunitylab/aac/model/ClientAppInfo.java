@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.model;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -45,6 +46,9 @@ public class ClientAppInfo {
 	private String scope;
 	
 	private Map<String, Map<String, Object>> providerConfigurations;
+	
+	private Set<String> uniqueSpaces;
+	private String claimMapping; 
 	
 	static {
 		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -122,5 +126,33 @@ public class ClientAppInfo {
 
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
+	}
+
+	/**
+	 * @return the uniqueSpaces
+	 */
+	public Set<String> getUniqueSpaces() {
+		return uniqueSpaces;
+	}
+
+	/**
+	 * @param uniqueSpaces the uniqueSpaces to set
+	 */
+	public void setUniqueSpaces(Set<String> uniqueSpaces) {
+		this.uniqueSpaces = uniqueSpaces;
+	}
+
+	/**
+	 * @return the claimMapping
+	 */
+	public String getClaimMapping() {
+		return claimMapping;
+	}
+
+	/**
+	 * @param claimMapping the claimMapping to set
+	 */
+	public void setClaimMapping(String claimMapping) {
+		this.claimMapping = claimMapping;
 	}
 }

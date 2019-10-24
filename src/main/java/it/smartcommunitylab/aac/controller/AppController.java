@@ -47,12 +47,19 @@ import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apikey.APIKeyManager;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.APIKey;
+import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
+import it.smartcommunitylab.aac.model.ClientAppInfo;
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -70,10 +77,15 @@ public class AppController {
 	@Autowired
 	private ClientDetailsManager clientDetailsAdapter;
 	@Autowired
+	private ClientDetailsRepository clientDetailsRepo;
+	@Autowired
 	private UserManager userManager;
 	@Autowired
 	private APIKeyManager keyManager;
+	@Autowired
+	private ClaimManager claimManager;
 
+	
 	/**
 	 * Retrieve the with the user data: currently on the username is added.
 	 * @return
@@ -194,6 +206,30 @@ public class AppController {
 		return response;
 	}
 
+	/**
+	 * Read the 
+	 * @return {@link Response} entity containing the list of client app {@link ClientAppBasic} descriptors
+	 */
+	@RequestMapping(value="/dev/apps/{clientId}/claimmapping/validate", method=RequestMethod.POST)
+	public @ResponseBody Response validateClaimMapping(@RequestBody ClientAppBasic data, @PathVariable String clientId) {
+		Response response = new Response();
+		User user = userManager.getUser();
+		userManager.checkClientIdOwnership(clientId);
+		ClientDetailsEntity client = clientDetailsRepo.findByClientId(clientId);
+		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
+		appInfo.setClaimMapping(data.getClaimMapping());
+		try {
+			Map<String, Object> claims = claimManager.createUserClaims(user, appInfo, client.getScope());
+			response.setData(claims);
+		} catch (InvalidDefinitionException e) {
+			response.setErrorMessage(e.getMessage());
+			response.setResponseCode(RESPONSE.ERROR);
+		}
+		
+		return response;
+	}
+	
+	
 	/**
 	 * Delete a specified API key
 	 * @param apiKey

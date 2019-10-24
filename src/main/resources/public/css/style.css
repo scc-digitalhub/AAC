@@ -139,3 +139,15 @@ input.form-control-sm  {
   top: 100px;
   width: 100%;
 }
+
+
+.ace_editor {
+    border: 1px solid lightgray;
+    margin: auto;
+    min-height: 250px;
+    width: 100%;
+  }
+.scrollmargin {
+  height: 80px;
+      text-align: center;
+}

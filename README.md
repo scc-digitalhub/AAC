@@ -129,7 +129,7 @@ To configure the issuer, it is necessary to specify the OpenID issuer URL:
     openid:
       issuer: http://localhost:8080/aac
       
-OpenID extension requires RSA keys for JWT signature. The project ships with the pre-packaged generated key. The key MUST be replaced with your specific value in production environment. To generate new key please follow the instructions available [here](https://github.com/mitreid-connect/json-web-key-generator). 
+OpenID extension requires RSA keys for JWT signature. The project ships with the pre-packaged generated key. The key MUST be replaced with your specific value in production environment. To generate new key please follow the instructions available [here](https://mkjwk.org/). 
 
 The resulting key should be placed in the resources (i.e., src/main/resources). Alternatively, it is possible to override the default keystore via configuration by setting the following property 
 

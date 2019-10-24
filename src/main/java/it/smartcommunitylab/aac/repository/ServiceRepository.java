@@ -39,4 +39,8 @@ public interface ServiceRepository extends JpaRepository<ServiceDescriptor, Stri
 	
 	@Query("select s from ServiceDescriptor s where s.apiKey=?1")
 	public ServiceDescriptor findByAPIKey(String apiKey);	
+	
+	@Query("select distinct(r.service) from Resource r")
+	public List<ServiceDescriptor> findWithResources();
+
 }
