@@ -1,6 +1,7 @@
 
 package it.smartcommunitylab.aac.openid.service;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
@@ -116,7 +118,8 @@ public class OIDCTokenEnhancer  {
             if (!scope.contains(Config.OPENID_SCOPE)) {
             	scope.add(Config.OPENID_SCOPE);
             }
-            Map<String, Object> userClaims = claimManager.createUserClaims(user, client, scope, null, null);
+            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request().getAuthorities();
+            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
             // set directly, ignore extracted
             userClaims.remove("sub");
             userClaims.entrySet().forEach(e -> idClaims.claim(e.getKey(), e.getValue()));

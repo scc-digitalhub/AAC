@@ -30,8 +30,11 @@
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.min.css" rel="stylesheet" />
     <!-- Custom styles for this template -->
-    <link href="../css/style.css" rel="stylesheet" />
-    <title>AAC</title>
+     <link href="../css/style.css" rel="stylesheet" />
+     <title>AAC</title>
+    <script src="../lib/jquery.min.js"></script>    
+    <script src="../lib/bootstrap.min.js"></script>
+    <script src="../lib/popper.min.js"></script>
 </head>
 <body>
     <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
@@ -46,30 +49,60 @@
         <p th:text="#{lbl_approval_error_message}">: (<span th:text="${session.getAttribute('SPRING_SECURITY_LAST_EXCEPTION').message}">message</span>)</p>
       </div>
 
-      <h2>Please Confirm</h2>
+      <div th:if="${resources.size() > 0}">
+	      <h2 th:text="#{lbl_approval_confirm}">Please Confirm</h2>
+	
+	      <p th:utext="#{lbl_approval_authorize(${clientName})}">Text:</p>
+	      <ul class="permission">
+	        <li th:each="r : ${resources}" th:text="${r.name}"></li>
+	      </ul>
+      </div>
 
-      <p th:utext="#{lbl_approval_authorize(${clientName})}">Text:</p>
-      <ul class="permission">
-        <li th:each="r : ${resources}" th:text="${r.name}"></li>
-      </ul>
+      <form  id="confirmationForm" name="confirmationForm" action="../oauth/authorize" method="post" >
+      <div th:if="${spaces.size() > 0}">
+         <div th:each="space : ${spaces.keySet()}" class="form-group row">
+           <label class="col-md-6 col-form-label"><b th:text="#{lbl_approval_space(${clientName})}">space</b>: </label>
+           <div class="col-md-6">
+            <select class="custom-select" th:name="${'spaceSelectionApproval_map.'+space}" required="required">
+              <option value="" th:text="#{lbl_approval_empty}"></option>
+              <option th:each="option : ${spaces.get(space)}" th:value="${option}" th:text="${option}"></option>
+            </select>
+           </div>
+         </div>
+         <br/>
+      </div>
 
       <div class="row justify-content-center">
         <div class="col-md-6 text-right">
-	      <form  id="confirmationForm" name="confirmationForm" action="../oauth/authorize" method="post">
-	        <input name="user_oauth_approval" value="true" type="hidden"/>
-	        <label><input class="btn btn-primary" name="authorize" th:attr="value=#{lbl_approval_do_authorize}" type="submit"/></label>
-	      </form>
+          <input id="user_oauth_approval" name="user_oauth_approval" value="true" type="hidden"/>
+	        <input id="user_oauth_approval" name="spaceSelectionApproval_required" value="true" type="hidden"/>
+	        <label><button id="authorize" class="btn btn-primary" name="authorize" th:text="#{lbl_approval_do_authorize}"></button></label>
         </div>
         <div class="col-md-6">
-	      <form id="denialForm" name="denialForm" action="../oauth/authorize" method="post">
-	        <input name="user_oauth_approval" value="false" type="hidden"/>
-	        <label><input class="btn" name="deny" th:attr="value=#{lbl_approval_do_deny}" type="submit"/></label>
-	      </form>
+	        <label><button class="btn" id="deny" name="deny" th:text="#{lbl_approval_do_deny}"></button></label>
         </div>
       </div>
+      </form>
+      
       </div>
+      
     </div>
   </div>
+
+    <script>
+     $('#authorize').click(function(event) {
+    	 if ($('#confirmationForm')[0].checkValidity()) {
+   	      $('#user_oauth_approval').val(true);
+   	      $('#confirmationForm').submit();
+    	 }
+    	 $('#confirmationForm').addClass('was-validated');
+    	 event.preventDefault();
+    });
+    $('#deny').click(function() {
+       $('#user_oauth_approval').val(false);
+       $('#confirmationForm').submit();
+     });
+    </script>
 
 </body>
 </html>

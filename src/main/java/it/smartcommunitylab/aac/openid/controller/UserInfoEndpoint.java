@@ -89,6 +89,8 @@ public class UserInfoEndpoint {
 		model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.getOAuth2Request().getExtensions().get("claims"));
 
 		model.addAttribute(UserInfoView.USER_INFO, user);
+		
+		model.addAttribute(UserInfoView.SELECTED_AUTHORITIES, auth.getOAuth2Request().getAuthorities());		
 		// content negotiation
 
 		// start off by seeing if the client has registered for a signed/encrypted JWT from here

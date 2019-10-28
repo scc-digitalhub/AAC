@@ -17,8 +17,10 @@
 package it.smartcommunitylab.aac.manager;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,14 +32,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.RoleModel;
+import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
@@ -310,6 +318,42 @@ public class RoleManager {
 		User user = userRepository.findOne(userId);
 		user.getRoles().removeAll(fullRoles);
 		userRepository.save(user);
+	}
+
+	public Multimap<String, String> getRoleSpacesToNarrow(String clientId, Collection<? extends GrantedAuthority> authorities) {
+		try {
+			ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+			ClientAppInfo info = ClientAppInfo.convert(client.getAdditionalInformation());
+			if (info.getUniqueSpaces() != null && !info.getUniqueSpaces().isEmpty()) {
+				Multimap<String, String> map = LinkedListMultimap.create();
+				for (GrantedAuthority a : authorities) {
+					Role r = Role.parse(a.getAuthority());
+					if (!StringUtils.isEmpty(r.getContext()) && info.getUniqueSpaces().contains(r.getContext())) {
+						map.put(r.getContext(), r.getSpace());
+					} 
+				}
+				for (String key : map.keySet()) {
+					if (map.get(key).size() == 1) map.removeAll(key);
+				}
+				if (map.isEmpty()) return null;
+				return map;
+			}
+			return null;
+		}
+		catch (ClientRegistrationException e) {
+			return null;
+		}		
+		
+	}
+
+
+	/**
+	 * @param map
+	 * @param authorities
+	 * @return
+	 */
+	public Collection<? extends GrantedAuthority> narrowRoleSpaces(Map<String, String> map, Collection<? extends GrantedAuthority> authorities) {
+		return authorities.stream().map(a -> Role.parse(a.getAuthority())).filter(r -> !map.containsKey(r.getContext()) || map.getOrDefault(r.getContext(), "").equals(r.getSpace())).collect(Collectors.toSet());
 	}
 
 }

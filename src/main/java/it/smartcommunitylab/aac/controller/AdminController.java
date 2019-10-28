@@ -46,6 +46,7 @@ import it.smartcommunitylab.aac.model.IdPData;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
@@ -103,10 +104,13 @@ public class AdminController {
 		for (ClientDetailsEntity e : clients) {
 			ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
 			if (info.getIdentityProviders() != null && !info.getIdentityProviders().isEmpty()) {
+				User user = userRepository.findOne(e.getDeveloperId());
+				if (user == null) continue;
+				
 				IdPData data = new IdPData();
 				data.setClientId(e.getClientId());
 				data.setName(info.getName());
-				data.setOwner(userRepository.findOne(e.getDeveloperId()).toString());
+				data.setOwner(user.toString());
 				data.setIdps(new ArrayList<String>());
 				for (String key : info.getIdentityProviders().keySet()) {
 					Integer value = info.getIdentityProviders().get(key);

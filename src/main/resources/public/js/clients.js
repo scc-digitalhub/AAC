@@ -525,7 +525,10 @@ angular.module('aac.controllers.clients', [])
 		if (!!$scope.app.claimMapping) {
 			$scope.app.claimMapping = null;
 		} else {
-			$scope.app.claimMapping = 'function claimMapping(claims) {\n   return {};\n}';
+			$scope.app.claimMapping = 
+				'/**\n * DEFINE YOUR OWN CLAIM MAPPING HERE\n' +
+				'**/\n'+
+				'function claimMapping(claims) {\n   return claims;\n}';
 		}
 	}
 	$scope.aceOption = {

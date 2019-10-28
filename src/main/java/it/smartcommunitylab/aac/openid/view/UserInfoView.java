@@ -17,6 +17,7 @@ package it.smartcommunitylab.aac.openid.view;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.servlet.view.AbstractView;
@@ -48,8 +50,10 @@ public class UserInfoView extends AbstractView {
 	public static final String CLIENT = "client";
 	public static final String REQUESTED_CLAIMS = "requestedClaims";
 	public static final String AUTHORIZED_CLAIMS = "authorizedClaims";
+	public static final String SELECTED_AUTHORITIES = "selectedAuthorities";
 	public static final String SCOPE = "scope";
 	public static final String USER_INFO = "userInfo";
+	public static final String USER_ID = "userId";
 
 	public static final String VIEWNAME = "userInfoView";
 
@@ -90,13 +94,13 @@ public class UserInfoView extends AbstractView {
 	 * (java.util.Map, javax.servlet.http.HttpServletRequest,
 	 * javax.servlet.http.HttpServletResponse)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
 
 		User userId = (User) model.get(USER_INFO);
 		ClientDetailsEntity client = (ClientDetailsEntity) model.get(CLIENT);
 		
-		@SuppressWarnings("unchecked")
 		Set<String> scope = (Set<String>) model.get(SCOPE);
 
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -105,14 +109,19 @@ public class UserInfoView extends AbstractView {
 
 		JsonObject authorizedClaims = null;
 		JsonObject requestedClaims = null;
+		Collection<? extends GrantedAuthority> selectedAuthorities = null;
 		if (model.get(AUTHORIZED_CLAIMS) != null) {
 			authorizedClaims = jsonParser.parse((String) model.get(AUTHORIZED_CLAIMS)).getAsJsonObject();
 		}
 		if (model.get(REQUESTED_CLAIMS) != null) {
 			requestedClaims = jsonParser.parse((String) model.get(REQUESTED_CLAIMS)).getAsJsonObject();
 		}
+		if (model.get(SELECTED_AUTHORITIES) != null) {
+			selectedAuthorities = (Collection<? extends GrantedAuthority>) model.get(SELECTED_AUTHORITIES);
+		}
+
 		
-		Map<String, Object> json = toJsonFromRequestObj(userId, client, scope, authorizedClaims, requestedClaims);
+		Map<String, Object> json = toJsonFromRequestObj(userId, selectedAuthorities, client, scope, authorizedClaims, requestedClaims);
 
 		writeOut(json, model, request, response);
 	}
@@ -142,8 +151,8 @@ public class UserInfoView extends AbstractView {
 	 * @param requestedClaims the claims requested in the RequestObject
 	 * @return the filtered JsonObject result
 	 */
-	private Map<String, Object> toJsonFromRequestObj(User user, ClientDetailsEntity client, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {		
-		return claimManager.createUserClaims(user, client, scope, authorizedClaims, requestedClaims);
+	private Map<String, Object> toJsonFromRequestObj(User user, Collection<? extends GrantedAuthority> selectedAuthorities, ClientDetailsEntity client, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {		
+		return claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, authorizedClaims, requestedClaims);
 	}
 
 }

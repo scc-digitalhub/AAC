@@ -18,18 +18,21 @@ package it.smartcommunitylab.aac.manager;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import javax.script.ScriptException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -63,8 +66,6 @@ public class ClaimManager {
 	
 	@Autowired
 	private BasicProfileManager profileManager;
-	@Autowired
-	private RoleManager roleManager;
 
 	private SetMultimap<String, String> scopesToClaims = HashMultimap.create();
 	
@@ -73,7 +74,7 @@ public class ClaimManager {
 	private Set<String> roleScopes = Sets.newHashSet("user.roles.me");
 
 	// claims that should not be overwritten
-	private Set<String> systemScopes = Sets.newHashSet("aud", "iss", "jti", "nbf", "iat", "exp", "scope", "token_type", "client_id", "active");
+	private Set<String> systemScopes = Sets.newHashSet("aud", "iss", "jti", "nbf", "iat", "exp", "scope", "token_type", "client_id", "active", "sub");
 
 	
 	public ClaimManager() {
@@ -112,6 +113,7 @@ public class ClaimManager {
 			scopesToClaims.put(s, "given_name");
 			scopesToClaims.put(s, "family_name");
 			scopesToClaims.put(s, "email");
+			scopesToClaims.put(s, "username");
 		});
 		accountScopes.forEach(s -> {
 			scopesToClaims.put(s, "accounts");
@@ -129,16 +131,17 @@ public class ClaimManager {
 	 * Create user claims map considering the authorized scopes, authorized claims and request claims.
 	 * THe claims are constructed based on the user roles, user info, and accounts info 
 	 * @param user
+	 * @param authorities
 	 * @param client
 	 * @param scopes
 	 * @param authorizedClaims
 	 * @param requestedClaims
 	 * @return
 	 */
-	public Map<String, Object> createUserClaims(User user, ClientDetailsEntity client, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims) {
+	public Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientDetailsEntity client, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims) {
 		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
 		try {
-			return createUserClaims(user, appInfo, scopes, authorizedClaims, requestedClaims, true);
+			return createUserClaims(userId, authorities, appInfo, scopes, authorizedClaims, requestedClaims, true);
 		} catch (InvalidDefinitionException e) {
 			// never arrives here
 			return null;
@@ -146,7 +149,7 @@ public class ClaimManager {
 	}
 
 	/**
-	 * Create user claims map considering the authorized scopes, authorized claims and request claims.
+	 * Create user claims map considering the authorized scopes.
 	 * The claims are constructed based on the user roles, user info, and accounts info 
 	 * @param user
 	 * @param appInfo
@@ -157,29 +160,29 @@ public class ClaimManager {
 	 * @throws InvalidDefinitionException 
 	 */
 	public Map<String, Object> createUserClaims(User user, ClientAppInfo appInfo, Set<String> scopes) throws InvalidDefinitionException {
-		return createUserClaims(user, appInfo, scopes, null, null, false);
+		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo, scopes, null, null, false);
 	}
 		
-	private Map<String, Object> createUserClaims(User user, ClientAppInfo appInfo, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors) throws InvalidDefinitionException {
-		BasicProfile ui = profileManager.getBasicProfileById(user.getId().toString());
+	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientAppInfo appInfo, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors) throws InvalidDefinitionException {
+		BasicProfile ui = profileManager.getBasicProfileById(userId);
 
 		// get the base object
 		Map<String, Object> obj = toJson(ui);
 
 		if (!Sets.intersection(scopes, accountScopes).isEmpty()) {
 			// account profiles
-			AccountProfile accounts = profileManager.getAccountProfileById(user.getId().toString());
+			AccountProfile accounts = profileManager.getAccountProfileById(userId);
 			if (accounts != null && accounts.getAccounts() != null) {
 				obj.put("accounts", accounts.getAccounts());			
 			}
 		}
 		if (!Sets.intersection(scopes, roleScopes).isEmpty()) {
 			try {
-				Set<Role> roles = roleManager.getRoles(user.getId());
+				Set<Role> roles = authorities.stream().map(a -> Role.parse(a.getAuthority())).collect(Collectors.toSet());
 				//append roles as authorities list
 				populateRoleClaims(roles, obj);
 			} catch (Exception e) {
-				logger.error("error fetching roles for user "+user.getId(), e);
+				logger.error("error fetching roles for user "+userId, e);
 			}
 		}
 		
@@ -193,7 +196,6 @@ public class ClaimManager {
 		// different, whereas we are only interested in matching the Entry<>'s key values.
 		Map<String, Object> result = new HashMap<String, Object>();
 		for (Entry<String, Object> entry : obj.entrySet()) {
-			if (systemScopes.contains(entry.getKey())) continue;
 			
 			if (allowedByScope.contains(entry.getKey())
 					|| authorizedByClaims.contains(entry.getKey())) {
@@ -207,23 +209,32 @@ public class ClaimManager {
 		}
 
 		// apply mapping to correct result
+		Map<String, Object> copy = new HashMap<>(result);
 		try {
-			obj = customMapping(user, appInfo, result);
+			obj = customMapping(appInfo, copy);
 		} catch (InvalidDefinitionException e) {
 			if (suppressErrors) {
-				logger.error("error mapping claims for user "+user.getId(), e);
+				logger.error("error mapping claims for user "+userId, e);
 			} else {
 				throw e;
 			}
 		}
-		result.clear();
+		copy.clear();
+		// keep all the new claims apart the system ones
 		for (Entry<String, Object> entry : obj.entrySet()) {
 			// skip system claims
-			if (systemScopes.contains(entry.getKey())) continue;
-			result.put(entry.getKey(), entry.getValue());
+			if (systemScopes.contains(entry.getKey()))  continue;
+			copy.put(entry.getKey(), entry.getValue());
+
+		}
+		// add the system claims back from the original version
+		for (String key : systemScopes) {
+			if (result.containsKey(key)) {
+				copy.put(key, result.get(key));
+			}
 		}
 
-		return result;
+		return copy;
 	}
 
 	/**
@@ -233,8 +244,8 @@ public class ClaimManager {
 	 * @param obj
 	 * @return
 	 */
-	public Map<String, Object> customMapping(User user, ClientAppInfo appInfo, Map<String, Object> obj) throws InvalidDefinitionException {
-		if (StringUtils.isEmpty(appInfo.getClaimMapping())) return obj;
+	public Map<String, Object> customMapping(ClientAppInfo appInfo, Map<String, Object> obj) throws InvalidDefinitionException {
+		if (StringUtils.isEmpty(appInfo.getClaimMapping())) return new HashMap<>(obj);
 
 		String func = appInfo.getClaimMapping();
 		try {
@@ -279,6 +290,7 @@ public class ClaimManager {
 		obj.put("given_name", ui.getName());
 		obj.put("family_name", ui.getSurname());
 
+		obj.put("username", ui.getUsername());
 		obj.put("email", ui.getUsername());
 
 		return obj;

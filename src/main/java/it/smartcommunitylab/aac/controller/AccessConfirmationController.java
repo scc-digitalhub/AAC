@@ -15,7 +15,9 @@
  */
 package it.smartcommunitylab.aac.controller;
 
+import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -25,6 +27,8 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
@@ -33,7 +37,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.google.common.collect.Multimap;
+
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
@@ -54,6 +62,8 @@ public class AccessConfirmationController {
 	private ClientDetailsService clientDetailsService;
 	@Autowired
 	private ResourceRepository resourceRepository;
+	@Autowired
+	private RoleManager roleManager;
 
 	/**
 	 * Request the user confirmation for the resources enabled for the requesting client
@@ -62,7 +72,7 @@ public class AccessConfirmationController {
 	 * @throws Exception
 	 */
 	@RequestMapping("/oauth/confirm_access")
-	public ModelAndView getAccessConfirmation(Map<String, Object> model) throws Exception {
+	public ModelAndView getAccessConfirmation(Map<String, Object> model, Principal principal) throws Exception {
 		AuthorizationRequest clientAuth = (AuthorizationRequest) model.remove("authorizationRequest");
 		// load client information given the client credentials obtained from the request
 		ClientDetails client = clientDetailsService.loadClientByClientId(clientAuth.getClientId());
@@ -92,9 +102,28 @@ public class AccessConfirmationController {
 				logger.error("Error reading resource with uri "+rUri+": "+e.getMessage());
 			}
 		}
+		
+		// if trusted client no need to ask
+		if (clientAuth.getAuthorities() != null) {
+			for (GrantedAuthority ga : clientAuth.getAuthorities()) {
+				if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(ga.getAuthority())) {
+					resources.clear();
+				}
+			}
+		}
+		
+		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(clientAuth.getClientId(), ((Authentication) principal).getAuthorities());
+
+		if (resources.size() == 0 && (spaces == null || spaces.isEmpty())) {
+			clientAuth.setApproved(true);
+			model.put("auth_request", clientAuth);
+			return new ModelAndView("redirect:./authorize");
+		} 
+		
 		model.put("resources", resources);
 		model.put("auth_request", clientAuth);
 		model.put("clientName", info.getName());
+		model.put("spaces", spaces == null ? Collections.emptyMap() : spaces);
 		return new ModelAndView("access_confirmation", model);
 	}
 

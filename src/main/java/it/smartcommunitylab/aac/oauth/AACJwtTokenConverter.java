@@ -2,12 +2,14 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.jwt.crypto.sign.MacSigner;
@@ -178,7 +181,9 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             if (!scope.contains(Config.OPENID_SCOPE)) {
             	scope.add(Config.OPENID_SCOPE);
             }
-            Map<String, Object> userClaims = claimManager.createUserClaims(user, client, scope, null, null);
+            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request().getAuthorities();
+            if (selectedAuthorities != null && !selectedAuthorities.isEmpty()) claims.put(AUTHORITIES, selectedAuthorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet()));
+            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
             // set directly, ignore extracted
             userClaims.remove("sub");
             claims.putAll(userClaims);
