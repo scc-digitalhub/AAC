@@ -76,5 +76,13 @@ api:
   contextSpace: apimanager
     
 # OPEN ID
+oauth2:
+   jwt: true
+   kid: ${JWT_KID:rsa1}
+   key: ${JWT_KEY:}
+   keystore: ${JWT_KEYSTORE:classpath:/keystore.jwks} 
+       
 openid:
-  issuer: http://localhost:8080/aac
+   issuer: ${OPENID_ISSUER:http://localhost:8080/aac}
+   kid: ${OPENID_KID:rsa1}
+   keystore: ${OPENID_KEYSTORE:classpath:/keystore.jwks}
