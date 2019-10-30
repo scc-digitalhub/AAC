@@ -1,0 +1,201 @@
+/**
+ *    Copyright 2015-2019 Smart Community Lab, FBK
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+@charset "UTF-8";
+
+body {
+	background-size: 100% auto;
+	margin: 0 auto;
+}
+
+.confirmation-content {
+	padding: 10px;
+	text-align: left;
+}
+.confirmation-content h2 {
+	text-align: center;
+}
+.confirmation-content .row form {
+    display: initial !important;
+}
+
+ul.pprovider {
+	margin: 0 auto;
+	padding: 0;
+	list-style-type: none;
+	width: 50%;
+	max-width: 200px;
+}
+
+ul.pprovider li {
+	background-color: #666666;
+	/*padding: 15%;*/
+	margin: 10%;
+	max-height: 100px;
+}
+
+ul.pprovider li a {
+	color: #ffffff;
+	text-decoration: none;
+	font-size: larger;
+	display: block;
+	/*width: 100%;*/
+	line-height: 3em;
+}
+
+img.logo {
+	float: right;
+	padding: 5% 5% 0 0;
+}
+
+div.authorities {
+	margin-top: 10%;
+}
+
+.clear {
+	clear: both;
+}
+
+.error {
+	font-weight: bold;
+	color: red;
+}
+
+.scope-row {
+  border-bottom: 1px solid #ddd;
+  margin: 0 !important;
+}
+
+.scope-row > div {
+  padding: 5px 15px 5px 0px;
+}
+.sidebar-nav {
+  padding: 9px 0;
+}
+table.idps, table.idps th, table.idps td {  
+  border: none;
+  vertical-align: top;  
+}
+table.idps td {
+  padding: 4px 8px;
+}  
+table.idps td .form-control {
+  margin-bottom: 8px;
+}
+.idps .idp {
+	white-space: nowrap;
+}
+.approval-state {
+	padding-top: .875rem !important;
+}
+
+table.align-middle th {
+	vertical-align: middle;
+}
+input.form-control-sm  {
+	font-size: 0.8125rem !important;
+}
+
+
+.invalid-feedback {
+	display: inherit !important;
+}
+
+@media (min-width: 576px) {
+  .alert {
+      max-width: 540px;
+  }
+}
+@media (min-width: 768px) {
+  .alert {
+      max-width: 720px;
+  }
+}
+@media (min-width: 992px) {
+  .alert {
+      max-width: 960px;
+  }
+}
+@media (min-width: 1200px) {
+	.alert {
+	    max-width: 1140px;
+	}
+}
+
+.alert {
+  position: fixed;
+  bottom: 4rem;
+  width: 100%;
+  background-color: #fff;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  box-shadow: 0 0 1rem rgba(0,0,0,.15);
+  border-radius: 4px;
+  border-right: 0!important;
+  border-top: 0!important;
+  border-bottom: 0!important;
+}
+
+
+.ace_editor {
+    border: 1px solid lightgray;
+    margin: auto;
+    min-height: 250px;
+    width: 100%;
+  }
+.scrollmargin {
+  height: 80px;
+      text-align: center;
+}
+select {
+	width: 100%;
+	border: 0;
+	background-color: #fff;
+	color: #17324d;
+}
+.bootstrap-select-wrapper:not(.standard) {
+  border-bottom: 1px solid #17324d;
+  padding: 8px;
+}
+
+.token-wrapper {
+	max-width: 800px;
+	overflow-wrap: break-word;
+}
+
+tags-input {
+	box-shadow: none !important;
+}
+tags-input .tags {
+	border: 0!important;
+  box-shadow: none !important;
+}
+tags-input .tags .tag-item {
+	background-color: #0059b3 !important;
+}
+tags-input .tags .tag-item .remove-button  {
+	color: #fff !important; 
+}
+tags-input {
+  border-bottom: 1px solid #17324d !important;
+}
+
+.form-check {
+	margin-top: 0 !important;
+}
+.form-check label {
+  margin-bottom: 0 !important;
+}

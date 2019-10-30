@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2012-2013 Trento RISE
+       Copyright 2015-2019 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -28,10 +28,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="-1" />        
         <title th:text="#{lbl_login_title}"></title>
-        <!-- Bootstrap core CSS -->
-        <link href="../css/bootstrap.min.css" rel="stylesheet"></link>
-        <!-- Custom styles for this template -->
-        <link href="../css/style.css" rel="stylesheet"></link>
+    <!-- Design Italia -->
+    <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css"/>   
+    <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>    
+    <link href="../italia/style.css" rel="stylesheet" />
+    <script src="../italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
   
 
     </head>
@@ -58,7 +59,5 @@
           </div>
         </div>
       </div>  
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-      <script src="../lib/bootstrap.min.js"></script>
     </body>
 </html>

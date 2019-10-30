@@ -522,6 +522,7 @@ angular.module('aac.controllers.clients', [])
 	 * Toggle claim mapping text
 	 */
 	$scope.toggleClaimMapping = function() {
+		$scope.claimEnabled.checked = !$scope.claimEnabled.checked;
 		if (!!$scope.app.claimMapping) {
 			$scope.app.claimMapping = null;
 		} else {

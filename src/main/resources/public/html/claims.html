@@ -13,10 +13,13 @@
               <div class="text-danger" ng-if="validationError">{{validationError}}</div>
             </th>
             <td>
-            <div>Enable <input type="checkbox" ng-model="claimEnabled.checked"  ng-change="toggleClaimMapping()"></div>
-            <div ui-ace="aceOption" ng-model="app.claimMapping"></div>
+              <div class="form-check form-check-inline" ng-click="toggleClaimMapping()">
+                 <input class="form-check-input" type="checkbox" ng-model="claimEnabled.checked">
+                <label>Enable</label>
+              </div>               
+              <div ui-ace="aceOption" ng-model="app.claimMapping"></div>
              </td>
         </tr>
     </table>
-    <button type="button" ng-click="saveClaims()" class="btn btn-primary float-right" ng-disabled="!claimsForm.$dirty || claimsForm.$invalid">Save</button>
+    <button type="button" ng-click="saveClaims()" class="btn btn-primary float-right" ng-disabled="claimsForm.$invalid">Save</button>
 </form>

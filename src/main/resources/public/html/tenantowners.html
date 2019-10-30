@@ -10,11 +10,13 @@
   <div class="row mb-3">
     <div class="col p-3">
 		  <div class="form-group">
+      <div class="bootstrap-select-wrapper">
 		    <label for="exampleFormControlSelect1">Parent Space</label>
-		    <select ng-model="contexts.selected" class="form-control" id="context" ng-change="loadData()">
+		    <select ng-model="contexts.selected" id="context" ng-change="loadData()">
 		      <option ng-repeat="ctx in contexts.all">{{ctx}}</option>
 		    </select>
 		  </div>
+      </div>
       </div>
   </div>
   <table class="table table-hover align-middle border-bottom">

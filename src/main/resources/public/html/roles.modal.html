@@ -7,12 +7,12 @@
 			<div class="modal-body" id="modal-body">
 			   <div class="form-group" ng-if="roles.sub.usernameRequired">
 			     <label for="domain">Username*</label>
-			     <input type="text" class="form-control  form-control-sm" id="username" placeholder="Username" ng-model="roles.sub.username" required>
+			     <input type="text" class="form-control  form-control-sm" id="username" ng-model="roles.sub.username" required>
 			   </div>
-			  <div class="row align-items-center"> 
+			  <div class="row "> 
 				  <div class="form-group col col-md-10">
-					    <label for="domain">New role</label>
-					    <input type="text" class="form-control form-control-sm" id="domain" placeholder="Role" ng-model="roles.custom">
+              <label for="domain">New role</label>
+					    <input type="text" class="form-control form-control-sm" id="domain" ng-model="roles.custom">
 				  </div>
 				  <div class="col text-right">
             <button type="button" class="btn btn-primary" ng-click="addRole()" ng-disabled="!roles.custom">Add</button>
@@ -20,9 +20,9 @@
 			  </div>
 			  <div class="pt-3 pb-3">Roles assigned</div>
 			   <fieldset class="form-group">
-		      <div class="form-check" ng-repeat="(r,checked) in roles.map">
+		      <div class="form-check" ng-repeat="(r,checked) in roles.map" ng-click="roles.map[r] = !roles.map[r]">
+            <input class="form-check-input" type="checkbox" ng-model="roles.map[r]" >
 		        <label class="form-check-label">
-		          <input class="form-check-input" type="checkbox" ng-model="roles.map[r]">
 		          {{r}}
 		        </label>
 		      </div>
@@ -30,8 +30,8 @@
 
 			</div>
 			<div class="modal-footer">
+        <button class="btn btn-default" type="button" ng-click="dismiss()">Cancel</button>
 			  <button class="btn btn-primary" type="button" ng-click="updateRoles()" ng-disabled="roles.sub.usernameRequired && (!roles.sub.username || !hasRoles(roles.map))">Update</button>
-			  <button class="btn btn-warning" type="button" ng-click="dismiss()">Cancel</button>
 			</div>
     </div>
   </div>  			

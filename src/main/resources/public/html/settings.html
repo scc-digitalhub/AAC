@@ -27,7 +27,7 @@
         <tr>
             <th>redirect Web server URLs</th>
             <td>
-            <tags-input type="url" placeholder="Add a redirect URL" class="form-control form-control-sm" ng-model="redirectUris"></tags-input>
+            <tags-input type="url" placeholder="Add a redirect URL" ng-model="redirectUris"></tags-input>
              </td>
         </tr>
         <tr>
@@ -35,7 +35,14 @@
             <td>
              <table class="idps">
                <tr ng-repeat="(k,v) in grantTypes" ng-if="!!GTLabels[k]">
-               <td>{{GTLabels[k]}} </td><td> <input type="checkbox" ng-model="grantTypes[k]"></td><td></td>
+                <td>
+                 <div class="gt"> 
+                 <div class="form-check form-check-inline" ng-click="grantTypes[k] = !grantTypes[k]">
+                   <input class="form-check-input" type="checkbox" ng-model="grantTypes[k]">
+                  <label>{{GTLabels[k]}}</label>
+                </div>               
+                </div>                
+                </td>
                </tr>
              </table>
             </td>
@@ -58,13 +65,16 @@
 	        <td>
 	           <table class="idps">
 	             <tr ng-repeat="(k,v) in app.identityProviders">
-	             <td>{{k}} </td>
-	             <td>
-	             <input type="checkbox" ng-model="app.identityProviders[k]"></td>
-	             <td>
-	             <span class="{{idpIcon(v,app.identityProviderApproval[k])}}"></span>
-	             </td>
-	             <td width="100%">
+               <td>
+                 <div class="idp"> 
+		             <div class="form-check form-check-inline" ng-click="app.identityProviders[k] = !app.identityProviders[k]">
+		               <input class="form-check-input" type="checkbox" ng-model="app.identityProviders[k]">
+		              <label>{{k}}</label>
+		            </div>               
+                </div>
+               </td> 
+               <td class="approval-state"><span class="{{idpIcon(v,app.identityProviderApproval[k])}}"></span></td>
+               <td width="100%">
 	             <div ng-if="providerConfig[k] && app.identityProviders[k]">
 	               <div ng-repeat="pConf in providerConfig[k]">
 	               <label>{{pConf.label}}<span ng-if="pConf.required"> (Required)</span></label><input type="{{pConf.type ? pConf.type: 'text'}}" class="form-control form-control-sm" placeholder="{{pConf.label}}" ng-required="pConf.required" ng-model="app.providerConfigurations[k][pConf.value]">
@@ -76,5 +86,5 @@
 	        </td>
         </tr>
     </table>
-    <button type="button" ng-click="saveSettings()" class="btn btn-primary float-right" ng-disabled="!settingsForm.$dirty || settingsForm.$invalid">Save settings</button>
+    <button type="button" ng-click="saveSettings()" class="btn btn-primary float-right" ng-disabled="settingsForm.$invalid">Save settings</button>
 </form>

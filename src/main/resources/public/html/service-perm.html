@@ -50,9 +50,17 @@
 					                   <strong>{{r.resourceUri}}</strong><br/>
 					                   <span ng-if="r.roles">(Roles: {{r.roles}})</span>
 					                  </div>
-					                  <div class="col-md-5">{{r.name}}</div>
+					                  <div class="col-md-4">{{r.name}}</div>
 				                    <div class="col-md-1">{{toAuthority(r.authority)}}</div>
-				                    <div class="col-md-1 text-right"><input type="checkbox" ng-model="permissions.selectedResources[r.resourceId]"> <span class="{{permissionIcon(permissions.resourceApprovals[r.resourceId])}}"></span></div>
+				                    <div class="col-md-1 text-right">
+				                      <div class="form-check form-check-inline" ng-click="permissions.selectedResources[r.resourceId] = !permissions.selectedResources[r.resourceId]">				                    
+				                      <input type="checkbox" class="form-check-input" ng-model="permissions.selectedResources[r.resourceId]">
+				                      <label>&nbsp;</label>
+				                      </div>
+				                    </div> 
+				                    <div class="col-md-1 text-right">
+				                    <span class="{{permissionIcon(permissions.resourceApprovals[r.resourceId])}}"></span>
+				                    </div>
  					                </div>
                         </div>
 					            </div>

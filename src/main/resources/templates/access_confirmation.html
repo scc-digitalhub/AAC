@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2012-2013 Trento RISE
+       Copyright 2015-2019 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -27,14 +27,13 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="-1" />
-    <!-- Bootstrap core CSS -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Custom styles for this template -->
-     <link href="../css/style.css" rel="stylesheet" />
+    <!-- Design Italia -->
+    <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css"/>   
+    <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>    
+    <link href="../italia/style.css" rel="stylesheet" />
      <title>AAC</title>
-    <script src="../lib/jquery.min.js"></script>    
-    <script src="../lib/bootstrap.min.js"></script>
-    <script src="../lib/popper.min.js"></script>
+
+     <script src="../italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
 </head>
 <body>
     <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
@@ -60,9 +59,10 @@
 
       <form  id="confirmationForm" name="confirmationForm" action="../oauth/authorize" method="post" >
       <div th:if="${spaces.size() > 0}">
+         <br/> <br/> 
          <div th:each="space : ${spaces.keySet()}" class="form-group row">
-           <label class="col-md-6 col-form-label"><b th:text="#{lbl_approval_space(${clientName})}">space</b>: </label>
-           <div class="col-md-6">
+           <div class="col-md-12 bootstrap-select-wrapper standard">
+            <label th:text="#{lbl_approval_space(${clientName})}">space</label>
             <select class="custom-select" th:name="${'spaceSelectionApproval_map.'+space}" required="required">
               <option value="" th:text="#{lbl_approval_empty}"></option>
               <option th:each="option : ${spaces.get(space)}" th:value="${option}" th:text="${option}"></option>

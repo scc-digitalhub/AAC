@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2012-2013 Trento RISE
+       Copyright 2015-2019 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -27,10 +27,11 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="-1" />
-    <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Custom styles for this template -->
-    <link href="css/style.css" rel="stylesheet" />
+    <!-- Design Italia -->
+    <link rel="stylesheet" href="italia/css/bootstrap-italia.min.css"/>   
+    <script>window.__PUBLIC_PATH__ = 'italia/fonts'</script>    
+    <link href="italia/style.css" rel="stylesheet" />
+
     <title th:text="#{lbl_login_title}">AAC Login</title>
 </head>
 <body>
@@ -47,8 +48,8 @@
           <div class="col-md-12 form-group"><label th:text="#{lbl_user}">: </label><input class="form-control" type="text" name="username"/></div>
           <div class="col-md-12 form-group"><label th:text="#{lbl_pwd}">: </label><input class="form-control" type="password" name="password"/></div>
           <div class="col-md-12 form-group text-center"><button class="btn btn-primary" th:text="#{lbl_login}">Login</button></div>
-          <div class="col-md-12 form-group text-center"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a></div>
-          <div class="col-md-12 form-group text-center"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>
+          <div class="col-md-12 text-center"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a></div><br/>
+          <div class="col-md-12 text-center"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>
           <div>&nbsp;</div>
       </form>
       </div>
@@ -63,5 +64,6 @@
            </li>
     </ul>
   </div>
+  <script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
 </body>
 </html>

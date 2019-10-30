@@ -3,11 +3,7 @@ angular.module('aac.controllers.admin', [])
  * Main layout controller
  * @param $scope
  */
-.controller('AdminController', function ($scope, $resource) {
-	// error message
-	$scope.error = '';
-	// info message
-	$scope.info = '';
+.controller('AdminController', function ($scope, $resource, Utils) {
 	// title
 	$scope.title = 'App Approvals';
 	
@@ -31,18 +27,16 @@ angular.module('aac.controllers.admin', [])
 	var init = function() {
 		ClientApprovals.query(function(response){
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
 				$scope.approvals = response.data;
 			} else {
-				$scope.error = 'Failed to load approval requests: '+response.errorMessage;
+				Utils.showError('Failed to load approval requests: '+response.errorMessage);
 			}	
 		});
 		IdPApprovals.query(function(response){
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
 				$scope.idps = response.data;
 			} else {
-				$scope.error = 'Failed to load IdP requests: '+response.errorMessage;
+				Utils.showError('Failed to load IdP requests: '+response.errorMessage);
 			}	
 		});
 	};
@@ -52,11 +46,10 @@ angular.module('aac.controllers.admin', [])
 		var newClient = new ClientApprovals();
 		newClient.$approve({clientId:clientId},function(response){
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
-				$scope.info = 'Approved successfully';
 				$scope.approvals = response.data;
+				Utils.showSuccess();
 			} else {
-				$scope.error = 'Failed to approve resource access: '+response.errorMessage;
+				Utils.showError('Failed to approve resource access: '+response.errorMessage);
 			}	
 		});
 	};
@@ -65,11 +58,10 @@ angular.module('aac.controllers.admin', [])
 		var newClient = new IdPApprovals();
 		newClient.$approve({clientId:clientId},function(response){
 			if (response.responseCode == 'OK') {
-				$scope.error = '';
-				$scope.info = 'IdP approved successfully';
 				$scope.idps = response.data;
+				Utils.showSuccess();
 			} else {
-				$scope.error = 'Failed to approve IdP: '+response.errorMessage;
+				Utils.showError('Failed to approve IdP: '+response.errorMessage);
 			}	
 		});
 	};

@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2012-2013 Trento RISE
+       Copyright 2015-2019 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@
     <meta name="author" content="" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="-1" />        
+    <meta http-equiv="Expires" content="-1" />       
         <title th:text="#{lbl_login_title}"></title>
-        <!-- Bootstrap core CSS -->
-        <link href="../css/bootstrap.min.css" rel="stylesheet"></link>
-        <!-- Custom styles for this template -->
-        <link href="../css/style.css" rel="stylesheet"></link>
-  
+    <!-- Design Italia -->
+    <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css"/>   
+    <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>    
+    <link href="../italia/style.css" rel="stylesheet" />
+    <script src="../italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
 
     </head>
     <body>
@@ -45,21 +45,21 @@
             <!-- <form:form modelAttribute="reg"> -->
              <form action="#" th:action="@{/internal/register}" th:object="${reg}" method="post">
                 <div>&nbsp;</div>
-				<div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
+				        <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
                 <div>&nbsp;</div>
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_name} + '*: '"></label>
-                  <input class="form-control" th:field="*{name}" />
+                  <input type="text" class="form-control" th:field="*{name}" />
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                 </div>
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_surname} + '*: '"></label>
-                  <input class="form-control" th:field="*{surname}" />
+                  <input type="text" class="form-control" th:field="*{surname}" />
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}"></div>
                 </div>
                 <div class="col-md-12 form-group">
                   <label th:text="#{lbl_user} + '*: '"></label>
-                  <input class="form-control" th:field="*{email}" />
+                  <input type="text" class="form-control" th:field="*{email}" />
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                 </div>
                 <div class="col-md-12 form-group">
@@ -81,7 +81,5 @@
           </div>
         </div>
       </div>  
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-      <script src="../lib/bootstrap.min.js"></script>
     </body>
 </html>

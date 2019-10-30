@@ -124,6 +124,9 @@ angular.module('aac.controllers.apis', [])
 		$scope.roles.map[$scope.roles.custom] = true;
 		$scope.roles.custom = null;
 	}
+	$scope.changeRole = function() {
+		console.log('changed');
+	}
 	
 })
 
