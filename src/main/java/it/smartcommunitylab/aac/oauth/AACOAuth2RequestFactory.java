@@ -54,9 +54,9 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 	@Autowired
 	private UserManager userManager;
 	
-	private SecurityContextAccessor securityContextAccessor = new DefaultSecurityContextAccessor();
+	protected SecurityContextAccessor securityContextAccessor = new DefaultSecurityContextAccessor();
 
-	private boolean checkUserScopes = false;
+	protected boolean checkUserScopes = false;
 
 	/**
 	 * @param securityContextAccessor the security context accessor to set

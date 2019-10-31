@@ -230,7 +230,7 @@ public class CIEAuthManager implements MobileAuthManager {
      * @param cert
      * @return
      */
-    private boolean isOkSigned(String knownSource, String randomNumber, String signature, X509Certificate cert) {
+    protected boolean isOkSigned(String knownSource, String randomNumber, String signature, X509Certificate cert) {
         try {
             RSAPublicKey publicKey = (RSAPublicKey) cert.getPublicKey();
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding ");

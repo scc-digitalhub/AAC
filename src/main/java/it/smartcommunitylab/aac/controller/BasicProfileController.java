@@ -24,8 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -55,7 +53,6 @@ import it.smartcommunitylab.aac.model.ErrorInfo;
 @Api(tags = { "AAC User profile" })
 public class BasicProfileController {
 
-	private Log logger = LogFactory.getLog(getClass());
 	@Autowired
 	private UserManager userManager;
 

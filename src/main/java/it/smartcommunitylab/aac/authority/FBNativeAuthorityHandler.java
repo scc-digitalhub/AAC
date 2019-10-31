@@ -21,12 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
-import eu.trentorise.smartcampus.network.RemoteConnector;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jaxbmodel.Attributes;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
@@ -44,11 +42,14 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
  */
 public class FBNativeAuthorityHandler implements NativeAuthorityHandler {
 
+	private RestTemplate restTemplate = new RestTemplate();
+
+	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, String> extractAttributes(String token, Map<String,String> map, AuthorityMapping mapping) throws SecurityException {
 		try {
 			// first, we have to validate that the token is a correct platform token
-			String s = RemoteConnector.getJSON("https://graph.facebook.com", "/v2.9/me?fields=name,first_name,last_name,picture,email&access_token="+token, null);
+			Map<String, Object> s = restTemplate.getForObject("https://graph.facebook.com/v2.9/me?fields=name,first_name,last_name,picture,email&access_token="+token, Map.class);
 			
 			return extractAttributes(s, mapping);
 		} catch (Exception e) {
@@ -70,12 +71,7 @@ public class FBNativeAuthorityHandler implements NativeAuthorityHandler {
 	 * @throws JsonMappingException 
 	 * @throws JsonParseException 
 	 */
-	@SuppressWarnings("unchecked")
-	private Map<String, String> extractAttributes(String s, AuthorityMapping mapping) throws JsonParseException, JsonMappingException, IOException {
-		ObjectMapper obMapper = new ObjectMapper();
-		obMapper.disable(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES);
-		Map<String,Object> user = obMapper.readValue(s, Map.class);
-
+	private Map<String, String> extractAttributes(Map<String, Object> user, AuthorityMapping mapping) throws JsonParseException, JsonMappingException, IOException {
 		Map<String, String> attrs = new HashMap<String, String>(); 
 		for (String key : mapping.getIdentifyingAttributes()) {
 			Object value = user.get(key);

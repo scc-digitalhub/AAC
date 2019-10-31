@@ -17,10 +17,7 @@
 package it.smartcommunitylab.aac.controller;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,11 +36,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.base.Splitter;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;

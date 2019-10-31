@@ -36,9 +36,6 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 	@Autowired
 	private UserRepository userRepository;
 
-	@Autowired
-	private AttributeRepository attributeRepository;
-
 	@Override
 	public List<User> getUsersByAttributes(List<Attribute> list) {
 		Map<Long,User> userMap = new HashMap<Long, User>();

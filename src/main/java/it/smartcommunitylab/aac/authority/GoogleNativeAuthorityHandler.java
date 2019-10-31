@@ -21,15 +21,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
-import eu.trentorise.smartcampus.network.JsonUtils;
-import eu.trentorise.smartcampus.network.RemoteConnector;
-import eu.trentorise.smartcampus.network.RemoteException;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jaxbmodel.Attributes;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
@@ -86,7 +86,7 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 			}
 			
 			return extractAttributes(result, mapping);
-		} catch (RemoteException e) {
+		} catch (Exception e) {
 			throw new SecurityException("Error validating google token : " + e.getMessage());
 		}
 	}
@@ -100,15 +100,13 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 	/**
 	 * @param token
 	 * @return
-	 * @throws RemoteException 
 	 * @throws SecurityException 
 	 */
 	@SuppressWarnings("unchecked")
-	private Map<String, Object> validateV3(String token) throws SecurityException, RemoteException {
-		String s = restTemplate.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token="+token, String.class);
-		Map<String,Object> result = JsonUtils.toObject(s, Map.class);
+	private Map<String, Object> validateV3(String token) throws SecurityException {
+		Map<String,Object> result = restTemplate.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token="+token, Map.class);
 		if (result == null || !result.containsKey("sub")) {
-			throw new SecurityException("Incorrect google token "+ token+": "+s);
+			throw new SecurityException("Incorrect google token "+ token);
 		}
 		result.put("id", result.get("sub"));
 		return result;
@@ -119,21 +117,24 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 	 * Validate Google token against API v1
 	 * @param token
 	 * @return
-	 * @throws RemoteException
 	 */
 	@SuppressWarnings("unchecked")
-	private Map<String, Object> validateV1(String token) throws SecurityException, RemoteException {
+	private Map<String, Object> validateV1(String token) throws SecurityException {
 		// first, we have to validate that the token is a correct platform token
-		String s = RemoteConnector.getJSON("https://www.googleapis.com", "/oauth2/v1/tokeninfo?access_token="+token, null);
-		Map<String,Object> result = JsonUtils.toObject(s, Map.class);
+		Map<String,Object> result = restTemplate.getForObject("https://www.googleapis.com/oauth2/v1/tokeninfo?access_token="+token, Map.class);
 		if (result == null) {
-			throw new SecurityException("Incorrect google token "+ token+": "+s);
+			throw new SecurityException("Incorrect google token "+ token);
 		}
 		// second, we have to get the user information
-		s = RemoteConnector.getJSON("https://www.googleapis.com", "/oauth2/v1/userinfo", token);
-		result = JsonUtils.toObject(s, Map.class);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Authorization", "Bearer " + token);
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+		
+		result = restTemplate.exchange("https://www.googleapis.com/oauth2/v1/userinfo", HttpMethod.GET, entity, Map.class).getBody();
 		if (result == null || !result.containsKey("id")) {
-			throw new SecurityException("Incorrect google token "+ token+": "+s);
+			throw new SecurityException("Incorrect google token "+ token);
 		}
 		return result;
 	}
