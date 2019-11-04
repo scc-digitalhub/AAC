@@ -331,9 +331,9 @@ public class RoleManager {
 						map.put(r.getContext(), r.getSpace());
 					} 
 				}
-				for (String key : map.keySet()) {
-					if (map.get(key).size() == 1) map.removeAll(key);
-				}
+				//remove keys if single element in list, nothing to choose
+				map.keySet().removeIf(k -> map.get(k).size() == 1);
+
 				if (map.isEmpty()) return null;
 				return map;
 			}
