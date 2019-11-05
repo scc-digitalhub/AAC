@@ -9,6 +9,12 @@ jdbc:
   dialect: org.hibernate.dialect.MySQLDialect
   show-sql: false
 
+# AAC ADMIN USER PASSWORD
+admin:
+  username: admin
+  password: admin
+  contexts: apimanager, authorization, components
+  contextSpaces: apimanager/carbon.super
 
 # BASIC SECURITY PROPERTIES
 security:

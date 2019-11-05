@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -59,12 +61,18 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 @Transactional
 public class RoleManager {
+    
+    private static final Logger logger = LoggerFactory.getLogger(RoleManager.class);
 
+    @Value("${admin.username}")
+    private String adminUsername;   
+    
 	@Value("${admin.password}")
 	private String adminPassword;	
 
 	@Value("${admin.contexts}")
 	private String[] defaultContexts;
+	
 	@Value("${admin.contextSpaces}")
 	private String[] defaultContextSpaces;
 	
@@ -74,25 +82,35 @@ public class RoleManager {
 	
 	@Autowired
 	private UserRepository userRepository;	
+	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;	
 	
 	
 	public User init() {
+	    logger.debug("initializing...");
+	    
 		Set<Role> roles = new HashSet<>();
 		Role role = Role.systemAdmin();
 		roles.add(role);
+		
 		if (defaultContexts != null) {
+		    logger.debug("ADMIN default contexts "+Arrays.toString(defaultContexts));
 		    Arrays.asList(defaultContexts).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
 		}
+		
 		if (defaultContextSpaces != null) {
+            logger.debug("ADMIN default contexts spaces "+Arrays.toString(defaultContextSpaces));		    
 			Arrays.asList(defaultContextSpaces).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
 		}
+		
 		User admin = null;
-		admin = userRepository.findByUsername("admin");
+		admin = userRepository.findByUsername(adminUsername);
 		if (admin == null) {
-			admin = registrationService.registerOffline("admin", "admin", "admin", adminPassword, null, false, null);
+		    logger.debug("create ADMIN user as "+adminUsername);
+			admin = registrationService.registerOffline(adminUsername, adminUsername, adminUsername, adminPassword, null, false, null);
 		}
+		
 		admin.getRoles().addAll(roles);
 		userRepository.saveAndFlush(admin);
 		return admin;
