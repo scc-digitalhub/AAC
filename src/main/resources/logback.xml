@@ -27,6 +27,27 @@
     </encoder>
   </appender> 
 
+  <appender name="TOKENS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${aac.log.folder:-logs}/tokens.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>${aac.log.folder:-logs}/tokens.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 90 days' worth of history capped at 3GB total size -->
+      <maxHistory>90</maxHistory>
+      <totalSizeCap>3GB</totalSizeCap>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender> 
+    
+   <logger name="traceUserToken" level="DEBUG" additivity="false">
+            <appender-ref ref="STDOUT" />
+            <appender-ref ref="TOKENS" />
+   </logger>   
+   
 	<logger name="it.smartcommunitylab" level="DEBUG" additivity="false">
             <appender-ref ref="STDOUT" />
             <appender-ref ref="FILE" />
