@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +54,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 @Transactional
 public class ProviderServiceAdapter {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private AttributesAdapter attrAdapter;
@@ -66,6 +69,7 @@ public class ProviderServiceAdapter {
 
 	
 	public void init() throws JAXBException, IOException {
+	    logger.debug("init");
 		attrAdapter.init();
 	}
 

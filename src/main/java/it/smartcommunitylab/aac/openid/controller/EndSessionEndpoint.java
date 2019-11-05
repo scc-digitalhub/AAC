@@ -41,12 +41,12 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 public class EndSessionEndpoint {
 
 public static final String URL = "endsession";
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private static final String CLIENT_KEY = "client";
 	private static final String STATE_KEY = "state";
 	private static final String REDIRECT_URI_KEY = "redirectUri";
 
-	private static Logger logger = LoggerFactory.getLogger(EndSessionEndpoint.class);
 	
 	@Autowired
 	private SelfAssertionValidator validator;

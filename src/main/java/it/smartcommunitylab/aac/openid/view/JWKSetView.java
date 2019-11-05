@@ -42,16 +42,13 @@ import com.nimbusds.jose.jwk.JWKSet;
  */
 @Component(JWKSetView.VIEWNAME)
 public class JWKSetView extends AbstractView {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String VIEWNAME = "jwkSet";
 	
     @Value("${security.cache.jwks}")
 	private String cacheControl;
-    
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(JWKSetView.class);
+
 
 	@SuppressWarnings("unchecked")
 	@Override

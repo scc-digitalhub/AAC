@@ -61,8 +61,7 @@ import it.smartcommunitylab.aac.model.User;
  */
 @Component
 public class ClaimManager {
-
-	public static final Logger logger = LoggerFactory.getLogger(ClaimManager.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	@Autowired
 	private BasicProfileManager profileManager;

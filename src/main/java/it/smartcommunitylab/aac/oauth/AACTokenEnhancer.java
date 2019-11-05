@@ -34,8 +34,7 @@ import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
  *
  */
 public class AACTokenEnhancer implements TokenEnhancer {
-
-    private static final Logger logger = LoggerFactory.getLogger(AACTokenEnhancer.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     
 	private OIDCTokenEnhancer tokenEnhancer;
 	private AACJwtTokenConverter tokenConverter;

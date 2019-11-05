@@ -27,7 +27,8 @@ import java.util.UUID;
 
 import javax.annotation.Resource;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -55,8 +56,7 @@ import it.smartcommunitylab.aac.repository.RegistrationRepository;
 @Component
 @Transactional(rollbackFor=Throwable.class)
 public class RegistrationManager {
-
-	protected static final Logger logger = Logger.getLogger(RegistrationManager.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	@Value("${application.url}")
 	private String applicationURL;

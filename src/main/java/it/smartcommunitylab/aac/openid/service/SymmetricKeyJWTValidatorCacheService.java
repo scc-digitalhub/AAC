@@ -31,11 +31,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
  */
 @Service
 public class SymmetricKeyJWTValidatorCacheService {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(SymmetricKeyJWTValidatorCacheService.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private LoadingCache<String, JWTSigningAndValidationService> validators;
 

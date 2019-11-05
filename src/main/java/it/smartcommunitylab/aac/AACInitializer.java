@@ -13,7 +13,8 @@ import it.smartcommunitylab.aac.manager.RoleManager;
 
 @Component
 public class AACInitializer implements ApplicationListener<ApplicationReadyEvent> {
- 
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	@Autowired
 	private RoleManager roleManager;
@@ -22,15 +23,15 @@ public class AACInitializer implements ApplicationListener<ApplicationReadyEvent
 	@Autowired
 	private ProviderServiceAdapter providerServiceAdapter;
 
-	private static final Logger logger = LoggerFactory.getLogger(AACInitializer.class);
 	
 	public void onApplicationEvent(ApplicationReadyEvent event) {
+	    logger.debug("initialize components on application ready");
 		try {
 			resourceManager.init();
 			providerServiceAdapter.init();
 			roleManager.init();
 		} catch (Exception e) {
-			logger .error(e.getMessage(), e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 	

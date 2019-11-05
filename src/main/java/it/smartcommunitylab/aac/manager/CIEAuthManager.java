@@ -51,8 +51,7 @@ import it.smartcommunitylab.aac.repository.UserCertificateRepository;
 @Component
 @Transactional
 public class CIEAuthManager implements MobileAuthManager {
-
-	private static final Logger log = LoggerFactory.getLogger(CIEAuthManager.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private static final String CIE_PROVIDER = "cie";
 	
@@ -87,7 +86,7 @@ public class CIEAuthManager implements MobileAuthManager {
             String url = compileURL(challenge, !isValidCert, request, getSP(request), redirect);
             return url;
 	    } catch (CertificateException e) {
-	        log.error(e.getMessage(), e);
+	        logger.error(e.getMessage(), e);
             throw new SecurityException(e.getMessage());
 	    }
 	}
@@ -111,28 +110,28 @@ public class CIEAuthManager implements MobileAuthManager {
 	@Override
 	public void callback2FactorCheck(final HttpServletRequest request) throws SecurityException {
 	    String signature = request.getParameter("signature");
-	    log.info("signature: "+signature);
+	    logger.info("signature: "+signature);
 	    String cert = request.getParameter("cert");
-	    log.info("cert: "+cert);
+	    logger.info("cert: "+cert);
 	    String r1 = request.getParameter("r1");
-	    log.info("r1: "+r1);
+	    logger.info("r1: "+r1);
 	    Long opId = (Long) request.getSession().getAttribute("opId");
-	    log.info("opId: " + opId);
+	    logger.info("opId: " + opId);
 	    String idpName = (String)  request.getSession().getAttribute("idpName");
-	    log.info("idpName: " + idpName);
+	    logger.info("idpName: " + idpName);
 	    String spName = (String)  request.getSession().getAttribute("spName");
-	    log.info("spName: " + spName);
+	    logger.info("spName: " + spName);
 	    Long timestamp = (Long)  request.getSession().getAttribute("timestamp");
-	    log.info("timestamp: " + timestamp);
+	    logger.info("timestamp: " + timestamp);
 	    String textOp = (String)  request.getSession().getAttribute("textOp");
-	    log.info("textOp: " + textOp);
+	    logger.info("textOp: " + textOp);
 	    String knownSource = opId
 	            + ", " + timestamp
 	            + ", " + spName
 	            + ", " + idpName
 	            + ", " + textOp;
 	
-	    log.info("knownSource: " + knownSource);
+	    logger.info("knownSource: " + knownSource);
 	    try {
 	        X509Certificate x509Certificate = convertToX509Cert(cert);
 	        if (!isValidX509Cert(x509Certificate)) {
@@ -166,7 +165,7 @@ public class CIEAuthManager implements MobileAuthManager {
                 }
 	        }
 	    } catch (CertificateException e) {
-	        log.error(e.getMessage(), e);
+	        logger.error(e.getMessage(), e);
 	        throw new SecurityException(e.getMessage());
 	    }
 	}
@@ -241,7 +240,7 @@ public class CIEAuthManager implements MobileAuthManager {
 
             return isHashesEquals(decryptedHash, knownSource, randomNumber);
         }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+            logger.error(ex.getMessage(),ex);
             return false;
         }
     }
@@ -254,9 +253,9 @@ public class CIEAuthManager implements MobileAuthManager {
      */
     private boolean identitiesMatch(X509Certificate certificate, String userName) {
         String codeFromCertificate = parseCN(certificate.getSubjectX500Principal().getName());
-        log.info("identityFromCertificate: " + codeFromCertificate);
+        logger.info("identityFromCertificate: " + codeFromCertificate);
         String codeFromDB = getStoredCN(userName);
-        log.info("codeFromDB: " + codeFromDB);
+        logger.info("codeFromDB: " + codeFromDB);
         return codeFromCertificate.trim().toLowerCase().equals(codeFromDB.trim().toLowerCase());
     }
 
@@ -306,7 +305,7 @@ public class CIEAuthManager implements MobileAuthManager {
                 certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certificateData));
             }
         } catch (CertificateException e) {
-            log.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
             throw new CertificateException(e);
         } catch (Exception e) {
             e.printStackTrace();
@@ -315,7 +314,7 @@ public class CIEAuthManager implements MobileAuthManager {
     }
 
     private boolean isHashesEquals(String hashed, String knownSource, String randomNumber) throws Exception {
-      log.info("is hash equal: " + hashed.equals(createHash(knownSource, randomNumber)));
+      logger.info("is hash equal: " + hashed.equals(createHash(knownSource, randomNumber)));
       return hashed.equals(createHash(knownSource, randomNumber));
     }
 

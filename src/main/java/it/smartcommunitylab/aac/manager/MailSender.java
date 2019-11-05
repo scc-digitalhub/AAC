@@ -42,8 +42,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
  */
 @Component
 public class MailSender {
-
-	private static final Logger logger = LoggerFactory.getLogger(MailSender.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private static JavaMailSenderImpl mailSender = null;
     

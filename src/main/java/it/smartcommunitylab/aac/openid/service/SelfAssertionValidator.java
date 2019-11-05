@@ -41,8 +41,7 @@ import com.nimbusds.jwt.SignedJWT;
  */
 @Component("selfAssertionValidator")
 public class SelfAssertionValidator {
-
-	private static Logger logger = LoggerFactory.getLogger(SelfAssertionValidator.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private JWTSigningAndValidationService jwtService;

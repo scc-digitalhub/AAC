@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -51,6 +53,7 @@ import it.smartcommunitylab.aac.model.Role;
  */
 @Controller
 public class UserManagementController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private RoleManager roleManager;

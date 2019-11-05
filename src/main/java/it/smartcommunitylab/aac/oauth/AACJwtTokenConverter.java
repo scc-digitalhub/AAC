@@ -54,7 +54,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 @Service
 public class AACJwtTokenConverter extends JwtAccessTokenConverter {
-    private static final Logger logger = LoggerFactory.getLogger(AACJwtTokenConverter.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     @Qualifier("oauthJWKSetKeyStore")

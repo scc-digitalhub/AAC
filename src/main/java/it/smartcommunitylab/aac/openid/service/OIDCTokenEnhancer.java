@@ -47,6 +47,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  */
 @Service
 public class OIDCTokenEnhancer  {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public String MAX_AGE = "max_age";
 	public String NONCE = "nonce";
@@ -58,14 +59,8 @@ public class OIDCTokenEnhancer  {
 	@Autowired
 	private ClaimManager claimManager;
 	
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(OIDCTokenEnhancer.class);
-
 	@Autowired
 	private JWTSigningAndValidationService jwtService;
-
 
 	@Autowired
 	private ClientKeyCacheService encrypters;

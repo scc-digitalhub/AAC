@@ -78,11 +78,10 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @Controller
 public class AuthController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Value("${application.url}")
 	private String applicationURL;
-
-	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
 	@Autowired
 	private UserRepository userRepository;

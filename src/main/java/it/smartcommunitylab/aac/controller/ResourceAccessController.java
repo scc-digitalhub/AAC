@@ -21,8 +21,8 @@ import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
@@ -58,8 +58,8 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @Controller
 @Api(tags = { "AAC Token Info" })
 public class ResourceAccessController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static Log logger = LogFactory.getLog(ResourceAccessController.class);
 	@Autowired
 	private ResourceServerTokenServices resourceServerTokenServices;
 	@Autowired

@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.oauth;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -33,6 +35,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  *
  */
 public class UserDetailsRepo implements UserDetailsService {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private UserRepository userRepository;
 
@@ -45,6 +48,8 @@ public class UserDetailsRepo implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+        logger.debug("load by username "+userName);
+
 		List<GrantedAuthority> list = Collections.<GrantedAuthority>singletonList(new SimpleGrantedAuthority("ROLE_USER"));
 		
 		Long id = null;

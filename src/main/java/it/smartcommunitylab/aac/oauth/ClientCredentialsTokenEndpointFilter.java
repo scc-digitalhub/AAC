@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,6 +33,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  */
 public class ClientCredentialsTokenEndpointFilter extends
 	org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	protected ClientDetailsRepository clientDetailsRepository = null;
 

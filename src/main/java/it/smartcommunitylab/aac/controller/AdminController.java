@@ -22,8 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -60,6 +60,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @Controller
 public class AdminController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private UserRepository userRepository;
@@ -67,8 +68,6 @@ public class AdminController {
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private ResourceRepository resourceRepository;
-
-	private static final Log logger = LogFactory.getLog(AdminController.class);
 	
 	@RequestMapping("/admin/approvals")
 	public @ResponseBody Response getApprovals() {

@@ -26,8 +26,8 @@ import java.util.UUID;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,10 +51,10 @@ import it.smartcommunitylab.aac.repository.ResourceRepository;
 @Component
 @Transactional
 public class ClientDetailsManager {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	/** GRANT TYPE: CLIENT CRIDENTIALS FLOW */
 	private static final String GT_CLIENT_CREDENTIALS = "client_credentials";
-	private Log log = LogFactory.getLog(getClass());
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
@@ -233,7 +233,7 @@ public class ClientDetailsManager {
 			client.setParameters(data.getParameters());
 			
 		} catch (Exception e) {
-			log .error("failed to convert an object: "+e.getMessage(), e);
+			logger.error("failed to convert an object: "+e.getMessage(), e);
 			return null;
 		}
 		return client;
@@ -439,7 +439,7 @@ public class ClientDetailsManager {
 			clientDetailsRepository.save(client);
 			return convertToClientApp(client);
 		} else {
-			log.error("Problem converting the client");
+			logger.error("Problem converting the client");
 			throw new IllegalArgumentException("internal error");
 		}
 		

@@ -48,6 +48,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @Controller
 @RequestMapping("/" + UserInfoEndpoint.URL)
 public class UserInfoEndpoint {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String URL = "userinfo";
 
@@ -57,12 +58,6 @@ public class UserInfoEndpoint {
 	@Autowired
 	private ClientDetailsRepository clientRepo;
 	
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(UserInfoEndpoint.class);
-
 	/**
 	 * Get information about the user as specified in the accessToken included in this request
 	 */

@@ -35,6 +35,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.stereotype.Component;
@@ -62,6 +64,7 @@ import it.smartcommunitylab.aac.repository.AuthorityRepository;
  */
 @Component
 public class AttributesAdapter {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private AuthorityRepository authorityRepository;

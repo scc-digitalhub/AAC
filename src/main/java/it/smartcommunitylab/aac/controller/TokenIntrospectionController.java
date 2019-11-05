@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.controller;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -47,8 +47,8 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @Controller
 @Api(tags = { "AAC Token Introspection (ITEF RFC7662)" })
 public class TokenIntrospectionController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static Log logger = LogFactory.getLog(TokenIntrospectionController.class);
 	@Autowired
 	private ResourceServerTokenServices resourceServerTokenServices;
 	@Autowired

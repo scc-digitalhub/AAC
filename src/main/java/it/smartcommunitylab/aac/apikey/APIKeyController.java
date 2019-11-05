@@ -21,8 +21,8 @@ import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -50,8 +50,7 @@ import it.smartcommunitylab.aac.dto.APIKey;
 @Controller
 @Api(tags = { "AACApiKey" })
 public class APIKeyController {
-
-	private Log log = LogFactory.getLog(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private APIKeyManager keyManager;
@@ -176,7 +175,7 @@ public class APIKeyController {
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
 	public void handleBadRequest(HttpServletRequest req, Exception ex) {
-		log.error("Error processing API Key operation", ex);
+		logger.error("Error processing API Key operation", ex);
 	}
 	
 }

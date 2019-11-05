@@ -19,9 +19,8 @@ package it.smartcommunitylab.aac.oauth;
 import java.util.Date;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.DefaultExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
@@ -48,11 +47,11 @@ import it.smartcommunitylab.aac.Config;
  */
 @Transactional
 public class NonRemovingTokenServices extends DefaultTokenServices {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private ExtTokenStore localtokenStore;
 
-	private Log logger = LogFactory.getLog(getClass());
-	private static final Logger traceUserLogger = Logger.getLogger("traceUserToken");
+	private static final Logger traceUserLogger = LoggerFactory.getLogger("traceUserToken");
 
 	private static final int SCOPE_OPERATION_CONFIRMED_DURATION = 30;
 

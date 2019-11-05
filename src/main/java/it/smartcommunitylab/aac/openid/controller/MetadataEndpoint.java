@@ -50,22 +50,19 @@ import it.smartcommunitylab.aac.openid.service.JWTSigningAndValidationService;
 */
 @Controller
 public class MetadataEndpoint {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String WELL_KNOWN_URL = ".well-known";
 	public static final String OPENID_CONFIGURATION_URL = WELL_KNOWN_URL + "/openid-configuration";
 	public static final String WEBFINGER_URL = WELL_KNOWN_URL + "/webfinger";
 
 	private static Map<String, Object> configuration;
+	
 	@Value("${application.url}")
 	private String applicationURL;
 
 	@Value("${openid.issuer}")
 	private String issuer;
-	
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(MetadataEndpoint.class);
 
 	@Autowired
 	private JWTSigningAndValidationService signService;

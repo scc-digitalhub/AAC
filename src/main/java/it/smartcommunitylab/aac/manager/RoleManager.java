@@ -62,7 +62,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Transactional
 public class RoleManager {
     
-    private static final Logger logger = LoggerFactory.getLogger(RoleManager.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${admin.username}")
     private String adminUsername;   
@@ -88,7 +88,7 @@ public class RoleManager {
 	
 	
 	public User init() {
-	    logger.debug("initializing...");
+	    logger.debug("init");
 	    
 		Set<Role> roles = new HashSet<>();
 		Role role = Role.systemAdmin();

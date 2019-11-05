@@ -32,8 +32,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
  */
 @Service
 public class ClientKeyCacheService {
-
-	private static Logger logger = LoggerFactory.getLogger(ClientKeyCacheService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientKeyCacheService.class);
 
 	@Autowired
 	private JWKSetCacheService jwksUriCache = new JWKSetCacheService();

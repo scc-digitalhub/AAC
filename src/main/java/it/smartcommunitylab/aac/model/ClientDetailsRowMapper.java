@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -42,9 +42,9 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  *
  */
 public class ClientDetailsRowMapper implements RowMapper<ClientDetails> {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private static ObjectMapper mapper = new ObjectMapper();
-	private static Log logger = LogFactory.getLog(ClientDetailsRowMapper.class);
 
 	private final UserRepository userRepository;
 	

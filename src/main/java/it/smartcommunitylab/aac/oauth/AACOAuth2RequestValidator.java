@@ -19,6 +19,8 @@ package it.smartcommunitylab.aac.oauth;
 import java.util.Collections;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -33,6 +35,7 @@ import it.smartcommunitylab.aac.Config;
  *
  */
 public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public void validateScope(AuthorizationRequest authorizationRequest, ClientDetails client) throws InvalidScopeException {
 		validateScope(authorizationRequest.getScope(), client.getScope());

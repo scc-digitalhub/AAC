@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -70,12 +70,13 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @Controller
 public class PermissionController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private static final Integer RA_NONE = 0;
 	private static final Integer RA_APPROVED = 1;
 	private static final Integer RA_REJECTED = 2;
 	private static final Integer RA_PENDING = 3;
-	private static Log logger = LogFactory.getLog(PermissionController.class);
+
 	@Autowired
 	private ResourceManager resourceManager;
 	@Autowired

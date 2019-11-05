@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -50,6 +52,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 @Transactional
 public class UserManager {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;

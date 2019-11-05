@@ -30,17 +30,13 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.SignedJWT;
 
 public class DefaultJWTSigningAndValidationService implements JWTSigningAndValidationService {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	// map of identifier to signer
 	private Map<String, JWSSigner> signers = new HashMap<>();
 
 	// map of identifier to verifier
 	private Map<String, JWSVerifier> verifiers = new HashMap<>();
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(DefaultJWTSigningAndValidationService.class);
 
 	private String defaultSignerKeyId;
 

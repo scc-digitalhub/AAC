@@ -37,8 +37,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,8 +74,8 @@ import it.smartcommunitylab.aac.repository.ServiceRepository;
 @Component
 @Transactional
 public class ResourceManager {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static Log logger = LogFactory.getLog(ResourceManager.class);
 	@Autowired
 	private ResourceStorage resourceStorage;
 	@Autowired
@@ -88,6 +88,7 @@ public class ResourceManager {
 	private ServiceRepository serviceRepository;
 	
 	public void init() throws ResourceException {
+	    logger.debug("init");
 		List<Service> services = loadResourceTemplates();
 		processServiceObjects(services);
 	}

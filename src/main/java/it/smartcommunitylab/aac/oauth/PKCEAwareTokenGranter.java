@@ -19,6 +19,8 @@ package it.smartcommunitylab.aac.oauth;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
@@ -41,6 +43,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
  *
  */
 public class PKCEAwareTokenGranter extends AuthorizationCodeTokenGranter {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private AuthorizationCodeServices authorizationCodeServices;
 	

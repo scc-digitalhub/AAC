@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -55,8 +55,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @Controller
 @SessionAttributes("authorizationRequest")
 public class AccessConfirmationController {
-
-	private static Log logger = LogFactory.getLog(AccessConfirmationController.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	@Autowired
 	private ClientDetailsService clientDetailsService;

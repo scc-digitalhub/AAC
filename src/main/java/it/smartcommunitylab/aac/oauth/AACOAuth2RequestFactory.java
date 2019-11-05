@@ -34,10 +34,9 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactory {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private static final String NONCE = "nonce";
-
-	Logger logger = LoggerFactory.getLogger(AACOAuth2RequestFactory.class);
 	
 	@Autowired
 	private ClientDetailsService clientDetailsService;

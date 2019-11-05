@@ -20,9 +20,9 @@ import java.net.URLDecoder;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.DeserializationConfig.Feature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,15 +44,14 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @Controller
 public class APIMClientController {
-	
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
 	@Autowired
 	private APIMProviderService wso2Manager;
 	
 	@Autowired
 	private TokenStore tokenStore;	
-	
-	private static final Log logger = LogFactory.getLog(APIMClientController.class);
-	
+		
 	@RequestMapping(value = "/wso2/client/{userName:.+}", method=RequestMethod.POST)
 	public @ResponseBody ClientAppBasic createClient(HttpServletResponse response, @RequestBody ClientAppBasic app, @PathVariable("userName") String userName) throws Exception {
 		try {

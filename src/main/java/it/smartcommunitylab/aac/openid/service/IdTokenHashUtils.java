@@ -19,11 +19,7 @@ import com.nimbusds.jwt.SignedJWT;
  *
  */
 public class IdTokenHashUtils {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(IdTokenHashUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(IdTokenHashUtils.class);
 
 	/**
 	 * Compute the SHA hash of an authorization code

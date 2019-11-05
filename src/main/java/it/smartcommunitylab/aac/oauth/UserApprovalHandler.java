@@ -23,6 +23,8 @@ import java.util.Set;
 
 import javax.servlet.ServletContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,6 +47,7 @@ import it.smartcommunitylab.aac.model.Resource;
  *
  */
 public class UserApprovalHandler extends TokenStoreUserApprovalHandler { // changed
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private ServletContext servletContext;

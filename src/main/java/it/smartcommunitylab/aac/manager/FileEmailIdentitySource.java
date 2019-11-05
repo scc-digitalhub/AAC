@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
@@ -35,6 +37,7 @@ import it.smartcommunitylab.aac.dto.AccountProfile;
  *
  */
 public class FileEmailIdentitySource implements IdentitySource {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Value("${security.identity.source}")
 	private Resource source;

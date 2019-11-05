@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +49,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @Component
 @Transactional
 public class APIKeyManager {
-
-	private Log log = LogFactory.getLog(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private ApiKeyRepository keyRepo;
@@ -91,7 +90,7 @@ public class APIKeyManager {
 			return keyCache.get(key);
 		}
 		
-		log.debug("Recover API Key "+key);
+		logger.debug("Recover API Key "+key);
 		APIKeyEntity entity = keyRepo.findOne(key);
 		if (entity != null) {
 			APIKey result = new APIKey(entity);
@@ -108,7 +107,7 @@ public class APIKeyManager {
 	public void deleteKey(String key) {
 		keyRepo.delete(key);
 		keyCache.remove(key);
-		log.debug("Removed API Key "+key);
+		logger.debug("Removed API Key "+key);
 	} 
 	
 	/**
@@ -125,7 +124,7 @@ public class APIKeyManager {
 			entity.setValidity(validity);
 			keyRepo.save(entity);
 			APIKey result = new APIKey(entity);
-			log.debug("Update API Key validity "+key);
+			logger.debug("Update API Key validity "+key);
 			keyCache.put(key, result);
 			return result;
 		}
@@ -145,7 +144,7 @@ public class APIKeyManager {
 			entity.setAdditionalInformation(APIKey.toDataString(data));
 			keyRepo.save(entity);
 			APIKey result = new APIKey(entity);
-			log.debug("Update API Key data "+key);
+			logger.debug("Update API Key data "+key);
 			keyCache.put(key, result);
 			return result;
 		}
@@ -171,7 +170,7 @@ public class APIKeyManager {
 
 			keyRepo.save(entity);
 			APIKey result = new APIKey(entity);
-			log.debug("Update API Key data "+key);
+			logger.debug("Update API Key data "+key);
 			keyCache.put(key, result);
 			return result;
 		}
@@ -205,7 +204,7 @@ public class APIKeyManager {
 			entity.setScope(StringUtils.collectionToCommaDelimitedString(targetScopes));
 		}
 		keyRepo.save(entity);
-		log.debug("Saved API Key  "+entity.getApiKey());
+		logger.debug("Saved API Key  "+entity.getApiKey());
 
 		APIKey result = new APIKey(entity);
 		keyCache.put(result.getApiKey(), result);

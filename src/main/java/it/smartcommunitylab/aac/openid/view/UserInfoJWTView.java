@@ -58,11 +58,7 @@ import it.smartcommunitylab.aac.openid.service.SymmetricKeyJWTValidatorCacheServ
  */
 @Component(UserInfoJWTView.VIEWNAME)
 public class UserInfoJWTView extends UserInfoView {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(UserInfoJWTView.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String VIEWNAME = "userInfoJwtView";
 

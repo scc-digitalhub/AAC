@@ -46,6 +46,7 @@ import it.smartcommunitylab.aac.model.User;
 
 @Component(UserInfoView.VIEWNAME)
 public class UserInfoView extends AbstractView {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String CLIENT = "client";
 	public static final String REQUESTED_CLAIMS = "requestedClaims";
@@ -62,11 +63,6 @@ public class UserInfoView extends AbstractView {
 	@Autowired
 	private ClaimManager claimManager;
 	
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(UserInfoView.class);
-
 	protected Gson gson = new GsonBuilder().setExclusionStrategies(new ExclusionStrategy() {
 
 		@Override

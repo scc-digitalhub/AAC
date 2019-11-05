@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.oauth;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
@@ -29,6 +31,7 @@ import it.smartcommunitylab.aac.Config;
  *
  */
 public class AACRememberMeServices extends PersistentTokenBasedRememberMeServices {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	/**
 	 * @param key

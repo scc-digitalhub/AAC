@@ -37,11 +37,7 @@ import com.nimbusds.jose.jwk.RSAKey;
  *
  */
 public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAndDecryptionService {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(DefaultJWTEncryptionAndDecryptionService.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	// map of identifier to encrypter
 	private Map<String, JWEEncrypter> encrypters = new HashMap<>();

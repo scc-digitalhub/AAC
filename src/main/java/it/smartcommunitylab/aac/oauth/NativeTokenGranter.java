@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -46,6 +48,7 @@ import it.smartcommunitylab.aac.model.User;
  *
  */
 public class NativeTokenGranter extends AbstractTokenGranter {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private ProviderServiceAdapter providerService;
 
