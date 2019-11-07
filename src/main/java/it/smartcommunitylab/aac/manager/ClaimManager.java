@@ -73,7 +73,7 @@ public class ClaimManager {
 	private Set<String> roleScopes = Sets.newHashSet("user.roles.me");
 
 	// claims that should not be overwritten
-	private Set<String> systemScopes = Sets.newHashSet("aud", "iss", "jti", "nbf", "iat", "exp", "scope", "token_type", "client_id", "active", "sub");
+	private Set<String> systemScopes = Sets.newHashSet("aud", "iss", "jti", "nbf", "iat", "exp", "scope", "token_type", "client_id", "active", "sub", "authorities");
 
 	
 	public ClaimManager() {
@@ -336,7 +336,10 @@ public class ClaimManager {
                 rolesList.add(role.getAuthority());
             }
             claims.put("roles", rolesList.toArray(new String[0]));
-
+            if (!claims.containsKey("authorities")) {
+                claims.put("authorities", claims.get("roles"));
+            }
+            
             // build also as realm/resource claims
             Set<String> realmRoles = new HashSet<>();
             for (Role role : roles) {
