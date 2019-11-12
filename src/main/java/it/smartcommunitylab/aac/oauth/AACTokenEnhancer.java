@@ -56,7 +56,7 @@ public class AACTokenEnhancer implements TokenEnhancer {
 
 	@Override
 	public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
-	    logger.debug("enhance for token" +accessToken);
+	    logger.debug("enhance for token " +accessToken);
 		if (accessToken.getScope().contains(Config.SCOPE_OPERATION_CONFIRMED)) {
 			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
 			token.setRefreshToken(null);

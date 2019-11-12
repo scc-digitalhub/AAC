@@ -73,7 +73,7 @@ public class ClaimManager {
 	private Set<String> roleScopes = Sets.newHashSet("user.roles.me");
 
 	// claims that should not be overwritten
-	private Set<String> systemScopes = Sets.newHashSet("aud", "iss", "jti", "nbf", "iat", "exp", "scope", "token_type", "client_id", "active", "sub", "authorities");
+	private Set<String> systemScopes = Sets.newHashSet("aud", "iss", "jti", "nbf", "iat", "exp", "scope", "token_type", "client_id", "active", "sub", "authorities", "username", "user_name");
 
 	
 	public ClaimManager() {
@@ -81,6 +81,7 @@ public class ClaimManager {
 		// standard
 		scopesToClaims.put("openid", "sub");
 		scopesToClaims.put("openid", "username");
+        scopesToClaims.put("openid", "user_name");		
 		scopesToClaims.put("openid", "preferred_username");
 		// standard
 		scopesToClaims.put("profile", "name");
@@ -113,6 +114,7 @@ public class ClaimManager {
 			scopesToClaims.put(s, "family_name");
 			scopesToClaims.put(s, "email");
 			scopesToClaims.put(s, "username");
+            scopesToClaims.put(s, "user_name");			
 		});
 		accountScopes.forEach(s -> {
 			scopesToClaims.put(s, "accounts");
@@ -291,6 +293,9 @@ public class ClaimManager {
 
 		obj.put("username", ui.getUsername());
 		obj.put("email", ui.getUsername());
+
+		//also write username in a spring-friendly form
+        obj.put("user_name", ui.getUsername());
 
 		return obj;
 	}

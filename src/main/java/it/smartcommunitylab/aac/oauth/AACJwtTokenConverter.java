@@ -188,6 +188,13 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             userClaims.remove("sub");
             claims.putAll(userClaims);
         }
+        
+        //explicitly set sub to userId
+        //ignore claims?
+        if (user != null) {
+            claims.put("sub", user.getId());
+        }
+        
         // set only this client as audience for token - also needs fix in encode due to
         // tokenConverter misbehavior
         claims.put(AUD, Lists.newArrayList(clientId));
@@ -277,13 +284,21 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             claims.remove(AUTHORITIES);
         }
 
-        // rewrite user_name as sub, if requested by scopes we will already have an
-        // username claim
-        if (claims.containsKey("user_name")) {
-            claims.put("sub", claims.get("user_name").toString());
-            claims.remove("user_name");
-        }
-
+//       MOVED to claimManager       
+//        // rewrite user_name as sub, if requested by scopes we will already have an
+//        // username claim
+//        if (claims.containsKey("user_name")) {
+//            claims.put("sub", claims.get("user_name").toString());
+//            claims.remove("user_name");
+//        }
+//        
+//        //properly populate user_name for spring clients
+//        //custom definition to satisfy spring security 
+//        //https://github.com/spring-projects/spring-security-oauth/blob/master/spring-security-oauth2/src/main/java/org/springframework/security/oauth2/provider/token/UserAuthenticationConverter.java
+//        if (claims.containsKey("username")) {
+//            claims.put("user_name", claims.get("username").toString());
+//        }       
+        
         // clear id-token from claims to avoid embedding id_token in access token JWT
         if (claims.containsKey("id_token")) {
             claims.remove("id_token");
