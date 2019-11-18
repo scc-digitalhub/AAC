@@ -278,7 +278,6 @@ public class RoleManager {
 		return user.getRoles();
 	}
 
-	// TODO: manage APIM roles 
 	// - create API Manager tenant on the fly and associate the user
 	// - update roles for the tenant
 	public void addRoles(Long userId, String clientId, String roles) throws Exception {

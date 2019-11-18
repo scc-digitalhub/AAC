@@ -195,9 +195,9 @@ public class APIMProviderService {
 			rm.setId(resource.getResourceUri());
 			rm.setName(resource.getName());
 			rm.setDescription(resource.getDescription());
-			rm.setAuthority(Authority.ROLE_ANY); // TODO
-			rm.setApprovalRequired(false); // TODO
-			rm.setAccessibleByOthers(false); // TODO
+			rm.setAuthority(Authority.ROLE_ANY);
+			rm.setApprovalRequired(false);
+			rm.setAccessibleByOthers(true);
 			rm.setUri(resource.getResourceUri());
 			list.add(rm);
 		}

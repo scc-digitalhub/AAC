@@ -154,7 +154,7 @@ public class UserManager {
 	}
 
 	/**
-	 * TODO to be replaced. Currently constructs name as the `email @ apimanager-tenant`   
+	 * Currently constructs name as the `email @ apimanager-tenant`   
 	 * @param l
 	 * @return
 	 */

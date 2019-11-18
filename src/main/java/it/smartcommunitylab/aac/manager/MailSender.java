@@ -99,7 +99,6 @@ public class MailSender {
 			message.setTo(email);
 
 			// Create the HTML body using Thymeleaf
-			// TODO use some template engine
 			final String htmlContent = this.templateEngine.process(template, ctx);
 			message.setText(htmlContent, true);
 			// Send mail

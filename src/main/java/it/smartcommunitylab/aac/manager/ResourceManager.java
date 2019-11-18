@@ -938,7 +938,7 @@ public class ResourceManager {
 		for (ResourceMapping rm : s.getResourceMapping()) {
 			if (rm.getId().equals(mapping.getId())) {
 				rm.setAccessibleByOthers(mapping.isAccessibleByOthers());
-				rm.setApprovalRequired(mapping.isAccessibleByOthers());
+				rm.setApprovalRequired(mapping.isApprovalRequired());
 				rm.setAuthority(mapping.getAuthority());
 				rm.setDescription(mapping.getDescription());
 				rm.setName(mapping.getName());
