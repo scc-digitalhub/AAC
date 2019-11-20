@@ -64,6 +64,17 @@
 
 	</service>
 
+  <service name="Organization management service" id="smartcommunity.orgmanagement">
+    <description>Core service for managing organizations.
+    </description>
+
+    <resourceMapping id="orgmanagement" name="Manage organizations"
+      uri="orgmanagement" authority="ROLE_CLIENT" approvalRequired="true">
+      <description>Manage organization data programmatically.</description>
+    </resourceMapping>
+
+  </service>
+
 	<service name="API Management Service" id="smartcommunity.apimanagement">
 		<description>Core service for managing clients and APIs.</description>
 

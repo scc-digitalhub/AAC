@@ -106,7 +106,7 @@ public class UserApprovalHandler extends TokenStoreUserApprovalHandler { // chan
 		
 		// or trusted client
 		if (authorizationRequest.getAuthorities() != null) {
-			for (GrantedAuthority ga : userAuthentication.getAuthorities())
+			for (GrantedAuthority ga : authorizationRequest.getAuthorities())
 				if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(ga.getAuthority()) && !hasSpacesToSelect) return true;
 		}
 		// or test token redirect uri

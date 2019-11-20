@@ -49,6 +49,13 @@ The following security properties MUST be configured for the production environm
 - ``admin.contextSpaces``: default role spaces associated to the admin. Defaults to ``apimanager/carbon.super`` (used by WSO2 API Manager as a default tenant)
 - ``security.rememberme.key``: the secret key used to sign the remember me cookie.
 
+Optionally, if needed, it is possible to configure the default OAuth2.0  client application associated with
+the admin user. The following properties may be customized:
+- ``adminClient.id``: id of the client app
+- ``adminClient.secret``: secret key for the client
+- ``adminClient.scopes``: default scopes to be associated with the client
+- ``adminClient.redirects``: default list of redirect URIs associated with the client.
+
 For the user registration and the corresponding communications (email verification, password reset, etc), the 
 SMTP email server should be configured, e.g.:
 

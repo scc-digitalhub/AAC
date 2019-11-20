@@ -29,17 +29,20 @@ import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Joiner;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 
@@ -56,12 +59,24 @@ public class ClientDetailsManager {
 	/** GRANT TYPE: CLIENT CRIDENTIALS FLOW */
 	private static final String GT_CLIENT_CREDENTIALS = "client_credentials";
 
+	private static final String ADMIN_GT = "implicit,refresh_token,password,client_credentials,native,authorization_code";
+	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private AttributesAdapter attributesAdapter;
 	@Autowired
 	private ResourceRepository resourceRepository;	
+	
+	@Value("${adminClient.id:}")
+	private String adminClientId;
+	@Value("${adminClient.secret:}")
+	private String adminClientSecret;
+	@Value("${adminClient.scopes:}")
+	private String[] adminClientScopes;
+	@Value("${adminClient.redirects:}")
+	private String[] adminClientRedirects;
+
 	
 	/**
 	 * Generate new value to be used as clientId (String)
@@ -162,7 +177,7 @@ public class ClientDetailsManager {
 	 * @return
 	 */
 	public String defaultAuthorities() {
-		return "ROLE_CLIENT";
+		return Config.AUTHORITY.ROLE_CLIENT.toString();
 	}
 	/**
 	 * Fill in the DB object with the properties of {@link ClientAppBasic} instance. In case of problem, return null.
@@ -237,6 +252,53 @@ public class ClientDetailsManager {
 			return null;
 		}
 		return client;
+	}
+	
+	/**
+	 * Create default client app for Admin user. The configuration properties are defined through the environment variables.
+	 * @param adminId
+	 * @return
+	 * @throws Exception
+	 */
+	public ClientAppBasic createAdminClient(Long adminId) throws Exception {
+		if (StringUtils.isEmpty(adminClientId)) return null;
+		
+		ClientDetailsEntity client = clientDetailsRepository.findByClientId(adminClientId);
+		if (client == null) {
+			client = new ClientDetailsEntity();
+			
+			client.setName(adminClientId);
+			client.setClientId(adminClientId);
+			client.setAuthorities(Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
+			client.setAuthorizedGrantTypes(ADMIN_GT);
+			client.setDeveloperId(adminId);
+			client.setClientSecret(adminClientSecret);
+			client.setClientSecretMobile(generateClientSecret());
+			client.setRedirectUri(StringUtils.arrayToCommaDelimitedString(adminClientRedirects));
+			client.setMobileAppSchema(adminClientId);
+			
+			ClientAppInfo info = new ClientAppInfo();
+			info.setDisplayName(adminClientId);
+			info.setName(adminClientId);
+			info.setIdentityProviders(Collections.singletonMap(Config.IDP_INTERNAL, ClientAppInfo.APPROVED));
+
+			info.setResourceApprovals(Collections.<String,Boolean>emptyMap());
+			client.setAdditionalInformation(info.toJson());
+			final Set<String> uriSet = new HashSet<>();
+			final Set<String> idSet = new HashSet<>();
+			for (String scope : adminClientScopes) {
+				Resource resource = resourceRepository.findByResourceUri(scope);
+				if (resource != null) {
+					uriSet.add(resource.getResourceUri());
+					idSet.add(resource.getResourceId().toString());
+				}
+			}
+			client.setResourceIds(StringUtils.collectionToCommaDelimitedString(idSet));
+			client.setScope(StringUtils.collectionToCommaDelimitedString(uriSet));
+
+			clientDetailsRepository.save(client);
+		}
+		return convertToClientApp(client);
 	}
 
 	/**

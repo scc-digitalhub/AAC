@@ -76,7 +76,6 @@ public class RoleManager {
 	@Value("${admin.contextSpaces}")
 	private String[] defaultContextSpaces;
 	
-
 	@Autowired
 	private RegistrationService registrationService;
 	
@@ -85,9 +84,12 @@ public class RoleManager {
 	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;	
+
+	@Autowired
+	private ClientDetailsManager clientDetailsManager;	
+
 	
-	
-	public User init() {
+	public User init() throws Exception {
 	    logger.debug("init");
 	    
 		Set<Role> roles = new HashSet<>();
@@ -110,6 +112,8 @@ public class RoleManager {
 		    logger.debug("create ADMIN user as "+adminUsername);
 			admin = registrationService.registerOffline(adminUsername, adminUsername, adminUsername, adminPassword, null, false, null);
 		}
+		
+		clientDetailsManager.createAdminClient(admin.getId());
 		
 		admin.getRoles().addAll(roles);
 		userRepository.saveAndFlush(admin);

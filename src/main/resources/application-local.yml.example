@@ -75,6 +75,13 @@ security:
 api:
   contextSpace: apimanager
     
+# DEFAULT ADMIN CLIENT  
+adminClient:
+    id: ${APIM_ID:API_MGT_CLIENT_ID}
+    secret: ${APIM_SECRET:YOUR_MNGMT_CLIENT_SECRET}
+    scopes: ${APIM_SCOPES:clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all}
+    redirects: ${APIM_REDIRECTS:http://localhost:9443/store/jagg/jaggery_oidc_acs.jag,http://localhost:9443/publisher/jagg/jaggery_oidc_acs.jag}
+    
 # OPEN ID
 oauth2:
    jwt: true
