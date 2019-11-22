@@ -53,8 +53,8 @@ oauth-providers:
 # AAC ADMIN USER PASSWORD
 admin:
   password: admin
-  contexts: apimanager, authorization, components, organizations
-  contextSpaces: apimanager/carbon.super  
+  contexts: authorization, components, organizations
+  contextSpaces: components/apimanager/carbon.super  
 
 # EMAIL SERVER FOR NOTIFICATIONS
 mail:
@@ -73,7 +73,7 @@ security:
 
 # API-MANAGEMENT PROPERTIES
 api:
-  contextSpace: apimanager
+  contextSpace: components/apimanager
     
 # DEFAULT ADMIN CLIENT  
 adminClient:
