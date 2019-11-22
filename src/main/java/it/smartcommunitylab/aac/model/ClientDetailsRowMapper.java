@@ -82,7 +82,7 @@ public class ClientDetailsRowMapper implements RowMapper<ClientDetails> {
 		if (developer != null) {
 			List<GrantedAuthority> list = new LinkedList<GrantedAuthority>();
 			if (details.getAuthorities() != null) list.addAll(details.getAuthorities());
-			list.addAll(developer.getRoles().stream().filter(r -> !StringUtils.isEmpty(r.getContext())).collect(Collectors.toList()));
+			list.addAll(developer.getRoles()/*.stream().filter(r -> !StringUtils.isEmpty(r.getContext())).collect(Collectors.toList())*/);
 			details.setAuthorities(list);
 		}
 		return details;
