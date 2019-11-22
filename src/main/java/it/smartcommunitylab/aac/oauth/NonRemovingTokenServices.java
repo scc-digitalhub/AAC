@@ -107,10 +107,12 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 
 	@Transactional(isolation=Isolation.SERIALIZABLE)
 	public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) throws AuthenticationException {
-		OAuth2AccessToken existingAccessToken = localtokenStore.getAccessToken(authentication);
+		logger.debug("create access token for authentication "+authentication.getName());		
+	    OAuth2AccessToken existingAccessToken = localtokenStore.getAccessToken(authentication);
 		OAuth2RefreshToken refreshToken = null;
 		if (existingAccessToken != null) {
 			if (existingAccessToken.isExpired()) {
+			     logger.debug("existing access token for authentication "+authentication.getName() + " is expired");       
 				if (existingAccessToken.getRefreshToken() != null) {
 					refreshToken = existingAccessToken.getRefreshToken();
 					// The token store could remove the refresh token when the access token is removed, but we want to
@@ -118,9 +120,18 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 					localtokenStore.removeRefreshToken(refreshToken);
 				}
 				localtokenStore.removeAccessToken(existingAccessToken);
-			}
-			else {
-				return tokenEnhancer != null ? tokenEnhancer.enhance(existingAccessToken, authentication) : existingAccessToken;
+			} else {
+                logger.debug("existing access token for authentication "+authentication.getName() + " is valid");       			    
+			    //need to check if value is changed via enhancer
+			    OAuth2AccessToken accessToken = tokenEnhancer != null ? tokenEnhancer.enhance(existingAccessToken, authentication) : existingAccessToken;
+			    if (!existingAccessToken.getValue().equals(accessToken.getValue())) {
+			        logger.debug("existing access token for authentication "+authentication.getName() + " needs to be updated");       
+
+			        //update db via remove + store otherwise we'll get more than 1 token per key..
+			        localtokenStore.removeAccessToken(existingAccessToken);
+			        localtokenStore.storeAccessToken(accessToken, authentication);
+			    }
+			    return accessToken; 
 			}
 		}
 
@@ -137,7 +148,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 				refreshToken = createRefreshToken(authentication);
 			}
 		}
-
+        logger.debug("create access token for authentication "+authentication.getName() + " as new");     
 		OAuth2AccessToken accessToken = createAccessToken(authentication, refreshToken);
 		localtokenStore.storeAccessToken(accessToken, authentication);
 		if (refreshToken != null) {
