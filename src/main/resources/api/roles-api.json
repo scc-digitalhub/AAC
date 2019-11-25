@@ -1,468 +1,543 @@
 {
-"swagger": "2.0",
-"x-wso2-security": {
+	"swagger": "2.0",
+	"x-wso2-security": {
 		"apim": {
 			"x-wso2-scopes": [
-			{
-				"description": "Read roles of the current user.",
-				"name": "Read user roles",
-				"roles": "",
-				"key": "user.roles.me"
-			},
-			{
-				"description": "Modify the roles of the specified user within a tenant.",
-				"name": "Write user roles",
-				"roles": "",
-				"key": "user.roles.write"
-			},		
-			{
-				"description": "Read the roles of the specified user within a tenant.",
-				"name": "Read user roles",
-				"roles": "",
-				"key": "user.roles.read"
-			},		
-			{
-				"description": "Read the roles of any user.",
-				"name": "Read arbitrary user roles",
-				"roles": "",
-				"key": "user.roles.read.all"
-			},	
-			{
-				"description": "Read the roles of any app client.",
-				"name": "Read client app roles",
-				"roles": "",
-				"key": "client.roles.read.all"
-			}									
+				{
+					"description": "Read roles of the current user.",
+					"name": "Read user roles",
+					"roles": "",
+					"key": "user.roles.me"
+				},
+				{
+					"description": "Modify the roles of the specified user within a tenant.",
+					"name": "Write user roles",
+					"roles": "",
+					"key": "user.roles.write"
+				},
+				{
+					"description": "Read the roles of the specified user within a tenant.",
+					"name": "Read user roles",
+					"roles": "",
+					"key": "user.roles.read"
+				},
+				{
+					"description": "Read the roles of any user.",
+					"name": "Read arbitrary user roles",
+					"roles": "",
+					"key": "user.roles.read.all"
+				},
+				{
+					"description": "Read the roles of any app client.",
+					"name": "Read client app roles",
+					"roles": "",
+					"key": "client.roles.read.all"
+				}
 			]
 		}
-	},	
-"info": {
-"description": "Authorization and Authentication Control APIs - Role managment",
-"version": "1.0.0",
-"title": "AAC API - Role management",
-"termsOfService": "urn:tos",
-"contact": {
-"name": "Smart Community Lab",
-"url": "www.smartcommunitylab.it",
-"email": "info@smartcommunitylab.it"
-},
-"license": {
-"name": "Apache License, Version 2.0",
-"url": "http://www.apache.org/licenses/LICENSE-2.0"
-}
-},
-"host": "${server.host}",
-"basePath": "${server.contextPath}",
-"tags": [
-{
-"name": "AAC Roles",
-"description": "Roles Controller"
-}
-],
-"paths": {
-"/userroles/client": {
-"get": {
-"tags": [
-"AAC Roles"
-],
-"summary": "Get roles of a client owner by token",
-"operationId": "getClientRolesUsingGET",
-"produces": [
-"*/*"
-],
-"responses": {
-"200": {
-"description": "OK",
-"schema": {
-"type": "array",
-"items": {
-"$ref": "#/definitions/Role"
-}
-}
-},
-"401": {
-"description": "Unauthorized"
-},
-"403": {
-"description": "Forbidden"
-},
-"404": {
-"description": "Not Found"
-}
-},
-"security": [
-{
-"application": [
-"user.roles.write",
-"user.roles.read",
-"user.roles.read.all",
-"client.roles.read.all"
-]
-}
-],
-  "x-auth-type": "Application & Application User",
-        "x-throttling-tier": "Unlimited"
-      
-}
-},
-"/userroles/client/{clientId}": {
-"get": {
-"tags": [
-"AAC Roles"
-],
-"summary": "Get roles of a client owner",
-"operationId": "getRolesByClientIdUsingGET",
-"produces": [
-"*/*"
-],
-"parameters": [
-{
-"name": "clientId",
-"in": "path",
-"description": "clientId",
-"required": true,
-"type": "string"
-}
-],
-"responses": {
-"200": {
-"description": "OK",
-"schema": {
-"type": "array",
-"items": {
-"$ref": "#/definitions/Role"
-}
-}
-},
-"401": {
-"description": "Unauthorized"
-},
-"403": {
-"description": "Forbidden"
-},
-"404": {
-"description": "Not Found"
-}
-},
-"security": [
-{
-"application": [
-"user.roles.write",
-"user.roles.read",
-"user.roles.read.all",
-"client.roles.read.all"
-]
-}
-],
- "x-auth-type": "Application & Application User",
-        "x-throttling-tier": "Unlimited"
-}
-},
-"/userroles/me": {
-"get": {
-"tags": [
-"AAC Roles"
-],
-"summary": "Get roles of a current user",
-"operationId": "getRolesUsingGET",
-"produces": [
-"*/*"
-],
-"responses": {
-"200": {
-"description": "OK",
-"schema": {
-"type": "array",
-"items": {
-"$ref": "#/definitions/Role"
-}
-}
-},
-"401": {
-"description": "Unauthorized"
-},
-"403": {
-"description": "Forbidden"
-},
-"404": {
-"description": "Not Found"
-}
-},
-"security": [
-{
-"spring_oauth": [
-"user.roles.me"
-]
-}
-],
- "x-auth-type": "Application & Application User",
-        "x-throttling-tier": "Unlimited"
-}
-},
-"/userroles/token/{token}": {
-"get": {
-"tags": [
-"AAC Roles"
-],
-"summary": "Get roles of a client token owner",
-"operationId": "getRolesByTokenUsingGET",
-"produces": [
-"*/*"
-],
-"parameters": [
-{
-"name": "token",
-"in": "path",
-"description": "token",
-"required": true,
-"type": "string"
-}
-],
-"responses": {
-"200": {
-"description": "OK",
-"schema": {
-"type": "array",
-"items": {
-"$ref": "#/definitions/Role"
-}
-}
-},
-"401": {
-"description": "Unauthorized"
-},
-"403": {
-"description": "Forbidden"
-},
-"404": {
-"description": "Not Found"
-}
-},
-"security": [
-{
-"application": [
-"user.roles.write",
-"user.roles.read",
-"user.roles.read.all",
-"client.roles.read.all"
-]
-}
-],
-"x-auth-type": "Application & Application User",
-        "x-throttling-tier": "Unlimited"
-}
-},
-"/userroles/user/{userId}": {
-"get": {
-"tags": [
-"AAC Roles"
-],
-"summary": "Get roles of a specific user in a domain",
-"operationId": "getRolesByUserIdUsingGET",
-"produces": [
-"*/*"
-],
-"parameters": [
-{
-"name": "userId",
-"in": "path",
-"description": "userId",
-"required": true,
-"type": "integer",
-"format": "int64"
-}
-],
-"responses": {
-"200": {
-"description": "OK",
-"schema": {
-"type": "array",
-"items": {
-"$ref": "#/definitions/Role"
-}
-}
-},
-"401": {
-"description": "Unauthorized"
-},
-"403": {
-"description": "Forbidden"
-},
-"404": {
-"description": "Not Found"
-}
-},
-"security": [
-{
-"application": [
-"user.roles.write",
-"user.roles.read",
-"user.roles.read.all",
-"client.roles.read.all"
-]
-}
-],
-"x-auth-type": "Application & Application User",
-        "x-throttling-tier": "Unlimited"
-},
-"put": {
-"tags": [
-"AAC Roles"
-],
-"summary": "Add roles to a specific user",
-"operationId": "addRolesUsingPUT",
-"consumes": [
-"application/json"
-],
-"produces": [
-"*/*"
-],
-"parameters": [
-{
-"name": "userId",
-"in": "path",
-"description": "userId",
-"required": true,
-"type": "integer",
-"format": "int64"
-},
-{
-"name": "roles",
-"in": "query",
-"description": "roles",
-"required": true,
-"type": "string"
-}
-],
-"responses": {
-"200": {
-"description": "OK"
-},
-"201": {
-"description": "Created"
-},
-"401": {
-"description": "Unauthorized"
-},
-"403": {
-"description": "Forbidden"
-},
-"404": {
-"description": "Not Found"
-}
-},
-"security": [
-{
-"application": [
-"user.roles.write",
-"user.roles.read",
-"user.roles.read.all",
-"client.roles.read.all"
-]
-}
-],
- "x-auth-type": "Application & Application User",
-        "x-throttling-tier": "Unlimited"
-},
-"delete": {
-"tags": [
-"AAC Roles"
-],
-"summary": "Delete roles for a specific user",
-"operationId": "deleteRolesUsingDELETE",
-"produces": [
-"*/*"
-],
-"parameters": [
-{
-"name": "userId",
-"in": "path",
-"description": "userId",
-"required": true,
-"type": "integer",
-"format": "int64"
-},
-{
-"name": "roles",
-"in": "query",
-"description": "roles",
-"required": true,
-"type": "string"
-}
-],
-"responses": {
-"200": {
-"description": "OK"
-},
-"204": {
-"description": "No Content"
-},
-"401": {
-"description": "Unauthorized"
-},
-"403": {
-"description": "Forbidden"
-}
-},
-"security": [
-{
-"application": [
-"user.roles.write",
-"user.roles.read",
-"user.roles.read.all",
-"client.roles.read.all"
-]
-}
-],
-"x-auth-type": "Application & Application User",
-        "x-throttling-tier": "Unlimited"
-}
-}
-},
-"securityDefinitions": {
-"application": {
-"type": "oauth2",
-"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
-"flow": "application",
-"scopes": {
-"user.roles.write": "Modify the roles of the specified user within a tenant.",
-"user.roles.read": "Read the roles of the specified user within a tenant.",
-"user.roles.read.all": "Read the roles of any user.",
-"client.roles.read.all": "Read the roles of any app client."
-}
-},
-"spring_oauth": {
-"type": "oauth2",
-"authorizationUrl": "${server.host}${server.contextPath}/eauth/authorize",
-"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
-"flow": "accessCode",
-"scopes": {
-"user.roles.me": "Read roles of the current user."
-}
-}
-},
-"definitions": {
-"Role": {
-"type": "object",
-"properties": {
-"authority": {
-"type": "string"
-},
-"context": {
-"type": "string"
-},
-"id": {
-"type": "integer",
-"format": "int64"
-},
-"role": {
-"type": "string"
-},
-"space": {
-"type": "string"
-}
-},
-"title": "Role"
-}
-}
+	},
+	"info": {
+		"description": "Authorization and Authentication Control APIs - Role managment",
+		"version": "1.0.0",
+		"title": "AAC API - Role management",
+		"termsOfService": "urn:tos",
+		"contact": {
+			"name": "Smart Community Lab",
+			"url": "www.smartcommunitylab.it",
+			"email": "info@smartcommunitylab.it"
+		},
+		"license": {
+			"name": "Apache License, Version 2.0",
+			"url": "http://www.apache.org/licenses/LICENSE-2.0"
+		}
+	},
+	"host": "${server.host}",
+	"basePath": "${server.contextPath}",
+	"tags": [
+		{
+			"name": "AAC Roles",
+			"description": "Roles Controller"
+		}
+	],
+	"paths": {
+		"/userroles/client": {
+			"get": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Get roles of a client owner by token",
+				"operationId": "getClientRolesUsingGET",
+				"produces": [
+					"*/*"
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Role"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"application": [
+							"user.roles.write",
+							"user.roles.read",
+							"user.roles.read.all",
+							"client.roles.read.all"
+						]
+					}
+				],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited"
+			}
+		},
+		"/userroles/client/{clientId}": {
+			"get": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Get roles of a client owner",
+				"operationId": "getRolesByClientIdUsingGET",
+				"produces": [
+					"*/*"
+				],
+				"parameters": [
+					{
+						"name": "clientId",
+						"in": "path",
+						"description": "clientId",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Role"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"application": [
+							"user.roles.write",
+							"user.roles.read",
+							"user.roles.read.all",
+							"client.roles.read.all"
+						]
+					}
+				],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited"
+			}
+		},
+		"/userroles/me": {
+			"get": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Get roles of a current user",
+				"operationId": "getRolesUsingGET",
+				"produces": [
+					"*/*"
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Role"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"spring_oauth": [
+							"user.roles.me"
+						]
+					}
+				],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited"
+			}
+		},
+		"/userroles/token/{token}": {
+			"get": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Get roles of a client token owner",
+				"operationId": "getRolesByTokenUsingGET",
+				"produces": [
+					"*/*"
+				],
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"description": "token",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Role"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"application": [
+							"user.roles.write",
+							"user.roles.read",
+							"user.roles.read.all",
+							"client.roles.read.all"
+						]
+					}
+				],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited"
+			}
+		},
+		"/userroles/role": {
+			"get": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Get users in a role space with specific role",
+				"operationId": "spaceUsersUsingGET",
+				"produces": [
+					"*/*"
+				],
+				"parameters": [
+					{
+						"name": "context",
+						"in": "query",
+						"description": "context",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "role",
+						"in": "query",
+						"description": "role",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"description": "offset",
+						"required": false,
+						"type": "integer",
+						"default": 0,
+						"format": "int32"
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"description": "limit",
+						"required": false,
+						"type": "integer",
+						"default": 25,
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/UserDTO"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"application": [
+							"user.roles.write",
+							"user.roles.read",
+							"user.roles.read.all",
+							"client.roles.read.all"
+						]
+					}
+				]
+			}
+		},
+		"/userroles/user/{userId}": {
+			"get": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Get roles of a specific user in a domain",
+				"operationId": "getRolesByUserIdUsingGET",
+				"produces": [
+					"*/*"
+				],
+				"parameters": [
+					{
+						"name": "userId",
+						"in": "path",
+						"description": "userId",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/Role"
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"application": [
+							"user.roles.write",
+							"user.roles.read",
+							"user.roles.read.all",
+							"client.roles.read.all"
+						]
+					}
+				],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited"
+			},
+			"put": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Add roles to a specific user",
+				"operationId": "addRolesUsingPUT",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"*/*"
+				],
+				"parameters": [
+					{
+						"name": "userId",
+						"in": "path",
+						"description": "userId",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "roles",
+						"in": "query",
+						"description": "roles",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"201": {
+						"description": "Created"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"application": [
+							"user.roles.write",
+							"user.roles.read",
+							"user.roles.read.all",
+							"client.roles.read.all"
+						]
+					}
+				],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited"
+			},
+			"delete": {
+				"tags": [
+					"AAC Roles"
+				],
+				"summary": "Delete roles for a specific user",
+				"operationId": "deleteRolesUsingDELETE",
+				"produces": [
+					"*/*"
+				],
+				"parameters": [
+					{
+						"name": "userId",
+						"in": "path",
+						"description": "userId",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "roles",
+						"in": "query",
+						"description": "roles",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					},
+					"204": {
+						"description": "No Content"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden"
+					}
+				},
+				"security": [
+					{
+						"application": [
+							"user.roles.write",
+							"user.roles.read",
+							"user.roles.read.all",
+							"client.roles.read.all"
+						]
+					}
+				],
+				"x-auth-type": "Application & Application User",
+				"x-throttling-tier": "Unlimited"
+			}
+		}
+	},
+	"securityDefinitions": {
+		"application": {
+			"type": "oauth2",
+			"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
+			"flow": "application",
+			"scopes": {
+				"user.roles.write": "Modify the roles of the specified user within a tenant.",
+				"user.roles.read": "Read the roles of the specified user within a tenant.",
+				"user.roles.read.all": "Read the roles of any user.",
+				"client.roles.read.all": "Read the roles of any app client."
+			}
+		},
+		"spring_oauth": {
+			"type": "oauth2",
+			"authorizationUrl": "${server.host}${server.contextPath}/eauth/authorize",
+			"tokenUrl": "${server.host}${server.contextPath}/oauth/token",
+			"flow": "accessCode",
+			"scopes": {
+				"user.roles.me": "Read roles of the current user."
+			}
+		}
+	},
+	"definitions": {
+		"Role": {
+			"type": "object",
+			"properties": {
+				"authority": {
+					"type": "string"
+				},
+				"context": {
+					"type": "string"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"role": {
+					"type": "string"
+				},
+				"space": {
+					"type": "string"
+				}
+			},
+			"title": "Role"
+		}
+	}
 }

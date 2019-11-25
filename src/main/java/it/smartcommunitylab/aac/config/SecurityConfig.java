@@ -497,6 +497,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 						.permitAll()
 						.antMatchers("/userroles/me").access("#oauth2.hasScope('user.roles.me')")
 						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('user.roles.read')")
+						.antMatchers(HttpMethod.GET, "/userroles/role").access("#oauth2.hasScope('user.roles.read')")
 						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
 						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
 						.antMatchers("/userroles/client").access("#oauth2.hasScope('client.roles.read.all')")

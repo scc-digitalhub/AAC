@@ -166,7 +166,7 @@ public class SwaggerConfig {
         		  ))
           .securityContexts(Arrays.asList(
         		  securityContext(rolesScopesUser(), "/userroles/me", "spring_oauth"),
-        		  securityContext(rolesScopesApp(), "(/userroles/user.*)|(/userroles/client.*)|(/userroles/token.*)", "application")
+        		  securityContext(rolesScopesApp(), "(/userroles/user.*)|(/userroles/client.*)|(/userroles/token.*)|(/userroles/role)", "application")
         		  ));                                           
 
     }    

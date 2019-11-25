@@ -17,13 +17,13 @@
 package it.smartcommunitylab.aac.controller;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +31,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import it.smartcommunitylab.aac.dto.UserDTO;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -52,7 +54,6 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @Controller
 @Api(tags = {"AAC Roles"})
 public class RolesController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 //	@Autowired
 //	private UserRepository userRepository;
@@ -172,6 +173,21 @@ public class RolesController {
 			return developer.getRoles();
 	}
 
+	@ApiOperation(value="Get users in a role space with specific role")
+	@GetMapping("/userroles/role")
+	public @ResponseBody List<UserDTO> spaceUsers(
+			@RequestParam String context,
+			@RequestParam(required=false) String role,
+			@RequestParam(required=false, defaultValue="0") Integer offset, 
+			@RequestParam(required=false, defaultValue="25") Integer limit) 
+	{
+		offset = offset / limit;
+		Role r = Role.ownerOf(context);
+		List<User> users = roleManager.findUsersByContext(r.getContext(), r.getSpace(), offset, limit);
+		List<UserDTO> dtos = users.stream().map(u -> UserDTO.fromUser(u, r.getContext(), r.getSpace())).collect(Collectors.toList());
+		return dtos;
+	}
+	
 	@ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
