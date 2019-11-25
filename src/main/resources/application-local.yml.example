@@ -55,6 +55,7 @@ admin:
   password: admin
   contexts: authorization, components, organizations
   contextSpaces: components/apimanager/carbon.super  
+  roles: components/apimanager/carbon.super:accountmanager, components/apimanager/carbon.super:profilemanager,components/apimanager/carbon.super:rolemanager
 
 # EMAIL SERVER FOR NOTIFICATIONS
 mail:

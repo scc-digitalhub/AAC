@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,7 +50,6 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 @Transactional
 public class UserManager {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
@@ -179,7 +176,9 @@ public class UserManager {
 	 * @param clientId
 	 * @return
 	 */
-	public Set<Role> getUserRolesByClient(User user, String clientId) {
+	public Set<Role> getUserRolesByClient(User user, String clientId, boolean asRoleManager) {
+		if (asRoleManager) return user.getRoles();
+		
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 		Long developerId = client.getDeveloperId();
 
@@ -201,10 +200,10 @@ public class UserManager {
 	 * @param clientId
 	 * @return
 	 */
-	public Set<Role> getUserRolesByClient(Long userId, String clientId) {
+	public Set<Role> getUserRolesByClient(Long userId, String clientId, boolean asRoleManager) {
 		User user = userRepository.findOne(userId);
 		if (user == null) throw new EntityNotFoundException("No user found: "+userId);
-		return getUserRolesByClient(user, clientId);
+		return getUserRolesByClient(user, clientId, asRoleManager);
 	}
 
 	/**

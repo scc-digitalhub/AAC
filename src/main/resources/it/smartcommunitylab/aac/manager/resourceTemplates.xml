@@ -114,6 +114,11 @@
 			uri="client.roles.read.all" authority="ROLE_CLIENT">
 			<description>Read the roles of any app client.</description>
 		</resourceMapping>
+    <resourceMapping id="user.roles.manage.all" name="Manage all user roles"
+      uri="user.roles.manage.all" authority="ROLE_CLIENT" roles="components/apimanager/carbon.super:rolemanager">
+      <description>Manage all roles of the platform users.
+      </description>
+    </resourceMapping>
 		<apiKey>admin-AACRoles-1.0.0</apiKey>
 	</service>
 

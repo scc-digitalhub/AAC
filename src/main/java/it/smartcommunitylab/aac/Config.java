@@ -76,7 +76,7 @@ public class Config {
 	public static final String CLIENT_PARAM_JWKS = "jwks";
 	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
 
-
+	public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 	
 
 	/**

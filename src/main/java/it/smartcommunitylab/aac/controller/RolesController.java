@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.dto.UserDTO;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -93,7 +94,7 @@ public class RolesController {
 		OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 		String clientId = auth.getOAuth2Request().getClientId();
 		
-		roleManager.addRoles(userId, clientId, roles);
+		roleManager.addRoles(userId, clientId, roles, auth.getOAuth2Request().getScope().contains(Config.SCOPE_ROLEMANAGEMENT));
 	}
 
 
@@ -110,7 +111,7 @@ public class RolesController {
 		String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
 		OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 		String clientId = auth.getOAuth2Request().getClientId();
-		roleManager.deleteRoles(userId, clientId, roles);
+		roleManager.deleteRoles(userId, clientId, roles, auth.getOAuth2Request().getScope().contains(Config.SCOPE_ROLEMANAGEMENT));
 	}
 
 	private Set<Role> getUserRoles(HttpServletRequest request, HttpServletResponse response, Long userId) throws IOException {
@@ -123,7 +124,7 @@ public class RolesController {
 		String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
 		OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
 		String clientId = auth.getOAuth2Request().getClientId();
-		return userManager.getUserRolesByClient(user, clientId);
+		return userManager.getUserRolesByClient(user, clientId, auth.getOAuth2Request().getScope().contains(Config.SCOPE_ROLEMANAGEMENT));
 	}
 
 	@ApiOperation(value="Get roles of a specific user in a domain")

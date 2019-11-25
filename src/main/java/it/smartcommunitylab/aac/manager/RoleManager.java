@@ -75,6 +75,8 @@ public class RoleManager {
 	
 	@Value("${admin.contextSpaces}")
 	private String[] defaultContextSpaces;
+	@Value("${admin.roles}")
+	private String[] defaultRoles;
 	
 	@Autowired
 	private RegistrationService registrationService;
@@ -105,7 +107,12 @@ public class RoleManager {
             logger.debug("ADMIN default contexts spaces "+Arrays.toString(defaultContextSpaces));		    
 			Arrays.asList(defaultContextSpaces).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
 		}
-		
+
+		if (defaultRoles != null) {
+            logger.debug("ADMIN default roles "+Arrays.toString(defaultRoles));		    
+			Arrays.asList(defaultRoles).forEach(ctx -> roles.add(Role.parse(ctx)));
+		}
+
 		User admin = null;
 		admin = userRepository.findByUsername(adminUsername);
 		if (admin == null) {
@@ -284,14 +291,14 @@ public class RoleManager {
 
 	// - create API Manager tenant on the fly and associate the user
 	// - update roles for the tenant
-	public void addRoles(Long userId, String clientId, String roles) throws Exception {
+	public void addRoles(Long userId, String clientId, String roles, boolean asRoleManager) throws Exception {
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 		Long developerId = client.getDeveloperId();
 		User user = userRepository.findOne(userId);
 
 		User developer = userRepository.findOne(developerId);
 		Set<Role> fullRoles = parseAndCheckRoles(roles);
-		if (!developer.isAdmin()) {
+		if (!asRoleManager) {
 			// role should be in the same space or in the same context if it is ROLE_PROVIDER
 			Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
 			if (fullRoles.stream()
@@ -314,7 +321,7 @@ public class RoleManager {
 		return fullRoles;
 	}
 
-	public void deleteRoles(Long userId, String clientId, String roles) throws Exception {
+	public void deleteRoles(Long userId, String clientId, String roles, boolean asRoleManager) throws Exception {
 
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 		Long developerId = client.getDeveloperId();
@@ -322,7 +329,7 @@ public class RoleManager {
 		User developer = userRepository.findOne(developerId);
 		Set<Role> fullRoles = parseAndCheckRoles(roles);
 
-		if (!developer.isAdmin()) {
+		if (!asRoleManager) {
 			// cannot remove ROLE_PROVIDER of the same user
 			Set<String> acceptedDomains = developer.contextRole(Config.R_PROVIDER).stream().map(Role::canonicalSpace).collect(Collectors.toSet());
 			if (developerId == userId && fullRoles.stream()
