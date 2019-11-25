@@ -75,6 +75,7 @@ public class RoleManager {
 	
 	@Value("${admin.contextSpaces}")
 	private String[] defaultContextSpaces;
+	
 	@Value("${admin.roles}")
 	private String[] defaultRoles;
 	

@@ -15,6 +15,7 @@ admin:
   password: admin
   contexts: apimanager, authorization, components
   contextSpaces: apimanager/carbon.super
+  roles:
 
 # BASIC SECURITY PROPERTIES
 security:
