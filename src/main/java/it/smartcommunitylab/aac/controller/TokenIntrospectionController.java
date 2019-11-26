@@ -59,7 +59,7 @@ public class TokenIntrospectionController {
 	@Autowired
 	private UserManager userManager;	
 
-	@Value("${openid.issuer}")
+	@Value("${jwt.issuer}")
 	private String issuer;
 
 	
