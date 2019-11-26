@@ -58,6 +58,10 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	/** threshold for access token */
 	protected int tokenThreshold = 10*60;
 
+    private int refreshTokenValiditySeconds = 60 * 60 * 24 * 30; // default 30 days.
+
+    private int accessTokenValiditySeconds = 60 * 60 * 12; // default 12 hours.
+    
 	protected TokenEnhancer tokenEnhancer;
 	
 	/**
@@ -171,9 +175,8 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	private OAuth2AccessToken createAccessToken(OAuth2Authentication authentication, OAuth2RefreshToken refreshToken) {
 		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(UUID.randomUUID().toString());
 		int validitySeconds = getAccessTokenValiditySeconds(authentication.getOAuth2Request());
-
-		if (!authentication.isClientOnly()) {
-			
+		
+		if (!authentication.isClientOnly()) {			
 			token.setExpiration(new Date(System.currentTimeMillis() + (getUserAccessTokenValiditySeconds(authentication.getOAuth2Request()) * 1000L)));
 		} else if (validitySeconds > 0) {
 			token.setExpiration(new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
@@ -208,6 +211,32 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		this.tokenThreshold = tokenThreshold;
 	}
 	
+    /**
+     * The validity (in seconds) of the refresh token. If less than or equal to zero
+     * then the tokens will be non-expiring.
+     * 
+     * @param refreshTokenValiditySeconds The validity (in seconds) of the refresh
+     *                                    token.
+     */
+    public void setRefreshTokenValiditySeconds(int refreshTokenValiditySeconds) {
+        super.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
+        this.refreshTokenValiditySeconds = refreshTokenValiditySeconds;
+    }
+    
+    /**
+     * The default validity (in seconds) of the access token. Zero or negative for
+     * non-expiring tokens. If a client details service is set the validity period
+     * will be read from he client, defaulting to this value if not defined by the
+     * client.
+     * 
+     * @param accessTokenValiditySeconds The validity (in seconds) of the access
+     *                                   token.
+     */
+    public void setAccessTokenValiditySeconds(int accessTokenValiditySeconds) {
+        super.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
+        this.accessTokenValiditySeconds = accessTokenValiditySeconds;
+    }
+
 	@Override
 	protected boolean isExpired(OAuth2RefreshToken refreshToken) {
 		return false;
@@ -215,7 +244,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 
 	protected int getUserAccessTokenValiditySeconds(OAuth2Request clientAuth) {
 		if (clientAuth.getScope().contains(Config.SCOPE_OPERATION_CONFIRMED)) return SCOPE_OPERATION_CONFIRMED_DURATION;
-		return 60*60*12;
+		return accessTokenValiditySeconds;
 	}
 	
 	
