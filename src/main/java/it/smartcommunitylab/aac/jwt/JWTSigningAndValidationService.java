@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.service;
+package it.smartcommunitylab.aac.jwt;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;

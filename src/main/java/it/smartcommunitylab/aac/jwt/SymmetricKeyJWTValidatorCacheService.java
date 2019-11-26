@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.service;
+package it.smartcommunitylab.aac.jwt;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -50,7 +50,7 @@ public class SymmetricKeyJWTValidatorCacheService {
 	 * @param client
 	 * @return
 	 */
-	public JWTSigningAndValidationService getSymmetricValidtor(ClientDetailsEntity client) {
+	public JWTSigningAndValidationService getSymmetricValidator(ClientDetailsEntity client) {
 
 		if (client == null) {
 			logger.error("Couldn't create symmetric validator for null client");

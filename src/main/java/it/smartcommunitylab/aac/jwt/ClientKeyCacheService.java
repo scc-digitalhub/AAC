@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.service;
+package it.smartcommunitylab.aac.jwt;
 
 import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
@@ -20,6 +20,8 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
+import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 
 /**
@@ -33,6 +35,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 @Service
 public class ClientKeyCacheService {
     private static final Logger logger = LoggerFactory.getLogger(ClientKeyCacheService.class);
+
 
 	@Autowired
 	private JWKSetCacheService jwksUriCache = new JWKSetCacheService();
@@ -57,8 +60,17 @@ public class ClientKeyCacheService {
 				.build(new JWKSetEncryptorBuilder());
 	}
 
-
-	public JWTSigningAndValidationService getValidator(ClientDetailsEntity client, JWSAlgorithm alg) {
+    public JWTSigningAndValidationService getSigner(ClientDetailsEntity client) {
+        JWSAlgorithm signingAlg = getSignedResponseAlg(client);
+        if (signingAlg != null) {
+            return getSigner(client, signingAlg);
+        } else {
+            return null;
+        }
+    }
+	
+	
+	private JWTSigningAndValidationService getSigner(ClientDetailsEntity client, JWSAlgorithm alg) {
 
 		try {
 			if (alg.equals(JWSAlgorithm.RS256)
@@ -71,11 +83,12 @@ public class ClientKeyCacheService {
 					|| alg.equals(JWSAlgorithm.PS384)
 					|| alg.equals(JWSAlgorithm.PS512)) {
 
-				// asymmetric key
+				// asymmetric key from configuration
 				JWKSet set = getJwks(client);
 				if (set != null) {
 					return jwksValidators.get(set);
 				} else if (!Strings.isNullOrEmpty(getJwksUri(client))) {
+				    //load from external uri
 					return jwksUriCache.getValidator(getJwksUri(client));
 				} else {
 					return null;
@@ -86,8 +99,7 @@ public class ClientKeyCacheService {
 					|| alg.equals(JWSAlgorithm.HS512)) {
 
 				// symmetric key
-
-				return symmetricCache.getSymmetricValidtor(client);
+				return symmetricCache.getSymmetricValidator(client);
 
 			} else {
 
@@ -103,6 +115,7 @@ public class ClientKeyCacheService {
 	public JWTEncryptionAndDecryptionService getEncrypter(ClientDetailsEntity client) {
 
 		try {
+            // asymmetric key from configuration
 			JWKSet set = getJwks(client);
 			if (set != null) {
 				return jwksEncrypters.get(set);
@@ -121,8 +134,9 @@ public class ClientKeyCacheService {
 	public static String getJwksUri(ClientDetailsEntity client) {
 		return (String) client.getAdditionalInformation().get(Config.CLIENT_PARAM_JWKS_URI);
 	}
+
 	public static JWKSet getJwks(ClientDetailsEntity client) {
-		String data = (String) client.getAdditionalInformation().get(Config.CLIENT_PARAM_JWKS_URI);
+		String data = (String) client.getAdditionalInformation().get(Config.CLIENT_PARAM_JWKS);
 		if (data != null) {
 			try {
 				JWKSet jwks = JWKSet.parse(data);
@@ -136,20 +150,30 @@ public class ClientKeyCacheService {
 		}
 	}
 	
-	public static JWSAlgorithm getUserInfoSignedResponseAlg(ClientDetailsEntity client) {
+	public static JWSAlgorithm getSignedResponseAlg(ClientDetailsEntity client) {
 		String signedResponseAlg = (String)client.getAdditionalInformation().get(Config.CLIENT_PARAM_SIGNED_RESPONSE_ALG);
 		return signedResponseAlg != null ? JWSAlgorithm.parse(signedResponseAlg) : null;
 
 	}
-	public static JWEAlgorithm getUserInfoEncryptedResponseAlg(ClientDetailsEntity client) {
+	public static JWEAlgorithm getEncryptedResponseAlg(ClientDetailsEntity client) {
 		String encResponseAlg = (String)client.getAdditionalInformation().get(Config.CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG);
 		return encResponseAlg != null ? JWEAlgorithm.parse(encResponseAlg) : null;		
 	}
 	
-	public static EncryptionMethod getUserInfoEncryptedResponseEnc(ClientDetailsEntity client) {
+	public static EncryptionMethod getEncryptedResponseEnc(ClientDetailsEntity client) {
 		String encResponseEnc = (String)client.getAdditionalInformation().get(Config.CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC);
 		return encResponseEnc != null ? EncryptionMethod.parse(encResponseEnc) : null;
 	}
+	
+    public static int getAccessTokenValiditySeconds(ClientDetailsEntity client) {
+        Integer validity = client.getAccessTokenValiditySeconds();
+        return validity != null ? validity : -1;
+    }
+
+    public static int getRefreshTokenValiditySeconds(ClientDetailsEntity client) {
+        Integer validity = client.getRefreshTokenValiditySeconds();
+        return validity != null ? validity : -1;
+    }
 
 	private class JWKSetEncryptorBuilder extends CacheLoader<JWKSet, JWTEncryptionAndDecryptionService> {
 
