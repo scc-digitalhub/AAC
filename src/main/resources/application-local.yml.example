@@ -67,6 +67,7 @@ mail:
 
 # SECURITY PROPERTIES
 security:
+  keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
   rememberme: 
     key: REMEMBER_ME_SECRET_KEY
   identity: # IDENTITY MAPPING SOURCE FILE
@@ -86,11 +87,14 @@ adminClient:
 # OPEN ID
 oauth2:
    jwt: true
-   kid: ${JWT_KID:rsa1}
-   key: ${JWT_KEY:}
-   keystore: ${JWT_KEYSTORE:classpath:/keystore.jwks} 
+   kid:
+      sig: ${OAUTH_KID_SIG:rsa1}
+      enc: ${OAUTH_KID_ENC:}
+   key: ${OAUTH_JWT_KEY:}
+
        
 openid:
    issuer: ${OPENID_ISSUER:http://localhost:8080/aac}
-   kid: ${OPENID_KID:rsa1}
-   keystore: ${OPENID_KEYSTORE:classpath:/keystore.jwks}
+   kid:
+      sig: ${OPENID_KID_SIG:rsa1}
+      enc: ${OPENID_KID_ENC:}

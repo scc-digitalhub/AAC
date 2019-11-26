@@ -15,10 +15,15 @@ admin:
   password: admin
   contexts: apimanager, authorization, components
   contextSpaces: apimanager/carbon.super
-  roles:
-
+  roles: 
+  
 # BASIC SECURITY PROPERTIES
 security:
+  accesstoken:
+     validity: 43200
+  refreshtoken:
+     validity: 2592000
+  keystore: classpath:/keystore.jwks 
   redirects:
       matchports: true
       matchsubdomains: true
@@ -34,14 +39,12 @@ security:
 
 oauth2:
    jwt: false
-   kid: 
-   key: 
-   keystore: classpath:/keystore.jwks 
        
-openid:
+jwt:
    issuer:
-   kid: 
-   keystore: classpath:/keystore.jwks
+   kid:
+      sig:
+      enc: 
 
 # LOGGING CONFIGURATION
 logging:

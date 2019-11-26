@@ -129,6 +129,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${oauth2.jwt}")
     private boolean oauth2UseJwt;
 
+    @Value("${security.accesstoken.validity}")
+    private int accessTokenValidity;
+    
+    @Value("${security.refreshtoken.validity}")
+    private int refreshTokenValidity;    
+    
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
 
@@ -238,6 +244,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		bean.setTokenStore(tokenStore);
 		bean.setSupportRefreshToken(true);
 		bean.setReuseRefreshToken(true);
+		bean.setAccessTokenValiditySeconds(accessTokenValidity);
+		bean.setRefreshTokenValiditySeconds(refreshTokenValidity);
 		bean.setClientDetailsService(getClientDetails());
 		if (oauth2UseJwt) {
 		    bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer, tokenConverter));
