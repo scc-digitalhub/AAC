@@ -38,8 +38,8 @@ import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.openid.service.JWTEncryptionAndDecryptionService;
-import it.smartcommunitylab.aac.openid.service.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
+import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 
 /**
 *
@@ -61,7 +61,7 @@ public class MetadataEndpoint {
 	@Value("${application.url}")
 	private String applicationURL;
 
-	@Value("${openid.issuer}")
+	@Value("${jwt.issuer}")
 	private String issuer;
 
 	@Autowired

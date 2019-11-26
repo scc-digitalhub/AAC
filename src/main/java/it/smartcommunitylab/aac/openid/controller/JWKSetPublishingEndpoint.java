@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.nimbusds.jose.jwk.JWK;
 
-import it.smartcommunitylab.aac.openid.service.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.openid.view.JWKSetView;
 
 @Controller

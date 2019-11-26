@@ -46,11 +46,12 @@ import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
+import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
+import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
+import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.openid.service.ClientKeyCacheService;
-import it.smartcommunitylab.aac.openid.service.JWTEncryptionAndDecryptionService;
-import it.smartcommunitylab.aac.openid.service.JWTSigningAndValidationService;
-import it.smartcommunitylab.aac.openid.service.SymmetricKeyJWTValidatorCacheService;
+
 
 /**
  * @author jricher
@@ -65,7 +66,7 @@ public class UserInfoJWTView extends UserInfoView {
 	public static final String JOSE_MEDIA_TYPE_VALUE = "application/jwt";
 	public static final MediaType JOSE_MEDIA_TYPE = new MediaType("application", "jwt");
 
-	@Value("${openid.issuer}")
+	@Value("${jwt.issuer}")
 	private String issuer;
 
 	@Autowired
@@ -97,9 +98,9 @@ public class UserInfoJWTView extends UserInfoView {
 					.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 					.build();
 
-			JWSAlgorithm signedResponseAlg = ClientKeyCacheService.getUserInfoSignedResponseAlg(client);
-			JWEAlgorithm encResponseAlg = ClientKeyCacheService.getUserInfoEncryptedResponseAlg(client);
-			EncryptionMethod encResponseEnc = ClientKeyCacheService.getUserInfoEncryptedResponseEnc(client);
+			JWSAlgorithm signedResponseAlg = ClientKeyCacheService.getSignedResponseAlg(client);
+			JWEAlgorithm encResponseAlg = ClientKeyCacheService.getEncryptedResponseAlg(client);
+			EncryptionMethod encResponseEnc = ClientKeyCacheService.getEncryptedResponseEnc(client);
 			String jwksUri = ClientKeyCacheService.getJwksUri(client);
 			JWKSet jwks = ClientKeyCacheService.getJwks(client);
 
@@ -140,7 +141,7 @@ public class UserInfoJWTView extends UserInfoView {
 						|| signingAlg.equals(JWSAlgorithm.HS512)) {
 
 					// sign it with the client's secret
-					JWTSigningAndValidationService signer = symmetricCacheService.getSymmetricValidtor(client);
+					JWTSigningAndValidationService signer = symmetricCacheService.getSymmetricValidator(client);
 					signer.signJwt(signed);
 
 				} else {

@@ -31,10 +31,10 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.openid.service.SelfAssertionValidator;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 @Controller
@@ -55,7 +55,8 @@ public static final String URL = "endsession";
 	private ClientDetailsRepository clientRepo;
 	@Autowired
 	private ClientDetailsManager clientService;
-	@Value("${openid.issuer}")
+	
+	@Value("${jwt.issuer}")
 	private String issuer;
 
 	@RequestMapping(value = "/" + URL, method = RequestMethod.GET)
