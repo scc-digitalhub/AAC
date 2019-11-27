@@ -15,6 +15,7 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.oauth;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
@@ -29,6 +30,10 @@ public class OAuthProviders {
 	@NestedConfigurationProperty
 	private List<ClientResources> providers;
 
+	public OAuthProviders() {
+	    providers = new ArrayList<>();
+	}
+	
 	public List<ClientResources> getProviders() {
 		return providers;
 	}

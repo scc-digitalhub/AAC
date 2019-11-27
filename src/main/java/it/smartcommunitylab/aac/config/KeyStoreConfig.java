@@ -28,10 +28,17 @@ public class KeyStoreConfig {
             if (location.exists()) {
                 // load from resource
                 keyStore = load(location);
-            } else {
-                // generate new in-memory keystore
-                keyStore = generate();
+                // check if empty
+                if (keyStore.getKeys().isEmpty()) {
+                    // discard, we will generate a new one
+                    keyStore = null;
+                }
             }
+        }
+
+        if (keyStore == null) {
+            // generate new in-memory keystore
+            keyStore = generate();
         }
 
         return keyStore;

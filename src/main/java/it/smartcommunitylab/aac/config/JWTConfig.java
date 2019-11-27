@@ -82,7 +82,12 @@ public class JWTConfig {
 
         DefaultJWTSigningAndValidationService service = new DefaultJWTSigningAndValidationService(jwtKeyStore);
         service.setDefaultSignerKeyId(key.getKeyID());
-        service.setDefaultSigningAlgorithmName(key.getAlgorithm().getName());
+        // optional, set default algorithm
+        // rarely used since all operations with default signer
+        // will use the default key as id
+        if (key.getAlgorithm() != null) {
+            service.setDefaultSigningAlgorithmName(key.getAlgorithm().getName());
+        }
         return service;
     }
 
@@ -109,7 +114,12 @@ public class JWTConfig {
         if (key != null) {
             service.setDefaultDecryptionKeyId(key.getKeyID());
             service.setDefaultEncryptionKeyId(key.getKeyID());
-            service.setDefaultAlgorithm((JWEAlgorithm) key.getAlgorithm());
+            // optional, set default algorithm
+            // rarely used since all operations with default signer
+            // will use the default key as id
+            if (key.getAlgorithm() != null) {
+                service.setDefaultAlgorithm((JWEAlgorithm) key.getAlgorithm());
+            }
 
         }
 
