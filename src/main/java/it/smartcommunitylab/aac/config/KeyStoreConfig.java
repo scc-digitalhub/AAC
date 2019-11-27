@@ -56,7 +56,7 @@ public class KeyStoreConfig {
 
         try {
             // build a default RSA2048 key for sign
-            JWK jwk = JWKUtils.generateRsaJWK("rsa1", "sig", 2048);
+            JWK jwk = JWKUtils.generateRsaJWK("rsa1", "sig", "RS256", 2048);
             JWKSet jwks = new JWKSet(jwk);
             keystore.setJwkSet(jwks);
 
