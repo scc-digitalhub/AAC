@@ -2,7 +2,7 @@
 server:
    host: ${SERVER_HOST:localhost}
    port: ${SERVER_PORT:8080}
-   contextPath: /aac
+   contextPath: ${SERVER_CONTEXT:/aac}
 
 # APPLICATION EXTERNAL URL
 application:
@@ -57,11 +57,43 @@ oauth2:
 jwt:
    issuer: ${JWT_ISSUER:${application.url}}
    kid:
-      sig: ${JWT_KID_SIG:rsa1}
+      sig: ${JWT_KID_SIG:}
       enc: ${JWT_KID_ENC:}
 
 #EXTERNAL PROVIDERS
 oauth-providers:
+  providers:
+    - provider: facebook
+      client:
+        clientId: ${OAUTH_FACEBOOK_CLIENTID:YOUR_FACEBOOK_CLIENT_ID}
+        clientSecret: ${OAUTH_FACEBOOK_CLIENTSECRET:YOUR_FACEBOOK_CLIENT_SECRET}
+        accessTokenUri: https://graph.facebook.com/oauth/access_token
+        userAuthorizationUri: https://www.facebook.com/dialog/oauth
+        preEstablishedRedirectUri: ${application.url}/auth/facebook-oauth/callback
+        useCurrentUri: false
+        tokenName: oauth_token
+        authenticationScheme: query
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile
+    - provider: google
+      client:
+        clientId: ${OAUTH_GOOGLE_CLIENTID:YOUR_GOOGLE_CLIENT_ID}
+        clientSecret: ${OAUTH_GOOGLE_CLIENTSECRET:YOUR_GOOGLE_CLIENT_SECRET}
+        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
+        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
+        preEstablishedRedirectUri: ${application.url}/auth/google-oauth/callback
+        useCurrentUri: false
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile
+      resource:
+        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        preferTokenInfo: true
 
 
 # LOGGING CONFIGURATION
