@@ -34,6 +34,10 @@ import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
+import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
+import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -53,7 +57,7 @@ public class OIDCTokenEnhancer  {
 	public String NONCE = "nonce";
 	public static final String AUTH_TIMESTAMP = "AUTH_TIMESTAMP";
 
-	@Value("${openid.issuer}")
+	@Value("${jwt.issuer}")
 	private String issuer;
 
 	@Autowired
@@ -67,6 +71,7 @@ public class OIDCTokenEnhancer  {
 
 	@Autowired
 	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
+	
 	@Autowired
 	private ClientDetailsRepository clientRepository;
 	
@@ -92,6 +97,7 @@ public class OIDCTokenEnhancer  {
             
         } catch (Exception e) {
            // user is not available, thus all user claims will fail
+            logger.error("user not found: "+e.getMessage());
         }
 		ClientDetailsEntity client = clientRepository.findByClientId(clientId);
 		
@@ -99,8 +105,8 @@ public class OIDCTokenEnhancer  {
 		
 		JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
 
-		if (ClientKeyCacheService.getUserInfoSignedResponseAlg(client) != null) {
-			signingAlg = ClientKeyCacheService.getUserInfoSignedResponseAlg(client);
+		if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
+			signingAlg = ClientKeyCacheService.getSignedResponseAlg(client);
 		}
 
 
@@ -163,15 +169,15 @@ public class OIDCTokenEnhancer  {
 			idClaims.claim("at_hash", at_hash);
 		}
 
-		if (ClientKeyCacheService.getUserInfoEncryptedResponseAlg(client) != null && !ClientKeyCacheService.getUserInfoEncryptedResponseAlg(client).equals(Algorithm.NONE)
-				&& ClientKeyCacheService.getUserInfoEncryptedResponseEnc(client) != null && !ClientKeyCacheService.getUserInfoEncryptedResponseEnc(client).equals(Algorithm.NONE)
+		if (ClientKeyCacheService.getEncryptedResponseAlg(client) != null && !ClientKeyCacheService.getEncryptedResponseAlg(client).equals(Algorithm.NONE)
+				&& ClientKeyCacheService.getEncryptedResponseEnc(client) != null && !ClientKeyCacheService.getEncryptedResponseEnc(client).equals(Algorithm.NONE)
 				&& (!Strings.isNullOrEmpty(ClientKeyCacheService.getJwksUri(client)) || ClientKeyCacheService.getJwks(client) != null)) {
 
 			JWTEncryptionAndDecryptionService encrypter = encrypters.getEncrypter(client);
 
 			if (encrypter != null) {
 
-				idToken = new EncryptedJWT(new JWEHeader(ClientKeyCacheService.getUserInfoEncryptedResponseAlg(client), ClientKeyCacheService.getUserInfoEncryptedResponseEnc(client)), idClaims.build());
+				idToken = new EncryptedJWT(new JWEHeader(ClientKeyCacheService.getEncryptedResponseAlg(client), ClientKeyCacheService.getEncryptedResponseEnc(client)), idClaims.build());
 
 				encrypter.encryptJwt((JWEObject) idToken);
 
@@ -198,7 +204,7 @@ public class OIDCTokenEnhancer  {
 							null, null);
 					idToken = new SignedJWT(header, idClaims.build());
 
-					JWTSigningAndValidationService signer = symmetricCacheService.getSymmetricValidtor(client);
+					JWTSigningAndValidationService signer = symmetricCacheService.getSymmetricValidator(client);
 
 					// sign it with the client's secret
 					signer.signJwt((SignedJWT) idToken);

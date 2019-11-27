@@ -17,6 +17,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import it.smartcommunitylab.aac.Config;
@@ -25,7 +26,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 /**
- * Filter for the client credential token acquisition. Extends the standard behaviour
+ * Filter for the client credential token acquisition. Extends the standard behavior
  * in case of authorization code flow by checking also the 'mobile' client secret against
  * the requested one.
  * @author raman
@@ -47,6 +48,8 @@ public class ClientCredentialsTokenEndpointFilter extends
 	public ClientCredentialsTokenEndpointFilter(ClientDetailsRepository clientDetailsRepository) {
 		super();
 		this.clientDetailsRepository = clientDetailsRepository;
+		//override request matcher
+        setRequiresAuthenticationRequestMatcher(new ClientCredentialsRequestMatcher("/oauth/token"));
 	}
 
 	@Override
@@ -155,5 +158,42 @@ public class ClientCredentialsTokenEndpointFilter extends
 
 
 	
-	
+    protected static class ClientCredentialsRequestMatcher implements RequestMatcher {
+        private String path;
+
+        public ClientCredentialsRequestMatcher(String path) {
+            this.path = path;
+
+        }
+
+        @Override
+        public boolean matches(HttpServletRequest request) {
+            String uri = request.getRequestURI();
+            int pathParamIndex = uri.indexOf(';');
+
+            if (pathParamIndex > 0) {
+                // strip everything after the first semi-colon
+                uri = uri.substring(0, pathParamIndex);
+            }
+
+            String clientId = request.getParameter("client_id");
+
+            if (clientId == null) {
+                // Give basic auth a chance to work instead (it's preferred anyway)
+                return false;
+            }
+
+            // check if basic auth + clientId is provided
+            String header = request.getHeader("Authorization");
+            if (header != null && header.startsWith("Basic ")) {
+                // Give basic auth a chance to work instead (it's preferred anyway)
+                return false;
+            }
+
+            if ("".equals(request.getContextPath())) {
+                return uri.endsWith(path);
+            }
+            return uri.endsWith(request.getContextPath() + path);
+        }
+    }
 }

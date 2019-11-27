@@ -8,21 +8,31 @@ for the authorization of resource access (e.g., APIs). The module allows for man
 user registration and for authenticating user using social accounts, in particular Google+ and Facebook. 
 
 ## 1. Installation Requirements
-- RDBMS (tested on MySQL 5.5+)
-- Java 1.8+
-- MongodDB 3.4+ (optional, needed for Authorization Module)
-- Apache Maven (3.0+)
+While AAC is distributed as a self contained jar, for production deployments the installation requirements are:
+
+* RDBMS (tested on MySQL 5.5+)
+* Java 1.8+
+* MongoDB 3.4+ (optional, needed for Authorization Module)
+* Apache Maven (3.0+)
 
 ## 2. Configuration
 
-AAC configuration properties are configured through the corresponding Maven profile settings. By default, ``local`` 
+AAC configuration properties are configured through the corresponding Spring profile settings. By default, ``local`` 
 profile is activated and the execution environment is configured in the ``src/main/resources/application-local.yml`` file. 
 The example configuration for the local execution is defined in ``application-local.yml.example``.
-  
+
+Alternatively, environment variables can be used to configure most of the settings.
+
+> **NOTE:** 
+AAC can be run with the default configuration in a development/demo mode, which leverages an embedded H2 database. Please configure an external database for production. 
+
+> **NOTE:**
+The default configuration is equivalent to the examples in each section. Admins can override only the desired settings, either via configuration files or via environment variables, and keep all the other settings at their default values.
 
 ### 2.1. DB Configuration
- 
-DB Configuration is performed via the JDBC driver configuration, e.g. for MySQL
+
+AAC default configuration uses an embedded H2 database. In order to configure a production environment perform
+DB Configuration via the JDBC driver configuration, e.g. for MySQL
 
     jdbc:
       dialect: org.hibernate.dialect.MySQLDialect    
@@ -31,33 +41,167 @@ DB Configuration is performed via the JDBC driver configuration, e.g. for MySQL
       user: ac
       password: ac
 
-The schema and the user with the privileges should have been already configured.
-**IMPORTANT!** The default configuration already contains MySQL driver version 5.1.40. In case a newer version of the DB is used, update the driver version in ``pom.xml`` accordingly.
+or via ENV
+
+    JDBC_DIALECT = org.hibernate.dialect.MySQLDialect    
+    JDBC_DRIVER = com.mysql.jdbc.Driver
+    JDBC_URL = jdbc:mysql://localhost:3306/aac
+    JDBC_USER = ac
+    JDBC_PASS = ac
+     
+
+The database and the user with the privileges should have been already configured.
+
+Supported production databases are :
+* MySQL 5.5+
+* PostgreSQL 9+
+
+> **IMPORTANT:** The default configuration already contains MySQL driver version 5.1.40. In case a newer version of the DB is used, update the driver version in ``pom.xml`` accordingly.
+
+
 
 ### 2.2. AAC Endpoint Configuration
 
-The way the AAC is exposed is configured via the following properties:
-- ``server.host`` (or similar Spring Boot settings). Defaults to ``localhost:8080``
-- ``server.contextPath``. Defaults to ``/aac``
-- ``application.url``. The reverse proxy endpoint for the AAC needed, e.g., for the authentication callback. 
+AAC exposes an HTTP endpoint which can be configured via the following properties:
+
+    server:
+      host: localhost
+      port: 8080
+      contextPath: /aac
+
+or ENV
+
+    SERVER_HOST = localhost
+    SERVER_PORT = 8080
+    SERVER_CONTEXT = /aac
+
+When deployed behind a reverse proxy, for example when using HTTPS termination, the following setting should be updated with the correct external URL accessed by the clients. This is needed for redirects and authentication callbacks.
+
+    application.url: http://localhost:8080/aac
+    
+or ENV
+
+    APPLICATION_EXT_URL = http://localhost:8080/aac
+    
+It is mandatory to provide the fully qualified URL, with the correct protocol and path as exposed by the reverse proxy.     
 
 ### 2.3. Security Configuration
 
-The following security properties MUST be configured for the production environment:
-- ``admin.password``: the password for the AAC administrator user.
-- ``admin.contexts``: default role contexts managed by the platform. Defaults to ``apimanager, authorization, components``
-- ``admin.contextSpaces``: default role spaces associated to the admin. Defaults to ``apimanager/carbon.super`` (used by WSO2 API Manager as a default tenant)
-- ``security.rememberme.key``: the secret key used to sign the remember me cookie.
+In order to deploy AAC in a production enviroment, it is mandatory to configure the security settings described in the following sections.
+
+#### Admin account
+
+The default configuration creates an administrative account with complete access configured as :
+
+    username = admin
+    password = admin
+
+The following security properties MUST be configured for a production environment:
+
+    admin:
+      username: admin
+      password: admin
+
+or via ENV
+
+      ADMIN_USERNAME = admin
+      ADMIN_PASSWORD = admin
+
+It is advisable to change the default username to reduce the attack surface.
+
+Additionally, the following properties can be updated:
+* ``admin.contexts``: default role contexts managed by the platform. Defaults to ``apimanager, authorization, components``
+* ``admin.contextSpaces``: default role spaces associated to the admin. Defaults to ``apimanager/carbon.super`` (used by WSO2 API Manager as a default tenant)
+* ``admin.roles``: a list of roles associated to the admin
+
+#### RememberME
+
+The *remember me* functionality needs a proper security key to be able to sign the cookie.
+Generate a *secure random* string and then configure 
+
+    security.rememberme.key: REMEMBER_ME_SECRET_KEY
+
+or via ENV
+    
+    REMEMBER_ME_KEY = REMEMBER_ME_SECRET_KEY
+    
+#### Token Validity
+
+OAuth2 *access token* and *refresh tokens* are generated with a predefined validity, which determines their expiration date. 
+Expired tokens are considered invalid.
+
+It is possible to adjust the default validity (in seconds) via the settings
+
+    security:
+      accesstoken:
+         validity: 43200
+      refreshtoken:
+         validity: 2592000 
+
+or via ENV
+
+    ACCESS_TOKEN_VALIDITY = 43200
+    REFRESH_TOKEN_VALIDITY = 2592000 
+
+The default configuration generates *access tokens* with a validity of 12 hours, while *refresh tokens* have a validity of 30 days. 
+
+> **NOTE:**
+When using JWTs as access tokens, it is advisable to reduce their validity to overcome the revocation problem, where revoked but not expired tokens are considered valid by third parties such as resource servers. Please set a low value (e.g 1 hour) to address the issue.
+
+#### Redirect policy
+
+OAuth2 clients should provide all the callback URLs within the dedicated configuration section inside AAC.
+By default, the system will check the validity of such URLs and then match all the requests to the provided configuration in a strict way. When the URL passed as callback does not *exactly* match the one provided in the configuration, AAC will refuse to release an access token.
+
+It is possible to relax this policy by enabling the following settings:
+* ``match_ports``: when set to false permits the redirect towards any port of the host
+* ``match_subdomains``: when set to false permits the redirect towards any subdomain
+
+via configuration properties
+
+    security:
+      redirects:
+      matchports: true
+      matchsubdomains: true 
+
+or via ENV
+
+    REDIRECT_MATCH_PORTS = true
+    REDIRECT_MATCH_SUBDOMAINS = true
+
+
+
+#### Default admin client
 
 Optionally, if needed, it is possible to configure the default OAuth2.0  client application associated with
 the admin user. The following properties may be customized:
-- ``adminClient.id``: id of the client app
-- ``adminClient.secret``: secret key for the client
-- ``adminClient.scopes``: default scopes to be associated with the client
-- ``adminClient.redirects``: default list of redirect URIs associated with the client.
+
+- ``id``: id of the client app
+- ``secret``: secret key for the client
+- ``scopes``: default scopes to be associated with the client
+- ``redirects``: default list of redirect URIs associated with the client.
+
+via configuration properties:
+
+    adminClient:
+       id: API_MGT_CLIENT_ID
+       secret: YOUR_MNGMT_CLIENT_SECRET
+       scopes: SCOPES_LIST
+       redirects: REDIRECTS_LIST
+
+or via ENV
+
+    APIM_ID = API_MGT_CLIENT_ID
+    APIM_SECRET = YOUR_MNGMT_CLIENT_SECRET
+    APIM_SCOPES = SCOPES_LIST
+    APIM_REDIRECTS = REDIRECTS_LIST
+      
+By setting an empty configuration the default admin client won't be created.
+
+### 2.4. Mail Configuration
 
 For the user registration and the corresponding communications (email verification, password reset, etc), the 
-SMTP email server should be configured, e.g.:
+SMTP email server should be configured:
 
     mail:
       username: info@example.com
@@ -65,13 +209,65 @@ SMTP email server should be configured, e.g.:
       host: smtp.example.com
       port: 465
       protocol: smtps 
- 
-### 2.4. Configuring Identity Providers
 
-By default, AAC relies on the internally registered users. However, the integration with the external
-identity provider is supported. Out of the box, the support for the OAuth2.0 providers can be achieved 
-through the configuration files. Specifically, to configure an OAuth2.0 identity provider it is necessary
-to specify the OAuth2.0 client configuration in the properties, e.g. for Facebook, 
+or via ENV
+
+    MAIL_USER = info@example.com
+    MAIL_PASS = somepassword
+    MAIL_HOST = smtp.example.com
+    MAIL_PORT = 465
+    MAIL_PROTOCOL = smtps
+
+Without a valid mail configuration AAC won't be able to send any email to users.
+
+ 
+### 2.5. Configuring Identity Providers
+
+By default, AAC relies on the internally registered users. 
+However, the integration with the external identity provider is supported.
+Out of the box, AAC comes with the following providers pre-configured:
+
+* Facebook
+* Google 
+* ADC
+
+In order to activate any of those it is required to provide the correct client parameters.
+
+#### Facebook
+First register as a developer and create a client application via Facebook.
+Then add to application.yml the following properties:
+ 
+    oauth-providers:
+      providers:
+        - provider: facebook
+          client:
+            clientId: YOUR_FACEBOOK_CLIENT_ID
+            clientSecret: YOUR_FACEBOOK_CLIENT_SECRET
+
+or via ENV
+        
+    OAUTH_FACEBOOK_CLIENTID = YOUR_FACEBOOK_CLIENT_ID
+    OAUTH_FACEBOOK_CLIENTSECRET = YOUR_FACEBOOK_CLIENT_SECRET
+
+#### Google
+First register as a developer and create a client application via Google.
+Then add to application.yml the following properties:
+
+    oauth-providers:
+      providers:
+       - provider: google
+         client:
+           clientId: YOUR_GOOGLE_CLIENT_ID
+           clientSecret: YOUR_GOOGLE_CLIENT_SECRET
+
+or via ENV
+
+    OAUTH_GOOGLE_CLIENTID = YOUR_GOOGLE_CLIENT_ID
+    OAUTH_GOOGLE_CLIENTSECRET = YOUR_GOOGLE_CLIENT_SECRET
+           
+#### Custom configuration           
+The support for compatible OAuth2.0 providers can be achieved through the configuration files.
+ Specifically, to configure an OAuth2.0 identity provider it is necessary to specify the OAuth2.0 client configuration in the properties, e.g. for Facebook: 
 
     oauth-providers:
       providers:
@@ -109,63 +305,91 @@ defines the Google authentication attributes. Specifically, the ``email`` attrib
 Google users.  
 
 
-### 2.5. Authorization Module
+### 2.6. Authorization Module
 
 AAC allows for integration of the authorization module, where it is possible to configure the access rights for
 the user at the level of data. To enable the authorization module, the corresponding ``authorization`` Maven profile
 should be activated. 
  
-### 2.6. Logging Configuration 
+### 2.7. Logging Configuration 
 
-The logging settings may be configured via standard Spring Boot properties, e.g., for the log level
+By default, AAC will log all the messages with a priority level equals or major than *INFO* to STDOUT. 
+The logging settings may be configured via properties:
 
     logging:
       level:
-        ROOT: INFO
+         it.smartcommunitylab.aac: INFO
 
-The project relies on the Logback configuration (see ``src/main/resources/logback.xml``). The default 
-configuration requires the log folder path defined with ``aac.log.folder`` property. (if the property is not set, application will use default value: `WORKING_DIRECTORY/logs`). 
+or via ENV
+
+    LOG_LEVEL = INFO
+
+
+The project relies on the Logback configuration (see ``src/main/resources/logback.xml``). In order to persist the logs to file, the default configuration requires the log folder path defined with ``aac.log.folder`` property. If the property is not set, the application will use default value: `WORKING_DIRECTORY/logs`.
  
-### 2.7. OpenID Configuration 
+### 2.8. OpenID Configuration 
 
 AAC provide a basic implementation of the OpenID protocol. The implementation is based on the [MitreID](https://mitreid.org/) project.
- 
-To configure the issuer, it is necessary to specify the OpenID issuer URL:
-    
-    # OPEN ID
-    openid:
+By default, the *token issuer* will be set equals to the ``application.url``. 
+It is possible to separately configure the issuer via properties:
+
+    jwt:
       issuer: http://localhost:8080/aac
       
-OpenID extension requires RSA keys for JWT signature. The project ships with the pre-packaged generated key. The key MUST be replaced with your specific value in production environment. To generate new key please follow the instructions available [here](https://mkjwk.org/). 
+or via ENV
+
+     JWT_ISSUER = http://localhost:8080/aac
+
+      
+OpenID extension requires RSA keys for JWT signature. The default configuration does not possess any permanent key, and for development/demo purposes generates a new set at each startup.
+
+In order to deploy AAC in production mode it is mandatory to provide an external key. 
+To generate new key please follow the instructions available [here](https://mkjwk.org/). 
 
 The resulting key should be placed in the resources (i.e., src/main/resources). Alternatively, it is possible to override the default keystore via configuration by setting the following property 
 
-    # OPEN ID
-    openid:
+    security:
       keystore: file:///absolute/path/to/keystore.jwks
+      
+or via ENV
 
-The keystore can contain more than one key. By providing the id of the key via ```kid``` property, we can instruct AAC to select a specific key within those available. If not provided, the software will look for a key named ```rsa1``` by default.
+    JWK_KEYSTORE = file:///absolute/path/to/keystore.jwks
 
+The keystore can contain more than one key. By providing the id of the key via ``kid`` property, we can instruct AAC to select a specific key within those available. If not provided, the software will take the first suitable key from the set for signing/validation, and disable the encryption.
 
-    # OPEN ID
-    openid:
-      kid: rsakeyid
+Via properties:
+
+    jwt:
+      kid:
+         sig: SIGNATURE_KEY_ID
+         enc: ENCRYPTION_KEY_ID
+
+or via ENV:
+
+    JWT_KID_SIG = SIGNATURE_KEY_ID
+    JWT_KID_ENC = ENCRYPTION_KEY_ID
 
       
-The OpenId metadata is available at ``/.well-known/openid-configuration``.
+The OpenID metadata is available at ``/.well-known/openid-configuration``.
 
-### 2.8 OAuth2 JWT Configuration
+The keys are available as a JSON Web Key Set (JWKS) at ``/jwk``.
 
-By default, AAC provides oauth ```access_tokens``` and ```refresh_tokens``` as *opaque strings*. If needed, AAC can issue bearer tokens as *JSON Web Tokens* (JWT) containing a subset of the standard OpenID claims.
+
+### 2.9 OAuth2 JWT Configuration
+
+By default, AAC provides oauth ``access_tokens`` and ``refresh_tokens`` as *opaque strings*. If needed, AAC can issue bearer tokens as *JSON Web Tokens* (JWT) containing a subset of the standard OpenID claims.
 
 To globally enable JWT mode set the following property to ```true```:
 
-    # OAUTH2
     oauth2:
       jwt: true
 
+or via ENV
+   
+    ENABLE_JWT = true
 
-> **Note:** switching from opaque tokens to JWT on an existing setup could require a flush of all the tokens already issued. Otherwise, as long as refresh tokens are valid, AAC will continue to provide the same tokens to clients. Only new requests will receive JWTs. To perform the flush, simply clear the content of both the tables *oauth_access_token* and *oauth_refresh_token* from the db console.
+
+> **NOTE:** switching from opaque tokens to JWT on an existing setup could require a flush of all the tokens already issued. Otherwise, as long as refresh tokens are valid, AAC will continue to provide the same tokens to clients. Only new requests will receive JWTs. To perform the flush, simply clear the content of both the tables *oauth_access_token* and *oauth_refresh_token* from the db console.
 
 Since JWTs should be cryptographically signed by issuers, AAC provides 2 different working modes when dealing with JWTs:
 
@@ -176,42 +400,13 @@ By default, AAC works with HMAC signatures for JWTs. HMAC employs a *secret key*
 
 If issuer verification is needed, AAC can alternatively sign tokens via RSA with a public/private keypair. By sharing only the public key, clients can independently verify that the *issuer* possesses the correct private key and thus protect themselves from tokens forged from other clients.
 
-In order to configure the type of signature employed, we can configure AAC in **one** of the following modes.
-
-
-    # OAUTH2 with per-client secret
-    # specify a blank shared-key and key-id
-    oauth2:
-      jwt: true
-      key:
-      kid:
-
-    # OAUTH2 with global shared secret
-    # specify a shared-key and a blank key-id
-    oauth2:
-      jwt: true
-      key: some-shared-global-secret
-      kid:
-
-    # OAUTH2 with RSA keypair
-    # specify a blank shared-key and provide key-id and keystore
-    oauth2:
-      jwt: true
-      key:
-      kid: rsakeyid
-      keystore:  file:///absolute/path/to/keystore.jwks
-
-
-When using RSA, users will need to provide a custom keystore, to avoid using the one included in the classpath (see the OpenID section for further instructions).
-
-The default configuration when enabling JWT is to adopt HMAC with a per-client secret key, to ensure the broadest compatibility. Not all clients fully support RSA signed tokens. Check before switching modes.
-
-> *Note:* Using a globally shared secret key is actively discouraged. It is provided only to support specific deployment scenarios where all the parties are trusted and the communication is restricted to private networks. Choose one between *per-client HMAC* and *public/private RSA*.
+By default, AAC employs RSA keys for signature, by leveraging the same keyset used for OpenID.
+It is possible to configure *per-client* the algorithm and scheme used, and thus switch single clients to HMAC-mode with ``client_secret`` or to RSA with a dedicated keypair.
 
 
 At the moment, AAC does not support *encryption* for JWTs. Given the lack of confidentiality when dealing with non-encrypted JWTs (which in essence are just base64-encoded json), users should double check information included in claims, to avoid leaking private or sensible data over insecure channels.
 
-> **Important**: Do not put secret information in the claims of a JWT unless it is encrypted.
+> **IMPORTANT**: Do not put secret information in the claims of a JWT unless it is encrypted.
 
 ## 3. Execution
 
@@ -468,14 +663,14 @@ If the token is valid, this returns the user data, e.g.,:
 To validate the token, i.e., to check the token is not expired and is associated to proper scopes AAC supports
 Token introspection API (ITEF RFC 7662). The call should be provided with the Client Credentials (e.g., as BasicAuth, with ``client_id:client_secret``):
 
-    GET /aac/token_inttrospection HTTPS/1.1 
+    GET /aac/token_introspection HTTPS/1.1 
     Host: aacserver.com 
     Accept: application/json 
     Authorization: Basic <client_id:client_secret>  
     token=<token_value_to_introspect>
 
 The request returns a JSON token with standard claims regarding the user, the client, and the token. The returned claims
-rappresent the standard token claims (see ITEF RFC 7662 for details) as well as custom AAC claims (prefixed with ``aac_``):
+represents the standard token claims (see ITEF RFC 7662 for details) as well as custom AAC claims (prefixed with ``aac_``):
 
     {
         "active": true,

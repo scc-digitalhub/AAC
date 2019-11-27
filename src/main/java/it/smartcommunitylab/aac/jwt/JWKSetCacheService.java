@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package it.smartcommunitylab.aac.openid.service;
+package it.smartcommunitylab.aac.jwt;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +35,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.google.gson.JsonParseException;
 import com.nimbusds.jose.jwk.JWKSet;
+
+import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
+import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 
 /**
  *

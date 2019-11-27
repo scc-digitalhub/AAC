@@ -42,6 +42,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nimbusds.jwt.JWTClaimsSet;
 
 import delight.nashornsandbox.NashornSandbox;
 import delight.nashornsandbox.NashornSandboxes;
@@ -73,7 +74,8 @@ public class ClaimManager {
 	private Set<String> roleScopes = Sets.newHashSet("user.roles.me");
 
 	// claims that should not be overwritten
-	private Set<String> systemScopes = Sets.newHashSet("aud", "iss", "jti", "nbf", "iat", "exp", "scope", "token_type", "client_id", "active", "sub", "authorities", "username", "user_name");
+	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
+	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "authorities", "username", "user_name");
 
 	
 	public ClaimManager() {
@@ -235,6 +237,12 @@ public class ClaimManager {
 			}
 		}
 
+		//strip all reserved since they will be handled by jwt service
+        for (String key : reservedScopes) {
+            if (copy.containsKey(key)) {
+                copy.remove(key);
+            }
+        }
 		return copy;
 	}
 
@@ -284,7 +292,8 @@ public class ClaimManager {
 	private Map<String, Object> toJson(BasicProfile ui) {
 
 		Map<String, Object> obj = new HashMap<>();
-		obj.put("sub", ui.getUserId());
+		//disable sub since it is reserved
+//		obj.put("sub", ui.getUserId());
 
 		obj.put("name", ui.getSurname() + " " + ui.getName());
 		obj.put("preferred_username", ui.getUsername());

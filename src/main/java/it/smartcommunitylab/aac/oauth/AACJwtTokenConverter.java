@@ -39,26 +39,49 @@ import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConv
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.JWEObject;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.EncryptedJWT;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
+import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
+import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.openid.service.JWKSetKeyStore;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 @Service
 public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${jwt.issuer}")
+    private String issuer;
+
+    @Value("${security.accesstoken.validity}")
+    private int accessTokenValidity;
+
+    @Value("${security.refreshtoken.validity}")
+    private int refreshTokenValidity;
+
     @Autowired
-    @Qualifier("oauthJWKSetKeyStore")
-    private JWKSetKeyStore jwtKeyStore;
+    private JWTSigningAndValidationService jwtService;
+
+    @Autowired
+    private ClientKeyCacheService keyService;
 
     @Autowired
     private ClientDetailsRepository clientRepository;
@@ -66,16 +89,16 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     @Autowired
     private UserManager userManager;
 
-    private Map<String, String> customHeaders = new HashMap<>();
+//    private Map<String, String> customHeaders = new HashMap<>();
 
-    @Value("${oauth2.kid}")
-    private String kid;
+//    @Value("${oauth2.kid.sig}")
+//    private String kid;
+//
+//    @Value("${oauth2.key}")
+//    private String key;
 
-    @Value("${oauth2.key}")
-    private String key;
-
-	@Autowired
-	private ClaimManager claimManager;
+    @Autowired
+    private ClaimManager claimManager;
 
     // re-declare objects from parent
     private Signer signer;
@@ -93,36 +116,38 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // ensure signer is null since superclass initializes it
         this.signer = null;
 
-        // if set MAC key use it
-        if (!key.isEmpty()) {
-            // default is HMAC
-            this.setSigningKey(key);
-            signer = new MacSigner(key);
-        }
+        // we will use the external jwtService for signin
 
-        // if set kid look in keystore for RSA keypair
-        if (!kid.isEmpty() && !jwtKeyStore.getKeys().isEmpty()) {
-            try {
-                // fetch the matching key
-
-                for (JWK jwk : jwtKeyStore.getKeys()) {
-
-                    if (jwk instanceof RSAKey && kid.equals(jwk.getKeyID())) {
-
-                        // derive signer
-                        KeyPair keyPair = ((RSAKey) jwk).toKeyPair();
-                        this.setKeyPair(keyPair);
-                        this.signer = new RsaSigner((RSAPrivateKey) keyPair.getPrivate());
-
-                        // store kid because we need to add it to claims
-                        customHeaders.put("kid", kid);
-                    }
-                }
-            } catch (JOSEException e) {
-                logger.error("Error reading RSA key: " + e.getMessage());
-            }
-
-        }
+//        // if set MAC key use it
+//        if (!key.isEmpty()) {
+//            // default is HMAC
+//            this.setSigningKey(key);
+//            signer = new MacSigner(key);
+//        }
+//
+//        // if set kid look in keystore for RSA keypair
+//        if (!kid.isEmpty() && !jwtKeyStore.getKeys().isEmpty()) {
+//            try {
+//                // fetch the matching key
+//
+//                for (JWK jwk : jwtKeyStore.getKeys()) {
+//
+//                    if (jwk instanceof RSAKey && kid.equals(jwk.getKeyID())) {
+//
+//                        // derive signer
+//                        KeyPair keyPair = ((RSAKey) jwk).toKeyPair();
+//                        this.setKeyPair(keyPair);
+//                        this.signer = new RsaSigner((RSAPrivateKey) keyPair.getPrivate());
+//
+//                        // store kid because we need to add it to claims
+//                        customHeaders.put("kid", kid);
+//                    }
+//                }
+//            } catch (JOSEException e) {
+//                logger.error("Error reading RSA key: " + e.getMessage());
+//            }
+//
+//        }
     }
 
     @Override
@@ -159,6 +184,8 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         String clientId = request.getClientId();
         ClientDetailsEntity client = clientRepository.findByClientId(clientId);
 
+        // fetch user
+        logger.debug("fetch user via authentication");
         User user = null;
         try {
             // fetch from auth
@@ -171,6 +198,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
         } catch (Exception e) {
             // user is not available, thus all user claims will fail
+            logger.error("user not found: " + e.getMessage());
         }
 
         // add claims for user details if requested via scopes
@@ -179,29 +207,32 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
             Set<String> scope = new HashSet<>(request.getScope());
             if (!scope.contains(Config.OPENID_SCOPE)) {
-            	scope.add(Config.OPENID_SCOPE);
+                scope.add(Config.OPENID_SCOPE);
             }
-            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request().getAuthorities();
-            if (selectedAuthorities != null && !selectedAuthorities.isEmpty()) claims.put(AUTHORITIES, selectedAuthorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet()));
-            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
+            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request()
+                    .getAuthorities();
+            if (selectedAuthorities != null && !selectedAuthorities.isEmpty())
+                claims.put(AUTHORITIES,
+                        selectedAuthorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet()));
+            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities,
+                    client, scope, null, null);
             // set directly, ignore extracted
             userClaims.remove("sub");
             claims.putAll(userClaims);
         }
-        
-        //explicitly set sub to userId
-        //ignore claims?
+
+        // explicitly set sub to userId
+        // ignore claims?
         if (user != null) {
             claims.put("sub", user.getId());
         }
-        
+
         // set only this client as audience for token - also needs fix in encode due to
         // tokenConverter misbehavior
         claims.put(AUD, Lists.newArrayList(clientId));
 
 //        // reset additional claims for scopes to a list instead of an array
 //        info.put("scope", String.join(" ", request.getScope()));
-
 
         // save claims and encode
         result.setAdditionalInformation(claims);
@@ -262,6 +293,8 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         Map<String, Object> claims = (Map<String, Object>) tokenConverter.convertAccessToken(accessToken,
                 authentication);
 
+        logger.debug("dump claims " + claims.keySet().toString());
+
         OAuth2Request request = authentication.getOAuth2Request();
 
         // fetch data and reformat token
@@ -272,6 +305,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
         // reset additional claims for scopes to a list instead of an array
         claims.put("scope", String.join(" ", request.getScope()));
+
+        // TODO rewrite checks with whitelist/graylist
+        // ie refresh == whitelisted
+        // access == requested&allowed&prefixed
 
         // handle authorities claim here since token converter HARDCODES it...
         if (this.isRefreshToken(accessToken)) {
@@ -298,33 +335,148 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 //        if (claims.containsKey("username")) {
 //            claims.put("user_name", claims.get("username").toString());
 //        }       
-        
+
         // clear id-token from claims to avoid embedding id_token in access token JWT
         if (claims.containsKey("id_token")) {
             claims.remove("id_token");
         }
 
-        // convert to JSON
-        String content;
-        try {
-            content = this.objectMapper.formatMap(claims);
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot convert access token to JSON", e);
+//        // convert to JSON
+//        String content;
+//        try {
+//            content = this.objectMapper.formatMap(claims);
+//        } catch (Exception e) {
+//            throw new IllegalStateException("Cannot convert access token to JSON", e);
+//        }
+//
+//        // figure out which signer to use:
+//        // if RSA keys provided use the same for all
+//        // if global key set use singleton HMAC
+//        // otherwise use client secret as HMAC key
+//        Signer s = getSigner(client);
+//
+//        String token = JwtHelper.encode(
+//                content,
+//                s,
+//                this.customHeaders).getEncoded();
+
+        // leverage services for jwt creation
+//        JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
+//
+//        // check if client has set custom preferences
+//        if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
+//            signingAlg = ClientKeyCacheService.getSignedResponseAlg(client);
+//        }
+
+        // build claims
+        JWTClaimsSet.Builder jwtClaims = new JWTClaimsSet.Builder();
+        // id
+        jwtClaims.jwtID(claims.get(TOKEN_ID).toString());
+        // base
+        jwtClaims.issuer(issuer);
+        jwtClaims.subject(authentication.getName());
+        jwtClaims.audience(Lists.newArrayList(client.getClientId()));
+        // time
+        if (accessToken.getExpiration() != null) {
+            Date expiration = accessToken.getExpiration();
+            Date iat = new Date();
+            // need to subtract validity from expiration to avoid updating at each request
+            if (isRefreshToken(accessToken)) {
+                int refreshTokenValiditySeconds = ClientKeyCacheService.getRefreshTokenValiditySeconds(client);
+                if (refreshTokenValiditySeconds < 0) {
+                    // use system default
+                    refreshTokenValiditySeconds = refreshTokenValidity;
+                }
+                iat = new Date(expiration.getTime() - (refreshTokenValiditySeconds * 1000L));
+
+            } else {
+                int accessTokenValiditySeconds = ClientKeyCacheService.getAccessTokenValiditySeconds(client);
+                if (accessTokenValiditySeconds < 0) {
+                    // use system default
+                    accessTokenValiditySeconds = accessTokenValidity;
+                }
+                iat = new Date(expiration.getTime() - (accessTokenValiditySeconds * 1000L));
+
+            }
+
+            jwtClaims.issueTime(iat);
+            jwtClaims.notBeforeTime(iat);
+
+            jwtClaims.expirationTime(expiration);
         }
 
-        // figure out which signer to use:
-        // if RSA keys provided use the same for all
-        // if global key set use singleton HMAC
-        // otherwise use client secret as HMAC key
-        Signer s = getSigner(client);
+        // add all claims, avoiding registered
+        claims.entrySet().forEach(e -> {
+            if (!JWTClaimsSet.getRegisteredNames().contains(e.getKey())) {
+                jwtClaims.claim(e.getKey(), e.getValue());
+            }
+        });
 
-        String token = JwtHelper.encode(
-                content,
-                s,
-                this.customHeaders).getEncoded();
-        logger.debug("encoded jwt token " + token.toString());
+        JWT token = null;
 
-        return token;
+        // check client wants also encryption
+        if (ClientKeyCacheService.getEncryptedResponseAlg(client) != null
+                && !ClientKeyCacheService.getEncryptedResponseAlg(client).equals(Algorithm.NONE)
+                && ClientKeyCacheService.getEncryptedResponseEnc(client) != null
+                && !ClientKeyCacheService.getEncryptedResponseEnc(client).equals(Algorithm.NONE)
+                && (!Strings.isNullOrEmpty(ClientKeyCacheService.getJwksUri(client))
+                        || ClientKeyCacheService.getJwks(client) != null)) {
+
+            JWTEncryptionAndDecryptionService encrypter = keyService.getEncrypter(client);
+
+            if (encrypter != null) {
+                token = new EncryptedJWT(new JWEHeader(ClientKeyCacheService.getEncryptedResponseAlg(client),
+                        ClientKeyCacheService.getEncryptedResponseEnc(client)), jwtClaims.build());
+
+                encrypter.encryptJwt((JWEObject) token);
+
+            } else {
+                logger.error("Couldn't find encrypter for client: " + client.getClientId());
+            }
+
+        } else {
+            // check if custom signed defined
+            if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
+                JWTSigningAndValidationService signer = keyService.getSigner(client);
+
+                if (signer != null) {
+                    JWSAlgorithm signingAlg = signer.getDefaultSigningAlgorithm();
+                    String signerKeyId = signer.getDefaultSignerKeyId();
+                    JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
+                            signerKeyId,
+                            null, null);
+
+                    logger.debug("create signed jwt with algo " + signingAlg.getName() + " kid " + signerKeyId);
+                    token = new SignedJWT(header, jwtClaims.build());
+
+                    // sign it with the client key
+                    signer.signJwt((SignedJWT) token);
+                } else {
+                    logger.error("Couldn't find signer for client: " + client.getClientId());
+                }
+
+            } else {
+                // use system
+                JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
+                String signerKeyId = jwtService.getDefaultSignerKeyId();
+                JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
+                        signerKeyId,
+                        null, null);
+
+                logger.debug("create signed jwt with algo " + signingAlg.getName() + " kid " + signerKeyId);
+                token = new SignedJWT(header, jwtClaims.build());
+
+                // sign it with the server's key
+                jwtService.signJwt((SignedJWT) token);
+            }
+
+        }
+
+        // serialize to string
+        String result = token.serialize();
+        logger.debug("encoded jwt token " + result);
+
+        return result;
     }
 
     @Override
@@ -363,14 +515,14 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         }
     }
 
-    private Signer getSigner(ClientDetailsEntity client) {
-        if (this.signer != null) {
-            // always use global if defined
-            return this.signer;
-        } else {
-            // can't reuse since client secret keys could change
-            return new MacSigner(client.getClientSecret());
-        }
-    }
+//    private Signer getSigner(ClientDetailsEntity client) {
+//        if (this.signer != null) {
+//            // always use global if defined
+//            return this.signer;
+//        } else {
+//            // can't reuse since client secret keys could change
+//            return new MacSigner(client.getClientSecret());
+//        }
+//    }
 
 }
