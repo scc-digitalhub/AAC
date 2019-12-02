@@ -65,9 +65,10 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	@Autowired
 	private RoleManager roleManager;
 	
-	private int approvalExpirySeconds = -1;
-	private ApprovalStore approvalStore;
-	private ResourceRepository resourceRepository;
+	protected int approvalExpirySeconds = -1;
+	protected ApprovalStore approvalStore;
+	protected ResourceRepository resourceRepository;
+	protected OAuthFlowExtensions flowExtensions;
 	
 	private static final String SPACE_SELECTION_APPROVAL_REQUIRED = "spaceSelectionApproval_required";
 	private static final String SPACE_SELECTION_APPROVAL_DONE = "spaceSelectionApproval_done";
@@ -84,13 +85,17 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 		AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
 		if (!result.isApproved()) return result;
 
-		// see if the user has to perform the space selection which means 
+		// see if the user has to perform the space selection 
 		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), userAuthentication.getAuthorities());
 		if (spaces != null && !spaces.isEmpty()) {
 			Map<String, String> newParams = new HashMap<String, String>(authorizationRequest.getApprovalParameters());
 			authorizationRequest.setApprovalParameters(newParams);
 			authorizationRequest.getApprovalParameters().put(SPACE_SELECTION_APPROVAL_REQUIRED, "true");
 			authorizationRequest.getApprovalParameters().put(SPACE_SELECTION_APPROVAL_DONE, "false");
+		}
+		// result is approved, moving towards completion, doing extensions 
+		if (flowExtensions != null && isApproved(authorizationRequest, userAuthentication)) {
+			flowExtensions.onAfterApproval(authorizationRequest, userAuthentication);;
 		}
 		return result;
 	}
@@ -177,6 +182,10 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 			}
 
 		}
+		// result is approved, moving towards completion, doing extensions 
+		if (flowExtensions != null && isApproved(authorizationRequest, userAuthentication)) {
+			flowExtensions.onAfterApproval(authorizationRequest, userAuthentication);;
+		}
 		return result;
 	}
 
@@ -194,9 +203,7 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 		for (String requestedScope : requestedScopes) {
 			try {
 				Resource r = resourceRepository.findByResourceUri(requestedScope);
-				// openid scope is approved by default
-				if (Config.OPENID_SCOPE.equals(requestedScope)  || 
-					// ask the user only for the resources associated to the user role and not managed by this client
+				if (// ask the user only for the resources associated to the user role and not managed by this client
 					r.getAuthority().equals(AUTHORITY.ROLE_USER) && !authorizationRequest.getClientId().equals(r.getClientId())) {
 					approvedScopes.add(requestedScope);
 					approvals.add(new Approval(userAuthentication.getName(), authorizationRequest.getClientId(), requestedScope, expiry, userApproved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED));
@@ -232,6 +239,10 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 		super.setApprovalStore(store);
 	}
 
+	public void setFlowExtensions(OAuthFlowExtensions extensions) {
+		this.flowExtensions = extensions;
+	}
+	
 	/**
 	 * @param resourceRepository the resourceRepository to set
 	 */

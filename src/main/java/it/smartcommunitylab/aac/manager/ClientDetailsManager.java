@@ -159,6 +159,7 @@ public class ClientDetailsManager {
 			res.setProviderConfigurations(info.getProviderConfigurations());
 			res.setClaimMapping(info.getClaimMapping());
 			res.setUniqueSpaces(info.getUniqueSpaces());
+			res.setOnAfterApprovalWebhook(info.getOnAfterApprovalWebhook());
 		}
 
 		res.setRedirectUris(StringUtils.collectionToCommaDelimitedString(e.getRegisteredRedirectUri()));
@@ -227,6 +228,7 @@ public class ClientDetailsManager {
 			
 			info.setClaimMapping(data.getClaimMapping());
 			info.setUniqueSpaces(data.getUniqueSpaces());
+			info.setOnAfterApprovalWebhook(data.getOnAfterApprovalWebhook());
 			
 			client.setAdditionalInformation(info.toJson());
 			client.setRedirectUri(Utils.normalizeValues(data.getRedirectUris()));

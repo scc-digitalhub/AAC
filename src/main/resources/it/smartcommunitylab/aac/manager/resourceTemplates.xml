@@ -13,6 +13,10 @@
 		<description>Core service for managing basic user profiles.
 		</description>
 
+    <resourceMapping id="openid" name="Read user's username"
+      uri="openid" authority="ROLE_USER">
+      <description>User identity information (username and identifier). Read access only.</description>
+    </resourceMapping>
 		<resourceMapping id="profile.basicprofile.me" name="Read user's basic profile"
 			uri="profile.basicprofile.me" authority="ROLE_USER">
 			<description>Basic profile of the current platform user. Read access

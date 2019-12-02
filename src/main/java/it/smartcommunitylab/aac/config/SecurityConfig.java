@@ -103,11 +103,13 @@ import it.smartcommunitylab.aac.oauth.NativeTokenGranter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
 import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
+import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
+import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
@@ -170,7 +172,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new JdbcApprovalStore(dataSource);
 	}
 
-	
 	@Bean
 	public JdbcClientDetailsService getClientDetails() throws PropertyVetoException {
 		JdbcClientDetailsService bean = new AACJDBCClientDetailsService(dataSource);
@@ -381,7 +382,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Autowired
 		@Qualifier("appTokenServices")
 		private AuthorizationServerTokenServices resourceServerTokenServices;
-		
+
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
 			return new AutoJdbcAuthorizationCodeServices(dataSource);
@@ -394,7 +395,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		}
 
-		// @Bean("appTokenServices")
+		@Bean
+		public OAuthFlowExtensions getFlowExtensions() throws PropertyVetoException {
+			return new WebhookOAuthFlowExtensions();
+		}
+
 		
 		@Bean
 		public UserApprovalHandler getUserApprovalHandler() throws PropertyVetoException {
@@ -403,6 +408,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			bean.setClientDetailsService(clientDetailsService);
 			bean.setResourceRepository(resourceRepository);
 			bean.setRequestFactory(getOAuth2RequestFactory());
+			bean.setFlowExtensions(getFlowExtensions());
 			return bean;
 		}
 

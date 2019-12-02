@@ -45,7 +45,6 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
@@ -197,9 +196,9 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             logger.debug("fetch profile via profilemanager");
 
             Set<String> scope = new HashSet<>(request.getScope());
-            if (!scope.contains(Config.OPENID_SCOPE)) {
-                scope.add(Config.OPENID_SCOPE);
-            }
+//            if (!scope.contains(Config.OPENID_SCOPE)) {
+//                scope.add(Config.OPENID_SCOPE);
+//            }
             Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request()
                     .getAuthorities();
             if (selectedAuthorities != null && !selectedAuthorities.isEmpty())
