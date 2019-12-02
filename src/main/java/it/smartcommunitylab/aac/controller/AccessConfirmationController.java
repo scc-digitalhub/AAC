@@ -17,21 +17,27 @@ package it.smartcommunitylab.aac.controller;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
@@ -63,6 +69,8 @@ public class AccessConfirmationController {
 	private ResourceRepository resourceRepository;
 	@Autowired
 	private RoleManager roleManager;
+	@Autowired
+	private ApprovalStore approvalStore;
 
 	/**
 	 * Request the user confirmation for the resources enabled for the requesting client
@@ -89,8 +97,18 @@ public class AccessConfirmationController {
 				if (!all.contains(r)) iterator.remove();
 			}
 		}
+		User user = (User) ((Authentication) principal).getPrincipal();
+		Collection<Approval> approvals = approvalStore.getApprovals(user.getUsername(), clientAuth.getClientId());
+		Date now = new Date();
+		Set<String> approved = approvals != null 
+				? approvals.stream()
+						.filter(a -> a.isApproved() && a.getExpiresAt().after(now))
+						.map(a -> a.getScope())
+						.collect(Collectors.toSet()) 
+				: Collections.emptySet();
 		
 		for (String rUri : requested) {
+			if (approved.contains(rUri)) continue;
 			try {
 				Resource r = resourceRepository.findByResourceUri(rUri);
 				// ask the user only for the resources associated to the user role and not managed by this client

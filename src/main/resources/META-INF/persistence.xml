@@ -15,5 +15,6 @@
     <class>it.smartcommunitylab.aac.model.APIKeyEntity</class>
     <class>it.smartcommunitylab.aac.model.UserCertificate</class>
     <class>it.smartcommunitylab.aac.model.PersistentLogin</class>
+    <class>it.smartcommunitylab.aac.model.OAuthApproval</class>
 	</persistence-unit>
 </persistence>

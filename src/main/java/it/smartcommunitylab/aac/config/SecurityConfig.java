@@ -53,9 +53,12 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.CompositeTokenGranter;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenGranter;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
@@ -107,6 +110,7 @@ import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Configuration
@@ -161,6 +165,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new AutoJdbcTokenStore(dataSource);
 	}
 
+	@Bean
+	public JdbcApprovalStore getApprovalStore() throws PropertyVetoException {
+		return new JdbcApprovalStore(dataSource);
+	}
+
+	
 	@Bean
 	public JdbcClientDetailsService getClientDetails() throws PropertyVetoException {
 		JdbcClientDetailsService bean = new AACJDBCClientDetailsService(dataSource);
@@ -350,7 +360,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		private DataSource dataSource;
 
 		@Autowired
-		private TokenStore tokenStore;
+		private ApprovalStore approvalStore;
+		@Autowired	
+		private ClientDetailsService clientDetailsService;
+		@Autowired	
+		private ResourceRepository resourceRepository;
 
 		@Autowired
 		private UserApprovalHandler userApprovalHandler;
@@ -358,7 +372,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Autowired
 		private AuthenticationManager authenticationManager;
 
-		@Autowired
+		@Autowired	
 		private ClientDetailsRepository clientDetailsRepository;
 
 		@Autowired
@@ -385,7 +399,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Bean
 		public UserApprovalHandler getUserApprovalHandler() throws PropertyVetoException {
 			UserApprovalHandler bean = new UserApprovalHandler();
-			bean.setTokenStore(tokenStore);
+			bean.setApprovalStore(approvalStore);
+			bean.setClientDetailsService(clientDetailsService);
+			bean.setResourceRepository(resourceRepository);
 			bean.setRequestFactory(getOAuth2RequestFactory());
 			return bean;
 		}

@@ -16,7 +16,10 @@
 
 package it.smartcommunitylab.aac.oauth;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -30,7 +33,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.approval.ApprovalStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Multimap;
@@ -39,6 +47,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 /**
  * Extension of {@link TokenStoreUserApprovalHandler} to enable automatic authorization
@@ -46,7 +55,7 @@ import it.smartcommunitylab.aac.model.Resource;
  * @author raman
  *
  */
-public class UserApprovalHandler extends TokenStoreUserApprovalHandler { // changed
+public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // changed
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -56,9 +65,19 @@ public class UserApprovalHandler extends TokenStoreUserApprovalHandler { // chan
 	@Autowired
 	private RoleManager roleManager;
 	
+	private int approvalExpirySeconds = -1;
+	private ApprovalStore approvalStore;
+	private ResourceRepository resourceRepository;
+	
 	private static final String SPACE_SELECTION_APPROVAL_REQUIRED = "spaceSelectionApproval_required";
 	private static final String SPACE_SELECTION_APPROVAL_DONE = "spaceSelectionApproval_done";
 	private static final String SPACE_SELECTION_APPROVAL_MAP = "spaceSelectionApproval_map";
+
+
+	public void afterPropertiesSet() {
+		Assert.state(approvalStore != null, "ApprovalStore must be provided");
+		Assert.state(resourceRepository != null, "ResourceRepository must be provided");
+	}
 	
 	@Override
 	public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
@@ -119,7 +138,8 @@ public class UserApprovalHandler extends TokenStoreUserApprovalHandler { // chan
 	@Override
 	public AuthorizationRequest updateAfterApproval(AuthorizationRequest authorizationRequest,
 			Authentication userAuthentication) {
-		AuthorizationRequest result = super.updateAfterApproval(authorizationRequest, userAuthentication);
+		AuthorizationRequest result = updateScopeApprovals(authorizationRequest, userAuthentication);
+		
 		if (result.getApprovalParameters().containsKey(SPACE_SELECTION_APPROVAL_REQUIRED)) {
 			Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), userAuthentication.getAuthorities());
 			if (spaces != null && !spaces.isEmpty()) {
@@ -160,6 +180,77 @@ public class UserApprovalHandler extends TokenStoreUserApprovalHandler { // chan
 		return result;
 	}
 
+	protected AuthorizationRequest updateScopeApprovals(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
+		// Get the approved scopes
+		Set<String> requestedScopes = authorizationRequest.getScope();
+		Set<String> approvedScopes = new HashSet<String>();
+		Set<Approval> approvals = new HashSet<Approval>();
+
+		Date expiry = computeExpiry();
+
+		// Store the scopes that have been approved / denied
+		Map<String, String> approvalParameters = authorizationRequest.getApprovalParameters();
+		boolean userApproved = !approvalParameters.containsKey(OAuth2Utils.USER_OAUTH_APPROVAL) || approvalParameters.get(OAuth2Utils.USER_OAUTH_APPROVAL).equals(Boolean.TRUE.toString());
+		for (String requestedScope : requestedScopes) {
+			try {
+				Resource r = resourceRepository.findByResourceUri(requestedScope);
+				// openid scope is approved by default
+				if (Config.OPENID_SCOPE.equals(requestedScope)  || 
+					// ask the user only for the resources associated to the user role and not managed by this client
+					r.getAuthority().equals(AUTHORITY.ROLE_USER) && !authorizationRequest.getClientId().equals(r.getClientId())) {
+					approvedScopes.add(requestedScope);
+					approvals.add(new Approval(userAuthentication.getName(), authorizationRequest.getClientId(), requestedScope, expiry, userApproved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED));
+				}
+			} catch (Exception e) {
+				logger.error("Error reading resource with uri "+requestedScope+": "+e.getMessage());
+			}			
+		}
+		approvalStore.addApprovals(approvals);
+
+		boolean approved;
+//		authorizationRequest.setScope(approvedScopes);
+		if (approvedScopes.isEmpty() && !requestedScopes.isEmpty()) {
+			approved = false;
+		}
+		else {
+			approved = true;
+		}
+		authorizationRequest.setApproved(approved);
+		return authorizationRequest;
+	}
+	
+	public void setApprovalExpiryInSeconds(int approvalExpirySeconds) {
+		this.approvalExpirySeconds = approvalExpirySeconds;
+		super.setApprovalExpiryInSeconds(approvalExpirySeconds);
+	}
+	
+	/**
+	 * @param store the approval to set
+	 */
+	public void setApprovalStore(ApprovalStore store) {
+		this.approvalStore = store;
+		super.setApprovalStore(store);
+	}
+
+	/**
+	 * @param resourceRepository the resourceRepository to set
+	 */
+	public void setResourceRepository(ResourceRepository resourceRepository) {
+		this.resourceRepository = resourceRepository;
+	}
+
+	private Date computeExpiry() {
+		Calendar expiresAt = Calendar.getInstance();
+		if (approvalExpirySeconds == -1) { // use default of 6 months
+			expiresAt.add(Calendar.MONTH, 6);
+		}
+		else {
+			expiresAt.add(Calendar.SECOND, approvalExpirySeconds);
+		}
+		return expiresAt.getTime();
+	}
+
+	
 	/**
 	 * @param clientId
 	 * @param resourceUris
