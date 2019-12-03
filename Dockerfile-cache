@@ -1,0 +1,8 @@
+FROM maven:3-jdk-8 as mvn
+COPY ./src /tmp/src
+COPY ./pom.xml /tmp/pom.xml
+WORKDIR /tmp
+RUN  mvn install
+
+FROM alpine
+COPY --from=mvn /root/.m2 /root/.m2
