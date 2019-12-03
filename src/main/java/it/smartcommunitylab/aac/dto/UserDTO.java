@@ -17,6 +17,7 @@
 
 package it.smartcommunitylab.aac.dto;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import it.smartcommunitylab.aac.model.Role;
@@ -63,6 +64,14 @@ public class UserDTO {
 		res.setUserId(user.getId().toString());
 		res.setUsername(user.getUsername());
 		res.setRoles(user.spaceRole(context, space));
+		return res;
+	}
+	public static UserDTO fromUser(User user) {
+		UserDTO res = new UserDTO();
+		res.setFullname(user.getFullName());
+		res.setUserId(user.getId().toString());
+		res.setUsername(user.getUsername());
+		res.setRoles(new HashSet<>());
 		return res;
 	}
 }
