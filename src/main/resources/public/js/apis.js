@@ -127,6 +127,9 @@ angular.module('aac.controllers.apis', [])
 	$scope.changeRole = function() {
 		console.log('changed');
 	}
+	$scope.invalidRole = function(role) {
+		return !role || !(/^[a-zA-Z0-9_]{3,63}((\.[a-zA-Z0-9_]{2,63})*\.[a-zA-Z]{2,63})?$/g.test(role))
+	}
 	
 })
 
@@ -260,5 +263,8 @@ angular.module('aac.controllers.apis', [])
 		$scope.roles.map[$scope.roles.custom] = true;
 		$scope.roles.custom = null;
 	}
-	
+	$scope.invalidRole = function(role) {
+		return !role || !(/^[a-zA-Z0-9_]{3,63}((\.[a-zA-Z0-9_]{2,63})*\.[a-zA-Z]{2,63})?$/g.test(role))
+	}
+
 })
