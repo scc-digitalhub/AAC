@@ -3,6 +3,9 @@ server:
    host: ${SERVER_HOST:localhost}
    port: ${SERVER_PORT:8080}
    contextPath: ${SERVER_CONTEXT:/aac}
+   tomcat:
+     remote_ip_header: ${SERVER_TOMCAT_REMOTE_IP_HEADER:x-forwarded-for}
+     protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
 
 # APPLICATION EXTERNAL URL
 application:
