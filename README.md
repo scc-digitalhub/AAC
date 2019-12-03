@@ -613,6 +613,22 @@ disambiguation during the authorization step. That is, after authenticating the 
 
 To configure this behavior, the client app should list the contexts, for which the user should be asked to select (**Roles&Claims** configuration of the client app). For example, if the client app is associated with the context ``components/grafana``, the context should be specified in the **Unique Role Spaces** list. During the authorization request, if the user is associated with more than one space within that context, he/she will be asked to select a single value to proceed.
     
+#### 5.3.3. Authentication Flow hooks
+
+The developers may configure the client apps to emit notifications about relevant events
+before the actual authorization flow completes. This is a useful scenario in case of custom OAuth2.0 / OpenID Connect
+integrations, where some specific actions should, e.g., be performed **before** the actual code / token is received. 
+An example is when the external app should prepare some user-related data (e.g., data spaces / tenants) before the user
+is authenticated in that external app.
+
+The notifications have the form of Web hooks configured for the client application. The expected protocol is
+
+- the client app defines a Web hook URL
+- AAC performs a **synchronous** GET call to the specified URL passing the JWT user claims matching the configured client scopes
+
+Currently, the only hook event supported is triggered immediately **after** the user approval (if applied) in the
+authorization flow (authorization code flow or implicit) **before** the actual token / code is returned to the client app.     
+    
 ## 6. AAC API
   
 The Swagger UI for the AAC API is available at ``http://localhost:8080/aac/swagger-ui.html``.   
