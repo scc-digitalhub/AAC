@@ -214,17 +214,17 @@ public class Role implements GrantedAuthority {
 
 	public static void validate(Role r) throws IllegalArgumentException {
 		// context may be empty
-		if (r.context != null && !r.context.matches("[\\w\\-\\./]+")) {
-			throw new IllegalArgumentException("Invalid role context value: only alpha-numeric characters and '_-./' allowed");
+		if (r.context != null && !r.context.matches("[\\w\\./]+")) {
+			throw new IllegalArgumentException("Invalid role context value: only alpha-numeric characters and '_./' allowed");
 		};
 		// space empty only if context is empty
-		if (r.space == null && r.context != null || r.space != null && !r.space.matches("[\\w\\-\\.]+")) {
-			throw new IllegalArgumentException("Invalid role space value: only alpha-numeric characters and '_-.' allowed");
+		if (r.space == null && r.context != null || r.space != null && !r.space.matches("[\\w\\.]+")) {
+			throw new IllegalArgumentException("Invalid role space value: only alpha-numeric characters and '_.' allowed");
 		};
 		// role should never be empty
-		if (r.role == null || !r.role.matches("[\\w\\-\\.]+")) {
-			throw new IllegalArgumentException("Invalid role value: only alpha-numeric characters and '_-.' allowed");
+		if (r.role == null || !r.role.matches("[\\w\\.]+")) {
+			throw new IllegalArgumentException("Invalid role value: only alpha-numeric characters and '_.' allowed");
 		};
 	}
-	
+
 }
