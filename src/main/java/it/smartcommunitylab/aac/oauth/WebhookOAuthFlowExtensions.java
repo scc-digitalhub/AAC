@@ -109,7 +109,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 	public void onAfterApproval(AuthorizationRequest authorizadtionRequest, Authentication userAuthentication) throws FlowExecutionException {
 		ClientDetailsEntity client = clientRepo.findByClientId(authorizadtionRequest.getClientId());
 		Map<String, Object> additional = null;
-		if (client != null && (additional = client.getAdditionalInformation()) != null && additional.containsKey("onAfterApprovalWebhook")) {
+		if (client != null && (additional = client.getAdditionalInformation()) != null && additional.get("onAfterApprovalWebhook") != null) {
 			String hook = (String) additional.get("onAfterApprovalWebhook");
 			try {
 				URL url = new URL(hook);
