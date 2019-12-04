@@ -15,7 +15,7 @@
 					    <input type="text" class="form-control form-control-sm" id="domain" ng-model="roles.custom">
 				  </div>
 				  <div class="col text-right">
-            <button type="button" class="btn btn-primary" ng-click="addRole()" ng-disabled="!roles.custom">Add</button>
+            <button type="button" class="btn btn-primary" ng-click="addRole()" ng-disabled="invalidRole(roles.custom)">Add</button>
           </div>  
 			  </div>
 			  <div class="pt-3 pb-3">Spaces assigned</div>

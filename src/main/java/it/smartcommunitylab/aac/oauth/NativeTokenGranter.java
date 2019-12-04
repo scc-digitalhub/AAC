@@ -73,15 +73,15 @@ public class NativeTokenGranter extends AbstractTokenGranter {
 //		Authentication user = new UsernamePasswordAuthenticationToken(nativeUser.getId().toString(), null, list);
 //		
 		Set<String> scopes = new HashSet<>(tokenRequest.getScope());
-		boolean openidScopeRequested = scopes.contains(Config.OPENID_SCOPE); 
+//		boolean openidScopeRequested = scopes.contains(Config.OPENID_SCOPE); 
 		scopes.remove("default");
-		scopes.remove(Config.OPENID_SCOPE);
+//		scopes.remove(Config.OPENID_SCOPE);
 		
 		if (scopes.isEmpty()) {
 			scopes = client.getScope();
 		}		
 		Set<String> newScopes = providerService.userScopes(nativeUser, scopes, true); 
-		if (openidScopeRequested) newScopes.add(Config.OPENID_SCOPE);
+//		if (openidScopeRequested) newScopes.add(Config.OPENID_SCOPE);
 		tokenRequest.setScope(newScopes);
 		
 		UserDetails user = new org.springframework.security.core.userdetails.User(nativeUser.getId().toString(), "", list);

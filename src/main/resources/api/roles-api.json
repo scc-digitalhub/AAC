@@ -276,6 +276,13 @@
 						"required": false,
 						"type": "string"
 					},
+          {
+            "name": "nested",
+            "in": "query",
+            "description": "if nested search",
+            "required": false,
+            "type": "boolean"
+          },
 					{
 						"name": "offset",
 						"in": "query",

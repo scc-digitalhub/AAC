@@ -200,7 +200,37 @@ public class RoleManager {
 		Pageable pageable = new PageRequest(page, pageSize);
 		return userRepository.findByRoleContext(context, space, pageable);
 	}
-	
+
+	/**
+	 * List all users where role matches context and space (arbitrary role value)
+	 * @param context
+	 * @param space
+	 * @param page
+	 * @param pageSize
+	 * @return
+	 */
+	public List<User> findUsersByContextAndRole(String context, String space, String role, int page, int pageSize) {
+		Pageable pageable = new PageRequest(page, pageSize);
+		return userRepository.findByRoleContextAndRole(context, space, role, pageable);
+	}
+
+	/**
+	 * List all users where role matches context prefix and space (arbitrary role value)
+	 * @param context
+	 * @param space
+	 * @param page
+	 * @param pageSize
+	 * @return
+	 */
+	public List<User> findUsersByContextNested(String context, String space, String role, int page, int pageSize) {
+		Pageable pageable = new PageRequest(page, pageSize);
+		Role r = new Role();
+		r.setContext(context);
+		r.setSpace(space);
+		String canonical = r.canonicalSpace();
+		return userRepository.findByRoleContextAndRoleNested(canonical, role, pageable);
+	}
+
 	public List<GrantedAuthority> buildAuthorities(User user) {
 		Set<Role> roles = getRoles(user);
 		roles.add(Role.systemUser());

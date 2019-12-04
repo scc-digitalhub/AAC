@@ -49,6 +49,7 @@ public class ClientAppInfo {
 	
 	private Set<String> uniqueSpaces;
 	private String claimMapping; 
+	private String onAfterApprovalWebhook;
 	
 	static {
 		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -154,5 +155,19 @@ public class ClientAppInfo {
 	 */
 	public void setClaimMapping(String claimMapping) {
 		this.claimMapping = claimMapping;
+	}
+
+	/**
+	 * @return the onAfterApprovalWebhook
+	 */
+	public String getOnAfterApprovalWebhook() {
+		return onAfterApprovalWebhook;
+	}
+
+	/**
+	 * @param onAfterApprovalWebhook the onAfterApprovalWebhook to set
+	 */
+	public void setOnAfterApprovalWebhook(String onAfterApprovalWebhook) {
+		this.onAfterApprovalWebhook = onAfterApprovalWebhook;
 	}
 }

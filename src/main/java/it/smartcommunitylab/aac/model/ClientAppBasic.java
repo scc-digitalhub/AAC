@@ -49,6 +49,7 @@ public class ClientAppBasic {
 
 	private Set<String> uniqueSpaces;
 	private String claimMapping; 
+	private String onAfterApprovalWebhook;
 	
 	private String userName;
 	private String scope;
@@ -230,5 +231,17 @@ public class ClientAppBasic {
 	 */
 	public void setClaimMapping(String claimMapping) {
 		this.claimMapping = claimMapping;
+	}
+	/**
+	 * @return the onAfterApprovalWebhook
+	 */
+	public String getOnAfterApprovalWebhook() {
+		return onAfterApprovalWebhook;
+	}
+	/**
+	 * @param onAfterApprovalWebhook the onAfterApprovalWebhook to set
+	 */
+	public void setOnAfterApprovalWebhook(String onAfterApprovalWebhook) {
+		this.onAfterApprovalWebhook = onAfterApprovalWebhook;
 	}
 }

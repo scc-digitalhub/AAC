@@ -53,9 +53,12 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.CompositeTokenGranter;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenGranter;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
@@ -100,13 +103,16 @@ import it.smartcommunitylab.aac.oauth.NativeTokenGranter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
 import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
+import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
+import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Configuration
@@ -159,6 +165,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public AutoJdbcTokenStore getTokenStore() throws PropertyVetoException {
 		return new AutoJdbcTokenStore(dataSource);
+	}
+
+	@Bean
+	public JdbcApprovalStore getApprovalStore() throws PropertyVetoException {
+		return new JdbcApprovalStore(dataSource);
 	}
 
 	@Bean
@@ -350,7 +361,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		private DataSource dataSource;
 
 		@Autowired
-		private TokenStore tokenStore;
+		private ApprovalStore approvalStore;
+		@Autowired	
+		private ClientDetailsService clientDetailsService;
+		@Autowired	
+		private ResourceRepository resourceRepository;
 
 		@Autowired
 		private UserApprovalHandler userApprovalHandler;
@@ -358,7 +373,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Autowired
 		private AuthenticationManager authenticationManager;
 
-		@Autowired
+		@Autowired	
 		private ClientDetailsRepository clientDetailsRepository;
 
 		@Autowired
@@ -367,7 +382,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Autowired
 		@Qualifier("appTokenServices")
 		private AuthorizationServerTokenServices resourceServerTokenServices;
-		
+
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
 			return new AutoJdbcAuthorizationCodeServices(dataSource);
@@ -380,13 +395,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		}
 
-		// @Bean("appTokenServices")
+		@Bean
+		public OAuthFlowExtensions getFlowExtensions() throws PropertyVetoException {
+			return new WebhookOAuthFlowExtensions();
+		}
+
 		
 		@Bean
 		public UserApprovalHandler getUserApprovalHandler() throws PropertyVetoException {
 			UserApprovalHandler bean = new UserApprovalHandler();
-			bean.setTokenStore(tokenStore);
+			bean.setApprovalStore(approvalStore);
+			bean.setClientDetailsService(clientDetailsService);
+			bean.setResourceRepository(resourceRepository);
 			bean.setRequestFactory(getOAuth2RequestFactory());
+			bean.setFlowExtensions(getFlowExtensions());
 			return bean;
 		}
 

@@ -178,14 +178,36 @@ public class RolesController {
 	@GetMapping("/userroles/role")
 	public @ResponseBody List<UserDTO> spaceUsers(
 			@RequestParam String context,
+			@RequestParam(required=false, defaultValue="false") Boolean nested,
 			@RequestParam(required=false) String role,
 			@RequestParam(required=false, defaultValue="0") Integer offset, 
 			@RequestParam(required=false, defaultValue="25") Integer limit) 
 	{
 		offset = offset / limit;
+		// if nested, search by context/space matching input context union context prefix match input context
+		// if not nested, search context/space matching input context
 		Role r = Role.ownerOf(context);
-		List<User> users = roleManager.findUsersByContext(r.getContext(), r.getSpace(), offset, limit);
-		List<UserDTO> dtos = users.stream().map(u -> UserDTO.fromUser(u, r.getContext(), r.getSpace())).collect(Collectors.toList());
+		String extContext =  context + "/";
+		List<User> users = null;
+		List<UserDTO> dtos = null;
+		if (nested) {
+			users = roleManager.findUsersByContextNested(r.getContext(), r.getSpace(), role, offset, limit);
+			dtos = users.stream().map(u -> {
+				UserDTO dto = UserDTO.fromUser(u);
+				dto.setRoles(u.getRoles().stream().filter(ur -> {
+					String canonical = ur.canonicalSpace();
+					return canonical.equals(context) || canonical.startsWith(extContext);
+				}).collect(Collectors.toSet()));
+				return dto;
+			}).collect(Collectors.toList());
+		} else {
+			users = roleManager.findUsersByContextAndRole(r.getContext(), r.getSpace(), role, offset, limit);
+			dtos = users.stream().map(u -> {
+				UserDTO dto = UserDTO.fromUser(u);
+				dto.setRoles(u.getRoles().stream().filter(ur -> ur.canonicalSpace().equals(context)).collect(Collectors.toSet()));
+				return dto;
+			}).collect(Collectors.toList());
+		}
 		return dtos;
 	}
 	

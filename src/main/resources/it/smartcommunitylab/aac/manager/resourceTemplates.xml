@@ -13,6 +13,10 @@
 		<description>Core service for managing basic user profiles.
 		</description>
 
+    <resourceMapping id="openid" name="Read user's username"
+      uri="openid" authority="ROLE_USER">
+      <description>User identity information (username and identifier). Read access only.</description>
+    </resourceMapping>
 		<resourceMapping id="profile.basicprofile.me" name="Read user's basic profile"
 			uri="profile.basicprofile.me" authority="ROLE_USER">
 			<description>Basic profile of the current platform user. Read access
@@ -138,6 +142,14 @@
 		<apiKey>admin-AACAuthorization-1.0.0</apiKey>
 	</service>
 
+  <service name="Vault Data Service" id="security.vault">
+    <description>Core service for managing secure resource access and data.</description>
+
+    <resourceMapping id="vault.data.read" name="Read vault data" uri="vault.data.read" authority="ROLE_ANY" >
+      <description>Manage clients programmatically.</description>
+    </resourceMapping>
+
+  </service>
 
 
 </services>

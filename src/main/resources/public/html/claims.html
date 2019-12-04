@@ -20,6 +20,13 @@
               <div ui-ace="aceOption" ng-model="app.claimMapping"></div>
              </td>
         </tr>
+        <tr>
+            <th width="30%">After approval web hook</th>
+            <td>
+                <input type="text" class="form-control form-control-sm" placeholder="Web hook" ng-model="app.onAfterApprovalWebhook">
+             </td>
+        </tr>
+        
     </table>
     <button type="button" ng-click="saveClaims()" class="btn btn-primary float-right" ng-disabled="claimsForm.$invalid">Save</button>
 </form>

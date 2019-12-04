@@ -75,8 +75,10 @@ public class ClaimManager {
 
 	// claims that should not be overwritten
 	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
-	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "authorities", "username", "user_name");
+	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "username", "user_name");
 
+	// TODO
+	// keep roles instead of authorities, change groups to become flat, remove authorities, realms, and role_access
 	
 	public ClaimManager() {
 		super();
@@ -350,10 +352,9 @@ public class ClaimManager {
                 rolesList.add(role.getAuthority());
             }
             claims.put("roles", rolesList.toArray(new String[0]));
-            if (!claims.containsKey("authorities")) {
-                claims.put("authorities", claims.get("roles"));
-            }
-            
+//            if (!claims.containsKey("authorities")) {
+//                claims.put("authorities", claims.get("roles"));
+//            }
             // build also as realm/resource claims
             Set<String> realmRoles = new HashSet<>();
             for (Role role : roles) {
@@ -361,9 +362,9 @@ public class ClaimManager {
                     realmRoles.add(role.getRole());
                 }
             }
-            net.minidev.json.JSONObject realmRoleObj = new net.minidev.json.JSONObject();
-            realmRoleObj.put("roles", realmRoles.toArray(new String[0]));
-            claims.put("realm_access", realmRoleObj);
+//            net.minidev.json.JSONObject realmRoleObj = new net.minidev.json.JSONObject();
+//            realmRoleObj.put("roles", realmRoles.toArray(new String[0]));
+//            claims.put("realm_access", realmRoleObj);
             
             Map<String,Set<String>> resourceRoles = new HashMap<>();
             for (Role role : roles) {
@@ -384,22 +385,25 @@ public class ClaimManager {
                 }                                                       
             }
             
-            net.minidev.json.JSONObject resourceRolesObj = new net.minidev.json.JSONObject();
-            for(String res : resourceRoles.keySet()) {
-                net.minidev.json.JSONObject resObj = new net.minidev.json.JSONObject();                                                      
-                resObj.put("roles", resourceRoles.get(res).toArray(new String[0]));
-                resourceRolesObj.put(res, resObj);
-            }                        
-            claims.put("resource_access", resourceRolesObj);
+//            net.minidev.json.JSONObject resourceRolesObj = new net.minidev.json.JSONObject();
+//            for(String res : resourceRoles.keySet()) {
+//                net.minidev.json.JSONObject resObj = new net.minidev.json.JSONObject();                                                      
+//                resObj.put("roles", resourceRoles.get(res).toArray(new String[0]));
+//                resourceRolesObj.put(res, resObj);
+//            }                        
+//            claims.put("resource_access", resourceRolesObj);
             
             
             // also build list of "groups" (as plain array)
             // define a group as context+space, ignoring role
             Set<String> groups = new HashSet<>();
             for (Role role : roles) {
-                if (!StringUtils.isEmpty(role.getContext()) && !StringUtils.isEmpty(role.getSpace())) {
-                    groups.add(role.getContext() + "/" + role.getSpace());
-                }
+//                if (!StringUtils.isEmpty(role.getContext()) && !StringUtils.isEmpty(role.getSpace())) {
+//                    groups.add(role.getContext() + "/" + role.getSpace());
+//                }
+            	if (!StringUtils.isEmpty(role.getSpace())) {
+            		groups.add(role.asSlug());
+            	}
             }
             claims.put("groups", groups.toArray(new String[0]));                   
         }
