@@ -21,7 +21,7 @@ jdbc:
 admin:
    username: ${ADMIN_USERNAME:admin}
    password: ${ADMIN_PASSWORD:admin}
-   contexts: apimanager, authorization, components
+   contexts: apimanager, authorization, components, organizations
    contextSpaces: components/apimanager/carbon.super
    roles: null
 
@@ -61,6 +61,9 @@ jwt:
       enc: ${JWT_KID_ENC:}
 
 #EXTERNAL PROVIDERS
+authorities:
+   enabled: ${AUTHORITIES:internal}
+
 oauth-providers:
   providers:
     - provider: facebook

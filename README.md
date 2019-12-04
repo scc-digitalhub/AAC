@@ -232,6 +232,17 @@ Out of the box, AAC comes with the following providers pre-configured:
 * ADC
 
 In order to activate any of those it is required to provide the correct client parameters.
+After providing the required settings, enable the external identity providers by updating the list of active authorities via configuration:
+
+    authorities:
+      enabled: internal,google,facebook,adc
+
+or via ENV
+   
+    AUTHORITIES = internal,google,facebook,adc
+
+> **NOTE:**
+AAC requires the *internal* authority enabled for admin access.
 
 #### Facebook
 First register as a developer and create a client application via Facebook.
@@ -304,6 +315,7 @@ for the provider, and relations to the other providers' attributes (e.g., via em
 defines the Google authentication attributes. Specifically, the ``email`` attribute is used to uniquely identify
 Google users.  
 
+Furthermore, any additional authority added to the mapping should be enabled via the setting ``authorities.enabled``.
 
 ### 2.6. Authorization Module
 
