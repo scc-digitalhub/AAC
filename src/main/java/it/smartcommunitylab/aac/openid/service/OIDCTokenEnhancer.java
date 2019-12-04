@@ -2,11 +2,15 @@
 package it.smartcommunitylab.aac.openid.service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,7 @@ import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 /**
  * Default implementation of service to create specialty OpenID Connect tokens.
  *
@@ -77,6 +82,9 @@ public class OIDCTokenEnhancer  {
 	
     @Autowired
     private UserManager userManager;
+
+    @Autowired
+	private ResourceRepository resourceRepository;
 
 	public JWT createIdToken(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
 		OAuth2Request request = authentication.getOAuth2Request();
@@ -148,10 +156,15 @@ public class OIDCTokenEnhancer  {
 			idClaims.expirationTime(expiration);
 		}
 
+        List<String> audiences = new LinkedList<>();
+        audiences.add(clientId);
+        audiences.addAll(getServiceIds(request.getScope()));
+
 		idClaims.issuer(issuer);
 		idClaims.subject(authentication.getName());
-		idClaims.audience(Lists.newArrayList(client.getClientId()));
+		idClaims.audience(audiences);
 		idClaims.jwtID(UUID.randomUUID().toString()); // set a random NONCE in the middle of it
+        idClaims.claim("azp", clientId);
 
 		String nonce = (String)request.getExtensions().get(NONCE);
 		if (!Strings.isNullOrEmpty(nonce)) {
@@ -256,6 +269,13 @@ public class OIDCTokenEnhancer  {
 		jwtService.signJwt(signed);
 		return signed;
 	}	
+
+    private Set<String> getServiceIds(Set<String> scopes) {
+    	if (scopes != null && !scopes.isEmpty()) {
+    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
+    	}
+    	return Collections.emptySet();
+    }
 
 
 }

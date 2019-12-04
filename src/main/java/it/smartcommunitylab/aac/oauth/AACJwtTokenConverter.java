@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,7 +37,6 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
@@ -53,6 +55,7 @@ import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 @Service
 public class AACJwtTokenConverter extends JwtAccessTokenConverter {
@@ -77,15 +80,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     private ClientDetailsRepository clientRepository;
 
     @Autowired
+    private ResourceRepository resourceRepository;
+
+    @Autowired
     private UserManager userManager;
-
-//    private Map<String, String> customHeaders = new HashMap<>();
-
-//    @Value("${oauth2.kid.sig}")
-//    private String kid;
-//
-//    @Value("${oauth2.key}")
-//    private String key;
 
     @Autowired
     private ClaimManager claimManager;
@@ -201,9 +199,9 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 //            }
             Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request()
                     .getAuthorities();
-            if (selectedAuthorities != null && !selectedAuthorities.isEmpty())
-                claims.put(AUTHORITIES,
-                        selectedAuthorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet()));
+//            if (selectedAuthorities != null && !selectedAuthorities.isEmpty())
+//                claims.put(AUTHORITIES,
+//                        selectedAuthorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet()));
             Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
             // set directly, ignore extracted
@@ -217,9 +215,11 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             claims.put("sub", user.getId());
         }
 
-        // set only this client as audience for token - also needs fix in encode due to
-        // tokenConverter misbehavior
-        claims.put(AUD, Lists.newArrayList(clientId));
+        Set<String> audiences = new HashSet<>();
+        audiences.add(clientId);
+        audiences.addAll(getServiceIds(accessToken.getScope()));
+        claims.put(AUD, audiences);
+        claims.put("azp", clientId);
 
 //        // reset additional claims for scopes to a list instead of an array
 //        info.put("scope", String.join(" ", request.getScope()));
@@ -290,12 +290,13 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // fetch data and reformat token
         String clientId = request.getClientId();
         ClientDetailsEntity client = clientRepository.findByClientId(clientId);
-        // reset AUD to only client since token converter HARDCODES it ignoring claims
-        claims.put(AUD, clientId);
+        List<String> audiences = new LinkedList<>();
+        audiences.add(clientId);
+        audiences.addAll(getServiceIds(accessToken.getScope()));
+        claims.put(AUD, audiences);
 
         // reset additional claims for scopes to a list instead of an array
         claims.put("scope", String.join(" ", request.getScope()));
-
         // TODO rewrite checks with whitelist/graylist
         // ie refresh == whitelisted
         // access == requested&allowed&prefixed
@@ -306,10 +307,12 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             claims.remove(AUTHORITIES);
         }
 
-        if (!request.getScope().contains("user.roles.me")) {
-            // clear authorities from access token
-            claims.remove(AUTHORITIES);
-        }
+        // clear authorities from access token
+        claims.remove(AUTHORITIES);
+//        if (!request.getScope().contains("user.roles.me")) {
+//            // clear authorities from access token
+//            claims.remove(AUTHORITIES);
+//        }
 
 //       MOVED to claimManager       
 //        // rewrite user_name as sub, if requested by scopes we will already have an
@@ -365,7 +368,9 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // base
         jwtClaims.issuer(issuer);
         jwtClaims.subject(authentication.getName());
-        jwtClaims.audience(Lists.newArrayList(client.getClientId()));
+        jwtClaims.claim("azp", clientId);
+        
+        jwtClaims.audience(audiences);
         // time
         if (accessToken.getExpiration() != null) {
             Date expiration = accessToken.getExpiration();
@@ -505,6 +510,13 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         }
     }
 
+    
+    private Set<String> getServiceIds(Set<String> scopes) {
+    	if (scopes != null && !scopes.isEmpty()) {
+    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
+    	}
+    	return Collections.emptySet();
+    }
 //    private Signer getSigner(ClientDetailsEntity client) {
 //        if (this.signer != null) {
 //            // always use global if defined

@@ -19,9 +19,14 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,6 +56,7 @@ import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 
 /**
@@ -78,6 +84,9 @@ public class UserInfoJWTView extends UserInfoView {
 	@Autowired
 	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
 
+	@Autowired
+	private ResourceRepository resourceRepository;
+
 	@Override
 	protected void writeOut(Map<String, Object> json, Map<String, Object> model,
 			HttpServletRequest request, HttpServletResponse response) {
@@ -89,10 +98,16 @@ public class UserInfoJWTView extends UserInfoView {
 			StringWriter writer = new StringWriter();
 			gson.toJson(json, writer);
 
+			Set<String> scope = (Set<String>) model.get(SCOPE);
+	        List<String> audiences = new LinkedList<>();
+	        audiences.add(client.getClientId());
+	        audiences.addAll(getServiceIds(scope));
+
 			response.setContentType(JOSE_MEDIA_TYPE_VALUE);
 
 			JWTClaimsSet claims = new JWTClaimsSet.Builder(JWTClaimsSet.parse(writer.toString()))
-					.audience(Lists.newArrayList(client.getClientId()))
+					.audience(audiences)
+					.claim("azp", client.getClientId())
 					.issuer(issuer)
 					.issueTime(new Date())
 					.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
@@ -159,4 +174,12 @@ public class UserInfoJWTView extends UserInfoView {
 		}
 
 	}
+
+    private Set<String> getServiceIds(Set<String> scopes) {
+    	if (scopes != null && !scopes.isEmpty()) {
+    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
+    	}
+    	return Collections.emptySet();
+    }
+
 }

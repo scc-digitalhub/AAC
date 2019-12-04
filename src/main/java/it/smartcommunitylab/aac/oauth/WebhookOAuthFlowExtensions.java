@@ -18,9 +18,14 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -40,7 +45,6 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -59,6 +63,7 @@ import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 /**
  * Implementation of the {@link OAuthFlowExtensions} with the Web hook functionality. 
@@ -83,6 +88,8 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 	private JWTSigningAndValidationService jwtService;
 	@Autowired
 	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
+	@Autowired
+	private ResourceRepository resourceRepository;
 	
 	private RestTemplate restTemplate;
 	
@@ -129,13 +136,18 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 		}
 	}
 	
-	protected String extractToken(AuthorizationRequest authorizadtionRequest, Authentication userAuthentication, ClientDetailsEntity client) throws FlowExecutionException {
-		Map<String, Object> claimMap = claimManager.createUserClaims(userAuthentication.getName(), userAuthentication.getAuthorities(), client, authorizadtionRequest.getScope(), null, null);
+	protected String extractToken(AuthorizationRequest authorizationRequest, Authentication userAuthentication, ClientDetailsEntity client) throws FlowExecutionException {
+		Map<String, Object> claimMap = claimManager.createUserClaims(userAuthentication.getName(), userAuthentication.getAuthorities(), client, authorizationRequest.getScope(), null, null);
 		JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder();
 		claimMap.entrySet().forEach(e -> builder.claim(e.getKey(), e.getValue()));
 		
+        List<String> audiences = new LinkedList<>();
+        audiences.add(client.getClientId());
+        audiences.addAll(getServiceIds(authorizationRequest.getScope()));
+
 		JWTClaimsSet claims = builder
-				.audience(Lists.newArrayList(client.getClientId()))
+				.audience(audiences)
+				.claim("azp", client.getClientId())
 				.issuer(issuer)
 				.issueTime(new Date())
 				.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
@@ -193,5 +205,12 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 			return signed.serialize();
 		}
 	}
+
+    private Set<String> getServiceIds(Set<String> scopes) {
+    	if (scopes != null && !scopes.isEmpty()) {
+    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
+    	}
+    	return Collections.emptySet();
+    }
 
 }
