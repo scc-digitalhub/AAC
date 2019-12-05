@@ -128,6 +128,8 @@ public class Utils {
 		
 		if (index != lastIndex) {
 			un = un.substring(0, lastIndex);
+		} else if (un.endsWith("@carbon.super")) {
+			un = un.substring(0, un.indexOf('@'));
 		}
 		
 		return un;
@@ -145,6 +147,8 @@ public class Utils {
 			result[0] = tenant.substring(0, lastIndex);
 			result[1] = tenant.substring(lastIndex + 1, tenant.length());
 			return result;
+		} else if (tenant.endsWith("@carbon.super")) {
+			return tenant.split("@");
 		}
 		return new String[] {tenant, "carbon.super"};
 	}	
