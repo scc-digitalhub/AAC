@@ -1,0 +1,40 @@
+{
+  "page_title": "AAC Account",
+  "menu_home": "Home",
+  "menu_accounts": "Account Info",
+  "menu_apps": "Connected Apps",
+  "menu_dev": "Developer",
+  "menu_signout": "Sign Out",
+  "msg_ok": "Operation completed successfully",
+  "cookie1": "Questo sito utilizza cookie tecnici, analytics e di terze parti.",
+  "cookie2": "Proseguendo nella navigazione accetti l’utilizzo dei cookie.",
+  "cookie_pref": "Preferenze",
+  "cookie_accept": "Accetto",
+  "btn_cancel": "Cancel",
+  "home": {
+    "welcome" : "Welcome, {{fullname}}!",
+    "account_card_title": "Account Info",
+    "account_card_text": "View associated account information, merge and connect social accounts, etc.",
+    "account_card_more": "Manage Accounts",
+    "app_card_title": "3rd Party Apps",
+    "app_card_text": "View 3rd party apps connected to your account, manage app authorizations.",
+    "app_card_more": "Manage 3rd part apps"
+  },
+  "accounts": {
+    "title": "Account Information",
+    "internal_title": "Registered User",
+    "internal_subtitle": "Your personal information as of registration",
+    "internal_missing": "No registration data available. Create it here!",
+    "internal_edit": "Change registration data",
+    "delete_title": "Delete Account",
+    "delete_subtitle": "Remove your account and all the associated information",
+    "delete_delete": "Delete",
+    "external": "External associated accounts",
+    "external_subtitle": "You personal data extracted from this account",
+    "external_missing": "No account associated",
+    "field_name": "Name",
+    "field_surname": "Surname",
+    "btn_delete": "Delete",
+    "delete_confirm": "Are you sure you want to delete your account? This action cannot be undone!"
+  }
+}

@@ -17,7 +17,7 @@
 -->
 
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" data-ng-app="dev">
+<html xmlns:th="http://www.thymeleaf.org" data-ng-app="account">
   <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -39,20 +39,14 @@
 	 
 <!-- 	  <link href="css/style.css" rel="stylesheet" />
  -->    <!-- Custom styles for this template -->
-    <title>AAC Developer Dashboard</title>
+    <title>{{'page_title' | translate}}</title>
     <style type="text/css">
       body {
         padding-top: 100px;
         padding-bottom: 60px;
       }
     </style>
-    <script th:inline="javascript">
-	  /*<![CDATA[*/
-	    ROLES = [[${roles}]];
-	    CONTEXTS = [[${contexts}]];
-	    API_PROVIDER = [[${apiProvider}]];
-	    /*]]>*/
-	  </script> 
+
     
     <script src="lib/angular/angular.min.js"></script>
     <script src="lib/angular/angular-resource.min.js"></script>
@@ -60,6 +54,8 @@
     
     <script src="lib/angular/angular-spinner.min.js"></script>
     <script src="lib/ng-tags-input.min.js"></script>
+    <script src="lib/angular-translate.min.js"></script>
+    <script src="lib/angular-translate-loader-static-files.min.js"></script>
     
     <script src="lib/spin.min.js"></script>
     
@@ -67,39 +63,34 @@
     <script src="lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="lib/ace/ui-ace.js" type="text/javascript" charset="utf-8"></script>
 
-    <script src="js/app.js"></script>
-    <script src="js/services.js"></script>
-    <script src="js/main.js"></script>
-     <script src="js/clients.js"></script>
-    <script src="js/customservices.js"></script>
-    <script src="js/admin.js"></script>
-    <script src="js/apis.js"></script>
+    <script src="js/account/app.js"></script>
+    <script src="js/account/main.js"></script>
+    <script src="js/account/services.js"></script>
  </head>
 
   <body data-ng-controller="MainCtrl">
 	  <nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-primary it-header-slim-wrapper">
 	    <div class="container"> 
-		  <a class="navbar-brand" href="#">AAC</a>
+		  <a class="navbar-brand" href="#/">AAC</a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 		    <span class="navbar-toggler-icon"></span>
 		  </button>
 
 		  <div class="collapse navbar-collapse" id="navbarSupportedContent">
 		    <ul class="navbar-nav mr-auto">
-          <li class="nav-link"  data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
-          <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantusers'}"><a data-ng-click="go('tenantusers')">User Roles</a></li>
-          <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantowners'}"><a data-ng-click="go('tenantowners')">Space Owners</a></li>
-          <li class="nav-link"  ng-if="roles.indexOf('ROLE_ADMIN') >= 0" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
+          <li class="nav-link"  data-ng-class="{'active': currentView == ''}"><a data-ng-click="go('')">{{'menu_home' | translate}}</a></li>
+          <li class="nav-link" data-ng-class="{'active': currentView == 'accounts'}"><a data-ng-click="go('accounts')">{{'menu_accounts' | translate}}</a></li>
+          <li class="nav-link" data-ng-class="{'active': currentView == 'connections'}"><a data-ng-click="go('connections')">{{'menu_apps' | translate}}</a></li>
         </ul>
         
         <ul class="nav navbar-nav ml-auto">
+          <li class="nav-link navbar"><a class="navbar-text" href="./dev">{{'menu_dev' | translate}}</a></li>
 		      <li class="nav-item dropdown">
 		        <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		          <span th:text="${username}">User</span>
+		          <span >{{user.fullname}}</span>
 		        </a>
 		        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" role="menuitem" href="./account">Account</a>
-              <a class="dropdown-item" role="menuitem" data-ng-click="signOut()">Sign out</a>
+              <a class="dropdown-item" role="menuitem" data-ng-click="signOut()">{{'menu_signout' | translate}}</a>
 		        </div>
 		      </li>
 		    </ul>
@@ -110,7 +101,7 @@
     <div class="container">
 	    <div class="container ng-view" ></div>
 	
-	    <div class="alert alert-success" role="alert" data-ng-if="showSuccess">Operation completed successfully</div>
+	    <div class="alert alert-success" role="alert" data-ng-if="showSuccess">{{'msg_ok' | translate}}</div>
 	    <div class="alert alert-danger" role="alert" data-ng-if="showError">{{errorMsg}}</div>
     </div>
 	  
@@ -119,5 +110,12 @@
 	   </div>	   
       <!-- Design Italia -->
      <script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
+     <div class="cookiebar">
+      <p>{{'cookie1' | translate}} <br/>{{'cookie2' | translate}}</p>
+      <div class="cookiebar-buttons">
+        <a href="#" class="cookiebar-btn">{{'cookie_pref' | translate}}<span class="sr-only">cookies</span></a>
+        <button data-accept="cookiebar" class="cookiebar-btn cookiebar-confirm">{{'cookie_accept' | translate}}<span class="sr-only"> i cookies</span></button>
+      </div>
+    </div>
    </body>
 </html>
