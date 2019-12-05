@@ -1,7 +1,9 @@
-FROM maven:3.3-jdk-8 as mvn
-COPY . /tmp
+# syntax=docker/dockerfile:experimental
+FROM maven:3-jdk-8 as mvn
+COPY src /tmp/src
+COPY pom.xml /tmp/pom.xml
 WORKDIR /tmp
-RUN mvn install -Plocal,authorization
+RUN --mount=type=bind,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache-alpine mvn package -DskipTests
 
 FROM adoptopenjdk/openjdk8:alpine
 ARG VER=0.1
@@ -16,11 +18,8 @@ ENV APP=aac-${VER}.jar
 RUN  addgroup -g ${USER_GROUP_ID} ${USER_GROUP}; \
      adduser -u ${USER_ID} -D -g '' -h ${USER_HOME} -G ${USER_GROUP} ${USER} ;
 
-RUN apk update && apk add curl openssl && rm -rf /var/cache/apk/*
-RUN chown aac:aac /opt/java/openjdk/jre/lib/security/cacerts
 WORKDIR ${USER_HOME}
 COPY --chown=aac:aac --from=mvn /tmp/target/aac.jar ${USER_HOME}
 COPY --chown=aac:aac init.sh ${USER_HOME}
-COPY --chown=aac:aac ./src/main/resources/application-local.yml.env ${USER_HOME}/application-local.yml
 USER aac
 ENTRYPOINT "/home/aac/init.sh"

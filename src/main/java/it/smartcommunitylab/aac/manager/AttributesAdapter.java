@@ -38,6 +38,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.stereotype.Component;
 
@@ -77,11 +78,12 @@ public class AttributesAdapter {
 	@Autowired
 	private NativeAuthorityHandlerContainer nativeAuthorityHandlerManager;
 	
+	
 	/**
 	 * Load attributes from the XML descriptor.
 	 * @throws JAXBException
 	 */
-	protected void init() throws JAXBException {
+	protected void init(List<String> enabledAuthorities) throws JAXBException {
 		JAXBContext jaxb = JAXBContext.newInstance(AuthorityMapping.class,
 				Authorities.class);
 		Unmarshaller unm = jaxb.createUnmarshaller();
@@ -94,22 +96,27 @@ public class AttributesAdapter {
 		authorityMatches = ArrayListMultimap.create();//new HashMap<String, AuthorityMatching>();
 		identityAttributes = new HashMap<String, Set<String>>();
 		for (AuthorityMapping mapping : auths.getAuthorityMapping()) {
-			Authority auth = authorityRepository.findOne(mapping.getName());
-			if (auth == null) {
-				auth = new Authority();
-				auth.setName(mapping.getName());
-				auth.setRedirectUrl(mapping.getUrl());
-				authorityRepository.saveAndFlush(auth);
-//				authorityRepository.save(auth);
-//				authorityRepository.flush();
-			}
-			authorities.put(mapping.getName(), mapping);
-			Set<String> identities = new HashSet<String>();
-			if (mapping.getIdentifyingAttributes() != null) {
-				identities.addAll(mapping.getIdentifyingAttributes());
-			}
-			identityAttributes.put(auth.getName(), identities);
+		    //check if enabled in config
+		    if(enabledAuthorities.contains(mapping.getName())) {
+    			Authority auth = authorityRepository.findOne(mapping.getName());
+    			if (auth == null) {
+    				auth = new Authority();
+    				auth.setName(mapping.getName());
+    				auth.setRedirectUrl(mapping.getUrl());
+    				authorityRepository.saveAndFlush(auth);
+    //				authorityRepository.save(auth);
+    //				authorityRepository.flush();
+    			}
+    			authorities.put(mapping.getName(), mapping);
+    			Set<String> identities = new HashSet<String>();
+    			if (mapping.getIdentifyingAttributes() != null) {
+    				identities.addAll(mapping.getIdentifyingAttributes());
+    			}
+    			identityAttributes.put(auth.getName(), identities);
+		    }
 		}
+        logger.debug("active authorities "+authorities.keySet().toString());
+
 		if (auths.getAuthorityMatching() != null) {
 			for (AuthorityMatching am : auths.getAuthorityMatching()) {
 				for (Match match : am.getAuthority()) {

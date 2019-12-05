@@ -17,6 +17,7 @@ package it.smartcommunitylab.aac.manager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,10 +69,12 @@ public class ProviderServiceAdapter {
 	@Autowired
 	private ResourceRepository resourceRepository;	
 
-	
+    @Value("${authorities.enabled}")
+    private String[] enabledAuthorities;
+	   
 	public void init() throws JAXBException, IOException {
 	    logger.debug("init");
-		attrAdapter.init();
+		attrAdapter.init(Arrays.asList(enabledAuthorities));
 	}
 
 	/**
