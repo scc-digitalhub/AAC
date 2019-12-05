@@ -237,6 +237,7 @@ public class AttributesAdapter {
 				if (value != null) {
 					for (Match match : matching.getAuthority()) {
 						if (match.getName().equals(auth.getName())) continue;
+						if (!authorities.containsKey(match.getName())) continue;
 						
 						Attribute a = new Attribute();
 						a.setAuthority(authorityRepository.findOne(match.getName()));
