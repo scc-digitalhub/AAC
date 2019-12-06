@@ -21,7 +21,7 @@ angular.module('aac.controllers.main', [])
 		data.fullname = data.name + ' ' + data.surname;
 		$rootScope.user = data;
 	}).catch(function(err) {
-		Utils.showError(err.message);
+		Utils.showError(err);
 	});
 })
 
@@ -49,10 +49,10 @@ angular.module('aac.controllers.main', [])
 			}
 			$scope.accounts = accounts;
 		}).catch(function(err) {
-			Utils.showError(err.message);
+			Utils.showError(err);
 		});
 	}).catch(function(err) {
-		Utils.showError(err.message);
+		Utils.showError(err);
 	});
 	
 	$scope.confirmDeleteAccount = function() {
@@ -64,13 +64,45 @@ angular.module('aac.controllers.main', [])
 		Data.deleteAccount().then(function() {
 			window.location.href = './logout';
 		}).catch(function(err) {
-			Utils.showError(err.message);
+			Utils.showError(err);
 		});
 	}
 	
 })
 .controller('ConnectionsController', function($scope, $rootScope, $location, Data) {
 })
-.controller('ProfileController', function($scope, $rootScope, $location, Data) {
+.controller('ProfileController', function($scope, $rootScope, $location, Data, Utils) {
+	$scope.profile = Object.assign($rootScope.user);
+	Data.getAccounts().then(function(data) {
+		if (!data.accounts.internal) {
+			$scope.password_required = true;
+		}
+	}).catch(function(err) {
+		Utils.showError(err);
+	});
+	
+	$scope.cancel = function() {
+		window.history.back();
+	}
+	
+	$scope.save = function() {
+		if (!$scope.profile.name ||
+			!$scope.profile.surname ||
+			!$scope.profile.username ||
+			$scope.profile.password && $scope.profile.password != $scope.profile.password2) 
+		{
+			return;
+		}
+		Data.saveAccount($scope.profile).then(function(data) {
+			data.fullname = data.name + ' ' + data.surname;
+			$rootScope.user = data;
+			$scope.profile = Object.assign($rootScope.user);
+			$scope.password_required = false;
+			Utils.showSuccess();
+		}).catch(function(err) {
+			Utils.showError(err);
+		});
+	}
+	Utils.initUI();
 })
 ;

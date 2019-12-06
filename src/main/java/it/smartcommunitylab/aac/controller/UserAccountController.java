@@ -23,10 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
+import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.manager.BasicProfileManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
@@ -46,6 +50,7 @@ public class UserAccountController {
 	@Autowired
 	private OAuthProviders providers;
 	
+	// TODO MANAGE accounts: add/merge, delete
 
 	@GetMapping("/account/profile")
 	public ResponseEntity<BasicProfile> readProfile() {
@@ -69,15 +74,30 @@ public class UserAccountController {
 		return ResponseEntity.ok(providers.getProviders().stream().map(ClientResources::getProvider).collect(Collectors.toList()));
 	}
 
-	
-	
-	// READ Accounts
-	// MANAGE accounts: add/merge, delete
+	@DeleteMapping("/account/profile")
+	public ResponseEntity<Void> deleteProfile() {
+		Long user = userManager.getUserId();
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+		userManager.deleteUser(user);
+		return ResponseEntity.ok().build();
+	}
 
-	// REMOVE account
-	
+	@PostMapping("/account/profile")
+	public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile) {
+		Long user = userManager.getUserId();
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+		try {
+			userManager.updateProfile(user, profile);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
+		}
+		return ResponseEntity.ok(profileManager.getBasicProfileById(user.toString()));
+	}
+
 	// READ 3rd-party app authorizations
 	// MANAGE 3rd-party apps: revoke authorizations 
-	
-	// TODO: privacy policies
 }

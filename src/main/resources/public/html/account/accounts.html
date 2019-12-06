@@ -14,9 +14,9 @@
           <p class="card-text" ng-if="accounts['internal']">{{'accounts.internal_subtitle'| translate}}</p>
           <p class="card-text" ng-if="!accounts['internal']">{{'accounts.internal_missing'| translate}}</p>
           <table class="table" ng-if="accounts['internal']">
-            <tr ng-repeat="(k,v) in accounts['internal']">
-              <td><b>{{k}}</b></td><td>{{v}}</td>
-            </tr>
+            <tr><td><b>{{'accounts.field_name' | translate}}</b></td><td>{{accounts['internal'].given name}}</td></tr>
+              <tr><td><b>{{'accounts.field_surname' | translate}}</b></td><td>{{accounts['internal'].surname}}</td></tr>
+              <tr><td><b>{{'accounts.field_username' | translate}}</b></td><td>{{accounts['internal'].username}}</td></tr>
           </table>
           <a class="read-more" href="#/profile">
             <span class="text">{{'accounts.internal_edit'| translate}}</span>
@@ -63,7 +63,7 @@
     <div class="card-wrapper card-space">
       <div class="card card-bg">
         <div class="card-body">
-          <h5 class="card-title">{{provider}}</h5>
+          <h5 class="card-title">{{provider | uppercase}}</h5>
           <p class="card-text" ng-if="accounts[provider]">{{'accounts.external_subtitle'| translate}}</p>
           <p class="card-text" ng-if="!accounts[provider]">{{'accounts.external_missing'| translate}}</p>
           <table class="table" ng-if="accounts[provider]">

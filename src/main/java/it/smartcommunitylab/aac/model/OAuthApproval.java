@@ -35,7 +35,7 @@ public class OAuthApproval implements Serializable {
 	private static final long serialVersionUID = 4417647262646563640L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	private String userId;
@@ -45,11 +45,11 @@ public class OAuthApproval implements Serializable {
 	private String scope;
 
 	private String status;
-	
+
 	private Date expiresAt;
 
 	private Date lastModifiedAt;
-	
+
 	/**
 	 * @return the id
 	 */

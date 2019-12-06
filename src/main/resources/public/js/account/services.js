@@ -56,6 +56,19 @@ angular.module('aac.services', [])
 		});
 		return deferred.promise;
 	}
+	/**
+	 * Save account
+	 */
+	dataService.saveAccount = function(profile) {
+		var deferred = $q.defer();
+		delete profile.password2;
+		$http.post('account/profile', profile).then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
 	
 	return dataService;
 })
@@ -78,12 +91,18 @@ angular.module('aac.services', [])
 	 * Show error bar
 	 */
 	utils.showError = function(msg) {
-		$rootScope.errorMsg = (typeof msg === 'string') ? msg : msg.data.errorMessage;
+		$rootScope.errorMsg = (typeof msg === 'string') ? msg : (msg.data.errorMessage || msg.data.error);
 		$rootScope.showError = true;
 		$timeout(function(){
 			$rootScope.showError = false;
 			$rootScope.errorMsg = null;
 		}, 4000);
+	}
+
+	utils.initUI = function() {
+		setTimeout(function() {
+			$.getScript('./italia/js/bootstrap-italia.bundle.min.js');
+		});
 	}
 	
 	return utils;

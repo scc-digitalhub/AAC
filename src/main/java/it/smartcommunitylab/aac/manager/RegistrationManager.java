@@ -223,6 +223,32 @@ public class RegistrationManager {
 		}
 	}
 
+	public User updateRegistration(String email, String name, String surname, String password, String lang) throws RegistrationException {
+		Registration existing = getUserByEmail(email);
+		if (existing == null) {
+			throw new NotRegisteredException();
+		}
+
+		try {
+			existing.setName(name);
+			existing.setSurname(surname);
+			if (lang != null) {
+				existing.setLang(lang);
+			}
+			if (password != null) {
+				existing.setPassword(PasswordHash.createHash(password));
+			}
+			User globalUser = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(existing), null);
+			existing.setUserId("" + globalUser.getId());
+
+			repository.save(existing);
+
+			return globalUser;
+		} catch (Exception e) {
+			throw new RegistrationException("Failed to save registration data");
+		}
+	}
+
 	/**
 	 * @param existing
 	 * @return

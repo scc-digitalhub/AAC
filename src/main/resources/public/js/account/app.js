@@ -16,7 +16,12 @@ app.config(function ($httpProvider, $translateProvider) {
 		    prefix: 'i18n/account/locale-',
 		    suffix: '.json'
 		});
-		$translateProvider.preferredLanguage('en');
+	  	var lang = navigator.languages
+	    ? navigator.languages[0]
+	    : (navigator.language || navigator.userLanguage);
+	    lang = (lang.substring(0,lang.indexOf('-'))) || 'en';
+	    console.log('Detected language', lang);
+		$translateProvider.preferredLanguage(lang);
 	})
 
 app.run(function($rootScope){

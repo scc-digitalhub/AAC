@@ -11,6 +11,7 @@
   "cookie_pref": "Preferenze",
   "cookie_accept": "Accetto",
   "btn_cancel": "Cancel",
+  "btn_confirm": "Confirm",
   "home": {
     "welcome" : "Welcome, {{fullname}}!",
     "account_card_title": "Account Info",
@@ -34,7 +35,22 @@
     "external_missing": "No account associated",
     "field_name": "Name",
     "field_surname": "Surname",
+    "field_username": "Username / Email",
     "btn_delete": "Delete",
     "delete_confirm": "Are you sure you want to delete your account? This action cannot be undone!"
+  },
+  "profile": {
+    "title": "Edit registration information",
+    "name": "Name",
+    "surname": "Surname",
+    "username": "Username / Email",
+    "password": "Password",
+    "password2": "Confirm Password",
+    "required": "Required field",
+    "password_short-pass": "Password is too weak",
+    "password_bad-pass": "Password is weak",
+    "password_good-pass": "Password is strong",
+    "password_strong-pass": "Password is very strong",
+    "password_enter-pass": "Insert at least 8 characters and at least 1 uppercase letter"
   }
 }
