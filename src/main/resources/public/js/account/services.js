@@ -70,6 +70,30 @@ angular.module('aac.services', [])
 		return deferred.promise;
 	}
 	
+	/**
+	 * Read the user connected apps
+	 */
+	dataService.getConnections = function() {
+		var deferred = $q.defer();
+		$http.get('account/connections').then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
+	/**
+	 * Remove app connection
+	 */
+	dataService.removeConnection = function(clientId) {
+		var deferred = $q.defer();
+		$http.delete('account/connections/'+ clientId).then(function(data){
+			deferred.resolve(data.data);
+		}, function(err) {
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
 	return dataService;
 })
 /**

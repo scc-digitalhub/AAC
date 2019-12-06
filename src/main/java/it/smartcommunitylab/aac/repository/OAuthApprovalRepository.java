@@ -31,4 +31,5 @@ import it.smartcommunitylab.aac.model.OAuthApproval;
 public interface OAuthApprovalRepository extends JpaRepository<OAuthApproval, Long> {
 
 	public List<OAuthApproval> findByUserId(String userId);
+	public List<OAuthApproval> findByUserIdAndClientId(String userId, String clientId);
 }

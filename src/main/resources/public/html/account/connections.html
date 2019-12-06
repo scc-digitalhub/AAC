@@ -1,0 +1,52 @@
+<div class="row">
+  <div class="col-12 text-center">
+    <h3>{{'connections.title' | translate}}</h3>
+    <br> 
+  </div>
+</div>  
+
+<div class="row">
+  <div class="col-12 col-lg-6" ng-repeat="c in connections">
+    <!--start card-->
+    <div class="card-wrapper card-space">
+      <div class="card card-bg">
+        <div class="card-body">
+          <div class="card-title"  data-toggle="collapse" data-target="#collapse{{c.clientId}}" aria-expanded="false" aria-controls="collapse{{c.clientId}}">
+            <h5>{{c.appName}}</h5>
+            <p class="card-text">{{'connections.scopes'| translate}}</p>
+          </div>
+          <div class="collapse multi-collapse" id="collapse{{c.clientId}}">
+          <table class="table table-sm">
+            <tr ng-repeat="r in c.resources">
+              <td><label>{{r.name}}</label><br><small>{{r.description}}</small></td>
+            </tr>
+          </table>
+          </div>
+          <a class="read-more" href="" ng-click="confirmDeleteApp(c)">
+            <span class="text text-danger">{{'connections.delete_app'| translate}}</span>
+            <svg class="icon">
+              <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <!--end card-->
+  </div>
+</div>
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-body">
+            <p>{{'connections.delete_confirm' | translate}}</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-danger btn-sm" ng-click="deleteApp()" type="button">{{'connections.btn_delete' | translate}}</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">{{'btn_cancel' | translate}}</button>
+          </div>
+      </div>
+    </div>
+</div>
+        

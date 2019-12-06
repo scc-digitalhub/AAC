@@ -1,0 +1,63 @@
+{
+  "page_title": "AAC Account",
+  "menu_home": "Home",
+  "menu_accounts": "Info Account",
+  "menu_apps": "App connesse",
+  "menu_dev": "Sviluppatore",
+  "menu_signout": "Esci",
+  "msg_ok": "Operazione completata con successo",
+  "cookie1": "Questo sito utilizza cookie tecnici, analytics e di terze parti.",
+  "cookie2": "Proseguendo nella navigazione accetti l’utilizzo dei cookie.",
+  "cookie_pref": "Preferenze",
+  "cookie_accept": "Accetto",
+  "btn_cancel": "Annulla",
+  "btn_confirm": "Conferma",
+  "home": {
+    "welcome" : "Benvenuto, {{fullname}}!",
+    "account_card_title": "Informazioni dell'account'",
+    "account_card_text": "Vedi le informazioni del tuo account,, gestisici e connetti account social, ecc.",
+    "account_card_more": "Gestisci account",
+    "app_card_title": "Applicazioni terze",
+    "app_card_text": "Vedi le terze app connesse al tuo account, gestisic le autorizzazioni per le app.",
+    "app_card_more": "Gestisci le applicazioni terze"
+  },
+  "accounts": {
+    "title": "Informazioni del tuo account",
+    "internal_title": "Utente registrato",
+    "internal_subtitle": "Le tue informazioni personali come dalla registrazione",
+    "internal_missing": "Nessun dato registrato. Crea qui uno nuovo!",
+    "internal_edit": "Modifica le informazioni di registrazione",
+    "delete_title": "Elimina account",
+    "delete_subtitle": "Elimina il tuo account e tutte le info associate",
+    "delete_delete": "Elimina",
+    "external": "Account esterni e / o social",
+    "external_subtitle": "Le tue info personali ottenute dall'account",
+    "external_missing": "Nessun account associato",
+    "field_name": "Nome",
+    "field_surname": "Cognome",
+    "field_username": "Username / Email",
+    "btn_delete": "Elimina",
+    "delete_confirm": "Sei sicuro di voler eliminare il tuo account? Questa operazione non puo' essere annullata!"
+  },
+  "profile": {
+    "title": "Modifica i dati di registrazione",
+    "name": "Nome",
+    "surname": "Cognome",
+    "username": "Username / Email",
+    "password": "Password",
+    "password2": "Conferma Password",
+    "required": "Campo obbligatorio",
+    "password_short-pass": "Password molto debole",
+    "password_bad-pass": "Password debole",
+    "password_good-pass": "Password sicura",
+    "password_strong-pass": "Password molto sicura",
+    "password_enter-pass": "Inserisci almeno 8 caratteri e una lettera maiuscola"
+  },
+  "connections" : {
+    "title": "App terze con accesso alle tue info personali",
+    "scopes": "Ha accesso a qualche info personale",
+    "delete_app": "Elimina accesso",
+    "delete_confirm": "Sei sicuro di voler rimuovere l'accesso a questa app?",
+    "btn_delete": "Elimina accesso"
+  }
+}

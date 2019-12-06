@@ -69,7 +69,28 @@ angular.module('aac.controllers.main', [])
 	}
 	
 })
-.controller('ConnectionsController', function($scope, $rootScope, $location, Data) {
+.controller('ConnectionsController', function($scope, $rootScope, $location, Data, Utils) {
+	Data.getConnections().then(function(connections) {
+		$scope.connections = connections;
+	}).catch(function(err) {
+		Utils.showError(err);
+	});
+	
+	$scope.confirmDeleteApp = function(app) {
+		$scope.clientId = app.clientId;
+		$('#deleteConfirm').modal({keyboard: false});
+	}
+	
+	$scope.deleteApp = function() {
+		$('#deleteConfirm').modal('hide');
+		Data.removeConnection($scope.clientId).then(function(connections) {
+			$scope.connections = connections;
+			Utils.showSuccess();
+		}).catch(function(err) {
+			Utils.showError(err);
+		});
+	}
+	
 })
 .controller('ProfileController', function($scope, $rootScope, $location, Data, Utils) {
 	$scope.profile = Object.assign($rootScope.user);

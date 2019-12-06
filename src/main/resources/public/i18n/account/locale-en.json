@@ -6,10 +6,10 @@
   "menu_dev": "Developer",
   "menu_signout": "Sign Out",
   "msg_ok": "Operation completed successfully",
-  "cookie1": "Questo sito utilizza cookie tecnici, analytics e di terze parti.",
-  "cookie2": "Proseguendo nella navigazione accetti l’utilizzo dei cookie.",
-  "cookie_pref": "Preferenze",
-  "cookie_accept": "Accetto",
+  "cookie1": "This site uses technical cookies, cookies for analytics and 3rd part cookies.",
+  "cookie2": "Continuing navigation, you accept the use of cookies.",
+  "cookie_pref": "Preferences",
+  "cookie_accept": "Accept",
   "btn_cancel": "Cancel",
   "btn_confirm": "Confirm",
   "home": {
@@ -52,5 +52,12 @@
     "password_good-pass": "Password is strong",
     "password_strong-pass": "Password is very strong",
     "password_enter-pass": "Insert at least 8 characters and at least 1 uppercase letter"
+  },
+  "connections" : {
+    "title": "Apps with access to your account information",
+    "scopes": "Has some information access",
+    "delete_app": "Remove access",
+    "delete_confirm": "Are you sure you want to remoce access to your information for this app?",
+    "btn_delete": "Remove access"
   }
 }

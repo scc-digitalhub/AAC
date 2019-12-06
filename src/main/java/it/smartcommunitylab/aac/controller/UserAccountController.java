@@ -25,11 +25,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
+import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.manager.BasicProfileManager;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -98,6 +100,23 @@ public class UserAccountController {
 		return ResponseEntity.ok(profileManager.getBasicProfileById(user.toString()));
 	}
 
-	// READ 3rd-party app authorizations
-	// MANAGE 3rd-party apps: revoke authorizations 
+	@GetMapping("/account/connections")
+	public ResponseEntity<List<ConnectedAppProfile>> readConnectedApps() {
+		Long user = userManager.getUserId();
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+		List<ConnectedAppProfile> result = userManager.getConnectedApps(user);
+		return ResponseEntity.ok(result);
+	}
+	
+	@DeleteMapping("/account/connections/{clientId}")
+	public ResponseEntity<List<ConnectedAppProfile>> deleteConnectedApp(@PathVariable String clientId) {
+		Long user = userManager.getUserId();
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+		List<ConnectedAppProfile> result = userManager.deleteConnectedApp(user, clientId);
+		return ResponseEntity.ok(result);
+	}
 }
