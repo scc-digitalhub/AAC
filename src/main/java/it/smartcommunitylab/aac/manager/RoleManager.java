@@ -228,7 +228,7 @@ public class RoleManager {
 		r.setContext(context);
 		r.setSpace(space);
 		String canonical = r.canonicalSpace();
-		return userRepository.findByRoleContextAndRoleNested(canonical, role, pageable);
+		return userRepository.findByRoleContextAndRoleNested(canonical, role, context, space, pageable);
 	}
 
 	public List<GrantedAuthority> buildAuthorities(User user) {

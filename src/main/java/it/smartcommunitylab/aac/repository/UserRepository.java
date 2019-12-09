@@ -54,6 +54,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 	@Query("select distinct u from User u left join u.roles r where (r.context=?1 or ?1 is null and r.context is null) and (r.space = ?2 or ?2 is null and r.space is null) and (r.role = ?3 or ?3 is null)")
 	List<User> findByRoleContextAndRole(String context, String space, String role, Pageable pageable);
 	
-	@Query("select distinct u from User u left join u.roles r where ((r.context is null and r.space =?1) or (r.context = ?1) or (r.context LIKE CONCAT(?1,'/%'))) and (r.role = ?2 or ?2 is null)")
-	List<User> findByRoleContextAndRoleNested(String canonical, String role, Pageable pageable);
+	@Query("select distinct u from User u left join u.roles r where ((r.context is null and r.space =?1) or (r.context = ?1) or (r.context LIKE CONCAT(?1,'/%')) or (r.context = ?3 and r.space = ?4)) and (r.role = ?2 or ?2 is null)")
+	List<User> findByRoleContextAndRoleNested(String canonical, String role, String context, String space, Pageable pageable);
 }
