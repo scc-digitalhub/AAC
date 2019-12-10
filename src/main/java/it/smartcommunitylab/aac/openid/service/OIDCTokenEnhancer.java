@@ -109,8 +109,10 @@ public class OIDCTokenEnhancer  {
         }
 		ClientDetailsEntity client = clientRepository.findByClientId(clientId);
 		
-		SignedJWT signed = createJWT(client, accessToken, authentication);
-		
+//		SignedJWT signed = createJWT(client, accessToken, authentication);
+		String signed = accessToken.getValue();
+	    logger.trace("signed access token used for oidc is "+signed);
+
 		JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
 
 		if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
@@ -239,36 +241,36 @@ public class OIDCTokenEnhancer  {
 
 		return idToken;
 	}
-
-	private SignedJWT createJWT(ClientDetailsEntity client, OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
-		OAuth2Request originalAuthRequest = authentication.getOAuth2Request();
-
-		String clientId = originalAuthRequest.getClientId();
-
-		Builder builder = new JWTClaimsSet.Builder()
-				.claim("azp", clientId)
-				.issuer(issuer)
-				.issueTime(new Date())
-				.expirationTime(accessToken.getExpiration())
-				.subject(authentication.getName())
-				.jwtID(UUID.randomUUID().toString()); // set a random NONCE in the middle of it
-
-		String audience = (String) originalAuthRequest.getExtensions().get("aud");
-		if (!Strings.isNullOrEmpty(audience)) {
-			builder.audience(Lists.newArrayList(audience));
-		}
-
-		JWTClaimsSet claims = builder.build();
-
-		JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
-		JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
-				jwtService.getDefaultSignerKeyId(),
-				null, null);
-		SignedJWT signed = new SignedJWT(header, claims);
-
-		jwtService.signJwt(signed);
-		return signed;
-	}	
+//
+//	private SignedJWT createJWT(ClientDetailsEntity client, OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
+//		OAuth2Request originalAuthRequest = authentication.getOAuth2Request();
+//
+//		String clientId = originalAuthRequest.getClientId();
+//
+//		Builder builder = new JWTClaimsSet.Builder()
+//				.claim("azp", clientId)
+//				.issuer(issuer)
+//				.issueTime(new Date())
+//				.expirationTime(accessToken.getExpiration())
+//				.subject(authentication.getName())
+//				.jwtID(UUID.randomUUID().toString()); // set a random NONCE in the middle of it
+//
+//		String audience = (String) originalAuthRequest.getExtensions().get("aud");
+//		if (!Strings.isNullOrEmpty(audience)) {
+//			builder.audience(Lists.newArrayList(audience));
+//		}
+//
+//		JWTClaimsSet claims = builder.build();
+//
+//		JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
+//		JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
+//				jwtService.getDefaultSignerKeyId(),
+//				null, null);
+//		SignedJWT signed = new SignedJWT(header, claims);
+//
+//		jwtService.signJwt(signed);
+//		return signed;
+//	}	
 
     private Set<String> getServiceIds(Set<String> scopes) {
     	if (scopes != null && !scopes.isEmpty()) {
