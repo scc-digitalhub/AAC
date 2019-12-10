@@ -46,7 +46,13 @@
           <div class="text-center error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
           <div>&nbsp;</div>
           <div class="col-md-12 form-group"><label th:text="#{lbl_user}">: </label><input class="form-control" type="text" name="username"/></div>
-          <div class="col-md-12 form-group"><label th:text="#{lbl_pwd}">: </label><input class="form-control" type="password" name="password"/></div>
+          <div class="col-md-12 form-group"><label th:text="#{lbl_pwd}">: </label>
+          <input class="form-control input-password" type="password" name="password"/>
+			      <span class="password-icon" aria-hidden="true">
+			        <svg class="password-icon-visible icon icon-sm"><use xlink:href="./italia/svg/sprite.svg#it-password-visible"></use></svg>
+			        <svg class="password-icon-invisible icon icon-sm d-none"><use xlink:href="./italia/svg/sprite.svg#it-password-invisible"></use></svg>
+			      </span>
+          </div>
           <div class="col-md-12 form-group text-center"><button class="btn btn-primary" th:text="#{lbl_login}">Login</button></div>
           <div class="col-md-12 text-center"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a></div><br/>
           <div class="col-md-12 text-center"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>

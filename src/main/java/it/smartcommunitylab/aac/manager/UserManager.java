@@ -16,8 +16,12 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,17 +33,30 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimaps;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.OAuthApproval;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.OAuthApprovalRepository;
+import it.smartcommunitylab.aac.repository.RegistrationRepository;
+import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -55,7 +72,17 @@ public class UserManager {
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private UserRepository userRepository;
-	
+	@Autowired
+	private OAuthApprovalRepository approvalRepository;
+	@Autowired
+	private JdbcTokenStore tokenStore;
+	@Autowired
+	private RegistrationRepository regRepository;
+	@Autowired
+	private RegistrationManager regManager;
+	@Autowired
+	private ResourceRepository resourceRepository;
+
 	@Value("${api.contextSpace}")
 	private String apiProviderContext;
 
@@ -230,5 +257,79 @@ public class UserManager {
 	public User findOne(Long userId) {
 		return userRepository.findOne(userId);
 	}
-	
+
+	/**
+	 * @param user
+	 */
+	public void deleteUser(Long userId) {
+		// TODO revoke social?
+		User user = userRepository.findOne(userId);
+		clientDetailsRepository.delete(clientDetailsRepository.findByDeveloperId(userId));
+		
+		approvalRepository.delete(approvalRepository.findByUserId(userId.toString()));
+
+		Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByUserName(userId.toString());
+		for (OAuth2AccessToken token : tokens) {
+			tokenStore.removeAccessToken(token);
+		}
+		Registration reg = regRepository.findByEmail(user.getUsername());
+		if (reg != null) {
+			regRepository.delete(reg);
+		}
+		userRepository.delete(userId);
+	}
+
+	/**
+	 * @param user
+	 * @param profile
+	 * @throws InvalidKeySpecException 
+	 * @throws NoSuchAlgorithmException 
+	 */
+	public void updateProfile(Long userId, UserProfile profile) throws Exception {
+		User user = userRepository.findOne(userId);
+		profile.setUsername(user.getUsername());
+		Registration reg = regRepository.findByEmail(profile.getUsername());
+		if (reg == null) {
+			regManager.registerOffline(profile.getName(), profile.getSurname(), profile.getUsername(), profile.getPassword(), profile.getLang(), false, null);
+		} else {
+			regManager.updateRegistration(profile.getUsername(), profile.getName(), profile.getSurname(), profile.getPassword(), profile.getLang());
+		}
+	}
+
+	/**
+	 * @param user
+	 * @return
+	 */
+	public List<ConnectedAppProfile> getConnectedApps(Long user) {
+		List<OAuthApproval> approvals = approvalRepository.findByUserId(user.toString());
+		ImmutableListMultimap<String, OAuthApproval> multimap = Multimaps.index(approvals, OAuthApproval::getClientId);
+		return multimap.keySet().stream().map(e -> {
+			ConnectedAppProfile p = new ConnectedAppProfile();
+			p.setClientId(e);
+			ClientDetailsEntity client = clientDetailsRepository.findByClientId(e);
+			if (client == null) return null;
+			
+			p.setAppName((String)client.getAdditionalInformation().get("displayName"));
+			if (p.getAppName() == null) p.setAppName(client.getName());
+			p.setResources(multimap.get(e).stream().filter(a -> a.getStatus().equals(ApprovalStatus.APPROVED.toString())).map(approval -> {
+				String scope = approval.getScope();
+				return resourceRepository.findByResourceUri(scope);
+			}).collect(Collectors.toList()));
+			return p;
+		}).filter(p -> p != null).collect(Collectors.toList());
+	}
+
+	/**
+	 * @param user
+	 * @param clientId
+	 * @return
+	 */
+	public List<ConnectedAppProfile> deleteConnectedApp(Long user, String clientId) {
+		approvalRepository.delete(approvalRepository.findByUserIdAndClientId(user.toString(), clientId));
+		Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByClientIdAndUserName(clientId, user.toString());
+		for (OAuth2AccessToken token : tokens) {
+			tokenStore.removeAccessToken(token);
+		}
+		return getConnectedApps(user);
+	}
 }

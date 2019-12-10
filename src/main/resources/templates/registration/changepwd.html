@@ -50,8 +50,16 @@
                 <div>&nbsp;</div>
 				  <div class="col-md-12 form-group">
                   <label th:text="#{lbl_pwd}  + '*: '" ></label>
-                  <input class="form-control" type="password" th:field="*{password}" />
-				  <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                  <input class="form-control input-password" type="password" th:field="*{password}" /> 
+                  <span class="password-icon" aria-hidden="true"> <svg
+									class="password-icon-visible icon icon-sm">
+									<use xlink:href="../italia/svg/sprite.svg#it-password-visible"></use></svg>
+								<svg class="password-icon-invisible icon icon-sm d-none">
+									<use xlink:href="../italia/svg/sprite.svg#it-password-invisible"></use></svg>
+							</span>
+
+							<div th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+				        </div>
                 </div>
                 <div class="col-md-12 form-group text-center">
                   <button class="btn btn-primary" th:text="#{lbl_reg_btn}" ></button>

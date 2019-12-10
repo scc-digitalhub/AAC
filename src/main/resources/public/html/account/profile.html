@@ -1,0 +1,61 @@
+<div class="row">
+  <div class="col-12 text-center">
+    <h3>{{'profile.title' | translate}}</h3>
+    <br> 
+  </div>
+</div>  
+<div>
+<form class="needs-validation was-validated" novalidate name="profileForm">
+  <div class="form-row">
+    <div class="form-group col">
+      <input type="text" class="form-control" id="inputemail" disabled ng-model="profile.username" required>
+      <label for="inputemail">{{'profile.username' | translate}}</label>
+      <div class="invalid-feedback">{{'profile.required' | translate}}</div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <input type="text" class="form-control" id="inputname" ng-model="profile.name" required>
+      <label for="inputname">{{'profile.name' | translate}}</label>
+      <div class="invalid-feedback">{{'profile.required' | translate}}</div>
+    </div>
+    <div class="form-group col-md-6">
+      <input type="text" class="form-control" id="inputsurname" ng-model="profile.surname" required>
+      <label for="inputsurname">{{'profile.surname' | translate}}</label>
+      <div class="invalid-feedback">{{'profile.required' | translate}}</div>
+    </div>
+  </div>  
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <input type="password" pattern=".*[A-Z]+.*" minlength="8" class="form-control input-password  input-password-strength-meter" id="inputpassword" ng-model="profile.password"
+      data-short-pass="{{'profile.password_short-pass' | translate}}"
+      data-bad-pass="{{'profile.password_bad-pass' | translate}}"
+      data-good-pass="{{'profile.password_good-pass' | translate}}"  
+      data-strong-pass="{{'profile.password_strong-pass' | translate}}"
+      data-enter-pass="{{'profile.password_enter-pass' | translate}}"
+      ng-required="password_required">
+      <span class="password-icon" aria-hidden="true">
+        <svg class="password-icon-visible icon icon-sm"><use xlink:href="./italia/svg/sprite.svg#it-password-visible"></use></svg>
+        <svg class="password-icon-invisible icon icon-sm d-none"><use xlink:href="./italia/svg/sprite.svg#it-password-invisible"></use></svg>
+      </span>
+      <label for="inputpassword">{{'profile.password' | translate}}</label>
+    </div>
+    <div class="form-group col-md-6">
+      <input type="password" class="form-control input-password" id="inputpassword2" ng-model="profile.password2">
+      <span class="password-icon" aria-hidden="true">
+        <svg class="password-icon-visible icon icon-sm"><use xlink:href="./italia/svg/sprite.svg#it-password-visible"></use></svg>
+        <svg class="password-icon-invisible icon icon-sm d-none"><use xlink:href="./italia/svg/sprite.svg#it-password-invisible"></use></svg>
+      </span>
+      <label for="inputpassword2">{{'profile.password2' | translate}}</label>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group col text-center">
+      <button type="button" ng-click="cancel()" class="btn btn-outline-primary">{{'btn_cancel' | translate}}</button>
+      <button type="button" ng-click="save()" ng-disabled="profileForm.$invalid || profile.password != profile.password2" class="btn btn-primary">{{'btn_confirm' | translate}}</button>
+    </div>
+  </div>
+  
+</form>
+</div>

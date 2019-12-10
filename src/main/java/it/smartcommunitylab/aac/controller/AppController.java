@@ -91,7 +91,7 @@ public class AppController {
 	 */
 	@RequestMapping("/")
 	public ModelAndView home() {
-		return new ModelAndView("redirect:/dev");
+		return new ModelAndView("redirect:/account");
 	}
 
 	/**
@@ -111,7 +111,20 @@ public class AppController {
 		model.put("apiProvider", userRoles.stream().anyMatch(s -> s.endsWith(check)));
 		return new ModelAndView("index", model);
 	}
-	
+
+	/**
+	 * Retrieve the with the user data: currently on the username is added.
+	 * @return
+	 */
+	@RequestMapping("/account")
+	public ModelAndView account() {
+		Map<String,Object> model = new HashMap<String, Object>();
+		
+		String username = userManager.getUserFullName();
+		model.put("username",username);
+		return new ModelAndView("account", model);
+	}
+
 	/**
 	 * Read the 
 	 * @return {@link Response} entity containing the list of client app {@link ClientAppBasic} descriptors

@@ -26,7 +26,7 @@ admin:
    password: ${ADMIN_PASSWORD:admin}
    contexts: apimanager, authorization, components, organizations, resources
    contextSpaces: components/apimanager/carbon.super
-   roles: null
+   roles: components/apimanager/carbon.super:accountmanager, components/apimanager/carbon.super:profilemanager,components/apimanager/carbon.super:rolemanager
 
 # BASIC SECURITY PROPERTIES
 security:

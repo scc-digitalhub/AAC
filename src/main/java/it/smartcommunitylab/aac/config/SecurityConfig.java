@@ -310,7 +310,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.authorizeRequests()
 			.antMatchers("/eauth/authorize/**").permitAll()
 			.antMatchers("/oauth/authorize", "/eauth/**").authenticated()
-			.antMatchers("/", "/dev**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
+			.antMatchers("/", "/dev**", "/account/**").hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
 			.antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
 		.and()
 		.exceptionHandling()
