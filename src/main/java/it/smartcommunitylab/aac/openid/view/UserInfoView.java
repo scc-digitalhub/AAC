@@ -120,7 +120,7 @@ public class UserInfoView extends AbstractView {
 		Map<String, Object> json = toJsonFromRequestObj(userId, selectedAuthorities, client, scope, authorizedClaims, requestedClaims);
 
 		//append sub identifier
-		json.put("sub", userId.getId());
+		json.put("sub", userId.getId().toString());
 		
 		writeOut(json, model, request, response);
 	}
