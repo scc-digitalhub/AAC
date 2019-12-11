@@ -60,7 +60,8 @@ public class JWTConfig {
         if (sigKid.isEmpty()) {
             // fetch first with sig usage
             for (JWK jwk : jwtKeyStore.getKeys()) {
-                if (jwk.getKeyUse().equals(KeyUse.SIGNATURE)) {
+                if (jwk.getKeyUse() == null || jwk.getKeyUse().equals(KeyUse.SIGNATURE)) {
+                    // keyUse = null means key is valid for both
                     key = jwk;
                     break;
                 }
@@ -69,7 +70,8 @@ public class JWTConfig {
             // check match
             for (JWK jwk : jwtKeyStore.getKeys()) {
                 if (jwk.getKeyID().equals(sigKid)
-                        && jwk.getKeyUse().equals(KeyUse.SIGNATURE)) {
+                        && (jwk.getKeyUse() == null || jwk.getKeyUse().equals(KeyUse.SIGNATURE))) {
+                    // keyUse = null means key is valid for both
                     key = jwk;
                     break;
                 }
@@ -102,7 +104,8 @@ public class JWTConfig {
             // check match
             for (JWK jwk : jwtKeyStore.getKeys()) {
                 if (jwk.getKeyID().equals(encKid)
-                        && jwk.getKeyUse().equals(KeyUse.ENCRYPTION) && jwk.isPrivate()) {
+                        && (jwk.getKeyUse() == null || jwk.getKeyUse().equals(KeyUse.ENCRYPTION)) && jwk.isPrivate()) {
+                    // keyUse = null means key is valid for both
                     key = jwk;
                     break;
                 }
