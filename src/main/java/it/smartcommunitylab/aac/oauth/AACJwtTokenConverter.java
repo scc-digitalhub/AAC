@@ -197,7 +197,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 //            if (!scope.contains(Config.OPENID_SCOPE)) {
 //                scope.add(Config.OPENID_SCOPE);
 //            }
-            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request()
+            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getUserAuthentication()
                     .getAuthorities();
 //            if (selectedAuthorities != null && !selectedAuthorities.isEmpty())
 //                claims.put(AUTHORITIES,
