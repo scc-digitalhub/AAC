@@ -157,6 +157,9 @@ adminClient:
     scopes: ${APIM_SCOPES:clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all}
     redirects: ${APIM_REDIRECTS:http://localhost:9443/store/jagg/jaggery_oidc_acs.jag,http://localhost:9443/publisher/jagg/jaggery_oidc_acs.jag}
 
+#port used to expose actuator
+management:
+   port: ${MANAGEMENT_PORT:8081} 
    
 ---
 # SPRING
