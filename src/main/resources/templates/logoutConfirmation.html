@@ -27,10 +27,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="-1" />
-    <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Custom styles for this template -->
-    <link href="css/style.css" rel="stylesheet" />
+    <!-- Design Italia -->
+    <link rel="stylesheet" href="italia/css/bootstrap-italia.min.css"/>   
+    <script>window.__PUBLIC_PATH__ = 'italia/fonts'</script>    
+    <link href="italia/style.css" rel="stylesheet" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@
 
   <div class="well" style="text-align: center">
 
-    <h1 th:text="#{lbl_logout_title}">Logout confirmation</h1>
+    <h2 th:text="#{lbl_logout_title}">Logout confirmation</h2>
 
     <form th:attr="action=${ issuer + (issuer.endsWith('/') ? '' : '/') + 'endsession' }" method="POST">
 
@@ -46,10 +46,7 @@
             <div th:if="${ client != null }">
               <div th:utext="#{lbl_logout_from(${client.displayName})}">Logout from application</div>
             </div>
-            <div th:text="#{lbl_logout_explanation}">
-              Confirm logout operation
-            </div>
-            <br/><br/>
+          <br/><br/>
           <input name="approve" th:attr="value=#{lbl_confirm_btn}" type="submit" class="btn btn-primary btn-large" /> 
           &nbsp; 
           <input name="deny" th:attr="value=#{lbl_cancel}" type="submit" class="btn btn-large" />

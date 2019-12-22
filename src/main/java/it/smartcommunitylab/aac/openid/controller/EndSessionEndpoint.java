@@ -25,7 +25,6 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
@@ -88,7 +87,10 @@ public static final String URL = "endsession";
 					// we issued this ID token, figure out who it's for
 					idTokenClaims = idToken.getJWTClaimsSet();
 					
-					String clientId = Iterables.getOnlyElement(idTokenClaims.getAudience());
+					String clientId = (String) idTokenClaims.getClaim("azp");
+					if (clientId == null) {
+						clientId = idTokenClaims.getAudience().get(0);
+					}
 					
 					client = clientRepo.findByClientId(clientId);
 					
