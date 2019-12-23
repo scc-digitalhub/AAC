@@ -100,6 +100,18 @@ public class ClientCredentialsTokenEndpointFilter extends
 			}
 		}
 		
+		// special case: in case of refresh token for public clients the client secret is optional
+		if (StringUtils.isEmpty(clientSecret) && "refresh_token".equals(grant_type)) {
+			String token = request.getParameter("refresh_token");
+			if (StringUtils.isEmpty(token)) {
+			    throw new BadCredentialsException(messages.getMessage(
+			            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+			} else {
+				return createAuthentication(clientId, clientDetails, clientSecretServer);
+			}
+		}
+		
+		
 		if ("authorization_code".equals(grant_type) || "refresh_token".equals(grant_type) || "password".equals(grant_type) || "native".equals(grant_type)) {
 			checkCredentialsWithMobile(clientSecret, clientDetails, grantTypes, clientSecretServer);
 		} else {
