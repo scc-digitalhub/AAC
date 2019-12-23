@@ -163,7 +163,7 @@ public static final String URL = "endsession";
 				// TODO: future, add the redirect URI to the model for the display page for an interstitial
 				// m.addAttribute("redirectUri", postLogoutRedirectUri);
 				
-				UriComponents uri = UriComponentsBuilder.fromHttpUrl(redirectUri).queryParam("state", state).build();
+				UriComponents uri = UriComponentsBuilder.fromUriString(redirectUri).queryParam("state", state).build();
 				
 				return "redirect:" + uri;
 			}
