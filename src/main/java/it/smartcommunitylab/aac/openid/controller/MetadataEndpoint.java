@@ -287,7 +287,7 @@ public class MetadataEndpoint {
 	 * @return
 	 */
 	private Set<String> getAvailableScopes() {
-		return Sets.newHashSet(Config.OPENID_SCOPE, Config.EMAIL_SCOPE, Config.BASIC_PROFILE_SCOPE, Config.ACCOUNT_PROFILE_SCOPE);
+		return Sets.newHashSet(Config.SCOPE_OPENID,Config.SCOPE_PROFILE, Config.SCOPE_EMAIL, Config.SCOPE_BASIC_PROFILE, Config.SCOPE_ACCOUNT_PROFILE);
 	}
 
 }

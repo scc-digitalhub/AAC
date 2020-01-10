@@ -465,11 +465,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
-						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('profile.basicprofile.all')")
-						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('profile.basicprofile.all')")
-						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('"+Config.BASIC_PROFILE_SCOPE+"')")
-						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('profile.accountprofile.all')")
-						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('"+Config.ACCOUNT_PROFILE_SCOPE+"')")				
+						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE+"')")
+						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE_ALL+"')")
+						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE+"')")				
 						.and().csrf().disable();
 			}
 		}));
@@ -525,12 +525,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/*userroles/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*userroles/**")
 						.permitAll()
-						.antMatchers("/userroles/me").access("#oauth2.hasScope('user.roles.me')")
-						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('user.roles.read')")
-						.antMatchers(HttpMethod.GET, "/userroles/role").access("#oauth2.hasScope('user.roles.read')")
-						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
-						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
-						.antMatchers("/userroles/client").access("#oauth2.hasScope('client.roles.read.all')")
+						.antMatchers("/userroles/me").access("#oauth2.hasScope('"+Config.SCOPE_ROLE+"')")
+						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
+						.antMatchers(HttpMethod.GET, "/userroles/role").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
+						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers("/userroles/client").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
 						.and().csrf().disable();
 			}
 
@@ -553,7 +553,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/wso2/client/**").authorizeRequests().anyRequest()
-						.access("#oauth2.hasScope('clientmanagement')").and().csrf().disable();
+						.access("#oauth2.hasScope('"+Config.SCOPE_CLIENTMANAGEMENT+"')").and().csrf().disable();
 			}
 
 		}));
@@ -575,7 +575,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/wso2/resources/**").authorizeRequests().anyRequest()
-						.access("#oauth2.hasScope('apimanagement')").and().csrf().disable();
+						.access("#oauth2.hasScope('"+Config.SCOPE_APIMANAGEMENT+"')").and().csrf().disable();
 			}
 
 		}));
@@ -599,8 +599,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/*authorization/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*authorization/**")
 						.permitAll()
-						.antMatchers("/authorization/**").access("#oauth2.hasScope('authorization.manage')")
-						.antMatchers("/authorization/*/schema/**").access("#oauth2.hasScope('authorization.schema.manage')")
+						.antMatchers("/authorization/**").access("#oauth2.hasScope('"+Config.SCOPE_AUTH_MANAGE+"')")
+						.antMatchers("/authorization/*/schema/**").access("#oauth2.hasScope('"+Config.SCOPE_AUTH_SCHEMA_MANAGE+"')")
 						.and().csrf().disable();
 			}
 
@@ -651,7 +651,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/userinfo").authorizeRequests()
 						.antMatchers(HttpMethod.OPTIONS, "/userinfo").permitAll()
-						.antMatchers("/userinfo").access("#oauth2.hasScope('openid')")
+						.antMatchers("/userinfo").access("#oauth2.hasScope('"+Config.SCOPE_OPENID+"')")
 						.and().csrf().disable();
 			}
 

@@ -63,12 +63,35 @@ public class Config {
 	public static final String GRANT_TYPE_NATIVE = "native";
 
 	/** Open ID connect scope */
-	public static final String OPENID_SCOPE = "openid";
+	public static final String SCOPE_OPENID = "openid";
+	/** basic scopes */
+	public static final String SCOPE_PROFILE = "profile";
+    public static final String SCOPE_EMAIL = "email";
+    public static final String SCOPE_PHONE = "phone";
+    public static final String SCOPE_ADDRESS = "address";
+
+	public static final String SCOPE_ACCOUNT_PROFILE = "profile.accountprofile.me";
+	public static final String SCOPE_ACCOUNT_PROFILE_ALL = "profile.accountprofile.all";
+	public static final String SCOPE_BASIC_PROFILE = "profile.basicprofile.me";
+	public static final String SCOPE_BASIC_PROFILE_ALL = "profile.basicprofile.all";
+    
 	/** Predefined scope for user creation and management */
-	public static final String SCOPE_USERMANAGEMENT = "usermanagement";
-	public static final String ACCOUNT_PROFILE_SCOPE = "profile.accountprofile.me";
-	public static final String BASIC_PROFILE_SCOPE = "profile.basicprofile.me";
-	public static final String EMAIL_SCOPE = "email";
+    public static final String SCOPE_USERMANAGEMENT = "usermanagement";
+    public static final String SCOPE_ROLE = "user.roles.me";
+    public static final String SCOPE_ROLES_READ = "user.roles.read";
+    public static final String SCOPE_ROLES_WRITE = "user.roles.write";
+
+    /** scopes for client management */
+    public static final String SCOPE_CLIENTMANAGEMENT = "clientmanagement";
+    public static final String SCOPE_CLIENT_ROLES_READ_ALL = "client.roles.read.all";
+
+    /** scopes for api management */
+    public static final String SCOPE_APIMANAGEMENT = "apimanagement";
+
+
+    /** scopes for authorization */
+    public static final String SCOPE_AUTH_MANAGE = "authorization.manage";
+    public static final String SCOPE_AUTH_SCHEMA_MANAGE = "authorization.schema.manage";
 
 	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
 	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
