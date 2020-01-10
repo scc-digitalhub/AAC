@@ -69,9 +69,9 @@ public class ClaimManager {
 
 	private SetMultimap<String, String> scopesToClaims = HashMultimap.create();
 	
-	private Set<String> profileScopes = Sets.newHashSet(Config.BASIC_PROFILE_SCOPE);
-	private Set<String> accountScopes = Sets.newHashSet(Config.ACCOUNT_PROFILE_SCOPE);
-	private Set<String> roleScopes = Sets.newHashSet("user.roles.me");
+	private Set<String> profileScopes = Sets.newHashSet(Config.SCOPE_BASIC_PROFILE);
+	private Set<String> accountScopes = Sets.newHashSet(Config.SCOPE_ACCOUNT_PROFILE);
+	private Set<String> roleScopes = Sets.newHashSet(Config.SCOPE_ROLE);
 
 	// claims that should not be overwritten
 	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
@@ -83,33 +83,33 @@ public class ClaimManager {
 	public ClaimManager() {
 		super();
 		// standard
-		scopesToClaims.put("openid", "sub");
-		scopesToClaims.put("openid", "username");
-        scopesToClaims.put("openid", "user_name");		
-		scopesToClaims.put("openid", "preferred_username");
+		scopesToClaims.put(Config.SCOPE_OPENID, "sub");
+		scopesToClaims.put(Config.SCOPE_OPENID, "username");
+        scopesToClaims.put(Config.SCOPE_OPENID, "user_name");		
+		scopesToClaims.put(Config.SCOPE_OPENID, "preferred_username");
 		// standard
-		scopesToClaims.put("profile", "name");
-		scopesToClaims.put("profile", "preferred_username");
-		scopesToClaims.put("profile", "given_name");
-		scopesToClaims.put("profile", "family_name");
-		scopesToClaims.put("profile", "middle_name");
-		scopesToClaims.put("profile", "nickname");
-		scopesToClaims.put("profile", "profile");
-		scopesToClaims.put("profile", "picture");
-		scopesToClaims.put("profile", "website");
-		scopesToClaims.put("profile", "gender");
-		scopesToClaims.put("profile", "zoneinfo");
-		scopesToClaims.put("profile", "locale");
-		scopesToClaims.put("profile", "updated_at");
-		scopesToClaims.put("profile", "birthdate");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "name");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "preferred_username");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "given_name");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "family_name");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "middle_name");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "nickname");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "profile");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "picture");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "website");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "gender");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "zoneinfo");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "locale");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "updated_at");
+		scopesToClaims.put(Config.SCOPE_PROFILE, "birthdate");
 		// standard
-		scopesToClaims.put("email", "email");
-		scopesToClaims.put("email", "email_verified");
+		scopesToClaims.put(Config.SCOPE_EMAIL, "email");
+		scopesToClaims.put(Config.SCOPE_EMAIL, "email_verified");
 		// standard
-		scopesToClaims.put("phone", "phone_number");
-		scopesToClaims.put("phone", "phone_number_verified");
+		scopesToClaims.put(Config.SCOPE_PHONE, "phone_number");
+		scopesToClaims.put(Config.SCOPE_PHONE, "phone_number_verified");
 		// standard
-		scopesToClaims.put("address", "address");
+		scopesToClaims.put(Config.SCOPE_ADDRESS, "address");
 		// aac-specific
 		profileScopes.forEach(s -> {
 			scopesToClaims.put(s, "name");

@@ -62,7 +62,7 @@ public class AACTokenEnhancer implements TokenEnhancer {
 			token.setRefreshToken(null);
 		}
 		
-		if (accessToken.getScope().contains(Config.OPENID_SCOPE)) {
+		if (accessToken.getScope().contains(Config.SCOPE_OPENID)) {
 			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
 			token.setAdditionalInformation(Collections.singletonMap("id_token", tokenEnhancer.createIdToken(accessToken, authentication).serialize()));
 		} 
