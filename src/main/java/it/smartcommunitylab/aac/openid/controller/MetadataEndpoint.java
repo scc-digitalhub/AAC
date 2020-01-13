@@ -214,7 +214,7 @@ public class MetadataEndpoint {
 			String baseUrl = applicationURL;
 
 			if (!baseUrl.endsWith("/")) {
-				logger.debug("Configured issuer doesn't end in /, adding for discovery: {}", baseUrl);
+				logger.debug("Configured baseUrl doesn't end in /, adding for discovery: {}", baseUrl);
 				baseUrl = baseUrl.concat("/");
 			}
 

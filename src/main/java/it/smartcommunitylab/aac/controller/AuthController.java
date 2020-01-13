@@ -120,7 +120,7 @@ public class AuthController {
 		Map<String, String> authorities = attributesAdapter.getWebAuthorityUrls();
 
 		SavedRequest savedRequest = requestCache.getRequest(req, res);
-		String target = savedRequest != null ? savedRequest.getRedirectUrl() : prepareRedirect(req, "/dev");
+		String target = savedRequest != null ? savedRequest.getRedirectUrl() : prepareRedirect(req, "/account");
 		req.getSession().setAttribute("redirect", target);
 		
 		Map<String, String> resultAuthorities = authorities;
@@ -265,7 +265,7 @@ public class AuthController {
 	 * @throws UnsupportedEncodingException
 	 */
 	protected String prepareRedirect(HttpServletRequest req, String path)
-			throws UnsupportedEncodingException {
+			{
 		String target = path
 				+ (req.getQueryString() == null ? "" : "?"
 						+ req.getQueryString());
@@ -292,9 +292,13 @@ public class AuthController {
 			HttpServletRequest req, HttpServletResponse res) {
 
 		String nTarget = (String) req.getSession().getAttribute("redirect");
-		if (nTarget == null)
-			return new ModelAndView("redirect:/logout");
-
+		if (nTarget == null) {
+		    if ("internal".equals(authorityUrl)) {
+		        nTarget = prepareRedirect(req, "/account");
+		    } else {
+		        return new ModelAndView("redirect:/logout");   
+		    }			
+		}
 		String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
 		if (clientId != null) {
 			Set<String> idps = clientDetailsAdapter
