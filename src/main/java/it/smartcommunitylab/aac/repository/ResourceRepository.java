@@ -23,7 +23,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.model.ResourceParameter;
 import it.smartcommunitylab.aac.model.ServiceDescriptor;
 
 /**
@@ -39,9 +38,6 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
 	
 	@Query("select r from Resource r where r.clientId=?1")
 	public List<Resource> findByClientId(String clientId);
-	
-	@Query("select r from Resource r where r.resourceParameter=?1")
-	public List<Resource> findByResourceParameter(ResourceParameter rpdb);
 	
 	@Query("select r from Resource r where r.service=?1")
 	public List<Resource> findByService(ServiceDescriptor s);

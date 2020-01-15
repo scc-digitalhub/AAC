@@ -151,7 +151,7 @@ public class ClaimManager {
 	public Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientDetailsEntity client, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims) {
 		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
 		try {
-			return createUserClaims(userId, authorities, appInfo, scopes, authorizedClaims, requestedClaims, true);
+			return createUserClaims(userId, authorities, appInfo.getClaimMapping(), scopes, authorizedClaims, requestedClaims, true);
 		} catch (InvalidDefinitionException e) {
 			// never arrives here
 			return null;
@@ -170,10 +170,15 @@ public class ClaimManager {
 	 * @throws InvalidDefinitionException 
 	 */
 	public Map<String, Object> createUserClaims(User user, ClientAppInfo appInfo, Set<String> scopes) throws InvalidDefinitionException {
-		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo, scopes, null, null, false);
+		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo.getClaimMapping(), scopes, null, null, false);
 	}
 		
-	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientAppInfo appInfo, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors) throws InvalidDefinitionException {
+	
+	public Map<String, Object> createUserClaims(User user, String mapping, Set<String> scopes) throws InvalidDefinitionException {
+		return createUserClaims(user.getId().toString(), user.getRoles(), mapping, scopes, null, null, false);
+	} 
+	
+	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);
 //		Registration reg = registrationManager.getUserByEmail(ui.getUsername());
 		
@@ -272,7 +277,7 @@ public class ClaimManager {
 		// apply mapping to correct result
 		Map<String, Object> copy = new HashMap<>(result);
 		try {
-			obj = customMapping(appInfo, copy);
+			obj = customMapping(mapping, copy);
 		} catch (InvalidDefinitionException e) {
 			if (suppressErrors) {
 				logger.error("error mapping claims for user "+userId, e);
@@ -314,10 +319,10 @@ public class ClaimManager {
 	 * @param obj
 	 * @return
 	 */
-	public Map<String, Object> customMapping(ClientAppInfo appInfo, Map<String, Object> obj) throws InvalidDefinitionException {
-		if (StringUtils.isEmpty(appInfo.getClaimMapping())) return new HashMap<>(obj);
+	public Map<String, Object> customMapping(String mapping, Map<String, Object> obj) throws InvalidDefinitionException {
+		if (StringUtils.isEmpty(mapping)) return new HashMap<>(obj);
 
-		String func = appInfo.getClaimMapping();
+		String func = mapping;
 		try {
 			return executeScript(obj, func);
 		} catch (ScriptCPUAbuseException e) {

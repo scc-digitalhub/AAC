@@ -15,9 +15,6 @@
  */
 package it.smartcommunitylab.aac.model;
 
-import it.smartcommunitylab.aac.Config.AUTHORITY;
-import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
-
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -26,6 +23,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import it.smartcommunitylab.aac.Config.AUTHORITY;
+import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
 
 /**
  * DB entity to store resource data 
@@ -80,13 +80,6 @@ public class Resource {
 	 */
 	@Enumerated(EnumType.STRING)
 	private RESOURCE_VISIBILITY visibility = RESOURCE_VISIBILITY.CLIENT_APP;
-	
-	/**
-	 * Reference to the resource Parameter
-	 */
-	@ManyToOne(optional=true)
-	@JoinColumn(nullable=true, name="resourceparameterid",referencedColumnName="id")
-	private ResourceParameter resourceParameter;
 	
 	/**
 	 * ServiceDescriptor ID
@@ -238,20 +231,6 @@ public class Resource {
 	 */
 	public void setVisibility(RESOURCE_VISIBILITY visibility) {
 		this.visibility = visibility;
-	}
-
-	/**
-	 * @return the resourceParameter
-	 */
-	public ResourceParameter getResourceParameter() {
-		return resourceParameter;
-	}
-
-	/**
-	 * @param resourceParameter the resourceParameter to set
-	 */
-	public void setResourceParameter(ResourceParameter resourceParameter) {
-		this.resourceParameter = resourceParameter;
 	}
 
 	/**

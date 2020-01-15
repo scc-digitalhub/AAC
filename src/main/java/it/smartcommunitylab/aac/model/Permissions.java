@@ -29,24 +29,12 @@ import it.smartcommunitylab.aac.jaxbmodel.Service;
  */
 public class Permissions {
 
-	private Map<String,List<ResourceParameter>> ownResources;
 	private Service service;
 	private Map<String, List<Resource>> availableResources;
 	private Map<String,Boolean> selectedResources;
 	
 	private Map<String,Integer> resourceApprovals;
-	/**
-	 * @return the ownResources
-	 */
-	public Map<String, List<ResourceParameter>> getOwnResources() {
-		return ownResources;
-	}
-	/**
-	 * @param ownResources the ownResources to set
-	 */
-	public void setOwnResources(Map<String, List<ResourceParameter>> ownResources) {
-		this.ownResources = ownResources;
-	}
+
 	/**
 	 * @return the service
 	 */
