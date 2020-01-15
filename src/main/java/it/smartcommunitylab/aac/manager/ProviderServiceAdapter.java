@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBException;
 
@@ -72,6 +73,7 @@ public class ProviderServiceAdapter {
     @Value("${authorities.enabled}")
     private String[] enabledAuthorities;
 	   
+    @PostConstruct
 	public void init() throws JAXBException, IOException {
 	    logger.debug("init");
 		attrAdapter.init(Arrays.asList(enabledAuthorities));

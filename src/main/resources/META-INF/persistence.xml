@@ -4,7 +4,6 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
 	<persistence-unit name="aac">
 		<class>it.smartcommunitylab.aac.model.Resource</class>
-		<class>it.smartcommunitylab.aac.model.ResourceParameter</class>
 		<class>it.smartcommunitylab.aac.model.ServiceDescriptor</class>
 		<class>it.smartcommunitylab.aac.model.Registration</class>
     <class>it.smartcommunitylab.aac.model.Role</class>
@@ -16,5 +15,10 @@
     <class>it.smartcommunitylab.aac.model.UserCertificate</class>
     <class>it.smartcommunitylab.aac.model.PersistentLogin</class>
     <class>it.smartcommunitylab.aac.model.OAuthApproval</class>
+    <class>it.smartcommunitylab.aac.model.Service</class>
+    <class>it.smartcommunitylab.aac.model.ServiceScope</class>
+    <class>it.smartcommunitylab.aac.model.ServiceClaim</class>
+    <class>it.smartcommunitylab.aac.model.UserClaim</class>
+    <class>it.smartcommunitylab.aac.model.ClientClaim</class>
 	</persistence-unit>
 </persistence>

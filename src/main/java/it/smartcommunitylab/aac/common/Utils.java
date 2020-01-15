@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
 
-import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.model.ServiceDescriptor;
 
@@ -85,7 +84,6 @@ public class Utils {
 		res.setServiceName(s.getName());
 		res.setServiceId(s.getId());
 		try {
-			res.setResourceDefinitions(mapper.writeValueAsString(s.getResource()));
 			res.setResourceMappings(mapper.writeValueAsString(s.getResourceMapping()));
 		} catch (JsonProcessingException e) {
 		}
@@ -103,8 +101,6 @@ public class Utils {
 		res.setId(s.getServiceId());
 		res.setName(s.getServiceName());
 		res.setApiKey(s.getApiKey());
-		res.getResource().clear();
-		res.getResource().addAll(toObjectList(s.getResourceDefinitions(), ResourceDeclaration.class));
 		res.getResourceMapping().clear();
 		List<ResourceMapping> resourceMapping = toObjectList(s.getResourceMappings(), ResourceMapping.class);
 		res.getResourceMapping().addAll(resourceMapping);

@@ -30,8 +30,6 @@ public class JWKSetPublishingEndpoint {
 		// map from key id to key
 		Map<String, JWK> keys = jwtService.getAllPublicKeys();
 
-		// TODO: check if keys are empty, return a 404 here or just an empty list?
-
 		m.addAttribute("keys", keys);
 
 		return JWKSetView.VIEWNAME;

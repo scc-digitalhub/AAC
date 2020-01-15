@@ -24,6 +24,7 @@ app.run(function($rootScope){
 		if (next.$$route.originalPath.indexOf('/apis') == 0)  $rootScope.currentView = 'apis';
 		if (next.$$route.originalPath.indexOf('/tenantusers') == 0)  $rootScope.currentView = 'tenantusers';
 		if (next.$$route.originalPath.indexOf('/tenantowners') == 0)  $rootScope.currentView = 'tenantowners';
+		if (next.$$route.originalPath.indexOf('/services') == 0)  $rootScope.currentView = 'services';
 		if (next.$$route.originalPath.indexOf('/admin') == 0)  $rootScope.currentView = 'admin';
 	});	
 	
@@ -58,6 +59,10 @@ app.config(function($routeProvider) {
     .when("/tenantowners", {
     	controller  : 'TenantOwnersController', 
         templateUrl : "html/tenantowners.html"
+    })
+    .when("/services", {
+    	controller  : 'ServiceController', 
+        templateUrl : "html/services.html"
     })
     .otherwise("/apps");
 })

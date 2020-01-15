@@ -30,10 +30,9 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="description" type="xsd:string"
-				minOccurs="1" />
-			<xsd:element minOccurs="0" maxOccurs="unbounded" name="resource"
-				type="resourceDeclaration" />
+      <xsd:element name="claims" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="1" />
+      <xsd:element name="claimMapping" type="xsd:string" minOccurs="0" />
 			<xsd:element minOccurs="0" maxOccurs="unbounded" name="resourceMapping"
 				type="resourceMapping" />
 			<xsd:element minOccurs="0" maxOccurs="1" name="apiKey"
@@ -41,21 +40,7 @@
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required" />
 		<xsd:attribute name="name" type="xsd:string" use="required" />
-	</xsd:complexType>
-
-	<xsd:complexType name="resourceDeclaration">
-		<xsd:annotation>
-			<xsd:documentation>Description of service-specific resource
-				parameter. Characterized by the parameter id, name, description, and
-				list of sub-parameters
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="description" type="xsd:string"
-				minOccurs="1" />
-		</xsd:sequence>
-		<xsd:attribute name="id" type="xsd:ID" use="required" />
-		<xsd:attribute name="name" type="xsd:string" use="required" />
+    <xsd:attribute name="namespace" type="xsd:string" use="optional" />
 	</xsd:complexType>
 
 	<xsd:complexType name="resourceMapping">
@@ -69,6 +54,7 @@
 		<xsd:sequence>
 			<xsd:element name="description" type="xsd:string"
 				minOccurs="1" />
+      <xsd:element name="claims" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required" />
 		<xsd:attribute name="name" type="xsd:string" use="required" />

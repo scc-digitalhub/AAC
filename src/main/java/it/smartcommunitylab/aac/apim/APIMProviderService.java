@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.apim;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -131,7 +130,6 @@ public class APIMProviderService {
 		sd.setServiceName(serviceId);
 		sd.setDescription(service.getDescription());
 		sd.setOwnerId(user.getId().toString());		
-		sd.setResourceDefinitions(new ArrayList<String>().toString());
 		sd.setResourceMappings(resourcesToJSON(service.getResources()));
 		sd.setApiKey(service.getApiKey());
 		
@@ -144,11 +142,14 @@ public class APIMProviderService {
 			String id = aacResource.getResourceUri();
 
 			Resource old = resourceRepository.findByResourceUri(id);
+			oldUris.remove(id);
 			
 			Resource resource;
 			
-			if (old != null) {
+			// Keep existing resources if not managed through the same API
+			if (old != null && (old.getService() == null || !old.getService().getServiceId().equals(serviceId))) {
 				resource = old;
+				continue;
 			} else {
 				resource = new Resource();
 			}
@@ -167,8 +168,6 @@ public class APIMProviderService {
 			resource.setService(sd);
 			
 			resourceRepository.save(resource);
-			
-			oldUris.remove(id);
 			
 		}
 		

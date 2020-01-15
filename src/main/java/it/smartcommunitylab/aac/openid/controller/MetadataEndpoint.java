@@ -259,7 +259,7 @@ public class MetadataEndpoint {
 			m.put("token_endpoint_auth_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
 			//display_types_supported
 			m.put("claim_types_supported", Lists.newArrayList("normal" /*, "aggregated", "distributed"*/));
-			//TODO match list to ClaimManager openid claims?
+			// TODO extract claims from declared resources
 			m.put("claims_supported", Lists.newArrayList(
 					"sub",
 					"iss",

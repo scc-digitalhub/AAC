@@ -41,12 +41,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
-import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
 import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
 import it.smartcommunitylab.aac.manager.ResourceManager;
@@ -55,10 +52,8 @@ import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Permissions;
 import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.model.ResourceParameter;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceParameterRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -83,8 +78,6 @@ public class PermissionController {
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
 	private ResourceRepository resourceRepository;
-	@Autowired
-	private ResourceParameterRepository resourceParameterRepository;
 	@Autowired
 	private UserManager userManager;
 	
@@ -211,34 +204,6 @@ public class PermissionController {
 		
 		return response;
 	}
-
-	/**
-	 * Add resource parameter declaration to the service object if possible
-	 * @param serviceId
-	 * @return
-	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/parameter",method=RequestMethod.PUT)
-	public @ResponseBody Response addParameter(@PathVariable String serviceId, @RequestBody ResourceDeclaration decl) {
-		Response response = new Response();
-		resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
-		response.setData(resourceManager.addResourceDeclaration(serviceId, decl, userManager.getUserId().toString()));
-		return response;
-	}
-	/**
-	 * Delete resource parameter declaration from the service object if possible
-	 * @param serviceId
-	 * @param id 
-	 * @return
-	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/parameter/{id:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteParameter(@PathVariable String serviceId, @PathVariable String id) {
-		Response response = new Response();
-		resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
-		response.setData(resourceManager.removeResourceDeclaration(serviceId, id, userManager.getUserId().toString()));
-		
-		return response;
-	}
-
 	
 	/**
 	 * Add resource parameter to the service object if possible
@@ -277,20 +242,6 @@ public class PermissionController {
 	protected Permissions buildPermissions(ClientDetailsEntity clientDetails, String serviceId) {
 		Permissions permissions = new Permissions();
 		permissions.setService(resourceManager.getServiceObject(serviceId));
-		Map<String, List<ResourceParameter>> ownResources = new HashMap<String, List<ResourceParameter>>();
-		// read resource parameters owned by the client and create 'parameter-values' map
-		List<ResourceParameter> resourceParameters = resourceManager.getOwnResourceParameters(clientDetails.getClientId());
-		if (resourceParameters != null) {
-			for (ResourceParameter resourceParameter : resourceParameters) {
-				List<ResourceParameter> sublist = ownResources.get(resourceParameter.getParameter());
-				if (sublist == null) {
-					sublist = new ArrayList<ResourceParameter>();
-					ownResources.put(resourceParameter.getParameter(), sublist);
-				}
-				sublist.add(resourceParameter);
-			}
-		}
-		permissions.setOwnResources(ownResources);
 		// read all available resources and assign permission status
 		Map<String, List<Resource>> otherResourcesMap = new HashMap<String, List<Resource>>();
 		// map resources selected by the client
@@ -334,10 +285,7 @@ public class PermissionController {
 			List<Resource> list = otherResourcesMap.get(rm.getId());
 			if (list != null) {
 				for (Resource r : list) {
-					String key = r.getResourceParameter() == null ? "__"
-							: (r.getResourceParameter().getParameter()
-									+ "__" + r.getResourceParameter()
-									.getValue());
+					String key = "__";
 					List<Resource> targetList = serviceMap.get(key);
 					if (targetList == null) {
 						targetList = new ArrayList<Resource>();
@@ -354,55 +302,6 @@ public class PermissionController {
 		return permissions;
 	}
 
-	/**
-	 * Create new resource property
-	 * @param rp
-	 * @param serviceId
-	 * @return {@link Response} entity containing the stored {@link ResourceParameter} descriptor
-	 */
-	@RequestMapping(value="/dev/resourceparams",method=RequestMethod.POST)
-	public @ResponseBody Response createProperty(@RequestBody ResourceParameter rp) {
-		Response response = new Response();
-		userManager.checkClientIdOwnership(rp.getClientId());
-		resourceManager.storeResourceParameter(rp, rp.getService().getServiceId());
-		response.setData(rp);
-		return response;
-	}
-
-	/**
-	 * Change the visibility of the owned resource property
-	 * @param clientId client owning the resource
-	 * @param resourceId id of the resource parameter
-	 * @param value parameter value
-	 * @param vis visibility
-	 * @return {@link Response} entity containing the processed {@link ResourceParameter} descriptor
-	 */
-	@RequestMapping(value="/dev/resourceparams/{id:.*}",method=RequestMethod.PUT)
-	public @ResponseBody Response updatePropertyVisibility(@PathVariable Long id, @RequestParam RESOURCE_VISIBILITY vis) {
-		Response response = new Response();
-		ResourceParameter rp = resourceParameterRepository.findOne(id);
-		userManager.checkClientIdOwnership(rp.getClientId());
-		rp = resourceManager.updateResourceParameterVisibility(id, vis);
-		response.setData(rp);
-		return response;
-	}
-
-	/**
-	 * Delete the specified resource parameter
-	 * @param clientId client owning the property
-	 * @param resourceId id of the parameter
-	 * @param value parameter value
-	 * @return
-	 */
-	@RequestMapping(value="/dev/resourceparams/{id:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteProperty(@PathVariable Long id) {
-		Response response = new Response();
-		ResourceParameter rp = resourceParameterRepository.findOne(id);
-		userManager.checkClientIdOwnership(rp.getClientId());
-		resourceManager.removeResourceParameter(id);
-		return response;
-	}
-	
 	@ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody

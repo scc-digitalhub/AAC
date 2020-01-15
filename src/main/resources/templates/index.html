@@ -89,6 +89,7 @@
           <li class="nav-link"  data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
           <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantusers'}"><a data-ng-click="go('tenantusers')">User Roles</a></li>
           <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantowners'}"><a data-ng-click="go('tenantowners')">Space Owners</a></li>
+          <li class="nav-link" data-ng-class="{'active': currentView == 'services'}"><a data-ng-click="go('services')">Services</a></li>
           <li class="nav-link"  ng-if="roles.indexOf('ROLE_ADMIN') >= 0" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
         </ul>
         

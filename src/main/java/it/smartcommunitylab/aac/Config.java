@@ -16,6 +16,9 @@
 
 package it.smartcommunitylab.aac;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Constants and methods for managing resource visibility
  * @author raman
@@ -36,7 +39,27 @@ public class Config {
 	
 	/** Authorization authorities */
 	public enum AUTHORITY {ROLE_USER, ROLE_CLIENT, ROLE_ANY, ROLE_CLIENT_TRUSTED};
-	
+
+	/** Claim types */
+	public enum CLAIM_TYPE {
+		type_string("string"), type_number("number"), type_boolean("boolean"), type_object("object");
+		private String litType;
+		
+		private CLAIM_TYPE(String litType) {
+			this.litType = litType;
+		}
+		public String getLitType() {
+			return litType;
+		}
+		private static final Map<String, CLAIM_TYPE> lookup = new HashMap<>();
+		static {
+			for (CLAIM_TYPE ct: CLAIM_TYPE.values()) lookup.put(ct.getLitType(), ct);
+		}
+		public static CLAIM_TYPE get(String s) {
+			return lookup.get(s);
+		}
+	};
+
 	/** Resource visibility values: either only the specific app can see, or all the apps of the current developer, or any app */
 	public enum RESOURCE_VISIBILITY {CLIENT_APP,DEVELOPER,PUBLIC}
 

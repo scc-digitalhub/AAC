@@ -573,59 +573,6 @@ angular.module('aac.controllers.clients', [])
 			}	
 		}, Utils.showError);
 	};
-	/**
-	 * create new resource parameter value for the specified resource parameter, service, and client app
-	 */
-	$scope.saveResourceParam = function(parameter,serviceId,clientId) {
-		var perm = new ClientAppResourceParam({parameter:parameter,service:{serviceId:serviceId},clientId:clientId});
-		var n = prompt("Create new resource", "value");
-		if (n == null || n.trim().length==0) return;
-		perm.value = n.trim();
-		
-		perm.$create(function(response) {
-			$('#myModal').modal('hide');
-			if (response.responseCode == 'OK') {
-				Utils.showSuccess();
-			} else {
-				Utils.showError('Failed to save own resource: '+response.errorMessage);
-			}	
-		}, Utils.showError);
-	};
-
-	
-	/**
-	 * delete resource parameter
-	 */
-	$scope.removeResourceParam = function(r) {
-		if (confirm('Are you sure you want to delete this resource and subresources?')) {
-			var perm = new ClientAppResourceParam();
-			perm.$delete({id:r.id},function(response){
-				$('#myModal').modal('hide');
-				if (response.responseCode == 'OK') {
-					Utils.showSuccess();
-				} else {
-					Utils.showError('Failed to remove resource: '+response.errorMessage);
-				}	
-			}, Utils.showError);
-	    }
-	};
-
-	/**
-	 * change resource parameter visibility
-	 */
-	$scope.changeResourceParamVis = function(r) {
-		if (confirm('Change visibility of the resource?')) {
-			var perm = new ClientAppResourceParam();
-			perm.$changeVis({id:r.id,vis:r.visibility},function(response){
-				$('#myModal').modal('hide');
-				if (response.responseCode == 'OK') {
-					Utils.showSuccess();
-				} else {
-					Utils.showError('Failed to change resource visibility: '+response.errorMessage);
-				}	
-			}, Utils.showError);
-	    }
-	};
 
 	/**
 	 * return icon depending on the permission status
