@@ -111,7 +111,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 
 	@Transactional(isolation=Isolation.SERIALIZABLE)
 	public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) throws AuthenticationException {
-		logger.debug("create access token for authentication "+authentication.getName());		
+		logger.debug("create access token for authentication "+authentication.getName());
 	    OAuth2AccessToken existingAccessToken = localtokenStore.getAccessToken(authentication);
 		OAuth2RefreshToken refreshToken = null;
 		if (existingAccessToken != null) {
@@ -158,7 +158,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		if (refreshToken != null) {
 			localtokenStore.storeRefreshToken(refreshToken, authentication);
 		}
-		traceUserLogger.info(String.format("'type':'new','user':'%s','token':'%s'", authentication.getName(), accessToken.getValue()));
+		traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'", authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
 		return accessToken;
 	}
 	
