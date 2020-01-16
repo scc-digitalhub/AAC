@@ -265,10 +265,11 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // they should appear only in JWT, still we need JTI from tokenId
         result.setAdditionalInformation(info);
 
-        // rewrite token type because we don't want "bearer" lowercase in response...
-        if (result.getTokenType().equals(OAuth2AccessToken.BEARER_TYPE.toLowerCase())) {
-            result.setTokenType(OAuth2AccessToken.BEARER_TYPE);
-        }
+        //MOVED to tokenEnhancer
+//        // rewrite token type because we don't want "bearer" lowercase in response...
+//        if (result.getTokenType().equals(OAuth2AccessToken.BEARER_TYPE.toLowerCase())) {
+//            result.setTokenType(OAuth2AccessToken.BEARER_TYPE);
+//        }
 
         return result;
     }
