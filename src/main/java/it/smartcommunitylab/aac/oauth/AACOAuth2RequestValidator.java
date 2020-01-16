@@ -42,11 +42,24 @@ public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
 	}
 
 	public void validateScope(TokenRequest tokenRequest, ClientDetails client) throws InvalidScopeException {
-		validateScope(tokenRequest.getScope(), client.getScope());
+	    //check grant type and act accordingly
+        String grantType = tokenRequest.getGrantType();
+        if ("password".equals(grantType) || "client_credentials".equals(grantType)) {
+            validateScope(tokenRequest.getScope(), client.getScope());
+        } else {
+            // enforce spec, no scope associated to these flows
+            if (!tokenRequest.getScope().isEmpty()) {
+                throw new InvalidScopeException("token request for "+grantType+" should not have scopes associated");
+            }
+        }
+		
 	}
 	
 	private void validateScope(Set<String> requestScopes, Set<String> clientScopes) {
 
+        logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
+                + " against client " + String.valueOf(clientScopes.toString()));
+	    
 		// handle default case
 		if (Collections.singleton("default").equals(requestScopes)) return;
 		

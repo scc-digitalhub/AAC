@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
 import org.springframework.security.oauth2.provider.TokenRequest;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
 
@@ -84,6 +84,12 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 
 		Set<String> scopes = extractScopes(authorizationParameters, clientId);
 		
+		logger.trace("create authorization request for "+clientId
+		        +" response "+responseTypes.toString()
+                +" scope "+ String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
+                +" extracted scope "+scopes.toString()
+		        +" redirect "+redirectUri);
+		
 		AuthorizationRequest request = new AuthorizationRequest(authorizationParameters,
 				Collections.<String, String> emptyMap(), clientId, scopes, null, null, false, state, redirectUri,
 				responseTypes);
@@ -108,16 +114,23 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		if (clientId == null) {
 			// if the clientId wasn't passed in in the map, we add pull it from the authenticated client object
 			clientId = authenticatedClient.getClientId();
-		}
-		else {
+		} else {
 			// otherwise, make sure that they match
 			if (!clientId.equals(authenticatedClient.getClientId())) {
 				throw new InvalidClientException("Given client ID does not match authenticated client");
 			}
 		}
 		String grantType = requestParameters.get(OAuth2Utils.GRANT_TYPE);
-
-		Set<String> scopes = extractScopes(requestParameters, clientId);
+		Set<String> scopes = new HashSet<>();
+		//check grantType and act accordingly to parse scopes
+		if("password".equals(grantType) || "client_credentials".equals(grantType)) {
+		    extractScopes(requestParameters, clientId);
+		}
+		
+        logger.trace("create token request for " + clientId
+                + " grantType " + grantType
+                + " scope " + scopes.toString());
+	      
 		TokenRequest tokenRequest = new TokenRequest(requestParameters, clientId, scopes, grantType);
 
 		return tokenRequest;
@@ -134,23 +147,32 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 	}
 
 	private Set<String> extractScopes(Map<String, String> requestParameters, String clientId) {
-		// consider both spaces and commas as separators
-		String scope = requestParameters.get(OAuth2Utils.SCOPE);
-		Set<String> scopes = new HashSet<>();
-		if (!StringUtils.isEmpty(scope)) {
-			String[] scopeArr = scope.split(",");
-			for (String s :  scopeArr) {
-				scopes.addAll(OAuth2Utils.parseParameterList(s));
-			}
+	   //fetch from requestParams, which here are somehow not decoded
+       String scope = requestParameters.get(OAuth2Utils.SCOPE);
+
+       Set<String> scopes = new HashSet<>();
+
+       if (StringUtils.isNotBlank(scope)) {
+
+            // check if spaces are still encoded as %20
+            if (scope.contains("%20")) {
+                // replace with spaces
+                scope = scope.replace("%20", " ");
+            }
+
+            // consider both spaces and commas as separators
+            String[] scopeArr = scope.split(",");
+            for (String s : scopeArr) {
+                scopes.addAll(OAuth2Utils.parseParameterList(s));
+            }
 		}		
-		
 		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 
 		try {
 			if ((scopes == null || scopes.isEmpty())) {
 				scopes = clientDetails.getScope();
 			}		
-			
+
 			boolean addStrongOperationScope = false;
 			if (scopes.contains(Config.SCOPE_OPERATION_CONFIRMED)) {
 				Object authDetails = SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -158,7 +180,7 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 					if (((AACOAuthRequest)authDetails).isMobile2FactorConfirmed()) {
 						addStrongOperationScope = true;
 					}
-					// clear for unpropriate access
+					// clear for inappropriate access
 					((AACOAuthRequest)authDetails).unsetMobile2FactorConfirmed();
 				}
 				if (!addStrongOperationScope) {
@@ -167,8 +189,9 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 			}
 			
 //			boolean requestedOpenidScope = scopes.contains(Config.OPENID_SCOPE);
-			
+
 			scopes = checkUserScopes(requestParameters, scopes, clientDetails);
+
 			if (addStrongOperationScope) {
 				scopes.add(Config.SCOPE_OPERATION_CONFIRMED);
 			} else {
