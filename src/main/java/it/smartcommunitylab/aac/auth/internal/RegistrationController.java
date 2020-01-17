@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,11 +51,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
+import it.smartcommunitylab.aac.manager.AttributesAdapter;
 import it.smartcommunitylab.aac.manager.RegistrationService;
 import it.smartcommunitylab.aac.model.Registration;
 import springfox.documentation.annotations.ApiIgnore;
@@ -70,6 +71,9 @@ public class RegistrationController {
 
 	@Autowired
 	private RegistrationService regService;
+    
+	@Autowired
+    private AttributesAdapter attributesAdapter;	
 	
 	/**
 	 * Login the user 
@@ -107,15 +111,28 @@ public class RegistrationController {
 			a.setDetails(Config.IDP_INTERNAL);
 
 			SecurityContextHolder.getContext().setAuthentication(a);
-			
+			logger.trace("authentication set to "+a.toString());
+			//do NOT pass email to eauth, we will use the SecurityContext to fetch user
+			//avoid impersonation attack
 			String redirect = String
-					.format("redirect:/eauth/internal?target=%s&email=%s",
-							target,
-							user.getEmail());
+					.format("redirect:/eauth/internal?target=%s",
+							target);
 			return redirect;
 		} catch (RegistrationException e) {
+		    //ensure at least internal authority is available for login
+		    //TODO rewrite, see down
+	        Map<String, String> authorities = attributesAdapter.getWebAuthorityUrls();
+	        req.getSession().setAttribute("authorities", authorities);
+		    
 			model.addAttribute("error", e.getClass().getSimpleName());
-			return "login";
+            return "login";
+//            //send redirect to login to ensure session attributes are set
+//            req.getSession().setAttribute("error", e.getClass().getSimpleName());
+//            // we should ensure that redirect is fetched via GET to avoid loops
+//            // disabled now for compatibility, use 302
+//            req.setAttribute(View.RESPONSE_STATUS_ATTRIBUTE, HttpStatus.SEE_OTHER);
+//            return "redirect:/login";
+
 		}
 	}
 	
