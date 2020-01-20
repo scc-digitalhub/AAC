@@ -16,6 +16,8 @@ import com.google.common.collect.Lists;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.openid.controller.OpenIDMetadataEndpoint;
 
@@ -26,6 +28,7 @@ import it.smartcommunitylab.aac.openid.controller.OpenIDMetadataEndpoint;
  * extends OIDC discovery metadata 
  */
 @Controller
+@Api(tags = { "AAC OAuth 2.0 Authorization Server Metadata (IETF RFC8414)" })
 public class OAuth2MetadataEndpoint  {
 
     public static final String OAUTH2_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/oauth-authorization-server";
@@ -38,8 +41,9 @@ public class OAuth2MetadataEndpoint  {
     @Autowired
     OpenIDMetadataEndpoint oidcMetadataEndpoint;
 
+    @ApiOperation(value="Get authorization server metadata")
     @RequestMapping("/" + OAUTH2_CONFIGURATION_URL)
-    public @ResponseBody Map<String, Object> providerConfiguration() {
+    public @ResponseBody Map<String, Object> serverMetadata() {
         return getConfiguration();
     }
     

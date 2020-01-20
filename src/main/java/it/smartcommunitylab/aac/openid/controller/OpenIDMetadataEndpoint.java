@@ -37,6 +37,8 @@ import com.google.common.collect.Sets;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
@@ -49,6 +51,7 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 *
 */
 @Controller
+@Api(tags = { "AAC OpenID Connect Discovery" })
 public class OpenIDMetadataEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -69,6 +72,7 @@ public class OpenIDMetadataEndpoint {
 	@Autowired
 	private JWTEncryptionAndDecryptionService encService;
 
+    @ApiOperation(value="Get OpenID provider configuration information")
 	@RequestMapping("/" + OPENID_CONFIGURATION_URL)
 	public @ResponseBody Map<String, Object> providerConfiguration() {
 		return getConfiguration();
@@ -272,7 +276,7 @@ public class OpenIDMetadataEndpoint {
 //	          m.put("op_policy_uri",""); //not supported
 //	          m.put("op_tos_uri",""); //not supported
         
-        //NOTE this are OAuth2 endpoint
+        //NOTE these are OAuth2 endpoint
         m.put("revocation_endpoint", baseUrl + "eauth/revoke"); // token revocation endpoint
 
         return m;
