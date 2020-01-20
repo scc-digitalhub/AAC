@@ -121,7 +121,7 @@ public class TokenIntrospectionController {
                 //check again expiration status
                 long now = new Date().getTime() / 1000;
                 long expiration = (storedToken.getExpiration().getTime() / 1000);
-                if(expiration > now) {
+                if(expiration < now) {
                     throw new InvalidTokenException("token expired");
                 }
                 
