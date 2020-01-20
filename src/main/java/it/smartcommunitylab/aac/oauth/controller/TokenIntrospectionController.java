@@ -73,6 +73,10 @@ public class TokenIntrospectionController {
 
 	private JsonParser objectMapper = JsonParserFactory.create();
 
+	/*
+	 * TODO: evaluate if client_id should match audience, as per security considerations
+	 * https://tools.ietf.org/html/rfc7662#section-4
+	 */
 	
 	@ApiOperation(value="Get token metadata")
 	@RequestMapping(method = RequestMethod.POST, value = "/token_introspection")
