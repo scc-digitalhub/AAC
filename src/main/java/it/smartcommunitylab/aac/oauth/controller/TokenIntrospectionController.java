@@ -34,6 +34,7 @@ import org.springframework.security.oauth2.common.util.JsonParser;
 import org.springframework.security.oauth2.common.util.JsonParserFactory;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,11 +61,13 @@ public class TokenIntrospectionController {
 
 	@Autowired
 	private ResourceServerTokenServices resourceServerTokenServices;
+	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	
 	@Autowired
-	private AutoJdbcTokenStore tokenStore;
+	private TokenStore tokenStore;
+	
 	@Autowired
 	private UserManager userManager;	
 

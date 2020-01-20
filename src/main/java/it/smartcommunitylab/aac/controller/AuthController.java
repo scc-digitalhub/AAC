@@ -441,38 +441,40 @@ public class AuthController {
         map.put("email", existing.getEmail());
         return map;
     }
-	/**
-	 * Revoke the access token and the associated refresh token.
-	 * 
-	 * @param token
-	 */
-	@RequestMapping("/eauth/revoke/{token}")
-	public @ResponseBody
-	String revokeToken(@PathVariable String token) {
-		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
-		if (accessTokenObj != null) {
-			if (accessTokenObj.getRefreshToken() != null) {
-				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
-			}
-			tokenStore.removeAccessToken(accessTokenObj);
-		}
-		return "";
-	}
-	/**
-	 * Revoke the access token and the associated refresh token.
-	 * 
-	 * @param token
-	 */
-	@RequestMapping("/eauth/revoke")
-	public @ResponseBody
-	String revokeTokenWithParam(@RequestParam String token) {
-		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
-		if (accessTokenObj != null) {
-			if (accessTokenObj.getRefreshToken() != null) {
-				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
-			}
-			tokenStore.removeAccessToken(accessTokenObj);
-		}
-		return "";
-	}
+    
+    //DEPRECATED for dedicated RevocationController
+//	/**
+//	 * Revoke the access token and the associated refresh token.
+//	 * 
+//	 * @param token
+//	 */
+//	@RequestMapping("/eauth/revoke/{token}")
+//	public @ResponseBody
+//	String revokeToken(@PathVariable String token) {
+//		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
+//		if (accessTokenObj != null) {
+//			if (accessTokenObj.getRefreshToken() != null) {
+//				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
+//			}
+//			tokenStore.removeAccessToken(accessTokenObj);
+//		}
+//		return "";
+//	}
+//	/**
+//	 * Revoke the access token and the associated refresh token.
+//	 * 
+//	 * @param token
+//	 */
+//	@RequestMapping("/eauth/revoke")
+//	public @ResponseBody
+//	String revokeTokenWithParam(@RequestParam String token) {
+//		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
+//		if (accessTokenObj != null) {
+//			if (accessTokenObj.getRefreshToken() != null) {
+//				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
+//			}
+//			tokenStore.removeAccessToken(accessTokenObj);
+//		}
+//		return "";
+//	}
 }

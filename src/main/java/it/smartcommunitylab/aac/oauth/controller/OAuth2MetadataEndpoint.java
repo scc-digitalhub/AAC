@@ -104,7 +104,7 @@ public class OAuth2MetadataEndpoint  {
                 JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
                 JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512);
         
-        m.put("revocation_endpoint", baseUrl + "eauth/revoke"); // token revocation endpoint
+        m.put("revocation_endpoint", baseUrl + "token_revoke"); // token revocation endpoint
         m.put("revocation_endpoint_auth_methods_supported",  Lists.newArrayList("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none"));
         m.put("revocation_endpoint_auth_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
         

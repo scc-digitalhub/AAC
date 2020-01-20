@@ -277,7 +277,7 @@ public class OpenIDMetadataEndpoint {
 //	          m.put("op_tos_uri",""); //not supported
         
         //NOTE these are OAuth2 endpoint
-        m.put("revocation_endpoint", baseUrl + "eauth/revoke"); // token revocation endpoint
+//        m.put("revocation_endpoint", baseUrl + "eauth/revoke"); // token revocation endpoint
 
         return m;
     }

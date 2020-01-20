@@ -682,4 +682,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(12);
 		return resource;
 	}
+	
+    @Bean
+    protected ResourceServerConfiguration tokenRevocationResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.antMatcher("/token_revoke").authorizeRequests()
+                        .antMatchers("/token_revoke").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+                        .and().httpBasic()
+                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+            }
+        }));
+        resource.setOrder(13);
+        return resource;
+    }
 }
