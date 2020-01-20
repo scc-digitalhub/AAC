@@ -350,10 +350,10 @@ public class AuthController {
 			String userId = old.getName();
 			userEntity = userRepository.findOne(Long.parseLong(userId));
 		} else if ( old instanceof UsernamePasswordAuthenticationToken) {
-		    //ensure internal users logged in via user+password are given the right identity
+		    //ensure internal users (logged in via user+password) are given the right identity
 		    //avoid impersonation attack via parameters
-	          Registration reg = registrationManager.getUserByEmail(old.getName());
-	          userEntity = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(reg), null);
+	        Registration reg = registrationManager.getUserByEmail(old.getName());
+	        userEntity = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(reg), null);
 		} else {
 			userEntity = providerServiceAdapter.updateUser(authorityUrl, toMap(pairs), req);
 		}
