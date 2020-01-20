@@ -31,7 +31,8 @@ public class TokenIntrospection {
 	private String scope;
 	private String client_id;
 	private String username;
-	private String token_type, sub, iss, jti, aud;
+	private String token_type, sub, iss, jti;
+	private String[] aud;
 	private Integer exp, iat, nbf;
 	/**
 	 * @return the active
@@ -165,16 +166,11 @@ public class TokenIntrospection {
 	public void setNbf(Integer nbf) {
 		this.nbf = nbf;
 	}
-	/**
-	 * @return the aud
-	 */
-	public String getAud() {
-		return aud;
-	}
-	/**
-	 * @param aud the aud to set
-	 */
-	public void setAud(String aud) {
-		this.aud = aud;
-	}
+    public String[] getAud() {
+        return aud;
+    }
+    public void setAud(String[] aud) {
+        this.aud = aud;
+    }
+
 }

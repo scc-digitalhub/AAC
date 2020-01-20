@@ -14,7 +14,11 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.oauth.controller;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.jwt.Jwt;
+import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
+import org.springframework.security.oauth2.common.util.JsonParser;
+import org.springframework.security.oauth2.common.util.JsonParserFactory;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
@@ -45,7 +54,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  *
  */
 @Controller
-@Api(tags = { "AAC Token Introspection (ITEF RFC7662)" })
+@Api(tags = { "AAC OAuth 2.0 Token Introspection (IETF RFC7662)" })
 public class TokenIntrospectionController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -62,6 +71,8 @@ public class TokenIntrospectionController {
 	@Value("${jwt.issuer}")
 	private String issuer;
 
+	private JsonParser objectMapper = JsonParserFactory.create();
+
 	
 	@ApiOperation(value="Get token metadata")
 	@RequestMapping(method = RequestMethod.POST, value = "/token_introspection")
@@ -71,7 +82,7 @@ public class TokenIntrospectionController {
 		try {
 			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(token);
 			
-			OAuth2AccessToken storedToken = tokenStore.getAccessToken(auth);
+			OAuth2AccessToken storedToken = tokenStore.getAccessToken(auth);		
 			
 			String clientId = auth.getOAuth2Request().getClientId();
 			
@@ -99,11 +110,29 @@ public class TokenIntrospectionController {
 			result.setIss(issuer);
 			result.setNbf(result.getIat());
 			result.setSub(userId);
-			result.setAud(clientId);
-			// jti is not supported in this form
+			result.setAud(new String[] {clientId});
+
+            // check if token is JWT then return jti
+            if (isJwt(storedToken.getValue())) {
+                //check again expiration status
+                long now = new Date().getTime() / 1000;
+                long expiration = (storedToken.getExpiration().getTime() / 1000);
+                if(expiration > now) {
+                    throw new InvalidTokenException("token expired");
+                }
+                
+                // extract tokenId from jti field
+                Jwt old = JwtHelper.decode(storedToken.getValue());
+                Map<String, Object> claims = this.objectMapper.parseMap(old.getClaims());
+                result.setJti((String) claims.get("jti"));
+                // replace aud with JWT aud
+                result.setAud(((List<String>) claims.get("aud")).toArray(new String[0]));
+            }
 			
 			// only bearer tokens supported
 			result.setToken_type(OAuth2AccessToken.BEARER_TYPE);
+			
+			//if token exists is valid since revoked ones are deleted
 			result.setActive(true);
 
 			result.setAac_user_id(userId);
@@ -117,5 +146,17 @@ public class TokenIntrospectionController {
 		}
 		return ResponseEntity.ok(result);
 	}
+	
+    private boolean isJwt(String value) {
+        // simply check for format header.body.signature
+        int firstPeriod = value.indexOf('.');
+        int lastPeriod = value.lastIndexOf('.');
+
+        if (firstPeriod <= 0 || lastPeriod <= firstPeriod) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 	
 }
