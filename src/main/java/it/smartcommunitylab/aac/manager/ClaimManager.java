@@ -366,6 +366,7 @@ public class ClaimManager {
         // also write username in alternate claim
         obj.put("username", ui.getUsername());
         // also write username in a spring-friendly form
+        //https://github.com/spring-projects/spring-security-oauth/blob/master/spring-security-oauth2/src/main/java/org/springframework/security/oauth2/provider/token/UserAuthenticationConverter.java
         obj.put("user_name", ui.getUsername());
 
         return obj;

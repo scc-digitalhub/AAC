@@ -104,38 +104,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // ensure signer is null since superclass initializes it
         this.signer = null;
 
-        // we will use the external jwtService for signin
-
-//        // if set MAC key use it
-//        if (!key.isEmpty()) {
-//            // default is HMAC
-//            this.setSigningKey(key);
-//            signer = new MacSigner(key);
-//        }
-//
-//        // if set kid look in keystore for RSA keypair
-//        if (!kid.isEmpty() && !jwtKeyStore.getKeys().isEmpty()) {
-//            try {
-//                // fetch the matching key
-//
-//                for (JWK jwk : jwtKeyStore.getKeys()) {
-//
-//                    if (jwk instanceof RSAKey && kid.equals(jwk.getKeyID())) {
-//
-//                        // derive signer
-//                        KeyPair keyPair = ((RSAKey) jwk).toKeyPair();
-//                        this.setKeyPair(keyPair);
-//                        this.signer = new RsaSigner((RSAPrivateKey) keyPair.getPrivate());
-//
-//                        // store kid because we need to add it to claims
-//                        customHeaders.put("kid", kid);
-//                    }
-//                }
-//            } catch (JOSEException e) {
-//                logger.error("Error reading RSA key: " + e.getMessage());
-//            }
-//
-//        }
+        // we will use the external jwtService for signing
     }
 
     @Override
@@ -199,18 +168,19 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 //            }
             Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getUserAuthentication()
                     .getAuthorities();
-//            if (selectedAuthorities != null && !selectedAuthorities.isEmpty())
-//                claims.put(AUTHORITIES,
-//                        selectedAuthorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet()));
+            
+            // delegate to claim manager
             Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
-            // set directly, ignore extracted
-            userClaims.remove("sub");
+            // set directly later on, ignore provided
+            if (userClaims.containsKey("sub")) {
+                userClaims.remove("sub");
+            }
+            
             claims.putAll(userClaims);
         }
 
         // explicitly set sub to userId
-        // ignore claims?
         if (user != null) {
             claims.put("sub", user.getId());
         }
@@ -219,8 +189,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         audiences.add(clientId);
         audiences.addAll(getServiceIds(accessToken.getScope()));
         claims.put(AUD, audiences);
-        claims.put("azp", clientId);
-
+        if (audiences.size() > 1) {
+            // add only if more than 1 aud set
+            claims.put("azp", clientId);
+        }
 //        // reset additional claims for scopes to a list instead of an array
 //        info.put("scope", String.join(" ", request.getScope()));
 
@@ -231,41 +203,42 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // verify and format refresh token
         OAuth2RefreshToken refreshToken = result.getRefreshToken();
         if (refreshToken != null) {
-            DefaultOAuth2AccessToken encodedRefreshToken = new DefaultOAuth2AccessToken(accessToken);
-            encodedRefreshToken.setValue(refreshToken.getValue());
-            // Refresh tokens do not expire unless explicitly of the right type
-            encodedRefreshToken.setExpiration(null);
-            try {
-                Map<String, Object> map = objectMapper
-                        .parseMap(JwtHelper.decode(refreshToken.getValue()).getClaims());
-                if (map.containsKey(TOKEN_ID)) {
-                    encodedRefreshToken.setValue(map.get(TOKEN_ID).toString());
-                }
-            } catch (IllegalArgumentException e) {
-            }
-            Map<String, Object> refreshTokenInfo = new LinkedHashMap<String, Object>(
-                    accessToken.getAdditionalInformation());
-            refreshTokenInfo.put(TOKEN_ID, encodedRefreshToken.getValue());
-            refreshTokenInfo.put(ACCESS_TOKEN_ID, tokenId);
-//            // reset additional claims for scopes to a list instead of an array
-//            refreshTokenInfo.put("scope", String.join(" ", request.getScope()));
-            encodedRefreshToken.setAdditionalInformation(refreshTokenInfo);
-
-            DefaultOAuth2RefreshToken token = new DefaultOAuth2RefreshToken(
-                    encode(encodedRefreshToken, authentication));
-            if (refreshToken instanceof ExpiringOAuth2RefreshToken) {
-                Date expiration = ((ExpiringOAuth2RefreshToken) refreshToken).getExpiration();
-                encodedRefreshToken.setExpiration(expiration);
-                token = new DefaultExpiringOAuth2RefreshToken(encode(encodedRefreshToken, authentication), expiration);
-            }
-            result.setRefreshToken(token);
+            // DISABLED conversion to JWT - we want an opaque refresh token
+//            DefaultOAuth2AccessToken encodedRefreshToken = new DefaultOAuth2AccessToken(accessToken);
+//            encodedRefreshToken.setValue(refreshToken.getValue());
+//            // Refresh tokens do not expire unless explicitly of the right type
+//            encodedRefreshToken.setExpiration(null);
+//            try {
+//                Map<String, Object> map = objectMapper
+//                        .parseMap(JwtHelper.decode(refreshToken.getValue()).getClaims());
+//                if (map.containsKey(TOKEN_ID)) {
+//                    encodedRefreshToken.setValue(map.get(TOKEN_ID).toString());
+//                }
+//            } catch (IllegalArgumentException e) {
+//            }
+//            Map<String, Object> refreshTokenInfo = new LinkedHashMap<String, Object>(
+//                    accessToken.getAdditionalInformation());
+//            refreshTokenInfo.put(TOKEN_ID, encodedRefreshToken.getValue());
+//            refreshTokenInfo.put(ACCESS_TOKEN_ID, tokenId);
+////            // reset additional claims for scopes to a list instead of an array
+////            refreshTokenInfo.put("scope", String.join(" ", request.getScope()));
+//            encodedRefreshToken.setAdditionalInformation(refreshTokenInfo);
+//
+//            DefaultOAuth2RefreshToken token = new DefaultOAuth2RefreshToken(
+//                    encode(encodedRefreshToken, authentication));
+//            if (refreshToken instanceof ExpiringOAuth2RefreshToken) {
+//                Date expiration = ((ExpiringOAuth2RefreshToken) refreshToken).getExpiration();
+//                encodedRefreshToken.setExpiration(expiration);
+//                token = new DefaultExpiringOAuth2RefreshToken(encode(encodedRefreshToken, authentication), expiration);
+//            }
+//            result.setRefreshToken(token);
         }
 
         // reset additional claims to avoid leaking in json response
         // they should appear only in JWT, still we need JTI from tokenId
         result.setAdditionalInformation(info);
 
-        //MOVED to tokenEnhancer
+        // MOVED to tokenEnhancer
 //        // rewrite token type because we don't want "bearer" lowercase in response...
 //        if (result.getTokenType().equals(OAuth2AccessToken.BEARER_TYPE.toLowerCase())) {
 //            result.setTokenType(OAuth2AccessToken.BEARER_TYPE);
@@ -279,12 +252,17 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         logger.debug("encode access token " + accessToken.getTokenType() + " for " + authentication.getName()
                 + " value " + accessToken.toString());
 
+        // short-circuit for refresh tokens, we don't want them encoded as JWT
+        if (this.isRefreshToken(accessToken)) {
+            return accessToken.getValue();
+        }
+
         // convert base claims to map
         @SuppressWarnings("unchecked")
         Map<String, Object> claims = (Map<String, Object>) tokenConverter.convertAccessToken(accessToken,
                 authentication);
 
-        logger.debug("dump claims " + claims.keySet().toString());
+        logger.trace("dump claims " + claims.keySet().toString());
 
         OAuth2Request request = authentication.getOAuth2Request();
 
@@ -298,69 +276,14 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
         // reset additional claims for scopes to a list instead of an array
         claims.put("scope", String.join(" ", request.getScope()));
-        // TODO rewrite checks with whitelist/graylist
-        // ie refresh == whitelisted
-        // access == requested&allowed&prefixed
 
-        // handle authorities claim here since token converter HARDCODES it...
-        if (this.isRefreshToken(accessToken)) {
-            // clear authorities from refresh token
-            claims.remove(AUTHORITIES);
-        }
-
-        // clear authorities from access token
-        claims.remove(AUTHORITIES);
-//        if (!request.getScope().contains("user.roles.me")) {
-//            // clear authorities from access token
-//            claims.remove(AUTHORITIES);
-//        }
-
-//       MOVED to claimManager       
-//        // rewrite user_name as sub, if requested by scopes we will already have an
-//        // username claim
-//        if (claims.containsKey("user_name")) {
-//            claims.put("sub", claims.get("user_name").toString());
-//            claims.remove("user_name");
-//        }
-//        
-//        //properly populate user_name for spring clients
-//        //custom definition to satisfy spring security 
-//        //https://github.com/spring-projects/spring-security-oauth/blob/master/spring-security-oauth2/src/main/java/org/springframework/security/oauth2/provider/token/UserAuthenticationConverter.java
-//        if (claims.containsKey("username")) {
-//            claims.put("user_name", claims.get("username").toString());
-//        }       
+        // clear authorities from access token, spring injects them
+        claims.remove(AUTHORITIES);  
 
         // clear id-token from claims to avoid embedding id_token in access token JWT
         if (claims.containsKey("id_token")) {
             claims.remove("id_token");
-        }
-
-//        // convert to JSON
-//        String content;
-//        try {
-//            content = this.objectMapper.formatMap(claims);
-//        } catch (Exception e) {
-//            throw new IllegalStateException("Cannot convert access token to JSON", e);
-//        }
-//
-//        // figure out which signer to use:
-//        // if RSA keys provided use the same for all
-//        // if global key set use singleton HMAC
-//        // otherwise use client secret as HMAC key
-//        Signer s = getSigner(client);
-//
-//        String token = JwtHelper.encode(
-//                content,
-//                s,
-//                this.customHeaders).getEncoded();
-
-        // leverage services for jwt creation
-//        JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
-//
-//        // check if client has set custom preferences
-//        if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
-//            signingAlg = ClientKeyCacheService.getSignedResponseAlg(client);
-//        }
+        }        
 
         // build claims
         JWTClaimsSet.Builder jwtClaims = new JWTClaimsSet.Builder();
@@ -369,9 +292,12 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // base
         jwtClaims.issuer(issuer);
         jwtClaims.subject(authentication.getName());
-        jwtClaims.claim("azp", clientId);
-        
+
         jwtClaims.audience(audiences);
+        if (audiences.size() > 1) {
+            // set only if more than one aud
+            jwtClaims.claim("azp", clientId);
+        }
         // time
         if (accessToken.getExpiration() != null) {
             Date expiration = accessToken.getExpiration();
@@ -511,21 +437,12 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         }
     }
 
-    
     private Set<String> getServiceIds(Set<String> scopes) {
-    	if (scopes != null && !scopes.isEmpty()) {
-    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
-    	}
-    	return Collections.emptySet();
+        if (scopes != null && !scopes.isEmpty()) {
+            return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId())
+                    .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
-//    private Signer getSigner(ClientDetailsEntity client) {
-//        if (this.signer != null) {
-//            // always use global if defined
-//            return this.signer;
-//        } else {
-//            // can't reuse since client secret keys could change
-//            return new MacSigner(client.getClientSecret());
-//        }
-//    }
 
 }
