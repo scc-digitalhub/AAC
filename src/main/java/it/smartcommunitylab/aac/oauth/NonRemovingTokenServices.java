@@ -16,8 +16,9 @@
 
 package it.smartcommunitylab.aac.oauth;
 
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ import it.smartcommunitylab.aac.Config;
 public class NonRemovingTokenServices extends DefaultTokenServices {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private ExtTokenStore localtokenStore;
+	private ExtTokenStore localTokenStore;
 
 	private static final Logger traceUserLogger = LoggerFactory.getLogger("traceUserToken");
 
@@ -69,7 +70,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	 */
 	@Override
 	public OAuth2Authentication loadAuthentication(String accessTokenValue) throws AuthenticationException {
-		OAuth2AccessToken accessToken = localtokenStore.readAccessToken(accessTokenValue);
+		OAuth2AccessToken accessToken = localTokenStore.readAccessToken(accessTokenValue);
 		if (accessToken == null) {
 			throw new InvalidTokenException("Invalid access token: " + accessTokenValue);
 		}
@@ -78,7 +79,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 			throw new InvalidTokenException("Access token expired: " + accessTokenValue);
 		}
 
-		OAuth2Authentication result = localtokenStore.readAuthentication(accessToken);
+		OAuth2Authentication result = localTokenStore.readAuthentication(accessToken);
 		return result;
 	}
 
@@ -88,18 +89,23 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	}
 
 	private OAuth2AccessToken refreshWithRepeat(String refreshTokenValue, TokenRequest request, boolean repeat) {
-		OAuth2AccessToken accessToken = localtokenStore.readAccessTokenForRefreshToken(refreshTokenValue);
-		if (accessToken == null) {
-			throw new InvalidGrantException("Invalid refresh token: " + refreshTokenValue);
-		}
+		OAuth2AccessToken accessToken = localTokenStore.readAccessTokenForRefreshToken(refreshTokenValue);
 
-		if (accessToken.getExpiration().getTime() -System.currentTimeMillis() > tokenThreshold*1000L ) {
-			return accessToken;
+		//DISABLED check for access token, we will generate a new one if needed
+		//no need to check for user approval, on removal also refresh token are invalidated
+//        if (accessToken == null) {
+//            throw new InvalidGrantException("Invalid refresh token: " + refreshTokenValue);
+//        }
+
+		if(accessToken != null) {
+    		if ((accessToken.getExpiration().getTime() - System.currentTimeMillis()) > tokenThreshold*1000L ) {
+    			return accessToken;
+    		}
 		}
 
 		try {
 			OAuth2AccessToken res = super.refreshAccessToken(refreshTokenValue, request);
-			OAuth2Authentication auth = localtokenStore.readAuthentication(res);
+			OAuth2Authentication auth = localTokenStore.readAuthentication(res);
 			traceUserLogger.info(String.format("'type':'refresh','user':'%s','token':'%s'", auth.getName(), res.getValue()));
 			return res;
 		} catch (RuntimeException e) {
@@ -112,7 +118,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	@Transactional(isolation=Isolation.SERIALIZABLE)
 	public OAuth2AccessToken createAccessToken(OAuth2Authentication authentication) throws AuthenticationException {
 		logger.debug("create access token for authentication "+authentication.getName());
-	    OAuth2AccessToken existingAccessToken = localtokenStore.getAccessToken(authentication);
+	    OAuth2AccessToken existingAccessToken = localTokenStore.getAccessToken(authentication);
 		OAuth2RefreshToken refreshToken = null;
 		if (existingAccessToken != null) {
 			if (existingAccessToken.isExpired()) {
@@ -121,9 +127,9 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 					refreshToken = existingAccessToken.getRefreshToken();
 					// The token store could remove the refresh token when the access token is removed, but we want to
 					// be sure...
-					localtokenStore.removeRefreshToken(refreshToken);
+					localTokenStore.removeRefreshToken(refreshToken);
 				}
-				localtokenStore.removeAccessToken(existingAccessToken);
+				localTokenStore.removeAccessToken(existingAccessToken);
 			} else {
                 logger.debug("existing access token for authentication "+authentication.getName() + " is valid");       			    
 			    //need to check if value is changed via enhancer
@@ -132,8 +138,8 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 			        logger.debug("existing access token for authentication "+authentication.getName() + " needs to be updated");       
 
 			        //update db via remove + store otherwise we'll get more than 1 token per key..
-			        localtokenStore.removeAccessToken(existingAccessToken);
-			        localtokenStore.storeAccessToken(accessToken, authentication);
+			        localTokenStore.removeAccessToken(existingAccessToken);
+			        localTokenStore.storeAccessToken(accessToken, authentication);
 			    }
 			    return accessToken; 
 			}
@@ -154,27 +160,40 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		}
         logger.debug("create access token for authentication "+authentication.getName() + " as new");     
 		OAuth2AccessToken accessToken = createAccessToken(authentication, refreshToken);
-		localtokenStore.storeAccessToken(accessToken, authentication);
+		localTokenStore.storeAccessToken(accessToken, authentication);
 		if (refreshToken != null) {
-			localtokenStore.storeRefreshToken(refreshToken, authentication);
+			localTokenStore.storeRefreshToken(refreshToken, authentication);
 		}
 		traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'", authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
 		return accessToken;
 	}
 	
-	private ExpiringOAuth2RefreshToken createRefreshToken(OAuth2Authentication authentication) {
-		if (!isSupportRefreshToken(authentication.getOAuth2Request())) {
-			return null;
-		}
-		int validitySeconds = getRefreshTokenValiditySeconds(authentication.getOAuth2Request());
-		ExpiringOAuth2RefreshToken refreshToken = new DefaultExpiringOAuth2RefreshToken(UUID.randomUUID().toString(),
-				new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
-		return refreshToken;
-	}
+    private ExpiringOAuth2RefreshToken createRefreshToken(OAuth2Authentication authentication) {
+        if (!isSupportRefreshToken(authentication.getOAuth2Request())) {
+            return null;
+        }
+        int validitySeconds = getRefreshTokenValiditySeconds(authentication.getOAuth2Request());
+        // use a secure string as value to respect requirement
+        // https://tools.ietf.org/html/rfc6749#section-10.10
+        // 160bit = a buffer of 20 random bytes
+        String value = generateSecureString(20);
+        ExpiringOAuth2RefreshToken refreshToken = new DefaultExpiringOAuth2RefreshToken(value,
+                new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
+        return refreshToken;
+    }
 
 	private OAuth2AccessToken createAccessToken(OAuth2Authentication authentication, OAuth2RefreshToken refreshToken) {
-		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(UUID.randomUUID().toString());
+        // use a secure string as value to respect requirement
+        // https://tools.ietf.org/html/rfc6749#section-10.10
+        // 160bit = a buffer of 20 random bytes
+        String value = generateSecureString(20);
+		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(value);
 		int validitySeconds = getAccessTokenValiditySeconds(authentication.getOAuth2Request());
+		
+		//custom validity for client_credentials grants
+		if("client_credentials".equals(authentication.getOAuth2Request().getGrantType())) {
+		    validitySeconds = getRefreshTokenValiditySeconds(authentication.getOAuth2Request());
+		}
 		
 		if (!authentication.isClientOnly()) {			
 			token.setExpiration(new Date(System.currentTimeMillis() + (getUserAccessTokenValiditySeconds(authentication.getOAuth2Request()) * 1000L)));
@@ -201,7 +220,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 	public void setTokenStore(TokenStore tokenStore) {
 		super.setTokenStore(tokenStore);
 		assert tokenStore instanceof ExtTokenStore;
-		this.localtokenStore = (ExtTokenStore)tokenStore;
+		this.localTokenStore = (ExtTokenStore)tokenStore;
 	}
 
 	/**
@@ -247,7 +266,12 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		return accessTokenValiditySeconds;
 	}
 	
-	
+    private String generateSecureString(int length) {
+        SecureRandom random = new SecureRandom();
+        byte[] accessTokenBuffer = new byte[length];
+        random.nextBytes(accessTokenBuffer);
+        return new String(Base64.getEncoder().encode(accessTokenBuffer));
+    }
 	
 	
 }
