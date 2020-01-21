@@ -1,54 +1,66 @@
-package it.smartcommunitylab.aac.openid.controller;
+package it.smartcommunitylab.aac.openid.endpoint;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.google.common.net.HttpHeaders;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
-import it.smartcommunitylab.aac.openid.view.JWKSetView;
+import net.minidev.json.JSONObject;
 
 @Controller
 public class JWKSetPublishingEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	public static final String URL = "jwk";
+    public static final String JWKS_URL = "/jwk";
 
-	@Autowired
-	private JWTSigningAndValidationService jwtService;
+    @Value("${security.cache.jwks}")
+    private String cacheControl;
 
-	@RequestMapping(value = "/" + URL, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getJwk(Model m) {
+    @Autowired
+    private JWTSigningAndValidationService jwtService;
 
-		// map from key id to key
-		Map<String, JWK> keys = jwtService.getAllPublicKeys();
+    @RequestMapping(value = JWKS_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<JSONObject> getJwks() {
 
-		// TODO: check if keys are empty, return a 404 here or just an empty list?
+        // map from key id to key
+        Map<String, JWK> keys = jwtService.getAllPublicKeys();
 
-		m.addAttribute("keys", keys);
+        // build as set to leverage toJSONObject, will hide private keys
+        JWKSet jwkSet = new JWKSet(new ArrayList<>(keys.values()));
 
-		return JWKSetView.VIEWNAME;
-	}
+        // return with 200 and set custom cache header
+        return ResponseEntity.status(HttpStatus.OK)
+                .header(HttpHeaders.CACHE_CONTROL, cacheControl)
+                .body(jwkSet.toJSONObject(true));
 
-	/**
-	 * @return the jwtService
-	 */
-	public JWTSigningAndValidationService getJwtService() {
-		return jwtService;
-	}
+    }
 
-	/**
-	 * @param jwtService the jwtService to set
-	 */
-	public void setJwtService(JWTSigningAndValidationService jwtService) {
-		this.jwtService = jwtService;
-	}
+    // DISABLE unused public methods
+//	/**
+//	 * @return the jwtService
+//	 */
+//	public JWTSigningAndValidationService getJwtService() {
+//		return jwtService;
+//	}
+//
+//	/**
+//	 * @param jwtService the jwtService to set
+//	 */
+//	public void setJwtService(JWTSigningAndValidationService jwtService) {
+//		this.jwtService = jwtService;
+//	}
 
 }
