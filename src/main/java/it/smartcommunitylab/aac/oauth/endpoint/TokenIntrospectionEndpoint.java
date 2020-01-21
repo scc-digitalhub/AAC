@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.oauth.controller;
+package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.util.Date;
 import java.util.List;
@@ -46,7 +46,6 @@ import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.dto.AACTokenIntrospection;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 /**
@@ -56,7 +55,10 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  */
 @Controller
 @Api(tags = { "AAC OAuth 2.0 Token Introspection (IETF RFC7662)" })
-public class TokenIntrospectionController {
+public class TokenIntrospectionEndpoint {
+
+    public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
+    
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -82,7 +84,7 @@ public class TokenIntrospectionController {
 	 */
 	
 	@ApiOperation(value="Get token metadata")
-	@RequestMapping(method = RequestMethod.POST, value = "/token_introspection")
+	@RequestMapping(method = RequestMethod.POST, value = TOKEN_INTROSPECTION_URL)
 	public ResponseEntity<AACTokenIntrospection> getTokenInfo(@RequestParam String token) {
 		AACTokenIntrospection result = new AACTokenIntrospection();
 		

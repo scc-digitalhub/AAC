@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.openid.controller;
+package it.smartcommunitylab.aac.openid.endpoint;
 
 import java.util.List;
 import java.util.Map;
@@ -46,11 +46,10 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  *
  */
 @Controller
-@RequestMapping("/" + UserInfoEndpoint.URL)
 public class UserInfoEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	public static final String URL = "userinfo";
+	public static final String USERINFO_URL = "/userinfo";
 
 	@Autowired
 	private UserManager userManager;
@@ -62,7 +61,9 @@ public class UserInfoEndpoint {
 	 * Get information about the user as specified in the accessToken included in this request
 	 */
 //	@PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + Config.OPENID_SCOPE + "')")
-	@RequestMapping(method= {RequestMethod.GET, RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_VALUE, UserInfoJWTView.JOSE_MEDIA_TYPE_VALUE})
+	@RequestMapping(value=USERINFO_URL,
+	        method= {RequestMethod.GET, RequestMethod.POST},
+	        produces = {MediaType.APPLICATION_JSON_VALUE, UserInfoJWTView.JOSE_MEDIA_TYPE_VALUE})
 	public String getInfo(
 			@RequestHeader(value=HttpHeaders.ACCEPT, required=false) String acceptHeader,
 			OAuth2Authentication auth, Model model) {

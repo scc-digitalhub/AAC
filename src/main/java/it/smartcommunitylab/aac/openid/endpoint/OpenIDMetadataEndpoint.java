@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.openid.controller;
+package it.smartcommunitylab.aac.openid.endpoint;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,7 +73,7 @@ public class OpenIDMetadataEndpoint {
 	private JWTEncryptionAndDecryptionService encService;
 
     @ApiOperation(value="Get OpenID provider configuration information")
-	@RequestMapping("/" + OPENID_CONFIGURATION_URL)
+	@RequestMapping(OPENID_CONFIGURATION_URL)
 	public @ResponseBody Map<String, Object> providerConfiguration() {
 		return getConfiguration();
 	}
@@ -231,10 +231,10 @@ public class OpenIDMetadataEndpoint {
 
         Map<String, Object> m = new HashMap<>();
         m.put("issuer", issuer);
-        m.put("authorization_endpoint", baseUrl + "eauth/authorize");
-        m.put("token_endpoint", baseUrl + "oauth/token");
-        m.put("userinfo_endpoint", baseUrl + UserInfoEndpoint.URL);
-        m.put("jwks_uri", baseUrl + JWKSetPublishingEndpoint.URL);
+        m.put("authorization_endpoint", baseUrl + "/eauth/authorize"); //TODO replace with const
+        m.put("token_endpoint", baseUrl + "/oauth/token"); //TODO replace with const
+        m.put("userinfo_endpoint", baseUrl + UserInfoEndpoint.USERINFO_URL);
+        m.put("jwks_uri", baseUrl + JWKSetPublishingEndpoint.JWKS_URL);
 //	          m.put("registration_endpoint", baseUrl + DynamicClientRegistrationEndpoint.URL); //not implemented
         m.put("scopes_supported", getAvailableScopes()); // these are the scopes that you can dynamically register for, which is what matters for discovery
         m.put("response_types_supported", Lists.newArrayList("code", "token", "id_token", "id_token token"));
@@ -299,7 +299,7 @@ public class OpenIDMetadataEndpoint {
         Map<String, Object> m = new HashMap<>();
 
 //        m.put("check_session_iframe",""); //not supported
-        m.put("end_session_endpoint", baseUrl + EndSessionEndpoint.URL);
+        m.put("end_session_endpoint", baseUrl + EndSessionEndpoint.END_SESSION_URL);
 
         return m;
     } 
@@ -319,10 +319,10 @@ public class OpenIDMetadataEndpoint {
     private String getBaseUrl() {
         String baseUrl = applicationURL;
 
-        if (!baseUrl.endsWith("/")) {
-            logger.debug("Configured baseUrl doesn't end in /, adding for discovery: {}", baseUrl);
-            baseUrl = baseUrl.concat("/");
-        }
+//        if (!baseUrl.endsWith("/")) {
+//            logger.debug("Configured baseUrl doesn't end in /, adding for discovery: {}", baseUrl);
+//            baseUrl = baseUrl.concat("/");
+//        }
         return baseUrl;
     }
     

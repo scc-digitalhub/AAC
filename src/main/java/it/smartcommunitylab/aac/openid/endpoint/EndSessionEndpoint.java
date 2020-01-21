@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.controller;
+package it.smartcommunitylab.aac.openid.endpoint;
 
 import java.text.ParseException;
 import java.util.Set;
@@ -39,7 +39,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @Controller
 public class EndSessionEndpoint {
 
-public static final String URL = "endsession";
+public static final String END_SESSION_URL = "/endsession";
     private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private static final String CLIENT_KEY = "client";
@@ -58,7 +58,7 @@ public static final String URL = "endsession";
 	@Value("${jwt.issuer}")
 	private String issuer;
 
-	@RequestMapping(value = "/" + URL, method = RequestMethod.GET)
+	@RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
 	public String endSession(@RequestParam (value = "id_token_hint", required = false) String idTokenHint,  
 		    @RequestParam (value = "post_logout_redirect_uri", required = false) String postLogoutRedirectUri,
 		    @RequestParam (value = STATE_KEY, required = false) String state,
@@ -130,7 +130,7 @@ public static final String URL = "endsession";
 		}
 	}
 	
-	@RequestMapping(value = "/" + URL, method = RequestMethod.POST)
+	@RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
 	public String processLogout(@RequestParam(value = "approve", required = false) String approved,
 			HttpServletRequest request,
 			HttpServletResponse response,

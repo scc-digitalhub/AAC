@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth.controller;
+package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.openid.controller.OpenIDMetadataEndpoint;
+import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
 
 /*
  * OAuth2 Authorization Server Metadata
@@ -42,7 +42,7 @@ public class OAuth2MetadataEndpoint  {
     OpenIDMetadataEndpoint oidcMetadataEndpoint;
 
     @ApiOperation(value="Get authorization server metadata")
-    @RequestMapping("/" + OAUTH2_CONFIGURATION_URL)
+    @RequestMapping(OAUTH2_CONFIGURATION_URL)
     public @ResponseBody Map<String, Object> serverMetadata() {
         return getConfiguration();
     }
@@ -61,10 +61,6 @@ public class OAuth2MetadataEndpoint  {
 
     public Map<String, Object> getAuthServerMetadata() {
         String baseUrl = applicationURL;
-
-        if (!baseUrl.endsWith("/")) {
-            baseUrl = baseUrl.concat("/");
-        }
 
         // fetch oidc provider metadata
         // oauth2 metadata are an extension compatible with OIDC
@@ -104,11 +100,11 @@ public class OAuth2MetadataEndpoint  {
                 JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
                 JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512);
         
-        m.put("revocation_endpoint", baseUrl + "token_revoke"); // token revocation endpoint
+        m.put("revocation_endpoint", baseUrl + TokenRevocationEndpoint.TOKEN_REVOCATION_URL); // token revocation endpoint
         m.put("revocation_endpoint_auth_methods_supported",  Lists.newArrayList("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none"));
         m.put("revocation_endpoint_auth_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
         
-        m.put("introspection_endpoint", baseUrl + "token_introspection");
+        m.put("introspection_endpoint", baseUrl + TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL);
         m.put("introspection_endpoint_auth_methods_supported",  Lists.newArrayList("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none"));
         m.put("introspection_endpoint_auth_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
         
