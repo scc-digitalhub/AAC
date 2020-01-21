@@ -103,7 +103,7 @@ public class Config {
 
 	public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 	
-	public static final String WELL_KNOWN_URL = ".well-known";
+	public static final String WELL_KNOWN_URL = "/.well-known";
 
 	/**
 	 * Check whether the child property visibility is equal or more restrictive than the one of the parent property.
