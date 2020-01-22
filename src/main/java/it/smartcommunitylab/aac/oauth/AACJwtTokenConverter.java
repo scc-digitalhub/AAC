@@ -51,8 +51,10 @@ import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
@@ -82,6 +84,9 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     @Autowired
     private ResourceRepository resourceRepository;
 
+    @Autowired
+    private RegistrationManager registrationManager;
+    
     @Autowired
     private UserManager userManager;
 
@@ -147,12 +152,18 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         try {
             // fetch from auth
             Object principal = authentication.getPrincipal();
-            org.springframework.security.core.userdetails.User auth = (org.springframework.security.core.userdetails.User) principal;
+            //check if details are populated
+            if (principal instanceof String) {
+                Registration reg = registrationManager.getUserByEmail((String)principal);
+                user = userManager.findOne(Long.parseLong(reg.getUserId()));                
+            } else if (principal instanceof org.springframework.security.core.userdetails.User) {
 
-            // fetch user from db
-            long userId = Long.parseLong(auth.getUsername());
-            user = userManager.findOne(userId);
+                org.springframework.security.core.userdetails.User auth = (org.springframework.security.core.userdetails.User) principal;
 
+                // fetch user from db
+                long userId = Long.parseLong(auth.getUsername());
+                user = userManager.findOne(userId);
+            }
         } catch (Exception e) {
             // user is not available, thus all user claims will fail
             logger.error("user not found: " + e.getMessage());
@@ -258,10 +269,15 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         }
 
         // convert base claims to map
-        @SuppressWarnings("unchecked")
-        Map<String, Object> claims = (Map<String, Object>) tokenConverter.convertAccessToken(accessToken,
-                authentication);
+        //drop spring token converter, it leaks user_name and authorities EVERY TIME
+        //we have no means to discriminate legit ClaimManager claims from converter ones
+//        @SuppressWarnings("unchecked")
+//        Map<String, Object> claims = (Map<String, Object>) tokenConverter.convertAccessToken(accessToken,
+//                authentication);
 
+        //we want only additional claims, all the base are set here
+        Map<String, Object> claims = accessToken.getAdditionalInformation();
+        
         logger.trace("dump claims " + claims.keySet().toString());
 
         OAuth2Request request = authentication.getOAuth2Request();
@@ -291,8 +307,13 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         jwtClaims.jwtID(claims.get(TOKEN_ID).toString());
         // base
         jwtClaims.issuer(issuer);
-        jwtClaims.subject(authentication.getName());
-
+        //trust upstream sub if set in additional info
+        if(claims.containsKey("sub")) {
+            jwtClaims.subject(claims.get("sub").toString());
+        } else {
+            //fallback to auth name, which could be different from userId
+            jwtClaims.subject(authentication.getName());
+        }
         jwtClaims.audience(audiences);
         if (audiences.size() > 1) {
             // set only if more than one aud
