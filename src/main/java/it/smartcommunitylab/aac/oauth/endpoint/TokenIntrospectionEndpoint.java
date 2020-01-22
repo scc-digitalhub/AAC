@@ -91,6 +91,7 @@ public class TokenIntrospectionEndpoint {
 		try {
 			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(token);
 			
+			//TODO introspection should also work for refresh tokens..
 			OAuth2AccessToken storedToken = tokenStore.getAccessToken(auth);		
 			
 			String clientId = auth.getOAuth2Request().getClientId();
@@ -99,6 +100,9 @@ public class TokenIntrospectionEndpoint {
 			String userId = null;
 			boolean applicationToken = false;
 			
+			//WRONG reasoning, if auth is String for local users
+			//this will return client owner information
+			// need another way to check if client token
 			if (auth.getPrincipal() instanceof User) {
 				User principal = (User)auth.getPrincipal();
 				userId = principal.getUsername();
@@ -135,7 +139,12 @@ public class TokenIntrospectionEndpoint {
                 Map<String, Object> claims = this.objectMapper.parseMap(old.getClaims());
                 result.setJti((String) claims.get("jti"));
                 // replace aud with JWT aud
-                result.setAud(((List<String>) claims.get("aud")).toArray(new String[0]));
+                if(claims.get("aud") instanceof String) {
+                    result.setAud(new String[] {(String)claims.get("aud")});
+                } else {
+                    result.setAud(((List<String>) claims.get("aud")).toArray(new String[0]));
+                }
+                
             }
 			
 			// only bearer tokens supported
