@@ -124,12 +124,13 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		Set<String> scopes = new HashSet<>();
 		//check grantType and act accordingly to parse scopes
 		if("password".equals(grantType) || "client_credentials".equals(grantType)) {
-		    extractScopes(requestParameters, clientId);
+		    scopes = extractScopes(requestParameters, clientId);
 		}
 		
         logger.trace("create token request for " + clientId
                 + " grantType " + grantType
-                + " scope " + scopes.toString());
+                + " scope "+ String.valueOf(requestParameters.get(OAuth2Utils.SCOPE))
+                + " extracted scope " + scopes.toString());
 	      
 		TokenRequest tokenRequest = new TokenRequest(requestParameters, clientId, scopes, grantType);
 
@@ -146,13 +147,13 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		return tokenRequest.createOAuth2Request(client);
 	}
 
-	private Set<String> extractScopes(Map<String, String> requestParameters, String clientId) {
-	   //fetch from requestParams, which here are somehow not decoded
-       String scope = requestParameters.get(OAuth2Utils.SCOPE);
+    private Set<String> extractScopes(Map<String, String> requestParameters, String clientId) {
+        // fetch from requestParams, which here are somehow not decoded
+        String scope = requestParameters.get(OAuth2Utils.SCOPE);
+        
+        Set<String> scopes = new HashSet<>();
 
-       Set<String> scopes = new HashSet<>();
-
-       if (StringUtils.isNotBlank(scope)) {
+        if (StringUtils.isNotBlank(scope)) {
 
             // check if spaces are still encoded as %20
             if (scope.contains("%20")) {
@@ -165,51 +166,56 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
             for (String s : scopeArr) {
                 scopes.addAll(OAuth2Utils.parseParameterList(s));
             }
-		}		
-		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
+            
+            logger.trace("scopes from parameters "+scopes.toString());
+        }
+        
+        ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 
-		try {
-			if ((scopes == null || scopes.isEmpty())) {
-				scopes = clientDetails.getScope();
-			}		
+        try {
+            if ((scopes == null || scopes.isEmpty())) {
+                scopes = clientDetails.getScope();
+                logger.trace("scopes from client "+scopes.toString());
+            }
 
-			boolean addStrongOperationScope = false;
-			if (scopes.contains(Config.SCOPE_OPERATION_CONFIRMED)) {
-				Object authDetails = SecurityContextHolder.getContext().getAuthentication().getDetails();
-				if (authDetails != null && authDetails instanceof AACOAuthRequest) {
-					if (((AACOAuthRequest)authDetails).isMobile2FactorConfirmed()) {
-						addStrongOperationScope = true;
-					}
-					// clear for inappropriate access
-					((AACOAuthRequest)authDetails).unsetMobile2FactorConfirmed();
-				}
-				if (!addStrongOperationScope) {
-					throw new InvalidScopeException("The operation.confirmed scope is not authorized by user");
-				}
-			}
-			
+            boolean addStrongOperationScope = false;
+            if (scopes.contains(Config.SCOPE_OPERATION_CONFIRMED)) {
+                Object authDetails = SecurityContextHolder.getContext().getAuthentication().getDetails();
+                if (authDetails != null && authDetails instanceof AACOAuthRequest) {
+                    if (((AACOAuthRequest) authDetails).isMobile2FactorConfirmed()) {
+                        addStrongOperationScope = true;
+                    }
+                    // clear for inappropriate access
+                    ((AACOAuthRequest) authDetails).unsetMobile2FactorConfirmed();
+                }
+                if (!addStrongOperationScope) {
+                    throw new InvalidScopeException("The operation.confirmed scope is not authorized by user");
+                }
+            }
+
 //			boolean requestedOpenidScope = scopes.contains(Config.OPENID_SCOPE);
 
-			scopes = checkUserScopes(requestParameters, scopes, clientDetails);
+            scopes = checkUserScopes(requestParameters, scopes, clientDetails);
+            logger.trace("scopes after check user scopes "+scopes.toString());
 
-			if (addStrongOperationScope) {
-				scopes.add(Config.SCOPE_OPERATION_CONFIRMED);
-			} else {
-				scopes.remove(Config.SCOPE_OPERATION_CONFIRMED);
-			}
-			if (scopes.isEmpty()) {
-				scopes.add("default");
-			}
+            if (addStrongOperationScope) {
+                scopes.add(Config.SCOPE_OPERATION_CONFIRMED);
+            } else {
+                scopes.remove(Config.SCOPE_OPERATION_CONFIRMED);
+            }
+            if (scopes.isEmpty()) {
+                scopes.add("default");
+            }
 //			if (requestedOpenidScope) scopes.add(Config.OPENID_SCOPE);
-			
-		} catch (InvalidScopeException e) {
-			throw e;
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
 
-		return scopes;
-	}
+        } catch (InvalidScopeException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+
+        return scopes;
+    }
 
 	private Set<String> checkUserScopes(Map<String, String> requestParameters, Set<String> scopes, ClientDetailsEntity client) throws Exception {
 		Set<String> newScopes = Sets.newHashSet();
