@@ -85,6 +85,19 @@
 	           </table>
 	        </td>
         </tr>
+        
+        <tr>
+            <th>Access Token validity</th>
+            <td>
+            <input type="number" class="form-control form-control-sm"
+               ng-model="app.accessTokenValidity" ></td>
+        </tr>
+        <tr>
+            <th>Refresh Token validity</th>
+            <td>
+            <input type="text" class="form-control form-control-sm"
+                ng-model="app.refreshTokenValidity"></td>
+        </tr>
     </table>
     <button type="button" ng-click="saveSettings()" class="btn btn-primary float-right" ng-disabled="settingsForm.$invalid">Save settings</button>
 </form>

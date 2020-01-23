@@ -325,7 +325,8 @@ public class ClaimManager {
 
 	@SuppressWarnings("unchecked")
 	protected Map<String, Object> executeScript(Map<String, Object> obj, String func) throws ScriptException, IOException {
-		NashornSandbox sandbox = createSandbox();		
+		//TODO use a threadPool/cache to avoid the expensive sandbox creation at each call
+	    NashornSandbox sandbox = createSandbox();		
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			StringWriter writer = new StringWriter();
