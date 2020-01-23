@@ -88,6 +88,7 @@ public class TokenRevocationEndpoint {
             }
 
             if (auth == null) {
+                // either token is access_token, or
                 // as per spec, try as access_token independently of hint
                 accessToken = tokenStore.readAccessToken(token);
                 if (accessToken != null) {
