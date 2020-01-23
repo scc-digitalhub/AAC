@@ -22,9 +22,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import it.smartcommunitylab.aac.dto.AACTokenIntrospection;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@WebAppConfiguration
-@ContextConfiguration(classes = {AACTokenIntrospectionControllerTestConfig.class }, loader = AnnotationConfigWebContextLoader.class, initializers = ConfigFileApplicationContextInitializer.class)
+//DISABLED deprecated
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@WebAppConfiguration
+//@ContextConfiguration(classes = {AACTokenIntrospectionControllerTestConfig.class }, loader = AnnotationConfigWebContextLoader.class, initializers = ConfigFileApplicationContextInitializer.class)
 public class TokenIntrospectionControllerTest extends OAuth2AwareControllerTest {
 
 	@Before

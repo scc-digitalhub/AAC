@@ -1,6 +1,7 @@
-package it.smartcommunitylab.aac.test.openid;
+package it.smartcommunitylab.aac.test.oauth;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
@@ -8,6 +9,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -27,37 +29,38 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
-import it.smartcommunitylab.aac.openid.service.IdTokenHashUtils;
+import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.test.openid.OpenidUtils;
 import it.smartcommunitylab.aac.test.utils.TestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=true" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class ImplicitFlowTest {
+public class AuthorizationCodeGrantTestWithJWT {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -86,25 +89,26 @@ public class ImplicitFlowTest {
     @Autowired
     private UserRepository userRepository;
 
-    private String sessionId;
+    private static String sessionId;
 
-    private ClientDetails client;
+    private static ClientDetails client;
 
-    private final static String SCOPE = "openid";
+    private final static String SCOPE = "profile";
+
+    private final static String[] GRANT_TYPES = { "authorization_code", "refresh_token" };
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
         if (client == null) {
             try {
-
                 User admin = userRepository.findByUsername(adminUsername);
                 // use local address as redirect
                 // also save it
                 client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
                         UUID.randomUUID().toString(),
                         admin.getId(),
-                        "implicit", new String[] { SCOPE },
+                        String.join(",", GRANT_TYPES), new String[] { SCOPE },
                         endpoint));
             } catch (Exception e) {
                 // TODO Auto-generated catch block
@@ -114,6 +118,8 @@ public class ImplicitFlowTest {
         }
 
         if (StringUtils.isEmpty(sessionId)) {
+            logger.error("session is null, create");
+
             // login and validate session
             sessionId = TestUtils.login(restTemplate, endpoint, adminUsername, adminPassword);
         }
@@ -125,11 +131,11 @@ public class ImplicitFlowTest {
     }
 
     @Test
-    public void implicitFlowWithTokenAndIdTokenAsFragment()
+    public void authCodeGrantWithFormAuthSecretBasic()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
 
-        logger.debug("implicit flow (token+id_token) with client " + client.getClientId() + " and user session "
+        logger.debug("auth_code grant (form+secret_basic) with client " + client.getClientId() + " and user session "
                 + sessionId);
 
         // check client
@@ -142,7 +148,6 @@ public class ImplicitFlowTest {
 
         long now = new Date().getTime() / 1000;
         String clientId = client.getClientId();
-        String nonce = RandomStringUtils.random(5, true, true);
         String state = RandomStringUtils.random(5, true, true);
         // redirect does not need urlEncoding because there are no parameters
         String redirectURL = server + ":" + port;
@@ -153,10 +158,9 @@ public class ImplicitFlowTest {
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
                         + "&scope=" + SCOPE
-                        + "&response_type=token id_token"
-                        + "&response_mode=fragment"
-                        + "&state=" + state
-                        + "&nonce=" + nonce,
+                        + "&response_type=code"
+                        + "&response_mode=query"
+                        + "&state=" + state,
                 HttpMethod.GET, new HttpEntity<Object>(headers),
                 String.class);
 
@@ -165,10 +169,10 @@ public class ImplicitFlowTest {
         Assert.assertEquals(response.getHeaders().get(HttpHeaders.LOCATION).size(), 1);
 
         // expect something like
-        // http://localhost:41379/aac/eauth/pre-authorize?client_id=e9f50bd4-d6ba-4896-b96c-a9bd45cc2973&redirect_uri=http%253A%252F%252Flocalhost%253A41379&scope=openid&response_type=token&response_mode=fragment&nonce=123as
+        // http://localhost:41379/aac/eauth/pre-authorize?client_id=e9f50bd4-d6ba-4896-b96c-a9bd45cc2973&redirect_uri=http%253A%252F%252Flocalhost%253A41379&scope=openid&response_type=code&response_mode=query&nonce=123as
         String locationURL = response.getHeaders().getFirst(HttpHeaders.LOCATION);
 
-        logger.debug(locationURL);
+        logger.trace(locationURL);
 
         // extract parameters from redirect to validate
         MultiValueMap<String, String> parameters = UriComponentsBuilder.fromUriString(locationURL)
@@ -178,52 +182,85 @@ public class ImplicitFlowTest {
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
         Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
-        Assert.assertEquals(parameters.getFirst("response_type"), "token");
-        Assert.assertEquals(parameters.getFirst("response_mode"), "fragment");
-        Assert.assertEquals(parameters.getFirst("nonce"), nonce);
+        Assert.assertEquals(parameters.getFirst("response_type"), "code");
+        Assert.assertEquals(parameters.getFirst("response_mode"), "query");
         Assert.assertEquals(parameters.getFirst("state"), state);
 
-        // call pre-auth to fetch tokens as fragments
+        // call pre-auth to fetch code
         ResponseEntity<String> response2 = restTemplate.exchange(locationURL,
                 HttpMethod.GET, new HttpEntity<Object>(headers),
                 String.class);
 
-        // expect redirect to location with fragments
+        // expect redirect to location with query string
         Assert.assertTrue((response2.getStatusCode().is3xxRedirection()));
         Assert.assertEquals(response2.getHeaders().get(HttpHeaders.LOCATION).size(), 1);
 
-        // extract fragments
+        // extract query parameters
         locationURL = response2.getHeaders().getFirst(HttpHeaders.LOCATION);
         logger.trace(locationURL);
 
-        UriComponents uri = UriComponentsBuilder.fromUriString(locationURL)
-                .build();
-
-        String fragment = uri.getFragment();
-        // parse as local url to extract as query params
-        parameters = UriComponentsBuilder.fromUriString(server + ":" + port + "/?" + fragment)
+        parameters = UriComponentsBuilder.fromUriString(locationURL)
                 .build()
                 .getQueryParams();
 
-        String accessToken = parameters.getFirst("access_token");
-        String tokenType = parameters.getFirst("token_type");
-        String idToken = parameters.getFirst("id_token");
-        int expiresIn = Integer.parseInt(parameters.getFirst("expires_in"));
+        String code = parameters.getFirst("code");
+        Assert.assertEquals(parameters.getFirst("state"), state);
 
-        logger.debug("idToken " + idToken);
+        logger.debug("received auth_code " + code);
+
+        // exchange code for tokens
+        headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        // build basic auth for client
+        String auth = clientId + ":" + client.getClientSecret();
+        byte[] encodedAuth = Base64.encodeBase64(
+                auth.getBytes(Charset.forName("UTF-8")));
+        String authHeader = "Basic " + new String(encodedAuth);
+        headers.set("Authorization", authHeader);
+
+        // post as form data
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+        map.add("grant_type", "authorization_code");
+        map.add("redirect_uri", redirectURL);
+        map.add("code", code);
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
+
+        ResponseEntity<String> response3 = restTemplate.postForEntity(
+                server + ":" + port + contextPath + "/oauth/token",
+                entity,
+                String.class);
+
+        // expect 200 with json in body
+        Assert.assertTrue((response3.getStatusCode().is2xxSuccessful()));
+        Assert.assertEquals(response3.getHeaders().getContentType(), MediaType.APPLICATION_JSON_UTF8);
+
+        logger.trace(response3.getBody());
+
+        // parse
+        org.json.JSONObject json = new org.json.JSONObject(response3.getBody());
+
+        String accessToken = json.getString("access_token");
+        String refreshToken = json.optString("refresh_token");
+        String tokenType = json.getString("token_type");
+        int expiresIn = json.getInt("expires_in");
+
         logger.debug("accessToken " + accessToken);
+        logger.debug("refreshToken " + refreshToken);
 
         // basic validation
         Assert.assertTrue(StringUtils.isNotEmpty(accessToken));
-        Assert.assertTrue(StringUtils.isNotEmpty(idToken));
+        Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
         Assert.assertEquals("Bearer", tokenType);
-        Assert.assertEquals(state, parameters.getFirst("state"));
+
+        // check scope
+        Assert.assertTrue(json.getString("scope").contains(SCOPE));
 
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
 
-        // parse idToken and validate
-        SignedJWT jws = SignedJWT.parse(idToken);
+        // parse and validate
+        SignedJWT jws = SignedJWT.parse(accessToken);
 
         // validate signature
         JWSAlgorithm signingAlg = jws.getHeader().getAlgorithm();
@@ -242,8 +279,8 @@ public class ImplicitFlowTest {
                 || signingAlg.equals(JWSAlgorithm.PS512)) {
             // asymmetric sign, need public key
             // fetch JWKs from AAC
-            JWKSet jwks = OpenidUtils.fetchJWKS(restTemplate,
-                    server + ":" + port + contextPath + OpenIDMetadataEndpoint.OPENID_CONFIGURATION_URL);
+            JWKSet jwks = OAuthUtils.fetchJWKS(restTemplate,
+                    server + ":" + port + contextPath + OAuth2MetadataEndpoint.OAUTH2_CONFIGURATION_URL);
             // build service
             JWTSigningAndValidationService signService = new DefaultJWTSigningAndValidationService(
                     new JWKSetKeyStore(jwks));
@@ -274,10 +311,8 @@ public class ImplicitFlowTest {
 
         // issuer
         Assert.assertEquals(issuer, claims.getString("iss"));
-        // nonce should match with the one passed
-        Assert.assertEquals(nonce, claims.getString("nonce"));
         // scope should contain the requested ones
-        Assert.assertTrue(claims.getString("scope").contains(SCOPE));
+        Assert.assertTrue(claims.getString("scope").contains("profile"));
         // audience should contain or match ourselves
         String[] audiences = toStringArray(claims.optJSONArray("aud"));
         if (audiences != null) {
@@ -294,46 +329,7 @@ public class ImplicitFlowTest {
         Assert.assertTrue(claims.getLong("iat") >= (now - 43200));
         // expire at least 120 seconds
         Assert.assertTrue(claims.getLong("exp") >= (now + 120));
-
-        // validate access token matching with hash (as per spec)
-        Base64URL at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg, accessToken);
-        // match with claim
-        Assert.assertEquals(at_hash.toString(), claims.getString("at_hash"));
     }
-
-    @Test
-    public void implicitFlowWithTokenAndIdTokenAsQuery()
-            throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
-
-        logger.debug("implicit flow (token+id_token) with client " + client.getClientId() + " and user session "
-                + sessionId);
-    }
-
-    @Test
-    public void implicitFlowWithIdTokenAsFragment()
-            throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
-
-        logger.debug("implicit flow (id_token) with client " + client.getClientId() + " and user session "
-                + sessionId);
-
-        // not supported in AAC
-
-    }
-
-    @Test
-    public void implicitFlowWithIdTokenAsQuery()
-            throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
-
-        logger.debug("implicit flow (id_token) with client " + client.getClientId() + " and user session "
-                + sessionId);
-
-        // not supported in AAC
-
-    }
-
     /*
      * Helpers
      */
@@ -349,35 +345,4 @@ public class ImplicitFlowTest {
         }
         return arr;
     }
-
-    /*
-     * 
-     */
-
-//    private WebTester tester;
-//
-//    @Before
-//    public void init() {
-//        tester = new WebTester();
-//        tester.setBaseUrl("http://localhost:8080/test");
-//    }
-//
-//    @After
-//    public void cleanup() {
-//        tester.closeBrowser();
-//    }
-//    
-//    @Test
-//    public void test1() {
-//        tester.beginAt("home.xhtml"); //Open the browser on http://localhost:8080/test/home.xhtml
-//        tester.clickLink("login");
-//        tester.assertTitleEquals("Login");
-//        tester.setTextField("username", "test");
-//        tester.setTextField("password", "test123");
-//        tester.submit();
-//        tester.assertTitleEquals("Welcome, test!");
-//        
-//        tester.
-//    }
-
 }
