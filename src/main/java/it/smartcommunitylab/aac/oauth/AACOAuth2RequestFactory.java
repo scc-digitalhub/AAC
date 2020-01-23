@@ -123,7 +123,9 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		String grantType = requestParameters.get(OAuth2Utils.GRANT_TYPE);
 		Set<String> scopes = new HashSet<>();
 		//check grantType and act accordingly to parse scopes
-		if("password".equals(grantType) || "client_credentials".equals(grantType)) {
+		if(Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
+		       Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) || 
+		       Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
 		    scopes = extractScopes(requestParameters, clientId);
 		}
 		
@@ -217,6 +219,7 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
         return scopes;
     }
 
+    //TODO rework, should get user as param and let authRequest/tokenRequest recover the correct one
 	private Set<String> checkUserScopes(Map<String, String> requestParameters, Set<String> scopes, ClientDetailsEntity client) throws Exception {
 		Set<String> newScopes = Sets.newHashSet();
 

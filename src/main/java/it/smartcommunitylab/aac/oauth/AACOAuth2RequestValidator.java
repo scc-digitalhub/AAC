@@ -44,7 +44,11 @@ public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
 	public void validateScope(TokenRequest tokenRequest, ClientDetails client) throws InvalidScopeException {
 	    //check grant type and act accordingly
         String grantType = tokenRequest.getGrantType();
-        if ("password".equals(grantType) || "client_credentials".equals(grantType)) {
+        //NOTE that TokenEndpoint will simply ignore requestFactory scopes for refresh grant 
+        // and insert *after* this check the ones fetched from request WITHOUT VALIDATION!
+        if(Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
+                Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) || 
+                Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
             validateScope(tokenRequest.getScope(), client.getScope());
         } else {
             // enforce spec, no scope associated to these flows
