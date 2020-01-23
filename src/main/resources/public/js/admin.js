@@ -49,7 +49,7 @@ angular.module('aac.controllers.admin', [])
 				$scope.approvals = response.data;
 				Utils.showSuccess();
 			} else {
-				Utils.showError('Failed to approve resource access: '+response.errorMessage);
+				Utils.showError('Failed to approve scope access: '+response.errorMessage);
 			}	
 		});
 	};

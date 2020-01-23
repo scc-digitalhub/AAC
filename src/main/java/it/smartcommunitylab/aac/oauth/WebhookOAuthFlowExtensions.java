@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -61,9 +60,9 @@ import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 /**
  * Implementation of the {@link OAuthFlowExtensions} with the Web hook functionality. 
@@ -89,7 +88,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 	@Autowired
 	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
 	@Autowired
-	private ResourceRepository resourceRepository;
+    private ServiceManager serviceManager;
 	
 	private RestTemplate restTemplate;
 	
@@ -208,7 +207,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
     private Set<String> getServiceIds(Set<String> scopes) {
     	if (scopes != null && !scopes.isEmpty()) {
-    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
+    		return serviceManager.findServiceIdsByScopes(scopes);
     	}
     	return Collections.emptySet();
     }

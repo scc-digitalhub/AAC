@@ -61,8 +61,16 @@ app.config(function($routeProvider) {
         templateUrl : "html/tenantowners.html"
     })
     .when("/services", {
-    	controller  : 'ServiceController', 
+    	controller  : 'ServicesController', 
         templateUrl : "html/services.html"
+    })
+    .when("/services/new", {
+    	controller  : 'ServiceController', 
+        templateUrl : "html/service-form.html"
+    })
+    .when("/services/:serviceId", {
+    	controller  : 'ServiceController', 
+        templateUrl : "html/service-form.html"
     })
     .otherwise("/apps");
 })

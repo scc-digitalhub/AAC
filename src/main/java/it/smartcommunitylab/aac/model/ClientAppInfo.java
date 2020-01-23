@@ -39,7 +39,7 @@ public class ClientAppInfo {
 	
 	private String name, displayName;
 
-	private Map<String, Boolean> resourceApprovals;
+	private Map<String, Boolean> scopeApprovals;
 	
 	private Map<String, Integer> identityProviders;
 	
@@ -78,17 +78,17 @@ public class ClientAppInfo {
 	}
 
 	/**
-	 * @return the resourceApprovals
+	 * @return the scopeApprovals
 	 */
-	public Map<String, Boolean> getResourceApprovals() {
-		return resourceApprovals;
+	public Map<String, Boolean> getScopeApprovals() {
+		return scopeApprovals;
 	}
 
 	/**
-	 * @param resourceApprovals the resourceApprovals to set
+	 * @param scopeApprovals the scopeApprovals to set
 	 */
-	public void setResourceApprovals(Map<String, Boolean> resourceApprovals) {
-		this.resourceApprovals = resourceApprovals;
+	public void setScopeApprovals(Map<String, Boolean> scopeApprovals) {
+		this.scopeApprovals = scopeApprovals;
 	}
 
 	/**

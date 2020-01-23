@@ -24,6 +24,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.model.Service;
 
 /**
@@ -37,10 +38,17 @@ public interface ServiceModelRepository extends JpaRepository<Service, String> {
 	@Query("select s from Service s where s.name like %?1%")
 	Page<Service> findByName(String name, Pageable pageable);
 
-	@Query("select s from Service s where s.context in ?1")
-	List<Service> findByContexts(Set<String> contexts);
+	@Query("select s from Service s where s.context in ?1 or (?2 = true and s.context is null)")
+	List<Service> findByContexts(Set<String> contexts, boolean withNull);
+
+	@Query("select s from Service s where (s.context = ?1 or (?1 is null and s.context is null))")
+	List<Service> findByContext(String context);
 
 	@Query("select s from Service s where s.namespace = ?1")
 	Service findByNamespace(String namespace);
+
+	@Query("select ss.service.serviceId from ServiceScope ss where ss.scope in ?1")
+	Set<String> findServiceIdsByScopes(Set<String> scopes);
+
 
 }

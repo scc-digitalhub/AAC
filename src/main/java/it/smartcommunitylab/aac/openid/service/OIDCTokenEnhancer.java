@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
@@ -33,7 +31,6 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 
@@ -43,11 +40,11 @@ import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 /**
  * Default implementation of service to create specialty OpenID Connect tokens.
  *
@@ -84,7 +81,7 @@ public class OIDCTokenEnhancer  {
     private UserManager userManager;
 
     @Autowired
-	private ResourceRepository resourceRepository;
+    private ServiceManager serviceManager;
 
 	public JWT createIdToken(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
 		OAuth2Request request = authentication.getOAuth2Request();
@@ -274,7 +271,7 @@ public class OIDCTokenEnhancer  {
 
     private Set<String> getServiceIds(Set<String> scopes) {
     	if (scopes != null && !scopes.isEmpty()) {
-    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
+    		return serviceManager.findServiceIdsByScopes(scopes);
     	}
     	return Collections.emptySet();
     }

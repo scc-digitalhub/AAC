@@ -23,23 +23,25 @@ import java.util.concurrent.ConcurrentMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
+import it.smartcommunitylab.aac.authorization.model.Resource;
+import it.smartcommunitylab.aac.manager.ServiceManager;
+import it.smartcommunitylab.aac.model.ServiceScope;
+import it.smartcommunitylab.aac.repository.ServiceScopeRepository;
 
 /**
- * Implementation of the resource storage with in-memory cache of resource model.
+ * Implementation of the scope storage with in-memory cache of scope model.
  * 
  * @author raman
  *
  */
 @Transactional
-public class CachedResourceStorage implements ResourceStorage {
+public class CachedServiceScopeServices implements ServiceScopeServices {
 
 	@Autowired
-	private ResourceRepository resourceRepository;
+	private ServiceManager serviceManager;	
 	
-	private ConcurrentMap<String, Resource> resources = new ConcurrentHashMap<String, Resource>();
-	private ConcurrentMap<String, Resource> resourcesIdMap = new ConcurrentHashMap<String, Resource>();
+	private ConcurrentMap<String, ServiceScope> resources = new ConcurrentHashMap<String, ServiceScope>();
+	private ConcurrentMap<String, ServiceScope> resourcesIdMap = new ConcurrentHashMap<String, ServiceScope>();
 
 	/**
 	 * Update the in-memory map in case of resource repository changes
@@ -49,9 +51,9 @@ public class CachedResourceStorage implements ResourceStorage {
 		synchronized (resourcesIdMap) {
 			resourcesIdMap.clear();
 			resources.clear();
-			for (Resource resource : resourceRepository.findAll()) {
-				resources.put(resource.getResourceUri(), resource);
-				resourcesIdMap.put(resource.getResourceId().toString(), resource);
+			for (ServiceScope scope : serviceManager.findAllScopes()) {
+				resources.put(scope.getScope(), scope);
+				resourcesIdMap.put(scope.getScope().toString(), scope);
 			}
 		}
 	}
@@ -62,36 +64,11 @@ public class CachedResourceStorage implements ResourceStorage {
 	 * @return
 	 */
 	@Override
-	public Resource loadResourceByResourceUri(String resourceUri) {
+	public ServiceScope loadScope(String resourceUri) {
 		if (resources.isEmpty()) {
 			reset();
 		}
 		return resources.get(resourceUri);
 	}
-	
-	@Override
-	public Resource storeResource(Resource resource) {
-		if (resource != null) {
-			Resource old = resourceRepository.findByResourceUri(resource.getResourceUri());
-			if (old != null) {
-				resource.setResourceId(old.getResourceId());
-			}
-			Resource res = resourceRepository.save(resource);
-			reset();
-			return res;
-		}
-		return null;
-	}
-
-	@Override
-	public void storeResources(List<Resource> resources) {
-		if (resources != null) {
-			for (Resource resource : resources) {
-				storeResource(resource);
-			}
-			reset();
-		}
-	}
-	
 	
 }

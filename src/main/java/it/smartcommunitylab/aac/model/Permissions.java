@@ -19,69 +19,69 @@ package it.smartcommunitylab.aac.model;
 import java.util.List;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.jaxbmodel.Service;
+import it.smartcommunitylab.aac.dto.ServiceDTO;
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 
 /**
- * Permissions descriptor with client app own resource properties, services, resources available,
- * resource approval statues, and resources selected by the client
+ * Permissions descriptor with client app own scope properties, services, scopes available,
+ * resource approval statues, and scopes selected by the client
  * @author raman
  *
  */
 public class Permissions {
 
-	private Service service;
-	private Map<String, List<Resource>> availableResources;
-	private Map<String,Boolean> selectedResources;
+	private ServiceDTO service;
+	private List<ServiceScopeDTO> availableScopes;
+	private Map<String,Boolean> selectedScopes;
 	
-	private Map<String,Integer> resourceApprovals;
+	private Map<String,Integer> scopeApprovals;
 
 	/**
 	 * @return the service
 	 */
-	public Service getService() {
+	public ServiceDTO getService() {
 		return service;
 	}
 	/**
 	 * @param service the service to set
 	 */
-	public void setService(Service service) {
+	public void setService(ServiceDTO service) {
 		this.service = service;
 	}
 	/**
-	 * @return the selectedResources
+	 * @return the selectedScopes
 	 */
-	public Map<String, Boolean> getSelectedResources() {
-		return selectedResources;
+	public Map<String, Boolean> getSelectedScopes() {
+		return selectedScopes;
 	}
 	/**
-	 * @return the availableResources
+	 * @return the availableScopes
 	 */
-	public Map<String, List<Resource>> getAvailableResources() {
-		return availableResources;
+	public List<ServiceScopeDTO> getAvailableScopes() {
+		return availableScopes;
 	}
 	/**
-	 * @param availableResources the availableResources to set
+	 * @param availableScopes the availableScopes to set
 	 */
-	public void setAvailableResources(
-			Map<String, List<Resource>> availableResources) {
-		this.availableResources = availableResources;
+	public void setAvailableScopes(List<ServiceScopeDTO> availableScopes) {
+		this.availableScopes = availableScopes;
 	}
 	/**
-	 * @param selectedResources the selectedResources to set
+	 * @param selectedScopes the selectedScopes to set
 	 */
-	public void setSelectedResources(Map<String, Boolean> selectedResources) {
-		this.selectedResources = selectedResources;
+	public void setSelectedScopes(Map<String, Boolean> selectedScopes) {
+		this.selectedScopes = selectedScopes;
 	}
 	/**
-	 * @return the resourceApprovals
+	 * @return the scopeApprovals
 	 */
-	public Map<String, Integer> getResourceApprovals() {
-		return resourceApprovals;
+	public Map<String, Integer> getScopeApprovals() {
+		return scopeApprovals;
 	}
 	/**
-	 * @param resourceApprovals the resourceApprovals to set
+	 * @param scopeApprovals the scopeApprovals to set
 	 */
-	public void setResourceApprovals(Map<String, Integer> resourceApprovals) {
-		this.resourceApprovals = resourceApprovals;
+	public void setScopeApprovals(Map<String, Integer> scopeApprovals) {
+		this.scopeApprovals = scopeApprovals;
 	}
 }

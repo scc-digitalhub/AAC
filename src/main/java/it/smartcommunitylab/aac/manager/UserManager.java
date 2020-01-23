@@ -56,7 +56,6 @@ import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.OAuthApprovalRepository;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -81,7 +80,7 @@ public class UserManager {
 	@Autowired
 	private RegistrationManager regManager;
 	@Autowired
-	private ResourceRepository resourceRepository;
+	private ServiceManager serviceManager;
 
 	@Value("${api.contextSpace}")
 	private String apiProviderContext;
@@ -311,9 +310,9 @@ public class UserManager {
 			
 			p.setAppName((String)client.getAdditionalInformation().get("displayName"));
 			if (p.getAppName() == null) p.setAppName(client.getName());
-			p.setResources(multimap.get(e).stream().filter(a -> a.getStatus().equals(ApprovalStatus.APPROVED.toString())).map(approval -> {
+			p.setScopes(multimap.get(e).stream().filter(a -> a.getStatus().equals(ApprovalStatus.APPROVED.toString())).map(approval -> {
 				String scope = approval.getScope();
-				return resourceRepository.findByResourceUri(scope);
+				return serviceManager.getServiceScopeDTO(scope);
 			}).collect(Collectors.toList()));
 			return p;
 		}).filter(p -> p != null).collect(Collectors.toList());

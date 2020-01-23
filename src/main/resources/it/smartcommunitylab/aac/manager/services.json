@@ -41,24 +41,6 @@
         "approvalRequired": false
       },
       {
-        "scope": "phone",
-        "name": "Read user's phone",
-        "description": "Basic user's phone.",
-        "claims": ["phone_number", "phone_number_verified"],
-        "roles": [],
-        "authority": "ROLE_USER",
-        "approvalRequired": false
-      },
-      {
-        "scope": "address",
-        "name": "Read user's addres",
-        "description": "Basic user's address.",
-        "claims": ["address"],
-        "roles": [],
-        "authority": "ROLE_USER",
-        "approvalRequired": false
-      },
-      {
         "scope": "profile.basicprofile.all",
         "name": "Read all basic profiles",
         "description": "Basic profile of the platform users. Read access only.",

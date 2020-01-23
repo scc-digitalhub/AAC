@@ -47,10 +47,10 @@ import com.google.common.collect.Multimap;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
-import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -66,7 +66,7 @@ public class AccessConfirmationController {
 	@Autowired
 	private ClientDetailsService clientDetailsService;
 	@Autowired
-	private ResourceRepository resourceRepository;
+	private ServiceManager serviceManager;
 	@Autowired
 	private RoleManager roleManager;
 	@Autowired
@@ -84,7 +84,7 @@ public class AccessConfirmationController {
 		// load client information given the client credentials obtained from the request
 		ClientDetails client = clientDetailsService.loadClientByClientId(clientAuth.getClientId());
 		ClientAppInfo info = ClientAppInfo.convert(client.getAdditionalInformation());
-		List<Resource> resources = new ArrayList<Resource>();
+		List<ServiceScopeDTO> resources = new ArrayList<>();
 		
 		Set<String> all = client.getScope();
 		Set<String> requested = clientAuth.getScope();
@@ -110,9 +110,9 @@ public class AccessConfirmationController {
 		for (String rUri : requested) {
 			if (approved.contains(rUri)) continue;
 			try {
-				Resource r = resourceRepository.findByResourceUri(rUri);
-				// ask the user only for the resources associated to the user role and not managed by this client
-				if (r.getAuthority().equals(AUTHORITY.ROLE_USER) && !clientAuth.getClientId().equals(r.getClientId())) {
+				ServiceScopeDTO r = serviceManager.getServiceScopeDTO(rUri);
+				// ask the user only for the resources associated to the user role 
+				if (r.getAuthority().equals(AUTHORITY.ROLE_USER) /*&& !clientAuth.getClientId().equals(r.getClientId())*/) {
 					resources.add(r);
 				}
 			} catch (Exception e) {

@@ -15,18 +15,14 @@
  */
 package it.smartcommunitylab.aac.manager;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +38,11 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.Authority;
-import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.AttributeRepository;
 import it.smartcommunitylab.aac.repository.AuthorityRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -68,16 +63,7 @@ public class ProviderServiceAdapter {
 	@Autowired
 	private AttributeRepository attributeRepository;
 	@Autowired
-	private ResourceRepository resourceRepository;	
-
-    @Value("${authorities.enabled}")
-    private String[] enabledAuthorities;
-	   
-    @PostConstruct
-	public void init() throws JAXBException, IOException {
-	    logger.debug("init");
-		attrAdapter.init(Arrays.asList(enabledAuthorities));
-	}
+	private ServiceManager serviceManager;	
 
 	/**
 	 * Updates of user attributes using the values obtained from http request
@@ -190,7 +176,7 @@ public class ProviderServiceAdapter {
 		Set<String> newScopes = Sets.newHashSet();
 		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
 		for (String scope : scopes) {
-			Resource resource = resourceRepository.findByResourceUri(scope);
+			ServiceScope resource = serviceManager.getServiceScope(scope);
 			if (resource != null) {
 				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
 				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);

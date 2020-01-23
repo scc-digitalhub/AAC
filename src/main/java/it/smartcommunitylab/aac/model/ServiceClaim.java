@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.model;
 
-import javax.annotation.Generated;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
