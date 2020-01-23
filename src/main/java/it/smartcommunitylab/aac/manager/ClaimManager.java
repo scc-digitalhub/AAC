@@ -53,6 +53,7 @@ import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 
@@ -67,6 +68,10 @@ public class ClaimManager {
 	@Autowired
 	private BasicProfileManager profileManager;
 
+    @Autowired
+    private RegistrationManager registrationManager;
+	   
+	
 	private SetMultimap<String, String> scopesToClaims = HashMultimap.create();
 	
 	private Set<String> profileScopes = Sets.newHashSet(Config.SCOPE_BASIC_PROFILE);
@@ -170,10 +175,49 @@ public class ClaimManager {
 		
 	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientAppInfo appInfo, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);
-
+		Registration reg = registrationManager.getUserByEmail(ui.getUsername());
+		
 		// get the base object
-		Map<String, Object> obj = toJson(ui);
-
+		Map<String, Object> obj = toBaseJson(ui);
+		
+		/*
+		 * OpenID claims
+		 * see https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+		 */
+		//profile
+		if(scopes.contains(Config.SCOPE_PROFILE)) {
+		    obj.putAll(toProfileJson(ui));
+		}
+		
+		//email
+        if (scopes.contains(Config.SCOPE_EMAIL)) {
+            obj.putAll(toEmailJson(reg));
+        }
+		
+        
+        //address
+        //TODO populate
+        if (scopes.contains(Config.SCOPE_ADDRESS)) {
+            obj.putAll(toAddressJson(reg));
+        }
+        
+        //phone
+        //TODO populate        
+        if (scopes.contains(Config.SCOPE_PHONE)) {
+            obj.putAll(toPhoneJson(reg));
+        }
+        
+        
+        /*
+         * AAC claims
+         * (we can override openId claims) 
+         */
+		//basic profile
+        if (!Sets.intersection(scopes, profileScopes).isEmpty()) {
+            obj.putAll(toProfileJson(ui));
+        }
+		
+		//account
 		if (!Sets.intersection(scopes, accountScopes).isEmpty()) {
 			// account profiles
 			AccountProfile accounts = profileManager.getAccountProfileById(userId);
@@ -181,6 +225,8 @@ public class ClaimManager {
 				obj.put("accounts", accounts.getAccounts());			
 			}
 		}
+		
+		//roles
 		if (!Sets.intersection(scopes, roleScopes).isEmpty()) {
 			try {
 				Set<Role> roles = authorities.stream().map(a -> Role.parse(a.getAuthority())).collect(Collectors.toSet());
@@ -191,6 +237,10 @@ public class ClaimManager {
 			}
 		}
 		
+		/*
+		 * Filtering
+		 */
+		logger.trace("claims before filtering "+obj.toString());
 		
 		Set<String> allowedByScope = getClaimsForScopeSet(scopes);
 		Set<String> authorizedByClaims = extractUserInfoClaimsIntoSet(authorizedClaims);
@@ -212,6 +262,8 @@ public class ClaimManager {
 				} // otherwise there were specific claims requested and this wasn't one of them
 			}
 		}
+
+	    logger.trace("claims after filtering "+result.toString());
 
 		// apply mapping to correct result
 		Map<String, Object> copy = new HashMap<>(result);
@@ -245,6 +297,9 @@ public class ClaimManager {
                 copy.remove(key);
             }
         }
+        
+        logger.trace("claims after custom mapping "+copy.toString());
+
 		return copy;
 	}
 
@@ -270,7 +325,8 @@ public class ClaimManager {
 
 	@SuppressWarnings("unchecked")
 	protected Map<String, Object> executeScript(Map<String, Object> obj, String func) throws ScriptException, IOException {
-		NashornSandbox sandbox = createSandbox();		
+		//TODO use a threadPool/cache to avoid the expensive sandbox creation at each call
+	    NashornSandbox sandbox = createSandbox();		
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			StringWriter writer = new StringWriter();
@@ -291,25 +347,59 @@ public class ClaimManager {
 	 * @param ui
 	 * @return
 	 */
-	private Map<String, Object> toJson(BasicProfile ui) {
+    private Map<String, Object> toBaseJson(BasicProfile ui) {
 
-		Map<String, Object> obj = new HashMap<>();
-		//disable sub since it is reserved
+        Map<String, Object> obj = new HashMap<>();
+        // disable sub since it is reserved
 //		obj.put("sub", ui.getUserId());
+   
+        return obj;
+    }
 
-		obj.put("name", ui.getSurname() + " " + ui.getName());
-		obj.put("preferred_username", ui.getUsername());
-		obj.put("given_name", ui.getName());
-		obj.put("family_name", ui.getSurname());
+    private Map<String, Object> toProfileJson(BasicProfile ui) {
 
-		obj.put("username", ui.getUsername());
-		obj.put("email", ui.getUsername());
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("name", ui.getSurname() + " " + ui.getName());
+        obj.put("given_name", ui.getName());
+        obj.put("family_name", ui.getSurname());
 
-		//also write username in a spring-friendly form
+        obj.put("preferred_username", ui.getUsername());
+        // also write username in alternate claim
+        obj.put("username", ui.getUsername());
+        // also write username in a spring-friendly form
+        //https://github.com/spring-projects/spring-security-oauth/blob/master/spring-security-oauth2/src/main/java/org/springframework/security/oauth2/provider/token/UserAuthenticationConverter.java
         obj.put("user_name", ui.getUsername());
 
-		return obj;
-	}
+        return obj;
+    }
+
+    private Map<String, Object> toEmailJson(Registration reg) {
+
+        Map<String, Object> obj = new HashMap<>();
+
+        obj.put("email", reg.getEmail());
+        obj.put("email_verified", reg.isConfirmed());
+
+        return obj;
+    }
+
+    
+    private Map<String, Object> toPhoneJson(Registration reg) {
+
+        Map<String, Object> obj = new HashMap<>();
+        //TODO
+        return obj;
+    }
+        
+
+    private Map<String, Object> toAddressJson(Registration reg) {
+
+        Map<String, Object> obj = new HashMap<>();
+        //TODO
+
+        return obj;
+    }
+        
 	
 	private Set<String> getClaimsForScope(String scope) {
 		if (scopesToClaims.containsKey(scope)) {

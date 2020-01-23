@@ -32,6 +32,12 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
 	@Query("select r from Registration r where r.email=?1")
 	Registration findByEmail(String email);
 	
+	//TODO check userId is not UNIQUE in db
+    @Query("select r from Registration r where r.userId=?1")
+    Registration findByUserId(String userId);	
+	
 	@Query("select r from Registration r where r.confirmationKey=?1")
 	Registration findByConfirmationKey(String confirmationKey);
+	
+	
 }

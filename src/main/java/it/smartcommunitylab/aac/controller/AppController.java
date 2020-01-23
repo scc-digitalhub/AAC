@@ -214,6 +214,7 @@ public class AppController {
 	public @ResponseBody Response update(@RequestBody ClientAppBasic data, @PathVariable String clientId) {
 		Response response = new Response();
 		userManager.checkClientIdOwnership(clientId);
+		//TODO add extended validation here
 		response.setData(clientDetailsAdapter.update(clientId, data));
 		return response;
 	}

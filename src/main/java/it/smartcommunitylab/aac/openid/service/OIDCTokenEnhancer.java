@@ -179,7 +179,8 @@ public class OIDCTokenEnhancer  {
 		
 		Set<String> responseTypes = request.getResponseTypes();
 
-		if (responseTypes.contains("token")) {
+		//at_hash is used for both implicit and auth_code flows when paired with accessToken
+		if (responseTypes.contains("token") || responseTypes.contains("code")) {
 			// calculate the token hash
 			Base64URL at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg, signed);
 			idClaims.claim("at_hash", at_hash);

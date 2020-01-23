@@ -55,6 +55,8 @@ security:
 #OAUTH2
 oauth2:
    jwt: ${ENABLE_JWT:false}
+   introspection:
+      permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:true}
 
 #JWT
 jwt:

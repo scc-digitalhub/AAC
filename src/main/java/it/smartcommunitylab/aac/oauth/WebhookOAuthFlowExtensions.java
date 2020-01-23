@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -39,6 +40,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
@@ -113,24 +115,29 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 	
 
 	@Override
-	public void onAfterApproval(AuthorizationRequest authorizadtionRequest, Authentication userAuthentication) throws FlowExecutionException {
-		ClientDetailsEntity client = clientRepo.findByClientId(authorizadtionRequest.getClientId());
-		Map<String, Object> additional = null;
-		if (client != null && (additional = client.getAdditionalInformation()) != null && additional.get("onAfterApprovalWebhook") != null) {
-			String hook = (String) additional.get("onAfterApprovalWebhook");
+	public void onAfterApproval(AuthorizationRequest authorizationRequest, Authentication userAuthentication) throws FlowExecutionException {
+		ClientDetailsEntity client = clientRepo.findByClientId(authorizationRequest.getClientId());
+		if(client == null) {
+		    logger.error("invalid cliendId: " + String.valueOf(authorizationRequest.getClientId()));
+		    throw new FlowExecutionException("Invalid cliendId: " + String.valueOf(authorizationRequest.getClientId()));
+		}
+		
+		Map<String, Object> additional = client.getAdditionalInformation();
+		String hook = (String) additional.get("onAfterApprovalWebhook");
+		if (StringUtils.isNotBlank(hook)) {			
 			try {
 				URL url = new URL(hook);
-				String token = extractToken(authorizadtionRequest, userAuthentication, client);
+				String token = extractToken(authorizationRequest, userAuthentication, client);
 				HttpHeaders headers = new HttpHeaders();
 				headers.set("Authorization", "Bearer " + token);
 				HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-				String result = restTemplate.exchange(url.toString(), HttpMethod.GET, entity, String.class).getBody();
-				logger.debug("Hook result: " + result);
+				ResponseEntity<String> result = restTemplate.exchange(url.toString(), HttpMethod.GET, entity, String.class);				
+				logger.debug("Hook response code: " + result.getStatusCodeValue());
+                logger.debug("Hook result: " + result.getBody());				
 			} catch (MalformedURLException e) {
 				throw new FlowExecutionException("Invalid hook URL: " + hook);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				throw new FlowExecutionException("Hook invocation failure: " + e.getMessage());
 			}
 		}

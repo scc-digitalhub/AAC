@@ -61,9 +61,17 @@ public class Config {
 	public static final String R_PROVIDER = "ROLE_PROVIDER";
 
 	public static final String GRANT_TYPE_NATIVE = "native";
+	public static final String GRANT_TYPE_IMPLICIT = "implicit";
+	public static final String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
+    public static final String GRANT_TYPE_PASSWORD = "password";
+    public static final String GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
+    public static final String GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
+    public static final String GRANT_TYPE_DEVICE_CODE = "urn:ietf:params:oauth:grant-type:device_code";
 
 	/** Open ID connect scope */
 	public static final String SCOPE_OPENID = "openid";
+	/** Open Id offline access (refresh token) **/
+	public static final String SCOPE_OFFLINE_ACCESS = "offline_access";	
 	/** basic scopes */
 	public static final String SCOPE_PROFILE = "profile";
     public static final String SCOPE_EMAIL = "email";
@@ -101,6 +109,7 @@ public class Config {
 
 	public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 	
+	public static final String WELL_KNOWN_URL = "/.well-known";
 
 	/**
 	 * Check whether the child property visibility is equal or more restrictive than the one of the parent property.

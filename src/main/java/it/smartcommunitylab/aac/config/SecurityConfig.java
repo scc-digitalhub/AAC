@@ -106,10 +106,13 @@ import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
+import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
@@ -637,7 +640,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}	
 	
 	@Bean
-	protected ResourceServerConfiguration openidResources() {
+	protected ResourceServerConfiguration userInfoResources() {
 		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
 			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
 				super.setConfigurers(configurers);
@@ -649,9 +652,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/userinfo").authorizeRequests()
-						.antMatchers(HttpMethod.OPTIONS, "/userinfo").permitAll()
-						.antMatchers("/userinfo").access("#oauth2.hasScope('"+Config.SCOPE_OPENID+"')")
+				http.antMatcher(UserInfoEndpoint.USERINFO_URL).authorizeRequests()
+						.antMatchers(HttpMethod.OPTIONS, UserInfoEndpoint.USERINFO_URL).permitAll()
+						.antMatchers(UserInfoEndpoint.USERINFO_URL).access("#oauth2.hasScope('"+Config.SCOPE_OPENID+"')")
 						.and().csrf().disable();
 			}
 
@@ -673,8 +676,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/token_introspection").authorizeRequests()
-						.antMatchers("/token_introspection").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+				http.antMatcher(TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL).authorizeRequests()
+						.antMatchers(TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL).hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
 						.and().httpBasic()
 						.and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
 			}
@@ -682,4 +685,28 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(12);
 		return resource;
 	}
+	
+    @Bean
+    protected ResourceServerConfiguration tokenRevocationResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.antMatcher(TokenRevocationEndpoint.TOKEN_REVOCATION_URL).authorizeRequests()
+                        .antMatchers(TokenRevocationEndpoint.TOKEN_REVOCATION_URL).hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+                        .and().httpBasic()
+                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+            }
+        }));
+        resource.setOrder(13);
+        return resource;
+    }
+    
 }
