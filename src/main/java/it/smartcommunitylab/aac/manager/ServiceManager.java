@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ import it.smartcommunitylab.aac.repository.ServiceScopeRepository;
 @Transactional
 public class ServiceManager {
 
-	private static final String SERVICE_CONTEXT = "";
+	private static final String SERVICE_CONTEXT = "services";
 	
     @Value("${admin.username}")
     private String adminUsername;   
@@ -87,7 +88,12 @@ public class ServiceManager {
 			// update existing or create new ones
 			saveService(admin, serviceDTO);
 			if (serviceDTO.getClaims() != null) {
-				serviceDTO.getClaims().forEach(claim -> saveServiceClaim(admin, serviceDTO.getServiceId(), claim));
+				serviceDTO.getClaims().forEach(claim -> { 
+					ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceDTO.getServiceId(), claim.getClaim());
+					if (duplicate == null) {
+						saveServiceClaim(admin, serviceDTO.getServiceId(), claim);
+					}
+				});
 			}
 			if (serviceDTO.getScopes() != null) {
 				serviceDTO.getScopes().forEach(scope -> saveServiceScope(admin, serviceDTO.getServiceId(), scope));
@@ -111,6 +117,17 @@ public class ServiceManager {
 		return res;
 	}
 
+
+	/**
+	 * @return
+	 */
+	public List<ServiceScopeDTO> getAllScopes() {
+		return scopeRepo.findAll().stream().map(s -> toDTO(s)).collect(Collectors.toList());
+	}
+
+	public ServiceDTO getService(String serviceId) {
+		return toDTO(serviceRepo.findOne(serviceId.toLowerCase()));
+	}
 	/**
 	 * Read all services the user can manage
 	 * @param userId
@@ -118,7 +135,17 @@ public class ServiceManager {
 	 */
 	public List<ServiceDTO> getUserServices(User user) {
 		Set<String> contexts = getUserContexts(user);
-		return serviceRepo.findByContexts(contexts).stream().map(s -> toDTO(s)).collect(Collectors.toList());
+		boolean withNull = contexts.contains(null);
+		contexts.remove(null);
+		List<Service> list = null;
+		if (withNull && contexts.isEmpty()) {
+			list = serviceRepo.findByContext(null);
+		} else if (contexts.isEmpty()) {
+			list = Collections.emptyList();
+		} else {
+			list = serviceRepo.findByContexts(contexts, withNull);
+		}
+		return list.stream().map(s -> toDTO(s)).collect(Collectors.toList());
 	}
 
 	/**
@@ -126,7 +153,7 @@ public class ServiceManager {
 	 * @param user
 	 * @return
 	 */
-	protected Set<String> getUserContexts(User user) {
+	public Set<String> getUserContexts(User user) {
 		Role sysadmin = Role.systemAdmin();
 		Set<String> contexts = user.getRoles()
 				.stream()
@@ -142,7 +169,7 @@ public class ServiceManager {
 	 * @return
 	 */
 	public ServiceDTO saveService(User user, ServiceDTO dto) {
-		Service service = serviceRepo.findOne(dto.getServiceId());
+		Service service = serviceRepo.findOne(dto.getServiceId().toLowerCase());
 		Set<String> contexts = getUserContexts(user);
 		if (dto.getNamespace() != null) {
 			dto.setNamespace(dto.getNamespace().trim());
@@ -160,10 +187,11 @@ public class ServiceManager {
 		} else {
 			service = toService(dto);
 		}
+		validateServiceData(service);
 		// namespace are unique for services (if defined)
 		if (dto.getNamespace() != null) {
 			Service nsService = serviceRepo.findByNamespace(dto.getNamespace());
-			if (!nsService.getServiceId().equals(service.getServiceId())) {
+			if (nsService != null && !nsService.getServiceId().equals(service.getServiceId())) {
 				throw new IllegalArgumentException("Duplicate service namespace: " + dto.getNamespace());
 			}
 		}
@@ -176,7 +204,7 @@ public class ServiceManager {
 	 * @param serviceId
 	 */
 	public void deleteService(User user, String serviceId) {
-		Service service = serviceRepo.findOne(serviceId);
+		Service service = serviceRepo.findOne(serviceId.toLowerCase());
 		if (service != null) {
 			Set<String> contexts = getUserContexts(user);
 			if (!contexts.contains(service.getContext())) {
@@ -224,15 +252,18 @@ public class ServiceManager {
 	 * @return
 	 */
 	public ServiceScopeDTO saveServiceScope(User user, String serviceId, ServiceScopeDTO dto) {
-		Service service = serviceRepo.findOne(serviceId);
+		Service service = serviceRepo.findOne(serviceId.toLowerCase());
 		dto.setServiceId(serviceId);
-		ServiceScope scopeObj = scopeRepo.findOne(dto.getScope());
+		ServiceScope scopeObj = scopeRepo.findOne(dto.getScope().toLowerCase());
 		if (service != null) {
+			Set<String> availableClaims = claimRepo.findByService(serviceId.toLowerCase()).stream().map(c -> c.getClaim()).collect(Collectors.toSet());
+			dto.setClaims(dto.getClaims().stream().filter(c -> availableClaims.contains(c.toLowerCase())).collect(Collectors.toList()));
 			Set<String> contexts = getUserContexts(user);
-			if (!contexts.contains(service.getContext()) || scopeObj != null && !serviceId.equals(scopeObj.getService().getServiceId())) {
+			if (!contexts.contains(service.getContext()) || scopeObj != null && !serviceId.toLowerCase().equals(scopeObj.getService().getServiceId())) {
 				throw new SecurityException("Unauthorized operation for scope: " + serviceId +", scope: " + dto.getScope());
 			}
 			ServiceScope scope = toScope(dto);
+			validateScopeData(scope);
 			scope.setService(service);
 			return toDTO(scopeRepo.save(scope));
 		} else {
@@ -248,7 +279,7 @@ public class ServiceManager {
 	 * @return
 	 */
 	public ServiceClaimDTO saveServiceClaim(User user, String serviceId, ServiceClaimDTO dto) {
-		Service service = serviceRepo.findOne(serviceId);
+		Service service = serviceRepo.findOne(serviceId.toLowerCase());
 		ServiceClaim old = null;
 		if (dto.getClaimId() != null) old = claimRepo.findOne(dto.getClaimId());
 		ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceId, dto.getClaim());
@@ -267,6 +298,7 @@ public class ServiceManager {
 			if (old != null) {
 				claim.setClaimId(old.getClaimId());
 			}
+			validateClaimData(claim);
 			return toDTO(claimRepo.save(claim));
 		} else {
 			throw new SecurityException("Unknown service: " + serviceId);
@@ -280,8 +312,8 @@ public class ServiceManager {
 	 * @param scope
 	 */
 	public void deleteServiceScope(User user, String serviceId, String scope) {
-		Service service = serviceRepo.findOne(serviceId);
-		ServiceScope scopeObj = scopeRepo.findOne(scope);
+		Service service = serviceRepo.findOne(serviceId.toLowerCase());
+		ServiceScope scopeObj = scopeRepo.findOne(scope.toLowerCase());
 		if (service != null && scopeObj != null) {
 			Set<String> contexts = getUserContexts(user);
 			if (!contexts.contains(service.getContext()) || !serviceId.equals(scopeObj.getService().getServiceId())) {
@@ -299,7 +331,7 @@ public class ServiceManager {
 	 * @param claim
 	 */
 	public void deleteServiceClaim(User user, String serviceId, String claim) {
-		Service service = serviceRepo.findOne(serviceId);
+		Service service = serviceRepo.findOne(serviceId.toLowerCase());
 		ServiceClaim claimObj = claimRepo.findByServiceAndClaim(serviceId, claim);
 		if (service != null && claimObj != null) {
 			Set<String> contexts = getUserContexts(user);
@@ -323,11 +355,13 @@ public class ServiceManager {
 	private Service toService(ServiceDTO dto) {
 		Service service = new Service();
 		service.setClaimMapping(dto.getClaimMapping());
-		service.setContext(dto.getContext());
+		service.setContext(dto.getContext().trim());
 		service.setDescription(dto.getDescription());
 		service.setName(dto.getName());
-		service.setNamespace(dto.getNamespace());
-		service.setServiceId(dto.getServiceId());
+		if (dto.getNamespace() != null) {
+			service.setNamespace(dto.getNamespace().trim().toLowerCase());
+		}
+		service.setServiceId(dto.getServiceId().toLowerCase());
 		return service;
 	}
 
@@ -339,7 +373,7 @@ public class ServiceManager {
 			dto.setClaims(new LinkedList<>(StringUtils.commaDelimitedListToSet(scope.getClaims())));
 		}
 		dto.setDescription(scope.getDescription());
-		dto.setName(dto.getName());
+		dto.setName(scope.getName());
 		if (scope.getRoles() != null) {
 			dto.setRoles(new LinkedList<>(StringUtils.commaDelimitedListToSet(scope.getRoles())));
 		}
@@ -369,12 +403,12 @@ public class ServiceManager {
 		if (dto.getRoles() != null) {
 			scope.setRoles(StringUtils.collectionToCommaDelimitedString(dto.getRoles()));
 		}
-		scope.setScope(dto.getScope());
+		scope.setScope(dto.getScope().trim().toLowerCase());
 		return scope;
 	}
 	private ServiceClaim toClaim(ServiceClaimDTO obj) {
 		ServiceClaim res = new ServiceClaim();
-		res.setClaim(obj.getClaim());
+		res.setClaim(obj.getClaim().trim().toLowerCase());
 		res.setClaimId(obj.getClaimId());
 		res.setMultiple(obj.isMultiple());
 		res.setName(obj.getName());
@@ -382,5 +416,90 @@ public class ServiceManager {
 		return res;
 	}
 
+	/**
+	 * Validate service fields
+	 * @param service
+	 */
+	private void validateServiceData(Service service) {
+		if (!StringUtils.hasText(service.getServiceId())) {
+			throw new IllegalArgumentException("empty service ID");
+		}
+		if (!service.getServiceId().matches("[\\w\\.-]+")) {
+			throw new IllegalArgumentException("Invalid service ID value: only alpha-numeric characters and '_.-' allowed");
+		}
+		// namespace can be empty only for default services
+		if (!StringUtils.isEmpty(service.getContext()) && !StringUtils.hasText(service.getNamespace())) {
+			throw new IllegalArgumentException("empty namespace");
+		}
+		if (StringUtils.hasText(service.getNamespace()) && !service.getNamespace().matches("[\\\\w\\\\.-]+")) {
+			throw new IllegalArgumentException("Invalid service namespace value: only alpha-numeric characters and '_.-' allowed");
+		}
+		
+		if (!StringUtils.hasText(service.getName())) {
+			throw new IllegalArgumentException("empty service name");
+		}
+		if (!StringUtils.hasText(service.getDescription())) {
+			throw new IllegalArgumentException("empty service description");
+		}
+	}
 
+	/**
+	 * @param scope
+	 */
+	private void validateScopeData(ServiceScope scope) {
+		if (!StringUtils.hasText(scope.getScope())) {
+			throw new IllegalArgumentException("empty resource mapping ID");
+		}
+		if (!scope.getScope().matches("[\\w\\.-]+")) {
+			throw new IllegalArgumentException("Invalid service scope value: only alpha-numeric characters and '_.-' allowed");
+		};
+		if (!StringUtils.hasText(scope.getName())) {
+			throw new IllegalArgumentException("empty resource mapping name");
+		}
+		if (!StringUtils.hasText(scope.getDescription())) {
+			throw new IllegalArgumentException("empty resource mapping description");
+		}
+	}
+
+	/**
+	 * @param scope
+	 */
+	private void validateClaimData(ServiceClaim claim) {
+		if (!StringUtils.hasText(claim.getClaim())) {
+			throw new IllegalArgumentException("empty resource mapping ID");
+		}
+		if (!claim.getClaim().matches("[\\w\\.-]+")) {
+			throw new IllegalArgumentException("Invalid service scope value: only alpha-numeric characters and '_.-' allowed");
+		}if (!StringUtils.hasText(claim.getName())) {
+			throw new IllegalArgumentException("empty resource mapping name");
+		}
+	}
+	/**
+	 * @param requestedScope
+	 * @return
+	 */
+	public ServiceScope getServiceScope(String requestedScope) {
+		return scopeRepo.findOne(requestedScope.toLowerCase());
+	}
+	
+	public ServiceScopeDTO getServiceScopeDTO(String requestedScope) {
+		return toDTO(getServiceScope(requestedScope));
+	}
+
+	/**
+	 * @param scopes
+	 * @return
+	 */
+	public Set<String> findServiceIdsByScopes(Set<String> scopes) {
+		if (scopes == null) return Collections.emptySet();
+		return serviceRepo.findServiceIdsByScopes(scopes.stream().map(s -> s.toLowerCase()).collect(Collectors.toSet()));
+	}
+
+	/**
+	 * @return
+	 */
+	public List<ServiceScope> findAllScopes() {
+		return scopeRepo.findAll();
+	}
+	
 }

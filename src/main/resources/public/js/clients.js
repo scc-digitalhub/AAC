@@ -346,7 +346,7 @@ angular.module('aac.controllers.clients', [])
 	 */
 	function loadPermissions(service, callback) {
 		var newClient = new ClientAppPermissions();
-		newClient.$get({clientId:$scope.clientId, serviceId: service.id}, function(response) {
+		newClient.$get({clientId:$scope.clientId, serviceId: service.serviceId}, function(response) {
 			if (response.responseCode == 'OK') {
 				$scope.permissions = response.data;
 				callback();
@@ -449,7 +449,7 @@ angular.module('aac.controllers.clients', [])
 		var newClient = new AppServices();
 		newClient.$query({clientId:$scope.clientId}, function(response) {
 			if (response.responseCode == 'OK') {
-				$scope.services = response.data;
+				$scope.services = response.data.content;
 			} else {
 				Utils.showError('Failed to load app permissions: '+response.errorMessage);
 			}	
@@ -563,7 +563,7 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.savePermissions = function(service) {
 		var perm = new ClientAppPermissions($scope.permissions);
-		perm.$update({clientId:$scope.clientId, serviceId:service.id}, function(response) {
+		perm.$update({clientId:$scope.clientId, serviceId:service.serviceId}, function(response) {
 			$('#myModal').modal('hide');
 			if (response.responseCode == 'OK') {
 				Utils.showSuccess();

@@ -60,9 +60,6 @@ public class Config {
 		}
 	};
 
-	/** Resource visibility values: either only the specific app can see, or all the apps of the current developer, or any app */
-	public enum RESOURCE_VISIBILITY {CLIENT_APP,DEVELOPER,PUBLIC}
-
 	/** Requesting device type */
 	public enum DEVICE_TYPE {MOBILE, TABLET, DESKTOP, UNKNOWN, WEBVIEW};
 	
@@ -139,29 +136,4 @@ public class Config {
 	public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 	
 	public static final String WELL_KNOWN_URL = "/.well-known";
-
-	/**
-	 * Check whether the child property visibility is equal or more restrictive than the one of the parent property.
-	 * @param parentVis
-	 * @param childVis
-	 */
-	public static boolean checkVisibility(RESOURCE_VISIBILITY parentVis, RESOURCE_VISIBILITY childVis) {
-		switch (childVis) {
-		case DEVELOPER:
-			return parentVis != RESOURCE_VISIBILITY.CLIENT_APP;
-		case PUBLIC:
-			return parentVis == RESOURCE_VISIBILITY.PUBLIC;
-		default:
-			return true;
-		}
-	}
-
-	/**
-	 * @param parentVis
-	 * @param childVis
-	 * @return the most restrictive visibility of the two 
-	 */
-	public static RESOURCE_VISIBILITY alignVisibility(RESOURCE_VISIBILITY parentVis, RESOURCE_VISIBILITY childVis) {
-		return checkVisibility(parentVis, childVis) ? childVis : parentVis;
-	};
 }

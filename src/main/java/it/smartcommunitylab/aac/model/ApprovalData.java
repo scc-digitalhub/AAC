@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.model;
 
 import java.util.List;
 
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
+
 /**
  * @author raman
  *
@@ -26,7 +28,7 @@ public class ApprovalData {
 
 	private String name;
 	private String clientId;
-	private List<Resource> resources;
+	private List<ServiceScopeDTO> scopes;
 	private String owner;
 	public String getName() {
 		return name;
@@ -40,11 +42,11 @@ public class ApprovalData {
 	public void setClientId(String clientId) {
 		this.clientId = clientId;
 	}
-	public List<Resource> getResources() {
-		return resources;
+	public List<ServiceScopeDTO> getScopes() {
+		return scopes;
 	}
-	public void setResources(List<Resource> resources) {
-		this.resources = resources;
+	public void setScopes(List<ServiceScopeDTO> scopes) {
+		this.scopes = scopes;
 	}
 	public String getOwner() {
 		return owner;

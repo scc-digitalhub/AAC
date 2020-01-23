@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -51,13 +50,13 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 @Service
 public class AACJwtTokenConverter extends JwtAccessTokenConverter {
@@ -82,7 +81,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     private ClientDetailsRepository clientRepository;
 
     @Autowired
-    private ResourceRepository resourceRepository;
+    private ServiceManager serviceManager;
 
     @Autowired
     private RegistrationManager registrationManager;
@@ -479,11 +478,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     }
 
     private Set<String> getServiceIds(Set<String> scopes) {
-        if (scopes != null && !scopes.isEmpty()) {
-            return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId())
-                    .collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
+    	if (scopes != null && !scopes.isEmpty()) {
+    		return serviceManager.findServiceIdsByScopes(scopes);
+    	}
+    	return Collections.emptySet();
     }
 
 }

@@ -111,11 +111,13 @@ public class RegistrationController {
 			a.setDetails(Config.IDP_INTERNAL);
 
 			SecurityContextHolder.getContext().setAuthentication(a);
+			req.setAttribute("email", user.getEmail());
+
 			logger.trace("authentication set to "+a.toString());
 			//do NOT pass email to eauth, we will use the SecurityContext to fetch user
-			//avoid impersonation attack
+			//avoid impersonation attack				
 			String redirect = String
-					.format("redirect:/eauth/internal?target=%s",
+					.format("forward:/eauth/internal?target=%s",
 							target);
 			return redirect;
 		} catch (RegistrationException e) {

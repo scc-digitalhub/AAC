@@ -108,11 +108,6 @@ input.form-control-sm  {
 	font-size: 0.8125rem !important;
 }
 
-
-.invalid-feedback {
-	display: inherit !important;
-}
-
 @media (min-width: 576px) {
   .alert {
       max-width: 540px;

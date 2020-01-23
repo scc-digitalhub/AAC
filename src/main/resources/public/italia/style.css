@@ -110,10 +110,10 @@ input.form-control-sm  {
 }
 
 
-.invalid-feedback {
+/* .invalid-feedback {
 	display: inherit !important;
 }
-
+ */
 @media (min-width: 576px) {
   .alert {
       max-width: 540px;

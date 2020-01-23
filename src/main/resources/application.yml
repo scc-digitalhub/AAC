@@ -25,7 +25,7 @@ jdbc:
 admin:
    username: ${ADMIN_USERNAME:admin}
    password: ${ADMIN_PASSWORD:admin}
-   contexts: apimanager, authorization, components, organizations, resources
+   contexts: apimanager, authorization, components, organizations, resources, services
    contextSpaces: components/apimanager/carbon.super
    roles: components/apimanager/carbon.super:accountmanager, components/apimanager/carbon.super:profilemanager,components/apimanager/carbon.super:rolemanager
 

@@ -115,7 +115,6 @@ import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
 import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Configuration
@@ -367,8 +366,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		private ApprovalStore approvalStore;
 		@Autowired	
 		private ClientDetailsService clientDetailsService;
-		@Autowired	
-		private ResourceRepository resourceRepository;
 
 		@Autowired
 		private UserApprovalHandler userApprovalHandler;
@@ -412,7 +409,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			UserApprovalHandler bean = new UserApprovalHandler();
 			bean.setApprovalStore(approvalStore);
 			bean.setClientDetailsService(clientDetailsService);
-			bean.setResourceRepository(resourceRepository);
 			bean.setRequestFactory(getOAuth2RequestFactory());
 			bean.setFlowExtensions(getFlowExtensions());
 			return bean;

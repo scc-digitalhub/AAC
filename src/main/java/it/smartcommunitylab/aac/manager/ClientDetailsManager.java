@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;
@@ -42,9 +43,8 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 /**
  * Support for the management of client app registration details
@@ -66,7 +66,7 @@ public class ClientDetailsManager {
 	@Autowired
 	private AttributesAdapter attributesAdapter;
 	@Autowired
-	private ResourceRepository resourceRepository;	
+	private ServiceManager serviceManager;	
 	
 	@Value("${adminClient.id:}")
 	private String adminClientId;
@@ -77,6 +77,17 @@ public class ClientDetailsManager {
 	@Value("${adminClient.redirects:}")
 	private String[] adminClientRedirects;
 
+	
+	@PostConstruct
+	public void init() {
+		clientDetailsRepository.findAll().forEach(c -> {
+			Set<String> scope = c.getScope();
+			if (scope != null && !scope.isEmpty()) {
+				c.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceManager.findServiceIdsByScopes(c.getScope())));
+				clientDetailsRepository.save(c);
+			}
+		});
+	}
 	
 	/**
 	 * Generate new value to be used as clientId (String)
@@ -246,16 +257,8 @@ public class ClientDetailsManager {
 			
 			if (data.getScope() != null) {
 				client.setScope(data.getScope());
-
-				String resourcesId = "";
-				for (String resource : client.getScope()) {
-					it.smartcommunitylab.aac.model.Resource r = resourceRepository.findByResourceUri(resource);
-					if (r != null) {
-						resourcesId += "," + r.getResourceId();
-					}
-				}
-				resourcesId = resourcesId.replaceFirst(",", "");
-				client.setResourceIds(resourcesId);
+				Set<String> serviceIds = serviceManager.findServiceIdsByScopes(client.getScope());
+				client.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceIds));
 			}
 			
 			client.setParameters(data.getParameters());
@@ -307,15 +310,15 @@ public class ClientDetailsManager {
 			info.setName(adminClientId);
 			info.setIdentityProviders(Collections.singletonMap(Config.IDP_INTERNAL, ClientAppInfo.APPROVED));
 
-			info.setResourceApprovals(Collections.<String,Boolean>emptyMap());
+			info.setScopeApprovals(Collections.<String,Boolean>emptyMap());
 			client.setAdditionalInformation(info.toJson());
 			final Set<String> uriSet = new HashSet<>();
 			final Set<String> idSet = new HashSet<>();
 			for (String scope : adminClientScopes) {
-				Resource resource = resourceRepository.findByResourceUri(scope);
-				if (resource != null) {
-					uriSet.add(resource.getResourceUri());
-					idSet.add(resource.getResourceId().toString());
+				ServiceScope scopeObj = serviceManager.getServiceScope(scope);
+				if (scopeObj != null) {
+					uriSet.add(scopeObj.getScope());
+					idSet.add(scopeObj.getService().getServiceId());
 				}
 			}
 			client.setResourceIds(StringUtils.collectionToCommaDelimitedString(idSet));

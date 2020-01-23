@@ -35,7 +35,7 @@
       <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
   </authorityMapping>
-  <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="true">
+  <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="false">
       <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">surname</attributes>
       <attributes>email</attributes>

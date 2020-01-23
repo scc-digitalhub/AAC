@@ -1,44 +1,16 @@
 <div class="container">
-<div class="row" ng-controller="ServiceController">
-  <div class="col-md-2">
-    <div class="sidebar-nav well">
-      <ul class="nav nav-pills nav-stacked">
-        <li class="nav-header">Services</li>
-        <li ng-repeat="service in services" class="{{activeService(service)}}"><a
-          href ng-click="switchService(service)">{{service.name}}</a></li>
-      </ul>
+  <div class="row mb-3">
+    <div class="col col-md-6 p-3">
+      <h3>Services</h3>
     </div>
-    <!--/.well -->
+    <div class="col col-md-6 text-right">
+      <button class="btn btn-primary text-right" type="button" ng-click="newService()">New Service</button>
+    </div>
   </div>
-	<!--/span-->
-	<div class="col-md-9 well">
-		<div class="alert alert-danger" ng-show="error != ''">{{error}}</div>
-		<div class="alert alert-success" ng-show="info != ''">{{info}}</div>
-		<div class="row">
-		  <div class="col-md-9">
-        <div ng-if="currService.id != null">
-          <strong>{{currService.name}}</strong>
-        </div>
-      </div>
-		  <div class="col-md-3 text-right">
-        <button class="btn btn-primary" type="button" ng-click="newService()">New Service</button>
-      </div>
-    </div>
-    <div class="row" ng-if="currService.id == null">
-		  <div class="col-md-12"> 
-		      <h3>Welcome to AAC developer console!</h3>
-		      <p>Start registering your services here.</p>
-		  </div>  
-    </div>
-    <div class="row">
-      <p/>
-      <div class="col-md-12">
-        <div ng-include="'./html/service-form.html'"></div>
-      </div>
-    </div>
-	</div>
-	<!--/span-->
-</div>
-<!--/row-->
-</div>
+  <table class="table table-hover border-bottom">
+    <tr ng-repeat="service in services"  ng-click="switchService(service)">
+      <td class="align-middle"><a href><strong>{{service.serviceId}}</strong></a> <br>{{service.name}}<br> <span class="small">{{service.description}}</span></td>
+     <td class="text-right"><button class="btn btn-link">Details</td>
+    </tr>
+  </table>
 </div>
