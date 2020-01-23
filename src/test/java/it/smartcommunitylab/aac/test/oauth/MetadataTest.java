@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.test.openid;
+package it.smartcommunitylab.aac.test.oauth;
 
 import org.json.JSONObject;
 import org.junit.After;
@@ -44,11 +44,11 @@ public class MetadataTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    public final static String ENDPOINT = "/.well-known/openid-configuration";
+    public final static String ENDPOINT = "/.well-known/oauth-authorization-server";
 
     /*
-     * Claims definition as per
-     * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
+     * Claims definition as per OAuth 2.0 Authorization Server Metadata
+     * https://tools.ietf.org/html/rfc8414
      */
 
     private static final String[] requiredClaims = {
@@ -92,12 +92,15 @@ public class MetadataTest {
             "request_uri_parameter_supported",
             "require_request_uri_registration",
             "op_policy_uri",
-            "op_tos_uri"
-    };
+            "op_tos_uri",
 
-    private static final String[] sessionClaims = {
-            "check_session_iframe",
-            "end_session_endpoint"
+            "revocation_endpoint",
+            "revocation_endpoint_auth_methods_supported",
+            "revocation_endpoint_auth_signing_alg_values_supported",
+            "introspection_endpoint",
+            "introspection_endpoint_auth_methods_supported",
+            "introspection_endpoint_auth_signing_alg_values_supported",
+            "code_challenge_methods_supported"
     };
 
     @Before
