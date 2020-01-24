@@ -222,8 +222,10 @@ public class ServiceManager {
 	 * @return
 	 * @throws InvalidDefinitionException
 	 */
-	public Map<String, Object> validateClaimMapping(User user, String mapping, Set<String> scopes) throws InvalidDefinitionException {
-		return claimManager.createUserClaims(user, mapping, scopes);
+	public Map<String, Object> validateClaimMapping(User user, ServiceDTO dto, Set<String> scopes) throws InvalidDefinitionException {
+		// TODO based on all the claims enabled for the listed scopes, apply function and verify that the result
+		// contains only the claims of this service and in correct format
+		return claimManager.createUserClaims(user, dto.getClaimMapping(), scopes);
 	}
 	
 	/**
@@ -431,7 +433,7 @@ public class ServiceManager {
 		if (!StringUtils.isEmpty(service.getContext()) && !StringUtils.hasText(service.getNamespace())) {
 			throw new IllegalArgumentException("empty namespace");
 		}
-		if (StringUtils.hasText(service.getNamespace()) && !service.getNamespace().matches("[\\\\w\\\\.-]+")) {
+		if (StringUtils.hasText(service.getNamespace()) && !service.getNamespace().matches("[\\w\\.-]+")) {
 			throw new IllegalArgumentException("Invalid service namespace value: only alpha-numeric characters and '_.-' allowed");
 		}
 		

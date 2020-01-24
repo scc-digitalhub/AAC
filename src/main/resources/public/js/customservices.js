@@ -77,6 +77,8 @@ angular.module('aac.controllers.customservices', [])
 	// service contexts
 	$scope.contexts = null;
 
+	$scope.claimEnabled = {checked: false, scopes: []};
+
 	// service reference for the services API
 	var Services = $resource('dev/services/my/:serviceId', {}, {
 		query : { method : 'GET' },
@@ -100,6 +102,11 @@ angular.module('aac.controllers.customservices', [])
 		remove : {method : 'DELETE'}
 	});
 	
+	// resource reference for the claim validation API
+	var ServiceClaimValidation = $resource('dev/services/my/:serviceId/claimmapping/validate', {}, {
+		validate : { method : 'POST' },		
+	});
+
 	/**
 	 * reload service view from server
 	 */
@@ -107,13 +114,18 @@ angular.module('aac.controllers.customservices', [])
 		$scope.editService = null;
 		if (!$routeParams.serviceId) {
 			$scope.editService = {};
+			$('#serviceModal').modal({keyboard:false});
 		} else {
-			Services.query({serviceId: $routeParams.serviceId},function(data) {
+			Services.query({serviceId: $routeParams.serviceId}).$promise.then(function(data) {
 				$scope.currService = data.data;
+				$scope.claimEnabled.checked = !!$scope.currService.claimMapping;
 			});
 		}
 		Contexts.query({}, function(data) {
-			$scope.contexts = data.data;
+			var options = data.data.filter(function(e) { return !!e}).map(function(e) {
+				return {text: e, value: e};
+			});
+			$('.bootstrap-select-wrapper.context-select-wrapper').setOptionsToSelect(options);
 		});
 	};
 	$scope.reload();
@@ -137,17 +149,54 @@ angular.module('aac.controllers.customservices', [])
 			$window.history.back();
 		}
 	}
+	
+	/**
+	 * Toggle claim mapping text
+	 */
+	$scope.toggleClaimMapping = function() {
+		if (!!$scope.currService.claimMapping) {
+			$scope.currService.claimMapping = null;
+		} else {
+			$scope.currService.claimMapping = 
+				'/**\n * DEFINE YOUR OWN CLAIM MAPPING HERE\n' +
+				'**/\n'+
+				'function claimMapping(claims) {\n   return claims;\n}';
+		}
+	}
+	$scope.aceOption = {
+	    mode: 'javascript',
+	    theme: 'monokai',
+	    maxLines: 30,
+        minLines: 6
+	  };
+	
+	$scope.validateClaims = function() {
+		$scope.validationResult = '';
+		$scope.validationError = '';
+		var newClient = new ServiceClaimValidation($scope.currService);
+		newClient.$validate({serviceId:$scope.currService.serviceId, scopes: $scope.claimEnabled.scopes.map(function(s) { return s.text})}, function(response) {
+			if (response.responseCode == 'ERROR') {
+				$scope.validationError = response.errorMessage; 			
+				
+			} else {
+				$scope.validationResult = response.data;
+			}
+		}, function(e) {
+			$scope.validationResult = '';
+			$scope.validationError = e; 			
+		});
+	}
+	
 	/**
 	 * save service data (without params and mappings)
 	 */
 	$scope.saveService = function() {
-		Services.save({},$scope.editService, function(response) {
-			if (response.responseCode == 'OK') {
-				$location.path('/services/'+response.data.serviceId);
-			} else {
-				$scope.error = 'Failed to save service descriptor: '+response.errorMessage;
-			}	
+		Services.save({},$scope.editService).$promise.then(function(response) {
+			$('#serviceModal').modal('hide');
+			$location.path('/services/'+response.data.serviceId);
 			$scope.editService = null;
+		}).catch(function(error) {
+			Utils.showError('Failed to save service descriptor: '+error.data.errorMessage);				
 		});
 	};
 
@@ -156,15 +205,13 @@ angular.module('aac.controllers.customservices', [])
 	 */
 	$scope.removeService = function() {
 		if (confirm('Are you sure you want to delete?')) {
-			Services.remove({serviceId:$scope.currService.serviceId}, function(response) {
-				if (response.responseCode == 'OK') {
-					$scope.error = '';
-					$scope.info = 'Service deleted!';
-					$scope.currService = null;
-					$location.path('/services');
-				} else {
-					$scope.error = 'Failed to delete service descriptor: '+response.errorMessage;
-				}	
+			Services.remove({serviceId:$scope.currService.serviceId}).$promise.then(function(response) {
+				$scope.error = '';
+				$scope.info = 'Service deleted!';
+				$scope.currService = null;
+				$location.path('/services');
+			}).catch(function(error) {
+				Utils.showError('Failed to delete service descriptor: '+error.data.errorMessage);				
 			});
 		}
 	};
@@ -198,15 +245,13 @@ angular.module('aac.controllers.customservices', [])
 		$scope.scope.claims = ($scope.scope.claims || []).map(function(s) {
 			return typeof s == 'string' ? s : s.text;
 		}); 
-		ServiceScopes.add({serviceId:$scope.currService.serviceId},$scope.scope, function(response) {
-			if (response.responseCode == 'OK') {
-				$scope.reload(response.data);
-				$scope.error = '';
-				$scope.info = 'Service updated!';
-				$('#scopeModal').modal('hide');
-			} else {
-				$scope.error = 'Failed to add service parameter declaration: '+response.errorMessage;
-			}	
+		ServiceScopes.add({serviceId:$scope.currService.serviceId},$scope.scope).$promise.then(function(response) {
+			$scope.reload(response.data);
+			$scope.error = '';
+			$scope.info = 'Service updated!';
+			$('#scopeModal').modal('hide');
+		}).catch(function(error) {
+			Utils.showError('Failed to add service parameter declaration: '+error.data.errorMessage);
 		});
 	};
 	/**
@@ -214,15 +259,13 @@ angular.module('aac.controllers.customservices', [])
 	 */
 	$scope.removeScope = function(scope) {
 		if (confirm('Are you sure you want to delete?')) {
-			ServiceScopes.remove({serviceId:$scope.currService.serviceId,scope:scope.scope},{}, function(response) {
-				if (response.responseCode == 'OK') {
-					$scope.error = '';
-					$scope.info = 'Service scope deleted!';
-					$scope.currService = null;
-					$scope.reload();
-				} else {
-					$scope.error = 'Failed to delete service scope declaration: '+response.errorMessage;
-				}	
+			ServiceScopes.remove({serviceId:$scope.currService.serviceId,scope:scope.scope},{}).$promise.then(function(response) {
+				$scope.error = '';
+				$scope.info = 'Service scope deleted!';
+				$scope.currService = null;
+				$scope.reload();
+			}).catch(function(error) {
+				Utils.showError('Failed to delete service scope declaration: '+error.data.errorMessage);				
 			});
 		}
 	};
@@ -243,15 +286,13 @@ angular.module('aac.controllers.customservices', [])
 	 * Add new claim
 	 */
 	$scope.saveClaim = function() {
-		ServiceClaims.add({serviceId:$scope.currService.serviceId},$scope.claim, function(response) {
-			if (response.responseCode == 'OK') {
-				$scope.reload(response.data);
-				$scope.error = '';
-				$scope.info = 'Service updated!';
-			} else {
-				$scope.error = 'Failed to add service claim: '+response.errorMessage;
-			}	
+		ServiceClaims.add({serviceId:$scope.currService.serviceId},$scope.claim).$promise.then(function(response) {
+			$scope.reload(response.data);
+			$scope.error = '';
+			$scope.info = 'Service updated!';
 			$('#claimModal').modal('hide');
+		}).catch(function(error) {
+			Utils.showError('Failed to add service claim: '+error.data.errorMessage);				
 		});
 	};
 	/**
@@ -259,15 +300,13 @@ angular.module('aac.controllers.customservices', [])
 	 */
 	$scope.removeClaim = function(claim) {
 		if (confirm('Are you sure you want to delete?')) {
-			ServiceClaims.remove({serviceId:$scope.currService.serviceId,claim:claim.claim},{}, function(response) {
-				if (response.responseCode == 'OK') {
-					$scope.error = '';
-					$scope.info = 'Service mapping deleted!';
-					$scope.currService = null;
-					$scope.reload();
-				} else {
-					$scope.error = 'Failed to delete service claim declaration: '+response.errorMessage;
-				}	
+			ServiceClaims.remove({serviceId:$scope.currService.serviceId,claim:claim.claim},{}).$promise.then(function(response) {
+				$scope.error = '';
+				$scope.info = 'Service mapping deleted!';
+				$scope.currService = null;
+				$scope.reload();
+			}).catch(function(error) {
+				Utils.showError('Failed to delete service claim declaration: '+error.data.errorMessage);				
 			});
 		}
 	};

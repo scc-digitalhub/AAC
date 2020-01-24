@@ -111,8 +111,8 @@
     <div class="container">
 	    <div class="container ng-view" ></div>
 	
-	    <div class="alert alert-success" role="alert" data-ng-if="showSuccess">Operation completed successfully</div>
-	    <div class="alert alert-danger" role="alert" data-ng-if="showError">{{errorMsg}}</div>
+	    <div class="alert alert-success" style="z-index: 10000" role="alert" data-ng-if="showSuccess">Operation completed successfully</div>
+	    <div class="alert alert-danger" style="z-index: 10000" role="alert" data-ng-if="showError">{{errorMsg}}</div>
     </div>
 	  
 	  <div class="fixed-bottom p-3 border-top it-footer-main">
