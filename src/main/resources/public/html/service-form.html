@@ -75,9 +75,42 @@
         </tr>
       </table>
       <p ng-if="!currService.claims || currService.claims.length == 0">No claims defined</p>
-      
+
     </div>
   </div>  
+</div>
+
+<div ng-if="currService.claims && currService.claims.length > 0">
+<div class="row"><p/></div>
+<div class="row">
+  <div class="col col-md-9"><h4>Claim mapping</h4></div>
+    <div class="col col-md-3 text-right">
+      <button class="btn btn-primary" type="button" ng-click="saveClaimMapping()">Update mapping</button>
+    </div>
+</div>
+<div class="row">
+  <div class="col">
+     <table class="table"> 
+        <tr>
+            <td width="60%">
+              <div class="form-check form-check-inline">
+                 <input id="claimenabled" class="form-check-input" type="checkbox" ng-model="claimEnabled.checked" ng-change="toggleClaimMapping()">
+                <label for="claimenabled">Enable</label>
+              </div>               
+              <div ui-ace="aceOption" ng-model="currService.claimMapping"></div>
+             </td>
+            <th>Result <span ng-if="claimEnabled.checked">(<a href="" ng-click="validateClaims()">Validate</a>)</span>
+              <br/><br/>
+              <div ng-if="validationResult">result: <pre>{{validationResult | json:4}}</pre></div>
+              <div ng-if="claimEnabled.checked">
+	               <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm" ng-model="claimEnabled.scopes"></tags-input>
+              </div>
+              <div class="text-danger" ng-if="validationError">{{validationError}}</div>
+            </th>
+        </tr>
+    </table>
+  </div>
+</div>
 </div>
 
 
@@ -92,12 +125,10 @@
       <div class="modal-body">
             <div class="panel panel-default">
               <div class="panel-body">
-
-
 							  <div class="row">
 							    <div class=" col">
 							      <label for="inputserviceid">Service ID (Required)</label>
-							      <input type="text" class="form-control" id="inputserviceid" ng-model="editService.serviceId" required>
+							      <input type="text" ng-disabled="!!currService.serviceId" class="form-control" id="inputserviceid" ng-model="editService.serviceId" required>
 							      <div class="invalid-feedback">Service ID required</div><br>
 							    </div>
 							  </div>
@@ -126,10 +157,8 @@
 							  <div class="row">
 							    <div class="col">
 							        <label for="inputcontext">Service Context  (Required)</label>
-							      <div class="bootstrap-select-wrapper standard">
+							      <div class="bootstrap-select-wrapper context-select-wrapper standard">
 								      <select title="select context value" id="inputcontext" ng-model="editService.context" required>
-							          <option value="">Select a Value</option>
-								        <option ng-repeat="c in contexts">{{c}}</option>
 								      </select>
 							     </div>
 							     <br>
@@ -140,7 +169,7 @@
             </div>  
       </div>
       <div class="modal-footer">
-         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="closeEdit()">Close</button>
          <button type="submit" class="btn btn-primary" ng-disabled="serviceForm.$invalid" >Save</button>
       </div>      
     </div>

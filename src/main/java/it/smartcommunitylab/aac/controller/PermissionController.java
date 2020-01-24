@@ -44,16 +44,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Permissions;
 import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -224,6 +228,18 @@ public class PermissionController {
 	}
 	
 	/**
+	 * Validate claim mapping
+	 * @return {@link Response} entity containing the claims for the current user or validation error ingfo
+	 * @throws InvalidDefinitionException 
+	 */
+	@RequestMapping(value="/dev/services/my/{serviceId}/claimmapping/validate", method=RequestMethod.POST)
+	public @ResponseBody Response validateClaimMapping(@RequestBody ServiceDTO sd, @PathVariable String serviceId, @RequestParam Set<String> scopes) throws InvalidDefinitionException {
+		Response response = new Response();
+		User user = userManager.getUser();
+		response.setData(serviceManager.validateClaimMapping(user, sd, scopes));
+		return response;
+	}
+	/**
 	 * Add / edit scope for the service object if possible
 	 * @param serviceId
 	 * @return
@@ -319,7 +335,7 @@ public class PermissionController {
 		return permissions;
 	}
 
-	@ExceptionHandler(AccessDeniedException.class)
+	@ExceptionHandler(SecurityException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
     public Response processAccessError(AccessDeniedException ex) {
@@ -338,7 +354,20 @@ public class PermissionController {
         
 		return Response.error(builder.toString());
     }
-	
+
+	@ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processDataError(IllegalArgumentException ex) {
+		return Response.error(ex.getMessage());
+    }
+
+	@ExceptionHandler(InvalidDefinitionException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processDefinitionError(InvalidDefinitionException ex) {
+		return Response.error(ex.getMessage());
+    }
 	
 	@ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
