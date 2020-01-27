@@ -294,8 +294,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         claims.put("scope", String.join(" ", request.getScope()));
 
         // clear authorities from access token, spring injects them
-        claims.remove(AUTHORITIES);  
-
+        // keep if we have roles authorized by claimManager
+        if(!claims.containsKey("roles")) {
+            claims.remove(AUTHORITIES);  
+        }
         // clear id-token from claims to avoid embedding id_token in access token JWT
         if (claims.containsKey("id_token")) {
             claims.remove("id_token");
