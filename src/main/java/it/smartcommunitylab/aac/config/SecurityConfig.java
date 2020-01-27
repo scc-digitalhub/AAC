@@ -385,6 +385,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Autowired
 		@Qualifier("appTokenServices")
 		private AuthorizationServerTokenServices resourceServerTokenServices;
+		
+		@Autowired
+		private AutoJdbcAuthorizationCodeServices authorizationCodeServices;
 
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
@@ -433,10 +436,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 			endpoints.tokenStore(tokenStore).userApprovalHandler(userApprovalHandler)
 					.authenticationManager(authenticationManager)
-					.tokenGranter(tokenGranter(endpoints))
 					.requestFactory(getOAuth2RequestFactory())
 					.requestValidator(new AACOAuth2RequestValidator())
-					.tokenServices(resourceServerTokenServices);
+					.tokenServices(resourceServerTokenServices)
+					.authorizationCodeServices(authorizationCodeServices)			
+					//set tokenGranter now to ensure all services are set
+					.tokenGranter(tokenGranter(endpoints));
 		}
 
 		@Override
