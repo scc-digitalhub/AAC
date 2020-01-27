@@ -175,7 +175,7 @@ public class ClaimManager {
 		
 	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientAppInfo appInfo, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);
-		Registration reg = registrationManager.getUserByEmail(ui.getUsername());
+//		Registration reg = registrationManager.getUserByEmail(ui.getUsername());
 		
 		// get the base object
 		Map<String, Object> obj = toBaseJson(ui);
@@ -189,22 +189,26 @@ public class ClaimManager {
 		    obj.putAll(toProfileJson(ui));
 		}
 		
-		//email
+        // email
         if (scopes.contains(Config.SCOPE_EMAIL)) {
-            obj.putAll(toEmailJson(reg));
+            // TODO fix registration
+//            obj.putAll(toEmailJson(reg));
+            // TEMP set claims static for every handler
+            obj.put("email", ui.getUsername());
+            obj.put("email_verified", true);
+
         }
-		
         
         //address
         //TODO populate
         if (scopes.contains(Config.SCOPE_ADDRESS)) {
-            obj.putAll(toAddressJson(reg));
+//            obj.putAll(toAddressJson(reg));
         }
         
         //phone
         //TODO populate        
         if (scopes.contains(Config.SCOPE_PHONE)) {
-            obj.putAll(toPhoneJson(reg));
+//            obj.putAll(toPhoneJson(reg));
         }
         
         
