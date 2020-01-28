@@ -1,4 +1,3 @@
-
 package it.smartcommunitylab.aac.test.oauth;
 
 import java.io.UnsupportedEncodingException;

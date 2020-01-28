@@ -107,6 +107,12 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
                 +" extracted scope "+scopes.toString()
 		        +" redirect "+redirectUri);
 		
+		logger.trace("create authorization request for "+clientId
+		        +" response "+responseTypes.toString()
+                +" scope "+ String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
+                +" extracted scope "+scopes.toString()
+		        +" redirect "+redirectUri);
+		
 		AuthorizationRequest request = new AuthorizationRequest(authorizationParameters,
 				Collections.<String, String> emptyMap(), clientId, scopes, null, null, false, state, redirectUri,
 				responseTypes);

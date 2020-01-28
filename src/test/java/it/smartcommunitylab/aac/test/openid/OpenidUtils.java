@@ -55,7 +55,7 @@ public class OpenidUtils {
         info.setIdentityProviders(Collections.singletonMap(Config.IDP_INTERNAL, ClientAppInfo.APPROVED));
         info.setName(clientId);
         info.setDisplayName(clientId);
-        info.setResourceApprovals(Collections.<String, Boolean>emptyMap());
+        info.setScopeApprovals(Collections.<String, Boolean>emptyMap());
 
         entity.setAdditionalInformation(info.toJson());
         return entity;

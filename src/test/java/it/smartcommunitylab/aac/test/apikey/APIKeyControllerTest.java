@@ -11,13 +11,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
@@ -32,8 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apikey.APIKeyManager;
 import it.smartcommunitylab.aac.dto.APIKey;
-import it.smartcommunitylab.aac.manager.AttributesAdapter;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
@@ -62,7 +58,7 @@ public class APIKeyControllerTest {
 	private WebApplicationContext ctx;
 
 	@Autowired
-	private AttributesAdapter attrAdapter;
+	private ServiceManager serviceManager;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
@@ -85,8 +81,6 @@ public class APIKeyControllerTest {
 	@Before
 	public void setUp() throws Exception {
 		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
-		attrAdapter.init();
-
 		
 		user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
 		userRepository.save(user);		
@@ -286,7 +280,8 @@ public class APIKeyControllerTest {
 		entity.setClientSecret(UUID.randomUUID().toString());
 		entity.setClientSecretMobile(UUID.randomUUID().toString());
 		entity.setScope("authorization.manage");
-		entity.setResourceIds("carbon.super-AACAuthorization-1.0.0");
+		String resourcesId = ""+ serviceManager.findServiceIdsByScopes(Collections.singleton("authorization.manage"));
+		entity.setResourceIds(resourcesId);
 		entity.setName(client);
 
 		entity = clientDetailsRepository.save(entity);

@@ -51,6 +51,7 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String,String> map, AuthorityMapping mapping) {
 		String email = null;
 		if (request != null) email = (String) request.getAttribute(USERNAME_ATTRIBUTE);
+		if (email == null) email = map.get(USERNAME_ATTRIBUTE);
 
 		Registration user = repository.findByEmail(email);
 		if (user == null) {

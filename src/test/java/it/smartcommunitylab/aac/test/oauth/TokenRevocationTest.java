@@ -138,7 +138,6 @@ public class TokenRevocationTest {
 
         logger.trace(token2.toString());
     }
-
 //    @Test
     public void accessTokenRevokeWithBasicAuth() throws Exception {
 

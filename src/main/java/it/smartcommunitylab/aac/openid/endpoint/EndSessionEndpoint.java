@@ -161,6 +161,7 @@ public static final String END_SESSION_URL = "/endsession";
 			    securityContextLogoutHandler.logout(request, response, auth);
 			}
 			SecurityContextHolder.getContext().setAuthentication(null);
+			// TODO: hook into other logout post-processing
 		}
 		
 		// if the user didn't approve, don't log out but hit the landing page anyway for redirect as needed
@@ -173,6 +174,7 @@ public static final String END_SESSION_URL = "/endsession";
 			client != null && client.getRedirectUris() != null) {
 			Set<String> redirects = Utils.delimitedStringToSet(client.getRedirectUris(), ",");
 			if (redirects.contains(redirectUri)) {
+				// TODO: future, add the redirect URI to the model for the display page for an interstitial
 				// m.addAttribute("redirectUri", postLogoutRedirectUri);
 				
 				UriComponents uri = UriComponentsBuilder.fromUriString(redirectUri).queryParam("state", state).build();

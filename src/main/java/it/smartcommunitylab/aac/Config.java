@@ -88,12 +88,12 @@ public class Config {
     public static final String GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
     public static final String GRANT_TYPE_DEVICE_CODE = "urn:ietf:params:oauth:grant-type:device_code";
 
-    public static final String RESPONSE_TYPE_NONE = "none";
+	public static final String RESPONSE_TYPE_NONE = "none";
     public static final String RESPONSE_TYPE_CODE = "code";
     public static final String RESPONSE_TYPE_TOKEN = "token";
     public static final String RESPONSE_TYPE_ID_TOKEN = "id_token";
     
-    
+
 	/** Open ID connect scope */
 	public static final String SCOPE_OPENID = "openid";
 	/** Open Id offline access (refresh token) **/
