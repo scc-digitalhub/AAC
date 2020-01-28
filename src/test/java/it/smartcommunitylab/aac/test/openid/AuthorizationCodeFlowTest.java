@@ -114,7 +114,6 @@ public class AuthorizationCodeFlowTest {
                         "authorization_code", new String[] { SCOPE },
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }
