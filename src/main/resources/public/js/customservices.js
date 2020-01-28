@@ -169,7 +169,9 @@ angular.module('aac.controllers.customservices', [])
 	    maxLines: 30,
         minLines: 6
 	  };
-	
+	/**
+	 * Validate claims
+	 */
 	$scope.validateClaims = function() {
 		$scope.validationResult = '';
 		$scope.validationError = '';
@@ -185,6 +187,19 @@ angular.module('aac.controllers.customservices', [])
 			$scope.validationResult = '';
 			$scope.validationError = e; 			
 		});
+	}
+	$scope.saveClaimMapping = function() {
+		var copy = Object.assign({}, $scope.currService);
+		copy.claimMapping = $scope.claimEnabled.checked ? $scope.currService.claimMapping : null;
+		Services.save({},copy).$promise.then(function(response) {
+			$('#serviceModal').modal('hide');
+			$location.path('/services/'+response.data.serviceId);
+			$scope.editService = null;
+			Utils.showSuccess();
+		}).catch(function(error) {
+			Utils.showError('Failed to save service descriptor: '+error.data.errorMessage);				
+		});
+		
 	}
 	
 	/**

@@ -68,10 +68,6 @@ public class ClaimManager {
 	@Autowired
 	private BasicProfileManager profileManager;
 
-    @Autowired
-    private RegistrationManager registrationManager;
-	   
-	
 	private SetMultimap<String, String> scopesToClaims = HashMultimap.create();
 	
 	private Set<String> profileScopes = Sets.newHashSet(Config.SCOPE_BASIC_PROFILE);
@@ -80,10 +76,9 @@ public class ClaimManager {
 
 	// claims that should not be overwritten
 	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
-	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "username", "user_name");
+	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "groups", "username", "user_name");
 
-	// TODO
-	// keep roles instead of authorities, change groups to become flat, remove authorities, realms, and role_access
+	// TODO: keep roles instead of authorities, change groups to become flat, remove authorities, realms, and role_access
 	
 	public ClaimManager() {
 		super();
@@ -139,7 +134,7 @@ public class ClaimManager {
 
 	/**
 	 * Create user claims map considering the authorized scopes, authorized claims and request claims.
-	 * THe claims are constructed based on the user roles, user info, and accounts info 
+	 * The claims are constructed based on the user roles, user info, and accounts info 
 	 * @param user
 	 * @param authorities
 	 * @param client
@@ -180,7 +175,6 @@ public class ClaimManager {
 	
 	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);
-//		Registration reg = registrationManager.getUserByEmail(ui.getUsername());
 		
 		// get the base object
 		Map<String, Object> obj = toBaseJson(ui);
@@ -196,8 +190,6 @@ public class ClaimManager {
 		
         // email
         if (scopes.contains(Config.SCOPE_EMAIL)) {
-            // TODO fix registration
-//            obj.putAll(toEmailJson(reg));
             // TEMP set claims static for every handler
             obj.put("email", ui.getUsername());
             obj.put("email_verified", true);
@@ -245,6 +237,9 @@ public class ClaimManager {
 				logger.error("error fetching roles for user "+userId, e);
 			}
 		}
+		
+		// TODO: load user claims and service claims
+		// TODO: generate claims from service functions of the corresponding services
 		
 		/*
 		 * Filtering
@@ -319,7 +314,7 @@ public class ClaimManager {
 	 * @param obj
 	 * @return
 	 */
-	public Map<String, Object> customMapping(String mapping, Map<String, Object> obj) throws InvalidDefinitionException {
+	private Map<String, Object> customMapping(String mapping, Map<String, Object> obj) throws InvalidDefinitionException {
 		if (StringUtils.isEmpty(mapping)) return new HashMap<>(obj);
 
 		String func = mapping;
@@ -333,7 +328,7 @@ public class ClaimManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Map<String, Object> executeScript(Map<String, Object> obj, String func) throws ScriptException, IOException {
+	private Map<String, Object> executeScript(Map<String, Object> obj, String func) throws ScriptException, IOException {
 		//TODO use a threadPool/cache to avoid the expensive sandbox creation at each call
 	    NashornSandbox sandbox = createSandbox();		
 		try {
@@ -391,24 +386,6 @@ public class ClaimManager {
 
         return obj;
     }
-
-    
-    private Map<String, Object> toPhoneJson(Registration reg) {
-
-        Map<String, Object> obj = new HashMap<>();
-        //TODO
-        return obj;
-    }
-        
-
-    private Map<String, Object> toAddressJson(Registration reg) {
-
-        Map<String, Object> obj = new HashMap<>();
-        //TODO
-
-        return obj;
-    }
-        
 	
 	private Set<String> getClaimsForScope(String scope) {
 		if (scopesToClaims.containsKey(scope)) {
