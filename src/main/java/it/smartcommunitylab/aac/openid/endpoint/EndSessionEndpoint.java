@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.controller;
+package it.smartcommunitylab.aac.openid.endpoint;
 
 import java.text.ParseException;
 import java.util.Set;
@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,26 +40,29 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 @Controller
 public class EndSessionEndpoint {
 
-public static final String URL = "endsession";
+public static final String END_SESSION_URL = "/endsession";
     private final Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private static final String CLIENT_KEY = "client";
 	private static final String STATE_KEY = "state";
 	private static final String REDIRECT_URI_KEY = "redirectUri";
 
+	@Autowired
+	PersistentTokenBasedRememberMeServices rememberMeServices;
 	
 	@Autowired
 	private SelfAssertionValidator validator;
 	
 	@Autowired
 	private ClientDetailsRepository clientRepo;
+	
 	@Autowired
 	private ClientDetailsManager clientService;
 	
 	@Value("${jwt.issuer}")
 	private String issuer;
 
-	@RequestMapping(value = "/" + URL, method = RequestMethod.GET)
+	@RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
 	public String endSession(@RequestParam (value = "id_token_hint", required = false) String idTokenHint,  
 		    @RequestParam (value = "post_logout_redirect_uri", required = false) String postLogoutRedirectUri,
 		    @RequestParam (value = STATE_KEY, required = false) String state,
@@ -130,7 +134,7 @@ public static final String URL = "endsession";
 		}
 	}
 	
-	@RequestMapping(value = "/" + URL, method = RequestMethod.POST)
+	@RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
 	public String processLogout(@RequestParam(value = "approve", required = false) String approved,
 			HttpServletRequest request,
 			HttpServletResponse response,
@@ -144,9 +148,14 @@ public static final String URL = "endsession";
 		if (!Strings.isNullOrEmpty(approved)) {
 			// use approved, perform the logout
 			if (auth != null){    
-				new SecurityContextLogoutHandler().logout(request, response, auth);
+			    SecurityContextLogoutHandler securityContextLogoutHandler = new SecurityContextLogoutHandler();
+			    //leverage rememberme service to clear cookie
+			    rememberMeServices.logout(request, response, auth);
+			    //logout
+			    securityContextLogoutHandler.logout(request, response, auth);
 			}
 			SecurityContextHolder.getContext().setAuthentication(null);
+			// TODO: hook into other logout post-processing
 		}
 		
 		// if the user didn't approve, don't log out but hit the landing page anyway for redirect as needed
@@ -159,6 +168,7 @@ public static final String URL = "endsession";
 			client != null && client.getRedirectUris() != null) {
 			Set<String> redirects = Utils.delimitedStringToSet(client.getRedirectUris(), ",");
 			if (redirects.contains(redirectUri)) {
+				// TODO: future, add the redirect URI to the model for the display page for an interstitial
 				// m.addAttribute("redirectUri", postLogoutRedirectUri);
 				
 				UriComponents uri = UriComponentsBuilder.fromUriString(redirectUri).queryParam("state", state).build();

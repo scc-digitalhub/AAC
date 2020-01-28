@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
@@ -81,4 +82,13 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 		registry.addMapping("/**").allowedMethods("PUT", "DELETE", "GET", "POST").allowedOrigins("*");
 	}	
 	
+    @Override
+    public void configurePathMatch(final PathMatchConfigurer configurer) {
+        //configure a sane path mapping, avoid huge security holes with: 
+        // * spring security considering /about /about/ /about.any correctly as different
+        // * spring MVC considering all those the same
+        // result is only /about is protected by antMatcher, all the other variants are open to the world
+        configurer.setUseSuffixPatternMatch(false);
+        configurer.setUseTrailingSlashMatch(false);
+    }
 }

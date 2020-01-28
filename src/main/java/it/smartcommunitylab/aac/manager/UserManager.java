@@ -34,6 +34,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.stereotype.Component;
@@ -327,8 +328,16 @@ public class UserManager {
 		approvalRepository.delete(approvalRepository.findByUserIdAndClientId(user.toString(), clientId));
 		Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByClientIdAndUserName(clientId, user.toString());
 		for (OAuth2AccessToken token : tokens) {
+		    if(token.getRefreshToken() != null) {
+		        //remove refresh token
+		        OAuth2RefreshToken refreshToken = token.getRefreshToken();
+		        tokenStore.removeRefreshToken(refreshToken);
+		    }
+		    
+		    //remove access token
 			tokenStore.removeAccessToken(token);
 		}
+		
 		return getConnectedApps(user);
 	}
 }

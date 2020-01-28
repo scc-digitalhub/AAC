@@ -37,14 +37,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mobile.device.Device;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.RememberMeAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -55,7 +54,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
@@ -65,8 +63,10 @@ import it.smartcommunitylab.aac.manager.AttributesAdapter;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.MobileAuthManager;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.UserRepository;
@@ -94,9 +94,6 @@ public class AuthController {
 	private ClientDetailsManager clientDetailsAdapter;
 
 	@Autowired
-	private TokenStore tokenStore;
-
-	@Autowired
 	private RoleManager roleManager;
 	
 	@Autowired(required=false)
@@ -104,6 +101,9 @@ public class AuthController {
 	
 	@Autowired(required=false)
 	private MobileAuthManager mobileAuthManager;
+	
+	@Autowired
+	private RegistrationManager registrationManager;
 	
 	private RequestCache requestCache = new HttpSessionRequestCache();
 
@@ -118,10 +118,12 @@ public class AuthController {
 	public ModelAndView login(HttpServletRequest req, HttpServletResponse res) throws Exception {
 		Map<String, Object> model = new HashMap<String, Object>();
 		Map<String, String> authorities = attributesAdapter.getWebAuthorityUrls();
-
+		logger.debug("authorities from adapter: "+authorities.keySet().toString());
+		
 		SavedRequest savedRequest = requestCache.getRequest(req, res);
-		String target = savedRequest != null ? savedRequest.getRedirectUrl() : prepareRedirect(req, "/dev");
+		String target = savedRequest != null ? savedRequest.getRedirectUrl() : prepareRedirect(req, "/account");
 		req.getSession().setAttribute("redirect", target);
+		logger.debug("redirect "+target);
 		
 		Map<String, String> resultAuthorities = authorities;
 		// If original request has client_id parameter, reduce the authorities to the ones of the client app
@@ -160,6 +162,7 @@ public class AuthController {
 				}
 			}
 		}
+		logger.debug("resultAuthorities "+resultAuthorities.keySet().toString());
 		req.getSession().setAttribute("authorities", resultAuthorities);
 		
 		return new ModelAndView("login", model);
@@ -265,7 +268,7 @@ public class AuthController {
 	 * @throws UnsupportedEncodingException
 	 */
 	protected String prepareRedirect(HttpServletRequest req, String path)
-			throws UnsupportedEncodingException {
+			{
 		String target = path
 				+ (req.getQueryString() == null ? "" : "?"
 						+ req.getQueryString());
@@ -286,15 +289,20 @@ public class AuthController {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("deprecation")
 	@RequestMapping("/eauth/{authorityUrl}")
 	public ModelAndView forward(@PathVariable String authorityUrl,
 			@RequestParam(required = false) String target,
 			HttpServletRequest req, HttpServletResponse res) {
 
 		String nTarget = (String) req.getSession().getAttribute("redirect");
-		if (nTarget == null)
-			return new ModelAndView("redirect:/logout");
-
+		if (nTarget == null) {
+		    if ("internal".equals(authorityUrl)) {
+		        nTarget = prepareRedirect(req, "/account");
+		    } else {
+		        return new ModelAndView("redirect:/logout");   
+		    }			
+		}
 		String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
 		if (clientId != null) {
 			Set<String> idps = clientDetailsAdapter
@@ -316,6 +324,7 @@ public class AuthController {
 		target = nTarget;
 		
 		Authentication old = SecurityContextHolder.getContext().getAuthentication();
+		logger.trace("old auth is "+String.valueOf(old));
 		if (old != null && old instanceof AACAuthenticationToken) {
 			AACOAuthRequest oldDetails = (AACOAuthRequest) old.getDetails();
 			if (oldDetails != null && !authorityUrl.equals(oldDetails.getAuthority())) {
@@ -332,18 +341,26 @@ public class AuthController {
 		List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(nTarget), "UTF-8");
 
 		it.smartcommunitylab.aac.model.User userEntity = null;
-		if (old != null && (old instanceof AACAuthenticationToken || old instanceof RememberMeAuthenticationToken)) {
+		if (old instanceof AACAuthenticationToken || old instanceof RememberMeAuthenticationToken) {
 			String userId = old.getName();
 			userEntity = userRepository.findOne(Long.parseLong(userId));
+		} else if ( old instanceof UsernamePasswordAuthenticationToken) {
+		    //ensure internal users (logged in via user+password) are given the right identity
+		    //avoid impersonation attack via parameters
+	        Registration reg = registrationManager.getUserByEmail(old.getName());
+	        userEntity = providerServiceAdapter.updateUser(Config.IDP_INTERNAL, toMap(reg), null);
 		} else {
 			userEntity = providerServiceAdapter.updateUser(authorityUrl, toMap(pairs), req);
 		}
-
+		
+		logger.trace("userEntity "+userEntity.toString());
+		
 		List<GrantedAuthority> list = roleManager.buildAuthorities(userEntity);
 		
 		UserDetails user = new User(userEntity.getId().toString(), "", list);
 		AbstractAuthenticationToken a = new AACAuthenticationToken(user, null, authorityUrl, list);
 		a.setDetails(oauthRequest);
+        logger.trace("new auth "+a.toString());
 
 		SecurityContextHolder.getContext().setAuthentication(a);
 		
@@ -409,39 +426,50 @@ public class AuthController {
 		}
 		return map;
 	}
-
-	/**
-	 * Revoke the access token and the associated refresh token.
-	 * 
-	 * @param token
-	 */
-	@RequestMapping("/eauth/revoke/{token}")
-	public @ResponseBody
-	String revokeToken(@PathVariable String token) {
-		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
-		if (accessTokenObj != null) {
-			if (accessTokenObj.getRefreshToken() != null) {
-				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
-			}
-			tokenStore.removeAccessToken(accessTokenObj);
-		}
-		return "";
-	}
-	/**
-	 * Revoke the access token and the associated refresh token.
-	 * 
-	 * @param token
-	 */
-	@RequestMapping("/eauth/revoke")
-	public @ResponseBody
-	String revokeTokenWithParam(@RequestParam String token) {
-		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
-		if (accessTokenObj != null) {
-			if (accessTokenObj.getRefreshToken() != null) {
-				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
-			}
-			tokenStore.removeAccessToken(accessTokenObj);
-		}
-		return "";
-	}
+	
+    private Map<String, String> toMap(Registration existing) {
+        Map<String,String> map = new HashMap<String, String>();
+        map.put("name", existing.getName());
+        map.put("surname", existing.getSurname());
+        map.put(Config.NAME_ATTR, existing.getName());
+        map.put(Config.SURNAME_ATTR, existing.getSurname());
+        map.put("email", existing.getEmail());
+        return map;
+    }
+    
+    //DEPRECATED for dedicated RevocationController
+//	/**
+//	 * Revoke the access token and the associated refresh token.
+//	 * 
+//	 * @param token
+//	 */
+//	@RequestMapping("/eauth/revoke/{token}")
+//	public @ResponseBody
+//	String revokeToken(@PathVariable String token) {
+//		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
+//		if (accessTokenObj != null) {
+//			if (accessTokenObj.getRefreshToken() != null) {
+//				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
+//			}
+//			tokenStore.removeAccessToken(accessTokenObj);
+//		}
+//		return "";
+//	}
+//	/**
+//	 * Revoke the access token and the associated refresh token.
+//	 * 
+//	 * @param token
+//	 */
+//	@RequestMapping("/eauth/revoke")
+//	public @ResponseBody
+//	String revokeTokenWithParam(@RequestParam String token) {
+//		OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
+//		if (accessTokenObj != null) {
+//			if (accessTokenObj.getRefreshToken() != null) {
+//				tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
+//			}
+//			tokenStore.removeAccessToken(accessTokenObj);
+//		}
+//		return "";
+//	}
 }

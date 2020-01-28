@@ -62,13 +62,22 @@ public class AACTokenEnhancer implements TokenEnhancer {
 			token.setRefreshToken(null);
 		}
 		
-		if (accessToken.getScope().contains(Config.OPENID_SCOPE)) {
+		//first convert to JWT
+	    if(tokenConverter != null) {
+            accessToken = tokenConverter.enhance(accessToken, authentication);
+        }        
+		
+	    //then build id_token to calculate correct at_hash
+		if (accessToken.getScope().contains(Config.SCOPE_OPENID)) {
 			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
 			token.setAdditionalInformation(Collections.singletonMap("id_token", tokenEnhancer.createIdToken(accessToken, authentication).serialize()));
 		} 
 		
-	    if(tokenConverter != null) {
-            accessToken = tokenConverter.enhance(accessToken, authentication);
+	
+        // rewrite token type because we don't want "bearer" lowercase in response...
+        if (accessToken.getTokenType().equals(OAuth2AccessToken.BEARER_TYPE.toLowerCase())) {
+            DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
+            token.setTokenType(OAuth2AccessToken.BEARER_TYPE);
         }
 	    
 		return accessToken;

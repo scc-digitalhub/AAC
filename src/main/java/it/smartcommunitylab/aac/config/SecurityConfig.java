@@ -106,10 +106,13 @@ import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
+import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
@@ -379,6 +382,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		@Autowired
 		@Qualifier("appTokenServices")
 		private AuthorizationServerTokenServices resourceServerTokenServices;
+		
+		@Autowired
+		private AutoJdbcAuthorizationCodeServices authorizationCodeServices;
 
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
@@ -426,10 +432,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 			endpoints.tokenStore(tokenStore).userApprovalHandler(userApprovalHandler)
 					.authenticationManager(authenticationManager)
-					.tokenGranter(tokenGranter(endpoints))
 					.requestFactory(getOAuth2RequestFactory())
 					.requestValidator(new AACOAuth2RequestValidator())
-					.tokenServices(resourceServerTokenServices);
+					.tokenServices(resourceServerTokenServices)
+					.authorizationCodeServices(authorizationCodeServices)			
+					//set tokenGranter now to ensure all services are set
+					.tokenGranter(tokenGranter(endpoints));
 		}
 
 		@Override
@@ -461,11 +469,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
-						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('profile.basicprofile.all')")
-						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('profile.basicprofile.all')")
-						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('"+Config.BASIC_PROFILE_SCOPE+"')")
-						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('profile.accountprofile.all')")
-						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('"+Config.ACCOUNT_PROFILE_SCOPE+"')")				
+						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE+"')")
+						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE_ALL+"')")
+						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE+"')")				
 						.and().csrf().disable();
 			}
 		}));
@@ -521,12 +529,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/*userroles/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*userroles/**")
 						.permitAll()
-						.antMatchers("/userroles/me").access("#oauth2.hasScope('user.roles.me')")
-						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('user.roles.read')")
-						.antMatchers(HttpMethod.GET, "/userroles/role").access("#oauth2.hasScope('user.roles.read')")
-						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
-						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('user.roles.write')")
-						.antMatchers("/userroles/client").access("#oauth2.hasScope('client.roles.read.all')")
+						.antMatchers("/userroles/me").access("#oauth2.hasScope('"+Config.SCOPE_ROLE+"')")
+						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
+						.antMatchers(HttpMethod.GET, "/userroles/role").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
+						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers("/userroles/client").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
 						.and().csrf().disable();
 			}
 
@@ -549,7 +557,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/wso2/client/**").authorizeRequests().anyRequest()
-						.access("#oauth2.hasScope('clientmanagement')").and().csrf().disable();
+						.access("#oauth2.hasScope('"+Config.SCOPE_CLIENTMANAGEMENT+"')").and().csrf().disable();
 			}
 
 		}));
@@ -571,7 +579,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/wso2/resources/**").authorizeRequests().anyRequest()
-						.access("#oauth2.hasScope('apimanagement')").and().csrf().disable();
+						.access("#oauth2.hasScope('"+Config.SCOPE_APIMANAGEMENT+"')").and().csrf().disable();
 			}
 
 		}));
@@ -595,8 +603,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/*authorization/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*authorization/**")
 						.permitAll()
-						.antMatchers("/authorization/**").access("#oauth2.hasScope('authorization.manage')")
-						.antMatchers("/authorization/*/schema/**").access("#oauth2.hasScope('authorization.schema.manage')")
+						.antMatchers("/authorization/**").access("#oauth2.hasScope('"+Config.SCOPE_AUTH_MANAGE+"')")
+						.antMatchers("/authorization/*/schema/**").access("#oauth2.hasScope('"+Config.SCOPE_AUTH_SCHEMA_MANAGE+"')")
 						.and().csrf().disable();
 			}
 
@@ -633,7 +641,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}	
 	
 	@Bean
-	protected ResourceServerConfiguration openidResources() {
+	protected ResourceServerConfiguration userInfoResources() {
 		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
 			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
 				super.setConfigurers(configurers);
@@ -645,9 +653,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/userinfo").authorizeRequests()
-						.antMatchers(HttpMethod.OPTIONS, "/userinfo").permitAll()
-						.antMatchers("/userinfo").access("#oauth2.hasScope('openid')")
+				http.antMatcher(UserInfoEndpoint.USERINFO_URL).authorizeRequests()
+						.antMatchers(HttpMethod.OPTIONS, UserInfoEndpoint.USERINFO_URL).permitAll()
+						.antMatchers(UserInfoEndpoint.USERINFO_URL).access("#oauth2.hasScope('"+Config.SCOPE_OPENID+"')")
 						.and().csrf().disable();
 			}
 
@@ -669,8 +677,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/token_introspection").authorizeRequests()
-						.antMatchers("/token_introspection").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+				http.antMatcher(TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL).authorizeRequests()
+						.antMatchers(TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL).hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
 						.and().httpBasic()
 						.and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
 			}
@@ -678,4 +686,28 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(12);
 		return resource;
 	}
+	
+    @Bean
+    protected ResourceServerConfiguration tokenRevocationResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.antMatcher(TokenRevocationEndpoint.TOKEN_REVOCATION_URL).authorizeRequests()
+                        .antMatchers(TokenRevocationEndpoint.TOKEN_REVOCATION_URL).hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+                        .and().httpBasic()
+                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+            }
+        }));
+        resource.setOrder(13);
+        return resource;
+    }
+    
 }

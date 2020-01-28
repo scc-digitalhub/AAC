@@ -175,6 +175,17 @@ public class ClientDetailsManager {
 
 		res.setRedirectUris(StringUtils.collectionToCommaDelimitedString(e.getRegisteredRedirectUri()));
 		
+        if (e.getAccessTokenValiditySeconds() != null) {
+            res.setAccessTokenValidity(e.getAccessTokenValiditySeconds());
+        } else {
+            res.setAccessTokenValidity(0);
+        }
+        if (e.getRefreshTokenValiditySeconds() != null) {
+            res.setRefreshTokenValidity(e.getRefreshTokenValiditySeconds());
+        } else {
+            res.setRefreshTokenValidity(0);
+        }
+		
 		return res;
 	}
 	/**
@@ -251,6 +262,18 @@ public class ClientDetailsManager {
 			}
 			
 			client.setParameters(data.getParameters());
+			
+			if(data.getAccessTokenValidity() > 0) {
+			    client.setAccessTokenValidity(data.getAccessTokenValidity());
+			} else {
+			    client.setAccessTokenValidity(null);
+			}
+			
+            if(data.getRefreshTokenValidity() > 0) {
+                client.setRefreshTokenValidity(data.getRefreshTokenValidity());
+            } else {
+                client.setRefreshTokenValidity(null);
+            }			
 			
 		} catch (Exception e) {
 			logger.error("failed to convert an object: "+e.getMessage(), e);

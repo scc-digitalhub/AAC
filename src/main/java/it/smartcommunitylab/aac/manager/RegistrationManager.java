@@ -352,6 +352,10 @@ public class RegistrationManager {
 		return existing;
 	}
 	
+	public Registration getUserByUserId(String id) {
+	    return repository.findByUserId(id);
+	}
+	
 	public Registration getUserByEmail(String email) {
 		return repository.findByEmail(email);
 	}

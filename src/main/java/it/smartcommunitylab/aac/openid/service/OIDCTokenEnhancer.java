@@ -123,8 +123,8 @@ public class OIDCTokenEnhancer  {
 		//add claims for user details if requested via scopes
 		if(user != null) {
             Set<String> scope = new HashSet<>(request.getScope());
-            if (!scope.contains(Config.OPENID_SCOPE)) {
-            	scope.add(Config.OPENID_SCOPE);
+            if (!scope.contains(Config.SCOPE_OPENID)) {
+            	scope.add(Config.SCOPE_OPENID);
             }
             Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request().getAuthorities();
             Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
@@ -134,6 +134,7 @@ public class OIDCTokenEnhancer  {
         }
 
 		// if the auth time claim was explicitly requested OR if the client always wants the auth time, put it in
+		//TODO check "idtoken" vs "id_token"
 		if (request.getExtensions().containsKey(MAX_AGE) || (request.getExtensions().containsKey("idtoken"))) {
 
 			if (request.getExtensions().get(AUTH_TIMESTAMP) != null) {
@@ -175,7 +176,8 @@ public class OIDCTokenEnhancer  {
 		
 		Set<String> responseTypes = request.getResponseTypes();
 
-		if (responseTypes.contains("token")) {
+		//at_hash is used for both implicit and auth_code flows when paired with accessToken
+		if (responseTypes.contains("token") || responseTypes.contains("code")) {
 			// calculate the token hash
 			Base64URL at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg, signed);
 			idClaims.claim("at_hash", at_hash);

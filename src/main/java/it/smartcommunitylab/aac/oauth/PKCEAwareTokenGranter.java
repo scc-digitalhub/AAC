@@ -76,6 +76,9 @@ public class PKCEAwareTokenGranter extends AuthorizationCodeTokenGranter {
 			throw new InvalidGrantException("Invalid authorization code: " + authorizationCode);
 		}
 
+		logger.debug("get oauth2 authentication for code, request "+tokenRequest.getGrantType());
+		logger.trace("tokenRequest clientId "+tokenRequest.getClientId()+ " scope "+tokenRequest.getScope().toString());
+		
 		OAuth2Request pendingOAuth2Request = storedAuth.getOAuth2Request();
 		// https://jira.springsource.org/browse/SECOAUTH-333
 		// This might be null, if the authorization was done without the redirect_uri parameter
