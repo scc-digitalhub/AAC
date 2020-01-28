@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,12 +47,15 @@ public static final String END_SESSION_URL = "/endsession";
 	private static final String STATE_KEY = "state";
 	private static final String REDIRECT_URI_KEY = "redirectUri";
 
+	@Autowired
+	PersistentTokenBasedRememberMeServices rememberMeServices;
 	
 	@Autowired
 	private SelfAssertionValidator validator;
 	
 	@Autowired
 	private ClientDetailsRepository clientRepo;
+	
 	@Autowired
 	private ClientDetailsManager clientService;
 	
@@ -144,7 +148,11 @@ public static final String END_SESSION_URL = "/endsession";
 		if (!Strings.isNullOrEmpty(approved)) {
 			// use approved, perform the logout
 			if (auth != null){    
-				new SecurityContextLogoutHandler().logout(request, response, auth);
+			    SecurityContextLogoutHandler securityContextLogoutHandler = new SecurityContextLogoutHandler();
+			    //leverage rememberme service to clear cookie
+			    rememberMeServices.logout(request, response, auth);
+			    //logout
+			    securityContextLogoutHandler.logout(request, response, auth);
 			}
 			SecurityContextHolder.getContext().setAuthentication(null);
 			// TODO: hook into other logout post-processing
