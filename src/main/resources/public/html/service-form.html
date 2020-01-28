@@ -99,13 +99,14 @@
               </div>               
               <div ui-ace="aceOption" ng-model="currService.claimMapping"></div>
              </td>
-            <th>Result <span ng-if="claimEnabled.checked">(<a href="" ng-click="validateClaims()">Validate</a>)</span>
+            <th><span ng-if="claimEnabled.checked"><a href="" ng-click="validateClaims()">Validate</a></span>
               <br/><br/>
-              <div ng-if="validationResult">result: <pre>{{validationResult | json:4}}</pre></div>
               <div ng-if="claimEnabled.checked">
-	               <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm" ng-model="claimEnabled.scopes"></tags-input>
+                 <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm" ng-model="claimEnabled.scopes"></tags-input>
               </div>
-              <div class="text-danger" ng-if="validationError">{{validationError}}</div>
+              <br>
+              <div ng-if="claimEnabled.checked && validationResult">result: <pre>{{validationResult | json:4}}</pre></div>
+              <div class="text-danger" ng-if="claimEnabled.checked && validationError">{{validationError}}</div>
             </th>
         </tr>
     </table>

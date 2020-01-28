@@ -184,9 +184,8 @@ public class ServiceManager {
 			if (service.getNamespace() == null) {
 				dto.setNamespace(null);
 			} 
-		} else {
-			service = toService(dto);
 		}
+		service = toService(dto);
 		validateServiceData(service);
 		// namespace are unique for services (if defined)
 		if (dto.getNamespace() != null) {
@@ -357,7 +356,7 @@ public class ServiceManager {
 	private Service toService(ServiceDTO dto) {
 		Service service = new Service();
 		service.setClaimMapping(dto.getClaimMapping());
-		service.setContext(dto.getContext().trim());
+		if (dto.getContext() != null) service.setContext(dto.getContext().trim());
 		service.setDescription(dto.getDescription());
 		service.setName(dto.getName());
 		if (dto.getNamespace() != null) {

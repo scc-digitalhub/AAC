@@ -51,13 +51,11 @@ import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Permissions;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -233,10 +231,10 @@ public class PermissionController {
 	 * @throws InvalidDefinitionException 
 	 */
 	@RequestMapping(value="/dev/services/my/{serviceId}/claimmapping/validate", method=RequestMethod.POST)
-	public @ResponseBody Response validateClaimMapping(@RequestBody ServiceDTO sd, @PathVariable String serviceId, @RequestParam Set<String> scopes) throws InvalidDefinitionException {
+	public @ResponseBody Response validateClaimMapping(@RequestBody ServiceDTO sd, @PathVariable String serviceId, @RequestParam(required = false) Set<String> scopes) throws InvalidDefinitionException {
 		Response response = new Response();
 		User user = userManager.getUser();
-		response.setData(serviceManager.validateClaimMapping(user, sd, scopes));
+		response.setData(serviceManager.validateClaimMapping(user, sd, scopes == null ? Collections.emptySet() : scopes));
 		return response;
 	}
 	/**
