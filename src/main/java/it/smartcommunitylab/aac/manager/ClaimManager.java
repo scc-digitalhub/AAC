@@ -53,7 +53,6 @@ import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 
@@ -78,8 +77,6 @@ public class ClaimManager {
 	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
 	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "groups", "username", "user_name");
 
-	// TODO: keep roles instead of authorities, change groups to become flat, remove authorities, realms, and role_access
-	
 	public ClaimManager() {
 		super();
 		// standard
@@ -195,19 +192,6 @@ public class ClaimManager {
             obj.put("email_verified", true);
 
         }
-        
-        //address
-        //TODO populate
-        if (scopes.contains(Config.SCOPE_ADDRESS)) {
-//            obj.putAll(toAddressJson(reg));
-        }
-        
-        //phone
-        //TODO populate        
-        if (scopes.contains(Config.SCOPE_PHONE)) {
-//            obj.putAll(toPhoneJson(reg));
-        }
-        
         
         /*
          * AAC claims
@@ -373,16 +357,6 @@ public class ClaimManager {
         // also write username in a spring-friendly form
         //https://github.com/spring-projects/spring-security-oauth/blob/master/spring-security-oauth2/src/main/java/org/springframework/security/oauth2/provider/token/UserAuthenticationConverter.java
         obj.put("user_name", ui.getUsername());
-
-        return obj;
-    }
-
-    private Map<String, Object> toEmailJson(Registration reg) {
-
-        Map<String, Object> obj = new HashMap<>();
-
-        obj.put("email", reg.getEmail());
-        obj.put("email_verified", reg.isConfirmed());
 
         return obj;
     }
