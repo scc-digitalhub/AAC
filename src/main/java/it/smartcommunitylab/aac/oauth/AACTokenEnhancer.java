@@ -20,7 +20,6 @@ import java.util.Collections;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
@@ -58,7 +57,7 @@ public class AACTokenEnhancer implements TokenEnhancer {
 	public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
 	    logger.debug("enhance for token " +accessToken);
 		if (accessToken.getScope().contains(Config.SCOPE_OPERATION_CONFIRMED)) {
-			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
+            AACOAuth2AccessToken token = (AACOAuth2AccessToken) accessToken;
 			token.setRefreshToken(null);
 		}
 		
@@ -69,14 +68,14 @@ public class AACTokenEnhancer implements TokenEnhancer {
 		
 	    //then build id_token to calculate correct at_hash
 		if (accessToken.getScope().contains(Config.SCOPE_OPENID)) {
-			DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
+			AACOAuth2AccessToken token = (AACOAuth2AccessToken) accessToken;
 			token.setAdditionalInformation(Collections.singletonMap("id_token", tokenEnhancer.createIdToken(accessToken, authentication).serialize()));
 		} 
 		
 	
         // rewrite token type because we don't want "bearer" lowercase in response...
         if (accessToken.getTokenType().equals(OAuth2AccessToken.BEARER_TYPE.toLowerCase())) {
-            DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
+            AACOAuth2AccessToken token = (AACOAuth2AccessToken) accessToken;
             token.setTokenType(OAuth2AccessToken.BEARER_TYPE);
         }
 	    

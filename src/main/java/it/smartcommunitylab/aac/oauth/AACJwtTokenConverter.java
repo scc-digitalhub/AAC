@@ -21,10 +21,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.jwt.crypto.sign.Signer;
-import org.springframework.security.oauth2.common.DefaultExpiringOAuth2RefreshToken;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.common.DefaultOAuth2RefreshToken;
-import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.util.JsonParser;
@@ -119,7 +115,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
         OAuth2Request request = authentication.getOAuth2Request();
         // build a new token with correct claims
-        DefaultOAuth2AccessToken result = new DefaultOAuth2AccessToken(accessToken);
+        AACOAuth2AccessToken result = new AACOAuth2AccessToken(accessToken);
         Map<String, Object> info = new LinkedHashMap<String, Object>(accessToken.getAdditionalInformation());
 
         logger.debug("previous claims in token:" + info.keySet().toString());
@@ -325,27 +321,36 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         if (accessToken.getExpiration() != null) {
             Date expiration = accessToken.getExpiration();
             Date iat = new Date();
-            // need to subtract validity from expiration to avoid updating at each request
-            if (isRefreshToken(accessToken)) {
-                int refreshTokenValiditySeconds = ClientKeyCacheService.getRefreshTokenValiditySeconds(client);
-                if (refreshTokenValiditySeconds < 0) {
-                    // use system default
-                    refreshTokenValiditySeconds = refreshTokenValidity;
-                }
-                iat = new Date(expiration.getTime() - (refreshTokenValiditySeconds * 1000L));
-
+            Date nbf = iat;
+            
+            if (accessToken instanceof AACOAuth2AccessToken) {
+                iat = ((AACOAuth2AccessToken)accessToken).getIssuedAt();
+                nbf = ((AACOAuth2AccessToken)accessToken).getNotBeforeTime();
             } else {
-                int accessTokenValiditySeconds = ClientKeyCacheService.getAccessTokenValiditySeconds(client);
-                if (accessTokenValiditySeconds < 0) {
-                    // use system default
-                    accessTokenValiditySeconds = accessTokenValidity;
+                // need to subtract validity from expiration to avoid updating at each request
+                if (isRefreshToken(accessToken)) {
+                    int refreshTokenValiditySeconds = ClientKeyCacheService.getRefreshTokenValiditySeconds(client);
+                    if (refreshTokenValiditySeconds < 0) {
+                        // use system default
+                        refreshTokenValiditySeconds = refreshTokenValidity;
+                    }
+                    iat = new Date(expiration.getTime() - (refreshTokenValiditySeconds * 1000L));
+
+                } else {
+                    int accessTokenValiditySeconds = ClientKeyCacheService.getAccessTokenValiditySeconds(client);
+                    if (accessTokenValiditySeconds < 0) {
+                        // use system default
+                        accessTokenValiditySeconds = accessTokenValidity;
+                    }
+                    iat = new Date(expiration.getTime() - (accessTokenValiditySeconds * 1000L));
+
                 }
-                iat = new Date(expiration.getTime() - (accessTokenValiditySeconds * 1000L));
-
+                
+                nbf = iat;
             }
-
+            
             jwtClaims.issueTime(iat);
-            jwtClaims.notBeforeTime(iat);
+            jwtClaims.notBeforeTime(nbf);
 
             jwtClaims.expirationTime(expiration);
         }
