@@ -18,8 +18,10 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -329,7 +331,12 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
         SecureRandom random = new SecureRandom();
         byte[] accessTokenBuffer = new byte[length];
         random.nextBytes(accessTokenBuffer);
-        return new String(Base64.getEncoder().encode(accessTokenBuffer));
+        // disable direct usage, spring tokenEndpoint won't urlencode jti in response
+        // fragments
+//        return new String(Base64.getEncoder().encode(accessTokenBuffer));
+        // encode as base64 to be urf safe
+        Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        return encoder.encodeToString(accessTokenBuffer);
     }
 	
 	
