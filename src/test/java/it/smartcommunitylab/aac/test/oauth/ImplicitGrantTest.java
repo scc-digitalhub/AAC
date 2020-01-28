@@ -92,7 +92,6 @@ public class ImplicitGrantTest {
                         GRANT_TYPE, new String[] { SCOPE },
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }

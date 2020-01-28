@@ -79,7 +79,6 @@ public class PasswordGrantTest {
             try {
                 user = createUser(testUserName, testPassword, "TestName", "TestSurname");
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 user = null;
             }
@@ -95,7 +94,6 @@ public class PasswordGrantTest {
                         String.join(",", GRANT_TYPES), new String[] { SCOPE },
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }

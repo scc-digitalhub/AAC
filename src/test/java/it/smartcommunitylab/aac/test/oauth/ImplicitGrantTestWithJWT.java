@@ -106,7 +106,6 @@ public class ImplicitGrantTestWithJWT {
                         GRANT_TYPE, SCOPES,
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }
