@@ -15,11 +15,11 @@
  */
 package it.smartcommunitylab.aac.repository;
 
-import it.smartcommunitylab.aac.model.Authority;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import it.smartcommunitylab.aac.model.Authority;
 /**
  * Persistent repository of {@link Authority} entities
  * @author raman

@@ -16,7 +16,9 @@
 
 package it.smartcommunitylab.aac.oauth;
 
-import javax.servlet.ServletContext;import org.springframework.beans.factory.annotation.Value;
+import javax.servlet.ServletContext;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 
