@@ -26,8 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.base.Function;
@@ -51,7 +53,7 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 *
 */
 @Controller
-@Api(tags = { "AAC OpenID Connect Discovery" })
+@Api(tags = { "OpenID Connect Discovery" })
 public class OpenIDMetadataEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -73,7 +75,7 @@ public class OpenIDMetadataEndpoint {
 	private JWTEncryptionAndDecryptionService encService;
 
     @ApiOperation(value="Get OpenID provider configuration information")
-	@RequestMapping(OPENID_CONFIGURATION_URL)
+	@RequestMapping(method=RequestMethod.GET, value=OPENID_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody Map<String, Object> providerConfiguration() {
 		return getConfiguration();
 	}

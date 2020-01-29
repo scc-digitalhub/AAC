@@ -30,14 +30,18 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
+@Api(tags = {"OpenID Connect Session Management"})
 public class EndSessionEndpoint {
 
 public static final String END_SESSION_URL = "/endsession";
@@ -62,6 +66,7 @@ public static final String END_SESSION_URL = "/endsession";
 	@Value("${jwt.issuer}")
 	private String issuer;
 
+    @ApiOperation(value = "Logout with user confirmation")
 	@RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
 	public String endSession(@RequestParam (value = "id_token_hint", required = false) String idTokenHint,  
 		    @RequestParam (value = "post_logout_redirect_uri", required = false) String postLogoutRedirectUri,
@@ -134,6 +139,7 @@ public static final String END_SESSION_URL = "/endsession";
 		}
 	}
 	
+    @ApiIgnore
 	@RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
 	public String processLogout(@RequestParam(value = "approve", required = false) String approved,
 			HttpServletRequest request,

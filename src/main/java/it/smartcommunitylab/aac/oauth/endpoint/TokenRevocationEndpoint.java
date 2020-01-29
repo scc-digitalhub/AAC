@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 
 /**
@@ -27,7 +28,7 @@ import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
  *
  */
 @Controller
-@Api(tags = { "AAC OAuth 2.0 Token Revocation (IETF RFC7009)" })
+@Api(tags = { "OAuth 2.0 Token Revocation" })
 public class TokenRevocationEndpoint {
 
     public static final String TOKEN_REVOCATION_URL = "/oauth/revoke";
@@ -64,6 +65,7 @@ public class TokenRevocationEndpoint {
      * 
      * @param token
      */
+    @ApiOperation(value = "Revoke token")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_REVOCATION_URL)
     public ResponseEntity<String> revokeTokenWithParam(
             @RequestParam String token,

@@ -18,6 +18,10 @@ public class AACOAuth2AccessToken extends DefaultOAuth2AccessToken {
      */
     public AACOAuth2AccessToken(String value) {
         super(value);
+
+        Date now = new Date();
+        setIssuedAt(now);
+        setNotBeforeTime(now);
     }
 
     /**
@@ -39,6 +43,12 @@ public class AACOAuth2AccessToken extends DefaultOAuth2AccessToken {
         Date now = new Date();
         setIssuedAt(now);
         setNotBeforeTime(now);
+
+        if (accessToken instanceof AACOAuth2AccessToken) {
+            // copy dates
+            setIssuedAt(((AACOAuth2AccessToken) accessToken).getIssuedAt());
+            setNotBeforeTime(((AACOAuth2AccessToken) accessToken).getNotBeforeTime());
+        }
     }
 
     public Date getIssuedAt() {
@@ -62,6 +72,4 @@ public class AACOAuth2AccessToken extends DefaultOAuth2AccessToken {
         return "AACOAuth2AccessToken [issuedAt=" + issuedAt + ", notBeforeTime=" + notBeforeTime + "]";
     }
 
-    
-    
 }
