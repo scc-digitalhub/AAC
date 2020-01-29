@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -52,7 +51,6 @@ import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Registration;
@@ -360,7 +358,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
                 nbf = iat;
             }
-
+            
             jwtClaims.issueTime(iat);
             jwtClaims.notBeforeTime(nbf);
 
