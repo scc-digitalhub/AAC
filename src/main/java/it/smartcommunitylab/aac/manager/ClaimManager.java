@@ -75,7 +75,8 @@ public class ClaimManager {
 
 	// claims that should not be overwritten
 	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
-	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "groups", "username", "user_name");
+	private Set<String> systemScopes = 
+			Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "groups", "username", "user_name");
 
 	public ClaimManager() {
 		super();

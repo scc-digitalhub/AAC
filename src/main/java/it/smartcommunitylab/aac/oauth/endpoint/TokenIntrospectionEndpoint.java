@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.bouncycastle.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +38,8 @@ import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientE
 import org.springframework.security.oauth2.common.util.JsonParser;
 import org.springframework.security.oauth2.common.util.JsonParserFactory;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,6 +53,7 @@ import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 /**
@@ -72,9 +70,6 @@ public class TokenIntrospectionEndpoint {
     public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    @Autowired
-    private ResourceServerTokenServices resourceServerTokenServices;
 
     @Autowired
     private ClientDetailsRepository clientDetailsRepository;
@@ -179,13 +174,6 @@ public class TokenIntrospectionEndpoint {
                 result.setIss(issuer);
                 result.setAud(new String[] { clientId });
 
-                if (accessToken != null) {
-                    // these make sense only on access tokens
-                    result.setExp((int) (accessToken.getExpiration().getTime() / 1000));
-                    result.setIat(result.getExp() - accessToken.getExpiresIn());
-                    result.setNbf(result.getIat());
-                }
-
                 // build response depending grant type
                 String grantType = auth.getOAuth2Request().getGrantType();
 
@@ -252,9 +240,20 @@ public class TokenIntrospectionEndpoint {
                 if (accessToken != null) {
                     // these make sense only on access tokens
                     result.setExp((int) (accessToken.getExpiration().getTime() / 1000));
-                    result.setIat(result.getExp() - accessToken.getExpiresIn());
-                    result.setNbf(result.getIat());
+                    int iat = (int)(new Date().getTime() / 1000);
+                    int nbf = iat;
 
+                    if (accessToken instanceof AACOAuth2AccessToken) {
+                        iat = (int)(((AACOAuth2AccessToken)accessToken).getIssuedAt().getTime() / 1000);
+                        nbf = (int)(((AACOAuth2AccessToken)accessToken).getNotBeforeTime().getTime() / 1000);
+                    } else {
+                        iat = result.getExp() - accessToken.getExpiresIn();
+                        nbf = iat;
+                    }                 
+                    
+                    result.setIat(iat);
+                    result.setNbf(nbf);
+                    
                     // check if token is JWT then return jti
                     if (isJwt(accessToken.getValue())) {
                         // TODO remove extra check, maybe not needed

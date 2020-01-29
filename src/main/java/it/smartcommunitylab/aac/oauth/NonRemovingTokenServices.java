@@ -21,13 +21,10 @@ import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.Date;
 import java.util.Set;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.DefaultExpiringOAuth2RefreshToken;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
@@ -247,7 +244,7 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
         // https://tools.ietf.org/html/rfc6749#section-10.10
         // 160bit = a buffer of 20 random bytes
         String value = generateSecureString(20);
-		DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(value);
+		AACOAuth2AccessToken token = new AACOAuth2AccessToken(value);
 		int validitySeconds = getAccessTokenValiditySeconds(authentication.getOAuth2Request());
 		
 		//custom validity for client_credentials grants
