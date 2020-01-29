@@ -15,13 +15,13 @@
  */
 package it.smartcommunitylab.aac.repository;
 
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 /**
  * Persistent repository of {@link ClientDetailsEntity} entities
  * @author raman

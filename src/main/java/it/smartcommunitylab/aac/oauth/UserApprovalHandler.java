@@ -51,7 +51,6 @@ import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ServiceScope;
-import it.smartcommunitylab.aac.repository.ServiceScopeRepository;
 
 /**
  * Extension of {@link TokenStoreUserApprovalHandler} to enable automatic authorization
