@@ -64,7 +64,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  *
  */
 @Controller
-@Api(tags = { "AAC OAuth 2.0 Token Introspection (IETF RFC7662)" })
+@Api(tags = { "OAuth 2.0 Token Introspection" })
 public class TokenIntrospectionEndpoint {
 
     public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";

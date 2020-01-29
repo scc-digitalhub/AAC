@@ -12,15 +12,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.google.common.net.HttpHeaders;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import net.minidev.json.JSONObject;
 
 @Controller
+@Api(tags = {"OpenID Connect Discovery"})
 public class JWKSetPublishingEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -32,7 +36,8 @@ public class JWKSetPublishingEndpoint {
     @Autowired
     private JWTSigningAndValidationService jwtService;
 
-    @RequestMapping(value = JWKS_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "JSON Web Key Set") 
+    @RequestMapping(method=RequestMethod.GET, value = JWKS_URL, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JSONObject> getJwks() {
 
         // map from key id to key

@@ -31,11 +31,13 @@ import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.BasicAuth;
 import springfox.documentation.service.ClientCredentialsGrant;
 import springfox.documentation.service.Contact;
 import springfox.documentation.service.GrantType;
 import springfox.documentation.service.SecurityReference;
 import springfox.documentation.service.SecurityScheme;
+import springfox.documentation.service.Tag;
 import springfox.documentation.service.TokenEndpoint;
 import springfox.documentation.service.TokenRequestEndpoint;
 import springfox.documentation.spi.DocumentationType;
@@ -80,7 +82,57 @@ public class SwaggerConfig {
         		  ));                                           
     }
 	/*************************************************************************/ 
+
     
+    /***************** OAUTH2 AAC API **********/ 
+    @Bean
+    public Docket apiOAuth2() {
+        return new Docket(DocumentationType.SWAGGER_2)
+            .groupName("AAC OAuth2")
+            .apiInfo(apiInfo(conf.title.get("AAC OAuth2"), conf.description.get("AAC OAuth2")))
+            .select()
+            .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.oauth.endpoint"))
+            .build()
+            .tags(new Tag("OAuth 2.0 Authorization Framework", "OAuth 2.0 Authorization Framework (IETF RFC6749)"))
+            .tags(new Tag("OAuth 2.0 Authorization Server Metadata", "OAuth 2.0 Authorization Server Metadata (IETF RFC8414)"))
+            .tags(new Tag("OAuth 2.0 Token Introspection", "OAuth 2.0 Token Introspection (IETF RFC7662)."))
+            .tags(new Tag("OAuth 2.0 Token Revocation", "OAuth 2.0 Token Revocation (IETF RFC7009)"))
+            .securitySchemes(Arrays.asList(
+                    securitySchemeUser(aacScopesUser()),
+                    securitySchemeApp(aacScopesApp())))
+            .securityContexts(Arrays.asList(
+                    securityContext(aacScopesUser(), ".*profile/me", "spring_oauth"),
+                    securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)|(/token_introspection)",
+                            "application")));
+    }
+ 
+    /*************************************************************************/     
+
+    /***************** OAUTH2 AAC API **********/ 
+    @Bean
+    public Docket apiOpenId() { 
+        return new Docket(DocumentationType.SWAGGER_2)
+          .groupName("AAC OpenID")
+          .apiInfo(apiInfo(conf.title.get("AAC OpenID"), conf.description.get("AAC OpenID")))
+          .select()                                  
+          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.openid.endpoint"))
+          .build()
+          .tags(new Tag("OpenID Connect Core", "OpenID Connect Core 1.0"))
+          .tags(new Tag("OpenID Connect Discovery", "OpenID Connect Discovery 1.0"))
+          .tags(new Tag("OpenID Connect Session Management", "OpenID Connect Session Management"))          
+          .securitySchemes(Arrays.asList(
+                  securityBasicAuthApp(),
+                  securitySchemeUser(aacScopesUser()), 
+                  securitySchemeApp(aacScopesApp())
+                  ))
+          .securityContexts(Arrays.asList(
+                  securityContext(aacScopesUser(), ".*profile/me", "spring_oauth"),
+                  securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)|(/token_introspection)", "application")
+                  ));                                           
+    }
+    
+ 
+    /*************************************************************************/         
     
 	/***************** Core AAC API - PROFILES, TOKEN INTROSPECTION **********/ 
     @Bean
@@ -214,6 +266,10 @@ public class SwaggerConfig {
 		SecurityScheme oauth = new OAuthBuilder().name("application")
 				.grantTypes(Arrays.asList(ccGrantType)).scopes(Arrays.asList(scopes)).build();
 		return oauth;
+	}
+	
+	private SecurityScheme securityBasicAuthApp() {
+	    return new BasicAuth("basicAuth");
 	}
 	
 	private SecurityContext securityContext(AuthorizationScope[] scopes, String path, String type) {

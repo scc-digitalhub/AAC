@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -46,6 +48,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
  *
  */
 @Controller
+@Api(tags = {"OpenID Connect Core"})
 public class UserInfoEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -61,6 +64,7 @@ public class UserInfoEndpoint {
 	 * Get information about the user as specified in the accessToken included in this request
 	 */
 //	@PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + Config.OPENID_SCOPE + "')")
+    @ApiOperation(value = "Get info about the authenticated End-User")
 	@RequestMapping(value=USERINFO_URL,
 	        method= {RequestMethod.GET, RequestMethod.POST},
 	        produces = {MediaType.APPLICATION_JSON_VALUE, UserInfoJWTView.JOSE_MEDIA_TYPE_VALUE})

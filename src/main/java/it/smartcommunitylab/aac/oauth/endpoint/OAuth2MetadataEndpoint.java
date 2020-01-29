@@ -5,8 +5,10 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.base.Function;
@@ -27,7 +29,7 @@ import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
  * extends OIDC discovery metadata 
  */
 @Controller
-@Api(tags = { "AAC OAuth 2.0 Authorization Server Metadata (IETF RFC8414)" })
+@Api(tags = { "OAuth 2.0 Authorization Server Metadata" })
 public class OAuth2MetadataEndpoint  {
 
     public static final String OAUTH2_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/oauth-authorization-server";
@@ -41,7 +43,7 @@ public class OAuth2MetadataEndpoint  {
     OpenIDMetadataEndpoint oidcMetadataEndpoint;
 
     @ApiOperation(value="Get authorization server metadata")
-    @RequestMapping(OAUTH2_CONFIGURATION_URL)
+    @RequestMapping(method=RequestMethod.GET, value=OAUTH2_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody Map<String, Object> serverMetadata() {
         return getConfiguration();
     }
