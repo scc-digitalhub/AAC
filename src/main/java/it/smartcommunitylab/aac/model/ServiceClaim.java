@@ -16,6 +16,9 @@
 
 package it.smartcommunitylab.aac.model;
 
+import java.util.Collection;
+import java.util.Map;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -28,6 +31,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import antlr.collections.List;
 import it.smartcommunitylab.aac.Config.CLAIM_TYPE;
 
 /**
@@ -38,6 +44,8 @@ import it.smartcommunitylab.aac.Config.CLAIM_TYPE;
 @Table(name="service_claim")
 public class ServiceClaim {
 
+	private static ObjectMapper mapper = new ObjectMapper();
+	
 	@Id
 	@GeneratedValue
 	private Long claimId;
@@ -142,4 +150,65 @@ public class ServiceClaim {
 	public void setClaim(String claim) {
 		this.claim = claim;
 	}
+	
+	/**
+	 * Fully qualified claim name (namespace / local claim)
+	 * @param namespace
+	 * @param claim
+	 * @return
+	 */
+	public static String qualifiedName(String namespace, String claim) {
+		return namespace == null ? claim : String.format("%s/%s", namespace, claim);
+	}
+	/**
+	 * Check claim type
+	 * @param value
+	 * @param multiple
+	 * @param type
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public static boolean ofType(Object value, boolean multiple, CLAIM_TYPE type) {
+		boolean vMultiple = (value.getClass().isArray() || value instanceof Collection);
+		if (vMultiple != multiple) {
+			return false;
+		}
+		Object v = value.getClass().isArray() 
+				? ((Object[])value).length > 0 ? ((Object[])value)[0] : null
+				: (value instanceof Collection) 
+				? ((Collection)value).size() > 0 ? ((Collection)value).iterator().next() : null
+				: value;
+		
+		if (v == null) return true;
+				
+		if (Double.class.isAssignableFrom(v.getClass()) && type.equals(CLAIM_TYPE.type_number) ||
+			v.getClass().isAssignableFrom(Boolean.class) && type.equals(CLAIM_TYPE.type_boolean) ||
+			v instanceof String && type.equals(CLAIM_TYPE.type_string) ||
+			v instanceof Map && type.equals(CLAIM_TYPE.type_object)) {
+			return true;
+		}
+		
+		return false;
+	}
+
+	/**
+	 * Return typed value of the claim parsing the string representation
+	 * @param claim
+	 * @param value
+	 * @return
+	 */
+	public static Object typedValue(ServiceClaim claim, String value) {
+		try {
+			if (claim.isMultiple()) return mapper.readValue(value, List.class);
+			switch (claim.getType()) {
+			case type_boolean: return mapper.readValue(value, Boolean.class);
+			case type_number: return mapper.readValue(value, Double.class);
+			case type_object: return mapper.readValue(value, Map.class);
+			default: return value; 
+			}
+		} catch (Exception e) {
+			return value;
+		}
+	}
+	
 }

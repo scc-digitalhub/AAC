@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
+import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
@@ -76,6 +77,8 @@ public class PermissionController {
 
 	@Autowired
 	private ServiceManager serviceManager;
+	@Autowired
+	private ClaimManager claimManager;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
@@ -234,7 +237,7 @@ public class PermissionController {
 	public @ResponseBody Response validateClaimMapping(@RequestBody ServiceDTO sd, @PathVariable String serviceId, @RequestParam(required = false) Set<String> scopes) throws InvalidDefinitionException {
 		Response response = new Response();
 		User user = userManager.getUser();
-		response.setData(serviceManager.validateClaimMapping(user, sd, scopes == null ? Collections.emptySet() : scopes));
+		response.setData(claimManager.validateClaimMapping(user, sd.getServiceId(), sd.getClaimMapping(), scopes == null ? Collections.emptySet() : scopes));
 		return response;
 	}
 	/**

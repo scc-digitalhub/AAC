@@ -58,4 +58,36 @@ public class ClientClaim {
 	@JoinColumn(nullable=false, name="clientId",referencedColumnName="client_id")
 	private ClientDetailsEntity client;
 
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public ServiceClaim getClaim() {
+		return claim;
+	}
+
+	public void setClaim(ServiceClaim claim) {
+		this.claim = claim;
+	}
+
+	public ClientDetailsEntity getClient() {
+		return client;
+	}
+
+	public void setClient(ClientDetailsEntity client) {
+		this.client = client;
+	}
+
 }

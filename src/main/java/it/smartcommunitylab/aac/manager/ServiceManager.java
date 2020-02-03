@@ -19,8 +19,9 @@ package it.smartcommunitylab.aac.manager;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -35,10 +36,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.CLAIM_TYPE;
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
@@ -75,9 +78,52 @@ public class ServiceManager {
 	@Autowired
 	private ServiceScopeRepository scopeRepo;
 	@Autowired
-	private ClaimManager claimManager;
-	@Autowired
 	private RoleManager roleManager;
+	
+	/**
+	 * Cache with scope -> claims mapping
+	 */
+	LoadingCache<String, Set<String>> claimCache = CacheBuilder
+			.newBuilder()
+			.expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+			.build(new CacheLoader<String,  Set<String>>() {
+				@Override
+				public  Set<String> load(String scope) throws Exception {
+					ServiceScope scopeObj = getServiceScope(scope);
+					if (scopeObj != null && !StringUtils.isEmpty(scopeObj.getClaims())) {
+						String ns = scopeObj.getService().getNamespace();
+						return StringUtils.commaDelimitedListToSet(scopeObj.getClaims())
+								.stream().map(local -> ServiceClaim.qualifiedName(ns, local))
+								.collect(Collectors.toSet());
+						
+					}
+					return Collections.emptySet();
+				}
+				
+			});
+	
+	/**
+	 * Cache with scope -> claims mapping
+	 */
+	LoadingCache<String, ServiceDTO> serviceCache = CacheBuilder
+			.newBuilder()
+			.expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+			.build(new CacheLoader<String,  ServiceDTO>() {
+				@Override
+				public  ServiceDTO load(String scope) throws Exception {
+					ServiceScope scopeObj = getServiceScope(scope);
+					if (scopeObj != null) {
+						ServiceDTO service = toDTO(scopeObj.getService());
+						service.setScopes(getServiceScopes(service.getServiceId()));
+						service.setClaims(getServiceClaims(service.getServiceId()));
+						return service;
+						
+					}
+					return null;
+				}
+				
+			});
+
 	
 	@PostConstruct
 	public void init() throws Exception {
@@ -209,24 +255,14 @@ public class ServiceManager {
 			if (!contexts.contains(service.getContext())) {
 				throw new SecurityException("Unauthorized operation for service: " + serviceId);
 			}
+			Set<String> scopes = getServiceScopes(serviceId).stream().map(s -> s.getScope()).collect(Collectors.toSet());
 			serviceRepo.delete(serviceId);
+			// refresh claim cache
+			scopes.forEach(s -> resetCache(s));
 		}
 		// TODO - what to do with the client scope/resource associations?
 	}
-	/**
-	 * Validate service claim mapping definition. Check if and only if the valid claims are produced 
-	 * @param user
-	 * @param mapping
-	 * @param scopes
-	 * @return
-	 * @throws InvalidDefinitionException
-	 */
-	public Map<String, Object> validateClaimMapping(User user, ServiceDTO dto, Set<String> scopes) throws InvalidDefinitionException {
-		// TODO based on all the claims enabled for the listed scopes, apply function and verify that the result
-		// contains only the claims of this service and in correct format
-		return claimManager.createUserClaims(user, dto.getClaimMapping(), scopes);
-	}
-	
+
 	/**
 	 * 
 	 * List scopes of the specified service
@@ -266,7 +302,10 @@ public class ServiceManager {
 			ServiceScope scope = toScope(dto);
 			validateScopeData(scope);
 			scope.setService(service);
-			return toDTO(scopeRepo.save(scope));
+			ServiceScope saved = scopeRepo.save(scope);
+			// refresh claim cache
+			resetCache(scope.getScope());
+			return toDTO(saved);
 		} else {
 			throw new SecurityException("Unknown service: " + serviceId);
 		}
@@ -300,7 +339,12 @@ public class ServiceManager {
 				claim.setClaimId(old.getClaimId());
 			}
 			validateClaimData(claim);
-			return toDTO(claimRepo.save(claim));
+			ServiceClaim saved = claimRepo.save(claim);
+			getServiceScopes(serviceId)
+				.stream()
+				.forEach(s -> resetCache(s.getScope()));
+
+			return toDTO(saved);
 		} else {
 			throw new SecurityException("Unknown service: " + serviceId);
 		}
@@ -321,6 +365,7 @@ public class ServiceManager {
 				throw new SecurityException("Unauthorized operation for scope: " + serviceId +", scope: " + scope);
 			}
 			scopeRepo.delete(scopeObj);
+			resetCache(scope.toLowerCase());
 		}
 		// TODO - what to do with the client scope association?
 	}
@@ -340,9 +385,77 @@ public class ServiceManager {
 				throw new SecurityException("Unauthorized operation for claim: " + serviceId +", claim: " + claim);
 			}
 			claimRepo.delete(claimObj);
+			getServiceScopes(serviceId)
+			.stream()
+			.forEach(s -> resetCache(s.getScope()));
 		}
 	}
 
+	/**
+	 * @param requestedScope
+	 * @return
+	 */
+	public ServiceScope getServiceScope(String requestedScope) {
+		return scopeRepo.findOne(requestedScope.toLowerCase());
+	}
+	
+	public ServiceScopeDTO getServiceScopeDTO(String requestedScope) {
+		return toDTO(getServiceScope(requestedScope));
+	}
+
+	/**
+	 * @param scopes
+	 * @return
+	 */
+	public Set<String> findServiceIdsByScopes(Set<String> scopes) {
+		if (scopes == null) return Collections.emptySet();
+		return serviceRepo.findServiceIdsByScopes(scopes.stream().map(s -> s.toLowerCase()).collect(Collectors.toSet()));
+	}
+
+	/**
+	 * @return
+	 */
+	public List<ServiceScope> findAllScopes() {
+		return scopeRepo.findAll();
+	}
+	
+	/**
+	 * Get claims associated to the specified scopes
+	 * @param scopes
+	 * @return
+	 */
+	public Set<String> getClaimsForScopes(Set<String> scopes) {
+		return scopes == null
+				? Collections.emptySet() 
+				: scopes.stream().flatMap(s -> {
+					try {
+						return claimCache.get(s).stream();
+					} catch (ExecutionException e) {
+						return Collections.<String>emptySet().stream();
+					}
+				}).collect(Collectors.toSet());
+	}
+	
+	/**
+	 * Return service definition for the service defining the scope
+	 * @param scope
+	 * @return
+	 */
+	public ServiceDTO getScopeService(String scope) {
+		try {
+			return scope == null
+					? null 
+					: serviceCache.get(scope);
+		} catch (ExecutionException e) {
+			return null;
+		}
+	}
+	
+	private void resetCache(String scope) {
+		claimCache.refresh(scope);
+		serviceCache.refresh(scope);
+	}
+	
 	private ServiceDTO toDTO(Service service) {
 		ServiceDTO dto = new ServiceDTO();
 		dto.setClaimMapping(service.getClaimMapping());
@@ -475,32 +588,7 @@ public class ServiceManager {
 			throw new IllegalArgumentException("empty resource mapping name");
 		}
 	}
-	/**
-	 * @param requestedScope
-	 * @return
-	 */
-	public ServiceScope getServiceScope(String requestedScope) {
-		return scopeRepo.findOne(requestedScope.toLowerCase());
-	}
+
 	
-	public ServiceScopeDTO getServiceScopeDTO(String requestedScope) {
-		return toDTO(getServiceScope(requestedScope));
-	}
-
-	/**
-	 * @param scopes
-	 * @return
-	 */
-	public Set<String> findServiceIdsByScopes(Set<String> scopes) {
-		if (scopes == null) return Collections.emptySet();
-		return serviceRepo.findServiceIdsByScopes(scopes.stream().map(s -> s.toLowerCase()).collect(Collectors.toSet()));
-	}
-
-	/**
-	 * @return
-	 */
-	public List<ServiceScope> findAllScopes() {
-		return scopeRepo.findAll();
-	}
 	
 }

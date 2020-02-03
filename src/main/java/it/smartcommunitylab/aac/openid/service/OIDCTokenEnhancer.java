@@ -127,7 +127,7 @@ public class OIDCTokenEnhancer  {
             	scope.add(Config.SCOPE_OPENID);
             }
             Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request().getAuthorities();
-            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
+            Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
             // set directly, ignore extracted
             userClaims.remove("sub");
             userClaims.entrySet().forEach(e -> idClaims.claim(e.getKey(), e.getValue()));

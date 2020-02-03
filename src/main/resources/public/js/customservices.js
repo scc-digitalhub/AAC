@@ -160,7 +160,7 @@ angular.module('aac.controllers.customservices', [])
 			$scope.currService.claimMapping = 
 				'/**\n * DEFINE YOUR OWN CLAIM MAPPING HERE\n' +
 				'**/\n'+
-				'function claimMapping(claims) {\n   return claims;\n}';
+				'function claimMapping(claims) {\n   return {};\n}';
 		}
 	}
 	$scope.aceOption = {
@@ -185,7 +185,7 @@ angular.module('aac.controllers.customservices', [])
 			}
 		}, function(e) {
 			$scope.validationResult = '';
-			$scope.validationError = e; 			
+			$scope.validationError = e.data.errorMessage; 			
 		});
 	}
 	$scope.saveClaimMapping = function() {

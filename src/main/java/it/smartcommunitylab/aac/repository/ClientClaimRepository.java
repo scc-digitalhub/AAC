@@ -15,7 +15,10 @@
  */
 package it.smartcommunitylab.aac.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.model.ClientClaim;
@@ -27,4 +30,7 @@ import it.smartcommunitylab.aac.model.ClientClaim;
  */
 @Repository
 public interface ClientClaimRepository extends JpaRepository<ClientClaim, String> {
+
+	@Query("select cc from ClientClaim cc where cc.client.clientId = ?1")
+	List<ClientClaim> findByClient(String client);
 }

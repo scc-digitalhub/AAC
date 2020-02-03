@@ -151,7 +151,7 @@ public class UserInfoView extends AbstractView {
 	 * @return the filtered JsonObject result
 	 */
 	private Map<String, Object> toJsonFromRequestObj(User user, Collection<? extends GrantedAuthority> selectedAuthorities, ClientDetailsEntity client, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {		
-		return claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, authorizedClaims, requestedClaims);
+		return claimManager.getUserClaims(user.getId().toString(), selectedAuthorities, client, scope, authorizedClaims, requestedClaims);
 	}
 
 }
