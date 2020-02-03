@@ -121,7 +121,8 @@ public class Config {
 
     /** scopes for api management */
     public static final String SCOPE_APIMANAGEMENT = "apimanagement";
-
+    /** scopes for api management */
+    public static final String SCOPE_SERVICEMANAGEMENT = "servicemanagement";
 
     /** scopes for authorization */
     public static final String SCOPE_AUTH_MANAGE = "authorization.manage";

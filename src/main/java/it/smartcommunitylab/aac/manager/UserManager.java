@@ -167,6 +167,15 @@ public class UserManager {
 		return user;
 	}
 	
+	/**
+	 * Get user with the specified username
+	 * @param username
+	 * @return
+	 */
+	public User getUserByUsername(String username) {
+		return userRepository.findByUsername(username);
+	}
+	
 	public Set<Role> getOwnedSpaceAt(String context) throws AccessDeniedException {
 		User user = getUser();
 		if (user == null) {
@@ -246,10 +255,6 @@ public class UserManager {
 		return Collections.emptySet();
 	}
 	
-	public String getUserAsClient() {
-		return (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-	}
-
 	/**
 	 * @param userId
 	 * @return
