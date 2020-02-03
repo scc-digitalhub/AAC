@@ -15,7 +15,10 @@
  */
 package it.smartcommunitylab.aac.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.model.UserClaim;
@@ -27,4 +30,7 @@ import it.smartcommunitylab.aac.model.UserClaim;
  */
 @Repository
 public interface UserClaimRepository extends JpaRepository<UserClaim, Long> {
+	
+	@Query("select uc from UserClaim uc where uc.user.id = ?1")
+	List<UserClaim> findByUser(Long userId);
 }

@@ -187,7 +187,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             logger.trace("selected authorities: "+selectedAuthorities.toString());
 
             // delegate to claim manager
-            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities,
+            Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
             // set directly later on, ignore provided
             if (userClaims.containsKey("sub")) {
@@ -195,6 +195,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             }
             claims.putAll(userClaims);
         }
+        
+        // eventual client claims
+        Map<String, Object> clientClaims = claimManager.getClientClaims(clientId, request.getScope());
+        claims.putAll(clientClaims);
 
         // explicitly set sub to userId
         if (user != null) {

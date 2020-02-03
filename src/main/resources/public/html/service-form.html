@@ -83,7 +83,9 @@
 <div ng-if="currService.claims && currService.claims.length > 0">
 <div class="row"><p/></div>
 <div class="row">
-  <div class="col col-md-9"><h4>Claim mapping</h4></div>
+  <div class="col col-md-9"><h4>Claim mapping</h4>
+  <p>Claim mapping function should return fully-qualified claims of the current service ONLY. </p>
+  </div>
     <div class="col col-md-3 text-right">
       <button class="btn btn-primary" type="button" ng-click="saveClaimMapping()">Update mapping</button>
     </div>

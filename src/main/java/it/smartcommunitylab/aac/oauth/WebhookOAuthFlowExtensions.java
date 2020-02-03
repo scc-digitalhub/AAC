@@ -143,9 +143,14 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 	}
 	
 	protected String extractToken(AuthorizationRequest authorizationRequest, Authentication userAuthentication, ClientDetailsEntity client) throws FlowExecutionException {
-		Map<String, Object> claimMap = claimManager.createUserClaims(userAuthentication.getName(), userAuthentication.getAuthorities(), client, authorizationRequest.getScope(), null, null);
+		Map<String, Object> claimMap = claimManager.getUserClaims(userAuthentication.getName(), userAuthentication.getAuthorities(), client, authorizationRequest.getScope(), null, null);
 		JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder();
 		claimMap.entrySet().forEach(e -> builder.claim(e.getKey(), e.getValue()));
+		
+        // eventual client claims
+        Map<String, Object> clientClaims = claimManager.getClientClaims(client.getClientId(), authorizationRequest.getScope());
+        clientClaims.entrySet().forEach(e -> builder.claim(e.getKey(), e.getValue()));
+
 		
         List<String> audiences = new LinkedList<>();
         audiences.add(client.getClientId());

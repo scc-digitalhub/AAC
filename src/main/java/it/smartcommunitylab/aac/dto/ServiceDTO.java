@@ -16,9 +16,12 @@
 
 package it.smartcommunitylab.aac.dto;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import it.smartcommunitylab.aac.Config.AUTHORITY;
+import it.smartcommunitylab.aac.model.ServiceClaim;
 
 /**
  * @author raman
@@ -34,6 +37,8 @@ public class ServiceDTO {
 	private String claimMapping;
 	private List<ServiceScopeDTO> scopes;
 	private List<ServiceClaimDTO> claims;
+	
+	private Map<String, ServiceClaimDTO> claimMap;
 	
 	public String getServiceId() {
 		return serviceId;
@@ -97,6 +102,14 @@ public class ServiceDTO {
 
 	public void setClaims(List<ServiceClaimDTO> claims) {
 		this.claims = claims;
+	}
+	
+	public Map<String, ServiceClaimDTO> claimMap() {
+		if (claimMap == null) {
+			claimMap = new HashMap<>();
+			if (claims != null) claims.forEach(c -> claimMap.put(ServiceClaim.qualifiedName(namespace, c.claim), c));
+		}
+		return claimMap;
 	}
 
 	public static class ServiceScopeDTO {
