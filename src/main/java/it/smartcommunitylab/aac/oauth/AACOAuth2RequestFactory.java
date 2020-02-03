@@ -84,6 +84,18 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 
 		Set<String> scopes = extractScopes(authorizationParameters, clientId);
 		
+        // workaround to support "id_token" requests
+        // TODO fix with proper support in AuthorizationEndpoint
+        if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
+            // ensure one of code or token is requested
+            if (!responseTypes.contains(Config.RESPONSE_TYPE_CODE)
+                    && !responseTypes.contains(Config.RESPONSE_TYPE_TOKEN)) {
+                //treat it like an implicit flow call
+                responseTypes.add(Config.RESPONSE_TYPE_TOKEN);
+            }
+
+        }
+		
 		logger.trace("create authorization request for "+clientId
 		        +" response "+responseTypes.toString()
                 +" scope "+ String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
