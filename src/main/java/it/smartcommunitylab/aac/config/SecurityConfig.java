@@ -710,4 +710,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return resource;
     }
     
+    @Bean
+    protected ResourceServerConfiguration serviceManagementResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/api/services**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/api/services**")
+				.permitAll()
+				.antMatchers("/api/services**").access("#oauth2.hasScope('"+Config.SCOPE_SERVICEMANAGEMENT+"')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(14);
+		return resource;
+    }
 }
