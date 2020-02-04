@@ -178,7 +178,6 @@ public class OIDCTokenEnhancer  {
         
 		idClaims.issuer(issuer);
 		idClaims.subject(authentication.getName());
-
 		idClaims.jwtID(UUID.randomUUID().toString()); // set a random NONCE in the middle of it
         idClaims.claim("azp", clientId);
 
