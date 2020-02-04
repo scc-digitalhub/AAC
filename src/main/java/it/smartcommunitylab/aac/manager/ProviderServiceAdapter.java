@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,15 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Sets;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.Authority;
 import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.AttributeRepository;
 import it.smartcommunitylab.aac.repository.AuthorityRepository;
@@ -58,8 +52,6 @@ public class ProviderServiceAdapter {
 	private UserRepository userRepository;
 	@Autowired
 	private AttributeRepository attributeRepository;
-	@Autowired
-	private ServiceManager serviceManager;	
 
 	/**
 	 * Updates of user attributes using the values obtained from http request
@@ -166,33 +158,5 @@ public class ProviderServiceAdapter {
 	private List<Attribute> extractIdentityAttributes(Authority auth, Map<String, String> attributes, boolean all) {
 		return attrAdapter.findAllIdentityAttributes(auth, attributes, all);
 	}
-	
-	
-	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
-		Set<String> newScopes = Sets.newHashSet();
-		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
-		for (String scope : scopes) {
-			ServiceScope resource = serviceManager.getServiceScope(scope);
-			if (resource != null) {
-				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
-				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
-				if (isUser && !isResourceUser) {
-					continue;
-				}
-				if (!isUser && !isResourceClient) {
-					continue;
-				}
-				
-				if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
-					Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
-					if (!Sets.intersection(roleNames, roles).isEmpty()) {
-						newScopes.add(scope);
-					}
-				} else {
-					newScopes.add(scope);
-				}
-			}
-		}
-		return newScopes;
-	}
+
 }
