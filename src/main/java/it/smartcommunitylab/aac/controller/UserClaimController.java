@@ -24,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -51,8 +53,8 @@ import it.smartcommunitylab.aac.model.Response;
  * @author raman
  *
  */
-//@Controller
-@Api(tags = { "AAC User Claims" })
+@Controller
+@Api(tags = { "AAC Claims" })
 public class UserClaimController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -62,10 +64,6 @@ public class UserClaimController {
 	private UserManager userManager;
 
 	
-	// TODO
-	// - get single user claims for specific service
-	// - update user claims for service (all at once)
-
 	/**
 	 * Read users with the claims of the specified service
 	 * @param serviceId
@@ -76,12 +74,9 @@ public class UserClaimController {
 	 */
 	@ApiOperation(value="Get list of user with the claims of the specified service, with pagination")
 	@RequestMapping(value = "/api/claims/{serviceId:.*}", method = RequestMethod.GET)
-	public @ResponseBody Response getUsers(@PathVariable String serviceId, @RequestParam(required = false) String name, Pageable page) throws Exception {
-		Response response = new Response();
+	public @ResponseBody ResponseEntity<Page<UserClaimProfileDTO>> getUsers(@PathVariable String serviceId, @RequestParam(required = false) String name, Pageable page) throws Exception {
 		Page<UserClaimProfileDTO> claims = claimManager.getServiceUserClaims(userManager.getUserOrOwner(), serviceId, name, page);
-		response.setData(claims);
-
-		return response;
+		return ResponseEntity.ok(claims);
 	}
 
 
@@ -91,10 +86,8 @@ public class UserClaimController {
 	 */
 	@ApiOperation(value="Get service claims for the specified User")
 	@RequestMapping(value = "/api/claims/{serviceId:.*}/{userId:.*}", method = RequestMethod.GET)
-	public @ResponseBody Response getClaims(@PathVariable String serviceId, @PathVariable String userId) {
-		Response response = new Response();
-		response.setData(claimManager.getServiceUserClaims(userManager.getUserOrOwner(), serviceId, userId));
-		return response;
+	public @ResponseBody ResponseEntity<UserClaimProfileDTO> getClaims(@PathVariable String serviceId, @PathVariable String userId) {
+		return ResponseEntity.ok(claimManager.getServiceUserClaims(userManager.getUserOrOwner(), serviceId, userId));
 	} 
 
 	/**
@@ -104,12 +97,9 @@ public class UserClaimController {
 	 * @throws InvalidDefinitionException 
 	 */
 	@ApiOperation(value="Update service claims for user")
-	@RequestMapping(value="/api/claims{serviceId:.*}/{userId:.*}",method=RequestMethod.POST)
-	public @ResponseBody Response saveClaims(@PathVariable String serviceId, @PathVariable String userId, @RequestBody UserClaimProfileDTO dto) throws InvalidDefinitionException {
-		Response response = new Response();
-		response.setData(claimManager.saveServiceUserClaims(userManager.getUserOrOwner(), serviceId, userId, dto));
-		
-		return response;
+	@RequestMapping(value="/api/claims/{serviceId:.*}/{userId:.*}",method=RequestMethod.POST)
+	public @ResponseBody ResponseEntity<UserClaimProfileDTO> saveClaims(@PathVariable String serviceId, @PathVariable String userId, @RequestBody UserClaimProfileDTO dto) throws InvalidDefinitionException {
+		return ResponseEntity.ok(claimManager.saveServiceUserClaims(userManager.getUserOrOwner(), serviceId, userId, dto));
 	}
 
 	@ExceptionHandler(SecurityException.class)

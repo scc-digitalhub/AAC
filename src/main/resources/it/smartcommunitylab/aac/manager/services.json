@@ -200,6 +200,33 @@
     ],
     "claims": []
   },
+  {
+    "serviceId": "claim.management",
+    "name": "Custom User Claim Management",
+    "description": "Core service for managing custom user claims",
+    "scopes": [
+      {
+        "scope": "claimmanagement",
+        "name": "Manage custom user claims",
+        "description": "Manage custom user claim values",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_CLIENT",
+        "approvalRequired": false
+      },
+      {
+        "scope": "claimmanagement.me",
+        "name": "Manage custom claims for owned services",
+        "description": "Manage custom user claims for the services owned by the user",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      }
+      
+    ],
+    "claims": []
+  },
     {
     "serviceId": "carbon.super-AACAuthorization-1.0.0",
     "name": "Authorization Service",

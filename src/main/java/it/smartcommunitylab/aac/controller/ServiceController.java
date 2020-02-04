@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -72,12 +73,8 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Get list of all services, with pagination")
 	@RequestMapping(value = "/api/services", method = RequestMethod.GET)
-	public @ResponseBody Response getServices(@RequestParam(required = false) String name, Pageable page) throws Exception {
-		Response response = new Response();
-		Page<ServiceDTO> services = serviceManager.getAllServices(name, page);
-		response.setData(services);
-
-		return response;
+	public @ResponseBody ResponseEntity<Page<ServiceDTO>> getServices(@RequestParam(required = false) String name, Pageable page) throws Exception {
+		return ResponseEntity.ok(serviceManager.getAllServices(name, page));
 	}
 
 
@@ -87,13 +84,11 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Get a service definition")
 	@RequestMapping(value="/api/services/{serviceId:.*}",method=RequestMethod.GET)
-	public @ResponseBody Response getService(@PathVariable String serviceId) {
-		Response response = new Response();
+	public @ResponseBody ResponseEntity<ServiceDTO> getService(@PathVariable String serviceId) {
 		ServiceDTO service = serviceManager.getService(serviceId);
 		service.setScopes(serviceManager.getServiceScopes(serviceId));
 		service.setClaims(serviceManager.getServiceClaims(serviceId));
-		response.setData(service);
-		return response;
+		return ResponseEntity.ok(service);
 	} 
 
 	/**
@@ -103,11 +98,8 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Create or update a service definition")
 	@RequestMapping(value="/api/services",method=RequestMethod.POST)
-	public @ResponseBody Response saveService(@RequestBody ServiceDTO sd) {
-		Response response = new Response();
-		response.setData(serviceManager.saveService(userManager.getUserOrOwner(), sd));
-		
-		return response;
+	public @ResponseBody ResponseEntity<ServiceDTO> saveService(@RequestBody ServiceDTO sd) {
+		return ResponseEntity.ok(serviceManager.saveService(userManager.getUserOrOwner(), sd));
 	}
 
 	/**
@@ -117,11 +109,9 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Delete a service definition")
 	@RequestMapping(value="/api/services/{serviceId:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteService(@PathVariable String serviceId) {
-		Response response = new Response();
+	public @ResponseBody ResponseEntity<Void> deleteService(@PathVariable String serviceId) {
 		serviceManager.deleteService(userManager.getUserOrOwner(), serviceId);
-		
-		return response;
+		return ResponseEntity.ok(null);
 	}
 
 	/**
@@ -131,10 +121,8 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Create or update scope definition")
 	@RequestMapping(value="/api/services/{serviceId}/scope",method=RequestMethod.PUT)
-	public @ResponseBody Response addScope(@PathVariable String serviceId, @RequestBody ServiceScopeDTO scope) {
-		Response response = new Response();
-		response.setData(serviceManager.saveServiceScope(userManager.getUserOrOwner(), serviceId, scope));
-		return response;
+	public @ResponseBody ResponseEntity<ServiceScopeDTO> addScope(@PathVariable String serviceId, @RequestBody ServiceScopeDTO scope) {
+		return ResponseEntity.ok(serviceManager.saveServiceScope(userManager.getUserOrOwner(), serviceId, scope));
 	}
 
 	/**
@@ -145,10 +133,9 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Delete a scope definition")
 	@RequestMapping(value="/api/services/{serviceId}/scope/{scope:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteScope(@PathVariable String serviceId, @PathVariable String scope) {
-		Response response = new Response();
+	public @ResponseBody ResponseEntity<Void> deleteScope(@PathVariable String serviceId, @PathVariable String scope) {
 		serviceManager.deleteServiceScope(userManager.getUserOrOwner(), serviceId, scope);
-		return response;
+		return ResponseEntity.ok(null);
 	}
 
 	/**
@@ -158,10 +145,8 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Create or update claim definition")
 	@RequestMapping(value="/api/services/{serviceId}/claim",method=RequestMethod.PUT)
-	public @ResponseBody Response addClaim(@PathVariable String serviceId, @RequestBody ServiceClaimDTO scope) {
-		Response response = new Response();
-		response.setData(serviceManager.saveServiceClaim(userManager.getUserOrOwner(), serviceId, scope));
-		return response;
+	public @ResponseBody ResponseEntity<ServiceClaimDTO> addClaim(@PathVariable String serviceId, @RequestBody ServiceClaimDTO scope) {
+		return ResponseEntity.ok(serviceManager.saveServiceClaim(userManager.getUserOrOwner(), serviceId, scope));
 	}
 
 	/**
@@ -172,10 +157,9 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Delete claim definition")
 	@RequestMapping(value="/api/services/{serviceId}/claim/{claim:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteClaim(@PathVariable String serviceId, @PathVariable String claim) {
-		Response response = new Response();
+	public @ResponseBody ResponseEntity<Void> deleteClaim(@PathVariable String serviceId, @PathVariable String claim) {
 		serviceManager.deleteServiceClaim(userManager.getUserOrOwner(), serviceId, claim);
-		return response;
+		return ResponseEntity.ok(null);
 	}
 	
 	

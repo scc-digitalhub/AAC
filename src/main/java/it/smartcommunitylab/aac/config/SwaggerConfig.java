@@ -170,6 +170,41 @@ public class SwaggerConfig {
 	}
 
  
+	/***************** CLAIMS AAC API **********/ 
+    @Bean
+    public Docket apiClaims() { 
+        return new Docket(DocumentationType.SWAGGER_2)
+          .groupName("AAC Custom User Claims")
+          .apiInfo(apiInfo(conf.title.get("AACClaims"), conf.description.get("AACClaims")))
+          .select()                                  
+          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
+          .paths(PathSelectors.regex("/api/claims/.*"))
+          .build()
+          .tags(new Tag("AAC Claims", "Custom User Claims"))
+          .securitySchemes(Arrays.asList(
+                  securitySchemeUser(aacClaimMgmtUser()), 
+                  securitySchemeApp(aacClaimMgmt())
+                  ))
+          .securityContexts(Arrays.asList(
+        		  SecurityContext.builder()
+          			.securityReferences(Arrays.asList(new SecurityReference("application", aacClaimMgmt()), new SecurityReference("spring_oauth", aacClaimMgmtUser())))
+          			.forPaths(PathSelectors.regex("/api/claims/.*"))
+          			.build()
+                  ));                                           
+    }
+    
+	private AuthorizationScope[] aacClaimMgmt() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("claimmanagement", "Manage custom user claim values"), 
+		};
+		return scopes;
+	}
+	private AuthorizationScope[] aacClaimMgmtUser() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("claimmanagement.me", "Manage custom user claims for the services owned by the user"), 
+		};
+		return scopes;
+	}
     /*************************************************************************/         
     
 	/***************** Core AAC API - PROFILES, TOKEN INTROSPECTION **********/ 
