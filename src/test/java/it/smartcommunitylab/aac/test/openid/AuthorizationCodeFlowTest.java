@@ -53,6 +53,7 @@ import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.openid.endpoint.JWKSetPublishingEndpoint;
 import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
 import it.smartcommunitylab.aac.openid.service.IdTokenHashUtils;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -285,7 +286,7 @@ public class AuthorizationCodeFlowTest {
             // asymmetric sign, need public key
             // fetch JWKs from AAC
             JWKSet jwks = OpenidUtils.fetchJWKS(restTemplate,
-                    server + ":" + port + contextPath + OpenIDMetadataEndpoint.OPENID_CONFIGURATION_URL);
+                    server + ":" + port + contextPath + JWKSetPublishingEndpoint.JWKS_URL);
             // build service
             JWTSigningAndValidationService signService = new DefaultJWTSigningAndValidationService(
                     new JWKSetKeyStore(jwks));
@@ -318,8 +319,9 @@ public class AuthorizationCodeFlowTest {
         Assert.assertEquals(issuer, claims.getString("iss"));
         // nonce should match with the one passed
         Assert.assertEquals(nonce, claims.getString("nonce"));
-        // scope should contain the requested ones
-        Assert.assertTrue(claims.getString("scope").contains(SCOPE));
+        //not in spec
+//        // scope should contain the requested ones
+//        Assert.assertTrue(claims.getString("scope").contains(SCOPE));
         // audience should contain or match ourselves
         String[] audiences = toStringArray(claims.optJSONArray("aud"));
         if (audiences != null) {
@@ -493,7 +495,7 @@ public class AuthorizationCodeFlowTest {
             // asymmetric sign, need public key
             // fetch JWKs from AAC
             JWKSet jwks = OpenidUtils.fetchJWKS(restTemplate,
-                    server + ":" + port + contextPath + OpenIDMetadataEndpoint.OPENID_CONFIGURATION_URL);
+                    server + ":" + port + contextPath + JWKSetPublishingEndpoint.JWKS_URL);
             // build service
             JWTSigningAndValidationService signService = new DefaultJWTSigningAndValidationService(
                     new JWKSetKeyStore(jwks));
@@ -526,8 +528,9 @@ public class AuthorizationCodeFlowTest {
         Assert.assertEquals(issuer, claims.getString("iss"));
         // nonce should match with the one passed
         Assert.assertEquals(nonce, claims.getString("nonce"));
-        // scope should contain the requested ones
-        Assert.assertTrue(claims.getString("scope").contains(SCOPE));
+        //not in spec
+//        // scope should contain the requested ones
+//        Assert.assertTrue(claims.getString("scope").contains(SCOPE));
         // audience should contain or match ourselves
         String[] audiences = toStringArray(claims.optJSONArray("aud"));
         if (audiences != null) {
