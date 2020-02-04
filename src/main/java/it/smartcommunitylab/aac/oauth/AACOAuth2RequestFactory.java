@@ -26,7 +26,6 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
@@ -47,9 +46,6 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 	@Autowired
 	private UserRepository userRepository;
 	
-	@Autowired
-	private ProviderServiceAdapter providerService;	
-
 	@Autowired
 	private UserManager userManager;
 	
@@ -79,8 +75,9 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		String clientId = authorizationParameters.get(OAuth2Utils.CLIENT_ID);
 		String state = authorizationParameters.get(OAuth2Utils.STATE);
 		String redirectUri = authorizationParameters.get(OAuth2Utils.REDIRECT_URI);
-		Set<String> responseTypes = OAuth2Utils.parseParameterList(authorizationParameters
-				.get(OAuth2Utils.RESPONSE_TYPE));
+		String responseTypesString = authorizationParameters.get(OAuth2Utils.RESPONSE_TYPE);
+		if (!StringUtils.isEmpty(responseTypesString)) responseTypesString = responseTypesString.replace("%20", " ");
+		Set<String> responseTypes = OAuth2Utils.parseParameterList(responseTypesString);
 
 		Set<String> scopes = extractScopes(authorizationParameters, clientId);
 		
@@ -248,7 +245,7 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		}
 
 		if (user != null) {
-			newScopes = providerService.userScopes(user, scopes, isUser);
+			newScopes = userManager.userScopes(user, scopes, isUser);
 		}
 
 		return newScopes;

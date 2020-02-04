@@ -106,12 +106,12 @@ import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -380,6 +380,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		private ProviderServiceAdapter providerServiceAdapter;
 		
 		@Autowired
+		private UserManager userManager;
+		
+		@Autowired
 		@Qualifier("appTokenServices")
 		private AuthorizationServerTokenServices resourceServerTokenServices;
 		
@@ -450,7 +453,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			// insert PKCE auth code granter as the first one, before default implementation
 			granters.add(0,new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
 			// custom native flow support
-			granters.add(new NativeTokenGranter(providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
+			granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
 			return new CompositeTokenGranter(granters);
 		}
 	}

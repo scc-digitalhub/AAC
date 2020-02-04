@@ -41,10 +41,13 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.dto.UserProfile;
@@ -52,6 +55,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.OAuthApproval;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
@@ -368,5 +372,33 @@ public class UserManager {
 		}
 		
 		return getConnectedApps(user);
+	}
+	
+	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
+		Set<String> newScopes = Sets.newHashSet();
+		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
+		for (String scope : scopes) {
+			ServiceScope resource = serviceManager.getServiceScope(scope);
+			if (resource != null) {
+				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
+				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
+				if (isUser && !isResourceUser) {
+					continue;
+				}
+				if (!isUser && !isResourceClient) {
+					continue;
+				}
+				
+				if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
+					Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
+					if (!Sets.intersection(roleNames, roles).isEmpty()) {
+						newScopes.add(scope);
+					}
+				} else {
+					newScopes.add(scope);
+				}
+			}
+		}
+		return newScopes;
 	}
 }
