@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -156,13 +154,17 @@ public class OIDCTokenEnhancer  {
 			idClaims.expirationTime(expiration);
 		}
 
-        List<String> audiences = new LinkedList<>();
-        audiences.add(clientId);
-        audiences.addAll(getServiceIds(request.getScope()));
+		//DISABLED multiple audiences same as accessToken
+//        List<String> audiences = new LinkedList<>();
+//        audiences.add(clientId);
+//        audiences.addAll(getServiceIds(request.getScope()));
+//		idClaims.audience(audiences);
 
+		//set single audience as string
+        idClaims.audience(clientId);
+        
 		idClaims.issuer(issuer);
 		idClaims.subject(authentication.getName());
-		idClaims.audience(audiences);
 		idClaims.jwtID(UUID.randomUUID().toString()); // set a random NONCE in the middle of it
         idClaims.claim("azp", clientId);
 
@@ -172,7 +174,8 @@ public class OIDCTokenEnhancer  {
 		}
 
 		//add additional claims for scopes
-		idClaims.claim("scope", String.join(" ", request.getScope()));
+		//DISABLED, not in the spec
+//		idClaims.claim("scope", String.join(" ", request.getScope()));
 		
 		Set<String> responseTypes = request.getResponseTypes();
 

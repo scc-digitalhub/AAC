@@ -77,10 +77,27 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		String redirectUri = authorizationParameters.get(OAuth2Utils.REDIRECT_URI);
 		String responseTypesString = authorizationParameters.get(OAuth2Utils.RESPONSE_TYPE);
 		if (!StringUtils.isEmpty(responseTypesString)) responseTypesString = responseTypesString.replace("%20", " ");
-		Set<String> responseTypes = OAuth2Utils.parseParameterList(responseTypesString);
-
-		Set<String> scopes = extractScopes(authorizationParameters, clientId);
+		Set<String> responseTypes = OAuth2Utils.parseParameterList(
+				decodeParameters(authorizationParameters.get(OAuth2Utils.RESPONSE_TYPE))
+				);
+		Set<String> scopes = extractScopes(
+		        authorizationParameters,
+		        OAuth2Utils.parseParameterList(
+                decodeParameters(authorizationParameters.get(OAuth2Utils.SCOPE))),
+                clientId);
 		
+		// workaround to support "id_token" requests
+        // TODO fix with proper support in AuthorizationEndpoint
+        if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
+            // ensure one of code or token is requested
+            if (!responseTypes.contains(Config.RESPONSE_TYPE_CODE)
+                    && !responseTypes.contains(Config.RESPONSE_TYPE_TOKEN)) {
+                //treat it like an implicit flow call
+                responseTypes.add(Config.RESPONSE_TYPE_TOKEN);
+            }
+
+        }
+        
 		logger.trace("create authorization request for "+clientId
 		        +" response "+responseTypes.toString()
                 +" scope "+ String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
@@ -123,7 +140,10 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		if(Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
 		       Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) || 
 		       Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
-		    scopes = extractScopes(requestParameters, clientId);
+			scopes = extractScopes(requestParameters,
+		            OAuth2Utils.parseParameterList(
+	                decodeParameters(requestParameters.get(OAuth2Utils.SCOPE))),
+	                clientId);
 		}
 		
         logger.trace("create token request for " + clientId
@@ -146,29 +166,28 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		return tokenRequest.createOAuth2Request(client);
 	}
 
-    private Set<String> extractScopes(Map<String, String> requestParameters, String clientId) {
-        // fetch from requestParams, which here are somehow not decoded
-        String scope = requestParameters.get(OAuth2Utils.SCOPE);
-        
-        Set<String> scopes = new HashSet<>();
-
-        if (StringUtils.isNotBlank(scope)) {
+	private String decodeParameters(String value) {
+        String result = value;
+        if (StringUtils.isNotBlank(result)) {
 
             // check if spaces are still encoded as %20
-            if (scope.contains("%20")) {
+            if (result.contains("%20")) {
                 // replace with spaces
-                scope = scope.replace("%20", " ");
-            }
-
-            // consider both spaces and commas as separators
-            String[] scopeArr = scope.split(",");
-            for (String s : scopeArr) {
-                scopes.addAll(OAuth2Utils.parseParameterList(s));
+                result = result.replace("%20", " ");
             }
             
-            logger.trace("scopes from parameters "+scopes.toString());
+            //check if strings are separated with comma (out of spec)
+            if(result.contains(",")) {
+                result = result.replace(",", " ");
+            }
         }
-        
+        logger.trace("decode "+value+" to "+result);
+        return result;
+    }
+
+    //TODO cleanup requestParameters and rework checkUserScopes
+    private Set<String> extractScopes(Map<String, String> requestParameters, Set<String> scopes, String clientId) {
+        logger.trace("scopes from parameters "+scopes.toString());
         ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 
         try {
