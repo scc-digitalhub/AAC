@@ -46,7 +46,7 @@
         "description": "Basic profile of the platform users. Read access only.",
         "claims": [],
         "roles": ["components/apimanager/carbon.super:profilemanager"],
-        "authority": "ROLE_ANY",
+        "authority": "ROLE_CLIENT",
         "approvalRequired": false
       },
       {
@@ -184,9 +184,19 @@
         "description": "Manage definitions of services, scopes, and claims",
         "claims": [],
         "roles": [],
-        "authority": "ROLE_ANY",
+        "authority": "ROLE_CLIENT",
+        "approvalRequired": false
+      },
+      {
+        "scope": "servicemanagement.me",
+        "name": "Manage owned service data",
+        "description": "Manage owned definitions of services, scopes, and claims",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_USER",
         "approvalRequired": false
       }
+      
     ],
     "claims": []
   },

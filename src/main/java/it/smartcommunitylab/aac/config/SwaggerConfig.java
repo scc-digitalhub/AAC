@@ -133,7 +133,7 @@ public class SwaggerConfig {
  
     
 
-    /***************** OAUTH2 AAC API **********/ 
+    /***************** SERVICES AAC API **********/ 
     @Bean
     public Docket apiServices() { 
         return new Docket(DocumentationType.SWAGGER_2)
@@ -145,16 +145,26 @@ public class SwaggerConfig {
           .build()
           .tags(new Tag("AAC Services", "Service, Scope, Claim definitions"))
           .securitySchemes(Arrays.asList(
+                  securitySchemeUser(aacServiceMgmtUser()), 
                   securitySchemeApp(aacServiceMgmt())
                   ))
           .securityContexts(Arrays.asList(
-                  securityContext(aacServiceMgmt(), "/api/services.*", "application")
+        		  SecurityContext.builder()
+          			.securityReferences(Arrays.asList(new SecurityReference("application", aacServiceMgmt()), new SecurityReference("spring_oauth", aacServiceMgmtUser())))
+          			.forPaths(PathSelectors.regex("/api/services.*"))
+          			.build()
                   ));                                           
     }
     
 	private AuthorizationScope[] aacServiceMgmt() {
 		AuthorizationScope[] scopes = { 
 				new AuthorizationScope("servicemanagement", "Core service for managing service, scope, and claim definitions."), 
+		};
+		return scopes;
+	}
+	private AuthorizationScope[] aacServiceMgmtUser() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("servicemanagement.me", "Core service for managing owned service, scope, and claim definitions."), 
 		};
 		return scopes;
 	}
