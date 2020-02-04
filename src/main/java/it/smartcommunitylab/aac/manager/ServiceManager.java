@@ -282,6 +282,15 @@ public class ServiceManager {
 	}
 	
 	/**
+	 * List claims of the specified service
+	 * @param serviceId
+	 * @return
+	 */
+	public List<ServiceClaim> getServiceClaimsDB(String serviceId) {
+		return claimRepo.findByService(serviceId);
+	}
+	
+	/**
 	 * Save service scope definition
 	 * @param user
 	 * @param serviceId
