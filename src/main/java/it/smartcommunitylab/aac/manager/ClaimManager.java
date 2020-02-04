@@ -34,11 +34,15 @@ import javax.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
@@ -54,6 +58,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
+import it.smartcommunitylab.aac.dto.UserClaimProfileDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientClaim;
@@ -70,10 +75,12 @@ import it.smartcommunitylab.aac.repository.UserClaimRepository;
  *
  */
 @Component
-@Transactional(readOnly = true)
+@Transactional
 public class ClaimManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 	
+    @Autowired
+    private UserManager userManager;
 	@Autowired
 	private BasicProfileManager profileManager;
 	@Autowired
@@ -92,6 +99,8 @@ public class ClaimManager {
 	private Set<String> systemScopes = 
 			Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "groups", "username", "user_name");
 
+	private static final ObjectMapper mapper = new ObjectMapper();
+	
 	/**
 	 * Create user claims map considering the authorized scopes, authorized claims and request claims.
 	 * The claims are constructed based on the user roles, user info, and accounts info 
@@ -103,6 +112,7 @@ public class ClaimManager {
 	 * @param requestedClaims
 	 * @return
 	 */
+	@Transactional(readOnly = true)
 	public Map<String, Object> getUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientDetailsEntity client, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims) {
 		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
 		try {
@@ -119,6 +129,7 @@ public class ClaimManager {
 	 * @param scopes
 	 * @return
 	 */
+	@Transactional(readOnly = true)
 	public Map<String, Object> getClientClaims(String clientId, Set<String> scopes) {
 		List<ClientClaim> claims = clientClaimRepository.findByClient(clientId);
 		if (claims.isEmpty()) return Collections.emptyMap();
@@ -149,6 +160,7 @@ public class ClaimManager {
 	 * @return
 	 * @throws InvalidDefinitionException 
 	 */
+	@Transactional(readOnly = true)
 	public Map<String, Object> validateUserClaimsForClientApp(User user, ClientAppInfo appInfo, Set<String> scopes) throws InvalidDefinitionException {
 		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo.getClaimMapping(), scopes, null, null, false, null);
 	}
@@ -162,6 +174,7 @@ public class ClaimManager {
 	 * @return
 	 * @throws InvalidDefinitionException
 	 */
+	@Transactional(readOnly = true)
 	public Map<String, Object> validateClaimMapping(User user, String serviceId, String mapping, Set<String> scopes) throws InvalidDefinitionException {
 		Map<String, Object> res = createUserClaims(user.getId().toString(), user.getRoles(), mapping, scopes, null, null, false, serviceId);
 		ServiceDTO service = serviceManager.getService(serviceId);
@@ -169,7 +182,106 @@ public class ClaimManager {
 		validateMappedClaims(res, service);
 		return res;
 	}
+	
+	
+	/**
+	 * Get users with the stored claims for the specified service 
+	 * @param owner
+	 * @param serviceId
+	 * @param name
+	 * @param page
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	public Page<UserClaimProfileDTO> getServiceUserClaims(User owner, String serviceId, String name, Pageable page) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return new PageImpl<>(Collections.emptyList());
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		Page<Object[]> userData = userClaimRepository.findUserDataByService(serviceId.toLowerCase(), page);
+		return userData.map(arr -> new UserClaimProfileDTO(((Long)arr[0]).toString(), (String)arr[1]));
+	}
+
+
+	/**
+	 * Get custom claims of the user for the specified service
+	 * @param owner
+	 * @param serviceId
+	 * @param userId
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	public UserClaimProfileDTO getServiceUserClaims(User owner, String serviceId, String userId) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return null;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		List<UserClaim> claims = userClaimRepository.findByUserAndService(Long.parseLong(userId), serviceId);
+		UserClaimProfileDTO user = new UserClaimProfileDTO();
+		User dbUser = claims.get(0).getUser();
+
+		if (claims.isEmpty()) {
+			dbUser = userManager.findOne(Long.parseLong(userId)); 
+		} else {
+			dbUser = claims.get(0).getUser();
+		}
+		user.setUserId(dbUser.getId().toString());
+		user.setUsername(dbUser.getUsername());
+		user.setClaims(claims.stream().collect(Collectors.toMap(uc -> ServiceClaim.qualifiedName(service.getNamespace(), uc.getClaim().getClaim()), uc -> ServiceClaim.typedValue(uc.getClaim(), uc.getValue()))));
+		return user;
 		
+	}
+
+
+	/**
+	 * Update claims for the specified user
+	 * @param owner
+	 * @param serviceId
+	 * @param userId
+	 * @param dto
+	 * @return
+	 * @throws InvalidDefinitionException 
+	 */
+	public UserClaimProfileDTO saveServiceUserClaims(User owner, String serviceId, String userId, UserClaimProfileDTO dto) throws InvalidDefinitionException {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return null;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		List<UserClaim> claims = userClaimRepository.findByUserAndService(Long.parseLong(userId), serviceId);
+		if (!claims.isEmpty()) {
+			userClaimRepository.delete(claims);
+		}
+		Map<String, ServiceClaim> qClaims = serviceManager.getServiceClaimsDB(serviceId).stream().collect(Collectors.toMap(c -> ServiceClaim.qualifiedName(service.getNamespace(), c.getClaim()), c -> c));
+		User dbUser = userManager.findOne(Long.parseLong(userId)); 
+
+		for (Entry<String, Object> entry : dto.getClaims().entrySet()) {
+			if (!qClaims.containsKey(entry.getKey())) {
+				throw new SecurityException("Unauthorized claim modification: " + serviceId+", "+ entry.getKey());
+			}
+			ServiceClaim serviceClaim = qClaims.get(entry.getKey());
+			UserClaim uc = new UserClaim();
+			uc.setUser(dbUser);
+			if (!ServiceClaim.ofType(entry.getValue(), serviceClaim.isMultiple(), serviceClaim.getType())) {
+				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
+			}
+			try {
+				uc.setValue(mapper.writeValueAsString(entry.getValue()));
+			} catch (JsonProcessingException e) {
+				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
+			}
+			uc.setClaim(serviceClaim);
+			userClaimRepository.save(uc);
+		}
+		
+		return getServiceUserClaims(owner, serviceId, userId);
+	}
+
 	
 	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);

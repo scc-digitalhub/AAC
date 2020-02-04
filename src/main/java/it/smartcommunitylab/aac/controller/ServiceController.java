@@ -25,9 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -48,11 +45,9 @@ import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
-import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Response;
-import it.smartcommunitylab.aac.model.User;
 
 /**
  * Controller for managing the services (resources), scopes, and claims
@@ -68,9 +63,6 @@ public class ServiceController {
 	private ServiceManager serviceManager;
 	@Autowired
 	private UserManager userManager;
-	@Autowired
-	private ClientDetailsManager clientManager;
-
 	
 	/**
 	 * Read services
@@ -113,7 +105,7 @@ public class ServiceController {
 	@RequestMapping(value="/api/services",method=RequestMethod.POST)
 	public @ResponseBody Response saveService(@RequestBody ServiceDTO sd) {
 		Response response = new Response();
-		response.setData(serviceManager.saveService(getUser(), sd));
+		response.setData(serviceManager.saveService(userManager.getUserOrOwner(), sd));
 		
 		return response;
 	}
@@ -127,7 +119,7 @@ public class ServiceController {
 	@RequestMapping(value="/api/services/{serviceId:.*}",method=RequestMethod.DELETE)
 	public @ResponseBody Response deleteService(@PathVariable String serviceId) {
 		Response response = new Response();
-		serviceManager.deleteService(getUser(), serviceId);
+		serviceManager.deleteService(userManager.getUserOrOwner(), serviceId);
 		
 		return response;
 	}
@@ -141,7 +133,7 @@ public class ServiceController {
 	@RequestMapping(value="/api/services/{serviceId}/scope",method=RequestMethod.PUT)
 	public @ResponseBody Response addScope(@PathVariable String serviceId, @RequestBody ServiceScopeDTO scope) {
 		Response response = new Response();
-		response.setData(serviceManager.saveServiceScope(getUser(), serviceId, scope));
+		response.setData(serviceManager.saveServiceScope(userManager.getUserOrOwner(), serviceId, scope));
 		return response;
 	}
 
@@ -155,7 +147,7 @@ public class ServiceController {
 	@RequestMapping(value="/api/services/{serviceId}/scope/{scope:.*}",method=RequestMethod.DELETE)
 	public @ResponseBody Response deleteScope(@PathVariable String serviceId, @PathVariable String scope) {
 		Response response = new Response();
-		serviceManager.deleteServiceScope(getUser(), serviceId, scope);
+		serviceManager.deleteServiceScope(userManager.getUserOrOwner(), serviceId, scope);
 		return response;
 	}
 
@@ -168,7 +160,7 @@ public class ServiceController {
 	@RequestMapping(value="/api/services/{serviceId}/claim",method=RequestMethod.PUT)
 	public @ResponseBody Response addClaim(@PathVariable String serviceId, @RequestBody ServiceClaimDTO scope) {
 		Response response = new Response();
-		response.setData(serviceManager.saveServiceClaim(getUser(), serviceId, scope));
+		response.setData(serviceManager.saveServiceClaim(userManager.getUserOrOwner(), serviceId, scope));
 		return response;
 	}
 
@@ -182,26 +174,8 @@ public class ServiceController {
 	@RequestMapping(value="/api/services/{serviceId}/claim/{claim:.*}",method=RequestMethod.DELETE)
 	public @ResponseBody Response deleteClaim(@PathVariable String serviceId, @PathVariable String claim) {
 		Response response = new Response();
-		serviceManager.deleteServiceClaim(getUser(), serviceId, claim);
+		serviceManager.deleteServiceClaim(userManager.getUserOrOwner(), serviceId, claim);
 		return response;
-	}
-
-	private User getUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof OAuth2Authentication) {
-        	OAuth2Authentication oauth = (OAuth2Authentication) auth;
-        	if (oauth.isClientOnly()) {
-        		String clientId = (String) oauth.getPrincipal();
-        		String userIdString = clientManager.getByClientId(clientId).getUserName();
-        		return userManager.findOne(Long.parseLong(userIdString));
-        	} else {
-        		String username = (String) oauth.getPrincipal();
-        		return userManager.getUserByUsername(username);
-        	}
-        } else {
-			String userIdString = auth.getName();
-    		return userManager.findOne(Long.parseLong(userIdString));
-        }
 	}
 	
 	

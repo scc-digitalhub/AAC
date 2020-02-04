@@ -17,6 +17,8 @@ package it.smartcommunitylab.aac.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -33,4 +35,10 @@ public interface UserClaimRepository extends JpaRepository<UserClaim, Long> {
 	
 	@Query("select uc from UserClaim uc where uc.user.id = ?1")
 	List<UserClaim> findByUser(Long userId);
+
+	@Query("select distinct uc.user.id, uc.user.username from UserClaim uc where uc.claim.service.serviceId = ?1")
+	Page<Object[]> findUserDataByService(String serviceId, Pageable page);
+
+	@Query("select uc from UserClaim uc where uc.user.id = ?1 and uc.claim.service.serviceId = ?1")
+	List<UserClaim> findByUserAndService(Long userId, String serviceId);
 }

@@ -35,6 +35,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.stereotype.Component;
@@ -263,6 +264,29 @@ public class UserManager {
 		return userRepository.findOne(userId);
 	}
 
+	/**
+	 * Take the currently authenticated user, the User from OAuth token, or Client owner for app token
+	 * @return
+	 */
+	public User getUserOrOwner() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof OAuth2Authentication) {
+        	OAuth2Authentication oauth = (OAuth2Authentication) auth;
+        	if (oauth.isClientOnly()) {
+        		String clientId = (String) oauth.getPrincipal();
+        		Long userId = clientDetailsRepository.findByClientId(clientId).getDeveloperId();
+        		return findOne(userId);
+        	} else {
+        		String username = (String) oauth.getPrincipal();
+        		return getUserByUsername(username);
+        	}
+        } else {
+			String userIdString = auth.getName();
+    		return findOne(Long.parseLong(userIdString));
+        }
+	}
+	
+	
 	/**
 	 * @param user
 	 */

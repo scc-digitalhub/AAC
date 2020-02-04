@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.authority;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +54,9 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 
 		Registration user = repository.findByEmail(email);
 		if (user == null) {
-			return Collections.emptyMap();
+			Map<String, String> result = new HashMap<>(map);
+			result.put(USERNAME_ATTRIBUTE, email);
+			return result;
 		} else {
 			Map<String, String> result = new HashMap<String, String>();
 			result.put(USERNAME_ATTRIBUTE, user.getEmail());
