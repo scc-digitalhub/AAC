@@ -7,29 +7,22 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.AnnotationConfigWebContextLoader;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.smartcommunitylab.aac.controller.RolesController;
-
-//DISABLED TODO update
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@WebAppConfiguration
-//@ContextConfiguration(classes = {
-//		AACRolesControllerTestConfig.class }, loader = AnnotationConfigWebContextLoader.class, initializers = ConfigFileApplicationContextInitializer.class)
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@EnableConfigurationProperties
 public class AACRolesControllerTest extends OAuth2AwareControllerTest {
 
 	private static final String TEST_ROLE = "TEST/TEST:TEST";
@@ -90,15 +83,15 @@ public class AACRolesControllerTest extends OAuth2AwareControllerTest {
 	}
 }
 
-@TestConfiguration
-@EnableWebMvc
-@ComponentScan(basePackages = { "it.smartcommunitylab.aac"})
-class AACRolesControllerTestConfig {
-
-	@Bean
-	public RolesController rolesController() {
-		return new RolesController();
-	}
-
-	
-}
+//@TestConfiguration
+//@EnableWebMvc
+//@ComponentScan(basePackages = { "it.smartcommunitylab.aac"})
+//class AACRolesControllerTestConfig {
+//
+//	@Bean
+//	public RolesController rolesController() {
+//		return new RolesController();
+//	}
+//
+//	
+//}

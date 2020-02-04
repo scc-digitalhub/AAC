@@ -20,10 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.manager.AttributesAdapter;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
@@ -41,12 +38,6 @@ public class OAuth2AwareControllerTest {
 	private RegistrationManager registrationManager;	
 	@Autowired
 	private UserRepository userRepository;
-	@Autowired
-	private AttributesAdapter attrAdapter;
-	@Autowired
-	private RoleManager roleManager;
-	@Autowired
-	private ServiceManager serviceManager;
 
 	protected ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -68,9 +59,6 @@ public class OAuth2AwareControllerTest {
 	 */
 	public void setUp() throws Exception {
 		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
-		serviceManager.init();
-		attrAdapter.init();
-		roleManager.init();
 
 		try {
 			user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
