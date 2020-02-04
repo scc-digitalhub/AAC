@@ -121,6 +121,7 @@ swagger:
       AACOAuth2: AAC API - OAuth2.0 
       AACOpenID: AAC API - OpenID Connect
       AACServices: AAC API - Service Definitions
+      AACClaims: AAC API - Custom User Claims
    description:
       AAC: Authorization and Authentication Control APIs - Profile and token info
       AACApiKey: Authorization and Authentication Control APIs - API Key validation and management
@@ -129,6 +130,7 @@ swagger:
       AACOAuth2: AAC API - OAuth2.0 operations 
       AACOpenID: AAC API - OpenID Connect implementation
       AACServices: AAC API - Service Definitions - Services (Resources), Scopes, Claims 
+      AACClaims: AAC API - Custom User Claims Management
    version: 1.0.0
    license: Apache License, Version 2.0
    licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
