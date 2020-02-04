@@ -1,0 +1,22 @@
+  
+jdbc:
+  dialect: org.hibernate.dialect.H2Dialect
+  driver: org.h2.Driver
+  url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
+  user: ac
+  password: ac
+
+logging:
+   level:
+      it.smartcommunitylab.aac: TRACE
+
+      
+oauth2:
+   jwt: true
+      
+# DEFAULT ADMIN CLIENT  
+adminClient:
+    id: test_client
+    secret: secret
+    scopes: clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all
+    redirects: http://localhost:8080
