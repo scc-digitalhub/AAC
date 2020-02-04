@@ -725,7 +725,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public void configure(HttpSecurity http) throws Exception {
 				http.antMatcher("/api/services**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/api/services**")
 				.permitAll()
-				.antMatchers("/api/services**").access("#oauth2.hasScope('"+Config.SCOPE_SERVICEMANAGEMENT+"')")
+				.antMatchers("/api/services**").access("#oauth2.hasAnyScope('"+Config.SCOPE_SERVICEMANAGEMENT+"', '"+Config.SCOPE_SERVICEMANAGEMENT_USER+"')")
 				.and().csrf().disable();
 			}
 
