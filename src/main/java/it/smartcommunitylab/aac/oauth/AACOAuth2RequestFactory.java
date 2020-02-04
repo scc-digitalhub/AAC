@@ -79,10 +79,15 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		String clientId = authorizationParameters.get(OAuth2Utils.CLIENT_ID);
 		String state = authorizationParameters.get(OAuth2Utils.STATE);
 		String redirectUri = authorizationParameters.get(OAuth2Utils.REDIRECT_URI);
-		Set<String> responseTypes = OAuth2Utils.parseParameterList(authorizationParameters
-				.get(OAuth2Utils.RESPONSE_TYPE));
+		Set<String> responseTypes = OAuth2Utils.parseParameterList(
+		        decodeParameters(authorizationParameters.get(OAuth2Utils.RESPONSE_TYPE))
+		        );
 
-		Set<String> scopes = extractScopes(authorizationParameters, clientId);
+		Set<String> scopes = extractScopes(
+		        authorizationParameters,
+		        OAuth2Utils.parseParameterList(
+                decodeParameters(authorizationParameters.get(OAuth2Utils.SCOPE))),
+                clientId);
 		
         // workaround to support "id_token" requests
         // TODO fix with proper support in AuthorizationEndpoint
@@ -138,7 +143,10 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		if(Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
 		       Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) || 
 		       Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
-		    scopes = extractScopes(requestParameters, clientId);
+		    scopes = extractScopes(requestParameters,
+		            OAuth2Utils.parseParameterList(
+	                decodeParameters(requestParameters.get(OAuth2Utils.SCOPE))),
+	                clientId);
 		}
 		
         logger.trace("create token request for " + clientId
@@ -160,30 +168,29 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 	public OAuth2Request createOAuth2Request(ClientDetails client, TokenRequest tokenRequest) {
 		return tokenRequest.createOAuth2Request(client);
 	}
-
-    private Set<String> extractScopes(Map<String, String> requestParameters, String clientId) {
-        // fetch from requestParams, which here are somehow not decoded
-        String scope = requestParameters.get(OAuth2Utils.SCOPE);
-        
-        Set<String> scopes = new HashSet<>();
-
-        if (StringUtils.isNotBlank(scope)) {
+	
+    private String decodeParameters(String value) {
+        String result = value;
+        if (StringUtils.isNotBlank(result)) {
 
             // check if spaces are still encoded as %20
-            if (scope.contains("%20")) {
+            if (result.contains("%20")) {
                 // replace with spaces
-                scope = scope.replace("%20", " ");
-            }
-
-            // consider both spaces and commas as separators
-            String[] scopeArr = scope.split(",");
-            for (String s : scopeArr) {
-                scopes.addAll(OAuth2Utils.parseParameterList(s));
+                result = result.replace("%20", " ");
             }
             
-            logger.trace("scopes from parameters "+scopes.toString());
+            //check if strings are separated with comma (out of spec)
+            if(result.contains(",")) {
+                result = result.replace(",", " ");
+            }
         }
-        
+        logger.trace("decode "+value+" to "+result);
+        return result;
+    }
+
+    //TODO cleanup requestParameters and rework checkUserScopes
+    private Set<String> extractScopes(Map<String, String> requestParameters, Set<String> scopes, String clientId) {
+        logger.trace("scopes from parameters "+scopes.toString());
         ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 
         try {
