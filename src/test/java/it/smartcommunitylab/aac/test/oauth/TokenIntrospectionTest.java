@@ -118,6 +118,7 @@ public class TokenIntrospectionTest {
 
     @After
     public void cleanup() {
+    	sessionId = null;
     }
 
     @Test

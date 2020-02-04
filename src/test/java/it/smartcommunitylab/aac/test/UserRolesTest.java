@@ -28,11 +28,10 @@ import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.RoleRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
-//DISABLED TODO update
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-//@ActiveProfiles("test")
-//@EnableConfigurationProperties
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@EnableConfigurationProperties
 public class UserRolesTest {
 
 	private static final String TESTAPP = "testapp";
@@ -47,8 +46,6 @@ public class UserRolesTest {
 	
 	@Autowired
 	private RoleManager roleManager;		
-	@Autowired
-	private RegistrationManager regManager;		
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -90,7 +87,7 @@ public class UserRolesTest {
 	@Test
 	public void testNewRoles() {
 		
-		User created = regManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
+		User created = registrationManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
 		roleManager.addRole(created, role4);
 		
 		Assert.assertTrue(roleManager.hasRole(created, role4));
@@ -158,7 +155,7 @@ public class UserRolesTest {
 	@Test
 	public void testTenantRoles() {
 		createTenantProvider();
-		User created = regManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
+		User created = registrationManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
 
 		// update with roleModel
 		RoleModel model = new RoleModel();
