@@ -5,7 +5,7 @@
 		  <h4>{{currService.name}}</h4>
     </div>
     <div class="col col-md-3 text-right">
-		  <button class="btn btn-primary" type="button" ng-click="startEdit()">Edit</button>
+		  <button class="btn btn-primary" type="button" ng-disabled="!currService.context" ng-click="startEdit()">Edit</button>
 		  <button class="btn btn-danger" type="button" ng-click="removeService()">Delete</button>
     </div>
   </div>
@@ -18,7 +18,7 @@
   <div class="row"><p/></div>
   <div class="row">
     <div class="col-md-11"><h4>Service scopes</h4></div>
-    <div class="col-md-1 text-right"><a class="btn btn-xs btn-primary btn-icon"  ng-click="editScope()">
+    <div class="col-md-1 text-right"><a class="btn btn-xs btn-primary btn-icon" ng-if="currService.context"  ng-click="editScope()">
 		<svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>    
     </a></div>
   </div>
@@ -38,7 +38,7 @@
 		      <td>{{toAuthority(scope.authority)}}</td>
 		      <td class="text-right">
 		        <a class="btn btn-xs btn-danger btn-icon pull-right"  ng-click="removeScope(scope)"><svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-minus"></use></svg></a>
-		        <a class="btn btn-xs btn-primary btn-icon pull-right"  ng-click="editScope(scope)"><svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-pencil"></use></svg></a>
+		        <a class="btn btn-xs btn-primary btn-icon pull-right" ng-if="currService.context"  ng-click="editScope(scope)"><svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-pencil"></use></svg></a>
 		      </td>
         </tr>
        </table>
@@ -49,7 +49,7 @@
   <div class="row"><p/></div>
   <div class="row">
     <div class="col-md-11"><h4>Service claims</h4></div>
-    <div class="col-md-1 text-right"><a class="btn btn-xs btn-primary btn-icon"  ng-click="editClaim()">
+    <div class="col-md-1 text-right"><a class="btn btn-xs btn-primary btn-icon" ng-if="currService.context"  ng-click="editClaim()">
     <svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>    
     </a></div>
   </div>
@@ -70,7 +70,7 @@
           </td>
           <td class="text-right">
 		        <a class="btn btn-xs  btn-danger btn-icon pull-right"  ng-click="removeClaim(claim)"><svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-minus"></use></svg></span></a>
-		        <a class="btn btn-xs btn-primary btn-icon  pull-right"  ng-click="editClaim(claim)"><svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-pencil"></use></svg></a>
+		        <a class="btn btn-xs btn-primary btn-icon  pull-right" ng-if="currService.context" ng-click="editClaim(claim)"><svg class="icon icon-white"><use xlink:href="./italia/svg/sprite.svg#it-pencil"></use></svg></a>
           </td>
         </tr>
       </table>
@@ -80,7 +80,7 @@
   </div>  
 </div>
 
-<div ng-if="currService.claims && currService.claims.length > 0">
+<div ng-if="currService.claims && currService.claims.length > 0 && currService.context">
 <div class="row"><p/></div>
 <div class="row">
   <div class="col col-md-9"><h4>Claim mapping</h4>
