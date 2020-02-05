@@ -20,3 +20,7 @@ adminClient:
     secret: secret
     scopes: clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all
     redirects: http://localhost:8080
+
+#disable actuator
+management:
+   port: -1

@@ -118,6 +118,8 @@ public class TokenRevocationTest {
 
     @After
     public void cleanup() {
+        // workaround for intermittent issue with logout
+        sessionId = null;
     }
 
     @Test
@@ -127,16 +129,16 @@ public class TokenRevocationTest {
                 sessionId, new String[] { SCOPE });
 
         logger.trace(token.toString());
-        
+
         Thread.sleep(1000);
-        
+
         // fetch valid token
         JSONObject token2 = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
                 sessionId, new String[] { SCOPE });
 
         logger.trace(token2.toString());
     }
-    
+
 //    @Test
     public void accessTokenRevokeWithBasicAuth() throws Exception {
 
