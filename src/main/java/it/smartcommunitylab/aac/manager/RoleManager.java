@@ -387,7 +387,10 @@ public class RoleManager {
 				for (GrantedAuthority a : authorities) {
 					Role r = Role.parse(a.getAuthority());
 					if (!StringUtils.isEmpty(r.getContext()) && info.getUniqueSpaces().contains(r.getContext())) {
-						map.put(r.getContext(), r.getSpace());
+                        //add each space only once when user has more than one role in it
+                        if(!map.containsEntry(r.getContext(), r.getSpace())) {
+                            map.put(r.getContext(), r.getSpace());
+                        }					    
 					} 
 				}
 				//remove keys if single element in list, nothing to choose
