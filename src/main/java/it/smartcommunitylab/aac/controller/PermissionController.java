@@ -184,7 +184,9 @@ public class PermissionController {
 	@RequestMapping(value="/dev/servicecontexts/my",method=RequestMethod.GET)
 	public @ResponseBody Response myContexts() {
 		Response response = new Response();
-		response.setData(serviceManager.getUserContexts(userManager.getUser()));
+		Set<String> contexts = serviceManager.getUserContexts(userManager.getUser());
+		contexts.remove(null);
+		response.setData(contexts);
 		return response;
 	} 
 
