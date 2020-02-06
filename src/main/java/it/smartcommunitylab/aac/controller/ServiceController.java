@@ -25,7 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -86,8 +85,10 @@ public class ServiceController {
 	@RequestMapping(value="/api/services/{serviceId:.*}",method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<ServiceDTO> getService(@PathVariable String serviceId) {
 		ServiceDTO service = serviceManager.getService(serviceId);
-		service.setScopes(serviceManager.getServiceScopes(serviceId));
-		service.setClaims(serviceManager.getServiceClaims(serviceId));
+		if (service != null) {
+			service.setScopes(serviceManager.getServiceScopes(serviceId));
+			service.setClaims(serviceManager.getServiceClaims(serviceId));
+		}
 		return ResponseEntity.ok(service);
 	} 
 
@@ -145,8 +146,8 @@ public class ServiceController {
 	 */
 	@ApiOperation(value="Create or update claim definition")
 	@RequestMapping(value="/api/services/{serviceId}/claim",method=RequestMethod.PUT)
-	public @ResponseBody ResponseEntity<ServiceClaimDTO> addClaim(@PathVariable String serviceId, @RequestBody ServiceClaimDTO scope) {
-		return ResponseEntity.ok(serviceManager.saveServiceClaim(userManager.getUserOrOwner(), serviceId, scope));
+	public @ResponseBody ResponseEntity<ServiceClaimDTO> addClaim(@PathVariable String serviceId, @RequestBody ServiceClaimDTO claim) {
+		return ResponseEntity.ok(serviceManager.saveServiceClaim(userManager.getUserOrOwner(), serviceId, claim));
 	}
 
 	/**
@@ -166,7 +167,7 @@ public class ServiceController {
 	@ExceptionHandler(SecurityException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
-    public Response processAccessError(AccessDeniedException ex) {
+    public Response processAccessError(SecurityException ex) {
 		return Response.error(ex.getMessage());
     }
 

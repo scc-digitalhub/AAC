@@ -122,6 +122,8 @@ public class ImplicitFlowTest {
 
     @After
     public void cleanup() {
+    	// workaround for intermittent issue with logout
+        sessionId = null;
     }
 
     @Test

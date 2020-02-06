@@ -726,14 +726,38 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/api/services**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/api/services**")
+				http.regexMatcher("/api/services(.)*").authorizeRequests().regexMatchers(HttpMethod.OPTIONS, "/api/services(.)*")
 				.permitAll()
-				.antMatchers("/api/services**").access("#oauth2.hasAnyScope('"+Config.SCOPE_SERVICEMANAGEMENT+"', '"+Config.SCOPE_SERVICEMANAGEMENT_USER+"')")
+				.regexMatchers("/api/services(.)*").access("#oauth2.hasAnyScope('"+Config.SCOPE_SERVICEMANAGEMENT+"', '"+Config.SCOPE_SERVICEMANAGEMENT_USER+"')")
 				.and().csrf().disable();
 			}
 
 		}));
 		resource.setOrder(14);
+		return resource;
+    }
+    
+    @Bean
+    protected ResourceServerConfiguration claimManagementResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/api/claims/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/api/claims/**")
+				.permitAll()
+				.antMatchers("/api/claims/**").access("#oauth2.hasAnyScope('"+Config.SCOPE_CLAIMMANAGEMENT+"', '"+Config.SCOPE_CLAIMMANAGEMENT_USER+"')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(15);
 		return resource;
     }
 }

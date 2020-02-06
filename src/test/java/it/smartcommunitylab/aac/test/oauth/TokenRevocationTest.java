@@ -109,6 +109,8 @@ public class TokenRevocationTest {
 
     @After
     public void cleanup() {
+    	// workaround for intermittent issue with logout
+        sessionId = null;
     }
 
     @Test

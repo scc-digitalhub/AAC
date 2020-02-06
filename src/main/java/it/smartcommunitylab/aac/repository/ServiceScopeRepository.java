@@ -31,6 +31,6 @@ import it.smartcommunitylab.aac.model.ServiceScope;
 @Repository
 public interface ServiceScopeRepository extends JpaRepository<ServiceScope, String> {
 
-	@Query("select s from ServiceScope s where s.service.serviceId = ?1")
+	@Query("select s from ServiceScope s where s.service.serviceId = LOWER(?1)")
 	List<ServiceScope> findByService(String serviceId);
 }

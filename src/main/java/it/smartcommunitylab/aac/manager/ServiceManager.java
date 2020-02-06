@@ -30,7 +30,6 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -159,8 +158,7 @@ public class ServiceManager {
 		} else {
 			page = serviceRepo.findByName(name, pageable);
 		}
-		PageImpl<ServiceDTO> res = new PageImpl<>(page.getContent().stream().map(s -> toDTO(s)).collect(Collectors.toList()), pageable, page.getTotalElements());
-		return res;
+		return page.map(s -> toDTO(s));
 	}
 
 
@@ -256,7 +254,7 @@ public class ServiceManager {
 				throw new SecurityException("Unauthorized operation for service: " + serviceId);
 			}
 			Set<String> scopes = getServiceScopes(serviceId).stream().map(s -> s.getScope()).collect(Collectors.toSet());
-			serviceRepo.delete(serviceId);
+			serviceRepo.delete(serviceId.toLowerCase());
 			// refresh claim cache
 			scopes.forEach(s -> resetCache(s));
 		}
@@ -298,6 +296,7 @@ public class ServiceManager {
 	 * @return
 	 */
 	public ServiceScopeDTO saveServiceScope(User user, String serviceId, ServiceScopeDTO dto) {
+		serviceId = serviceId.toLowerCase();
 		Service service = serviceRepo.findOne(serviceId.toLowerCase());
 		dto.setServiceId(serviceId);
 		ServiceScope scopeObj = scopeRepo.findOne(dto.getScope().toLowerCase());
@@ -366,8 +365,10 @@ public class ServiceManager {
 	 * @param scope
 	 */
 	public void deleteServiceScope(User user, String serviceId, String scope) {
-		Service service = serviceRepo.findOne(serviceId.toLowerCase());
-		ServiceScope scopeObj = scopeRepo.findOne(scope.toLowerCase());
+		serviceId = serviceId.toLowerCase();
+		scope = scope.toLowerCase();
+		Service service = serviceRepo.findOne(serviceId);
+		ServiceScope scopeObj = scopeRepo.findOne(scope);
 		if (service != null && scopeObj != null) {
 			Set<String> contexts = getUserContexts(user);
 			if (!contexts.contains(service.getContext()) || !serviceId.equals(scopeObj.getService().getServiceId())) {
@@ -466,6 +467,8 @@ public class ServiceManager {
 	}
 	
 	private ServiceDTO toDTO(Service service) {
+		if (service == null) return null;
+		
 		ServiceDTO dto = new ServiceDTO();
 		dto.setClaimMapping(service.getClaimMapping());
 		dto.setContext(service.getContext());

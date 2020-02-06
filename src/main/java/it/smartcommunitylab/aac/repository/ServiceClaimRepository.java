@@ -31,10 +31,10 @@ import it.smartcommunitylab.aac.model.ServiceClaim;
 @Repository
 public interface ServiceClaimRepository extends JpaRepository<ServiceClaim, Long> {
 
-	@Query("select s from ServiceClaim s where s.service.serviceId = ?1")
+	@Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1)")
 	List<ServiceClaim> findByService(String serviceId);
 
-	@Query("select s from ServiceClaim s where s.service.serviceId = ?1 and claim = ?2")
+	@Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1) and claim = LOWER(?2)")
 	ServiceClaim findByServiceAndClaim(String serviceId, String claim);
 
 }

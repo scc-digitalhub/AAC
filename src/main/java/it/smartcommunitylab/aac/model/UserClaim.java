@@ -42,6 +42,8 @@ public class UserClaim {
 	@Column(columnDefinition="LONGTEXT")
 	private String value;
 	
+	private String username;
+	
 	/**
 	 * ServiceClaim ID
 	 */
@@ -53,9 +55,9 @@ public class UserClaim {
 	/**
 	 * ServiceClaim ID
 	 */
-	@ManyToOne(optional=false)
+	@ManyToOne(optional=true)
 	@OnDelete(action = OnDeleteAction.CASCADE)
-	@JoinColumn(nullable=false, name="userId",referencedColumnName="id")
+	@JoinColumn(nullable=true, name="userId",referencedColumnName="id")
 	private User user;
 
 	public Long getId() {
@@ -88,5 +90,13 @@ public class UserClaim {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 }

@@ -30,6 +30,7 @@ import javax.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -274,6 +275,9 @@ public class UserManager {
 	 */
 	public User getUserOrOwner() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof AnonymousAuthenticationToken) {
+        	throw new SecurityException("Unauthorized access");
+        }
         if (auth instanceof OAuth2Authentication) {
         	OAuth2Authentication oauth = (OAuth2Authentication) auth;
         	if (oauth.isClientOnly()) {
@@ -281,8 +285,13 @@ public class UserManager {
         		Long userId = clientDetailsRepository.findByClientId(clientId).getDeveloperId();
         		return findOne(userId);
         	} else {
-        		String username = (String) oauth.getPrincipal();
-        		return getUserByUsername(username);
+        		Object userAuth = oauth.getPrincipal();
+        		String userIdString = (userAuth instanceof UserDetails) 
+        				? ((UserDetails) userAuth).getUsername()
+        				: (userAuth instanceof Authentication) 
+        				? ((Authentication)userAuth).getPrincipal().toString()
+        				: userAuth.toString();
+        		return  findOne(Long.parseLong(userIdString));
         	}
         } else {
 			String userIdString = auth.getName();
@@ -380,7 +389,7 @@ public class UserManager {
 		for (String scope : scopes) {
 			ServiceScope resource = serviceManager.getServiceScope(scope);
 			if (resource != null) {
-				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
+				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER);
 				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
 				if (isUser && !isResourceUser) {
 					continue;

@@ -180,10 +180,25 @@ public class ServiceClaim {
 				: value;
 		
 		if (v == null) return true;
+		
+		if (type.equals(CLAIM_TYPE.type_number)) {
+			try {
+				Double.parseDouble(v.toString());
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		}
+		if (type.equals(CLAIM_TYPE.type_boolean)) {
+			try {
+				Boolean.parseBoolean(v.toString());
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		}
 				
-		if (Double.class.isAssignableFrom(v.getClass()) && type.equals(CLAIM_TYPE.type_number) ||
-			v.getClass().isAssignableFrom(Boolean.class) && type.equals(CLAIM_TYPE.type_boolean) ||
-			v instanceof String && type.equals(CLAIM_TYPE.type_string) ||
+		if (v instanceof String && type.equals(CLAIM_TYPE.type_string) ||
 			v instanceof Map && type.equals(CLAIM_TYPE.type_object)) {
 			return true;
 		}
@@ -201,8 +216,14 @@ public class ServiceClaim {
 		try {
 			if (claim.isMultiple()) return mapper.readValue(value, List.class);
 			switch (claim.getType()) {
-			case type_boolean: return mapper.readValue(value, Boolean.class);
-			case type_number: return mapper.readValue(value, Double.class);
+			case type_boolean: return Boolean.parseBoolean(value);
+			case type_number: {
+				try {
+					return Integer.parseInt(value);
+				} catch (Exception e) {
+					return Double.parseDouble(value);
+				}
+			}
 			case type_object: return mapper.readValue(value, Map.class);
 			default: return value; 
 			}

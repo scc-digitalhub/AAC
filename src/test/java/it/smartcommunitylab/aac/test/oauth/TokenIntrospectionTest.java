@@ -118,7 +118,8 @@ public class TokenIntrospectionTest {
 
     @After
     public void cleanup() {
-    	sessionId = null;
+    	// workaround for intermittent issue with logout
+        sessionId = null;
     }
 
     @Test
