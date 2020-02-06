@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.dto;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -147,12 +148,14 @@ public class ServiceDTO {
 			this.description = description;
 		}
 		public List<String> getClaims() {
+			if (claims == null) claims = new LinkedList<String>();
 			return claims;
 		}
 		public void setClaims(List<String> claims) {
 			this.claims = claims;
 		}
 		public List<String> getRoles() {
+			if (roles == null) roles = new LinkedList<String>();
 			return roles;
 		}
 		public void setRoles(List<String> roles) {
