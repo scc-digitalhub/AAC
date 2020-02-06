@@ -1,7 +1,7 @@
+
 package it.smartcommunitylab.aac.test.oauth;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

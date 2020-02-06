@@ -200,7 +200,7 @@ public class ClaimManager {
 			throw new SecurityException("Not authorized to access service " + serviceId);
 		}
 		Page<Object[]> userData = userClaimRepository.findUserDataByService(serviceId.toLowerCase(), page);
-		return userData.map(arr -> new UserClaimProfileDTO(((Long)arr[0]).toString(), (String)arr[1]));
+		return userData.map(arr -> new UserClaimProfileDTO(arr[0] == null ? null: ((Long)arr[0]).toString(), (String)arr[1]));
 	}
 
 
@@ -234,7 +234,21 @@ public class ClaimManager {
 		return user;
 		
 	}
-
+	@Transactional(readOnly = true)
+	public UserClaimProfileDTO getServiceUserClaimsForUsername(User owner, String serviceId, String username) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return null;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		List<UserClaim> claims = userClaimRepository.findByUsernameAndService(username, serviceId);
+		UserClaimProfileDTO user = new UserClaimProfileDTO();
+		user.setUsername(username);
+		user.setClaims(claims.stream().collect(Collectors.toMap(uc -> ServiceClaim.qualifiedName(service.getNamespace(), uc.getClaim().getClaim()), uc -> ServiceClaim.typedValue(uc.getClaim(), uc.getValue()))));
+		return user;
+		
+	}
 
 	/**
 	 * Update claims for the specified user
@@ -266,6 +280,7 @@ public class ClaimManager {
 			ServiceClaim serviceClaim = qClaims.get(entry.getKey());
 			UserClaim uc = new UserClaim();
 			uc.setUser(dbUser);
+			if (dbUser.getUsername() != null) uc.setUsername(dbUser.getUsername().toLowerCase());
 			if (!ServiceClaim.ofType(entry.getValue(), serviceClaim.isMultiple(), serviceClaim.getType())) {
 				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
 			}
@@ -281,6 +296,52 @@ public class ClaimManager {
 		return getServiceUserClaims(owner, serviceId, userId);
 	}
 
+	public UserClaimProfileDTO saveServiceUserClaimsByUsername(User owner, String serviceId, String username, UserClaimProfileDTO dto) throws InvalidDefinitionException {
+		User user = userManager.getUserByUsername(username);
+		if (user != null) {
+			return saveServiceUserClaims(owner, serviceId, user.getId().toString(), dto);
+		}
+		
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return null;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		List<UserClaim> claims = userClaimRepository.findByUsernameAndService(username, serviceId);
+		if (!claims.isEmpty()) {
+			userClaimRepository.delete(claims);
+		}
+		Map<String, ServiceClaim> qClaims = serviceManager.getServiceClaimsDB(serviceId).stream().collect(Collectors.toMap(c -> ServiceClaim.qualifiedName(service.getNamespace(), c.getClaim()), c -> c));
+
+		Map<String, Object> resClaims = new HashMap<>();
+		for (Entry<String, Object> entry : dto.getClaims().entrySet()) {
+			if (!qClaims.containsKey(entry.getKey())) {
+				throw new SecurityException("Unauthorized claim modification: " + serviceId+", "+ entry.getKey());
+			}
+			ServiceClaim serviceClaim = qClaims.get(entry.getKey());
+			UserClaim uc = new UserClaim();
+			uc.setUser(null);
+			uc.setUsername(username.toLowerCase());
+			if (!ServiceClaim.ofType(entry.getValue(), serviceClaim.isMultiple(), serviceClaim.getType())) {
+				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
+			}
+			try {
+				uc.setValue(mapper.writeValueAsString(entry.getValue()));
+			} catch (JsonProcessingException e) {
+				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
+			}
+			uc.setClaim(serviceClaim);
+			userClaimRepository.save(uc);
+			resClaims.put(entry.getKey(), entry.getValue());
+		}
+
+		UserClaimProfileDTO res = new UserClaimProfileDTO();
+		res.setUsername(username.toLowerCase());
+		res.setClaims(resClaims);
+		return res;
+
+	}
 	
 	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);

@@ -32,8 +32,10 @@ import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.Authority;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.model.UserClaim;
 import it.smartcommunitylab.aac.repository.AttributeRepository;
 import it.smartcommunitylab.aac.repository.AuthorityRepository;
+import it.smartcommunitylab.aac.repository.UserClaimRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -52,6 +54,8 @@ public class ProviderServiceAdapter {
 	private UserRepository userRepository;
 	@Autowired
 	private AttributeRepository attributeRepository;
+	@Autowired
+	private UserClaimRepository claimRepository;
 
 	/**
 	 * Updates of user attributes using the values obtained from http request
@@ -107,10 +111,12 @@ public class ProviderServiceAdapter {
 
 		User user = null;
 		if (users.isEmpty()) {
+			// new user registration
 			user = new User(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR), new HashSet<Attribute>(list));
 			user.getRoles().add(Role.systemUser());
 			user.setUsername(attributes.get(Config.USERNAME_ATTR));
 			user = userRepository.saveAndFlush(user);
+			updateClaims(user);
 		} else {
 			user = users.get(0);
 			attributeRepository.deleteInBatch(user.getAttributeEntities());
@@ -118,14 +124,24 @@ public class ProviderServiceAdapter {
 			user.updateNames(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR));
 			if (user.getUsername() == null) {
 				user.setUsername(attributes.get(Config.USERNAME_ATTR));
+				updateClaims(user);
 			}
 			userRepository.saveAndFlush(user);
 		}
 		return user;
 	}
 
-//	public User updateUserRoles()
-	
+	/**
+	 * @param user
+	 */
+	private void updateClaims(User user) {
+		if (user.getUsername() == null) return;
+		
+		List<UserClaim> claims = claimRepository.findByUsername(user.getUsername());
+		claims.forEach(c -> c.setUser(user));
+		claimRepository.save(claims);
+	}
+
 	private void populateAttributes(Authority auth, Map<String, String> attributes, List<Attribute> list, Set<Attribute> old) {
 		for (String key : attributes.keySet()) {
 			String value = attributes.get(key);

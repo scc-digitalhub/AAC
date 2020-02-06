@@ -168,6 +168,15 @@
         "claims": [],
         "roles": [],
         "authority": "ROLE_CLIENT",
+        "approvalRequired": false
+      },
+      {
+        "scope": "vault.data.read.me",
+        "name": "Read Current User Vault Data",
+        "description": "Read Vault data of the current user",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_USER",
         "approvalRequired": true
       }
     ],

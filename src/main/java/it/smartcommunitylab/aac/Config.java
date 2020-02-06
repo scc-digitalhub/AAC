@@ -38,7 +38,7 @@ public class Config {
 	public static final String IDP_INTERNAL = "internal";
 	
 	/** Authorization authorities */
-	public enum AUTHORITY {ROLE_USER, ROLE_CLIENT, ROLE_ANY, ROLE_CLIENT_TRUSTED};
+	public enum AUTHORITY {ROLE_USER, ROLE_CLIENT, ROLE_CLIENT_TRUSTED};
 
 	/** Claim types */
 	public enum CLAIM_TYPE {
@@ -123,6 +123,9 @@ public class Config {
     /** scopes for service management */
     public static final String SCOPE_SERVICEMANAGEMENT = "servicemanagement";
     public static final String SCOPE_SERVICEMANAGEMENT_USER = "servicemanagement.me";
+    /** scopes for service management */
+    public static final String SCOPE_CLAIMMANAGEMENT = "claimmanagement";
+    public static final String SCOPE_CLAIMMANAGEMENT_USER = "claimmanagement.me";
 
 
     /** scopes for authorization */

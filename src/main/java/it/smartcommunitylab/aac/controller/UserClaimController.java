@@ -25,7 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -81,7 +80,7 @@ public class UserClaimController {
 
 
 	/**
-	 * Read specific service data
+	 * Read specific user claims
 	 * @return {@link Response} entity containing the service {@link Service} descriptors
 	 */
 	@ApiOperation(value="Get service claims for the specified User")
@@ -90,8 +89,14 @@ public class UserClaimController {
 		return ResponseEntity.ok(claimManager.getServiceUserClaims(userManager.getUserOrOwner(), serviceId, userId));
 	} 
 
+	@ApiOperation(value="Get service claims for the specified username")
+	@RequestMapping(value = "/api/claims/{serviceId:.*}/username", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<UserClaimProfileDTO> getClaimsForUsername(@PathVariable String serviceId, @RequestParam String username) {
+		return ResponseEntity.ok(claimManager.getServiceUserClaimsForUsername(userManager.getUserOrOwner(), serviceId, username));
+	} 
+
 	/**
-	 * save service data (name, id, description)
+	 * save user claims
 	 * @param sd
 	 * @return stored {@link Service} object
 	 * @throws InvalidDefinitionException 
@@ -101,11 +106,16 @@ public class UserClaimController {
 	public @ResponseBody ResponseEntity<UserClaimProfileDTO> saveClaims(@PathVariable String serviceId, @PathVariable String userId, @RequestBody UserClaimProfileDTO dto) throws InvalidDefinitionException {
 		return ResponseEntity.ok(claimManager.saveServiceUserClaims(userManager.getUserOrOwner(), serviceId, userId, dto));
 	}
+	@ApiOperation(value="Update service claims for the specified username")
+	@RequestMapping(value="/api/claims/{serviceId:.*}/username",method=RequestMethod.POST)
+	public @ResponseBody ResponseEntity<UserClaimProfileDTO> saveClaimsForUsername(@PathVariable String serviceId, @RequestParam String username, @RequestBody UserClaimProfileDTO dto) throws InvalidDefinitionException {
+		return ResponseEntity.ok(claimManager.saveServiceUserClaimsByUsername(userManager.getUserOrOwner(), serviceId, username, dto));
+	}
 
 	@ExceptionHandler(SecurityException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
-    public Response processAccessError(AccessDeniedException ex) {
+    public Response processAccessError(SecurityException ex) {
 		return Response.error(ex.getMessage());
     }
 
