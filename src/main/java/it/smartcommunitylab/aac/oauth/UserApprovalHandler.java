@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.approval.Approval;
@@ -46,6 +48,7 @@ import com.google.common.collect.Multimap;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 
@@ -64,7 +67,9 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	private ResourceServices resourceService;
 	@Autowired
 	private RoleManager roleManager;
-	
+    @Autowired
+    private UserManager userManager;    
+    
 	protected int approvalExpirySeconds = -1;
 	protected ApprovalStore approvalStore;
 	protected ResourceRepository resourceRepository;
@@ -146,7 +151,21 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 		AuthorizationRequest result = updateScopeApprovals(authorizationRequest, userAuthentication);
 		
 		if (result.getApprovalParameters().containsKey(SPACE_SELECTION_APPROVAL_REQUIRED)) {
-			Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), userAuthentication.getAuthorities());
+            // note: session with principal contains stale info about roles, fetched at
+            // login
+            Collection<? extends GrantedAuthority> selectedAuthorities = userAuthentication
+                    .getAuthorities();
+            // fetch again from db
+            try {
+                User user = (User) userAuthentication.getPrincipal();
+                long userId = Long.parseLong(user.getUsername());
+                it.smartcommunitylab.aac.model.User userEntity = userManager.findOne(userId);
+                selectedAuthorities = roleManager.buildAuthorities(userEntity);
+            } catch (Exception e) {
+                // user is not available
+                logger.error("user not found: " + e.getMessage());
+            }		    
+			Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), selectedAuthorities);
 			if (spaces != null && !spaces.isEmpty()) {
 				Map<String, String> newParams = new HashMap<String, String>(authorizationRequest.getApprovalParameters());
 				authorizationRequest.setApprovalParameters(newParams);
@@ -172,7 +191,7 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 						if (spaces.size() > 0) {
 							authorizationRequest.getApprovalParameters().put(SPACE_SELECTION_APPROVAL_DONE, "false");					
 						} else {
-							authorizationRequest.setAuthorities(roleManager.narrowRoleSpaces(selection, userAuthentication.getAuthorities()));
+							authorizationRequest.setAuthorities(roleManager.narrowRoleSpaces(selection, selectedAuthorities));
 							authorizationRequest.getApprovalParameters().put(SPACE_SELECTION_APPROVAL_DONE, "true");					
 						}
 					} catch (Exception e) {

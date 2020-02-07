@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
@@ -43,6 +44,7 @@ import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
@@ -83,6 +85,9 @@ public class OIDCTokenEnhancer  {
     @Autowired
     private UserManager userManager;
 
+    @Autowired
+    private RoleManager roleManager;
+    
     @Autowired
 	private ResourceRepository resourceRepository;
 
@@ -129,7 +134,12 @@ public class OIDCTokenEnhancer  {
             if (!scope.contains(Config.SCOPE_OPENID)) {
             	scope.add(Config.SCOPE_OPENID);
             }
-            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getOAuth2Request().getAuthorities();
+            //refresh authorities since authentication could be stale (stored in db)
+            List<GrantedAuthority> userAuthorities = roleManager.buildAuthorities(user);
+            Collection<? extends GrantedAuthority> authAuthorities = authentication.getOAuth2Request().getAuthorities();
+            Multimap<String, String> roleSpaces = roleManager.getRoleSpacesToNarrow(clientId, userAuthorities);
+            Collection<GrantedAuthority> selectedAuthorities = roleManager.narrowAuthoritiesSpaces(roleSpaces, userAuthorities, authAuthorities);
+            
             Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
             // set directly, ignore extracted
             userClaims.remove("sub");

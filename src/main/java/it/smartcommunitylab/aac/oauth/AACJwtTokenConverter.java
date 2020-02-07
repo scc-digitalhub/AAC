@@ -31,8 +31,10 @@ import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Multimap;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
@@ -48,9 +50,11 @@ import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Registration;
+import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
@@ -82,9 +86,12 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
     @Autowired
     private RegistrationManager registrationManager;
-    
+
     @Autowired
     private UserManager userManager;
+
+    @Autowired
+    private RoleManager roleManager;
 
     @Autowired
     private ClaimManager claimManager;
@@ -148,10 +155,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         try {
             // fetch from auth
             Object principal = authentication.getPrincipal();
-            //check if details are populated
+            // check if details are populated
             if (principal instanceof String) {
-                Registration reg = registrationManager.getUserByEmail((String)principal);
-                user = userManager.findOne(Long.parseLong(reg.getUserId()));                
+                Registration reg = registrationManager.getUserByEmail((String) principal);
+                user = userManager.findOne(Long.parseLong(reg.getUserId()));
             } else if (principal instanceof org.springframework.security.core.userdetails.User) {
 
                 org.springframework.security.core.userdetails.User auth = (org.springframework.security.core.userdetails.User) principal;
@@ -170,12 +177,17 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             logger.debug("fetch profile via profilemanager");
 
             Set<String> scope = new HashSet<>(request.getScope());
-//            if (!scope.contains(Config.OPENID_SCOPE)) {
-//                scope.add(Config.OPENID_SCOPE);
-//            }
-            Collection<? extends GrantedAuthority> selectedAuthorities = authentication.getUserAuthentication()
-                    .getAuthorities();
-            
+
+            // refresh authorities since authentication could be stale (stored in db)
+            List<GrantedAuthority> userAuthorities = roleManager.buildAuthorities(user);
+            // persisted authorities contain user space selection if performed on approval
+            Collection<? extends GrantedAuthority> authAuthorities = authentication.getOAuth2Request().getAuthorities();
+
+            Multimap<String, String> roleSpaces = roleManager.getRoleSpacesToNarrow(clientId, userAuthorities);
+            Collection<GrantedAuthority> selectedAuthorities = roleManager.narrowAuthoritiesSpaces(roleSpaces, userAuthorities, authAuthorities);
+
+            logger.trace("selected authorities: "+selectedAuthorities.toString());
+
             // delegate to claim manager
             Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
@@ -183,7 +195,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             if (userClaims.containsKey("sub")) {
                 userClaims.remove("sub");
             }
-            
+
             claims.putAll(userClaims);
         }
 
@@ -265,15 +277,16 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         }
 
         // convert base claims to map
-        //drop spring token converter, it leaks user_name and authorities EVERY TIME
-        //we have no means to discriminate legit ClaimManager claims from converter ones
+        // drop spring token converter, it leaks user_name and authorities EVERY TIME
+        // we have no means to discriminate legit ClaimManager claims from converter
+        // ones
 //        @SuppressWarnings("unchecked")
 //        Map<String, Object> claims = (Map<String, Object>) tokenConverter.convertAccessToken(accessToken,
 //                authentication);
 
-        //we want only additional claims, all the base are set here
+        // we want only additional claims, all the base are set here
         Map<String, Object> claims = accessToken.getAdditionalInformation();
-        
+
         logger.trace("dump claims " + claims.keySet().toString());
 
         OAuth2Request request = authentication.getOAuth2Request();
@@ -291,13 +304,13 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
         // clear authorities from access token, spring injects them
         // keep if we have roles authorized by claimManager
-        if(!claims.containsKey("roles")) {
-            claims.remove(AUTHORITIES);  
+        if (!claims.containsKey("roles")) {
+            claims.remove(AUTHORITIES);
         }
         // clear id-token from claims to avoid embedding id_token in access token JWT
         if (claims.containsKey("id_token")) {
             claims.remove("id_token");
-        }        
+        }
 
         // build claims
         JWTClaimsSet.Builder jwtClaims = new JWTClaimsSet.Builder();
@@ -305,11 +318,11 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         jwtClaims.jwtID(claims.get(TOKEN_ID).toString());
         // base
         jwtClaims.issuer(issuer);
-        //trust upstream sub if set in additional info
-        if(claims.containsKey("sub")) {
+        // trust upstream sub if set in additional info
+        if (claims.containsKey("sub")) {
             jwtClaims.subject(claims.get("sub").toString());
         } else {
-            //fallback to auth name, which could be different from userId
+            // fallback to auth name, which could be different from userId
             jwtClaims.subject(authentication.getName());
         }
         jwtClaims.audience(audiences);
@@ -322,10 +335,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             Date expiration = accessToken.getExpiration();
             Date iat = new Date();
             Date nbf = iat;
-            
+
             if (accessToken instanceof AACOAuth2AccessToken) {
-                iat = ((AACOAuth2AccessToken)accessToken).getIssuedAt();
-                nbf = ((AACOAuth2AccessToken)accessToken).getNotBeforeTime();
+                iat = ((AACOAuth2AccessToken) accessToken).getIssuedAt();
+                nbf = ((AACOAuth2AccessToken) accessToken).getNotBeforeTime();
             } else {
                 // need to subtract validity from expiration to avoid updating at each request
                 if (isRefreshToken(accessToken)) {
@@ -345,10 +358,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
                     iat = new Date(expiration.getTime() - (accessTokenValiditySeconds * 1000L));
 
                 }
-                
+
                 nbf = iat;
             }
-            
+
             jwtClaims.issueTime(iat);
             jwtClaims.notBeforeTime(nbf);
 

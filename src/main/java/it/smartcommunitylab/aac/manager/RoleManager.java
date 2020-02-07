@@ -18,7 +18,9 @@ package it.smartcommunitylab.aac.manager;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -416,5 +418,48 @@ public class RoleManager {
 	public Collection<? extends GrantedAuthority> narrowRoleSpaces(Map<String, String> map, Collection<? extends GrantedAuthority> authorities) {
 		return authorities.stream().map(a -> Role.parse(a.getAuthority())).filter(r -> !map.containsKey(r.getContext()) || map.getOrDefault(r.getContext(), "").equals(r.getSpace())).collect(Collectors.toSet());
 	}
+	
+    public Collection<GrantedAuthority> narrowAuthoritiesSpaces(Multimap<String, String> roleSpaces,
+            Collection<GrantedAuthority> newAuthorities,
+            Collection<? extends GrantedAuthority> authAuthorities) {
+
+        List<GrantedAuthority> selectedAuthorities = new LinkedList<>();
+//        logger.trace(newAuthorities.toString());
+//        logger.trace(authAuthorities.toString());
+
+        // filter for uniqueSpaces, if required and authorization already contains the
+        // selection
+        if (roleSpaces != null) {
+            // we need to intersect new authorities with user selection,
+            // only for those in uniqueSpaces
+            selectedAuthorities = new LinkedList<>();
+            for (GrantedAuthority a : newAuthorities) {
+                Role r = Role.parse(a.getAuthority());
+                if (!StringUtils.isEmpty(r.getContext()) && roleSpaces.keySet().contains(r.getContext())) {
+                    // we want to filter this and keep only those selected, so skip now
+                } else {
+                    // add
+                    selectedAuthorities.add(a);
+                }
+            }
+
+            // fetch previously selected
+            for (GrantedAuthority a : authAuthorities) {
+                Role r = Role.parse(a.getAuthority());
+                if (!StringUtils.isEmpty(r.getContext()) && roleSpaces.keySet().contains(r.getContext())) {
+                    // keep this
+                    selectedAuthorities.add(a);
+                } else {
+                    // skip, we already fetched this from new authorities
+                }
+            }
+        } else {
+            // nothing to filter, use new
+            selectedAuthorities.addAll(newAuthorities);
+        }
+        
+        return selectedAuthorities;
+    }
+
 
 }

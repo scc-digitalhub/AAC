@@ -48,7 +48,9 @@ import com.google.common.collect.Multimap;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.repository.ResourceRepository;
 import springfox.documentation.annotations.ApiIgnore;
@@ -69,6 +71,8 @@ public class AccessConfirmationController {
 	private ResourceRepository resourceRepository;
 	@Autowired
 	private RoleManager roleManager;
+    @Autowired
+    private UserManager userManager;	
 	@Autowired
 	private ApprovalStore approvalStore;
 
@@ -129,7 +133,19 @@ public class AccessConfirmationController {
 			}
 		}
 		
-		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(clientAuth.getClientId(), ((Authentication) principal).getAuthorities());
+		//note: session with principal contains stale info about roles, fetched at login
+        Collection<? extends GrantedAuthority> selectedAuthorities = ((Authentication) principal).getAuthorities();
+        // fetch again from db
+        try {
+            long userId = Long.parseLong(user.getUsername());
+            it.smartcommunitylab.aac.model.User userEntity = userManager.findOne(userId);
+            selectedAuthorities = roleManager.buildAuthorities(userEntity);
+        } catch (Exception e) {
+            // user is not available
+            logger.error("user not found: " + e.getMessage());
+        }	
+        
+		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(clientAuth.getClientId(), selectedAuthorities);
 
 		if (resources.size() == 0 && (spaces == null || spaces.isEmpty())) {
 			clientAuth.setApproved(true);
