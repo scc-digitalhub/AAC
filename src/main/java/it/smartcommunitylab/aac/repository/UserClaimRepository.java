@@ -36,8 +36,8 @@ public interface UserClaimRepository extends JpaRepository<UserClaim, Long> {
 	@Query("select uc from UserClaim uc where uc.user.id = ?1")
 	List<UserClaim> findByUser(Long userId);
 
-	@Query("select distinct uc.user.id, uc.username from UserClaim uc where uc.claim.service.serviceId = LOWER(?1)")
-	Page<Object[]> findUserDataByService(String serviceId, Pageable page);
+	@Query("select distinct uc.user.id, uc.username from UserClaim uc where uc.claim.service.serviceId = LOWER(?1) and uc.username LIKE %?2%")
+	Page<Object[]> findUserDataByService(String serviceId, String name, Pageable page);
 
 	@Query("select uc from UserClaim uc where uc.user.id = ?1 and uc.claim.service.serviceId = LOWER(?2)")
 	List<UserClaim> findByUserAndService(Long userId, String serviceId);

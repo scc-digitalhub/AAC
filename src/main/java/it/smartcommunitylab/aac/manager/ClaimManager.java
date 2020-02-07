@@ -200,7 +200,8 @@ public class ClaimManager {
 		if (!userContexts.contains(service.getContext())) {
 			throw new SecurityException("Not authorized to access service " + serviceId);
 		}
-		Page<Object[]> userData = userClaimRepository.findUserDataByService(serviceId.toLowerCase(), page);
+		if (name == null) name = "";
+		Page<Object[]> userData = userClaimRepository.findUserDataByService(serviceId.toLowerCase(), name.toLowerCase(), page);
 		return userData.map(arr -> new UserClaimProfileDTO(arr[0] == null ? null: ((Long)arr[0]).toString(), (String)arr[1]));
 	}
 

@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -76,6 +78,18 @@ public class ServiceController {
 		return ResponseEntity.ok(serviceManager.getAllServices(name, page));
 	}
 
+	/**
+	 * Read services managed by current user
+	 * @param name text search filter to apply to service name
+	 * @param page paging configuration
+	 * @return {@link Response} entity containing the service {@link Service} descriptors
+	 */
+	@ApiOperation(value="Get list of user services")
+	@RequestMapping(value = "/api/services/me", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<List<ServiceDTO>> getMyServices() throws Exception {
+		// exclude core services (with empty namespace)
+		return ResponseEntity.ok(serviceManager.getUserServices(userManager.getUserOrOwner()).stream().filter(s -> !StringUtils.isEmpty(s.getNamespace())).collect(Collectors.toList()));
+	}
 
 	/**
 	 * Read specific service data
