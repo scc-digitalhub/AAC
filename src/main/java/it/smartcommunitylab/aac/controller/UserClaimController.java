@@ -112,6 +112,19 @@ public class UserClaimController {
 		return ResponseEntity.ok(claimManager.saveServiceUserClaimsByUsername(userManager.getUserOrOwner(), serviceId, username, dto));
 	}
 
+	@ApiOperation(value="Delete service claims for user")
+	@RequestMapping(value="/api/claims/{serviceId:.*}/{userId:.*}",method=RequestMethod.DELETE)
+	public @ResponseBody ResponseEntity<UserClaimProfileDTO> deletClaims(@PathVariable String serviceId, @PathVariable String userId) throws InvalidDefinitionException {
+		claimManager.deleteServiceUserClaims(userManager.getUserOrOwner(), serviceId, userId);
+		return ResponseEntity.ok(null);
+	}
+	@ApiOperation(value="Delete service claims for the specified username")
+	@RequestMapping(value="/api/claims/{serviceId:.*}/username",method=RequestMethod.DELETE)
+	public @ResponseBody ResponseEntity<Void> deleteClaimsForUsername(@PathVariable String serviceId, @RequestParam String username) throws InvalidDefinitionException {
+		claimManager.deleteServiceUserClaimsByUsername(userManager.getUserOrOwner(), serviceId, username);
+		return ResponseEntity.ok(null);
+	}
+
 	@ExceptionHandler(SecurityException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
