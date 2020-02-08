@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.model;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import javax.persistence.Entity;
@@ -33,7 +35,6 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import antlr.collections.List;
 import it.smartcommunitylab.aac.Config.CLAIM_TYPE;
 
 /**
@@ -169,6 +170,7 @@ public class ServiceClaim {
 	 */
 	@SuppressWarnings("rawtypes")
 	public static boolean ofType(Object value, boolean multiple, CLAIM_TYPE type) {
+		if (value == null) return true;
 		boolean vMultiple = (value.getClass().isArray() || value instanceof Collection);
 		if (vMultiple != multiple) {
 			return false;
@@ -214,7 +216,7 @@ public class ServiceClaim {
 	 */
 	public static Object typedValue(ServiceClaim claim, String value) {
 		try {
-			if (claim.isMultiple()) return mapper.readValue(value, List.class);
+			if (claim.isMultiple()) return mapper.readValue(value, LinkedList.class);
 			switch (claim.getType()) {
 			case type_boolean: return Boolean.parseBoolean(value);
 			case type_number: {
@@ -224,7 +226,7 @@ public class ServiceClaim {
 					return Double.parseDouble(value);
 				}
 			}
-			case type_object: return mapper.readValue(value, Map.class);
+			case type_object: return mapper.readValue(value, HashMap.class);
 			default: return value; 
 			}
 		} catch (Exception e) {

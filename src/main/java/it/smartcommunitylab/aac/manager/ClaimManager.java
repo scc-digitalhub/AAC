@@ -231,7 +231,8 @@ public class ClaimManager {
 		}
 		user.setUserId(dbUser.getId().toString());
 		user.setUsername(dbUser.getUsername());
-		user.setClaims(claims.stream().collect(Collectors.toMap(uc -> ServiceClaim.qualifiedName(service.getNamespace(), uc.getClaim().getClaim()), uc -> ServiceClaim.typedValue(uc.getClaim(), uc.getValue()))));
+		user.setClaims(new HashMap<>());
+		claims.forEach(uc -> user.getClaims().put(ServiceClaim.qualifiedName(service.getNamespace(), uc.getClaim().getClaim()), ServiceClaim.typedValue(uc.getClaim(), uc.getValue())));
 		return user;
 		
 	}
@@ -246,7 +247,8 @@ public class ClaimManager {
 		List<UserClaim> claims = userClaimRepository.findByUsernameAndService(username, serviceId);
 		UserClaimProfileDTO user = new UserClaimProfileDTO();
 		user.setUsername(username);
-		user.setClaims(claims.stream().collect(Collectors.toMap(uc -> ServiceClaim.qualifiedName(service.getNamespace(), uc.getClaim().getClaim()), uc -> ServiceClaim.typedValue(uc.getClaim(), uc.getValue()))));
+		user.setClaims(new HashMap<>());
+		claims.forEach(uc -> user.getClaims().put(ServiceClaim.qualifiedName(service.getNamespace(), uc.getClaim().getClaim()), ServiceClaim.typedValue(uc.getClaim(), uc.getValue())));
 		return user;
 		
 	}
@@ -343,6 +345,26 @@ public class ClaimManager {
 		return res;
 
 	}
+	
+	public void deleteServiceUserClaims(User owner, String serviceId, String userId) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		userClaimRepository.delete(userClaimRepository.findByUserAndService(Long.parseLong(userId), serviceId));
+	}
+	public void deleteServiceUserClaimsByUsername(User owner, String serviceId, String username) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		userClaimRepository.delete(userClaimRepository.findByUsernameAndService(username, serviceId));
+	}
+
 	
 	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);
