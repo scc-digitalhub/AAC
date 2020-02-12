@@ -255,7 +255,7 @@ public class ClientDetailsManager {
 			client.setAdditionalInformation(info.toJson());
 			client.setRedirectUri(Utils.normalizeValues(data.getRedirectUris()));
 			
-			if (data.getScope() != null) {
+			if (!StringUtils.isEmpty(data.getScope())) {
 				client.setScope(data.getScope());
 				Set<String> serviceIds = serviceManager.findServiceIdsByScopes(client.getScope());
 				client.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceIds));
