@@ -107,6 +107,7 @@ public class TokenIntrospectionEndpoint {
      * considerations https://tools.ietf.org/html/rfc7662#section-4
      */
 
+    @SuppressWarnings("unchecked")
     @ApiOperation(value = "Get token metadata")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_INTROSPECTION_URL)
     public ResponseEntity<AACTokenIntrospection> getTokenInfo(

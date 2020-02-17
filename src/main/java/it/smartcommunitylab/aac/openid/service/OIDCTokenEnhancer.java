@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +21,6 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWEHeader;
@@ -287,12 +285,12 @@ public class OIDCTokenEnhancer  {
 //		return signed;
 //	}	
 
-    private Set<String> getServiceIds(Set<String> scopes) {
-    	if (scopes != null && !scopes.isEmpty()) {
-    		return serviceManager.findServiceIdsByScopes(scopes);
-    	}
-    	return Collections.emptySet();
-    }
+//    private Set<String> getServiceIds(Set<String> scopes) {
+//    	if (scopes != null && !scopes.isEmpty()) {
+//    		return serviceManager.findServiceIdsByScopes(scopes);
+//    	}
+//    	return Collections.emptySet();
+//    }
 
 
 }
