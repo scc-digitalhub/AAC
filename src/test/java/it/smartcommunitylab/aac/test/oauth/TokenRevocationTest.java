@@ -113,23 +113,23 @@ public class TokenRevocationTest {
         sessionId = null;
     }
 
-    @Test
-    public void test() throws Exception {
-        // fetch valid token
-        JSONObject token = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
-                sessionId, new String[] { SCOPE });
-
-        logger.trace(token.toString());
-
-        Thread.sleep(1000);
-
-        // fetch valid token
-        JSONObject token2 = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
-                sessionId, new String[] { SCOPE });
-
-        logger.trace(token2.toString());
-    }
 //    @Test
+//    public void test() throws Exception {
+//        // fetch valid token
+//        JSONObject token = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
+//                sessionId, new String[] { SCOPE });
+//
+//        logger.trace(token.toString());
+//
+//        Thread.sleep(1000);
+//
+//        // fetch valid token
+//        JSONObject token2 = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
+//                sessionId, new String[] { SCOPE });
+//
+//        logger.trace(token2.toString());
+//    }
+    @Test
     public void accessTokenRevokeWithBasicAuth() throws Exception {
 
         logger.debug("accessTokenRevokeWithBasicAuth session " + sessionId);
