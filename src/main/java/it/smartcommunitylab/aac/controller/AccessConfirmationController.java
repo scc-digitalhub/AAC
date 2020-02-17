@@ -50,6 +50,7 @@ import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import springfox.documentation.annotations.ApiIgnore;
 
