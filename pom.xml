@@ -294,7 +294,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-               <skipTests>true</skipTests>
+<!--                <skipTests>true</skipTests> -->
             </configuration>
          </plugin>
          <plugin>
@@ -316,16 +316,16 @@
          <id>SmartCommunity</id>
          <url>http://repository.smartcommunitylab.it/content/groups/public</url>
       </repository>
-      <repository>
-         <id>spring-milestone</id>
-         <name>Spring Maven MILESTONE Repository</name>
-         <url>http://maven.springframework.org/milestone</url>
-      </repository>
-      <repository>
-         <id>spring-snnapshot</id>
-         <name>Spring Maven SNAPSHOT Repository</name>
-         <url>http://maven.springframework.org/snapshot</url>
-      </repository>
+<!--       <repository> -->
+<!--          <id>spring-milestone</id> -->
+<!--          <name>Spring Maven MILESTONE Repository</name> -->
+<!--          <url>http://maven.springframework.org/milestone</url> -->
+<!--       </repository> -->
+<!--       <repository> -->
+<!--          <id>spring-snnapshot</id> -->
+<!--          <name>Spring Maven SNAPSHOT Repository</name> -->
+<!--          <url>http://maven.springframework.org/snapshot</url> -->
+<!--       </repository> -->
    </repositories>
 
 </project>
