@@ -106,16 +106,15 @@ import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Configuration
@@ -367,8 +366,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		private ApprovalStore approvalStore;
 		@Autowired	
 		private ClientDetailsService clientDetailsService;
-		@Autowired	
-		private ResourceRepository resourceRepository;
 
 		@Autowired
 		private UserApprovalHandler userApprovalHandler;
@@ -381,6 +378,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Autowired
 		private ProviderServiceAdapter providerServiceAdapter;
+		
+		@Autowired
+		private UserManager userManager;
 		
 		@Autowired
 		@Qualifier("appTokenServices")
@@ -412,7 +412,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			UserApprovalHandler bean = new UserApprovalHandler();
 			bean.setApprovalStore(approvalStore);
 			bean.setClientDetailsService(clientDetailsService);
-			bean.setResourceRepository(resourceRepository);
 			bean.setRequestFactory(getOAuth2RequestFactory());
 			bean.setFlowExtensions(getFlowExtensions());
 			return bean;
@@ -454,7 +453,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			// insert PKCE auth code granter as the first one, before default implementation
 			granters.add(0,new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
 			// custom native flow support
-			granters.add(new NativeTokenGranter(providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
+			granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
 			return new CompositeTokenGranter(granters);
 		}
 	}
@@ -714,4 +713,51 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return resource;
     }
     
+    @Bean
+    protected ResourceServerConfiguration serviceManagementResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.regexMatcher("/api/services(.)*").authorizeRequests().regexMatchers(HttpMethod.OPTIONS, "/api/services(.)*")
+				.permitAll()
+				.regexMatchers("/api/services(.)*").access("#oauth2.hasAnyScope('"+Config.SCOPE_SERVICEMANAGEMENT+"', '"+Config.SCOPE_SERVICEMANAGEMENT_USER+"')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(14);
+		return resource;
+    }
+    
+    @Bean
+    protected ResourceServerConfiguration claimManagementResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/api/claims/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/api/claims/**")
+				.permitAll()
+				.antMatchers("/api/claims/**").access("#oauth2.hasAnyScope('"+Config.SCOPE_CLAIMMANAGEMENT+"', '"+Config.SCOPE_CLAIMMANAGEMENT_USER+"')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(15);
+		return resource;
+    }
 }

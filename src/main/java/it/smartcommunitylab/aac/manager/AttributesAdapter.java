@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -78,12 +79,15 @@ public class AttributesAdapter {
 	@Autowired
 	private NativeAuthorityHandlerContainer nativeAuthorityHandlerManager;
 	
-	
+    @Value("${authorities.enabled}")
+    private String[] enabledAuthoritiesArray;
+
 	/**
 	 * Load attributes from the XML descriptor.
 	 * @throws JAXBException
 	 */
-	protected void init(List<String> enabledAuthorities) throws JAXBException {
+	@PostConstruct
+	public void init() throws JAXBException {
 		JAXBContext jaxb = JAXBContext.newInstance(AuthorityMapping.class,
 				Authorities.class);
 		Unmarshaller unm = jaxb.createUnmarshaller();
@@ -95,6 +99,9 @@ public class AttributesAdapter {
 		authorities = new HashMap<String, AuthorityMapping>();
 		authorityMatches = ArrayListMultimap.create();//new HashMap<String, AuthorityMatching>();
 		identityAttributes = new HashMap<String, Set<String>>();
+		Set<String> enabledAuthorities = new HashSet<>();
+		for (String a : enabledAuthoritiesArray) enabledAuthorities.add(a.trim());
+		
 		for (AuthorityMapping mapping : auths.getAuthorityMapping()) {
 		    //check if enabled in config
 		    if(enabledAuthorities.contains(mapping.getName())) {

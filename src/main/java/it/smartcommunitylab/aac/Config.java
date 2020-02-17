@@ -16,6 +16,9 @@
 
 package it.smartcommunitylab.aac;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Constants and methods for managing resource visibility
  * @author raman
@@ -35,10 +38,27 @@ public class Config {
 	public static final String IDP_INTERNAL = "internal";
 	
 	/** Authorization authorities */
-	public enum AUTHORITY {ROLE_USER, ROLE_CLIENT, ROLE_ANY, ROLE_CLIENT_TRUSTED};
-	
-	/** Resource visibility values: either only the specific app can see, or all the apps of the current developer, or any app */
-	public enum RESOURCE_VISIBILITY {CLIENT_APP,DEVELOPER,PUBLIC}
+	public enum AUTHORITY {ROLE_USER, ROLE_CLIENT, ROLE_CLIENT_TRUSTED};
+
+	/** Claim types */
+	public enum CLAIM_TYPE {
+		type_string("string"), type_number("number"), type_boolean("boolean"), type_object("object");
+		private String litType;
+		
+		private CLAIM_TYPE(String litType) {
+			this.litType = litType;
+		}
+		public String getLitType() {
+			return litType;
+		}
+		private static final Map<String, CLAIM_TYPE> lookup = new HashMap<>();
+		static {
+			for (CLAIM_TYPE ct: CLAIM_TYPE.values()) lookup.put(ct.getLitType(), ct);
+		}
+		public static CLAIM_TYPE get(String s) {
+			return lookup.get(s);
+		}
+	};
 
 	/** Requesting device type */
 	public enum DEVICE_TYPE {MOBILE, TABLET, DESKTOP, UNKNOWN, WEBVIEW};
@@ -67,13 +87,12 @@ public class Config {
     public static final String GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
     public static final String GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
     public static final String GRANT_TYPE_DEVICE_CODE = "urn:ietf:params:oauth:grant-type:device_code";
-
+    
     public static final String RESPONSE_TYPE_NONE = "none";
     public static final String RESPONSE_TYPE_CODE = "code";
     public static final String RESPONSE_TYPE_TOKEN = "token";
     public static final String RESPONSE_TYPE_ID_TOKEN = "id_token";
-    
-    
+
 	/** Open ID connect scope */
 	public static final String SCOPE_OPENID = "openid";
 	/** Open Id offline access (refresh token) **/
@@ -101,6 +120,12 @@ public class Config {
 
     /** scopes for api management */
     public static final String SCOPE_APIMANAGEMENT = "apimanagement";
+    /** scopes for service management */
+    public static final String SCOPE_SERVICEMANAGEMENT = "servicemanagement";
+    public static final String SCOPE_SERVICEMANAGEMENT_USER = "servicemanagement.me";
+    /** scopes for service management */
+    public static final String SCOPE_CLAIMMANAGEMENT = "claimmanagement";
+    public static final String SCOPE_CLAIMMANAGEMENT_USER = "claimmanagement.me";
 
 
     /** scopes for authorization */
@@ -116,29 +141,4 @@ public class Config {
 	public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 	
 	public static final String WELL_KNOWN_URL = "/.well-known";
-
-	/**
-	 * Check whether the child property visibility is equal or more restrictive than the one of the parent property.
-	 * @param parentVis
-	 * @param childVis
-	 */
-	public static boolean checkVisibility(RESOURCE_VISIBILITY parentVis, RESOURCE_VISIBILITY childVis) {
-		switch (childVis) {
-		case DEVELOPER:
-			return parentVis != RESOURCE_VISIBILITY.CLIENT_APP;
-		case PUBLIC:
-			return parentVis == RESOURCE_VISIBILITY.PUBLIC;
-		default:
-			return true;
-		}
-	}
-
-	/**
-	 * @param parentVis
-	 * @param childVis
-	 * @return the most restrictive visibility of the two 
-	 */
-	public static RESOURCE_VISIBILITY alignVisibility(RESOURCE_VISIBILITY parentVis, RESOURCE_VISIBILITY childVis) {
-		return checkVisibility(parentVis, childVis) ? childVis : parentVis;
-	};
 }

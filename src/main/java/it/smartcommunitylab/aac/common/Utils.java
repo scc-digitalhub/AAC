@@ -16,27 +16,14 @@
 
 package it.smartcommunitylab.aac.common;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
-
-import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
-import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
-import it.smartcommunitylab.aac.model.ServiceDescriptor;
 
 /**
  * Common methods and functions
@@ -71,46 +58,7 @@ public class Utils {
 	public static String normalizeValues(String in) {
 		return StringUtils.trimAllWhitespace(in);
 	}
-	
-	/**
-	 * Convert {@link it.smartcommunitylab.aac.jaxbmodel.Service} object
-	 * to {@link ServiceDescriptor} persisted entity
-	 * @param s
-	 * @return converted {@link ServiceDescriptor} entity
-	 */
-	public static ServiceDescriptor toServiceEntity(it.smartcommunitylab.aac.jaxbmodel.Service s) {
-		ObjectMapper mapper = new ObjectMapper();
-		ServiceDescriptor res = new ServiceDescriptor();
-		res.setDescription(s.getDescription());
-		res.setServiceName(s.getName());
-		res.setServiceId(s.getId());
-		try {
-			res.setResourceDefinitions(mapper.writeValueAsString(s.getResource()));
-			res.setResourceMappings(mapper.writeValueAsString(s.getResourceMapping()));
-		} catch (JsonProcessingException e) {
-		}
-		res.setApiKey(s.getApiKey());
-		return res;
-	} 
-	/**
-	 * Convert {@link ServiceDescriptor} entity to {@link it.smartcommunitylab.aac.jaxbmodel.Service} object
-	 * @param s
-	 * @return converted {@link it.smartcommunitylab.aac.jaxbmodel.Service} object
-	 */
-	public static it.smartcommunitylab.aac.jaxbmodel.Service toServiceObject(ServiceDescriptor s) {
-		it.smartcommunitylab.aac.jaxbmodel.Service res = new it.smartcommunitylab.aac.jaxbmodel.Service();
-		res.setDescription(s.getDescription());
-		res.setId(s.getServiceId());
-		res.setName(s.getServiceName());
-		res.setApiKey(s.getApiKey());
-		res.getResource().clear();
-		res.getResource().addAll(toObjectList(s.getResourceDefinitions(), ResourceDeclaration.class));
-		res.getResourceMapping().clear();
-		List<ResourceMapping> resourceMapping = toObjectList(s.getResourceMappings(), ResourceMapping.class);
-		res.getResourceMapping().addAll(resourceMapping);
-		return res;
-	} 
-	
+
 	/**
 	 * URL for authentication filters of identity providers
 	 * @param provider
@@ -169,33 +117,5 @@ public class Utils {
 
 		return null;
 	}		
-	
-
-	/**
-	 * Convert JSON array string to the list of objects of the specified class
-	 * @param body
-	 * @param cls
-	 * @return
-	 */
-	private static <T> List<T> toObjectList(String body, Class<T> cls) {
-	    ObjectMapper fullMapper = new ObjectMapper();
-        fullMapper.setAnnotationIntrospector(NopAnnotationIntrospector.nopInstance());
-        fullMapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-        fullMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
-        fullMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        fullMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-
-		try {
-			List<Object> list = fullMapper.readValue(body, new TypeReference<List<?>>() { });
-			List<T> result = new ArrayList<T>();
-			for (Object o : list) {
-				result.add(fullMapper.convertValue(o,cls));
-			}
-			return result;
-		} catch (Exception e) {
-			return null;
-		}
-	}
 	
 }

@@ -15,38 +15,27 @@
  */
 package it.smartcommunitylab.aac.manager;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.JAXBException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Sets;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.Authority;
-import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.model.UserClaim;
 import it.smartcommunitylab.aac.repository.AttributeRepository;
 import it.smartcommunitylab.aac.repository.AuthorityRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
+import it.smartcommunitylab.aac.repository.UserClaimRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -56,7 +45,6 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 @Transactional
 public class ProviderServiceAdapter {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private AttributesAdapter attrAdapter;
@@ -67,15 +55,7 @@ public class ProviderServiceAdapter {
 	@Autowired
 	private AttributeRepository attributeRepository;
 	@Autowired
-	private ResourceRepository resourceRepository;	
-
-    @Value("${authorities.enabled}")
-    private String[] enabledAuthorities;
-	   
-	public void init() throws JAXBException, IOException {
-	    logger.debug("init");
-		attrAdapter.init(Arrays.asList(enabledAuthorities));
-	}
+	private UserClaimRepository claimRepository;
 
 	/**
 	 * Updates of user attributes using the values obtained from http request
@@ -131,10 +111,12 @@ public class ProviderServiceAdapter {
 
 		User user = null;
 		if (users.isEmpty()) {
+			// new user registration
 			user = new User(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR), new HashSet<Attribute>(list));
 			user.getRoles().add(Role.systemUser());
 			user.setUsername(attributes.get(Config.USERNAME_ATTR));
 			user = userRepository.saveAndFlush(user);
+			updateClaims(user);
 		} else {
 			user = users.get(0);
 			attributeRepository.deleteInBatch(user.getAttributeEntities());
@@ -142,14 +124,24 @@ public class ProviderServiceAdapter {
 			user.updateNames(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR));
 			if (user.getUsername() == null) {
 				user.setUsername(attributes.get(Config.USERNAME_ATTR));
+				updateClaims(user);
 			}
 			userRepository.saveAndFlush(user);
 		}
 		return user;
 	}
 
-//	public User updateUserRoles()
-	
+	/**
+	 * @param user
+	 */
+	private void updateClaims(User user) {
+		if (user.getUsername() == null) return;
+		
+		List<UserClaim> claims = claimRepository.findByUsername(user.getUsername());
+		claims.forEach(c -> c.setUser(user));
+		claimRepository.save(claims);
+	}
+
 	private void populateAttributes(Authority auth, Map<String, String> attributes, List<Attribute> list, Set<Attribute> old) {
 		for (String key : attributes.keySet()) {
 			String value = attributes.get(key);
@@ -182,33 +174,5 @@ public class ProviderServiceAdapter {
 	private List<Attribute> extractIdentityAttributes(Authority auth, Map<String, String> attributes, boolean all) {
 		return attrAdapter.findAllIdentityAttributes(auth, attributes, all);
 	}
-	
-	
-	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
-		Set<String> newScopes = Sets.newHashSet();
-		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
-		for (String scope : scopes) {
-			Resource resource = resourceRepository.findByResourceUri(scope);
-			if (resource != null) {
-				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER) || resource.getAuthority().equals(AUTHORITY.ROLE_ANY);
-				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
-				if (isUser && !isResourceUser) {
-					continue;
-				}
-				if (!isUser && !isResourceClient) {
-					continue;
-				}
-				
-				if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
-					Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
-					if (!Sets.intersection(roleNames, roles).isEmpty()) {
-						newScopes.add(scope);
-					}
-				} else {
-					newScopes.add(scope);
-				}
-			}
-		}
-		return newScopes;
-	}
+
 }

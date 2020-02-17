@@ -1,11 +1,6 @@
 package it.smartcommunitylab.aac.test.oauth;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
@@ -36,9 +31,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
-
-import com.nimbusds.jose.JOSEException;
 
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
@@ -104,7 +96,6 @@ public class TokenRevocationTest {
                         String.join(",", GRANT_TYPES), new String[] { SCOPE },
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }
@@ -138,7 +129,6 @@ public class TokenRevocationTest {
 
         logger.trace(token2.toString());
     }
-
 //    @Test
     public void accessTokenRevokeWithBasicAuth() throws Exception {
 

@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.dto;
 
 import java.util.List;
 
-import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 
 /**
  * @author raman
@@ -28,7 +28,7 @@ public class ConnectedAppProfile {
 
 	private String clientId;
 	private String appName;
-	private List<Resource> resources;
+	private List<ServiceScopeDTO> scopes;
 	/**
 	 * @return the clientId
 	 */
@@ -56,14 +56,14 @@ public class ConnectedAppProfile {
 	/**
 	 * @return the resources
 	 */
-	public List<Resource> getResources() {
-		return resources;
+	public List<ServiceScopeDTO> getScopes() {
+		return scopes;
 	}
 	/**
 	 * @param resources the resources to set
 	 */
-	public void setResources(List<Resource> resources) {
-		this.resources = resources;
+	public void setScopes(List<ServiceScopeDTO> scopes) {
+		this.scopes = scopes;
 	}
 	
 }

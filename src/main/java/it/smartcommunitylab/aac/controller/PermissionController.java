@@ -16,19 +16,18 @@
 
 package it.smartcommunitylab.aac.controller;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
@@ -45,21 +44,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import it.smartcommunitylab.aac.Config.RESOURCE_VISIBILITY;
-import it.smartcommunitylab.aac.jaxbmodel.ResourceDeclaration;
-import it.smartcommunitylab.aac.jaxbmodel.ResourceMapping;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.dto.ServiceDTO;
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.jaxbmodel.Service;
-import it.smartcommunitylab.aac.manager.ResourceManager;
+import it.smartcommunitylab.aac.manager.ClaimManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Permissions;
-import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.model.ResourceParameter;
 import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceParameterRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -78,13 +76,11 @@ public class PermissionController {
 	private static final Integer RA_PENDING = 3;
 
 	@Autowired
-	private ResourceManager resourceManager;
+	private ServiceManager serviceManager;
+	@Autowired
+	private ClaimManager claimManager;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
-	@Autowired
-	private ResourceRepository resourceRepository;
-	@Autowired
-	private ResourceParameterRepository resourceParameterRepository;
 	@Autowired
 	private UserManager userManager;
 	
@@ -104,31 +100,27 @@ public class PermissionController {
 		ClientDetailsEntity clientDetails = clientDetailsRepository.findByClientId(clientId);
 		ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
 		
-		if (info.getResourceApprovals() == null) info.setResourceApprovals(new HashMap<String, Boolean>());
-		Collection<String> resourceIds = new HashSet<String>(clientDetails.getResourceIds());
-		Collection<String> scopes = new HashSet<String>(clientDetails.getScope());
-		for (String r : permissions.getSelectedResources().keySet()) {
-			Resource resource = resourceRepository.findOne(Long.parseLong(r));
+		if (info.getScopeApprovals() == null) info.setScopeApprovals(new HashMap<String, Boolean>());
+		Set<String> scopes = new HashSet<String>(clientDetails.getScope());
+		for (String r : permissions.getSelectedScopes().keySet()) {
+			ServiceScopeDTO scopeObj = serviceManager.getServiceScopeDTO(r);
 			// if not checked, remove from permissions and from pending requests
-			if (!permissions.getSelectedResources().get(r)) {
-				info.getResourceApprovals().remove(r);
-				resourceIds.remove(r);
-				scopes.remove(resource.getResourceUri());
+			if (!permissions.getSelectedScopes().get(r)) {
+				info.getScopeApprovals().remove(r);
+				scopes.remove(scopeObj.getScope());
 			// if checked but requires approval, check whether
-			// - is the resource of the same client, so add automatically	
-		    // - already approved (i.e., included in client resourceIds)
+		    // - already approved (i.e., included in client scopes)
 			// - already requested (i.e., included in additional info approval requests map)	
-			} else if (!clientId.equals(resource.getClientId()) && resource.isApprovalRequired()) {
-				if (!resourceIds.contains(r) && ! info.getResourceApprovals().containsKey(r)) {
-					info.getResourceApprovals().put(r, true);
+			} else if (scopeObj.isApprovalRequired()) {
+				if (!scopes.contains(r) && !info.getScopeApprovals().containsKey(r)) {
+					info.getScopeApprovals().put(r, true);
 				}
 			// if approval is not required, include directly in client resource ids	
 			} else {
-				resourceIds.add(r);
-				scopes.add(resource.getResourceUri());
+				scopes.add(scopeObj.getScope());
 			}
 		}
-		clientDetails.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
+		clientDetails.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceManager.findServiceIdsByScopes(scopes)));
 		clientDetails.setScope(StringUtils.collectionToCommaDelimitedString(scopes));
 		clientDetails.setAdditionalInformation(info.toJson());
 		clientDetailsRepository.save(clientDetails);
@@ -156,17 +148,18 @@ public class PermissionController {
 		return response;
 	}
 
+	
 	/**
 	 * Read services
 	 * @param clientId
 	 * @return {@link Response} entity containing the service {@link Service} descriptors
 	 */
 	@RequestMapping(value = "/dev/services/{clientId}", method = RequestMethod.GET)
-	public @ResponseBody Response getServices(@PathVariable String clientId) throws Exception {
+	public @ResponseBody Response getServices(@PathVariable String clientId, @RequestParam(required = false) String name, Pageable page) throws Exception {
 		Response response = new Response();
 		userManager.checkClientIdOwnership(clientId);
 
-		List<Service> services = resourceManager.getServiceObjects();
+		Page<ServiceDTO> services = serviceManager.getAllServices(name, page);
 		response.setData(services);
 
 		return response;
@@ -180,8 +173,34 @@ public class PermissionController {
 	@RequestMapping(value="/dev/services/my",method=RequestMethod.GET)
 	public @ResponseBody Response myServices() {
 		Response response = new Response();
-		response.setData(resourceManager.getServiceObjects(""+userManager.getUserId()));
-		
+		response.setData(serviceManager.getUserServices(userManager.getUser()));
+		return response;
+	} 
+
+	/**
+	 * Read service contexts available to the current user
+	 * @return {@link Response} entity containing the service contexts
+	 */
+	@RequestMapping(value="/dev/servicecontexts/my",method=RequestMethod.GET)
+	public @ResponseBody Response myContexts() {
+		Response response = new Response();
+		Set<String> contexts = serviceManager.getUserContexts(userManager.getUser());
+		contexts.remove(null);
+		response.setData(contexts);
+		return response;
+	} 
+
+	/**
+	 * Read services defined by the current user
+	 * @return {@link Response} entity containing the service {@link Service} descriptors
+	 */
+	@RequestMapping(value="/dev/services/my/{serviceId:.*}",method=RequestMethod.GET)
+	public @ResponseBody Response myService(@PathVariable String serviceId) {
+		Response response = new Response();
+		ServiceDTO service = serviceManager.getService(serviceId);
+		service.setScopes(serviceManager.getServiceScopes(serviceId));
+		service.setClaims(serviceManager.getServiceClaims(serviceId));
+		response.setData(service);
 		return response;
 	} 
 
@@ -191,9 +210,9 @@ public class PermissionController {
 	 * @return stored {@link Service} object
 	 */
 	@RequestMapping(value="/dev/services/my",method=RequestMethod.POST)
-	public @ResponseBody Response saveService(@RequestBody Service sd) {
+	public @ResponseBody Response saveService(@RequestBody ServiceDTO sd) {
 		Response response = new Response();
-		response.setData(resourceManager.saveServiceObject(sd, userManager.getUserId()));
+		response.setData(serviceManager.saveService(userManager.getUser(), sd));
 		
 		return response;
 	}
@@ -206,64 +225,70 @@ public class PermissionController {
 	@RequestMapping(value="/dev/services/my/{serviceId:.*}",method=RequestMethod.DELETE)
 	public @ResponseBody Response deleteService(@PathVariable String serviceId) {
 		Response response = new Response();
-		resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
-		resourceManager.deleteService(serviceId, userManager.getUserId().toString());
+		serviceManager.deleteService(userManager.getUser(), serviceId);
 		
 		return response;
 	}
-
-	/**
-	 * Add resource parameter declaration to the service object if possible
-	 * @param serviceId
-	 * @return
-	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/parameter",method=RequestMethod.PUT)
-	public @ResponseBody Response addParameter(@PathVariable String serviceId, @RequestBody ResourceDeclaration decl) {
-		Response response = new Response();
-		resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
-		response.setData(resourceManager.addResourceDeclaration(serviceId, decl, userManager.getUserId().toString()));
-		return response;
-	}
-	/**
-	 * Delete resource parameter declaration from the service object if possible
-	 * @param serviceId
-	 * @param id 
-	 * @return
-	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/parameter/{id:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteParameter(@PathVariable String serviceId, @PathVariable String id) {
-		Response response = new Response();
-		resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
-		response.setData(resourceManager.removeResourceDeclaration(serviceId, id, userManager.getUserId().toString()));
-		
-		return response;
-	}
-
 	
 	/**
-	 * Add resource parameter to the service object if possible
+	 * Validate claim mapping
+	 * @return {@link Response} entity containing the claims for the current user or validation error ingfo
+	 * @throws InvalidDefinitionException 
+	 */
+	@RequestMapping(value="/dev/services/my/{serviceId}/claimmapping/validate", method=RequestMethod.POST)
+	public @ResponseBody Response validateClaimMapping(@RequestBody ServiceDTO sd, @PathVariable String serviceId, @RequestParam(required = false) Set<String> scopes) throws InvalidDefinitionException {
+		Response response = new Response();
+		User user = userManager.getUser();
+		response.setData(claimManager.validateClaimMapping(user, sd.getServiceId(), sd.getClaimMapping(), scopes == null ? Collections.emptySet() : scopes));
+		return response;
+	}
+	/**
+	 * Add / edit scope for the service object if possible
 	 * @param serviceId
 	 * @return
 	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/mapping",method=RequestMethod.PUT)
-	public @ResponseBody Response addMapping(@PathVariable String serviceId, @RequestBody ResourceMapping mapping) {
+	@RequestMapping(value="/dev/services/my/{serviceId}/scope",method=RequestMethod.PUT)
+	public @ResponseBody Response addScope(@PathVariable String serviceId, @RequestBody ServiceScopeDTO scope) {
 		Response response = new Response();
-		resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
-		response.setData(resourceManager.addMapping(serviceId, mapping, userManager.getUserId().toString()));
+		response.setData(serviceManager.saveServiceScope(userManager.getUser(), serviceId, scope));
 		return response;
 	}
 
 	/**
-	 * Delete resource parameter declaration from the service object if possible
+	 * Delete scope declaration from the service object if possible
 	 * @param serviceId
 	 * @param id 
 	 * @return
 	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/mapping/{id:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteMapping(@PathVariable String serviceId, @PathVariable String id) {
+	@RequestMapping(value="/dev/services/my/{serviceId}/scope/{scope:.*}",method=RequestMethod.DELETE)
+	public @ResponseBody Response deleteScope(@PathVariable String serviceId, @PathVariable String scope) {
 		Response response = new Response();
-		resourceManager.checkServiceOwnership(serviceId,userManager.getUserId().toString());
-		response.setData(resourceManager.removeMapping(serviceId, id, userManager.getUserId().toString()));
+		serviceManager.deleteServiceScope(userManager.getUser(), serviceId, scope);
+		return response;
+	}
+
+	/**
+	 * Add / edit scope for the service object if possible
+	 * @param serviceId
+	 * @return
+	 */
+	@RequestMapping(value="/dev/services/my/{serviceId}/claim",method=RequestMethod.PUT)
+	public @ResponseBody Response addClaim(@PathVariable String serviceId, @RequestBody ServiceClaimDTO scope) {
+		Response response = new Response();
+		response.setData(serviceManager.saveServiceClaim(userManager.getUser(), serviceId, scope));
+		return response;
+	}
+
+	/**
+	 * Delete scope declaration from the service object if possible
+	 * @param serviceId
+	 * @param id 
+	 * @return
+	 */
+	@RequestMapping(value="/dev/services/my/{serviceId}/claim/{claim:.*}",method=RequestMethod.DELETE)
+	public @ResponseBody Response deleteClaim(@PathVariable String serviceId, @PathVariable String claim) {
+		Response response = new Response();
+		serviceManager.deleteServiceClaim(userManager.getUser(), serviceId, claim);
 		return response;
 	}
 
@@ -276,134 +301,44 @@ public class PermissionController {
 	 */
 	protected Permissions buildPermissions(ClientDetailsEntity clientDetails, String serviceId) {
 		Permissions permissions = new Permissions();
-		permissions.setService(resourceManager.getServiceObject(serviceId));
-		Map<String, List<ResourceParameter>> ownResources = new HashMap<String, List<ResourceParameter>>();
-		// read resource parameters owned by the client and create 'parameter-values' map
-		List<ResourceParameter> resourceParameters = resourceManager.getOwnResourceParameters(clientDetails.getClientId());
-		if (resourceParameters != null) {
-			for (ResourceParameter resourceParameter : resourceParameters) {
-				List<ResourceParameter> sublist = ownResources.get(resourceParameter.getParameter());
-				if (sublist == null) {
-					sublist = new ArrayList<ResourceParameter>();
-					ownResources.put(resourceParameter.getParameter(), sublist);
-				}
-				sublist.add(resourceParameter);
-			}
-		}
-		permissions.setOwnResources(ownResources);
-		// read all available resources and assign permission status
-		Map<String, List<Resource>> otherResourcesMap = new HashMap<String, List<Resource>>();
-		// map resources selected by the client
-		Map<String,Boolean> selectedResources = new HashMap<String, Boolean>();
-		// map resource approval state
-		Map<String,Integer> resourceApprovals = new HashMap<String, Integer>();
-		Set<String> set = clientDetails.getResourceIds();
+		permissions.setService(serviceManager.getService(serviceId));
+		// map scopes selected by the client
+		Map<String,Boolean> selectedScopes = new HashMap<String, Boolean>();
+		// map scopes approval state
+		Map<String,Integer> scopeApprovals = new HashMap<String, Integer>();
+		Set<String> set = clientDetails.getScope();
 		if (set == null) set = Collections.emptySet();
 		
-		List<Resource> otherResources = resourceManager.getAvailableResources(clientDetails.getClientId(), userManager.getUserId());
+		List<ServiceScopeDTO> allScopes = serviceManager.getServiceScopes(serviceId);
 		// read approval status for the resources that require approval explicitly
 		ClientAppInfo info = ClientAppInfo.convert(clientDetails.getAdditionalInformation());
-		if (info.getResourceApprovals() == null) info.setResourceApprovals(Collections.<String,Boolean>emptyMap());
+		if (info.getScopeApprovals() == null) info.setScopeApprovals(Collections.<String,Boolean>emptyMap());
 		
-		if (otherResources != null) {
-			for (Resource resource : otherResources) {
-				String rId = resource.getResourceId().toString();
-				List<Resource> sublist = otherResourcesMap.get(resource.getResourceType());
-				if (sublist == null) {
-					sublist = new ArrayList<Resource>();
-					otherResourcesMap.put(resource.getResourceType(), sublist);
-				}
-				sublist.add(resource);
-				selectedResources.put(rId, set.contains(rId) || info.getResourceApprovals().containsKey(rId));
+		if (allScopes != null) {
+			for (ServiceScopeDTO resource : allScopes) {
+				String rId = resource.getScope();
+				selectedScopes.put(rId, set.contains(rId) || info.getScopeApprovals().containsKey(rId));
 				// set the resource approval status
-				if (selectedResources.containsKey(rId) && selectedResources.get(rId)) {
-					// the resource is approved if it is in the client resource Ids
-					if (set.contains(rId)) resourceApprovals.put(rId, RA_APPROVED);
+				if (selectedScopes.getOrDefault(rId, false)) {
+					// the resource is approved if it is in the client scopes
+					if (set.contains(rId)) scopeApprovals.put(rId, RA_APPROVED);
 					// if resource is not in the resource approvals map, then it is rejected
-					else if (!info.getResourceApprovals().get(rId)) resourceApprovals.put(rId, RA_REJECTED);
+					else if (!info.getScopeApprovals().get(rId)) scopeApprovals.put(rId, RA_REJECTED);
 					// resource is waiting for approval
-					else resourceApprovals.put(rId, RA_PENDING);
+					else scopeApprovals.put(rId, RA_PENDING);
 				} else {
-					resourceApprovals.put(rId, RA_NONE);
-				}
-			}
-		}
-		Map<String,List<Resource>> serviceMap = new TreeMap<String, List<Resource>>();
-		serviceMap.put("__", new ArrayList<Resource>());
-		for (ResourceMapping rm : permissions.getService().getResourceMapping()) {
-			List<Resource> list = otherResourcesMap.get(rm.getId());
-			if (list != null) {
-				for (Resource r : list) {
-					String key = r.getResourceParameter() == null ? "__"
-							: (r.getResourceParameter().getParameter()
-									+ "__" + r.getResourceParameter()
-									.getValue());
-					List<Resource> targetList = serviceMap.get(key);
-					if (targetList == null) {
-						targetList = new ArrayList<Resource>();
-						serviceMap.put(key, targetList);
-					}
-					targetList.add(r);
+					scopeApprovals.put(rId, RA_NONE);
 				}
 			}
 		}
 		
-		permissions.setResourceApprovals(resourceApprovals);
-		permissions.setSelectedResources(selectedResources);
-		permissions.setAvailableResources(serviceMap);
+		permissions.setScopeApprovals(scopeApprovals);
+		permissions.setSelectedScopes(selectedScopes);
+		permissions.setAvailableScopes(allScopes);
 		return permissions;
 	}
 
-	/**
-	 * Create new resource property
-	 * @param rp
-	 * @param serviceId
-	 * @return {@link Response} entity containing the stored {@link ResourceParameter} descriptor
-	 */
-	@RequestMapping(value="/dev/resourceparams",method=RequestMethod.POST)
-	public @ResponseBody Response createProperty(@RequestBody ResourceParameter rp) {
-		Response response = new Response();
-		userManager.checkClientIdOwnership(rp.getClientId());
-		resourceManager.storeResourceParameter(rp, rp.getService().getServiceId());
-		response.setData(rp);
-		return response;
-	}
-
-	/**
-	 * Change the visibility of the owned resource property
-	 * @param clientId client owning the resource
-	 * @param resourceId id of the resource parameter
-	 * @param value parameter value
-	 * @param vis visibility
-	 * @return {@link Response} entity containing the processed {@link ResourceParameter} descriptor
-	 */
-	@RequestMapping(value="/dev/resourceparams/{id:.*}",method=RequestMethod.PUT)
-	public @ResponseBody Response updatePropertyVisibility(@PathVariable Long id, @RequestParam RESOURCE_VISIBILITY vis) {
-		Response response = new Response();
-		ResourceParameter rp = resourceParameterRepository.findOne(id);
-		userManager.checkClientIdOwnership(rp.getClientId());
-		rp = resourceManager.updateResourceParameterVisibility(id, vis);
-		response.setData(rp);
-		return response;
-	}
-
-	/**
-	 * Delete the specified resource parameter
-	 * @param clientId client owning the property
-	 * @param resourceId id of the parameter
-	 * @param value parameter value
-	 * @return
-	 */
-	@RequestMapping(value="/dev/resourceparams/{id:.*}",method=RequestMethod.DELETE)
-	public @ResponseBody Response deleteProperty(@PathVariable Long id) {
-		Response response = new Response();
-		ResourceParameter rp = resourceParameterRepository.findOne(id);
-		userManager.checkClientIdOwnership(rp.getClientId());
-		resourceManager.removeResourceParameter(id);
-		return response;
-	}
-	
-	@ExceptionHandler(AccessDeniedException.class)
+	@ExceptionHandler(SecurityException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ResponseBody
     public Response processAccessError(AccessDeniedException ex) {
@@ -422,7 +357,20 @@ public class PermissionController {
         
 		return Response.error(builder.toString());
     }
-	
+
+	@ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processDataError(IllegalArgumentException ex) {
+		return Response.error(ex.getMessage());
+    }
+
+	@ExceptionHandler(InvalidDefinitionException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processDefinitionError(InvalidDefinitionException ex) {
+		return Response.error(ex.getMessage());
+    }
 	
 	@ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

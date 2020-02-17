@@ -50,7 +50,7 @@ import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
+import it.smartcommunitylab.aac.openid.endpoint.JWKSetPublishingEndpoint;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 import it.smartcommunitylab.aac.test.openid.OpenidUtils;
@@ -111,7 +111,6 @@ public class AuthorizationCodeGrantTestWithJWT {
                         String.join(",", GRANT_TYPES), new String[] { SCOPE },
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }
@@ -280,7 +279,7 @@ public class AuthorizationCodeGrantTestWithJWT {
             // asymmetric sign, need public key
             // fetch JWKs from AAC
             JWKSet jwks = OAuthUtils.fetchJWKS(restTemplate,
-                    server + ":" + port + contextPath + OAuth2MetadataEndpoint.OAUTH2_CONFIGURATION_URL);
+                    server + ":" + port + contextPath + JWKSetPublishingEndpoint.JWKS_URL);
             // build service
             JWTSigningAndValidationService signService = new DefaultJWTSigningAndValidationService(
                     new JWKSetKeyStore(jwks));

@@ -30,20 +30,25 @@ import javax.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.dto.UserProfile;
@@ -51,13 +56,13 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.OAuthApproval;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.OAuthApprovalRepository;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -82,7 +87,7 @@ public class UserManager {
 	@Autowired
 	private RegistrationManager regManager;
 	@Autowired
-	private ResourceRepository resourceRepository;
+	private ServiceManager serviceManager;
 
 	@Value("${api.contextSpace}")
 	private String apiProviderContext;
@@ -168,6 +173,15 @@ public class UserManager {
 		return user;
 	}
 	
+	/**
+	 * Get user with the specified username
+	 * @param username
+	 * @return
+	 */
+	public User getUserByUsername(String username) {
+		return userRepository.findByUsername(username);
+	}
+	
 	public Set<Role> getOwnedSpaceAt(String context) throws AccessDeniedException {
 		User user = getUser();
 		if (user == null) {
@@ -247,10 +261,6 @@ public class UserManager {
 		return Collections.emptySet();
 	}
 	
-	public String getUserAsClient() {
-		return (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-	}
-
 	/**
 	 * @param userId
 	 * @return
@@ -259,6 +269,37 @@ public class UserManager {
 		return userRepository.findOne(userId);
 	}
 
+	/**
+	 * Take the currently authenticated user, the User from OAuth token, or Client owner for app token
+	 * @return
+	 */
+	public User getUserOrOwner() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof AnonymousAuthenticationToken) {
+        	throw new SecurityException("Unauthorized access");
+        }
+        if (auth instanceof OAuth2Authentication) {
+        	OAuth2Authentication oauth = (OAuth2Authentication) auth;
+        	if (oauth.isClientOnly()) {
+        		String clientId = (String) oauth.getPrincipal();
+        		Long userId = clientDetailsRepository.findByClientId(clientId).getDeveloperId();
+        		return findOne(userId);
+        	} else {
+        		Object userAuth = oauth.getPrincipal();
+        		String userIdString = (userAuth instanceof UserDetails) 
+        				? ((UserDetails) userAuth).getUsername()
+        				: (userAuth instanceof Authentication) 
+        				? ((Authentication)userAuth).getPrincipal().toString()
+        				: userAuth.toString();
+        		return  findOne(Long.parseLong(userIdString));
+        	}
+        } else {
+			String userIdString = auth.getName();
+    		return findOne(Long.parseLong(userIdString));
+        }
+	}
+	
+	
 	/**
 	 * @param user
 	 */
@@ -312,9 +353,9 @@ public class UserManager {
 			
 			p.setAppName((String)client.getAdditionalInformation().get("displayName"));
 			if (p.getAppName() == null) p.setAppName(client.getName());
-			p.setResources(multimap.get(e).stream().filter(a -> a.getStatus().equals(ApprovalStatus.APPROVED.toString())).map(approval -> {
+			p.setScopes(multimap.get(e).stream().filter(a -> a.getStatus().equals(ApprovalStatus.APPROVED.toString())).map(approval -> {
 				String scope = approval.getScope();
-				return resourceRepository.findByResourceUri(scope);
+				return serviceManager.getServiceScopeDTO(scope);
 			}).collect(Collectors.toList()));
 			return p;
 		}).filter(p -> p != null).collect(Collectors.toList());
@@ -340,5 +381,33 @@ public class UserManager {
 		}
 		
 		return getConnectedApps(user);
+	}
+	
+	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
+		Set<String> newScopes = Sets.newHashSet();
+		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
+		for (String scope : scopes) {
+			ServiceScope resource = serviceManager.getServiceScope(scope);
+			if (resource != null) {
+				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER);
+				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
+				if (isUser && !isResourceUser) {
+					continue;
+				}
+				if (!isUser && !isResourceClient) {
+					continue;
+				}
+				
+				if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
+					Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
+					if (!Sets.intersection(roleNames, roles).isEmpty()) {
+						newScopes.add(scope);
+					}
+				} else {
+					newScopes.add(scope);
+				}
+			}
+		}
+		return newScopes;
 	}
 }

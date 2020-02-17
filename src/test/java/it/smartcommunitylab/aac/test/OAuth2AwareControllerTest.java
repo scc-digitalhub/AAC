@@ -20,10 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.ResourceManager;
-import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
@@ -34,21 +31,15 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 public class OAuth2AwareControllerTest {
 
 	@Autowired
-	private WebApplicationContext ctx;
+	protected WebApplicationContext ctx;
 	@Autowired
-	private ClientDetailsRepository clientDetailsRepository;
+	protected ClientDetailsRepository clientDetailsRepository;
 	@Autowired
-	private RegistrationManager registrationManager;	
+	protected RegistrationManager registrationManager;	
 	@Autowired
-	private UserRepository userRepository;
-	@Autowired
-	private ProviderServiceAdapter providerServiceAdapter;
-	@Autowired
-	private RoleManager roleManager;
-	@Autowired
-	private ResourceManager resourceManager;
+	protected UserRepository userRepository;
 
-	protected ObjectMapper jsonMapper = new ObjectMapper();
+	protected ObjectMapper mapper = new ObjectMapper();
 
 	protected ClientDetails client;
 	protected String token;
@@ -62,23 +53,23 @@ public class OAuth2AwareControllerTest {
 	protected final static String BEARER = "Bearer ";
 	protected static final String TEST = "TEST";
 
+	protected String getScopes() {
+		return "user.roles.me,user.roles.read,client.roles.read.all,user.roles.read.all,user.roles.write";
+	}
+	
 	/**
 	 * Common setup for the test: init components, create user, create test client, and tokens
 	 * @throws Exception
 	 */
 	public void setUp() throws Exception {
 		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
-		resourceManager.init();
-		providerServiceAdapter.init();
-		roleManager.init();
 
 		try {
 			user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
-			user.getRoles().add(new Role(TEST, TEST, Config.R_PROVIDER));
-			userRepository.save(user);		
 		} catch (AlreadyRegisteredException e) {
 			user = userRepository.findByUsername(USERNAME);
 		}
+		addRoleToTestUser(TEST, TEST, Config.R_PROVIDER);
 		client = clientDetailsRepository.findByClientId(TEST);
 		if (client == null) {
 			client = createTestClient(TEST, user.getId());
@@ -87,17 +78,21 @@ public class OAuth2AwareControllerTest {
 		userToken = getUserToken(client);
 	}
 	
+	protected void addRoleToTestUser(String context, String space, String role) {
+		user.getRoles().add(new Role(context, space, role));
+		userRepository.save(user);		
+	}
 	
 	@SuppressWarnings("unchecked")
 	private String getToken(ClientDetails client) throws Exception {
 		RequestBuilder request = MockMvcRequestBuilders.post(
 				"/oauth/token?" + "client_id=" + client.getClientId() + "&client_secret=" + client.getClientSecret()
-						+ "&grant_type=client_credentials&scope=user.roles.me,user.roles.read,client.roles.read.all,user.roles.read.all,user.roles.write");
+						+ "&grant_type=client_credentials&scope="+getScopes());
 		
 		ResultActions res = mockMvc.perform(request);
 		res.andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 		String response = res.andReturn().getResponse().getContentAsString();
-		Map<String,Object> responseMap = jsonMapper.readValue(response, Map.class);
+		Map<String,Object> responseMap = mapper.readValue(response, Map.class);
 		String token = BEARER + (String) responseMap.get("access_token");
 		return token;
 	}
@@ -106,12 +101,12 @@ public class OAuth2AwareControllerTest {
 	private String getUserToken(ClientDetails client) throws Exception {
 		RequestBuilder request = MockMvcRequestBuilders.post(
 				"/oauth/token?" + "client_id=" + client.getClientId() + "&client_secret=" + client.getClientSecret()
-						+ "&grant_type=password&scope=user.roles.me&username="+USERNAME+"&password=password");
+						+ "&grant_type=password&scope="+getScopes()+"&username="+USERNAME+"&password=password");
 		
 		ResultActions res = mockMvc.perform(request);
 		res.andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 		String response = res.andReturn().getResponse().getContentAsString();
-		Map<String,Object> responseMap = jsonMapper.readValue(response, Map.class);
+		Map<String,Object> responseMap = mapper.readValue(response, Map.class);
 		String token = BEARER + (String) responseMap.get("access_token");
 		return token;
 	}
@@ -128,7 +123,7 @@ public class OAuth2AwareControllerTest {
 		entity.setDeveloperId(developerId);
 		entity.setClientSecret(UUID.randomUUID().toString());
 		entity.setClientSecretMobile(UUID.randomUUID().toString());
-		entity.setScope("user.roles.me,user.roles.read,client.roles.read.all,user.roles.read.all,user.roles.write");
+		entity.setScope(getScopes());
 		entity.setName(client);
 
 		entity = clientDetailsRepository.save(entity);

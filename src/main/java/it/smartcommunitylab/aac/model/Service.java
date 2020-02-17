@@ -26,71 +26,87 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(name="service")
-public class ServiceDescriptor {
+@Table(name="service_model")
+public class Service {
 
 	@Id
 	private String serviceId;
-	
-	private String serviceName;
 	private String description;
+	private String name;
+
 	
+	private String namespace;
+	private String context;
+
 	@Column(columnDefinition="LONGTEXT")
-	private String resourceDefinitions;
-	@Column(columnDefinition="LONGTEXT")
-	private String resourceMappings;
-	
-	private String ownerId;
-	
-	private String apiKey;
-	
+	private String claimMapping;
+
 	public String getServiceId() {
 		return serviceId;
 	}
 	public void setServiceId(String serviceId) {
 		this.serviceId = serviceId;
 	}
-	public String getServiceName() {
-		return serviceName;
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
 	}
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
+	/**
+	 * @return the description
+	 */
 	public String getDescription() {
 		return description;
 	}
+	/**
+	 * @param description the description to set
+	 */
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public String getResourceDefinitions() {
-		return resourceDefinitions;
-	}
-	public void setResourceDefinitions(String resourceDefinitions) {
-		this.resourceDefinitions = resourceDefinitions;
-	}
-	public String getResourceMappings() {
-		return resourceMappings;
-	}
-	public void setResourceMappings(String resourceMappings) {
-		this.resourceMappings = resourceMappings;
+	/**
+	 * @return the namespace
+	 */
+	public String getNamespace() {
+		return namespace;
 	}
 	/**
-	 * @return the ownerId
+	 * @param namespace the namespace to set
 	 */
-	public String getOwnerId() {
-		return ownerId;
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
 	}
 	/**
-	 * @param ownerId the ownerId to set
+	 * @return the context
 	 */
-	public void setOwnerId(String ownerId) {
-		this.ownerId = ownerId;
+	public String getContext() {
+		return context;
+	}
+	/**
+	 * @param context the context to set
+	 */
+	public void setContext(String context) {
+		this.context = context;
+	}
+	/**
+	 * @return the claimMapping
+	 */
+	public String getClaimMapping() {
+		return claimMapping;
+	}
+	/**
+	 * @param claimMapping the claimMapping to set
+	 */
+	public void setClaimMapping(String claimMapping) {
+		this.claimMapping = claimMapping;
 	}
 	
-	public String getApiKey() {
-		return apiKey;
-	}
-	public void setApiKey(String apiKey) {
-		this.apiKey = apiKey;
-	}	
 }

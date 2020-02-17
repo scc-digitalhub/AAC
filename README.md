@@ -587,11 +587,37 @@ Some of the role spaces may be pre-configured for the AAC. These include:
 - ``authorization``: Role space for managing the Authorization API grant tenants.
 - ``components``: Role space for managing tenants of various platform components. 
 
-### 5.3. User Claims and Claim Management
+### 5.3. Services, Scopes, and Claims
 
-Both for the OpenID connect User Info endpoint and for the JWT access tokens, AAC supports a set of claims representing the user
-data. The set of returned claims depend on the scopes requested by the client app by default or during the authorization phase. 
-To obtain the access to these claims, the user will be requested an explicit approval.
+The authorization and information model of the OAuth2.0 and OIDC protocols relies on the definition of claims (i.e., user
+attributes) and scopes (i.e., data usage markers). Specifically, the scopes define which data / resources the client app can access and manage on behalf of the authorizing user or even directly. The set of returned claims depend on the scopes requested by the client app by default or during the authorization phase.
+
+To capture these properties, AAC organizes the claims and scopes into information "services" or resources. Each service
+defines
+
+- set of scopes and their characteristics (e.g., association to user or app, requirements for access)
+- set of claims and their characteristics (e.g., claim data type and cardinality, possibility to derive from other claims).
+
+Each service has unique serviceId and a namespace (used in claims as prefix). For the purpose of management, each
+service is associated to the role context so that only the user with that role may manage that service. That is, given the context ``mycontext`` the users with the role ``services/mycontext:ROLE_PROVIDER`` will be able to manage the services associated to that context.
+
+Core services, scopes and claims are managed directly by AAC and configured declaratively (see ``src/main/resources/it/smartcommunitylab/aac/manager/services.json`` for details). Custom services may be created and managed by the AAC users either through the AAC developer console ("Services" section) or programmatically via API.
+
+####5.3.1 Scopes
+
+The scopes define may optionally declare the set of user claims they enable to access. E.g., ``openid`` scope enables
+access to the standard user claims such as sub, username, etc. To control which client apps have access to certain
+sensible scopes, AAC allows for two mechanisms:
+
+- explicit platform admin approval
+- user roles that should be associated to the user (end user in case of user scopes or app owner in case of client scopes).
+
+These mechanisms may be declared through the scope definition.
+
+All the scopes defined within AAC are then available in the client app configuration so that client app may declare 
+which scopes it requires access to.   
+
+####5.3.2. User Claims and Claim Management
 
 AAC manages the following standard OIDC claims:
 
@@ -602,14 +628,25 @@ AAC manages the following standard OIDC claims:
 - family_name (scopes ``openid``, ``profile``, ``profile.basicprofile.me``)
 - email (scopes ``openid``, ``profile``, ``email``, ``profile.basicprofile.me``)
 
-Additionally, AAC supports the following custom claims 
+Additionally, AAC supports the following core custom claims 
 
 - ``accounts``: represent the associated user accounts (requires ``profile.accountprofile.me`` scope).
 - ``authorities``: list of the roles associated to the user (requires ``user.roles.me`` scope).
 - ``groups``: list of role contexts the user has a role (requires ``user.roles.me`` scope)
 - ``resource_access``: roles associated to various role contexts (requires ``user.roles.me`` scope).
 
-#### 5.3.1. Claim Customization
+Custom claims are defined with the custom services either via AAC developer console or programmatically. 
+
+Claim values are populated in three different ways:
+
+- core claims are managed directly by AAC (e.g., registration information about the users, roles, etc)
+- custom claims associated to the users explicitly (via user claim API)
+- custom claims derived from other user claims as defined by the claim mapping function at the level of the corresponding service definition.
+
+Please note that the claim mapping function does not overwrite the explicitly stored custom claims.
+
+
+#### 5.3.3. Client-level Claim Customization
 
 When a client app requires specific custom claims to be presented, it is possible for the client app to customize the representation of the user claims (but not the predefined ones
 like ``sub``, ``aud``, etc.). The mapping is defined in the client app configuration **Roles&Claims** section
@@ -617,7 +654,7 @@ as a JavaScript function that should provide the customized set of claims given 
 
 In this way, a client app may map predefined claim values to the expected ones; reduce the number of claims or add new ones. 
 
-#### 5.3.2. Roles Disambiguation
+#### 5.3.4. End User Roles Disambiguation
 
 Frequently, different multitenant application does not allow the user to belong to more than one tenant. AAC, however, does not
 have this restriction and the user may have roles in different contexts associated to that application. To avoid the customization of these applications to deal with the users associated to multiple tenants, AAC allows for the role
@@ -625,7 +662,7 @@ disambiguation during the authorization step. That is, after authenticating the 
 
 To configure this behavior, the client app should list the contexts, for which the user should be asked to select (**Roles&Claims** configuration of the client app). For example, if the client app is associated with the context ``components/grafana``, the context should be specified in the **Unique Role Spaces** list. During the authorization request, if the user is associated with more than one space within that context, he/she will be asked to select a single value to proceed.
     
-#### 5.3.3. Authentication Flow hooks
+#### 5.3.5. Authentication Flow hooks
 
 The developers may configure the client apps to emit notifications about relevant events
 before the actual authorization flow completes. This is a useful scenario in case of custom OAuth2.0 / OpenID Connect
@@ -747,6 +784,30 @@ The data provided represents the subset of standard OpenID claims.
         "family_name": "Rossi",
         "email": "rossi@mario.com",
       }
+
+### 6.5. Service, Scope, Claim API
+
+The service API allows one to define programmatically custom service definition, associated scopes, and claims. Through the API it is possible to 
+
+- define, update, or delete a service (id, name, description, mapping, namespace, role context)
+- add / remove scopes (scope, name, description, client/user scope type, claims, access requirements)
+- add / remove claims (claim, name, type, cardinality) 
+
+More details can be found on the Swagger documentation.
+
+
+### 6.6. Custom User Claim API
+
+The custom user claim API allows for associating / changing custom user claims for a specific service and user. More specifically, it is possible to
+
+- list users with claims defined by a specific service
+- list claims associated to a specific user and a service
+- modify claim values for a specific user and a service
+
+Please note that it is possible to manage the claims for already registered users (using user ID) or to
+the user that eventually will be registered (using email as username).
+
+More details can be found on the Swagger documentation.
 
 
 ## 7. Docker image build 

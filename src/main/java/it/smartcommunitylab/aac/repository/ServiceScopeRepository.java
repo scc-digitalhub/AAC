@@ -21,7 +21,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import it.smartcommunitylab.aac.model.ServiceDescriptor;
+import it.smartcommunitylab.aac.model.ServiceScope;
 
 /**
  * 
@@ -29,18 +29,8 @@ import it.smartcommunitylab.aac.model.ServiceDescriptor;
  *
  */
 @Repository
-public interface ServiceRepository extends JpaRepository<ServiceDescriptor, String> {
+public interface ServiceScopeRepository extends JpaRepository<ServiceScope, String> {
 
-	@Query("select s from ServiceDescriptor s where s.ownerId=?1")
-	public List<ServiceDescriptor> findByOwnerId(String ownerId);
-	
-	@Query("select s from ServiceDescriptor s where s.ownerId IS NULL")
-	public List<ServiceDescriptor> findByNullOwnerId();
-	
-	@Query("select s from ServiceDescriptor s where s.apiKey=?1")
-	public ServiceDescriptor findByAPIKey(String apiKey);	
-	
-	@Query("select distinct(r.service) from Resource r")
-	public List<ServiceDescriptor> findWithResources();
-
+	@Query("select s from ServiceScope s where s.service.serviceId = LOWER(?1)")
+	List<ServiceScope> findByService(String serviceId);
 }
