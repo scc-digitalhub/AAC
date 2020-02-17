@@ -40,9 +40,10 @@ import it.smartcommunitylab.aac.model.User;
 @SuppressWarnings("unchecked")
 public class AACUserClaimControllerTest extends OAuth2AwareControllerTest {
 
-	/**
-	 * 
-	 */
+    private final static String CLIENT_ID = "userclaimsclient";
+    private final static String USERNAME = "testuserclaims";
+    private final static String PASSWORD = "password";
+    
 	private static final String TEST_USER_2 = "abc@def";
 	private static final String TESTNAMESPACE = "testnamespace";
 	private static final String TEST_SERVICE_ID = "testServiceId";
@@ -55,7 +56,7 @@ public class AACUserClaimControllerTest extends OAuth2AwareControllerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		super.setUp();
+        super.setUp(CLIENT_ID, USERNAME, PASSWORD);
 		addRoleToTestUser("services", TESTSPACE, Config.R_PROVIDER);
 		prepareService(); 
 	}

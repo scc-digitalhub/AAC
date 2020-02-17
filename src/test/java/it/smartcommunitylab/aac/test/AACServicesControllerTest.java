@@ -32,6 +32,10 @@ import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 @SuppressWarnings("unchecked")
 public class AACServicesControllerTest extends OAuth2AwareControllerTest {
 
+    private final static String CLIENT_ID = "servicesclient";
+    private final static String USERNAME = "testservices";
+    private final static String PASSWORD = "password";
+    
 	private static final String TESTNAMESPACE = "testnamespace";
 	private static final String TEST_SERVICE_ID = "testServiceId";
 	private static final String TESTSPACE = "testspace";
@@ -43,7 +47,7 @@ public class AACServicesControllerTest extends OAuth2AwareControllerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		super.setUp();
+        super.setUp(CLIENT_ID, USERNAME, PASSWORD);
 		addRoleToTestUser("services", TESTSPACE, Config.R_PROVIDER);
 	}
 	

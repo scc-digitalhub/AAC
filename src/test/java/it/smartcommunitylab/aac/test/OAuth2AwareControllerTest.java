@@ -49,10 +49,9 @@ public class OAuth2AwareControllerTest {
 
 	protected MockMvc mockMvc;
 
-	protected static final String USERNAME = "testuser";
 	protected final static String BEARER = "Bearer ";
-	protected static final String TEST = "TEST";
-
+    protected final static String TEST = "TEST";
+    
 	protected String getScopes() {
 		return "user.roles.me,user.roles.read,client.roles.read.all,user.roles.read.all,user.roles.write";
 	}
@@ -61,21 +60,23 @@ public class OAuth2AwareControllerTest {
 	 * Common setup for the test: init components, create user, create test client, and tokens
 	 * @throws Exception
 	 */
-	public void setUp() throws Exception {
+	public void setUp(String clientId, String username, String password) throws Exception {
 		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
 
 		try {
-			user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
+			user = registrationManager.registerOffline("NAME", "SURNAME", username, password, null, false, null);
 		} catch (AlreadyRegisteredException e) {
-			user = userRepository.findByUsername(USERNAME);
+			user = userRepository.findByUsername(username);
 		}
 		addRoleToTestUser(TEST, TEST, Config.R_PROVIDER);
-		client = clientDetailsRepository.findByClientId(TEST);
+		
+		client = clientDetailsRepository.findByClientId(clientId);
 		if (client == null) {
-			client = createTestClient(TEST, user.getId());
+			client = createTestClient(clientId, user.getId());
 		}
+		
 		token = getToken(client);
-		userToken = getUserToken(client);
+		userToken = getUserToken(client, username, password);
 	}
 	
 	protected void addRoleToTestUser(String context, String space, String role) {
@@ -98,10 +99,10 @@ public class OAuth2AwareControllerTest {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private String getUserToken(ClientDetails client) throws Exception {
+	private String getUserToken(ClientDetails client, String username, String password) throws Exception {
 		RequestBuilder request = MockMvcRequestBuilders.post(
 				"/oauth/token?" + "client_id=" + client.getClientId() + "&client_secret=" + client.getClientSecret()
-						+ "&grant_type=password&scope="+getScopes()+"&username="+USERNAME+"&password=password");
+						+ "&grant_type=password&scope="+getScopes()+"&username="+username+"&password="+password);
 		
 		ResultActions res = mockMvc.perform(request);
 		res.andExpect(MockMvcResultMatchers.status().is2xxSuccessful());

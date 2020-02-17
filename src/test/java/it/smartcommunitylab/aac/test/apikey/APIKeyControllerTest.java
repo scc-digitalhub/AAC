@@ -12,6 +12,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,6 +50,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @ActiveProfiles("test")
 @EnableConfigurationProperties
 public class APIKeyControllerTest {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 
 	private static final String USERNAME = "testuser";
@@ -88,6 +91,7 @@ public class APIKeyControllerTest {
 	public void setUp() throws Exception {
 		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
 		
+		logger.debug("create user");
 		user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
 		userRepository.save(user);		
 
@@ -107,6 +111,7 @@ public class APIKeyControllerTest {
 	@After
 	public void tearDown() throws Exception {
 		if (user != null) {
+		    logger.debug("delete user");
 			regRepository.delete(regRepository.findByEmail(USERNAME));
 			userRepository.delete(user);
 			user = null;

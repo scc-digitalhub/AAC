@@ -24,12 +24,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ActiveProfiles("test")
 @EnableConfigurationProperties
 public class AACRolesControllerTest extends OAuth2AwareControllerTest {
-
+    
+    private final static String CLIENT_ID = "rolesclient";
+    private final static String USERNAME = "testroles";
+    private final static String PASSWORD = "password";
+    
 	private static final String TEST_ROLE = "TEST/TEST:TEST";
-
+    
 	@Before
 	public void setUp() throws Exception {
-		super.setUp();
+		super.setUp(CLIENT_ID, USERNAME, PASSWORD);
 	}
 	
 	@Test
