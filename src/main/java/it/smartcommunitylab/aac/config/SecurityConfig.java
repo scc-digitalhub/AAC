@@ -90,6 +90,7 @@ import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.AACRememberMeServices;
 import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
+import it.smartcommunitylab.aac.oauth.AACWebResponseExceptionTranslator;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsRegistrationFilter;
@@ -440,13 +441,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					.tokenServices(resourceServerTokenServices)
 					.authorizationCodeServices(authorizationCodeServices)			
 					//set tokenGranter now to ensure all services are set
-					.tokenGranter(tokenGranter(endpoints));
+					.tokenGranter(tokenGranter(endpoints))
+					.exceptionTranslator(new AACWebResponseExceptionTranslator());
 		}
 
 		@Override
 		public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
 			oauthServer.addTokenEndpointAuthenticationFilter(endpointFilter());
+			// disable default endpoints: we enable access
+			// because the endpoints are mapped to out custom controller returning 404
+			oauthServer.tokenKeyAccess("permitAll()");
+			oauthServer.checkTokenAccess("permitAll()");
 		}
+		
+		
 
 		private TokenGranter tokenGranter(final AuthorizationServerEndpointsConfigurer endpoints) {
 			List<TokenGranter> granters = new ArrayList<TokenGranter>(Arrays.asList(endpoints.getTokenGranter()));
