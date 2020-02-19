@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -73,6 +75,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 @Transactional
 public class UserManager {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
@@ -104,6 +107,7 @@ public class UserManager {
 		};
 	}
 	
+	//TODO move to utils
 	/**
 	 * Get the user from the Spring Security Context
 	 * @return
@@ -152,6 +156,7 @@ public class UserManager {
 		return res;
 	}
 
+	//TODO disable
 	/**
 	 * Read the signed user name from the user attributes
 	 * @param user
@@ -191,7 +196,13 @@ public class UserManager {
 		if (providerRoles.isEmpty()) return Collections.emptySet();
 		return providerRoles;
 	}
-
+	
+	
+    public String getUserFullName(long userId) {
+        User user = userRepository.getOne(userId);
+        return user.getFullName();
+    }
+    
 	/**
 	 * Currently constructs name as the `email @ apimanager-tenant`   
 	 * @param l
@@ -203,8 +214,9 @@ public class UserManager {
 		Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
 
 		String domain = null;
-		if (providerRoles.isEmpty()) domain = "carbon.super";
-		else {
+		if (providerRoles.isEmpty()) {
+		    domain = "carbon.super";
+		} else {
 			Role role = providerRoles.iterator().next();
 			domain = role.getSpace();
 		}
@@ -268,7 +280,20 @@ public class UserManager {
 	public User findOne(Long userId) {
 		return userRepository.findOne(userId);
 	}
+	
+    /**
+     * @param userId
+     * @return
+     */
+    public User getOne(Long userId) {
+        User user = userRepository.findOne(userId);
+        if (user == null) {
+            throw new EntityNotFoundException("No user found: " + userId);
+        }
 
+        return user;
+    }
+    
 	/**
 	 * Take the currently authenticated user, the User from OAuth token, or Client owner for app token
 	 * @return
@@ -386,8 +411,16 @@ public class UserManager {
 	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
 		Set<String> newScopes = Sets.newHashSet();
 		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
-		for (String scope : scopes) {
+		logger.trace("user roles "+roleNames.toString());
+		
+	      // handle default case
+        if (Collections.singleton("default").equals(scopes)) {
+            return scopes;
+        }
+        
+		for (String scope : scopes) {		    
 			ServiceScope resource = serviceManager.getServiceScope(scope);
+			logger.trace("resource for scope "+scope + " is "+String.valueOf(resource));
 			if (resource != null) {
 				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER);
 				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
