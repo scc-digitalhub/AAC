@@ -479,9 +479,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
-						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
-						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+				http.antMatcher("/*profile/**").authorizeRequests()
+						.antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
+						.antMatchers("/basicprofile/all/{{\\w+}}").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/all").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/profiles").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
 						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE+"')")
 						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE_ALL+"')")
 						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE+"')")				
@@ -538,14 +540,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/*userroles/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*userroles/**")
-						.permitAll()
+				http.antMatcher("/*userroles/**").authorizeRequests()
+						.antMatchers(HttpMethod.OPTIONS, "/*userroles/**").permitAll()
 						.antMatchers("/userroles/me").access("#oauth2.hasScope('"+Config.SCOPE_ROLE+"')")
-						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
 						.antMatchers(HttpMethod.GET, "/userroles/role").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
-						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
-						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers(HttpMethod.GET, "/userroles/user/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")						
+						.antMatchers(HttpMethod.PUT, "/userroles/user/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers(HttpMethod.DELETE, "/userroles/user/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers("/userroles/client/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
 						.antMatchers("/userroles/client").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
+						.antMatchers("/userroles/token/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
 						.and().csrf().disable();
 			}
 
