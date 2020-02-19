@@ -22,8 +22,18 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.StringUtils;
+
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 
 /**
  * Common methods and functions
@@ -101,21 +111,74 @@ public class Utils {
 		return new String[] {tenant, "carbon.super"};
 	}	
 	
-	public static String parseHeaderToken(HttpServletRequest request) {
-		Enumeration<String> headers = request.getHeaders("Authorization");
-		while (headers.hasMoreElements()) { // typically there is only one (most servers enforce that)
-			String value = headers.nextElement();
-			if ((value.toLowerCase().startsWith(OAuth2AccessToken.BEARER_TYPE.toLowerCase()))) {
-				String authHeaderValue = value.substring(OAuth2AccessToken.BEARER_TYPE.length()).trim();
-				int commaIndex = authHeaderValue.indexOf(',');
-				if (commaIndex > 0) {
-					authHeaderValue = authHeaderValue.substring(0, commaIndex);
-				}
-				return authHeaderValue;
-			}
-		}
-
-		return null;
-	}		
+//	public static String parseHeaderToken(HttpServletRequest request) {
+//		Enumeration<String> headers = request.getHeaders("Authorization");
+//		while (headers.hasMoreElements()) { // typically there is only one (most servers enforce that)
+//			String value = headers.nextElement();
+//			if ((value.toLowerCase().startsWith(OAuth2AccessToken.BEARER_TYPE.toLowerCase()))) {
+//				String authHeaderValue = value.substring(OAuth2AccessToken.BEARER_TYPE.length()).trim();
+//				int commaIndex = authHeaderValue.indexOf(',');
+//				if (commaIndex > 0) {
+//					authHeaderValue = authHeaderValue.substring(0, commaIndex);
+//				}
+//				return authHeaderValue;
+//			}
+//		}
+//
+//		return null;
+//	}		
 	
+	
+	/*
+	 * User helpers
+	 */
+	   /**
+     * Get the user from the Spring Security Context
+     * @return
+     * @throws AccessDeniedException 
+     */
+    public static UserDetails getUserDetails() throws AccessDeniedException{
+        try {
+            return (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        } catch (Exception e) {
+            throw new AccessDeniedException("Incorrect user");
+        }
+    }
+    
+    /**
+     * @return the user ID (long) from the user object in Spring Security Context
+     */
+    public static Long getUserId() throws AccessDeniedException {
+        try {
+            return Long.parseLong(getUserDetails().getUsername());
+        } catch (Exception e) {
+            throw new AccessDeniedException("Incorrect username format");
+        }
+    }
+
+    /**
+     * The authority (e.g., google) value from the Spring Security Context of the currently logged user
+     * @return the authority value (string)
+     */
+    public static String getUserAuthority() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AACAuthenticationToken) {
+            AACAuthenticationToken aacToken = (AACAuthenticationToken)authentication;
+            AACOAuthRequest request = (AACOAuthRequest) aacToken.getDetails();
+            return request.getAuthority();
+        }
+        return null;
+    }
+
+    /**
+     * The authority (e.g., google) value from the Spring Security Context of the currently logged user
+     * @return the authority value (string)
+     */
+    public static Set<String> getUserRoles() {
+        Set<String> res = new HashSet<>();
+        SecurityContextHolder.getContext().getAuthentication().getAuthorities().forEach(ga -> res.add(ga.getAuthority()));
+        return res;
+    }
+
+    
 }
