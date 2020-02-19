@@ -75,7 +75,8 @@ public class SwaggerConfig {
           .paths(PathSelectors.regex("/apikey.*"))
           .build()                                          
           .securitySchemes(Arrays.asList(
-        		  securitySchemeApp(new AuthorizationScope[0])
+        		  securitySchemeApp(new AuthorizationScope[0]),
+                  securityBasicAuthApp()
         		  ))
           .securityContexts(Arrays.asList(
         		  securityContext(new AuthorizationScope[0], "/apikey.*", "application")
