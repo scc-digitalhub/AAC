@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,9 +41,11 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 	@Autowired
 	private ClientDetailsService clientDetailsService;
 	
+	//TODO remove, if needed leverage clientService
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;	
 	
+	//TODO remove, if needed leverage userManager
 	@Autowired
 	private UserRepository userRepository;
 	
@@ -71,7 +74,7 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 	}
 
 	public AuthorizationRequest createAuthorizationRequest(Map<String, String> authorizationParameters) {
-
+logger.trace(authorizationParameters.toString());
 		String clientId = authorizationParameters.get(OAuth2Utils.CLIENT_ID);
 		String state = authorizationParameters.get(OAuth2Utils.STATE);
 		String redirectUri = authorizationParameters.get(OAuth2Utils.REDIRECT_URI);
@@ -198,7 +201,7 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
                 result = result.replace(",", " ");
             }
         }
-        logger.trace("decode "+value+" to "+result);
+
         return result;
     }
 
@@ -229,7 +232,19 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
             }
 
 //			boolean requestedOpenidScope = scopes.contains(Config.OPENID_SCOPE);
+            
+            //check if client wrongly requested "default" with other scopes
+            if(scopes.size() > 1 && scopes.contains("default")) {
+            	//default is supported only with no other scopes, 
+            	//every other scope will include the default claims as well
+            	scopes.remove("default");
+            }
+            
+            //filter scopes to those enabled on client
+            scopes = checkAvailableScopes(scopes, clientDetails);
+            logger.trace("scopes after check available scopes "+scopes.toString());
 
+            //filter scopes to those available to the user
             scopes = checkUserScopes(requestParameters, scopes, clientDetails);
             logger.trace("scopes after check user scopes "+scopes.toString());
 
@@ -252,6 +267,25 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
         return scopes;
     }
 
+    private Set<String> checkAvailableScopes(Set<String> requested, ClientDetailsEntity client) throws Exception {
+    	Set<String> newScopes = Sets.newHashSet();
+    	Set<String> all = client.getScope();
+    	//append "default" scopes since those are always supported
+    	//TODO move to clientEntity, we actually want these available every time we check
+    	all.add("default");
+    	all.add(Config.SCOPE_OPERATION_CONFIRMED);
+    	
+    	//filter
+		for (String r : requested) {
+			if (all.contains(r)) {
+				newScopes.add(r);
+			}
+		}
+		
+    	return newScopes;
+    }
+    
+    
     //TODO rework, should get user as param and let authRequest/tokenRequest recover the correct one
 	private Set<String> checkUserScopes(Map<String, String> requestParameters, Set<String> scopes, ClientDetailsEntity client) throws Exception {
 		Set<String> newScopes = Sets.newHashSet();
@@ -281,6 +315,7 @@ public class AACOAuth2RequestFactory<userManager> implements OAuth2RequestFactor
 		}
 
 		if (user != null) {
+		    logger.trace("check user scopes for user "+user.getName());
 			newScopes = userManager.userScopes(user, scopes, isUser);
 		}
 

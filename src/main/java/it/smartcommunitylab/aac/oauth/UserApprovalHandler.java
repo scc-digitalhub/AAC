@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -86,7 +87,7 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	
 	@Override
 	public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
-		AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
+	    AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
 		if (!result.isApproved()) return result;
 
 		// see if the user has to perform the space selection 
@@ -114,7 +115,6 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	 */
 	@Override
 	public boolean isApproved(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
-
 		boolean hasSpacesToSelect = "true".equals(authorizationRequest.getApprovalParameters().get(SPACE_SELECTION_APPROVAL_REQUIRED)) &&
 				!"true".equals(authorizationRequest.getApprovalParameters().get(SPACE_SELECTION_APPROVAL_DONE));
 		
@@ -130,15 +130,28 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 
 		String flag = authorizationRequest.getApprovalParameters().get(OAuth2Utils.USER_OAUTH_APPROVAL); // changed
 		boolean approved = flag != null && flag.toLowerCase().equals("true");
-		if (approved) return true;
+		if (approved) {
+		    return true;
+		}
 		
 		// or trusted client
 		if (authorizationRequest.getAuthorities() != null) {
 			for (GrantedAuthority ga : authorizationRequest.getAuthorities())
-				if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(ga.getAuthority()) && !hasSpacesToSelect) return true;
+				if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(ga.getAuthority()) && !hasSpacesToSelect) {
+				    return true;
+				}
 		}
 		// or test token redirect uri
-		return authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext));
+		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
+		    return true;
+		}
+		
+		//or "default" scope only requested
+		if(Collections.singleton("default").equals(authorizationRequest.getScope())) {
+			return true;
+		}
+		
+		return false;
 		// or accesses only own resources
 //			   || !hasSpacesToSelect && useOwnResourcesOnly(authorizationRequest.getClientId(), authorizationRequest.getScope());
 	}
@@ -200,6 +213,7 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 			}
 
 		}
+
 		// result is approved, moving towards completion, doing extensions 
 		if (flowExtensions != null && isApproved(authorizationRequest, userAuthentication)) {
 			flowExtensions.onAfterApproval(authorizationRequest, userAuthentication);;

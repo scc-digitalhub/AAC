@@ -94,12 +94,15 @@ public class AccessConfirmationController {
 		if (requested == null || requested.isEmpty()) {
 			requested = all;
 		} else {
+			//TODO evaluate if needed, the request factory/validator
+			//should have rejected scopes not enabled on this client
 			requested = new HashSet<String>(requested);
 			for (Iterator<String> iterator = requested.iterator(); iterator.hasNext();) {
 				String r = iterator.next();
 				if (!all.contains(r)) iterator.remove();
 			}
 		}
+				
 		User user = (User) ((Authentication) principal).getPrincipal();
 		Collection<Approval> approvals = approvalStore.getApprovals(user.getUsername(), clientAuth.getClientId());
 		Date now = new Date();
@@ -110,8 +113,14 @@ public class AccessConfirmationController {
 						.collect(Collectors.toSet()) 
 				: Collections.emptySet();
 		
+
 		for (String rUri : requested) {
-			if (approved.contains(rUri)) continue;
+			if (approved.contains(rUri)) {
+				continue;
+			}
+			if("default".equals("rUri")) {
+				continue;
+			}
 			try {
 				ServiceScopeDTO r = serviceManager.getServiceScopeDTO(rUri);
 				// ask the user only for the resources associated to the user role 
@@ -123,6 +132,7 @@ public class AccessConfirmationController {
 			}
 		}
 		
+		//TODO evaluate, if client is trusted userapprovalhandler should have already responded
 		// if trusted client no need to ask
 		if (clientAuth.getAuthorities() != null) {
 			for (GrantedAuthority ga : clientAuth.getAuthorities()) {
@@ -131,7 +141,7 @@ public class AccessConfirmationController {
 				}
 			}
 		}
-		
+
 		//note: session with principal contains stale info about roles, fetched at login
         Collection<? extends GrantedAuthority> selectedAuthorities = ((Authentication) principal).getAuthorities();
         // fetch again from db
@@ -146,9 +156,19 @@ public class AccessConfirmationController {
         
 		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(clientAuth.getClientId(), selectedAuthorities);
 
+		//TODO evaluate, this should not happen, besides it does not work as expected
+		//if client is trusted we should not require approval at all
+		//if user has already approved all resources we should respond from userapprovalhandler
+		//if we end up here there is a problem.
+		//Still, probably better to display the confirmation form with nothing to approve
 		if (resources.size() == 0 && (spaces == null || spaces.isEmpty())) {
+		    logger.trace("nothing to ask, authorize");
 			clientAuth.setApproved(true);
 			model.put("auth_request", clientAuth);
+			//ERROR? view expects the following 
+			//model.put("authorizationRequest", clientAuth);
+			logger.trace("redirect with model "+model.toString());
+			//TODO fix: does NOT work, redirects to eauth/authorize causing a loop
 			return new ModelAndView("redirect:./authorize");
 		} 
 		
@@ -156,6 +176,7 @@ public class AccessConfirmationController {
 		model.put("auth_request", clientAuth);
 		model.put("clientName", info.getName());
 		model.put("spaces", spaces == null ? Collections.emptyMap() : spaces);
+		logger.trace("call view with model "+model);
 		return new ModelAndView("access_confirmation", model);
 	}
 
@@ -167,6 +188,7 @@ public class AccessConfirmationController {
 	 */
 	@RequestMapping("/oauth/error")
 	public String handleError(Map<String,Object> model) throws Exception {
+	    logger.trace("handle error "+model.toString());
 		model.put("message", "There was a problem with the OAuth2 protocol");
 		return "oauth_error";
 	}

@@ -447,6 +447,10 @@ public class ClaimManager {
 
 		// generate claims from service functions of the corresponding services. Add only new claims to the result
 		for(String s: scopes) {
+			//break for "default"
+			if("default".equals(s)) {
+				continue;
+			}
 			ServiceDTO service = serviceManager.getScopeService(s);
 			if (service != null && service.getClaimMapping() != null && !service.getServiceId().equalsIgnoreCase(excludedServiceId)) {
 				try {
