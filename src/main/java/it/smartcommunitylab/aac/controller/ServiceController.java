@@ -46,7 +46,6 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
-import it.smartcommunitylab.aac.jaxbmodel.Service;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Response;

@@ -42,7 +42,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.UserClaimProfileDTO;
-import it.smartcommunitylab.aac.jaxbmodel.Service;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.Response;
