@@ -39,16 +39,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ApprovalData;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.IdPData;
-import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -67,7 +67,7 @@ public class AdminController {
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
-	private ResourceRepository resourceRepository;
+	private ServiceManager serviceManager;
 	
 	@RequestMapping("/admin/approvals")
 	public @ResponseBody Response getApprovals() {
@@ -77,15 +77,15 @@ public class AdminController {
 		List<ApprovalData> list = new ArrayList<ApprovalData>();
 		for (ClientDetailsEntity e : clients) {
 			ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
-			if (info.getResourceApprovals() != null && !info.getResourceApprovals().isEmpty()) {
+			if (info.getScopeApprovals() != null && !info.getScopeApprovals().isEmpty()) {
 				ApprovalData data = new ApprovalData();
 				data.setClientId(e.getClientId());
 				data.setName(info.getName());
 				data.setOwner(userRepository.findOne(e.getDeveloperId()).toString());
-				data.setResources(new ArrayList<Resource>());
-				for (String rId : info.getResourceApprovals().keySet()) {
-					Resource resource = resourceRepository.findOne(Long.parseLong(rId));
-					data.getResources().add(resource);
+				data.setScopes(new ArrayList<ServiceScopeDTO>());
+				for (String rId : info.getScopeApprovals().keySet()) {
+					ServiceScopeDTO resource = serviceManager.getServiceScopeDTO(rId);
+					data.getScopes().add(resource);
 				}
 				list.add(data);
 			}
@@ -128,19 +128,16 @@ public class AdminController {
 	public @ResponseBody Response approve(@PathVariable String clientId) throws Exception {
 		ClientDetailsEntity e = clientDetailsRepository.findByClientId(clientId);
 		ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
-		if (!info.getResourceApprovals().isEmpty()) {
-			Set<String> idSet = new HashSet<String>();
-			if (e.getResourceIds() != null) idSet.addAll(e.getResourceIds());
-			Set<String> uriSet = new HashSet<String>();
-			if (e.getScope() != null) uriSet.addAll(e.getScope());
-			for (String rId : info.getResourceApprovals().keySet()) {
-				Resource resource = resourceRepository.findOne(Long.parseLong(rId));
-				idSet.add(rId);
-				uriSet.add(resource.getResourceUri());
+		if (!info.getScopeApprovals().isEmpty()) {
+			Set<String> newScopeSet = new HashSet<String>();
+			if (e.getScope() != null) newScopeSet.addAll(e.getScope());
+			for (String rId : info.getScopeApprovals().keySet()) {
+				ServiceScopeDTO resource = serviceManager.getServiceScopeDTO(rId);
+				newScopeSet.add(resource.getScope());
 			}
-			e.setResourceIds(StringUtils.collectionToCommaDelimitedString(idSet));
-			e.setScope(StringUtils.collectionToCommaDelimitedString(uriSet));
-			info.setResourceApprovals(Collections.<String,Boolean>emptyMap());
+			e.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceManager.findServiceIdsByScopes(newScopeSet)));
+			e.setScope(StringUtils.collectionToCommaDelimitedString(newScopeSet));
+			info.setScopeApprovals(Collections.<String,Boolean>emptyMap());
 			e.setAdditionalInformation(info.toJson());
 			clientDetailsRepository.save(e);
 		}

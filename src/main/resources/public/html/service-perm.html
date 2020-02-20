@@ -10,61 +10,30 @@
 					    <div class="panel-body"> 
 						    <h4>{{service.name}}</h4>
 						    <p>{{service.description}}</p>
+						    <br/>
 						    <div>
 					        <ul class="nav nav-tabs">
 					            <li class="{{activePermView('avail')}}" ><a data-toggle="tab"  ng-click="switchPermView('avail')">Scopes</a></li>
-					            <!-- li class="{{activePermView('own')}}" ><a data-toggle="tab"  ng-click="switchPermView('own')">Own Resources</a></li -->
 					        </ul>
-					        <div ng-switch on="permView">
-					            <div  ng-switch-when="own">
-					             <div ng-repeat="rd in service.resource">
-					                 <div class="col-md-12">
-					                   <div class="row">
-					                        <div class="col-md-11 "><strong>{{rd.name}}</strong> ({{rd.description}})</div>
-					                        <div class="col-md-1 pull-right"><a class="btn btn-xs btn-primary"  ng-click="saveResourceParam(rd.id,service.id,clientId)"><span class="fas fa-plus"></span></a></div>
-					                   </div>     
-					                 </div>
-					                 <div class="col-md-12">
-					                 <hr class="hr-min">
-					                 </div>
-					                 <div ng-repeat="r in permissions.ownResources[rd.id]"  class="col-md-12">
-					                       <div class="row" >
-					                           <div class="col-md-8">{{r.value}}</div>
-					                           <div class="col-md-3">
-					                             <select class="form-control" ng-model="r.visibility" ng-change="changeResourceParamVis(r)">
-					                               <option value="CLIENT_APP">Current app</option>
-					                                  <option value="DEVELOPER">Owned apps</option>
-					                                  <option value="PUBLIC">Any app</option>
-					                             </select>
-					                           </div>
-					                           <div class="col-md-1"><a class="btn btn-xs btn-default"  ng-click="removeResourceParam(r)"><span class="fas fa-minus"></span></a></div>
-					                       </div>
-					                 </div>
-					             </div>
-					                   <hr class="hr-min">
-					            </div>
-					            <div ng-switch-default>
-                        <div ng-repeat="(key,arr) in permissions.availableResources">
-					                <div ng-repeat="r in arr" class="row scope-row">
- 					                  <div class="col-md-5">
-					                   <strong>{{r.resourceUri}}</strong><br/>
-					                   <span ng-if="r.roles">(Roles: {{r.roles}})</span>
-					                  </div>
-					                  <div class="col-md-4">{{r.name}}</div>
-				                    <div class="col-md-1">{{toAuthority(r.authority)}}</div>
-				                    <div class="col-md-1 text-right">
-				                      <div class="form-check form-check-inline" ng-click="permissions.selectedResources[r.resourceId] = !permissions.selectedResources[r.resourceId]">				                    
-				                      <input type="checkbox" class="form-check-input" ng-model="permissions.selectedResources[r.resourceId]">
-				                      <label>&nbsp;</label>
-				                      </div>
-				                    </div> 
-				                    <div class="col-md-1 text-right">
-				                    <span class="{{permissionIcon(permissions.resourceApprovals[r.resourceId])}}"></span>
-				                    </div>
- 					                </div>
+                  <div ng-repeat="r in permissions.availableScopes">
+	                  <div class="row scope-row">
+		                  <div class="col-md-5">
+		                    <strong>{{r.scope}}</strong><br/>
+		                    <span ng-if="r.roles && r.roles.length > 0">(Roles: {{r.roles}})</span>
+	                    </div>
+  	                  <div class="col-md-4">{{r.name}}</div>
+                      <div class="col-md-1">{{toAuthority(r.authority)}}</div>
+                      <div class="col-md-1 text-right">
+                        <div class="form-check form-check-inline" ng-click="permissions.selectedScopes[r.scope] = !permissions.selectedScopes[r.scope]">				                    
+                          <input type="checkbox" class="form-check-input" ng-model="permissions.selectedScopes[r.scope]">
+                          <label>&nbsp;</label>
                         </div>
-					            </div>
-					        </div>
+                      </div> 
+                      <div class="col-md-1 text-right">
+                        <span class="{{permissionIcon(permissions.scopeApprovals[r.scope])}}"></span>
+                      </div>
+		                </div>
+                  </div>
 					     </div>
 						  </div>
 						</div>  

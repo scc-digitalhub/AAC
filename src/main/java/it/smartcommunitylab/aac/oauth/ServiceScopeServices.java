@@ -16,27 +16,20 @@
 
 package it.smartcommunitylab.aac.oauth;
 
-import java.util.List;
-
-import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.model.ServiceScope;
 
 /**
- * Resource storage interface
+ *  Service scope service interface
  * 
  * @author raman
  *
  */
-public interface ResourceStorage extends ResourceServices {
+public interface ServiceScopeServices {
 
 	/**
-	 * Store the specified {@link Resource}
-	 * @param resource
-	 * @return stored resource object
+	 * Load the {@link ServiceScope} instance given the scope
+	 * @param scope
+	 * @return
 	 */
-	public Resource storeResource(Resource resource);
-	/**
-	 * Store list of {@link Resource} list 
-	 * @param resources
-	 */
-	public void storeResources(List<Resource> resources);
+	public ServiceScope loadScope(String scope);
 }

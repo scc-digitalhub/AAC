@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.authority.GoogleNativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.InternalAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
-import it.smartcommunitylab.aac.oauth.CachedResourceStorage;
+import it.smartcommunitylab.aac.oauth.CachedServiceScopeServices;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 @Configuration 
@@ -33,8 +33,8 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 	private ClientDetailsRepository clientDetailsRepository;
 
 	@Bean
-	public CachedResourceStorage getResourceStorage() {
-		return new CachedResourceStorage();
+	public CachedServiceScopeServices getResourceStorage() {
+		return new CachedServiceScopeServices();
 	}
 	
 	@Bean

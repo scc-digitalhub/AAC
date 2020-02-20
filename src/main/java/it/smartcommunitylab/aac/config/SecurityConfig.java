@@ -90,6 +90,7 @@ import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.AACRememberMeServices;
 import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
+import it.smartcommunitylab.aac.oauth.AACWebResponseExceptionTranslator;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClientCredentialsRegistrationFilter;
@@ -106,16 +107,15 @@ import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
-import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
 import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Configuration
@@ -367,8 +367,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		private ApprovalStore approvalStore;
 		@Autowired	
 		private ClientDetailsService clientDetailsService;
-		@Autowired	
-		private ResourceRepository resourceRepository;
 
 		@Autowired
 		private UserApprovalHandler userApprovalHandler;
@@ -381,6 +379,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Autowired
 		private ProviderServiceAdapter providerServiceAdapter;
+		
+		@Autowired
+		private UserManager userManager;
 		
 		@Autowired
 		@Qualifier("appTokenServices")
@@ -412,7 +413,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			UserApprovalHandler bean = new UserApprovalHandler();
 			bean.setApprovalStore(approvalStore);
 			bean.setClientDetailsService(clientDetailsService);
-			bean.setResourceRepository(resourceRepository);
 			bean.setRequestFactory(getOAuth2RequestFactory());
 			bean.setFlowExtensions(getFlowExtensions());
 			return bean;
@@ -441,20 +441,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					.tokenServices(resourceServerTokenServices)
 					.authorizationCodeServices(authorizationCodeServices)			
 					//set tokenGranter now to ensure all services are set
-					.tokenGranter(tokenGranter(endpoints));
+					.tokenGranter(tokenGranter(endpoints))
+					.exceptionTranslator(new AACWebResponseExceptionTranslator());
 		}
 
 		@Override
 		public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
 			oauthServer.addTokenEndpointAuthenticationFilter(endpointFilter());
+			// disable default endpoints: we enable access
+			// because the endpoints are mapped to out custom controller returning 404
+			oauthServer.tokenKeyAccess("permitAll()");
+			oauthServer.checkTokenAccess("permitAll()");
 		}
+		
+		
 
 		private TokenGranter tokenGranter(final AuthorizationServerEndpointsConfigurer endpoints) {
 			List<TokenGranter> granters = new ArrayList<TokenGranter>(Arrays.asList(endpoints.getTokenGranter()));
 			// insert PKCE auth code granter as the first one, before default implementation
 			granters.add(0,new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
 			// custom native flow support
-			granters.add(new NativeTokenGranter(providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
+			granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
 			return new CompositeTokenGranter(granters);
 		}
 	}
@@ -472,9 +479,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/*profile/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
-						.antMatchers("/basicprofile/all/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
-						.antMatchers("/basicprofile/profiles/**").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+				http.antMatcher("/*profile/**").authorizeRequests()
+						.antMatchers(HttpMethod.OPTIONS, "/*profile/**").permitAll()
+						.antMatchers("/basicprofile/all/{{\\w+}}").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/all").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
+						.antMatchers("/basicprofile/profiles").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE_ALL+"')")
 						.antMatchers("/basicprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_BASIC_PROFILE+"')")
 						.antMatchers("/accountprofile/profiles").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE_ALL+"')")
 						.antMatchers("/accountprofile/me").access("#oauth2.hasScope('"+Config.SCOPE_ACCOUNT_PROFILE+"')")				
@@ -531,14 +540,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			}
 
 			public void configure(HttpSecurity http) throws Exception {
-				http.antMatcher("/*userroles/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/*userroles/**")
-						.permitAll()
+				http.antMatcher("/*userroles/**").authorizeRequests()
+						.antMatchers(HttpMethod.OPTIONS, "/*userroles/**").permitAll()
 						.antMatchers("/userroles/me").access("#oauth2.hasScope('"+Config.SCOPE_ROLE+"')")
-						.antMatchers(HttpMethod.GET, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
 						.antMatchers(HttpMethod.GET, "/userroles/role").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")
-						.antMatchers(HttpMethod.PUT, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
-						.antMatchers(HttpMethod.DELETE, "/userroles/user").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers(HttpMethod.GET, "/userroles/user/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_READ+"')")						
+						.antMatchers(HttpMethod.PUT, "/userroles/user/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers(HttpMethod.DELETE, "/userroles/user/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_ROLES_WRITE+"')")
+						.antMatchers("/userroles/client/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
 						.antMatchers("/userroles/client").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
+						.antMatchers("/userroles/token/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_CLIENT_ROLES_READ_ALL+"')")
 						.and().csrf().disable();
 			}
 
@@ -714,4 +725,51 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return resource;
     }
     
+    @Bean
+    protected ResourceServerConfiguration serviceManagementResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.regexMatcher("/api/services(.)*").authorizeRequests().regexMatchers(HttpMethod.OPTIONS, "/api/services(.)*")
+				.permitAll()
+				.regexMatchers("/api/services(.)*").access("#oauth2.hasAnyScope('"+Config.SCOPE_SERVICEMANAGEMENT+"', '"+Config.SCOPE_SERVICEMANAGEMENT_USER+"')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(14);
+		return resource;
+    }
+    
+    @Bean
+    protected ResourceServerConfiguration claimManagementResources() {
+		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+				super.setConfigurers(configurers);
+			}
+		};
+		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+				resources.resourceId(null);
+			}
+
+			public void configure(HttpSecurity http) throws Exception {
+				http.antMatcher("/api/claims/**").authorizeRequests().antMatchers(HttpMethod.OPTIONS, "/api/claims/**")
+				.permitAll()
+				.antMatchers("/api/claims/**").access("#oauth2.hasAnyScope('"+Config.SCOPE_CLAIMMANAGEMENT+"', '"+Config.SCOPE_CLAIMMANAGEMENT_USER+"')")
+				.and().csrf().disable();
+			}
+
+		}));
+		resource.setOrder(15);
+		return resource;
+    }
 }

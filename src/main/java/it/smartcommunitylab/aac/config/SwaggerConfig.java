@@ -75,7 +75,8 @@ public class SwaggerConfig {
           .paths(PathSelectors.regex("/apikey.*"))
           .build()                                          
           .securitySchemes(Arrays.asList(
-        		  securitySchemeApp(new AuthorizationScope[0])
+        		  securitySchemeApp(new AuthorizationScope[0]),
+                  securityBasicAuthApp()
         		  ))
           .securityContexts(Arrays.asList(
         		  securityContext(new AuthorizationScope[0], "/apikey.*", "application")
@@ -89,7 +90,7 @@ public class SwaggerConfig {
     public Docket apiOAuth2() {
         return new Docket(DocumentationType.SWAGGER_2)
             .groupName("AAC OAuth2")
-            .apiInfo(apiInfo(conf.title.get("AAC OAuth2"), conf.description.get("AAC OAuth2")))
+            .apiInfo(apiInfo(conf.title.get("AACOAuth2"), conf.description.get("AACOAuth2")))
             .select()
             .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.oauth.endpoint"))
             .build()
@@ -113,7 +114,7 @@ public class SwaggerConfig {
     public Docket apiOpenId() { 
         return new Docket(DocumentationType.SWAGGER_2)
           .groupName("AAC OpenID")
-          .apiInfo(apiInfo(conf.title.get("AAC OpenID"), conf.description.get("AAC OpenID")))
+          .apiInfo(apiInfo(conf.title.get("AACOpenID"), conf.description.get("AACOpenID")))
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.openid.endpoint"))
           .build()
@@ -130,8 +131,81 @@ public class SwaggerConfig {
                   securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)|(/token_introspection)", "application")
                   ));                                           
     }
-    
  
+    
+
+    /***************** SERVICES AAC API **********/ 
+    @Bean
+    public Docket apiServices() { 
+        return new Docket(DocumentationType.SWAGGER_2)
+          .groupName("AAC Services, Scopes, Claims")
+          .apiInfo(apiInfo(conf.title.get("AACServices"), conf.description.get("AACServices")))
+          .select()                                  
+          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
+          .paths(PathSelectors.regex("/api/services.*"))
+          .build()
+          .tags(new Tag("AAC Services", "Service, Scope, Claim definitions"))
+          .securitySchemes(Arrays.asList(
+                  securitySchemeUser(aacServiceMgmtUser()), 
+                  securitySchemeApp(aacServiceMgmt())
+                  ))
+          .securityContexts(Arrays.asList(
+        		  SecurityContext.builder()
+          			.securityReferences(Arrays.asList(new SecurityReference("application", aacServiceMgmt()), new SecurityReference("spring_oauth", aacServiceMgmtUser())))
+          			.forPaths(PathSelectors.regex("/api/services.*"))
+          			.build()
+                  ));                                           
+    }
+    
+	private AuthorizationScope[] aacServiceMgmt() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("servicemanagement", "Core service for managing service, scope, and claim definitions."), 
+		};
+		return scopes;
+	}
+	private AuthorizationScope[] aacServiceMgmtUser() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("servicemanagement.me", "Core service for managing owned service, scope, and claim definitions."), 
+		};
+		return scopes;
+	}
+
+ 
+	/***************** CLAIMS AAC API **********/ 
+    @Bean
+    public Docket apiClaims() { 
+        return new Docket(DocumentationType.SWAGGER_2)
+          .groupName("AAC Custom User Claims")
+          .apiInfo(apiInfo(conf.title.get("AACClaims"), conf.description.get("AACClaims")))
+          .select()                                  
+          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
+          .paths(PathSelectors.regex("/api/claims/.*"))
+          .build()
+          .tags(new Tag("AAC Claims", "Custom User Claims"))
+          .securitySchemes(Arrays.asList(
+                  securitySchemeUser(aacClaimMgmtUser()), 
+                  securitySchemeApp(aacClaimMgmt())
+                  ))
+          .securityContexts(Arrays.asList(
+        		  SecurityContext.builder()
+          			.securityReferences(Arrays.asList(new SecurityReference("application", aacClaimMgmt()), new SecurityReference("spring_oauth", aacClaimMgmtUser())))
+          			.forPaths(PathSelectors.regex("/api/claims/.*"))
+          			.build()
+                  ));                                           
+    }
+    
+	private AuthorizationScope[] aacClaimMgmt() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("claimmanagement", "Manage custom user claim values"), 
+		};
+		return scopes;
+	}
+	private AuthorizationScope[] aacClaimMgmtUser() {
+		AuthorizationScope[] scopes = { 
+				new AuthorizationScope("claimmanagement.me", "Manage custom user claims for the services owned by the user"), 
+		};
+		return scopes;
+	}
     /*************************************************************************/         
     
 	/***************** Core AAC API - PROFILES, TOKEN INTROSPECTION **********/ 

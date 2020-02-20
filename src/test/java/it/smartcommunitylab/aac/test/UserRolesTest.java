@@ -8,6 +8,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -19,26 +21,27 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.dto.RoleModel;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
-import it.smartcommunitylab.aac.repository.RoleRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
-//DISABLED TODO update
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-//@ActiveProfiles("test")
-//@EnableConfigurationProperties
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@EnableConfigurationProperties
 public class UserRolesTest {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private static final String TESTAPP = "testapp";
 	private static final String TENANTUSERNAME = "testusertenant";
-	private static final String USERNAME = "testuser";
-	private static final String USERNAME2 = "testuser2";
+	private static final String USERNAME = "testuserroles";
+	private static final String USERNAME2 = "testuserroles2";
 	private static final String CUSTOM_ROLE = "ROLE_CUSTOM";
 	private static final String TESTTENANT = "test.tenant";
 
@@ -47,16 +50,11 @@ public class UserRolesTest {
 	
 	@Autowired
 	private RoleManager roleManager;		
-	@Autowired
-	private RegistrationManager regManager;		
-	
-	@Autowired
-	private UserRepository userRepository;
-	@Autowired
-	private RoleRepository roleRepository;
-	
-	@Autowired
-	private RegistrationRepository registrationRepository;		
+
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private RegistrationRepository regRepository;
 	
 	@Value("${api.contextSpace}")
 	private String apiManagerContext;
@@ -68,29 +66,59 @@ public class UserRolesTest {
 	private User user;
 	private User tenantuser;
 	
-	@Before
-	public void init() {
-		createUser();
-	}
+    @Before
+    public void init() {
+        logger.debug("create user "+USERNAME);
+        try {
+            user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
+        } catch (AlreadyRegisteredException e) {
+            user = userRepository.findByUsername(USERNAME);
+        }
+        logger.trace("user "+String.valueOf(user));
+        user.setRoles(Sets.newHashSet(role1));
+        userRepository.save(user);
+    }
 	
+    @After
+    public void cleanup() {
+        Registration reg1 =registrationManager.getUserByEmail(USERNAME); 
+        if (reg1 != null) {
+            long userId = Long.parseLong(reg1.getUserId());
+            logger.debug("delete user "+USERNAME + " with id "+String.valueOf(userId));
+            regRepository.delete(reg1);
+            userRepository.delete(userId);
+        }
+        
+        Registration reg2 =registrationManager.getUserByEmail(USERNAME2); 
+        if (reg2 != null) {
+            long userId = Long.parseLong(reg2.getUserId());
+            logger.debug("delete user "+USERNAME2 + " with id "+String.valueOf(userId));
+            regRepository.delete(reg2);
+            userRepository.delete(userId);
+        }
+        
+        Registration regT =registrationManager.getUserByEmail(TENANTUSERNAME); 
+        if (regT != null) {
+            long userId = Long.parseLong(regT.getUserId());
+            logger.debug("delete user "+TENANTUSERNAME + " with id "+String.valueOf(userId));
+            regRepository.delete(regT);
+            userRepository.delete(userId);
+        }
+        
+        
+    }
 	
-	private void createUser() {
-		user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
-		user.setRoles(Sets.newHashSet(role1));
-		userRepository.save(user);		
-	}
-	
-	@After
-	public void deleteUser() {
-		registrationRepository.deleteAll();
-		roleRepository.deleteAll();
-		userRepository.deleteAll();
-	}	
+//	@After
+//	public void deleteUser() {
+//		registrationRepository.deleteAll();
+//		roleRepository.deleteAll();
+//		userRepository.deleteAll();
+//	}	
 
 	@Test
 	public void testNewRoles() {
 		
-		User created = regManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
+		User created = registrationManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
 		roleManager.addRole(created, role4);
 		
 		Assert.assertTrue(roleManager.hasRole(created, role4));
@@ -158,7 +186,7 @@ public class UserRolesTest {
 	@Test
 	public void testTenantRoles() {
 		createTenantProvider();
-		User created = regManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
+		User created = registrationManager.registerOffline(USERNAME2, USERNAME2, USERNAME2, USERNAME2, Config.DEFAULT_LANG, false, null);
 
 		// update with roleModel
 		RoleModel model = new RoleModel();

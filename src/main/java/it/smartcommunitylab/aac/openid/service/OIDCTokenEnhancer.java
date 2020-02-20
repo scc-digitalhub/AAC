@@ -5,12 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +21,6 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JWEHeader;
@@ -34,7 +31,6 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 
@@ -45,11 +41,11 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 /**
  * Default implementation of service to create specialty OpenID Connect tokens.
  *
@@ -89,7 +85,7 @@ public class OIDCTokenEnhancer  {
     private RoleManager roleManager;
     
     @Autowired
-	private ResourceRepository resourceRepository;
+    private ServiceManager serviceManager;
 
 	public JWT createIdToken(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
 		OAuth2Request request = authentication.getOAuth2Request();
@@ -140,7 +136,7 @@ public class OIDCTokenEnhancer  {
             Multimap<String, String> roleSpaces = roleManager.getRoleSpacesToNarrow(clientId, userAuthorities);
             Collection<GrantedAuthority> selectedAuthorities = roleManager.narrowAuthoritiesSpaces(roleSpaces, userAuthorities, authAuthorities);
             
-            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
+            Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities, client, scope, null, null);
             // set directly, ignore extracted
             userClaims.remove("sub");
             userClaims.entrySet().forEach(e -> idClaims.claim(e.getKey(), e.getValue()));
@@ -180,7 +176,6 @@ public class OIDCTokenEnhancer  {
         
 		idClaims.issuer(issuer);
 		idClaims.subject(authentication.getName());
-
 		idClaims.jwtID(UUID.randomUUID().toString()); // set a random NONCE in the middle of it
         idClaims.claim("azp", clientId);
 
@@ -290,12 +285,12 @@ public class OIDCTokenEnhancer  {
 //		return signed;
 //	}	
 
-    private Set<String> getServiceIds(Set<String> scopes) {
-    	if (scopes != null && !scopes.isEmpty()) {
-    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
-    	}
-    	return Collections.emptySet();
-    }
+//    private Set<String> getServiceIds(Set<String> scopes) {
+//    	if (scopes != null && !scopes.isEmpty()) {
+//    		return serviceManager.findServiceIdsByScopes(scopes);
+//    	}
+//    	return Collections.emptySet();
+//    }
 
 
 }

@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -31,8 +30,6 @@ import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
 import com.nimbusds.jose.Algorithm;
@@ -51,13 +48,12 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Registration;
-import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 @Service
 public class AACJwtTokenConverter extends JwtAccessTokenConverter {
@@ -82,11 +78,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     private ClientDetailsRepository clientRepository;
 
     @Autowired
-    private ResourceRepository resourceRepository;
+    private ServiceManager serviceManager;
 
     @Autowired
     private RegistrationManager registrationManager;
-
     @Autowired
     private UserManager userManager;
 
@@ -189,15 +184,18 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             logger.trace("selected authorities: "+selectedAuthorities.toString());
 
             // delegate to claim manager
-            Map<String, Object> userClaims = claimManager.createUserClaims(user.getId().toString(), selectedAuthorities,
+            Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
             // set directly later on, ignore provided
             if (userClaims.containsKey("sub")) {
                 userClaims.remove("sub");
             }
-
             claims.putAll(userClaims);
         }
+        
+        // eventual client claims
+        Map<String, Object> clientClaims = claimManager.getClientClaims(clientId, request.getScope());
+        claims.putAll(clientClaims);
 
         // explicitly set sub to userId
         if (user != null) {
@@ -361,7 +359,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
                 nbf = iat;
             }
-
+            
             jwtClaims.issueTime(iat);
             jwtClaims.notBeforeTime(nbf);
 
@@ -479,11 +477,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     }
 
     private Set<String> getServiceIds(Set<String> scopes) {
-        if (scopes != null && !scopes.isEmpty()) {
-            return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId())
-                    .collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
+    	if (scopes != null && !scopes.isEmpty()) {
+    		return serviceManager.findServiceIdsByScopes(scopes);
+    	}
+    	return Collections.emptySet();
     }
 
 }

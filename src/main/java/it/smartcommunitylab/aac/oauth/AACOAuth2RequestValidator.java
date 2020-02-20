@@ -79,6 +79,7 @@ public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
 		}
 		
 		if (requestScopes.isEmpty()) {
+		    logger.debug("empty scopes");
 			throw new InvalidScopeException("Empty scope (either the client or the user is not allowed the requested scopes)");
 		}
 	}

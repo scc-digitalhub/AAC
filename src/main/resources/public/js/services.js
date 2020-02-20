@@ -286,6 +286,12 @@ angular.module('aac.services', [])
 			$rootScope.errorMsg = null;
 		}, 4000);
 	}
+
+	utils.initUI = function() {
+		setTimeout(function() {
+			$.getScript('./italia/js/bootstrap-italia.bundle.min.js');
+		});
+	}
 	
 	return utils;
 })

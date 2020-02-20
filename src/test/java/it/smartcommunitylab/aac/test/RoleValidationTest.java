@@ -27,20 +27,12 @@ import it.smartcommunitylab.aac.model.Role;
  * @author raman
  *
  */
-//DISABLED TODO update
-//@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RoleValidationTest {
 
-	
-	/**
-	 * 
-	 */
 	private static final String R_SLASH = "abcdef123._ad/12asdad";
-	/**
-	 * 
-	 */
 	private static final String R_COLON = "abcdef123._ad:12asdad";
-	private static final String RVALID = "abcdef123._ad-12asdad";
+	private static final String RVALID = "abcdef123._ad12asdad";
 
 	@Test
 	public void testRoleValidator() {

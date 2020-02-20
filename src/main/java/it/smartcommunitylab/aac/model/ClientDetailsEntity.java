@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.model;
 
-import it.smartcommunitylab.aac.common.Utils;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,6 +33,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.util.StringUtils;
+
+import it.smartcommunitylab.aac.common.Utils;
 
 /**
  * DB entity storing the client app information

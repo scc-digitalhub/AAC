@@ -90,7 +90,6 @@ public class UserInfoTest {
             try {
                 user = createUser(testUserName, testPassword, "TestName", "TestSurname");
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 user = null;
             }
@@ -109,7 +108,6 @@ public class UserInfoTest {
                         "authorization_code", SCOPES,
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }

@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.manager;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
@@ -93,8 +93,15 @@ public class RoleManager {
 	@Autowired
 	private ClientDetailsManager clientDetailsManager;	
 
+	private User admin = null; 
 	
-	public User init() throws Exception {
+	@PostConstruct
+	public synchronized User init() throws Exception {
+		
+		if (admin != null) {
+			return admin;
+		}
+		
 	    logger.debug("init");
 	    
 		Set<Role> roles = new HashSet<>();
@@ -116,7 +123,6 @@ public class RoleManager {
 			Arrays.asList(defaultRoles).forEach(ctx -> roles.add(Role.parse(ctx)));
 		}
 
-		User admin = null;
 		admin = userRepository.findByUsername(adminUsername);
 		if (admin == null) {
 		    logger.debug("create ADMIN user as "+adminUsername);
@@ -127,9 +133,17 @@ public class RoleManager {
 		
 		admin.getRoles().addAll(roles);
 		userRepository.saveAndFlush(admin);
+		
+		
 		return admin;
 	}
 	
+	public User getAdminUser() throws Exception {
+		if (admin == null) {
+			init();
+		}
+		return admin;
+	}
 	
 	public void updateRoles(User user, Set<Role> rolesToAdd, Set<Role> rolesToDelete) {
 		Set<Role> roles = user.getRoles();
@@ -322,8 +336,6 @@ public class RoleManager {
 		return user.getRoles();
 	}
 
-	// - create API Manager tenant on the fly and associate the user
-	// - update roles for the tenant
 	public void addRoles(Long userId, String clientId, String roles, boolean asRoleManager) throws Exception {
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 		Long developerId = client.getDeveloperId();

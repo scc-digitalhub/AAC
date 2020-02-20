@@ -13,20 +13,21 @@
         <div class="card-body">
           <div class="card-title"  data-toggle="collapse" data-target="#collapse{{c.clientId}}" aria-expanded="false" aria-controls="collapse{{c.clientId}}">
             <h5>{{c.appName}}</h5>
-            <p class="card-text">{{'connections.scopes'| translate}}</p>
+            <p class="card-text">{{'connections.scopes'| translate}}
+            <svg class="icon icon-xs">
+              <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
+            </svg>
+            </p>
           </div>
           <div class="collapse multi-collapse" id="collapse{{c.clientId}}">
           <table class="table table-sm">
-            <tr ng-repeat="r in c.resources">
+            <tr ng-repeat="r in c.scopes">
               <td><label>{{r.name}}</label><br><small>{{r.description}}</small></td>
             </tr>
           </table>
           </div>
           <a class="read-more" href="" ng-click="confirmDeleteApp(c)">
             <span class="text text-danger">{{'connections.delete_app'| translate}}</span>
-            <svg class="icon">
-              <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
-            </svg>
           </a>
         </div>
       </div>

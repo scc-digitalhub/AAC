@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
@@ -56,6 +58,9 @@ public class UserInfoEndpoint {
 
 	@Autowired
 	private UserManager userManager;
+	
+    @Autowired
+    private RoleManager roleManager;
 
 	@Autowired
 	private ClientDetailsRepository clientRepo;
@@ -84,13 +89,17 @@ public class UserInfoEndpoint {
 			model.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
 			return HttpCodeView.VIEWNAME;
 		}
+		
+        //refresh authorities since authentication could be stale (stored in db)
+        List<GrantedAuthority> userAuthorities = roleManager.buildAuthorities(user);
+		
 		model.addAttribute(UserInfoView.SCOPE, auth.getOAuth2Request().getScope());
 
 		model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.getOAuth2Request().getExtensions().get("claims"));
 
 		model.addAttribute(UserInfoView.USER_INFO, user);
 		
-		model.addAttribute(UserInfoView.SELECTED_AUTHORITIES, auth.getUserAuthentication().getAuthorities());		
+		model.addAttribute(UserInfoView.SELECTED_AUTHORITIES, userAuthorities);		
 		// content negotiation
 
 		// start off by seeing if the client has registered for a signed/encrypted JWT from here

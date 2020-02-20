@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,7 +38,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -55,8 +53,8 @@ import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 
 
 /**
@@ -85,8 +83,9 @@ public class UserInfoJWTView extends UserInfoView {
 	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
 
 	@Autowired
-	private ResourceRepository resourceRepository;
+    private ServiceManager serviceManager;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void writeOut(Map<String, Object> json, Map<String, Object> model,
 			HttpServletRequest request, HttpServletResponse response) {
@@ -177,7 +176,7 @@ public class UserInfoJWTView extends UserInfoView {
 
     private Set<String> getServiceIds(Set<String> scopes) {
     	if (scopes != null && !scopes.isEmpty()) {
-    		return resourceRepository.findServicesByResiurceUris(scopes).stream().map(sd -> sd.getServiceId()).collect(Collectors.toSet());
+    		return serviceManager.findServiceIdsByScopes(scopes);
     	}
     	return Collections.emptySet();
     }

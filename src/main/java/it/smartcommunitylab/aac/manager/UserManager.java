@@ -27,23 +27,30 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.dto.UserProfile;
@@ -51,13 +58,13 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.OAuthApproval;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.OAuthApprovalRepository;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -68,6 +75,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 @Transactional
 public class UserManager {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
@@ -82,7 +90,7 @@ public class UserManager {
 	@Autowired
 	private RegistrationManager regManager;
 	@Autowired
-	private ResourceRepository resourceRepository;
+	private ServiceManager serviceManager;
 
 	@Value("${api.contextSpace}")
 	private String apiProviderContext;
@@ -99,6 +107,7 @@ public class UserManager {
 		};
 	}
 	
+	//TODO move to utils
 	/**
 	 * Get the user from the Spring Security Context
 	 * @return
@@ -147,6 +156,7 @@ public class UserManager {
 		return res;
 	}
 
+	//TODO disable
 	/**
 	 * Read the signed user name from the user attributes
 	 * @param user
@@ -168,6 +178,15 @@ public class UserManager {
 		return user;
 	}
 	
+	/**
+	 * Get user with the specified username
+	 * @param username
+	 * @return
+	 */
+	public User getUserByUsername(String username) {
+		return userRepository.findByUsername(username);
+	}
+	
 	public Set<Role> getOwnedSpaceAt(String context) throws AccessDeniedException {
 		User user = getUser();
 		if (user == null) {
@@ -177,7 +196,13 @@ public class UserManager {
 		if (providerRoles.isEmpty()) return Collections.emptySet();
 		return providerRoles;
 	}
-
+	
+	
+    public String getUserFullName(long userId) {
+        User user = userRepository.getOne(userId);
+        return user.getFullName();
+    }
+    
 	/**
 	 * Currently constructs name as the `email @ apimanager-tenant`   
 	 * @param l
@@ -189,8 +214,9 @@ public class UserManager {
 		Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
 
 		String domain = null;
-		if (providerRoles.isEmpty()) domain = "carbon.super";
-		else {
+		if (providerRoles.isEmpty()) {
+		    domain = "carbon.super";
+		} else {
 			Role role = providerRoles.iterator().next();
 			domain = role.getSpace();
 		}
@@ -247,10 +273,6 @@ public class UserManager {
 		return Collections.emptySet();
 	}
 	
-	public String getUserAsClient() {
-		return (String)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-	}
-
 	/**
 	 * @param userId
 	 * @return
@@ -258,7 +280,51 @@ public class UserManager {
 	public User findOne(Long userId) {
 		return userRepository.findOne(userId);
 	}
+	
+    /**
+     * @param userId
+     * @return
+     */
+    public User getOne(Long userId) {
+        User user = userRepository.findOne(userId);
+        if (user == null) {
+            throw new EntityNotFoundException("No user found: " + userId);
+        }
 
+        return user;
+    }
+    
+	/**
+	 * Take the currently authenticated user, the User from OAuth token, or Client owner for app token
+	 * @return
+	 */
+	public User getUserOrOwner() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof AnonymousAuthenticationToken) {
+        	throw new SecurityException("Unauthorized access");
+        }
+        if (auth instanceof OAuth2Authentication) {
+        	OAuth2Authentication oauth = (OAuth2Authentication) auth;
+        	if (oauth.isClientOnly()) {
+        		String clientId = (String) oauth.getPrincipal();
+        		Long userId = clientDetailsRepository.findByClientId(clientId).getDeveloperId();
+        		return findOne(userId);
+        	} else {
+        		Object userAuth = oauth.getPrincipal();
+        		String userIdString = (userAuth instanceof UserDetails) 
+        				? ((UserDetails) userAuth).getUsername()
+        				: (userAuth instanceof Authentication) 
+        				? ((Authentication)userAuth).getPrincipal().toString()
+        				: userAuth.toString();
+        		return  findOne(Long.parseLong(userIdString));
+        	}
+        } else {
+			String userIdString = auth.getName();
+    		return findOne(Long.parseLong(userIdString));
+        }
+	}
+	
+	
 	/**
 	 * @param user
 	 */
@@ -312,9 +378,9 @@ public class UserManager {
 			
 			p.setAppName((String)client.getAdditionalInformation().get("displayName"));
 			if (p.getAppName() == null) p.setAppName(client.getName());
-			p.setResources(multimap.get(e).stream().filter(a -> a.getStatus().equals(ApprovalStatus.APPROVED.toString())).map(approval -> {
+			p.setScopes(multimap.get(e).stream().filter(a -> a.getStatus().equals(ApprovalStatus.APPROVED.toString())).map(approval -> {
 				String scope = approval.getScope();
-				return resourceRepository.findByResourceUri(scope);
+				return serviceManager.getServiceScopeDTO(scope);
 			}).collect(Collectors.toList()));
 			return p;
 		}).filter(p -> p != null).collect(Collectors.toList());
@@ -340,5 +406,41 @@ public class UserManager {
 		}
 		
 		return getConnectedApps(user);
+	}
+	
+	public Set<String> userScopes(User user, Set<String> scopes, boolean isUser) {
+		Set<String> newScopes = Sets.newHashSet();
+		Set<String> roleNames = user.getRoles().stream().map(x -> x.getAuthority()).collect(Collectors.toSet());
+		logger.trace("user roles "+roleNames.toString());
+		
+	      // handle default case
+        if (Collections.singleton("default").equals(scopes)) {
+            return scopes;
+        }
+        
+		for (String scope : scopes) {		    
+			ServiceScope resource = serviceManager.getServiceScope(scope);
+			logger.trace("resource for scope "+scope + " is "+String.valueOf(resource));
+			if (resource != null) {
+				boolean isResourceUser = resource.getAuthority().equals(AUTHORITY.ROLE_USER);
+				boolean isResourceClient = !resource.getAuthority().equals(AUTHORITY.ROLE_USER);
+				if (isUser && !isResourceUser) {
+					continue;
+				}
+				if (!isUser && !isResourceClient) {
+					continue;
+				}
+				
+				if (resource.getRoles() != null && !resource.getRoles().isEmpty()) {
+					Set<String> roles = Sets.newHashSet(Splitter.on(",").split(resource.getRoles()));
+					if (!Sets.intersection(roleNames, roles).isEmpty()) {
+						newScopes.add(scope);
+					}
+				} else {
+					newScopes.add(scope);
+				}
+			}
+		}
+		return newScopes;
 	}
 }

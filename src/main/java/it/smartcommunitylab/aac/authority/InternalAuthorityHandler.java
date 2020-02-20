@@ -49,12 +49,14 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 	@Override
 	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String,String> map, AuthorityMapping mapping) {
 		String email = null;
-		if (request != null) email = request.getParameter(USERNAME_ATTRIBUTE);
+		if (request != null) email = (String) request.getAttribute(USERNAME_ATTRIBUTE);
 		if (email == null) email = map.get(USERNAME_ATTRIBUTE);
 
 		Registration user = repository.findByEmail(email);
 		if (user == null) {
-			return map;
+			Map<String, String> result = new HashMap<>(map);
+			result.put(USERNAME_ATTRIBUTE, email);
+			return result;
 		} else {
 			Map<String, String> result = new HashMap<String, String>();
 			result.put(USERNAME_ATTRIBUTE, user.getEmail());

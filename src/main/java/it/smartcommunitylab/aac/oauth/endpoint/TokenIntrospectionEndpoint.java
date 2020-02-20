@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.bouncycastle.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +38,8 @@ import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientE
 import org.springframework.security.oauth2.common.util.JsonParser;
 import org.springframework.security.oauth2.common.util.JsonParserFactory;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -73,9 +70,6 @@ public class TokenIntrospectionEndpoint {
     public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    @Autowired
-    private ResourceServerTokenServices resourceServerTokenServices;
 
     @Autowired
     private ClientDetailsRepository clientDetailsRepository;
@@ -113,6 +107,7 @@ public class TokenIntrospectionEndpoint {
      * considerations https://tools.ietf.org/html/rfc7662#section-4
      */
 
+    @SuppressWarnings("unchecked")
     @ApiOperation(value = "Get token metadata")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_INTROSPECTION_URL)
     public ResponseEntity<AACTokenIntrospection> getTokenInfo(

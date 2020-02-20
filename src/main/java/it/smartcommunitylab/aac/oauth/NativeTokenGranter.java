@@ -39,8 +39,8 @@ import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.User;
 
 /**
@@ -51,11 +51,13 @@ public class NativeTokenGranter extends AbstractTokenGranter {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private ProviderServiceAdapter providerService;
+	private UserManager userManager;
 
-	public NativeTokenGranter(ProviderServiceAdapter providerService, AuthorizationServerTokenServices tokenServices, ClientDetailsService clientDetailsService,
+	public NativeTokenGranter(UserManager userManager, ProviderServiceAdapter providerService, AuthorizationServerTokenServices tokenServices, ClientDetailsService clientDetailsService,
 			OAuth2RequestFactory requestFactory, String grantType) {
 		super(tokenServices, clientDetailsService, requestFactory, grantType);
 		this.providerService = providerService;
+		this.userManager = userManager;
 	}
 
 	protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
@@ -80,7 +82,7 @@ public class NativeTokenGranter extends AbstractTokenGranter {
 		if (scopes.isEmpty()) {
 			scopes = client.getScope();
 		}		
-		Set<String> newScopes = providerService.userScopes(nativeUser, scopes, true); 
+		Set<String> newScopes = userManager.userScopes(nativeUser, scopes, true); 
 //		if (openidScopeRequested) newScopes.add(Config.OPENID_SCOPE);
 		tokenRequest.setScope(newScopes);
 		

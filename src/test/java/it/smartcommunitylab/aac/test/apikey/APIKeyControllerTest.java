@@ -12,11 +12,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
@@ -32,21 +36,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apikey.APIKeyManager;
 import it.smartcommunitylab.aac.dto.APIKey;
-import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
-//DISABLED TODO update
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@SpringBootTest
-//@EnableConfigurationProperties
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@EnableConfigurationProperties
 public class APIKeyControllerTest {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 
 	private static final String USERNAME = "testuser";
@@ -63,11 +67,9 @@ public class APIKeyControllerTest {
 	private WebApplicationContext ctx;
 
 	@Autowired
-	private ProviderServiceAdapter providerServiceAdapter;
+	private ServiceManager serviceManager;
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
-	@Autowired
-	private ResourceRepository resourceRepository;
 	@Autowired
 	private UserRepository userRepository;
 	@Autowired
@@ -88,9 +90,8 @@ public class APIKeyControllerTest {
 	@Before
 	public void setUp() throws Exception {
 		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
-		providerServiceAdapter.init();
-
 		
+		logger.debug("create user");
 		user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
 		userRepository.save(user);		
 
@@ -110,6 +111,7 @@ public class APIKeyControllerTest {
 	@After
 	public void tearDown() throws Exception {
 		if (user != null) {
+		    logger.debug("delete user");
 			regRepository.delete(regRepository.findByEmail(USERNAME));
 			userRepository.delete(user);
 			user = null;
@@ -289,8 +291,7 @@ public class APIKeyControllerTest {
 		entity.setClientSecret(UUID.randomUUID().toString());
 		entity.setClientSecretMobile(UUID.randomUUID().toString());
 		entity.setScope("authorization.manage");
-		String resourcesId = ""+ resourceRepository.findByServiceIdAndResourceType("carbon.super-AACAuthorization-1.0.0",
-				"authorization.manage").getResourceId();
+		String resourcesId = ""+ serviceManager.findServiceIdsByScopes(Collections.singleton("authorization.manage"));
 		entity.setResourceIds(resourcesId);
 		entity.setName(client);
 

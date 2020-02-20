@@ -35,6 +35,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
@@ -48,7 +49,6 @@ import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.endpoint.JWKSetPublishingEndpoint;
-import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
 import it.smartcommunitylab.aac.openid.service.IdTokenHashUtils;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
@@ -108,7 +108,6 @@ public class ImplicitFlowTest {
                         "implicit", new String[] { SCOPE },
                         endpoint));
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 client = null;
             }

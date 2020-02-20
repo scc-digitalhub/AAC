@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,10 +37,10 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.approval.ApprovalStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
-import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -48,9 +49,9 @@ import com.google.common.collect.Multimap;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
 import it.smartcommunitylab.aac.manager.RoleManager;
+import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.Resource;
-import it.smartcommunitylab.aac.repository.ResourceRepository;
+import it.smartcommunitylab.aac.model.ServiceScope;
 
 /**
  * Extension of {@link TokenStoreUserApprovalHandler} to enable automatic authorization
@@ -63,16 +64,16 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 
 	@Autowired
 	private ServletContext servletContext;
-	@Autowired 
-	private ResourceServices resourceService;
 	@Autowired
 	private RoleManager roleManager;
     @Autowired
     private UserManager userManager;    
     
+	@Autowired
+	private ServiceManager serviceManager;	
+	
 	protected int approvalExpirySeconds = -1;
 	protected ApprovalStore approvalStore;
-	protected ResourceRepository resourceRepository;
 	protected OAuthFlowExtensions flowExtensions;
 	
 	private static final String SPACE_SELECTION_APPROVAL_REQUIRED = "spaceSelectionApproval_required";
@@ -82,12 +83,11 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 
 	public void afterPropertiesSet() {
 		Assert.state(approvalStore != null, "ApprovalStore must be provided");
-		Assert.state(resourceRepository != null, "ResourceRepository must be provided");
 	}
 	
 	@Override
 	public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
-		AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
+	    AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
 		if (!result.isApproved()) return result;
 
 		// see if the user has to perform the space selection 
@@ -115,7 +115,6 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	 */
 	@Override
 	public boolean isApproved(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
-
 		boolean hasSpacesToSelect = "true".equals(authorizationRequest.getApprovalParameters().get(SPACE_SELECTION_APPROVAL_REQUIRED)) &&
 				!"true".equals(authorizationRequest.getApprovalParameters().get(SPACE_SELECTION_APPROVAL_DONE));
 		
@@ -131,17 +130,30 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 
 		String flag = authorizationRequest.getApprovalParameters().get(OAuth2Utils.USER_OAUTH_APPROVAL); // changed
 		boolean approved = flag != null && flag.toLowerCase().equals("true");
-		if (approved) return true;
+		if (approved) {
+		    return true;
+		}
 		
 		// or trusted client
 		if (authorizationRequest.getAuthorities() != null) {
 			for (GrantedAuthority ga : authorizationRequest.getAuthorities())
-				if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(ga.getAuthority()) && !hasSpacesToSelect) return true;
+				if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(ga.getAuthority()) && !hasSpacesToSelect) {
+				    return true;
+				}
 		}
 		// or test token redirect uri
+		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
+		    return true;
+		}
+		
+		//or "default" scope only requested
+		if(Collections.singleton("default").equals(authorizationRequest.getScope())) {
+			return true;
+		}
+		
+		return false;
 		// or accesses only own resources
-		return authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))
-			   || !hasSpacesToSelect && useOwnResourcesOnly(authorizationRequest.getClientId(), authorizationRequest.getScope());
+//			   || !hasSpacesToSelect && useOwnResourcesOnly(authorizationRequest.getClientId(), authorizationRequest.getScope());
 	}
 
 	
@@ -201,6 +213,7 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 			}
 
 		}
+
 		// result is approved, moving towards completion, doing extensions 
 		if (flowExtensions != null && isApproved(authorizationRequest, userAuthentication)) {
 			flowExtensions.onAfterApproval(authorizationRequest, userAuthentication);;
@@ -221,9 +234,9 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 		boolean userApproved = !approvalParameters.containsKey(OAuth2Utils.USER_OAUTH_APPROVAL) || approvalParameters.get(OAuth2Utils.USER_OAUTH_APPROVAL).equals(Boolean.TRUE.toString());
 		for (String requestedScope : requestedScopes) {
 			try {
-				Resource r = resourceRepository.findByResourceUri(requestedScope);
+				ServiceScope s = serviceManager.getServiceScope(requestedScope);
 				if (// ask the user only for the resources associated to the user role and not managed by this client
-					r.getAuthority().equals(AUTHORITY.ROLE_USER) && !authorizationRequest.getClientId().equals(r.getClientId())) {
+					s.getAuthority().equals(AUTHORITY.ROLE_USER) /*&& !authorizationRequest.getClientId().equals(r.getClientId())*/) {
 					approvedScopes.add(requestedScope);
 					approvals.add(new Approval(userAuthentication.getName(), authorizationRequest.getClientId(), requestedScope, expiry, userApproved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED));
 				}
@@ -262,13 +275,6 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 		this.flowExtensions = extensions;
 	}
 	
-	/**
-	 * @param resourceRepository the resourceRepository to set
-	 */
-	public void setResourceRepository(ResourceRepository resourceRepository) {
-		this.resourceRepository = resourceRepository;
-	}
-
 	private Date computeExpiry() {
 		Calendar expiresAt = Calendar.getInstance();
 		if (approvalExpirySeconds == -1) { // use default of 6 months
@@ -281,21 +287,21 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	}
 
 	
-	/**
-	 * @param clientId
-	 * @param resourceUris
-	 * @return true if the given client requires access only to the resources managed by the client itself
-	 */
-	private boolean useOwnResourcesOnly(String clientId, Set<String> resourceUris) {
-		if (resourceUris != null) {
-			for (String uri : resourceUris) {
-				Resource r = resourceService.loadResourceByResourceUri(uri);
-				if (r == null) {
-					continue;
-				}
-				if (r.getAuthority() == AUTHORITY.ROLE_USER && ! clientId.equals(r.getClientId())) return false;
-			}
-		}
-		return true;
-	}
+//	/**
+//	 * @param clientId
+//	 * @param resourceUris
+//	 * @return true if the given client requires access only to the resources managed by the client itself
+//	 */
+//	private boolean useOwnResourcesOnly(String clientId, Set<String> resourceUris) {
+//		if (resourceUris != null) {
+//			for (String uri : resourceUris) {
+//				ServiceScope s = scopeRepository.findOne(uri);
+//				if (s == null || !s.getAuthority().equals(AUTHORITY.ROLE_USER)) {
+//					continue;
+//				}
+//				
+//			}
+//		}
+//		return true;
+//	}
 }

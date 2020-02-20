@@ -214,7 +214,6 @@ public class AppController {
 	public @ResponseBody Response update(@RequestBody ClientAppBasic data, @PathVariable String clientId) {
 		Response response = new Response();
 		userManager.checkClientIdOwnership(clientId);
-		//TODO add extended validation here
 		response.setData(clientDetailsAdapter.update(clientId, data));
 		return response;
 	}
@@ -232,7 +231,7 @@ public class AppController {
 		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
 		appInfo.setClaimMapping(data.getClaimMapping());
 		try {
-			Map<String, Object> claims = claimManager.createUserClaims(user, appInfo, client.getScope());
+			Map<String, Object> claims = claimManager.validateUserClaimsForClientApp(user, appInfo, client.getScope());
 			response.setData(claims);
 		} catch (InvalidDefinitionException e) {
 			response.setErrorMessage(e.getMessage());
