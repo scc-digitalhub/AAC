@@ -410,9 +410,13 @@ public class ClientDetailsManager {
 	 * @param clientId
 	 * @return  {@link ClientAppBasic} object representing client app
 	 */
-	public ClientAppBasic getByClientId(String clientId) {
-		return convertToClientApp(clientDetailsRepository.findByClientId(clientId));
-	}
+    public ClientAppBasic getByClientId(String clientId) throws EntityNotFoundException {
+        ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+        if (client == null) {
+            throw new EntityNotFoundException();
+        }
+        return convertToClientApp(client);
+    }
 	/**
 	 * Create new Client from {@link ClientAppBasic} descriptor
 	 * @param appData

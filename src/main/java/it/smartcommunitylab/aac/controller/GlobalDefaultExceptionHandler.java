@@ -36,6 +36,9 @@ class GlobalDefaultExceptionHandler implements HandlerExceptionResolver {
     public static final String DEFAULT_ERROR_VIEW = "redirect:/error";
 
 
+        //TODO remove or rewrite to avoid exposing security sensitive info
+        //  example "client not found" , "user not found", "token invalid" etc
+        //TODO revisit error codes, all those related to request should receive a 4XX not 500
 	    public ModelAndView resolveException(
 	        HttpServletRequest aReq, HttpServletResponse aRes,
 	        Object aHandler, Exception anExc
