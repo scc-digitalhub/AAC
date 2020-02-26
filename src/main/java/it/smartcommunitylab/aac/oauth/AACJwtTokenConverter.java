@@ -116,6 +116,8 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
                 + " value " + accessToken.toString());
 
         OAuth2Request request = authentication.getOAuth2Request();
+        logger.trace("oauth2 request parameters " +request.getRequestParameters().toString());
+
         // build a new token with correct claims
         AACOAuth2AccessToken result = new AACOAuth2AccessToken(accessToken);
         Map<String, Object> info = new LinkedHashMap<String, Object>(accessToken.getAdditionalInformation());
@@ -164,7 +166,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             }
         } catch (Exception e) {
             // user is not available, thus all user claims will fail
-            logger.error("user not found: " + e.getMessage());
+            logger.debug("user not found: " + e.getMessage());
         }
 
         // add claims for user details if requested via scopes
