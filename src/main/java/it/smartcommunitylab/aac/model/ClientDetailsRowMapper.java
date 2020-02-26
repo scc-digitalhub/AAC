@@ -18,10 +18,14 @@ package it.smartcommunitylab.aac.model;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -30,6 +34,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.repository.UserRepository;
 
@@ -56,6 +61,19 @@ public class ClientDetailsRowMapper implements RowMapper<ClientDetails> {
 				rs.getString("scope"), rs.getString("authorized_grant_types"), rs.getString("authorities"),
 				rs.getString("web_server_redirect_uri"));
 		details.setClientSecret(rs.getString("client_secret"));
+		
+		//respect db definition
+		//baseClient grants [ "authorization_code", "refresh_token"] by default when nothing is set
+		//also clear the list to avoid empty grant types set like [,"authorization_code"]
+		//TODO fix also interface/controller
+        if (StringUtils.hasText(rs.getString("authorized_grant_types"))) {
+            String[] grantTypes = StringUtils.commaDelimitedListToStringArray(rs.getString("authorized_grant_types"));
+            details.setAuthorizedGrantTypes(Arrays.stream(grantTypes)
+                    .filter(g -> !g.isEmpty())
+                    .collect(Collectors.toSet()));
+        } else {
+            details.setAuthorizedGrantTypes(Collections.emptyList());
+        }
 		if (rs.getObject("access_token_validity") != null) {
 			details.setAccessTokenValiditySeconds(rs.getInt("access_token_validity"));
 		}
