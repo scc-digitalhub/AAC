@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.token;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,8 +35,9 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
-import org.springframework.security.oauth2.provider.code.AuthorizationCodeTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+
+import it.smartcommunitylab.aac.oauth.AACOAuth2Utils;
 
 /**
  * @author raman
@@ -113,14 +114,14 @@ public class PKCEAwareTokenGranter extends AuthorizationCodeTokenGranter {
 		// Combine the parameters adding the new ones last so they override if there are any clashes
 		combinedParameters.putAll(parameters);
 		
-		Authentication oldAuth = SecurityContextHolder.getContext().getAuthentication();
+//		Authentication oldAuth = SecurityContextHolder.getContext().getAuthentication();
 		Authentication userAuth = storedAuth.getUserAuthentication();
 		
-		SecurityContextHolder.getContext().setAuthentication(userAuth);
+//		SecurityContextHolder.getContext().setAuthentication(userAuth);
 		// Make a new stored request with the combined parameters
 		OAuth2Request finalStoredOAuth2Request = pendingOAuth2Request.createOAuth2Request(combinedParameters);
 		
-		SecurityContextHolder.getContext().setAuthentication(oldAuth);
+//		SecurityContextHolder.getContext().setAuthentication(oldAuth);
 		
 		return new OAuth2Authentication(finalStoredOAuth2Request, userAuth);
 
