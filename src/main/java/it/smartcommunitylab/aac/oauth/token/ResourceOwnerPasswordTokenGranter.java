@@ -3,6 +3,8 @@ package it.smartcommunitylab.aac.oauth.token;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +22,8 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
 public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "password";
 
@@ -40,10 +44,11 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
 
     @Override
     public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
+        OAuth2AccessToken token = super.grant(grantType, tokenRequest);
         logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
                 + tokenRequest.getRequestParameters().toString());
 
-        return super.grant(grantType, tokenRequest);
+        return token;
     }
 
     @Override
@@ -71,10 +76,9 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
             throw new InvalidGrantException("Could not authenticate user: " + username);
         }
 
-        
         logger.trace("got oauth authentication from security context " + userAuth.toString());
 
-        OAuth2Request storedOAuth2Request = getRequestFactory().createOAuth2Request(client, tokenRequest);        
+        OAuth2Request storedOAuth2Request = getRequestFactory().createOAuth2Request(client, tokenRequest);
         return new OAuth2Authentication(storedOAuth2Request, userAuth);
 
     }

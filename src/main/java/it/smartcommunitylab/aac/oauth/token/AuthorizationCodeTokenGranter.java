@@ -3,6 +3,8 @@ package it.smartcommunitylab.aac.oauth.token;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
@@ -20,6 +22,8 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
 public class AuthorizationCodeTokenGranter extends AbstractTokenGranter {
+    
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "authorization_code";
 
@@ -40,10 +44,13 @@ public class AuthorizationCodeTokenGranter extends AbstractTokenGranter {
 
     @Override
     public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
-        logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
-                + tokenRequest.getRequestParameters().toString());
+        OAuth2AccessToken token = super.grant(grantType, tokenRequest);
+        if (token != null) {
+            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
+                    + tokenRequest.getRequestParameters().toString());
+        }
 
-        return super.grant(grantType, tokenRequest);
+        return token;
     }
 
     @Override

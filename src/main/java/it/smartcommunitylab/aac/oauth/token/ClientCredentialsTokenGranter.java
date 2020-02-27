@@ -12,7 +12,10 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+
 public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
+    
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "client_credentials";
@@ -34,12 +37,13 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
 
     @Override
     public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
-        logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
-                + tokenRequest.getRequestParameters().toString());
-
         OAuth2AccessToken token = super.grant(grantType, tokenRequest);
+
         if (token != null) {
-            DefaultOAuth2AccessToken norefresh = new DefaultOAuth2AccessToken(token);
+            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
+                    + tokenRequest.getRequestParameters().toString());
+            
+            AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
             // The spec says that client credentials should not be allowed to get a refresh
             // token
             if (!allowRefresh) {
@@ -52,7 +56,7 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
 
     @Override
     protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
-        OAuth2Authentication clientAuth = super.getOAuth2Authentication(client, tokenRequest);        
+        OAuth2Authentication clientAuth = super.getOAuth2Authentication(client, tokenRequest);
         logger.trace("got oauth authentication from request " + clientAuth.toString());
 
         return clientAuth;

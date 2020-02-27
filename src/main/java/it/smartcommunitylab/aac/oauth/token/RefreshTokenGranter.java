@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
 public class RefreshTokenGranter extends AbstractTokenGranter {
+    
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "refresh_token";
@@ -28,10 +29,13 @@ public class RefreshTokenGranter extends AbstractTokenGranter {
 
     @Override
     public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
-        logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
-                + tokenRequest.getRequestParameters().toString());
+        OAuth2AccessToken token = super.grant(grantType, tokenRequest);
+        if (token != null) {
+            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
+                    + tokenRequest.getRequestParameters().toString());
+        }
 
-        return super.grant(grantType, tokenRequest);
+        return token;
     }
 
     @Override

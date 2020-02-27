@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
@@ -37,29 +38,65 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.AACOAuth2Utils;
 
 /**
  * @author raman
  *
  */
-public class PKCEAwareTokenGranter extends AuthorizationCodeTokenGranter {
+public class PKCEAwareTokenGranter extends AbstractTokenGranter {
+    
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    
+    private static final String GRANT_TYPE = "authorization_code";
 
-	private AuthorizationCodeServices authorizationCodeServices;
+    private final AuthorizationCodeServices authorizationCodeServices;
+    
+    private boolean allowRefresh = false;
+
+    public PKCEAwareTokenGranter(AuthorizationServerTokenServices tokenServices,
+            AuthorizationCodeServices authorizationCodeServices, ClientDetailsService clientDetailsService,
+            OAuth2RequestFactory requestFactory) {
+        this(tokenServices, authorizationCodeServices, clientDetailsService, requestFactory, GRANT_TYPE);
+    }
+
+    protected PKCEAwareTokenGranter(AuthorizationServerTokenServices tokenServices,
+            AuthorizationCodeServices authorizationCodeServices,
+            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+        super(tokenServices, clientDetailsService, requestFactory, grantType);
+        this.authorizationCodeServices = authorizationCodeServices;
+    }	
 	
-	/**
-	 * @param tokenServices
-	 * @param authorizationCodeServices
-	 * @param clientDetailsService
-	 * @param requestFactory
-	 */
-	public PKCEAwareTokenGranter(AuthorizationServerTokenServices tokenServices,
-			AuthorizationCodeServices authorizationCodeServices, ClientDetailsService clientDetailsService,
-			OAuth2RequestFactory requestFactory) {
-		super(tokenServices, authorizationCodeServices, clientDetailsService, requestFactory);
-		this.authorizationCodeServices = authorizationCodeServices;
-	}
+    public void setAllowRefresh(boolean allowRefresh) {
+        this.allowRefresh = allowRefresh;
+    }
+	
+    @Override
+    public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
+        // check if PKCE otherwise let another granter handle the request
+        String codeVerifier = tokenRequest.getRequestParameters().get(AACOAuth2Utils.CODE_VERIFIER);
+        if (codeVerifier == null) {
+            return null;
+        }
+        
+        OAuth2AccessToken token = super.grant(grantType, tokenRequest);
+        
+        if (token != null) {
+            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
+                    + tokenRequest.getRequestParameters().toString());
+            
+            AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
+            // we don't want to give refresh tokens to public clients which authenticate via
+            // PKCE
+            if (!allowRefresh) {
+                norefresh.setRefreshToken(null);
+            }
+            token = norefresh;
+        }
+
+        return token;
+    }
 	
 	@Override
 	protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
@@ -76,9 +113,6 @@ public class PKCEAwareTokenGranter extends AuthorizationCodeTokenGranter {
 		if (storedAuth == null) {
 			throw new InvalidGrantException("Invalid authorization code: " + authorizationCode);
 		}
-
-		logger.debug("get oauth2 authentication for code, request "+tokenRequest.getGrantType());
-		logger.trace("tokenRequest clientId "+tokenRequest.getClientId()+ " scope "+tokenRequest.getScope().toString());
 		
 		OAuth2Request pendingOAuth2Request = storedAuth.getOAuth2Request();
 		// https://jira.springsource.org/browse/SECOAUTH-333
@@ -98,6 +132,7 @@ public class PKCEAwareTokenGranter extends AuthorizationCodeTokenGranter {
 			throw new InvalidClientException("Client ID mismatch");
 		}
 
+		//validate code verifier by extracting code challenge from authorization request
 		String codeChallenge = pendingOAuth2Request.getRequestParameters().get(AACOAuth2Utils.CODE_CHALLENGE);
 		String codeChallengeMethod = pendingOAuth2Request.getRequestParameters().get(AACOAuth2Utils.CODE_CHALLENGE_METHOD);
 		String codeVerifier = tokenRequest.getRequestParameters().get(AACOAuth2Utils.CODE_VERIFIER);
