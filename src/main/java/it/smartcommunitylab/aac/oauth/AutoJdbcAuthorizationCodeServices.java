@@ -33,8 +33,9 @@ import org.springframework.security.oauth2.provider.code.RandomValueAuthorizatio
 import org.springframework.util.Assert;
 
 /**
- * Authorization code services with DB table creation on startup. Also supports
- * lifetime limit as per RFC6749
+ * Authorization code services with DB table creation on startup. 
+ * Also supports lifetime limit as per RFC6749
+ * https://tools.ietf.org/html/rfc6749#section-4.1.1
  * 
  * @see {@link JdbcAuthorizationCodeServices}
  * @author raman

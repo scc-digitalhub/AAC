@@ -149,6 +149,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${security.refreshtoken.validity}")
     private int refreshTokenValidity;    
     
+    @Value("${security.authcode.validity}")
+    private int authCodeValidity;   
+    
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
 
@@ -397,7 +400,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
-			return new AutoJdbcAuthorizationCodeServices(dataSource);
+			return new AutoJdbcAuthorizationCodeServices(dataSource, authCodeValidity);
 		}
 
 		@Bean
@@ -464,16 +467,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private TokenGranter tokenGranter(final AuthorizationServerEndpointsConfigurer endpoints) {
             // build our own list of granters
             List<TokenGranter> granters = new ArrayList<TokenGranter>();
-            // insert PKCE auth code granter as the first one
+            // insert PKCE auth code granter as the first one to supersede basic authcode
             granters.add(
                     new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(),
                             endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
 
-            //disable authcode, pkceaware will handle it
-//            // auth code 
-//            granters.add(new AuthorizationCodeTokenGranter(endpoints.getTokenServices(),
-//                    endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(),
-//                    endpoints.getOAuth2RequestFactory()));
+            // auth code 
+            granters.add(new AuthorizationCodeTokenGranter(endpoints.getTokenServices(),
+                    endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(),
+                    endpoints.getOAuth2RequestFactory()));
 
             // refresh
             granters.add(new RefreshTokenGranter(endpoints.getTokenServices(), endpoints.getClientDetailsService(),
