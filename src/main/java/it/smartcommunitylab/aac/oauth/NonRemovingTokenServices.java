@@ -107,6 +107,13 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 
         logger.trace("auth "+authentication.getOAuth2Request().toString());
         logger.trace("clientAuth scopes "+String.valueOf(clientAuth.getScope()));
+    
+        //validate now if client is the same as the authorized one
+        String clientId = authentication.getOAuth2Request().getClientId();
+        if (clientId == null || !clientId.equals(request.getClientId())) {
+            throw new InvalidGrantException("Wrong client for this refresh token: " + refreshTokenValue);
+        }
+
         
         //check here if requested scopes are subset of granted
         //we don't trust upstream process since it breaks on some cases..
