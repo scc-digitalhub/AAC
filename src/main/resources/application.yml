@@ -36,6 +36,8 @@ security:
       validity: ${ACCESS_TOKEN_VALIDITY:43200}
    refreshtoken:
       validity: ${REFRESH_TOKEN_VALIDITY:2592000}
+   authcode:
+      validity: ${AUTH_CODE_VALIDITY:600}      
    keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
    rememberme:
       key: ${REMEMBER_ME_KEY:REMEMBER_ME_SECRET_KEY}
