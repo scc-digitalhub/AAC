@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -41,6 +42,7 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 
@@ -89,6 +91,11 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 
 	@Transactional(propagation=Propagation.REQUIRES_NEW, isolation=Isolation.SERIALIZABLE)
 	public OAuth2AccessToken refreshAccessToken(String refreshTokenValue, TokenRequest request) throws AuthenticationException {
+
+        if (StringUtils.isEmpty(refreshTokenValue)) {
+            throw new InvalidRequestException(
+                    "Refresh token is required. Please check if refresh_token parameter is provided");
+        }
 		return refreshWithRepeat(refreshTokenValue, request, false);
 	}
 
