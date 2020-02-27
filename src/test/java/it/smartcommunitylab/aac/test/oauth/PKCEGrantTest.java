@@ -248,7 +248,8 @@ public class PKCEGrantTest {
 
         // basic validation
         Assert.assertTrue(StringUtils.isNotEmpty(accessToken));
-        Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
+        //we do not expect a refresh token by default
+        //Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
@@ -388,7 +389,8 @@ public class PKCEGrantTest {
 
         // basic validation
         Assert.assertTrue(StringUtils.isNotEmpty(accessToken));
-        Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
+        //we do not expect a refresh token by default
+        //Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
