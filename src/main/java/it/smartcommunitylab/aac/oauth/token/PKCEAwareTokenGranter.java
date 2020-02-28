@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.oauth.token;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -71,7 +72,7 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
     public void setAllowRefresh(boolean allowRefresh) {
         this.allowRefresh = allowRefresh;
     }
-	
+
     @Override
     public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
         // check if PKCE otherwise let another granter handle the request
@@ -79,20 +80,20 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
         if (codeVerifier == null) {
             return null;
         }
-        
+
         OAuth2AccessToken token = super.grant(grantType, tokenRequest);
-        
+
         if (token != null) {
             logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
                     + tokenRequest.getRequestParameters().toString());
-            
-            AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
-            // we don't want to give refresh tokens to public clients which authenticate via
-            // PKCE
+
             if (!allowRefresh) {
+                AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
+                // we don't want to give refresh tokens to public clients which authenticate via
+                // PKCE
                 norefresh.setRefreshToken(null);
+                token = norefresh;
             }
-            token = norefresh;
         }
 
         return token;
@@ -109,6 +110,9 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
 			throw new InvalidRequestException("An authorization code must be supplied.");
 		}
 
+		//TODO evaluate rework
+		//this implementation consumes authCode *before* checking if client is authorized via challenge/verifier
+		//this exposes AAC to an DOS attack where an unauthenticated client can consume not owned codes
 		OAuth2Authentication storedAuth = authorizationCodeServices.consumeAuthorizationCode(authorizationCode);
 		if (storedAuth == null) {
 			throw new InvalidGrantException("Invalid authorization code: " + authorizationCode);
@@ -136,10 +140,21 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
 		String codeChallenge = pendingOAuth2Request.getRequestParameters().get(AACOAuth2Utils.CODE_CHALLENGE);
 		String codeChallengeMethod = pendingOAuth2Request.getRequestParameters().get(AACOAuth2Utils.CODE_CHALLENGE_METHOD);
 		String codeVerifier = tokenRequest.getRequestParameters().get(AACOAuth2Utils.CODE_VERIFIER);
-		if (codeChallenge != null && codeChallengeMethod != null
-			&& !AACOAuth2Utils.getCodeChallenge(codeVerifier, codeChallengeMethod).equals(codeChallenge)) {
-				throw new InvalidGrantException(codeVerifier + " does not match expected code verifier.");
+		
+		//we need to be sure this is a PKCE request
+		if (StringUtils.isEmpty(codeChallenge) || StringUtils.isEmpty(codeChallengeMethod)) {
+		    //this is NOT a PKCE authcode
+            throw new InvalidGrantException("Invalid authorization code: " + authorizationCode);
 		}
+		
+        // validate challenge+verifier
+        if (!AACOAuth2Utils.getCodeChallenge(codeVerifier, codeChallengeMethod).equals(codeChallenge)) {
+            // TODO we should re-insert the authentication or avoid consuming it before this
+            throw new InvalidGrantException(codeVerifier + " does not match expected code verifier.");
+        }
+		
+		
+		
 		// Secret is not required in the authorization request, so it won't be available
 		// in the pendingAuthorizationRequest. We do want to check that a secret is provided
 		// in the token request, but that happens elsewhere.

@@ -21,11 +21,14 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+
 public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "password";
+    private boolean allowRefresh = true;
 
     private final AuthenticationManager authenticationManager;
 
@@ -42,12 +45,28 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
         this.authenticationManager = authenticationManager;
     }
 
+    public void setAllowRefresh(boolean allowRefresh) {
+        this.allowRefresh = allowRefresh;
+    }
+
     @Override
     public OAuth2AccessToken grant(String grantType, TokenRequest tokenRequest) {
         OAuth2AccessToken token = super.grant(grantType, tokenRequest);
-        logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
-                + tokenRequest.getRequestParameters().toString());
 
+        if (token != null) {
+            logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
+                    + tokenRequest.getRequestParameters().toString());
+
+            if (!allowRefresh) {
+                AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
+                // The spec says that client credentials should not be allowed to get a refresh
+                // token
+                norefresh.setRefreshToken(null);
+                token = norefresh;
+                // TODO we should also remove the refresh token from DB
+            }
+
+        }
         return token;
     }
 

@@ -15,7 +15,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 
 public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
-    
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "client_credentials";
@@ -42,14 +42,15 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
         if (token != null) {
             logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
                     + tokenRequest.getRequestParameters().toString());
-            
-            AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
-            // The spec says that client credentials should not be allowed to get a refresh
-            // token
+
             if (!allowRefresh) {
+                AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
+                // The spec says that client credentials should not be allowed to get a refresh
+                // token
                 norefresh.setRefreshToken(null);
+                token = norefresh;
+                // TODO we should also remove the refresh token from DB
             }
-            token = norefresh;
         }
         return token;
     }

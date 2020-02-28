@@ -16,6 +16,8 @@ import org.springframework.security.oauth2.provider.implicit.ImplicitTokenReques
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+
 public class ImplicitTokenGranter extends AbstractTokenGranter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -39,6 +41,15 @@ public class ImplicitTokenGranter extends AbstractTokenGranter {
         if (token != null) {
             logger.trace("grant access token for client " + tokenRequest.getClientId() + " request "
                     + tokenRequest.getRequestParameters().toString());
+            if (token.getRefreshToken() != null) {
+                AACOAuth2AccessToken norefresh = new AACOAuth2AccessToken(token);
+                // The spec says that implicit should not be allowed to get a refresh
+                // token
+                norefresh.setRefreshToken(null);
+                token = norefresh;
+                // TODO we should also remove the refresh token from DB
+            }
+
         }
 
         return token;

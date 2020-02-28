@@ -151,6 +151,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     
     @Value("${security.authcode.validity}")
     private int authCodeValidity;   
+       
+    @Value("${oauth2.pkce.allowRefresh}")
+    private boolean oauth2PKCEAllowRefresh;        
+
+    @Value("${oauth2.clientCredentials.allowRefresh}")
+    private boolean oauth2ClientCredentialsAllowRefresh;          
+
+    @Value("${oauth2.resourceOwnerPassword.allowRefresh}")
+    private boolean oauth2ResourceOwnerPasswordAllowRefresh;          
     
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
@@ -468,9 +477,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             // build our own list of granters
             List<TokenGranter> granters = new ArrayList<TokenGranter>();
             // insert PKCE auth code granter as the first one to supersede basic authcode
-            granters.add(
-                    new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(),
-                            endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
+            PKCEAwareTokenGranter pkceTokenGranter = new PKCEAwareTokenGranter(endpoints.getTokenServices(),
+                    authorizationCodeServices,
+                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory());
+            if (oauth2PKCEAllowRefresh) {
+                pkceTokenGranter.setAllowRefresh(true);
+            }
+            granters.add(pkceTokenGranter);
 
             // auth code 
             granters.add(new AuthorizationCodeTokenGranter(endpoints.getTokenServices(),
@@ -486,13 +499,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
 
             // client credentials
-            granters.add(new ClientCredentialsTokenGranter(endpoints.getTokenServices(),
-                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
+            ClientCredentialsTokenGranter clientCredentialsTokenGranter = new ClientCredentialsTokenGranter(endpoints.getTokenServices(),
+                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory());
+            if (oauth2ClientCredentialsAllowRefresh) {
+                clientCredentialsTokenGranter.setAllowRefresh(true);
+            }
+            granters.add(clientCredentialsTokenGranter);
 
             // resource owner password
             if (authenticationManager != null) {
-                granters.add(new ResourceOwnerPasswordTokenGranter(authenticationManager, endpoints.getTokenServices(),
-                        endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
+                ResourceOwnerPasswordTokenGranter passwordTokenGranter = new ResourceOwnerPasswordTokenGranter(authenticationManager, endpoints.getTokenServices(),
+                        endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory());
+                if (!oauth2ResourceOwnerPasswordAllowRefresh) {
+                    passwordTokenGranter.setAllowRefresh(false);
+                }                
+                granters.add(passwordTokenGranter);
             }
 
             // custom native flow support

@@ -60,7 +60,13 @@ oauth2:
    jwt: ${ENABLE_JWT:false}
    introspection:
       permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:true}
-
+   pkce:
+      allowRefresh: true
+   clientCredentials:
+      allowRefresh: true
+   resourceOwnerPassword:
+      allowRefresh: false
+            
 #JWT
 jwt:
    issuer: ${JWT_ISSUER:${application.url}}
