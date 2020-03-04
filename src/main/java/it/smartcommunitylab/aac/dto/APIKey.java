@@ -17,180 +17,236 @@
 package it.smartcommunitylab.aac.dto;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-
 import it.smartcommunitylab.aac.model.APIKeyEntity;
-import it.smartcommunitylab.aac.model.Role;
 
 /**
- * DB entity storing the client app information
  * @author raman
  *
  */
+@JsonInclude(Include.NON_EMPTY)
 public class APIKey {
 
-	private static final ObjectMapper objectMapper = new ObjectMapper();
-	
-	private String apiKey;
-	private String clientId;
-	private Map<String,Object> additionalInformation;
-	private Long userId;
-	private String username;
-	private Set<String> scope;
-	private Long validity;
-	private long issuedTime;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-	private Set<Role> roles;
-	
-	public APIKey() {
-		super();
-	}
+    private String apiKey;
+    private String clientId;
+    private String[] scope;
 
-	@SuppressWarnings("unchecked")
-	public APIKey(APIKeyEntity entity) {
-		super();
-		this.apiKey = entity.getApiKey();
-		this.clientId = entity.getClientId();
-		if (entity.getAdditionalInformation() != null) {
-			try {
-				this.additionalInformation = objectMapper.readValue(entity.getAdditionalInformation(), Map.class);
-			} catch (Exception e) {
-				this.additionalInformation = Collections.emptyMap();
-			}
-		}
-		this.userId = entity.getUserId();
-		this.username = entity.getUsername();
-		this.validity = entity.getValidity();
-		this.issuedTime = entity.getIssuedTime();
-		if (entity.getScope() != null) {
-			this.scope = StringUtils.commaDelimitedListToSet(entity.getScope()); 
-		}
-		if (entity.getRoles() != null) {
-			CollectionType javaType = objectMapper.getTypeFactory()
-				      .constructCollectionType(List.class, Role.class);
-			try {
-				this.roles = new HashSet<>(objectMapper.readValue(entity.getRoles(), javaType));
-			} catch (Exception e) {
-				this.roles = Collections.emptySet();
-			} 
-		}
-	}
+    private String subject;
 
+    private String issuer;
+    private Integer expirationTime;
+    private Integer issuedAt;
 
-	public String getApiKey() {
-		return apiKey;
-	}
+    private Map<String, Object> additionalInformation;
+    private Map<String, Object> userClaims;
 
-	public void setApiKey(String apiKey) {
-		this.apiKey = apiKey;
-	}
+    private Integer validity;
 
-	public String getClientId() {
-		return clientId;
-	}
+    public APIKey() {
+    }
 
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
+    public APIKey(APIKey apikey) {
+        this.apiKey = apikey.getApiKey();
+        this.clientId = apikey.getClientId();
+        this.scope = apikey.getScope();
 
-	public Map<String,Object> getAdditionalInformation() {
-		return additionalInformation;
-	}
+        this.subject = apikey.getSubject();
 
-	public void setAdditionalInformation(Map<String,Object> additionalInformation) {
-		this.additionalInformation = additionalInformation;
-	}
+        this.issuer = apikey.getIssuer();
+        this.expirationTime = apikey.getExpirationTime();
+        this.issuedAt = apikey.getIssuedAt();
 
-	public Long getUserId() {
-		return userId;
-	}
+        this.additionalInformation = apikey.getAdditionalInformation();
+        this.userClaims = apikey.getUserClaims();
+    }
 
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
+    public String getApiKey() {
+        return apiKey;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public String getClientId() {
+        return clientId;
+    }
 
-	public Set<String> getScope() {
-		return scope;
-	}
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
 
-	public void setScope(Set<String> scope) {
-		this.scope = scope;
-	}
+    public String[] getScope() {
+        return scope;
+    }
 
-	public Long getValidity() {
-		return validity;
-	}
+    public void setScope(String[] scope) {
+        this.scope = scope;
+    }
 
-	public void setValidity(Long validity) {
-		this.validity = validity;
-	}
+    public String getSubject() {
+        return subject;
+    }
 
-	public long getIssuedTime() {
-		return issuedTime;
-	}
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 
-	public void setIssuedTime(long issuedTime) {
-		this.issuedTime = issuedTime;
-	}
+    public String getIssuer() {
+        return issuer;
+    }
 
-	/**
-	 * @param data
-	 * @return
-	 */
-	public static String toDataString(Map<String, Object> data) {
-		if (data == null) return null;
-		try {
-			return objectMapper.writeValueAsString(data);
-		} catch (JsonProcessingException e) {
-			return null;
-		}
-	}
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
+    }
 
-	public Set<Role> getRoles() {
-		return roles;
-	}
+    public Integer getExpirationTime() {
+        return expirationTime;
+    }
 
-	public void setRoles(Set<Role> roles) {
-		this.roles = roles;
-	}
+    public void setExpirationTime(Integer expirationTime) {
+        this.expirationTime = expirationTime;
+    }
 
-	/**
-	 * @param userRolesByClient
-	 * @return
-	 */
-	public static String toRolesString(Set<Role> userRolesByClient) {
-		try {
-			return objectMapper.writeValueAsString(userRolesByClient);
-		} catch (Exception e) {
-			return null;
-		}
-	}
+    public Integer getIssuedAt() {
+        return issuedAt;
+    }
 
-	/**
-	 * @return
-	 */
-	public boolean hasExpired() {
-		if (getValidity() != null && getValidity() > 0) {
-			return getIssuedTime() + getValidity() < System.currentTimeMillis();
-		}
-		return false;
-	}
+    public void setIssuedAt(Integer issuedAt) {
+        this.issuedAt = issuedAt;
+    }
+
+    public Map<String, Object> getAdditionalInformation() {
+        return additionalInformation;
+    }
+
+    public void setAdditionalInformation(Map<String, Object> additionalInformation) {
+        this.additionalInformation = additionalInformation;
+    }
+
+    public Map<String, Object> getUserClaims() {
+        return userClaims;
+    }
+
+    public void setUserClaims(Map<String, Object> userClaims) {
+        this.userClaims = userClaims;
+    }
+
+    public Integer getValidity() {
+        return validity;
+    }
+
+    public void setValidity(Integer validity) {
+        this.validity = validity;
+    }
+
+    /*
+     * Builder
+     */
+    @SuppressWarnings("unchecked")
+    public static APIKey fromApiKey(APIKeyEntity entity) {
+        APIKey dto = new APIKey();
+        dto.apiKey = entity.getApiKey();
+        dto.clientId = entity.getClientId();
+        if (entity.getScope() != null) {
+            dto.scope = StringUtils.commaDelimitedListToStringArray(entity.getScope());
+        }
+        dto.subject = Long.toString(entity.getUserId());
+
+        // issued time is milliseconds
+        dto.issuedAt = (int) (entity.getIssuedTime() / 1000);
+        if (entity.getValidity() != null) {
+            // validity is in seconds
+            dto.expirationTime = dto.issuedAt + (int) (entity.getValidity().longValue());
+        } else {
+            // default to 12 hour
+            dto.expirationTime = 0;
+        }
+
+        if (entity.getAdditionalInformation() != null) {
+            try {
+                dto.additionalInformation = objectMapper.readValue(entity.getAdditionalInformation(), Map.class);
+            } catch (Exception e) {
+                dto.additionalInformation = Collections.emptyMap();
+            }
+        }
+
+        return dto;
+    }
+
+//  @SuppressWarnings("unchecked")
+//  public APIKey(APIKeyEntity entity) {
+//      super();
+//      this.apiKey = entity.getApiKey();
+//      this.clientId = entity.getClientId();
+//      if (entity.getAdditionalInformation() != null) {
+//          try {
+//              this.additionalInformation = objectMapper.readValue(entity.getAdditionalInformation(), Map.class);
+//          } catch (Exception e) {
+//              this.additionalInformation = Collections.emptyMap();
+//          }
+//      }
+//      this.userId = entity.getUserId();
+//      this.username = entity.getUsername();
+//      this.validity = entity.getValidity();
+//      this.issuedTime = entity.getIssuedTime();
+//      if (entity.getScope() != null) {
+//          this.scope = StringUtils.commaDelimitedListToSet(entity.getScope()); 
+//      }
+//      if (entity.getRoles() != null) {
+//          CollectionType javaType = objectMapper.getTypeFactory()
+//                    .constructCollectionType(List.class, Role.class);
+//          try {
+//              this.roles = new HashSet<>(objectMapper.readValue(entity.getRoles(), javaType));
+//          } catch (Exception e) {
+//              this.roles = Collections.emptySet();
+//          } 
+//      }
+//  }
+
+    /**
+     * @param data
+     * @return
+     */
+    public static String toDataString(Map<String, Object> data) {
+        if (data == null)
+            return null;
+        try {
+            return objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
+    public static Map<String, Object> toMap(APIKey apikey) {
+        Map<String, Object> json = objectMapper.convertValue(apikey, new TypeReference<Map<String, Object>>() {
+        });
+
+        // move user claims to top level
+        json.remove("userClaims");
+        json.putAll(apikey.getUserClaims());
+
+        return json;
+    }
+
+//
+//    /**
+//     * @return
+//     */
+//    public boolean hasExpired() {
+//        if (getValidity() != null && getValidity() > 0) {
+//            return getIssuedTime() + getValidity() < System.currentTimeMillis();
+//        }
+//        return false;
+//    }
 
 }

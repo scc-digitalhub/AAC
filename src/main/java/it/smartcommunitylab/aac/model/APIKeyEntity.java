@@ -43,11 +43,12 @@ public class APIKeyEntity {
 	@Column(name = "user_id",nullable = false)
 	private Long userId;
 	
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String username;
 	
 	@Column(name = "scope",columnDefinition="LONGTEXT")
 	private String scope;
+	
 	@Column(name = "roles",columnDefinition="LONGTEXT")
 	private String roles;
 

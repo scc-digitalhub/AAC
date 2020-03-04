@@ -132,8 +132,8 @@ public class APIKeyControllerTest {
 		
 		APIKey key = new APIKey();
 		key.setAdditionalInformation(Collections.singletonMap("Key", "Value"));
-		key.setScope(Collections.singleton("authorization.manage"));
-		key.setValidity(3000L);
+		key.setScope(new String[] {"authorization.manage"});
+		key.setValidity(3000);
 		RequestBuilder request = MockMvcRequestBuilders.post("/apikey")
 				.contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(key))
 				.header("Authorization", token);
@@ -144,7 +144,7 @@ public class APIKeyControllerTest {
 		// additional info is the same
 		Assert.assertEquals("Value", resKey.getAdditionalInformation().get("Key"));
 		// validity is the same
-		Assert.assertEquals(3000L, (long)resKey.getValidity());
+		Assert.assertEquals(3000, (long)resKey.getValidity());
 		// scope is the same
 		Assert.assertEquals(Collections.singleton("authorization.manage"), resKey.getScope());
 	}
@@ -153,7 +153,7 @@ public class APIKeyControllerTest {
 	public void validateKey() throws Exception {
 		// create key
 		APIKey key = new APIKey();
-		key.setValidity(3000L);
+		key.setValidity(3);
 		RequestBuilder request = MockMvcRequestBuilders.post("/apikey")
 				.contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(key))
 				.header("Authorization", token);
@@ -172,7 +172,7 @@ public class APIKeyControllerTest {
 		resKey = jsonMapper.readValue(string, APIKey.class);
 		Assert.assertEquals(resKey.getClientId(), client.getClientId());
 		
-		Thread.sleep(3000L);
+		Thread.sleep(3);
 		validate = MockMvcRequestBuilders.get("/apikeycheck/{apiKey}", resKey.getApiKey())
 				.header("Authorization", token);
 		result = mockMvc.perform(validate);
@@ -184,7 +184,7 @@ public class APIKeyControllerTest {
 	public void checkAccess() throws Exception {
 		// create key
 		APIKey key = new APIKey();
-		key.setValidity(3000L);
+		key.setValidity(3000);
 		RequestBuilder request = MockMvcRequestBuilders.post("/apikey")
 				.contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(key))
 				.header("Authorization", token);
@@ -215,7 +215,7 @@ public class APIKeyControllerTest {
 	public void manageKey() throws Exception {
 		// create key
 		APIKey key = new APIKey();
-		key.setValidity(3000L);
+		key.setValidity(3000);
 		RequestBuilder request = MockMvcRequestBuilders.post("/apikey")
 				.contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(key))
 				.header("Authorization", token);
@@ -235,7 +235,7 @@ public class APIKeyControllerTest {
 		Assert.assertEquals(1, list.size());
 		
 		// update key
-		key.setValidity(6000L);
+		key.setValidity(6000);
 		RequestBuilder update = MockMvcRequestBuilders.put("/apikey/{apiKey}", resKey.getApiKey())
 				.contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(key))
 				.header("Authorization", token);
@@ -243,7 +243,7 @@ public class APIKeyControllerTest {
 		result.andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
 		string = result.andReturn().getResponse().getContentAsString();
 		resKey = jsonMapper.readValue(string, APIKey.class);
-		Assert.assertEquals(6000L, (long)resKey.getValidity());
+		Assert.assertEquals(6000, (long)resKey.getValidity());
 
 		// validate
 		Thread.sleep(4000L);
