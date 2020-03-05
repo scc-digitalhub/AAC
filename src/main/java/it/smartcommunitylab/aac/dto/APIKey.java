@@ -38,6 +38,8 @@ public class APIKey {
 
     private String apiKey;
     private String clientId;
+    
+    @JsonInclude(Include.ALWAYS)
     private String[] scope;
 
     private String subject;
@@ -52,6 +54,8 @@ public class APIKey {
     private Integer validity;
 
     public APIKey() {
+        this.additionalInformation = Collections.emptyMap();
+        this.userClaims = Collections.emptyMap();
     }
 
     public APIKey(APIKey apikey) {
@@ -233,8 +237,9 @@ public class APIKey {
 
         // move user claims to top level
         json.remove("userClaims");
-        json.putAll(apikey.getUserClaims());
-
+        if (apikey.getUserClaims() != null) {
+            json.putAll(apikey.getUserClaims());
+        }
         return json;
     }
 

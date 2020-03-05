@@ -64,26 +64,6 @@ public class SwaggerConfig {
 		return new SwaggerConf();
 	}
 
-	/*************************** API Key Management API **********************/ 
-    @Bean
-    public Docket apiApiKey() {
-        return new Docket(DocumentationType.SWAGGER_2)
-          .groupName("AACApiKey")
-          .apiInfo(apiInfo(conf.title.get("AACApiKey"), conf.description.get("AACApiKey")))
-          .select()                                  
-          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
-          .paths(PathSelectors.regex("/apikey.*"))
-          .build()                                          
-          .securitySchemes(Arrays.asList(
-        		  securitySchemeApp(new AuthorizationScope[0]),
-                  securityBasicAuthApp()
-        		  ))
-          .securityContexts(Arrays.asList(
-        		  securityContext(new AuthorizationScope[0], "/apikey.*", "application")
-        		  ));                                           
-    }
-	/*************************************************************************/ 
-
     
     /***************** OAUTH2 AAC API **********/ 
     @Bean
@@ -99,17 +79,20 @@ public class SwaggerConfig {
             .tags(new Tag("OAuth 2.0 Token Introspection", "OAuth 2.0 Token Introspection (IETF RFC7662)."))
             .tags(new Tag("OAuth 2.0 Token Revocation", "OAuth 2.0 Token Revocation (IETF RFC7009)"))
             .securitySchemes(Arrays.asList(
-                    securitySchemeUser(aacScopesUser()),
-                    securitySchemeApp(aacScopesApp())))
+                    securitySchemeApp(aacClientApp())))
             .securityContexts(Arrays.asList(
-                    securityContext(aacScopesUser(), ".*profile/me", "spring_oauth"),
-                    securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)|(/token_introspection)",
-                            "application")));
+                    securityContext(aacClientApp(), "(/oauth/revoke)|(/oauth/introspect)","application")
+                    ));
+    }
+    
+    private AuthorizationScope[] aacClientApp() {
+        AuthorizationScope[] scopes = {};
+        return scopes;
     }
  
     /*************************************************************************/     
 
-    /***************** OAUTH2 AAC API **********/ 
+    /***************** OPENID AAC API **********/ 
     @Bean
     public Docket apiOpenId() { 
         return new Docket(DocumentationType.SWAGGER_2)
@@ -122,13 +105,10 @@ public class SwaggerConfig {
           .tags(new Tag("OpenID Connect Discovery", "OpenID Connect Discovery 1.0"))
           .tags(new Tag("OpenID Connect Session Management", "OpenID Connect Session Management"))          
           .securitySchemes(Arrays.asList(
-                  securityBasicAuthApp(),
-                  securitySchemeUser(aacScopesUser()), 
-                  securitySchemeApp(aacScopesApp())
+                  securitySchemeUser(aacScopesOpenID())
                   ))
           .securityContexts(Arrays.asList(
-                  securityContext(aacScopesUser(), ".*profile/me", "spring_oauth"),
-                  securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)|(/token_introspection)", "application")
+                  securityContext(aacScopesOpenID(), ".*/userinfo", "spring_oauth")
                   ));                                           
     }
  
@@ -216,7 +196,7 @@ public class SwaggerConfig {
           .apiInfo(apiInfo(conf.title.get("AAC"), conf.description.get("AAC")))
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac"))
-          .paths(PathSelectors.regex("(/.*profile.*)|(/resources.*)|(/token_introspection)"))
+          .paths(PathSelectors.regex("(/.*profile.*)|(/resources.*)"))
           .build()
           .securitySchemes(Arrays.asList(
         		  securitySchemeUser(aacScopesUser()), 
@@ -224,7 +204,7 @@ public class SwaggerConfig {
         		  ))
           .securityContexts(Arrays.asList(
         		  securityContext(aacScopesUser(), ".*profile/me", "spring_oauth"),
-        		  securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)|(/token_introspection)", "application")
+        		  securityContext(aacScopesApp(), "(.*profile/all.*)|(.*profile/profiles)", "application")
         		  ));                                           
     }
     
@@ -237,6 +217,14 @@ public class SwaggerConfig {
 		};
 		return scopes;
 	}
+    private AuthorizationScope[] aacScopesOpenID() {
+        AuthorizationScope[] scopes = { 
+                new AuthorizationScope("openid", "OpenID"),
+                new AuthorizationScope("profile", "Basic user profile data (name, surname, email). Read access only."),
+                new AuthorizationScope("email", "Basic user's email."), 
+        };
+        return scopes;
+    }
 	private AuthorizationScope[] aacScopesApp() {
 		AuthorizationScope[] scopes = { 
 				new AuthorizationScope("profile.basicprofile.all", "Basic profile of the platform users. Read access only."), 
@@ -246,7 +234,60 @@ public class SwaggerConfig {
 	}
 	/*************************************************************************/ 
     
+
+    /*************************** API Key Management API **********************/ 
+    @Bean
+    public Docket apiApiKey() {
+        return new Docket(DocumentationType.SWAGGER_2)
+          .groupName("AAC ApiKey")
+          .apiInfo(apiInfo(conf.title.get("AACApiKey"), conf.description.get("AACApiKey")))
+          .select()                                  
+          .apis(RequestHandlerSelectors.basePackage("it.smartcommunitylab.aac.apikey.endpoint"))
+          .build()                                     
+          .tags(new Tag("AAC ApiKey", "AAC ApiKey"))
+          .tags(new Tag("AAC Client ApiKey", "AAC ApiKey Client"))
+          .tags(new Tag("AAC User ApiKey", "AAC ApiKey User"))          
+          .securitySchemes(Arrays.asList(
+                  securitySchemeUser(aacApiKeyMgmtHybrid()),                  
+                  securitySchemeApp(aacApiKeyClientMgmt()),
+                  securityBasicAuthApp()
+                  ))
+          .securityContexts(Arrays.asList(
+                  securityContext(aacClientApp(), "/apikeycheck.*", "basicAuth"),
+                  securityContext(aacApiKeyMgmtHybrid(), "/apikey/user.*", "spring_oauth"),                  
+                  securityContext(aacApiKeyClientMgmt(), "/apikey/client.*", "application")
+                  ));                                           
+    }
     
+    private AuthorizationScope[] aacApiKeyMgmt() {
+        AuthorizationScope[] scopes = { 
+                new AuthorizationScope("apikey.client.all", "Manage all client apikeys"), 
+        };
+        return scopes;
+    }
+    private AuthorizationScope[] aacApiKeyClientMgmt() {
+        AuthorizationScope[] scopes = { 
+                new AuthorizationScope("apikey.client.me", "Manage client apikeys"), 
+        };
+        return scopes;
+    }    
+    private AuthorizationScope[] aacApiKeyMgmtHybrid() {
+        AuthorizationScope[] scopes = { 
+                new AuthorizationScope("apikey.user.me", "Manage user apikeys"), 
+                new AuthorizationScope("apikey.user.client", "Manage user client own apikeys"), 
+        };
+        return scopes;
+    }    
+    private AuthorizationScope[] aacApiKeyMgmtUser() {
+        AuthorizationScope[] scopes = { 
+                new AuthorizationScope("apikey.user.me", "Manage user apikeys"), 
+        };
+        return scopes;
+    }    
+    /*************************************************************************/ 
+	
+	
+	
 	/******************************* AUTHORIZATION API ***********************/ 
 	@Bean
     public Docket apiAuthorization() { 

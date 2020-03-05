@@ -118,6 +118,12 @@ public class Config {
     public static final String SCOPE_CLIENTMANAGEMENT = "clientmanagement";
     public static final String SCOPE_CLIENT_ROLES_READ_ALL = "client.roles.read.all";
 
+    /** scopes for api key */
+    public static final String SCOPE_APIKEY_CLIENT_ALL = "apikey.client.all";
+    public static final String SCOPE_APIKEY_CLIENT = "apikey.client.me";
+    public static final String SCOPE_APIKEY_USER_CLIENT = "apikey.user.client";
+    public static final String SCOPE_APIKEY_USER = "apikey.user.me";
+
     /** scopes for api management */
     public static final String SCOPE_APIMANAGEMENT = "apimanagement";
     /** scopes for service management */

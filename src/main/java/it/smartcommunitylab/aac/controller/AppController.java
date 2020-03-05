@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apikey.APIKeyManager;
+import it.smartcommunitylab.aac.apikey.manager.APIKeyManager;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.manager.ClaimManager;
@@ -291,7 +291,7 @@ public class AppController {
         APIKey key = keyManager.findKey(apiKey);
         if (key != null) {
             userManager.checkClientIdOwnership(clientId);
-            
+            //TODO check if current user is owner of key!!
             if (body.getValidity() != null && body.getValidity() > 0) {
                 key = keyManager.updateKeyValidity(apiKey, body.getValidity());
             }

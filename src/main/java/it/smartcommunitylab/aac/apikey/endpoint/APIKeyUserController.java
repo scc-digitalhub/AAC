@@ -57,39 +57,37 @@ import it.smartcommunitylab.aac.model.Response;
  *
  */
 @Controller
-@Api(tags = { "AAC Client ApiKey" })
-public class APIKeyClientController {
+@Api(tags = { "AAC User ApiKey" })
+public class APIKeyUserController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private APIKeyManager keyManager;
 
     /**
-     * List client API keys
+     * List API keys
      * 
      * @return
      */
-    @ApiOperation(value = "List client keys")
-    @GetMapping(value = "/apikey/client/me")
-    public @ResponseBody List<APIKey> getClientKeys(Authentication auth) {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
+    @ApiOperation(value = "List user keys")
+    @GetMapping(value = "/apikey/user/me")
+    public @ResponseBody List<APIKey> getUserKeys(Authentication auth) {
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
-        logger.trace("list keys for client " + clientId);
-        // return keys basic info
-        return keyManager.getClientKeys(clientId);
+        logger.trace("list keys for user " + userId);
+        return keyManager.getUserKeys(userId);
     }
 
     @ApiOperation(value = "Get key")
-    @GetMapping(value = "/apikey/client/{apiKey:.*}")
+    @GetMapping(value = "/apikey/user/{apiKey:.*}")
     public @ResponseBody Map<String, Object> getKey(@PathVariable String apiKey,
             Authentication auth) throws EntityNotFoundException {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
-        Collection<String> scope = SecurityUtils.getOAuthScopes(auth);
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
         // fetch key and validate ownership
         APIKey key = keyManager.findKey(apiKey);
         if (key != null) {
-            if (!scope.contains(Config.SCOPE_APIKEY_CLIENT_ALL) && !clientId.equals(key.getClientId())) {
+            if (!userId.equals(key.getSubject())) {
                 throw new SecurityException();
             }
 
@@ -116,16 +114,15 @@ public class APIKeyClientController {
      * @return
      */
     @ApiOperation(value = "Delete key")
-    @DeleteMapping(value = "/apikey/client/{apiKey:.*}")
+    @DeleteMapping(value = "/apikey/user/{apiKey:.*}")
     public @ResponseBody void deleteKey(@PathVariable String apiKey,
             Authentication auth) throws SecurityException {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
-        Collection<String> scope = SecurityUtils.getOAuthScopes(auth);
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
         // fetch key and validate ownership
         APIKey key = keyManager.findKey(apiKey);
         if (key != null) {
-            if (!scope.contains(Config.SCOPE_APIKEY_CLIENT_ALL) && !clientId.equals(key.getClientId())) {
+            if (!userId.equals(key.getSubject())) {
                 throw new SecurityException();
             }
 
@@ -140,22 +137,26 @@ public class APIKeyClientController {
      * @return
      */
     @ApiOperation(value = "Update key")
-    @PutMapping(value = "/apikey/client/{apiKey:.*}")
+    @PutMapping(value = "/apikey/user/{apiKey:.*}")
     public @ResponseBody APIKey updateKey(@PathVariable String apiKey,
             @RequestBody APIKey body,
             Authentication auth) throws SecurityException, EntityNotFoundException {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
-        Collection<String> scope = SecurityUtils.getOAuthScopes(auth);
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
         // fetch key and validate ownership
         APIKey key = keyManager.findKey(apiKey);
         if (key != null) {
-            if (!scope.contains(Config.SCOPE_APIKEY_CLIENT_ALL) && !clientId.equals(key.getClientId())) {
+            if (!userId.equals(key.getSubject())) {
                 throw new SecurityException();
             }
 
-            // client can only update its own information
-            return keyManager.updateKeyData(apiKey, body.getAdditionalInformation());
+            Set<String> scopes = null;
+            if (body.getScope() != null) {
+                scopes = new HashSet<>(Arrays.asList(body.getScope()));
+            }
+
+            // at minimum we will reset issuedAt to now
+            return keyManager.updateKey(apiKey, body.getValidity(), scopes, body.getAdditionalInformation());
 
         }
 
@@ -168,18 +169,25 @@ public class APIKeyClientController {
      * 
      * @param apiKey
      * @return created entity
+     * @throws InvalidDefinitionException
      */
     @ApiOperation(value = "Create key")
-    @PostMapping(value = "/apikey/client")
+    @PostMapping(value = "/apikey/user")
     public @ResponseBody APIKey createKey(@RequestBody APIKey body,
             Authentication auth)
-            throws EntityNotFoundException {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
+            throws EntityNotFoundException, InvalidDefinitionException {
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
         Collection<String> scope = SecurityUtils.getOAuthScopes(auth);
 
-        if (scope.contains(Config.SCOPE_APIKEY_CLIENT_ALL) && body.getClientId() != null) {
-            // with manage all we can pass a specific client id
-            clientId = body.getClientId();
+        String clientId = body.getClientId();
+
+        if (!scope.contains(Config.SCOPE_APIKEY_USER) && scope.contains(Config.SCOPE_APIKEY_USER_CLIENT)) {
+            // authorized clients can add keys only for themselves
+            clientId = SecurityUtils.getOAuthClientId(auth);
+        }
+
+        if (clientId == null) {
+            throw new InvalidDefinitionException("clientId required");
         }
 
         int validity = 0;
@@ -190,10 +198,14 @@ public class APIKeyClientController {
         Set<String> scopes = null;
         if (body.getScope() != null) {
             scopes = new HashSet<>(Arrays.asList(body.getScope()));
+
+            // TODO check if client access which scopes user has already authorized!
+            if (!scope.contains(Config.SCOPE_APIKEY_USER) && scope.contains(Config.SCOPE_APIKEY_USER_CLIENT)) {
+                // TODO filter scopes
+            }
         }
 
-        // owner will be client developer
-        return keyManager.createKey(clientId, null, validity, body.getAdditionalInformation(), scopes);
+        return keyManager.createKey(clientId, userId, validity, body.getAdditionalInformation(), scopes);
     }
 
     @ExceptionHandler(InvalidDefinitionException.class)

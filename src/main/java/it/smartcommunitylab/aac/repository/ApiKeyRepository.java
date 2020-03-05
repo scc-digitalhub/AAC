@@ -30,6 +30,6 @@ public interface ApiKeyRepository extends JpaRepository<APIKeyEntity, String> {
 
     List<APIKeyEntity> findByClientId(String clientId);
 
-    List<APIKeyEntity> findByUserId(String userId);
+    List<APIKeyEntity> findByUserId(Long userId);
 
 }

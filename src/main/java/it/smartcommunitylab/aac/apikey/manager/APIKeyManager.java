@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.apikey;
+package it.smartcommunitylab.aac.apikey.manager;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -188,7 +188,7 @@ public class APIKeyManager {
      * @return all API keys created by the user
      */
     public List<APIKey> getUserKeys(String userId) {
-        return keyRepo.findByUserId(userId)
+        return keyRepo.findByUserId(Long.parseLong(userId))
                 .stream()
                 .map(e -> APIKey.fromApiKey(e)).collect(Collectors.toList());
     }
@@ -221,6 +221,7 @@ public class APIKeyManager {
         if (client == null) {
             throw new EntityNotFoundException("Client not found: " + clientId);
         }
+        logger.trace("client "+client.toString());
 
         String key = generateKey();
 
@@ -366,7 +367,7 @@ public class APIKeyManager {
             throw new EntityNotFoundException(key);
         }
 
-        // update only additional info
+        // update only additional info, no validity extension
         entity.setAdditionalInformation(APIKey.toDataString(data));
 
         entity = keyRepo.saveAndFlush(entity);
