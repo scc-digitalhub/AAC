@@ -167,7 +167,7 @@ public class APIKeyManager {
         try {
             APIKey apikey = keysCache.get(key);
             return (apikey.getExpirationTime() == 0 ? true
-                    : apikey.getExpirationTime() < (System.currentTimeMillis() / 1000));
+                    : apikey.getExpirationTime() > (System.currentTimeMillis() / 1000));
         } catch (Exception e) {
             return false;
         }
@@ -221,7 +221,17 @@ public class APIKeyManager {
         if (client == null) {
             throw new EntityNotFoundException("Client not found: " + clientId);
         }
-        logger.trace("client "+client.toString());
+
+        if (StringUtils.isEmpty(userId)) {
+            // use developer as owner
+            userId = Long.toString(client.getDeveloperId());
+        }
+
+        User user = userManager.getOne(Long.parseLong(userId));
+        if (user == null) {
+            logger.error("user not found for apikey");
+            throw new EntityNotFoundException("user not found: " + userId);
+        }
 
         String key = generateKey();
 
@@ -229,6 +239,7 @@ public class APIKeyManager {
         entity.setApiKey(key);
         entity.setClientId(clientId);
         entity.setAdditionalInformation(APIKey.toDataString(data));
+        entity.setUserId(user.getId());
 
         if (scopes != null && !scopes.isEmpty()) {
             Set<String> targetScopes = new HashSet<>(scopes);
@@ -248,13 +259,6 @@ public class APIKeyManager {
             entity.setValidity(Long.valueOf(validity));
         }
 
-        if (StringUtils.isEmpty(userId)) {
-            // use developer as owner
-            entity.setUserId(client.getDeveloperId());
-        } else {
-            entity.setUserId(Long.parseLong(userId));
-
-        }
         // legacy fields
         // TODO remove
         entity.setUsername(null);
@@ -288,7 +292,7 @@ public class APIKeyManager {
 
         // reset issued time to now
         entity.setIssuedTime(System.currentTimeMillis());
-        
+
         if (validity != null) {
             if (validity == 0) {
                 entity.setValidity(null);
@@ -395,6 +399,7 @@ public class APIKeyManager {
 
         if (scopes != null) {
             // filter and allow only those enabled on client
+            //TODO additionally filter to only those approved by user
             ClientDetailsEntity client = clientRepo.findByClientId(entity.getClientId());
             Set<String> targetScopes = new HashSet<>(scopes);
             targetScopes.retainAll(client.getScope());
