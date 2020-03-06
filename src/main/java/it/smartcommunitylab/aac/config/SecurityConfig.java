@@ -627,33 +627,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(9);
 		return resource;
 	}		
-	
 
-	@Bean
-	protected ResourceServerConfiguration apiKeyResources() {
-		ResourceServerConfiguration resource = new ResourceServerConfiguration() {
-			public void setConfigurers(List<ResourceServerConfigurer> configurers) {
-				super.setConfigurers(configurers);
-			}
-		};
-		resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
-			public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-				resources.resourceId(null);
-			}
-
-			public void configure(HttpSecurity http) throws Exception {
-				http.regexMatcher("/apikey(.*)").authorizeRequests()
-						.regexMatchers("/apikey(.*)").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
-						.and().httpBasic()
-						.and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
-				
-				http.csrf().disable();
-			}
-
-		}));
-		resource.setOrder(10);
-		return resource;
-	}	
 	
 	@Bean
 	protected ResourceServerConfiguration userInfoResources() {
@@ -772,4 +746,85 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		resource.setOrder(15);
 		return resource;
     }
+    
+    
+
+    @Bean
+    protected ResourceServerConfiguration apiKeyResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.regexMatcher("/apikeycheck(.*)").authorizeRequests()
+                        .regexMatchers("/apikeycheck(.*)").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
+                        .and().httpBasic()
+                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+                
+                http.csrf().disable();
+            }
+
+        }));
+        resource.setOrder(16);
+        return resource;
+    }   
+    
+    @Bean
+    protected ResourceServerConfiguration apiKeyClientResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.regexMatcher("/apikey/client(.*)").authorizeRequests()
+                        .antMatchers("/apikey/client/me").access("#oauth2.hasScope('"+Config.SCOPE_APIKEY_CLIENT+"')")
+                        .antMatchers("/apikey/client/{\\w+}").access("#oauth2.hasAnyScope('"+Config.SCOPE_APIKEY_CLIENT+"','"+Config.SCOPE_APIKEY_CLIENT_ALL+"')")
+                        .antMatchers(HttpMethod.POST, "/apikey/client").access("#oauth2.hasAnyScope('"+Config.SCOPE_APIKEY_CLIENT+"','"+Config.SCOPE_APIKEY_CLIENT_ALL+"')")
+                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+                
+                http.csrf().disable();
+            }
+
+        }));
+        resource.setOrder(17);
+        return resource;
+    }
+    
+    @Bean
+    protected ResourceServerConfiguration apiKeyUserResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.regexMatcher("/apikey/user(.*)").authorizeRequests()
+                        .antMatchers("/apikey/user/me").access("#oauth2.hasScope('"+Config.SCOPE_APIKEY_USER+"')")
+                        .antMatchers("/apikey/user/{\\w+}").access("#oauth2.hasScope('"+Config.SCOPE_APIKEY_USER+"')")
+                        .antMatchers(HttpMethod.POST, "/apikey/user").access("#oauth2.hasAnyScope('"+Config.SCOPE_APIKEY_USER+"','"+Config.SCOPE_APIKEY_USER_CLIENT+"')")
+                        .and().csrf().disable();
+            }
+
+        }));
+        resource.setOrder(18);
+        return resource;
+    }    
+    
 }

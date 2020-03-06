@@ -183,6 +183,50 @@
     "claims": []
   },
     {
+    "serviceId": "apikey.management",
+    "name": "Api Key",
+    "description": "Core service for managing api keys.",
+    "scopes": [
+      {
+        "scope": "apikey.user.me",
+        "name": "Manage Current User Api Keys",
+        "description": "Manage current user Api Keys",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },
+      {
+        "scope": "apikey.user.client",
+        "name": "Manage Current User Current Client Api Keys",
+        "description": "Manage current user current client own Api Keys",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },      
+      {
+        "scope": "apikey.client.me",
+        "name": "Manage Current Client Api Keys",
+        "description": "Manage current client Api Keys",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_CLIENT",
+        "approvalRequired": false
+      },
+      {
+        "scope": "apikey.client.all",
+        "name": "Manage All Client Api Keys",
+        "description": "Manage all Client Api Keys",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_CLIENT",
+        "approvalRequired": true
+      }      
+    ],
+    "claims": []
+  },  
+    {
     "serviceId": "service.management",
     "name": "Service Definition Management",
     "description": "Core service for managing service, scope, and claim definitions",

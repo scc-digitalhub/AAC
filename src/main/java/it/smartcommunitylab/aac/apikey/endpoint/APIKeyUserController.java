@@ -14,9 +14,14 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.apikey;
+package it.smartcommunitylab.aac.apikey.endpoint;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
@@ -35,59 +40,69 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.apikey.manager.APIKeyManager;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SecurityUtils;
 import it.smartcommunitylab.aac.dto.APIKey;
+import it.smartcommunitylab.aac.model.Response;
 
 /**
  * @author raman
  *
  */
 @Controller
-@Api(tags = { "AACApiKey" })
-public class APIKeyController {
+@Api(tags = { "AAC User ApiKey" })
+public class APIKeyUserController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private APIKeyManager keyManager;
 
-    @ApiOperation(value = "Validate key")
-    @GetMapping(value = "/apikeycheck/{apiKey:.*}")
-    public @ResponseBody APIKey findKey(@PathVariable String apiKey,
-            Authentication auth) throws EntityNotFoundException {
-//        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
-//
-//		APIKey key = keyManager.findKey(apiKey);
-//		
-//		if (key != null && !key.hasExpired()) {
-//		    //TODO evaluate restricting access to owner or filter response
-//			return key;
-//		}
-//		
-//		//TODO evaluate returning a proper response instead of an error
-//		throw new EntityNotFoundException();
+    /**
+     * List API keys
+     * 
+     * @return
+     */
+    @ApiOperation(value = "List user keys")
+    @GetMapping(value = "/apikey/user/me")
+    public @ResponseBody List<APIKey> getUserKeys(Authentication auth) {
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
-        // delegate
-        return findKeyByParam(apiKey, auth);
+        logger.trace("list keys for user " + userId);
+        return keyManager.getUserKeys(userId);
     }
 
-    @ApiOperation(value = "Validate key as parameter")
-    @GetMapping(value = "/apikeycheck")
-    public @ResponseBody APIKey findKeyByParam(@RequestParam String apiKey,
+    @ApiOperation(value = "Get key")
+    @GetMapping(value = "/apikey/user/{apiKey:.*}")
+    public @ResponseBody Map<String, Object> getKey(@PathVariable String apiKey,
             Authentication auth) throws EntityNotFoundException {
-//        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
+        // fetch key and validate ownership
         APIKey key = keyManager.findKey(apiKey);
+        if (key != null) {
+            if (!userId.equals(key.getSubject())) {
+                throw new SecurityException();
+            }
 
-        if (key != null && !key.hasExpired()) {
-            // TODO evaluate restricting access to owner or filter response
-            return key;
+            if (keyManager.isKeyValid(apiKey)) {
+
+                // fetch a fully populated key
+                APIKey apikey = keyManager.getKey(apiKey);
+
+                // manually build a result
+                Map<String, Object> json = APIKey.toMap(apikey);
+
+                return json;
+            }
         }
+
         // TODO evaluate returning a proper response instead of an error
         throw new EntityNotFoundException();
     }
@@ -99,62 +114,50 @@ public class APIKeyController {
      * @return
      */
     @ApiOperation(value = "Delete key")
-    @DeleteMapping(value = "/apikey/{apiKey:.*}")
+    @DeleteMapping(value = "/apikey/user/{apiKey:.*}")
     public @ResponseBody void deleteKey(@PathVariable String apiKey,
             Authentication auth) throws SecurityException {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
+        // fetch key and validate ownership
         APIKey key = keyManager.findKey(apiKey);
         if (key != null) {
-            if (!clientId.equals(key.getClientId())) {
+            if (!userId.equals(key.getSubject())) {
                 throw new SecurityException();
             }
+
             keyManager.deleteKey(apiKey);
         }
     }
 
     /**
-     * List API keys
-     * 
-     * @return
-     */
-    @ApiOperation(value = "List keys")
-    @GetMapping(value = "/apikey")
-    public @ResponseBody List<APIKey> getKeys(Authentication auth) {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
-
-        logger.trace("list keys for client " + clientId);
-        return keyManager.getClientKeys(clientId);
-    }
-
-    /**
-     * Delete a specified API key
+     * Update a specified API key
      * 
      * @param apiKey
      * @return
      */
     @ApiOperation(value = "Update key")
-    @PutMapping(value = "/apikey/{apiKey:.*}")
+    @PutMapping(value = "/apikey/user/{apiKey:.*}")
     public @ResponseBody APIKey updateKey(@PathVariable String apiKey,
             @RequestBody APIKey body,
             Authentication auth) throws SecurityException, EntityNotFoundException {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
 
+        // fetch key and validate ownership
         APIKey key = keyManager.findKey(apiKey);
         if (key != null) {
-            if (!clientId.equals(key.getClientId())) {
+            if (!userId.equals(key.getSubject())) {
                 throw new SecurityException();
             }
 
-            if (body.getValidity() != null && body.getValidity() > 0) {
-                key = keyManager.updateKeyValidity(apiKey, body.getValidity());
+            Set<String> scopes = null;
+            if (body.getScope() != null) {
+                scopes = new HashSet<>(Arrays.asList(body.getScope()));
             }
 
-            if (body.getAdditionalInformation() != null) {
-                key = keyManager.updateKeyData(apiKey, body.getAdditionalInformation());
-            }
+            // at minimum we will reset issuedAt to now
+            return keyManager.updateKey(apiKey, body.getValidity(), scopes, body.getAdditionalInformation());
 
-            return keyManager.findKey(apiKey);
         }
 
         throw new EntityNotFoundException();
@@ -166,30 +169,51 @@ public class APIKeyController {
      * 
      * @param apiKey
      * @return created entity
+     * @throws InvalidDefinitionException
      */
     @ApiOperation(value = "Create key")
-    @PostMapping(value = "/apikey")
+    @PostMapping(value = "/apikey/user")
     public @ResponseBody APIKey createKey(@RequestBody APIKey body,
             Authentication auth)
-            throws EntityNotFoundException {
-        String clientId = SecurityUtils.getOAuthOrBasicClientId(auth, true);
+            throws EntityNotFoundException, InvalidDefinitionException {
+        String userId = SecurityUtils.getOAuthUserId(auth, true);
+        Collection<String> scope = SecurityUtils.getOAuthScopes(auth);
 
-        return keyManager.createKey(clientId, body.getValidity(), body.getAdditionalInformation(),
-                body.getScope());
+        String clientId = body.getClientId();
+
+        if (!scope.contains(Config.SCOPE_APIKEY_USER) && scope.contains(Config.SCOPE_APIKEY_USER_CLIENT)) {
+            // authorized clients can add keys only for themselves
+            clientId = SecurityUtils.getOAuthClientId(auth);
+        }
+
+        if (clientId == null) {
+            throw new InvalidDefinitionException("clientId required");
+        }
+
+        int validity = 0;
+        if (body.getValidity() != null) {
+            validity = body.getValidity().intValue();
+        }
+
+        Set<String> scopes = null;
+        if (body.getScope() != null) {
+            scopes = new HashSet<>(Arrays.asList(body.getScope()));
+
+            // TODO check if client access which scopes user has already authorized!
+            if (!scope.contains(Config.SCOPE_APIKEY_USER) && scope.contains(Config.SCOPE_APIKEY_USER_CLIENT)) {
+                // TODO filter scopes
+            }
+        }
+
+        return keyManager.createKey(clientId, userId, validity, body.getAdditionalInformation(), scopes);
     }
 
-//	private String getClientId(HttpServletRequest request) {
-//		try {
-//			String parsedToken = it.smartcommunitylab.aac.common.Utils.parseHeaderToken(request);
-//			if (parsedToken == null) throw new SecurityException("No clientId specified");
-//			OAuth2Authentication auth = resourceServerTokenServices.loadAuthentication(parsedToken);
-//			if (auth == null || auth.getUserAuthentication() != null) throw new SecurityException("Invalid token");
-//			String clientId = auth.getOAuth2Request().getClientId();
-//			return clientId;
-//		} catch (Exception e) {
-//			throw new SecurityException(e.getMessage());
-//		}
-//	}
+    @ExceptionHandler(InvalidDefinitionException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processDefinitionError(InvalidDefinitionException ex) {
+        return Response.error(ex.getMessage());
+    }
 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "Key or client does not exist")
