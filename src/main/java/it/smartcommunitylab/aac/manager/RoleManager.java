@@ -66,23 +66,23 @@ public class RoleManager {
     
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Value("${admin.username}")
-    private String adminUsername;   
-    
-	@Value("${admin.password}")
-	private String adminPassword;	
-
-	@Value("${admin.contexts}")
-	private String[] defaultContexts;
+//    @Value("${admin.username}")
+//    private String adminUsername;   
+//    
+//	@Value("${admin.password}")
+//	private String adminPassword;	
+//
+//	@Value("${admin.contexts}")
+//	private String[] defaultContexts;
+//	
+//	@Value("${admin.contextSpaces}")
+//	private String[] defaultContextSpaces;
+//	
+//	@Value("${admin.roles}")
+//	private String[] defaultRoles;
 	
-	@Value("${admin.contextSpaces}")
-	private String[] defaultContextSpaces;
-	
-	@Value("${admin.roles}")
-	private String[] defaultRoles;
-	
-	@Autowired
-	private RegistrationService registrationService;
+//	@Autowired
+//	private RegistrationService registrationService;
 	
 	@Autowired
 	private UserRepository userRepository;	
@@ -90,60 +90,60 @@ public class RoleManager {
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;	
 
-	@Autowired
-	private ClientDetailsManager clientDetailsManager;	
+//	@Autowired
+//	private ClientDetailsManager clientDetailsManager;	
 
-	private User admin = null; 
+//	private User admin = null; 
 	
-	@PostConstruct
-	public synchronized User init() throws Exception {
-		
-		if (admin != null) {
-			return admin;
-		}
-		
-	    logger.debug("init");
-	    
-		Set<Role> roles = new HashSet<>();
-		Role role = Role.systemAdmin();
-		roles.add(role);
-		
-		if (defaultContexts != null) {
-		    logger.debug("ADMIN default contexts "+Arrays.toString(defaultContexts));
-		    Arrays.asList(defaultContexts).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
-		}
-		
-		if (defaultContextSpaces != null) {
-            logger.debug("ADMIN default contexts spaces "+Arrays.toString(defaultContextSpaces));		    
-			Arrays.asList(defaultContextSpaces).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
-		}
-
-		if (defaultRoles != null) {
-            logger.debug("ADMIN default roles "+Arrays.toString(defaultRoles));		    
-			Arrays.asList(defaultRoles).forEach(ctx -> roles.add(Role.parse(ctx)));
-		}
-
-		admin = userRepository.findByUsername(adminUsername);
-		if (admin == null) {
-		    logger.debug("create ADMIN user as "+adminUsername);
-			admin = registrationService.registerOffline(adminUsername, adminUsername, adminUsername, adminPassword, null, false, null);
-		}
-		
-		clientDetailsManager.createAdminClient(admin.getId());
-		
-		admin.getRoles().addAll(roles);
-		userRepository.saveAndFlush(admin);
-		
-		
-		return admin;
-	}
+//	@PostConstruct
+//	public synchronized User init() throws Exception {
+//		
+//		if (admin != null) {
+//			return admin;
+//		}
+//		
+//	    logger.debug("init");
+//	    
+//		Set<Role> roles = new HashSet<>();
+//		Role role = Role.systemAdmin();
+//		roles.add(role);
+//		
+//		if (defaultContexts != null) {
+//		    logger.debug("ADMIN default contexts "+Arrays.toString(defaultContexts));
+//		    Arrays.asList(defaultContexts).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
+//		}
+//		
+//		if (defaultContextSpaces != null) {
+//            logger.debug("ADMIN default contexts spaces "+Arrays.toString(defaultContextSpaces));		    
+//			Arrays.asList(defaultContextSpaces).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
+//		}
+//
+//		if (defaultRoles != null) {
+//            logger.debug("ADMIN default roles "+Arrays.toString(defaultRoles));		    
+//			Arrays.asList(defaultRoles).forEach(ctx -> roles.add(Role.parse(ctx)));
+//		}
+//
+//		admin = userRepository.findByUsername(adminUsername);
+//		if (admin == null) {
+//		    logger.debug("create ADMIN user as "+adminUsername);
+//			admin = registrationService.registerOffline(adminUsername, adminUsername, adminUsername, adminPassword, null, false, null);
+//		}
+//		
+//		clientDetailsManager.createAdminClient(admin.getId());
+//		
+//		admin.getRoles().addAll(roles);
+//		userRepository.saveAndFlush(admin);
+//		
+//		
+//		return admin;
+//	}
 	
-	public User getAdminUser() throws Exception {
-		if (admin == null) {
-			init();
-		}
-		return admin;
-	}
+//	public User getAdminUser() throws Exception {
+//		if (admin == null) {
+//			init();
+//		}
+//		return admin;
+//	}
 	
 	public void updateRoles(User user, Set<Role> rolesToAdd, Set<Role> rolesToDelete) {
 		Set<Role> roles = user.getRoles();
