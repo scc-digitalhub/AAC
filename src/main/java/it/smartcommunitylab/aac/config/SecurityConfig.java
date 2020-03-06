@@ -107,12 +107,17 @@ import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
-import it.smartcommunitylab.aac.oauth.PKCEAwareTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 import it.smartcommunitylab.aac.oauth.UserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.UserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.WebhookOAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
+import it.smartcommunitylab.aac.oauth.token.AuthorizationCodeTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.ClientCredentialsTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.ImplicitTokenGranter;
 import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -143,6 +148,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     
     @Value("${security.refreshtoken.validity}")
     private int refreshTokenValidity;    
+    
+    @Value("${security.authcode.validity}")
+    private int authCodeValidity;   
+       
+    @Value("${oauth2.pkce.allowRefresh}")
+    private boolean oauth2PKCEAllowRefresh;        
+
+    @Value("${oauth2.clientCredentials.allowRefresh}")
+    private boolean oauth2ClientCredentialsAllowRefresh;          
+
+    @Value("${oauth2.resourceOwnerPassword.allowRefresh}")
+    private boolean oauth2ResourceOwnerPasswordAllowRefresh;          
     
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
@@ -392,7 +409,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Bean
 		public AutoJdbcAuthorizationCodeServices getAuthorizationCodeServices() throws PropertyVetoException {
-			return new AutoJdbcAuthorizationCodeServices(dataSource);
+			return new AutoJdbcAuthorizationCodeServices(dataSource, authCodeValidity);
 		}
 
 		@Bean
@@ -456,15 +473,63 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		
 		
 
-		private TokenGranter tokenGranter(final AuthorizationServerEndpointsConfigurer endpoints) {
-			List<TokenGranter> granters = new ArrayList<TokenGranter>(Arrays.asList(endpoints.getTokenGranter()));
-			// insert PKCE auth code granter as the first one, before default implementation
-			granters.add(0,new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
-			// custom native flow support
-			granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
-			return new CompositeTokenGranter(granters);
-		}
-	}
+        private TokenGranter tokenGranter(final AuthorizationServerEndpointsConfigurer endpoints) {
+            // build our own list of granters
+            List<TokenGranter> granters = new ArrayList<TokenGranter>();
+            // insert PKCE auth code granter as the first one to supersede basic authcode
+            PKCEAwareTokenGranter pkceTokenGranter = new PKCEAwareTokenGranter(endpoints.getTokenServices(),
+                    authorizationCodeServices,
+                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory());
+            if (oauth2PKCEAllowRefresh) {
+                pkceTokenGranter.setAllowRefresh(true);
+            }
+            granters.add(pkceTokenGranter);
+
+            // auth code 
+            granters.add(new AuthorizationCodeTokenGranter(endpoints.getTokenServices(),
+                    endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(),
+                    endpoints.getOAuth2RequestFactory()));
+
+            // refresh
+            granters.add(new RefreshTokenGranter(endpoints.getTokenServices(), endpoints.getClientDetailsService(),
+                    endpoints.getOAuth2RequestFactory()));
+
+            // implicit
+            granters.add(new ImplicitTokenGranter(endpoints.getTokenServices(),
+                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
+
+            // client credentials
+            ClientCredentialsTokenGranter clientCredentialsTokenGranter = new ClientCredentialsTokenGranter(endpoints.getTokenServices(),
+                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory());
+            if (oauth2ClientCredentialsAllowRefresh) {
+                clientCredentialsTokenGranter.setAllowRefresh(true);
+            }
+            granters.add(clientCredentialsTokenGranter);
+
+            // resource owner password
+            if (authenticationManager != null) {
+                ResourceOwnerPasswordTokenGranter passwordTokenGranter = new ResourceOwnerPasswordTokenGranter(authenticationManager, endpoints.getTokenServices(),
+                        endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory());
+                if (!oauth2ResourceOwnerPasswordAllowRefresh) {
+                    passwordTokenGranter.setAllowRefresh(false);
+                }                
+                granters.add(passwordTokenGranter);
+            }
+
+            // custom native flow support
+            granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(),
+                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
+            return new CompositeTokenGranter(granters);
+
+//			List<TokenGranter> granters = new ArrayList<TokenGranter>(Arrays.asList(endpoints.getTokenGranter()));
+//			granters.add(0, new ImplicitTokenGranter(endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
+//			// insert PKCE auth code granter as the first one, before default implementation
+//			granters.add(0,new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
+//			// custom native flow support
+//			granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
+//			return new CompositeTokenGranter(granters);
+        }
+    }
 
 	@Bean
 	protected ResourceServerConfiguration profileResources() {
