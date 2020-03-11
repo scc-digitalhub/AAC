@@ -15,6 +15,8 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.dto;
 
+import it.smartcommunitylab.aac.model.User;
+
 public class BasicProfile {
 	
 	private String name;
@@ -54,5 +56,19 @@ public class BasicProfile {
 		this.username = username;
 	}
 	
-	
+    /**
+     * @param user
+     * @return
+     */
+    public static BasicProfile fromUser(User user) {
+        if (user == null) {
+            return null;
+        }
+        BasicProfile minProfile = new BasicProfile();
+        minProfile.setName(user.getName());
+        minProfile.setSurname(user.getSurname());
+        minProfile.setUserId(user.getId().toString());
+        minProfile.setUsername(user.getUsername());
+        return minProfile;
+    }
 }

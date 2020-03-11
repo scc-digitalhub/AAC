@@ -28,28 +28,28 @@ import it.smartcommunitylab.aac.model.User;
  */
 public class AccountProfileConverter {
 
-	/**
-	 * @param user
-	 * @return
-	 */
-	public static AccountProfile toAccountProfile(User user) {
-		if (user == null) {
-			return null;
-		}
-		AccountProfile minProfile = new AccountProfile();
-		Set<Attribute> attrs =  user.getAttributeEntities();
-		if (attrs != null) {
-			for (Attribute a : attrs) {
-				String account = a.getAuthority().getName();
-				minProfile.addAttribute(account, a.getKey(), a.getValue());
-			}
-		}
-		minProfile.setUsername(user.getUsername());
-		minProfile.setName(user.getName());
-		minProfile.setSurname(user.getSurname());
-		minProfile.setUserId(user.getId().toString());		
-		
-		return minProfile;
-	}
+//	/**
+//	 * @param user
+//	 * @return
+//	 */
+//	public static AccountProfile toAccountProfile(User user) {
+//		if (user == null) {
+//			return null;
+//		}
+//		AccountProfile minProfile = new AccountProfile();
+//		Set<Attribute> attrs =  user.getAttributeEntities();
+//		if (attrs != null) {
+//			for (Attribute a : attrs) {
+//				String account = a.getAuthority().getName();
+//				minProfile.addAttribute(account, a.getKey(), a.getValue());
+//			}
+//		}
+//		minProfile.setUsername(user.getUsername());
+//		minProfile.setName(user.getName());
+//		minProfile.setSurname(user.getSurname());
+//		minProfile.setUserId(user.getId().toString());		
+//		
+//		return minProfile;
+//	}
 
 }

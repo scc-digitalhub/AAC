@@ -28,29 +28,29 @@ import it.smartcommunitylab.aac.model.User;
  */
 public class BasicProfileConverter {
 
-	public static List<BasicProfile> toBasicProfile(List<User> users) throws Exception {
-		List<BasicProfile> minProfiles = new ArrayList<BasicProfile>();
-		try {
-			for (User temp : users) {
-				minProfiles.add(BasicProfileConverter.toBasicProfile(temp));
-			}
-		} catch (Exception e) {
-			throw e;
-		}
-
-		return minProfiles;
-	}
-
-	public static BasicProfile toBasicProfile(User user)
-			throws Exception {
-		if (user == null) {
-			return null;
-		}
-		BasicProfile minProfile = new BasicProfile();
-		minProfile.setName(user.getName());
-		minProfile.setSurname(user.getSurname());
-		minProfile.setUserId(user.getId().toString());
-		minProfile.setUsername(user.getUsername());
-		return minProfile;
-	}
+//	public static List<BasicProfile> toBasicProfile(List<User> users) throws Exception {
+//		List<BasicProfile> minProfiles = new ArrayList<BasicProfile>();
+//		try {
+//			for (User temp : users) {
+//				minProfiles.add(BasicProfileConverter.toBasicProfile(temp));
+//			}
+//		} catch (Exception e) {
+//			throw e;
+//		}
+//
+//		return minProfiles;
+//	}
+//
+//	public static BasicProfile toBasicProfile(User user)
+//			throws Exception {
+//		if (user == null) {
+//			return null;
+//		}
+//		BasicProfile minProfile = new BasicProfile();
+//		minProfile.setName(user.getName());
+//		minProfile.setSurname(user.getSurname());
+//		minProfile.setUserId(user.getId().toString());
+//		minProfile.setUsername(user.getUsername());
+//		return minProfile;
+//	}
 }

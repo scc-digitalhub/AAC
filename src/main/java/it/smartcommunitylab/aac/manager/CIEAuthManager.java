@@ -68,7 +68,7 @@ public class CIEAuthManager implements MobileAuthManager {
 	@Autowired
 	private IdentitySource identitySource;
 	@Autowired
-	private BasicProfileManager profileManager;
+	private ProfileManager profileManager;
 	
 	@Override
 	public String provider() {

@@ -49,7 +49,7 @@ import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.common.SecurityUtils;
 import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
-import it.smartcommunitylab.aac.manager.BasicProfileManager;
+import it.smartcommunitylab.aac.manager.ProfileManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.Response;
@@ -68,7 +68,7 @@ public class BasicProfileController {
     private UserManager userManager;
 
     @Autowired
-    private BasicProfileManager profileManager;
+    private ProfileManager profileManager;
 
     @ApiOperation(value = "Get basic profile of a user")
     @RequestMapping(method = RequestMethod.GET, value = "/basicprofile/all/{userId}")

@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,105 +38,110 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @Transactional
-public class BasicProfileManager {
+public class ProfileManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private UserRepository userRepository;
-	/**
-	 * @param userId
-	 * @return
-	 */
-	public BasicProfile getBasicProfileById(String userId) {
-		try {
-			return BasicProfileConverter.toBasicProfile(userRepository.findOne(Long.parseLong(userId)));
-		} catch (Exception e) {
-			throw new IllegalStateException("User with id "+userId +" does not exist");
-		}
-	}
-	/**
-	 * returns all users in the
-	 * system
-	 * 
-	 * @return the list of all minimal profiles of users
-	 * @throws CommunityManagerException
-	 */
-	public List<BasicProfile> getUsers() {
-		try {
-			return BasicProfileConverter.toBasicProfile(userRepository.findAll());
-		} catch (Exception e) {
-			throw new IllegalStateException("Problem reading users: "+e.getMessage());
-		}
-	}
-	
-	/**
-	 * @param userName
-	 * @return
-	 */
-	public BasicProfile getUser(String userName) {
-		try {
-			return BasicProfileConverter.toBasicProfile(userRepository.findByUsername(userName.toLowerCase()));
-		} catch (Exception e) {
-			throw new IllegalStateException("Problem reading users: "+e.getMessage());
-		}
-	}
-	
-	/**
-	 * returns all minimal set of
-	 * users who match part of name
-	 * 
-	 * @param name
-	 *            the string to match with name of user
-	 * @return the list of minimal
-	 *        set of users which
-	 *         name contains parameter or an empty list
-	 * @throws CommunityManagerException
-	 */
-	public List<BasicProfile> getUsers(String fullNameFilter) {
-		try {
-			return BasicProfileConverter.toBasicProfile(userRepository.findByFullNameLike("%"+fullNameFilter+"%"));
-		} catch (Exception e) {
-			throw new IllegalStateException("Problem reading users: "+e.getMessage());
-		}
-	}
-	/**
-	 * @param userIds
-	 * @return
-	 */
-	public List<BasicProfile> getUsers(List<String> userIds) {
-		if (userIds != null) {
-			List<BasicProfile> list = new ArrayList<BasicProfile>();
-			for (String userId : userIds) {
-				try {
-					list.add(getBasicProfileById(userId));
-				} catch (Exception e) {
-					throw new IllegalStateException("Problem reading users: "+e.getMessage());
-				}
-			}
-			return list;
-		}
-		return Collections.emptyList();
-	}
+    @Autowired
+    private UserRepository userRepository;
 
-	/**
-	 * @param userId
-	 * @return
-	 */
-	public AccountProfile getAccountProfileById(String userId) {
-		User user = userRepository.findOne(Long.parseLong(userId));
-		return AccountProfileConverter.toAccountProfile(user);
-	}
-	/**
-	 * @param userIds
-	 * @return
-	 */
-	public List<AccountProfile> getAccountProfilesById(List<String> userIds) {
-		List<AccountProfile> list = new ArrayList<AccountProfile>();
-		if (userIds != null) {
-			for (String userId : userIds) {
-				list.add(getAccountProfileById(userId));
-			}
-		}
-		return list;
-	}
+    /**
+     * @param userId
+     * @return
+     */
+    public BasicProfile getBasicProfileById(String userId) {
+        try {
+            return BasicProfile.fromUser(userRepository.findOne(Long.parseLong(userId)));
+        } catch (Exception e) {
+            logger.debug("User with id " + userId + " does not exist");
+            throw new IllegalStateException("User with id " + userId + " does not exist");
+        }
+    }
+
+    /**
+     * returns all users in the system
+     * 
+     * @return the list of all minimal profiles of users
+     * @throws CommunityManagerException
+     */
+    public List<BasicProfile> getUsers() {
+        try {
+            return userRepository.findAll().stream()
+                    .map(u -> BasicProfile.fromUser(u))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new IllegalStateException("Problem reading users: " + e.getMessage());
+        }
+    }
+
+    /**
+     * @param userName
+     * @return
+     */
+    public BasicProfile getUser(String userName) {
+        try {
+            return BasicProfile.fromUser(userRepository.findByUsername(userName.toLowerCase()));
+        } catch (Exception e) {
+            throw new IllegalStateException("Problem reading users: " + e.getMessage());
+        }
+    }
+
+    /**
+     * returns all minimal set of users who match part of name
+     * 
+     * @param name the string to match with name of user
+     * @return the list of minimal set of users which name contains parameter or an
+     *         empty list
+     * @throws CommunityManagerException
+     */
+    public List<BasicProfile> getUsers(String fullNameFilter) {
+        try {
+            return userRepository.findByFullNameLike("%" + fullNameFilter + "%").stream()
+                    .map(u -> BasicProfile.fromUser(u))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new IllegalStateException("Problem reading users: " + e.getMessage());
+        }
+    }
+
+    /**
+     * @param userIds
+     * @return
+     */
+    public List<BasicProfile> getUsers(List<String> userIds) {
+        if (userIds != null) {
+            List<BasicProfile> list = new ArrayList<BasicProfile>();
+            for (String userId : userIds) {
+                try {
+                    list.add(getBasicProfileById(userId));
+                } catch (Exception e) {
+                    throw new IllegalStateException("Problem reading users: " + e.getMessage());
+                }
+            }
+            return list;
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * @param userId
+     * @return
+     */
+    public AccountProfile getAccountProfileById(String userId) {
+        User user = userRepository.findOne(Long.parseLong(userId));
+        return AccountProfile.fromUser(user);
+    }
+
+    /**
+     * @param userIds
+     * @return
+     */
+    public List<AccountProfile> getAccountProfilesById(List<String> userIds) {
+        List<AccountProfile> list = new ArrayList<AccountProfile>();
+        if (userIds != null) {
+            for (String userId : userIds) {
+                list.add(getAccountProfileById(userId));
+            }
+        }
+        return list;
+    }
 }
