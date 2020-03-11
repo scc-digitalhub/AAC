@@ -123,28 +123,28 @@ public class ServiceManager {
 				
 			});
 
-	
-	@PostConstruct
-	public void init() throws Exception {
-		ServiceDTO[] services = new ObjectMapper().readValue(getClass().getResourceAsStream("services.json"), ServiceDTO[].class);
-		User admin = roleManager.getAdminUser();
-		// do not delete obsolete ones: do it via console.
-		for (ServiceDTO serviceDTO: services) {
-			// update existing or create new ones
-			saveService(admin, serviceDTO);
-			if (serviceDTO.getClaims() != null) {
-				serviceDTO.getClaims().forEach(claim -> { 
-					ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceDTO.getServiceId(), claim.getClaim());
-					if (duplicate == null) {
-						saveServiceClaim(admin, serviceDTO.getServiceId(), claim);
-					}
-				});
-			}
-			if (serviceDTO.getScopes() != null) {
-				serviceDTO.getScopes().forEach(scope -> saveServiceScope(admin, serviceDTO.getServiceId(), scope));
-			}
-		}
-	}
+	//TODO fix
+//	@PostConstruct
+//	public void init() throws Exception {
+//		ServiceDTO[] services = new ObjectMapper().readValue(getClass().getResourceAsStream("services.json"), ServiceDTO[].class);
+//		User admin = roleManager.getAdminUser();
+//		// do not delete obsolete ones: do it via console.
+//		for (ServiceDTO serviceDTO: services) {
+//			// update existing or create new ones
+//			saveService(admin, serviceDTO);
+//			if (serviceDTO.getClaims() != null) {
+//				serviceDTO.getClaims().forEach(claim -> { 
+//					ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceDTO.getServiceId(), claim.getClaim());
+//					if (duplicate == null) {
+//						saveServiceClaim(admin, serviceDTO.getServiceId(), claim);
+//					}
+//				});
+//			}
+//			if (serviceDTO.getScopes() != null) {
+//				serviceDTO.getScopes().forEach(scope -> saveServiceScope(admin, serviceDTO.getServiceId(), scope));
+//			}
+//		}
+//	}
 	
 	/**
 	 * Read all services available

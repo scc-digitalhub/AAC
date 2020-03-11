@@ -56,8 +56,8 @@ public class ClientAppBasic {
 	
 	private String parameters;
 	
-	private int accessTokenValidity;
-	private int refreshTokenValidity;
+	private Integer accessTokenValidity;
+	private Integer refreshTokenValidity;
 	
 	/**
 	 * @return the clientId
@@ -247,17 +247,17 @@ public class ClientAppBasic {
 	public void setOnAfterApprovalWebhook(String onAfterApprovalWebhook) {
 		this.onAfterApprovalWebhook = onAfterApprovalWebhook;
 	}
-    public int getAccessTokenValidity() {
+    public Integer getAccessTokenValidity() {
         return accessTokenValidity;
     }
     public void setAccessTokenValidity(int accessTokenValidity) {
-        this.accessTokenValidity = accessTokenValidity;
+        this.accessTokenValidity = Integer.valueOf(accessTokenValidity);
     }
-    public int getRefreshTokenValidity() {
+    public Integer getRefreshTokenValidity() {
         return refreshTokenValidity;
     }
     public void setRefreshTokenValidity(int refreshTokenValidity) {
-        this.refreshTokenValidity = refreshTokenValidity;
+        this.refreshTokenValidity = Integer.valueOf(refreshTokenValidity);
     }
 	
 	

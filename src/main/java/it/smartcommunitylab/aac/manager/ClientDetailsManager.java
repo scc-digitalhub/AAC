@@ -36,15 +36,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.base.Joiner;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
@@ -151,8 +155,8 @@ public class ClientDetailsManager {
      * @throws Exception
      */
     public ClientAppBasic create(ClientAppBasic appData, Long userId,
-            String clientId, String clientSecret, String clientSecretMobile) throws Exception {
-        return this.create(appData, userId, clientId, clientSecret, clientSecretMobile,
+            String clientId, String clientSecret, String clientSecretMobile) throws IllegalArgumentException {
+        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
                 Config.AUTHORITY.ROLE_CLIENT.toString());
     }
 
@@ -163,8 +167,8 @@ public class ClientDetailsManager {
      * @throws Exception
      */
     public ClientAppBasic createTrusted(ClientAppBasic appData, Long userId,
-            String clientId, String clientSecret, String clientSecretMobile) throws Exception {
-        return this.create(appData, userId, clientId, clientSecret, clientSecretMobile,
+            String clientId, String clientSecret, String clientSecretMobile) throws IllegalArgumentException {
+        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
                 Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
@@ -176,9 +180,10 @@ public class ClientDetailsManager {
      * @return {@link ClientAppBasic} descriptor of the created Client
      * @throws Exception
      */
-    protected ClientAppBasic create(ClientAppBasic appData, Long userId,
-            String clientId, String clientSecret, String clientSecretMobile,
-            String clientAuthorities) throws Exception {
+    protected ClientAppBasic create(String clientId, Long userId,
+            ClientAppBasic appData,
+            String clientSecret, String clientSecretMobile,
+            String clientAuthorities) throws IllegalArgumentException {
         ClientDetailsEntity client = new ClientDetailsEntity();
 
         if (!StringUtils.hasText(clientId)) {
@@ -257,20 +262,118 @@ public class ClientDetailsManager {
      * @param data
      * @return
      */
-    public ClientAppBasic update(String clientId, ClientAppBasic data) {
+    public ClientAppBasic update(String clientId, ClientAppBasic data)
+            throws EntityNotFoundException, IllegalArgumentException {
         ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
         String error = null;
         if ((error = validate(client, data)) != null) {
             throw new IllegalArgumentException(error);
         }
 
-        client = convertFromClientApp(client, data);
-        if (client == null) {
-            logger.error("Problem converting the client");
-            throw new IllegalArgumentException("internal error");
+//        client = convertFromClientApp(client, data);
+//        if (client == null) {
+//            logger.error("Problem converting the client");
+//            throw new IllegalArgumentException("internal error");
+//        }
+//
+//        clientDetailsRepository.save(client);
+//        return convertToClientApp(client);
+
+        return update(clientId, data, null, null, null);
+    }
+
+    /**
+     * Update an existing standard Client from {@link ClientAppBasic} descriptor
+     * 
+     * @param appData
+     * @param userId
+     * @return {@link ClientAppBasic} descriptor of the created Client
+     * @throws Exception
+     */
+    public ClientAppBasic update(String clientId,
+            ClientAppBasic appData,
+            String clientSecret, String clientSecretMobile) throws EntityNotFoundException, IllegalArgumentException {
+        return update(clientId, appData, clientSecret, clientSecretMobile, Config.AUTHORITY.ROLE_CLIENT.toString());
+    }
+
+    /**
+     * Update an existing trusted Client from {@link ClientAppBasic} descriptor
+     * 
+     * @param appData
+     * @param userId
+     * @return {@link ClientAppBasic} descriptor of the created Client
+     * @throws Exception
+     */
+    public ClientAppBasic updateTrusted(String clientId,
+            ClientAppBasic appData,
+            String clientSecret, String clientSecretMobile) throws EntityNotFoundException, IllegalArgumentException {
+        return update(clientId, appData, clientSecret, clientSecretMobile,
+                Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
+    }
+
+    /**
+     * Update an existing Client from {@link ClientAppBasic} descriptor
+     * 
+     * @param appData
+     * @param userId
+     * @return {@link ClientAppBasic} descriptor of the created Client
+     * @throws Exception
+     */
+    protected ClientAppBasic update(String clientId,
+            ClientAppBasic appData,
+            String clientSecret, String clientSecretMobile,
+            String clientAuthorities) throws EntityNotFoundException, IllegalArgumentException {
+
+        if (!StringUtils.hasText(clientId)) {
+            throw new IllegalArgumentException("Client id cannot be empty");
         }
 
-        clientDetailsRepository.save(client);
+        ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+
+        if (client == null) {
+            throw new EntityNotFoundException("client app not found");
+        }
+
+        if (!StringUtils.hasText(appData.getName())) {
+            throw new IllegalArgumentException("An app name cannot be empty");
+        }
+
+        if (appData.getGrantedTypes() != null) {
+            if (!Arrays.asList(GRANT_TYPES).containsAll(appData.getGrantedTypes())) {
+                throw new IllegalArgumentException("Invalid grant types");
+            }
+        }
+
+        // set base fields
+        client.setName(appData.getName());
+
+        if (StringUtils.hasText(clientAuthorities)) {
+            client.setAuthorities(clientAuthorities);
+        }
+        if (StringUtils.hasText(clientSecret)) {
+            client.setClientSecret(clientSecret);
+        }
+        if (StringUtils.hasText(clientSecretMobile)) {
+            client.setClientSecretMobile(clientSecretMobile);
+        }
+        // convert additional fields
+        client = convertFromClientApp(client, appData);
+
+        if (client == null) {
+            throw new IllegalArgumentException("");
+        }
+
+        // always auto-enable internal for trusted clients
+        if (Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString().equals(clientAuthorities)) {
+            ClientAppInfo info = ClientAppInfo.convert(client.getAdditionalInformation());
+            info.getIdentityProviders().put(Config.IDP_INTERNAL, ClientAppInfo.APPROVED);
+            // also update scope approvals
+            info.setScopeApprovals(Collections.<String, Boolean>emptyMap());
+
+            client.setAdditionalInformation(info.toJson());
+        }
+
+        client = clientDetailsRepository.save(client);
         return convertToClientApp(client);
     }
 
@@ -388,8 +491,9 @@ public class ClientDetailsManager {
      */
     public Set<String> getIdentityProviders(String clientId) {
         ClientDetailsEntity entity = clientDetailsRepository.findByClientId(clientId);
-        if (entity == null)
+        if (entity == null) {
             throw new IllegalArgumentException("client not found");
+        }
         ClientAppInfo info = ClientAppInfo.convert(entity.getAdditionalInformation());
         Set<String> res = new HashSet<String>();
         if (info.getIdentityProviders() != null) {
@@ -400,6 +504,51 @@ public class ClientDetailsManager {
             }
         }
         return res;
+    }
+
+    public ClientAppBasic approveClientIdp(String clientId) throws Exception {
+        ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+        if (client == null) {
+            throw new IllegalArgumentException("client app not found");
+        }
+
+        ClientAppInfo info = ClientAppInfo.convert(client.getAdditionalInformation());
+        if (!info.getIdentityProviders().isEmpty()) {
+            for (String key : info.getIdentityProviders().keySet()) {
+                info.getIdentityProviders().put(key, ClientAppInfo.APPROVED);
+            }
+            client.setAdditionalInformation(info.toJson());
+            client = clientDetailsRepository.save(client);
+        }
+        return convertToClientApp(client);
+    }
+
+    public ClientAppBasic approveClientScopes(String clientId) throws Exception {
+        ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+        if (client == null) {
+            throw new IllegalArgumentException("client app not found");
+        }
+
+        ClientAppInfo info = ClientAppInfo.convert(client.getAdditionalInformation());
+        if (info.getScopeApprovals() != null && !info.getScopeApprovals().isEmpty()) {
+            Set<String> newScopeSet = new HashSet<String>();
+            if (client.getScope() != null) {
+                newScopeSet.addAll(client.getScope());
+            }
+            for (String rId : info.getScopeApprovals().keySet()) {
+                ServiceScopeDTO resource = serviceManager.getServiceScopeDTO(rId);
+                newScopeSet.add(resource.getScope());
+            }
+
+            client.setScope(StringUtils.collectionToCommaDelimitedString(newScopeSet));
+            client.setResourceIds(
+                    StringUtils.collectionToCommaDelimitedString(serviceManager.findServiceIdsByScopes(newScopeSet)));
+            info.setScopeApprovals(Collections.<String, Boolean>emptyMap());
+            client.setAdditionalInformation(info.toJson());
+            client = clientDetailsRepository.save(client);
+        }
+
+        return convertToClientApp(client);
     }
 
     /**
@@ -419,6 +568,18 @@ public class ClientDetailsManager {
         ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
         if (client == null) {
             throw new EntityNotFoundException();
+        }
+        return convertToClientApp(client);
+    }
+
+    /**
+     * @param clientId
+     * @return {@link ClientAppBasic} object representing client app
+     */
+    public ClientAppBasic findByClientId(String clientId) {
+        ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
+        if (client == null) {
+            return null;
         }
         return convertToClientApp(client);
     }
@@ -578,7 +739,12 @@ public class ClientDetailsManager {
             }
 
             info.setName(data.getName());
-            info.setDisplayName(data.getDisplayName());
+
+            if (StringUtils.hasText(data.getDisplayName())) {
+                info.setDisplayName(data.getDisplayName());
+            } else {
+                info.setDisplayName(info.getName());
+            }
 
             if (StringUtils.hasText(data.getMobileAppSchema())) {
                 client.setMobileAppSchema(data.getMobileAppSchema());
@@ -613,11 +779,19 @@ public class ClientDetailsManager {
                 }
             }
 
-            info.setClaimMapping(data.getClaimMapping());
+            // update additional fields only if non-null
+            // to reset fields pass an empty string
+            if (data.getClaimMapping() != null) {
+                info.setClaimMapping(data.getClaimMapping());
+            }
 
-            info.setUniqueSpaces(data.getUniqueSpaces());
+            if (data.getUniqueSpaces() != null) {
+                info.setUniqueSpaces(data.getUniqueSpaces());
+            }
 
-            info.setOnAfterApprovalWebhook(data.getOnAfterApprovalWebhook());
+            if (data.getUniqueSpaces() != null) {
+                info.setOnAfterApprovalWebhook(data.getOnAfterApprovalWebhook());
+            }
 
             client.setAdditionalInformation(info.toJson());
 
@@ -625,29 +799,40 @@ public class ClientDetailsManager {
                 client.setRedirectUri(Utils.normalizeValues(data.getRedirectUris()));
             }
 
-            Set<String> types = data.getGrantedTypes();
-            client.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(types));
+            // pass an empty set to reset
+            if (data.getGrantedTypes() != null) {
+                Set<String> types = data.getGrantedTypes();
+                client.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(types));
+            }
+
+            if (data.getScope() != null) {
+                client.setScope(data.getScope());
+            }
 
             if (!StringUtils.isEmpty(data.getScope())) {
-                client.setScope(data.getScope());
                 Set<String> serviceIds = serviceManager.findServiceIdsByScopes(client.getScope());
                 client.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceIds));
             }
 
-            client.setParameters(data.getParameters());
-
-            if (data.getAccessTokenValidity() > 0) {
-                client.setAccessTokenValidity(data.getAccessTokenValidity());
-            } else {
-                client.setAccessTokenValidity(null);
+            if (data.getParameters() != null) {
+                client.setParameters(data.getParameters());
             }
 
-            if (data.getRefreshTokenValidity() > 0) {
-                client.setRefreshTokenValidity(data.getRefreshTokenValidity());
-            } else {
-                client.setRefreshTokenValidity(null);
+            if (data.getAccessTokenValidity() != null) {
+                if (data.getAccessTokenValidity().intValue() > 0) {
+                    client.setAccessTokenValidity(data.getAccessTokenValidity());
+                } else {
+                    client.setAccessTokenValidity(null);
+                }
             }
 
+            if (data.getRefreshTokenValidity() != null) {
+                if (data.getRefreshTokenValidity().intValue() > 0) {
+                    client.setRefreshTokenValidity(data.getRefreshTokenValidity());
+                } else {
+                    client.setRefreshTokenValidity(null);
+                }
+            }
         } catch (Exception e) {
             logger.error("failed to convert an object: " + e.getMessage(), e);
             return null;

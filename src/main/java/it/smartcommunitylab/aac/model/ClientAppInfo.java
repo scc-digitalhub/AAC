@@ -43,7 +43,8 @@ public class ClientAppInfo {
 	
 	private Map<String, Integer> identityProviders;
 	
-	private String scope;
+	//DEPRECATED: unused, TODO remove
+//	private String scope;
 	
 	private Map<String, Map<String, Object>> providerConfigurations;
 	
@@ -59,9 +60,14 @@ public class ClientAppInfo {
 		return mapper.convertValue(map, ClientAppInfo.class);
 	}
 
-	public String toJson() throws Exception {
-		return mapper.writeValueAsString(this);
-	}
+	//TODO make converter static
+    public String toJson() throws IllegalArgumentException {
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
 	
 	/**
 	 * @return the name
@@ -105,13 +111,13 @@ public class ClientAppInfo {
 		this.identityProviders = identityProviders;
 	}
 
-	public String getScope() {
-		return scope;
-	}
-
-	public void setScope(String scope) {
-		this.scope = scope;
-	}
+//	public String getScope() {
+//		return scope;
+//	}
+//
+//	public void setScope(String scope) {
+//		this.scope = scope;
+//	}
 
 	public Map<String, Map<String, Object>> getProviderConfigurations() {
 		return providerConfigurations;
