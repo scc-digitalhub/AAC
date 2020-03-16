@@ -42,6 +42,7 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  * This class manages operations of the service
  * 
  */
+//TODO merge with registrationManager
 @Component
 @Transactional
 public class ProviderServiceAdapter {
@@ -90,6 +91,7 @@ public class ProviderServiceAdapter {
 		return findAndUpdate(auth, attributes);
 	}
 	
+	//TODO rewrite to *only* return User and let updateUser do the update
 	private User findAndUpdate(Authority auth, Map<String, String> attributes) {
 		List<Attribute> list = extractIdentityAttributes(auth, attributes, true);
 
@@ -134,6 +136,7 @@ public class ProviderServiceAdapter {
 	/**
 	 * @param user
 	 */
+	//TODO evaluate removal, why user_claim has a field "username" 
 	private void updateClaims(User user) {
 		if (user.getUsername() == null) return;
 		

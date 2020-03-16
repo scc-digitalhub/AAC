@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -96,8 +97,10 @@ public class ClientDetailsManager {
 //	@Value("${adminClient.redirects:}")
 //	private String[] adminClientRedirects;
 
-    @PostConstruct
+//    @PostConstruct
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void init() {
+        //update resources according to scopes
         clientDetailsRepository.findAll().forEach(c -> {
             Set<String> scope = c.getScope();
             if (scope != null && !scope.isEmpty()) {
@@ -106,6 +109,62 @@ public class ClientDetailsManager {
                 clientDetailsRepository.save(c);
             }
         });
+    }
+
+    /**
+     * Create a new complete Client from params
+     * 
+     * @return {@link ClientAppBasic} descriptor of the created Client
+     * @throws Exception
+     */
+    public ClientAppBasic create(String clientId, Long userId,
+            String clientName, String clientSecret, String clientSecretMobile,
+            String[] grantTypes, String[] scopes,
+            String[] redirectUris) throws IllegalArgumentException {
+
+        // create
+        ClientAppBasic appData = new ClientAppBasic();
+        appData.setName(clientName);
+        appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
+        appData.setScope(StringUtils.arrayToCommaDelimitedString(scopes));
+        appData.setRedirectUris(StringUtils.arrayToCommaDelimitedString(redirectUris));
+        // init providers
+        appData.setIdentityProviderApproval(new HashMap<String, Boolean>());
+        appData.setIdentityProviders(new HashMap<String, Boolean>());
+
+        // always request internal idp
+        appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
+
+        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
+                Config.AUTHORITY.ROLE_CLIENT.toString());
+    }
+
+    /**
+     * Create a new complete Client from params
+     * 
+     * @return {@link ClientAppBasic} descriptor of the created Client
+     * @throws Exception
+     */
+    public ClientAppBasic createTrusted(String clientId, Long userId,
+            String clientName, String clientSecret, String clientSecretMobile,
+            String[] grantTypes, String[] scopes,
+            String[] redirectUris) throws IllegalArgumentException {
+
+        // create
+        ClientAppBasic appData = new ClientAppBasic();
+        appData.setName(clientName);
+        appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
+        appData.setScope(StringUtils.arrayToCommaDelimitedString(scopes));
+        appData.setRedirectUris(StringUtils.arrayToCommaDelimitedString(redirectUris));
+        // init providers
+        appData.setIdentityProviderApproval(new HashMap<String, Boolean>());
+        appData.setIdentityProviders(new HashMap<String, Boolean>());
+
+        // always request internal idp
+        appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
+
+        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
+                Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
     /**
@@ -789,7 +848,7 @@ public class ClientDetailsManager {
                 info.setUniqueSpaces(data.getUniqueSpaces());
             }
 
-            if (data.getUniqueSpaces() != null) {
+            if (data.getOnAfterApprovalWebhook() != null) {
                 info.setOnAfterApprovalWebhook(data.getOnAfterApprovalWebhook());
             }
 

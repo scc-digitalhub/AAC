@@ -25,13 +25,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,8 +77,8 @@ public class ServiceManager {
 	private ServiceClaimRepository claimRepo;
 	@Autowired
 	private ServiceScopeRepository scopeRepo;
-	@Autowired
-	private RoleManager roleManager;
+//	@Autowired
+//	private RoleManager roleManager;
 	
 	/**
 	 * Cache with scope -> claims mapping
@@ -123,28 +124,34 @@ public class ServiceManager {
 				
 			});
 
-	//TODO fix
+
 //	@PostConstruct
-//	public void init() throws Exception {
-//		ServiceDTO[] services = new ObjectMapper().readValue(getClass().getResourceAsStream("services.json"), ServiceDTO[].class);
-//		User admin = roleManager.getAdminUser();
-//		// do not delete obsolete ones: do it via console.
-//		for (ServiceDTO serviceDTO: services) {
-//			// update existing or create new ones
-//			saveService(admin, serviceDTO);
-//			if (serviceDTO.getClaims() != null) {
-//				serviceDTO.getClaims().forEach(claim -> { 
-//					ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceDTO.getServiceId(), claim.getClaim());
-//					if (duplicate == null) {
-//						saveServiceClaim(admin, serviceDTO.getServiceId(), claim);
-//					}
-//				});
-//			}
-//			if (serviceDTO.getScopes() != null) {
-//				serviceDTO.getScopes().forEach(scope -> saveServiceScope(admin, serviceDTO.getServiceId(), scope));
-//			}
-//		}
-//	}
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void init() throws Exception {
+        ServiceDTO[] services = new ObjectMapper().readValue(
+                getClass().getResourceAsStream("services.json"),
+                ServiceDTO[].class);
+        
+        // do not delete obsolete ones: do it via console.
+        for (ServiceDTO serviceDTO : services) {
+            // update existing or create new ones
+            Service service = saveService(serviceDTO);
+            
+            if (serviceDTO.getClaims() != null) {
+                serviceDTO.getClaims().forEach(claim -> {
+                    ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceDTO.getServiceId(),
+                            claim.getClaim());
+                    if (duplicate == null) {
+                        saveServiceClaim(service, claim);
+                    }
+                });
+            }
+            
+            if (serviceDTO.getScopes() != null) {
+                serviceDTO.getScopes().forEach(scope -> saveServiceScope(service, scope));
+            }
+        }
+    }
 	
 	/**
 	 * Read all services available
@@ -212,34 +219,37 @@ public class ServiceManager {
 	 * @param service
 	 * @return
 	 */
-	public ServiceDTO saveService(User user, ServiceDTO dto) {
-		Service service = serviceRepo.findOne(dto.getServiceId().toLowerCase());
-		Set<String> contexts = getUserContexts(user);
-		if (dto.getNamespace() != null) {
-			dto.setNamespace(dto.getNamespace().trim());
-		}
-		
-		if (!contexts.contains(dto.getContext())) {
-			throw new SecurityException("Invalid context: " + dto.getContext());
-		}
-		
-		if (service != null) {
-			// if previous namespace was null (core service), keep that namespace
-			if (service.getNamespace() == null) {
-				dto.setNamespace(null);
-			} 
-		}
-		service = toService(dto);
-		validateServiceData(service);
-		// namespace are unique for services (if defined)
-		if (dto.getNamespace() != null) {
-			Service nsService = serviceRepo.findByNamespace(dto.getNamespace());
-			if (nsService != null && !nsService.getServiceId().equals(service.getServiceId())) {
-				throw new IllegalArgumentException("Duplicate service namespace: " + dto.getNamespace());
-			}
-		}
-		return toDTO(serviceRepo.save(service));
-	}
+    public ServiceDTO saveService(User user, ServiceDTO dto) {
+        Set<String> contexts = getUserContexts(user);
+        if (!contexts.contains(dto.getContext())) {
+            throw new SecurityException("Invalid context: " + dto.getContext());
+        }
+        return toDTO(saveService(dto));
+    }
+
+    private Service saveService(ServiceDTO dto) {
+        Service service = serviceRepo.findOne(dto.getServiceId().toLowerCase());
+        if (dto.getNamespace() != null) {
+            dto.setNamespace(dto.getNamespace().trim());
+        }
+
+        if (service != null) {
+            // if previous namespace was null (core service), keep that namespace
+            if (service.getNamespace() == null) {
+                dto.setNamespace(null);
+            }
+        }
+        service = toService(dto);
+        validateServiceData(service);
+        // namespace are unique for services (if defined)
+        if (dto.getNamespace() != null) {
+            Service nsService = serviceRepo.findByNamespace(dto.getNamespace());
+            if (nsService != null && !nsService.getServiceId().equals(service.getServiceId())) {
+                throw new IllegalArgumentException("Duplicate service namespace: " + dto.getNamespace());
+            }
+        }
+        return serviceRepo.save(service);
+    }
 	
 	/**
 	 * Delete specified service
@@ -296,28 +306,35 @@ public class ServiceManager {
 	 * @return
 	 */
 	public ServiceScopeDTO saveServiceScope(User user, String serviceId, ServiceScopeDTO dto) {
-		serviceId = serviceId.toLowerCase();
-		Service service = serviceRepo.findOne(serviceId.toLowerCase());
-		dto.setServiceId(serviceId);
-		ServiceScope scopeObj = scopeRepo.findOne(dto.getScope().toLowerCase());
-		if (service != null) {
-			Set<String> availableClaims = claimRepo.findByService(serviceId.toLowerCase()).stream().map(c -> c.getClaim()).collect(Collectors.toSet());
-			dto.setClaims(dto.getClaims().stream().filter(c -> availableClaims.contains(c.toLowerCase())).collect(Collectors.toList()));
-			Set<String> contexts = getUserContexts(user);
-			if (!contexts.contains(service.getContext()) || scopeObj != null && !serviceId.toLowerCase().equals(scopeObj.getService().getServiceId())) {
-				throw new SecurityException("Unauthorized operation for scope: " + serviceId +", scope: " + dto.getScope());
-			}
-			ServiceScope scope = toScope(dto);
-			validateScopeData(scope);
-			scope.setService(service);
-			ServiceScope saved = scopeRepo.save(scope);
-			// refresh claim cache
-			resetCache(scope.getScope());
-			return toDTO(saved);
-		} else {
-			throw new SecurityException("Unknown service: " + serviceId);
-		}
+        Service service = serviceRepo.findOne(serviceId.toLowerCase());
+        if (service == null) {
+            throw new SecurityException("Unknown service: " + serviceId);
+        }
+        Set<String> contexts = getUserContexts(user);
+        if (!contexts.contains(service.getContext())) {
+            throw new SecurityException("Unauthorized operation for scope: " + serviceId +", scope: " + dto.getScope());
+        }
+	    
+        return toDTO(saveServiceScope(service, dto));
 	}
+	
+    private ServiceScope saveServiceScope(Service service, ServiceScopeDTO dto) {
+        String serviceId = service.getServiceId();
+        dto.setServiceId(serviceId);
+        ServiceScope scopeObj = scopeRepo.findOne(dto.getScope().toLowerCase());
+        Set<String> availableClaims = claimRepo.findByService(serviceId.toLowerCase()).stream().map(c -> c.getClaim()).collect(Collectors.toSet());
+        dto.setClaims(dto.getClaims().stream().filter(c -> availableClaims.contains(c.toLowerCase())).collect(Collectors.toList()));
+        if (scopeObj != null && !serviceId.toLowerCase().equals(scopeObj.getService().getServiceId())) {
+            throw new SecurityException("Unauthorized operation for scope: " + serviceId +", scope: " + dto.getScope());
+        }
+        ServiceScope scope = toScope(dto);
+        validateScopeData(scope);
+        scope.setService(service);
+        ServiceScope saved = scopeRepo.save(scope);
+        // refresh claim cache
+        resetCache(scope.getScope());
+        return saved;
+    }	
 
 	/**
 	 * Save service scope definition
@@ -326,38 +343,47 @@ public class ServiceManager {
 	 * @param scope
 	 * @return
 	 */
-	public ServiceClaimDTO saveServiceClaim(User user, String serviceId, ServiceClaimDTO dto) {
-		Service service = serviceRepo.findOne(serviceId.toLowerCase());
-		ServiceClaim old = null;
-		if (dto.getClaimId() != null) old = claimRepo.findOne(dto.getClaimId());
-		ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceId, dto.getClaim());
-		if (duplicate != null && (old == null || !old.getClaimId().equals(duplicate.getClaimId()))) {
-			throw new IllegalArgumentException("Duplicate claim for service: " + serviceId +", claim: " + dto.getClaim());
-		}
-		
-		if (service != null) {
-			dto.setServiceId(serviceId);
-			Set<String> contexts = getUserContexts(user);
-			if (!contexts.contains(service.getContext())) {
-				throw new SecurityException("Unauthorized operation for claim: " + serviceId +", claim: " + dto.getClaim());
-			}
-			ServiceClaim claim = toClaim(dto);
-			claim.setService(service);
-			if (old != null) {
-				claim.setClaimId(old.getClaimId());
-			}
-			validateClaimData(claim);
-			ServiceClaim saved = claimRepo.save(claim);
-			getServiceScopes(serviceId)
-				.stream()
-				.forEach(s -> resetCache(s.getScope()));
+    public ServiceClaimDTO saveServiceClaim(User user, String serviceId, ServiceClaimDTO dto) {
+        Service service = serviceRepo.findOne(serviceId.toLowerCase());
+        if (service == null) {
+            throw new SecurityException("Unknown service: " + serviceId);
+        }
+        Set<String> contexts = getUserContexts(user);
+        if (!contexts.contains(service.getContext())) {
+            throw new SecurityException(
+                    "Unauthorized operation for claim: " + serviceId + ", claim: " + dto.getClaim());
+        }
 
-			return toDTO(saved);
-		} else {
-			throw new SecurityException("Unknown service: " + serviceId);
-		}
-	}
+        return toDTO(saveServiceClaim(service, dto));
 
+    }
+	
+    private ServiceClaim saveServiceClaim(Service service, ServiceClaimDTO dto) {
+        String serviceId = service.getServiceId();
+        ServiceClaim old = null;
+        if (dto.getClaimId() != null) old = claimRepo.findOne(dto.getClaimId());
+        ServiceClaim duplicate = claimRepo.findByServiceAndClaim(serviceId, dto.getClaim());
+        if (duplicate != null && (old == null || !old.getClaimId().equals(duplicate.getClaimId()))) {
+            throw new IllegalArgumentException("Duplicate claim for service: " + serviceId +", claim: " + dto.getClaim());
+        }
+        
+        dto.setServiceId(serviceId);
+
+        ServiceClaim claim = toClaim(dto);
+        claim.setService(service);
+        if (old != null) {
+            claim.setClaimId(old.getClaimId());
+        }
+        validateClaimData(claim);
+        ServiceClaim saved = claimRepo.save(claim);
+        //refresh cache
+        getServiceScopes(serviceId)
+            .stream()
+            .forEach(s -> resetCache(s.getScope()));
+
+        return saved;  
+    }
+    
 	/**
 	 * Delete specified scope
 	 * @param user
