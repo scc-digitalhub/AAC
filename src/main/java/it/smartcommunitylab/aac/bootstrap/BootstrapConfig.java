@@ -79,6 +79,9 @@ public class BootstrapConfig {
         private String[] grantTypes;
         private String[] scopes;
         private String[] redirectUris;
+        private String[] uniqueSpaces;
+        private String claimMappingFunction;
+        private String afterApprovalWebhook;
         private boolean isTrusted;
 
         public String getId() {
@@ -127,6 +130,30 @@ public class BootstrapConfig {
 
         public void setRedirectUris(String[] redirectUris) {
             this.redirectUris = redirectUris;
+        }
+
+        public String[] getUniqueSpaces() {
+            return uniqueSpaces;
+        }
+
+        public void setUniqueSpaces(String[] uniqueSpaces) {
+            this.uniqueSpaces = uniqueSpaces;
+        }
+
+        public String getClaimMappingFunction() {
+            return claimMappingFunction;
+        }
+
+        public void setClaimMappingFunction(String claimMappingFunction) {
+            this.claimMappingFunction = claimMappingFunction;
+        }
+
+        public String getAfterApprovalWebhook() {
+            return afterApprovalWebhook;
+        }
+
+        public void setAfterApprovalWebhook(String afterApprovalWebhook) {
+            this.afterApprovalWebhook = afterApprovalWebhook;
         }
 
         public boolean isTrusted() {
