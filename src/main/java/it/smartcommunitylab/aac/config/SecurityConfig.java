@@ -76,9 +76,9 @@ import org.springframework.web.filter.CorsFilter;
 import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.auth.cie.FileEmailIdentitySource;
+import it.smartcommunitylab.aac.auth.cie.IdentitySource;
 import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.manager.FileEmailIdentitySource;
-import it.smartcommunitylab.aac.manager.IdentitySource;
 import it.smartcommunitylab.aac.manager.OAuth2ClientDetailsProviderImpl;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
