@@ -40,6 +40,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.auth.cie.IdentitySource;
 import it.smartcommunitylab.aac.model.UserCertificate;
 import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.UserCertificateRepository;
