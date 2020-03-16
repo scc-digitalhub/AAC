@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import it.smartcommunitylab.aac.model.Attribute;
@@ -33,21 +36,32 @@ import it.smartcommunitylab.aac.model.User;
  */
 public class UserRepositoryImpl implements UserRepositoryCustom {
 
-	@Autowired
-	private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	@Override
-	public List<User> getUsersByAttributes(List<Attribute> list) {
-		Map<Long,User> userMap = new HashMap<Long, User>();
-		for (Attribute a : list) {
-			List<User> attrUsers = userRepository.findByAttributeEntities(a.getAuthority().getName(), a.getKey(), a.getValue());
-			if (attrUsers != null) {
-				for (User u : attrUsers) {
-					userMap.put(u.getId(), u);
-				}
-			}
-		}
-		return new ArrayList<User>(userMap.values());
-	}
+    @Autowired
+    private EntityManager entityManager;
+
+    public void insertAsNew(Long id, String name) {
+        entityManager.createNativeQuery("INSERT INTO user (id, name) VALUES (?,?)")
+                .setParameter(1, id)
+                .setParameter(2, name)
+                .executeUpdate();
+    }
+
+    @Override
+    public List<User> getUsersByAttributes(List<Attribute> list) {
+        Map<Long, User> userMap = new HashMap<Long, User>();
+        for (Attribute a : list) {
+            List<User> attrUsers = userRepository.findByAttributeEntities(a.getAuthority().getName(), a.getKey(),
+                    a.getValue());
+            if (attrUsers != null) {
+                for (User u : attrUsers) {
+                    userMap.put(u.getId(), u);
+                }
+            }
+        }
+        return new ArrayList<User>(userMap.values());
+    }
 
 }

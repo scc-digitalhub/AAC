@@ -28,6 +28,8 @@ public class Config {
 
 	public static final String DEFAULT_LANG = "en";
 	
+	public static final long ADMIN_ID = 0l;
+	
 	/** User name attribute alias */
 	public static final String NAME_ATTR = "it.smartcommunitylab.aac.givenname";
 	/** User surname attribute alias */

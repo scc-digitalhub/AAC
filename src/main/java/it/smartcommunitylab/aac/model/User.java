@@ -69,6 +69,7 @@ public class User implements Serializable {
 	public User() {
 		super();
 		this.roles = Sets.newHashSet();
+		this.attributeEntities = Sets.newHashSet();
 	}
 	
 	

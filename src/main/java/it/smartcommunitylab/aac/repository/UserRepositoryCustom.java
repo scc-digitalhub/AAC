@@ -13,5 +13,6 @@ import it.smartcommunitylab.aac.model.User;
 public interface UserRepositoryCustom {
 
 	List<User> getUsersByAttributes(List<Attribute> list);
-
+	
+    public void insertAsNew(Long id, String name);
 }
