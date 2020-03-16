@@ -24,21 +24,25 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.test.openid.OpenidUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
+        "oauth2.jwt=false",
+        "oauth2.resourceOwnerPassword.allowRefresh=true" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class PasswordGrantTest {
+public class PasswordGrantTest extends OAuth2BaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -55,50 +59,13 @@ public class PasswordGrantTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
+    public final static String[] SCOPES = { "profile" };
 
-    @Autowired
-    private RegistrationManager registrationManager;
-
-    private static ClientDetails client;
-
-    private static User user;
-
-    private final String testUserName = "passwordtest@test.local";
-    private final String testPassword = "passw123";
-
-    private final static String SCOPE = "profile";
-
-    private final static String[] GRANT_TYPES = { "password", "refresh_token" };
+    public final static String[] GRANT_TYPES = { "password", "refresh_token" };
 
     @Before
     public void init() {
-        String endpoint = server + ":" + port;
-        if (user == null) {
-            try {
-                user = createUser(testUserName, testPassword, "TestName", "TestSurname");
-            } catch (Exception e) {
-                e.printStackTrace();
-                user = null;
-            }
-        }
-
-        if (client == null && user != null) {
-            try {
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        user.getId(),
-                        String.join(",", GRANT_TYPES), new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
-
+        super.init();
     }
 
     @After
@@ -108,6 +75,9 @@ public class PasswordGrantTest {
     @Test
     public void passwordGrantTestWithBasicAuth()
             throws Exception {
+
+        User user = getUser();
+        ClientAppBasic client = getClient();
 
         logger.debug("password grant (with basic auth) with client " + client.getClientId() + " and user "
                 + user.getUsername());
@@ -132,9 +102,9 @@ public class PasswordGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", "password");
-        map.add("username", testUserName);
-        map.add("password", testPassword);
-        map.add("scope", SCOPE);
+        map.add("username", getUserName());
+        map.add("password", getUserPassword());
+        map.add("scope", String.join(" ", SCOPES));
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -165,7 +135,9 @@ public class PasswordGrantTest {
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
 
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
@@ -174,6 +146,9 @@ public class PasswordGrantTest {
     @Test
     public void passwordGrantTestWithFormAuth()
             throws Exception {
+
+        User user = getUser();
+        ClientAppBasic client = getClient();
 
         logger.debug("password grant (with form auth) with client " + client.getClientId() + " and user "
                 + user.getUsername());
@@ -191,9 +166,9 @@ public class PasswordGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", "password");
-        map.add("username", testUserName);
-        map.add("password", testPassword);
-        map.add("scope", SCOPE);
+        map.add("username", getUserName());
+        map.add("password", getUserPassword());
+        map.add("scope", String.join(" ", SCOPES));
         // add client credentials in form
         map.add("client_id", clientId);
         map.add("client_secret", client.getClientSecret());
@@ -228,7 +203,9 @@ public class PasswordGrantTest {
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
 
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
@@ -237,6 +214,9 @@ public class PasswordGrantTest {
     @Test
     public void passwordGrantTestWithNoAuth()
             throws Exception {
+
+        User user = getUser();
+        ClientAppBasic client = getClient();
 
         logger.debug("password grant (with no auth) with client " + client.getClientId() + " and user "
                 + user.getUsername());
@@ -254,9 +234,9 @@ public class PasswordGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", "password");
-        map.add("username", testUserName);
-        map.add("password", testPassword);
-        map.add("scope", SCOPE);
+        map.add("username", getUserName());
+        map.add("password", getUserPassword());
+        map.add("scope", String.join(" ", SCOPES));
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -276,6 +256,9 @@ public class PasswordGrantTest {
     public void passwordGrantTestWithNoSecret()
             throws Exception {
 
+        User user = getUser();
+        ClientAppBasic client = getClient();
+
         logger.debug("password grant (with no secret) with client " + client.getClientId() + " and user "
                 + user.getUsername());
 
@@ -292,9 +275,9 @@ public class PasswordGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", "password");
-        map.add("username", testUserName);
-        map.add("password", testPassword);
-        map.add("scope", SCOPE);
+        map.add("username", getUserName());
+        map.add("password", getUserPassword());
+        map.add("scope", String.join(" ", SCOPES));
         map.add("client_id", client.getClientId());
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
@@ -314,6 +297,9 @@ public class PasswordGrantTest {
     @Test
     public void passwordGrantTestWithWrongAuth()
             throws Exception {
+
+        User user = getUser();
+        ClientAppBasic client = getClient();
 
         logger.debug("password grant (with wrong auth) with client " + client.getClientId() + " and user "
                 + user.getUsername());
@@ -338,9 +324,9 @@ public class PasswordGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", "password");
-        map.add("username", testUserName);
-        map.add("password", testPassword);
-        map.add("scope", SCOPE);
+        map.add("username", getUserName());
+        map.add("password", getUserPassword());
+        map.add("scope", String.join(" ", SCOPES));
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -359,9 +345,13 @@ public class PasswordGrantTest {
     /*
      * Helpers
      */
-    private User createUser(String userName, String password, String name, String surname) {
-        // username == email
-        return registrationManager.registerOffline(name, surname, userName, password, null, false, null);
+    @Override
+    protected String[] getScopes() {
+        return SCOPES;
+    }
 
+    @Override
+    protected String[] getGrantTypes() {
+        return GRANT_TYPES;
     }
 }

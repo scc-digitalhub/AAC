@@ -42,6 +42,7 @@ import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
@@ -92,7 +93,8 @@ public class APIKeyControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
 
         logger.debug("create user");
-        user = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
+        Registration reg = registrationManager.registerOffline("NAME", "SURNAME", USERNAME, "password", null, false, null);
+        user = userRepository.findOne(Long.parseLong(reg.getUserId()));
         userRepository.save(user);
 
         client = clientDetailsRepository.findByClientId(TEST);

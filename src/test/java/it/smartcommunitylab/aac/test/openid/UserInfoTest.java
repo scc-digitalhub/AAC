@@ -36,6 +36,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -46,7 +47,7 @@ import it.smartcommunitylab.aac.test.utils.TestUtils;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class UserInfoTest {
+public class UserInfoTest extends OpenidBaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -63,69 +64,32 @@ public class UserInfoTest {
     @Value("${application.url}")
     private String applicationURL;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RegistrationManager registrationManager;
-
     private String sessionId;
 
-    private ClientDetails client;
-
-    private User user;
-
-    private final String testUserName = "userinfotest@test.local";
-    private final String testPassword = "passw123";
+    private static String testUserFirstName;
+    private static String testUserLastName;
 
     private final static String[] SCOPES = { "openid", "profile", "email" };
+
+    public final static String GRANT_TYPE = "authorization_code";
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
-        if (user == null) {
-            try {
-                user = createUser(testUserName, testPassword, "TestName", "TestSurname");
-            } catch (Exception e) {
-                e.printStackTrace();
-                user = null;
-            }
-        }
-
-        logger.trace("user is " + String.valueOf(user));
-
-        if (client == null && user != null) {
-            try {
-
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        user.getId(),
-                        "authorization_code", SCOPES,
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
-
-        logger.trace("client is " + String.valueOf(client));
+        super.init();
 
         if (StringUtils.isEmpty(sessionId)) {
-            // login and validate session
-            sessionId = TestUtils.login(restTemplate, endpoint, testUserName, testPassword);
-        }
+            logger.error("session is null, create");
 
-        logger.trace("sessionId is " + String.valueOf(sessionId));
+            // login and validate session
+            sessionId = TestUtils.login(restTemplate, endpoint, getUserName(), getUserPassword());
+        }
 
     }
 
     @After
     public void cleanup() {
+        sessionId = null;
     }
 
     @Test
@@ -133,6 +97,9 @@ public class UserInfoTest {
             throws RestClientException, UnsupportedEncodingException, NoSuchAlgorithmException,
             InvalidKeySpecException, ParseException, JOSEException {
         logger.debug("fetchUserInfo");
+
+        User user = getUser();
+        ClientAppBasic client = getClient();
 
         // check context
         Assert.assertNotNull(user);
@@ -216,9 +183,32 @@ public class UserInfoTest {
     /*
      * Helpers
      */
-    private User createUser(String userName, String password, String name, String surname) {
-        // username == email
-        return registrationManager.registerOffline(name, surname, userName, password, null, false, null);
-
+    @Override
+    protected String[] getScopes() {
+        return SCOPES;
     }
+
+    @Override
+    protected String[] getGrantTypes() {
+        return new String[] { GRANT_TYPE };
+    }
+
+    @Override
+    protected String getUserFirstName() {
+        if (testUserFirstName == null) {
+            testUserFirstName = UUID.randomUUID().toString();
+        }
+
+        return testUserFirstName;
+    }
+
+    @Override
+    protected String getUserLastName() {
+        if (testUserLastName == null) {
+            testUserLastName = UUID.randomUUID().toString();
+        }
+
+        return testUserLastName;
+    }
+
 }

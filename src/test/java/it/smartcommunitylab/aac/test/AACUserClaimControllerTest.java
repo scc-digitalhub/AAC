@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.Config.CLAIM_TYPE;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.UserClaimProfileDTO;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -160,7 +161,9 @@ public class AACUserClaimControllerTest extends OAuth2AwareControllerTest {
 
 		// TODO complete: register user and read by id
 		// register user
-		User user2 = registrationManager.registerOffline("NAME", "SURNAME", TEST_USER_2, "password", null, false, null);
+		Registration reg2 = registrationManager.registerOffline("NAME", "SURNAME", TEST_USER_2, "password", null, false, null);
+		User user2 = userRepository.findOne(Long.parseLong(reg2.getUserId()));
+
 		request = MockMvcRequestBuilders.get("/api/claims/{serviceId}/{userId}", TEST_SERVICE_ID, user2.getId())
 				.contentType(MediaType.APPLICATION_JSON).header("Authorization", userToken);
 		result = mockMvc.perform(request).andExpect(MockMvcResultMatchers.status().is2xxSuccessful())

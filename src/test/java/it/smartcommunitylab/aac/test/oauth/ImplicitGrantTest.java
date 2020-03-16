@@ -23,24 +23,25 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import it.smartcommunitylab.aac.manager.ClientDetailsManager;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.test.openid.OpenidUtils;
 import it.smartcommunitylab.aac.test.utils.TestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class ImplicitGrantTest {
+public class ImplicitGrantTest extends OAuth2BaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -54,63 +55,37 @@ public class ImplicitGrantTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
     private static String sessionId;
 
-    private static ClientDetails client;
+    public final static String[] SCOPES = { "profile" };
 
-    private final static String SCOPE = "profile";
-
-    private final static String GRANT_TYPE = "implicit";
+    public final static String[] GRANT_TYPES = { "implicit" };
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
-        if (client == null) {
-            try {
-
-                User admin = userRepository.findByUsername(adminUsername);
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        admin.getId(),
-                        GRANT_TYPE, new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
+        super.init();
 
         if (StringUtils.isEmpty(sessionId)) {
             // login and validate session
-            sessionId = TestUtils.login(restTemplate, endpoint, adminUsername, adminPassword);
+            sessionId = TestUtils.login(restTemplate, endpoint, getUserName(), getUserPassword());
         }
 
     }
 
     @After
     public void cleanup() {
+        sessionId = null;
     }
 
     @Test
     public void implicitGrantWithTokenAsFragment()
             throws Exception {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("implicit grant (as fragment) with client " + client.getClientId() + " and user session "
                 + sessionId);
@@ -134,7 +109,7 @@ public class ImplicitGrantTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=token"
                         + "&response_mode=fragment"
                         + "&state=" + state,
@@ -158,7 +133,9 @@ public class ImplicitGrantTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "token");
         Assert.assertEquals(parameters.getFirst("response_mode"), "fragment");
         Assert.assertEquals(parameters.getFirst("state"), state);
@@ -205,4 +182,16 @@ public class ImplicitGrantTest {
 
     }
 
+    /*
+     * Helpers
+     */
+    @Override
+    protected String[] getScopes() {
+        return SCOPES;
+    }
+
+    @Override
+    protected String[] getGrantTypes() {
+        return GRANT_TYPES;
+    }
 }
