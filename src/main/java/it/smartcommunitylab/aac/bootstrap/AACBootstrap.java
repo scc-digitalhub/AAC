@@ -27,8 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mchange.v1.util.ArrayUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig.BootstrapClient;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig.BootstrapUser;
+import it.smartcommunitylab.aac.bootstrap.BootstrapClient;
+import it.smartcommunitylab.aac.bootstrap.BootstrapUser;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
@@ -50,6 +50,9 @@ import it.smartcommunitylab.aac.repository.UserRepository;
 @Component
 public class AACBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Value("${admin.username}")
+    private String adminUsername;
 
     @Autowired
     private UserManager userManager;
@@ -93,8 +96,10 @@ public class AACBootstrap {
         /*
          * Admin
          */
-        Long userId = Long.valueOf(Config.ADMIN_ID);
-        final User admin = userManager.findOne(userId);
+//        Long userId = Long.valueOf(Config.ADMIN_ID);
+//        final User admin = userManager.findOne(userId);
+        final User admin = userManager.getUserByUsername(adminUsername);
+
         logger.trace("admin user id " + String.valueOf(admin.getId()));
 
         // DEPRECATE admin client, let regular bootstrap handle it
@@ -155,6 +160,7 @@ public class AACBootstrap {
                 }
 
                 if (developerId != null) {
+                    String clientName = StringUtils.hasText(bc.getName()) ? bc.getName() : bc.getId();
                     // only clients owned by admin can be trusted
                     boolean isTrusted = false;
                     if (bc.isTrusted() && developerId == admin.getId()) {
@@ -170,7 +176,7 @@ public class AACBootstrap {
                     }
 
                     ClientAppBasic c = createClient(developerId,
-                            bc.getId(), bc.getId(),
+                            bc.getId(), clientName,
                             bc.getSecret(), bc.getSecret(),
                             bc.getGrantTypes(), bc.getScopes(), bc.getRedirectUris(),
                             bc.getUniqueSpaces(), claimMappingCode, bc.getAfterApprovalWebhook(),
@@ -308,7 +314,7 @@ public class AACBootstrap {
             String clientSecret, String clientSecretMobile,
             String[] grantTypes,
             String[] scopes,
-            String[] redirects,
+            String[] redirectUris,
             String[] uniqueSpaces,
             String claimMappingFunction,
             String afterApprovalWebhook,
@@ -320,11 +326,11 @@ public class AACBootstrap {
             if (isTrusted) {
                 client = clientManager.createTrusted(clientId, ownerId,
                         clientName, clientSecret, clientSecretMobile,
-                        grantTypes, scopes, redirects);
+                        grantTypes, scopes, redirectUris);
             } else {
                 client = clientManager.create(clientId, ownerId,
                         clientName, clientSecret, clientSecretMobile,
-                        grantTypes, scopes, redirects);
+                        grantTypes, scopes, redirectUris);
             }
 //            // create
 //            ClientAppBasic appData = new ClientAppBasic();
@@ -353,9 +359,15 @@ public class AACBootstrap {
             // update basic
             ClientAppBasic appData = client;
             appData.setName(clientName);
-            appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
-            appData.setScope(StringUtils.arrayToCommaDelimitedString(scopes));
-            appData.setRedirectUris(StringUtils.arrayToCommaDelimitedString(redirects));
+            if (grantTypes != null) {
+                appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
+            }
+            if (scopes != null) {
+                appData.setScope(new HashSet<>(Arrays.asList((scopes))));
+            }
+            if (redirectUris != null) {
+                appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
+            }
 
             // always enable internal idp
             appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
