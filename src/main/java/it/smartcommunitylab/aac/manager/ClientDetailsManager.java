@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -100,7 +101,7 @@ public class ClientDetailsManager {
 //    @PostConstruct
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void init() {
-        //update resources according to scopes
+        // update resources according to scopes
         clientDetailsRepository.findAll().forEach(c -> {
             Set<String> scope = c.getScope();
             if (scope != null && !scope.isEmpty()) {
@@ -125,9 +126,15 @@ public class ClientDetailsManager {
         // create
         ClientAppBasic appData = new ClientAppBasic();
         appData.setName(clientName);
-        appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
-        appData.setScope(StringUtils.arrayToCommaDelimitedString(scopes));
-        appData.setRedirectUris(StringUtils.arrayToCommaDelimitedString(redirectUris));
+        if (grantTypes != null) {
+            appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
+        }
+        if (scopes != null) {
+            appData.setScope(new HashSet<>(Arrays.asList((scopes))));
+        }
+        if (redirectUris != null) {
+            appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
+        }
         // init providers
         appData.setIdentityProviderApproval(new HashMap<String, Boolean>());
         appData.setIdentityProviders(new HashMap<String, Boolean>());
@@ -153,9 +160,15 @@ public class ClientDetailsManager {
         // create
         ClientAppBasic appData = new ClientAppBasic();
         appData.setName(clientName);
-        appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
-        appData.setScope(StringUtils.arrayToCommaDelimitedString(scopes));
-        appData.setRedirectUris(StringUtils.arrayToCommaDelimitedString(redirectUris));
+        if (grantTypes != null) {
+            appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
+        }
+        if (scopes != null) {
+            appData.setScope(new HashSet<>(Arrays.asList((scopes))));
+        }
+        if (redirectUris != null) {
+            appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
+        }
         // init providers
         appData.setIdentityProviderApproval(new HashMap<String, Boolean>());
         appData.setIdentityProviders(new HashMap<String, Boolean>());
@@ -196,10 +209,13 @@ public class ClientDetailsManager {
         entity.setAuthorizedGrantTypes(StringUtils.arrayToCommaDelimitedString(defaultGrantTypes()));
         entity.setDeveloperId(userId);
         entity.setClientSecret(generateClientSecret());
-        entity.setScope(appData.getScope());
+        if (appData.getScope() != null) {
+            entity.setScope(StringUtils.collectionToCommaDelimitedString(appData.getScope()));
+        }
         entity.setClientSecretMobile(generateClientSecret());
         entity.setParameters(appData.getParameters());
-
+        entity.setRedirectUri("");
+        
         entity = clientDetailsRepository.save(entity);
         return convertToClientApp(entity);
 
@@ -277,6 +293,11 @@ public class ClientDetailsManager {
         client.setDeveloperId(userId);
         client.setClientSecret(clientSecret);
         client.setClientSecretMobile(clientSecretMobile);
+
+        // init fields
+        client.setScope("");
+        client.setRedirectUri("");
+        client.setAuthorizedGrantTypes("");
 
         // convert additional fields
         client = convertFromClientApp(client, appData);
@@ -499,7 +520,7 @@ public class ClientDetailsManager {
         }
         // for server-side or native access redirect URLs are required
         if ((data.hasServerSideAccess() || data.isNativeAppsAccess())
-                && (data.getRedirectUris() == null || data.getRedirectUris().trim().isEmpty())) {
+                && (data.getRedirectUris() == null || CollectionUtils.isEmpty(data.getRedirectUris()))) {
             return "redirect URL is required for Server-side or native access";
         }
 //		if (data.isNativeAppsAccess() && (data.getNativeAppSignatures() == null || data.getNativeAppSignatures().isEmpty())) {
@@ -538,7 +559,7 @@ public class ClientDetailsManager {
         } else {
             client.setClientSecret(generateClientSecret());
         }
-        clientDetailsRepository.save(client);
+        client = clientDetailsRepository.save(client);
         return client;
     }
 
@@ -651,6 +672,8 @@ public class ClientDetailsManager {
      * @return {@link ClientAppBasic} descriptor of the created Client
      * @throws Exception
      */
+    // TODO remove if not needed
+    @Deprecated
     public ClientAppBasic createOrUpdate(ClientAppBasic appData, Long userId) throws Exception {
         ClientDetailsEntity entity = new ClientDetailsEntity();
         ClientAppInfo info = new ClientAppInfo();
@@ -675,7 +698,7 @@ public class ClientDetailsManager {
         entity.setAuthorizedGrantTypes(StringUtils.arrayToCommaDelimitedString(defaultGrantTypes()));
         entity.setDeveloperId(userId);
         entity.setClientSecret(generateClientSecret());
-        entity.setScope(appData.getScope());
+        entity.setScope(StringUtils.collectionToCommaDelimitedString(appData.getScope()));
         entity.setClientSecretMobile(generateClientSecret());
         entity.setParameters(appData.getParameters());
 
@@ -697,6 +720,7 @@ public class ClientDetailsManager {
         res.setClientSecret(e.getClientSecret());
         res.setClientSecretMobile(e.getClientSecretMobile());
         res.setGrantedTypes(e.getAuthorizedGrantTypes());
+        // TODO write username instead of id, add field
         res.setUserName(e.getDeveloperId().toString());
 
         // approval status
@@ -710,7 +734,7 @@ public class ClientDetailsManager {
 
         res.setName(e.getName());
         res.setDisplayName(res.getName());
-        res.setScope(Joiner.on(",").join(e.getScope()));
+        res.setScope(e.getScope());
         res.setParameters(e.getParameters());
         res.setMobileAppSchema(e.getMobileAppSchema());
 
@@ -743,7 +767,7 @@ public class ClientDetailsManager {
             res.setOnAfterApprovalWebhook(info.getOnAfterApprovalWebhook());
         }
 
-        res.setRedirectUris(StringUtils.collectionToCommaDelimitedString(e.getRegisteredRedirectUri()));
+        res.setRedirectUris(e.getRegisteredRedirectUri());
 
         if (e.getAccessTokenValiditySeconds() != null) {
             res.setAccessTokenValidity(e.getAccessTokenValiditySeconds());
@@ -855,7 +879,8 @@ public class ClientDetailsManager {
             client.setAdditionalInformation(info.toJson());
 
             if (data.getRedirectUris() != null) {
-                client.setRedirectUri(Utils.normalizeValues(data.getRedirectUris()));
+                client.setRedirectUri(
+                        Utils.normalizeValues(StringUtils.collectionToCommaDelimitedString(data.getRedirectUris())));
             }
 
             // pass an empty set to reset
@@ -865,7 +890,7 @@ public class ClientDetailsManager {
             }
 
             if (data.getScope() != null) {
-                client.setScope(data.getScope());
+                client.setScope(Utils.normalizeValues(StringUtils.collectionToCommaDelimitedString(data.getScope())));
             }
 
             if (!StringUtils.isEmpty(data.getScope())) {

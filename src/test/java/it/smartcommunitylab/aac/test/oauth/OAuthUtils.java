@@ -88,7 +88,7 @@ public class OAuthUtils {
         String clientId = client.getClientId();
         String state = RandomStringUtils.random(5, true, true);
         // redirect does not need urlEncoding because there are no parameters
-        String redirectURL = StringUtils.commaDelimitedListToStringArray(client.getRedirectUris())[0];
+        String redirectURL = client.getRedirectUris().iterator().next();
 
         // manually build URI to avoid sketchy (wrong) resttemplate urlEncoding of
         // queryString
