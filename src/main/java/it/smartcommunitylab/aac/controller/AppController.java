@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +50,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.representer.Representer;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apikey.manager.APIKeyManager;
+import it.smartcommunitylab.aac.bootstrap.BootstrapClient;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.YamlUtils;
 import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
@@ -165,6 +175,36 @@ public class AppController {
 
         return response;
     }
+    
+    @RequestMapping("/dev/apps/{clientId}/yaml")
+    public void saveAppYaml(@PathVariable String clientId, HttpServletResponse response ) throws IOException  {
+        // read the app associated to the client
+        ClientAppBasic app = clientDetailsAdapter.getByClientId(clientId);
+        if (!app.getUserName().equals(userManager.getUserId().toString())) {
+            throw new AccessDeniedException("Unauthorized");
+        } else {
+           BootstrapClient bc = BootstrapClient.fromClientApp(app);
+           
+           //TODO fix in clientDetailsApp
+           //we need to resolve username since it contains the id
+           User developer = userManager.getOne(Long.parseLong(app.getUserName()));
+           bc.setDeveloper(developer.getUsername());
+           
+           
+           Yaml yaml = YamlUtils.getInstance(true, BootstrapClient.class);
+           String res = yaml.dump(bc);
+           
+           //write as file
+           response.setContentType("text/yaml");
+           response.setHeader("Content-Disposition","attachment;filename="+bc.getName()+".yaml");
+           ServletOutputStream out = response.getOutputStream();
+           out.print(res);
+           out.flush();
+           out.close();
+        }
+
+    }
+
 
     /**
      * create a new client app given a container with the name only
@@ -183,7 +223,18 @@ public class AppController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/dev/apps/{clientId}")
     public @ResponseBody Response resetClientData(@PathVariable String clientId, @RequestParam String reset) {
-        return reset(clientId, "clientSecretMobile".equals(reset));
+        Response response = Response.error("unsupported reset for param " + String.valueOf(reset));
+
+        switch (reset) {
+        case "clientSecret":
+            response = resetSecret(clientId, false);
+            break;
+        case "clientSecretMobile":
+            response = resetSecret(clientId, true);
+            break;
+
+        }
+        return response;
     }
 
     /**
@@ -195,7 +246,7 @@ public class AppController {
      * @return {@link Response} entity containing the stored app
      *         {@link ClientAppBasic} descriptor
      */
-    protected Response reset(String clientId, boolean resetClientSecretMobile) {
+    protected Response resetSecret(String clientId, boolean resetClientSecretMobile) {
         Response response = new Response();
         userManager.checkClientIdOwnership(clientId);
         if (resetClientSecretMobile) {
@@ -350,6 +401,14 @@ public class AppController {
         return Response.error(builder.toString());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processIllegalError(IllegalArgumentException ex) {       
+        logger.error(ex.getMessage());
+        return Response.error(ex.getMessage());
+    }
+    
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
