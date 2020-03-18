@@ -68,6 +68,9 @@ public class RegistrationManager {
 
     @Value("${application.url}")
     private String applicationURL;
+    
+    @Value("${admin.username}")
+    private String adminUsername;
 
     @Value("${admin.password}")
     private String adminPassword;
@@ -91,9 +94,9 @@ public class RegistrationManager {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void init() throws Exception {
         // create admin as superuser
-        Long id = Config.ADMIN_ID;
-        User user = userRepository.findOne(id);
-
+        User user = userRepository.findByUsername(adminUsername);
+        Long id = user.getId();
+        
         logger.debug("create admin registration for " + user.getUsername());
 
         Registration admin = getUserByUserId(Long.toString(id));

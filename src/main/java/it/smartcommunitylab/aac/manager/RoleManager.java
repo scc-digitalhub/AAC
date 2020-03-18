@@ -74,6 +74,8 @@ public class RoleManager {
 //	@Value("${admin.password}")
 //	private String adminPassword;	
 //
+    @Value("${admin.username}")
+    private String adminUsername;
     
     @Value("${admin.roles}")
     private String[] adminRoles;
@@ -105,8 +107,7 @@ public class RoleManager {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void init() throws Exception {
         // create admin as superuser
-        Long id = Config.ADMIN_ID;
-        User user = userRepository.findOne(id);
+        User user = userRepository.findByUsername(adminUsername);
 
         logger.debug("create admin roles for " + user.getUsername());
 

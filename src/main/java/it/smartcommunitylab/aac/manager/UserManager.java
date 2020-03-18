@@ -117,7 +117,7 @@ public class UserManager {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void init() throws Exception {
         // create admin as superuser
-        Long id = Config.ADMIN_ID;
+//        Long id = Config.ADMIN_ID;
 
         logger.debug("create admin user " + adminUsername);
 
@@ -126,17 +126,27 @@ public class UserManager {
         userRoles.add(Role.systemUser());
         userRoles.add(Role.systemAdmin());
 
-        User user = userRepository.findOne(id);
+//        User user = userRepository.findOne(id);
+//        if (user == null) {
+//            // create user first, will update profile with registration later
+//            userRepository.insertAsNew(id, adminUsername);
+//
+//            // re-read
+//            user = userRepository.findOne(id);
+//        }
+        User user = userRepository.findByUsername(adminUsername);
         if (user == null) {
             // create user first, will update profile with registration later
-            userRepository.insertAsNew(id, adminUsername);
+            user = new User();
+            user.setUsername(adminUsername);
 
-            // re-read
-            user = userRepository.findOne(id);
+            // save
+            user = userRepository.saveAndFlush(user);
         }
+        
 
         // update
-        user.setUsername(adminUsername);
+//        user.setUsername(adminUsername);
         user.setName(adminUsername);
         user.setSurname(adminUsername);
         
