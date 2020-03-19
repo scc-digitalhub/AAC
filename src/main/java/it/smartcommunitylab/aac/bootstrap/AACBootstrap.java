@@ -199,38 +199,38 @@ public class AACBootstrap {
          * Service creation
          */
         try {
-//                ServiceDTO[] services = new ObjectMapper().readValue(getClass().getResourceAsStream("services.json"),
-//                        ServiceDTO[].class);
 
             // TODO define a format in bootstrap yaml for services
-            ServiceDTO[] services = new ServiceDTO[0];
-            for (ServiceDTO serviceDTO : services) {
-                try {
+            List<BootstrapService> services = config.getServices();
+            for (BootstrapService bs : services) {
+                logger.trace("found service " + bs.getServiceId());
 
-                    String serviceId = serviceDTO.getServiceId();
+                try {
+                    ServiceDTO service = BootstrapService.toDTO(bs);
+                    String serviceId = service.getServiceId();
 
                     // update existing or create new ones
-                    serviceManager.saveService(admin, serviceDTO);
+                    serviceManager.saveService(admin, service);
 
                     logger.trace("created service " + serviceId + " developer " + admin.getName());
 
-                    if (serviceDTO.getClaims() != null) {
+                    if (service.getClaims() != null) {
 
-                        serviceDTO.getClaims().forEach(claim -> {
+                        service.getClaims().forEach(claim -> {
                             try {
-                                serviceManager.saveServiceClaim(admin, serviceDTO.getServiceId(), claim);
+                                serviceManager.saveServiceClaim(admin, service.getServiceId(), claim);
                             } catch (IllegalArgumentException iex) {
                                 // ignore, claim already exists
                             }
                         });
                     }
-                    if (serviceDTO.getScopes() != null) {
-                        serviceDTO.getScopes()
-                                .forEach(scope -> serviceManager.saveServiceScope(admin, serviceDTO.getServiceId(),
+                    if (service.getScopes() != null) {
+                        service.getScopes()
+                                .forEach(scope -> serviceManager.saveServiceScope(admin, service.getServiceId(),
                                         scope));
                     }
                 } catch (Exception e) {
-                    logger.error("error creating service " + serviceDTO.getServiceId() + ": " + e.getMessage());
+                    logger.error("error creating service " + bs.getServiceId() + ": " + e.getMessage());
                 }
             }
         } catch (Exception e) {

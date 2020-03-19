@@ -332,7 +332,7 @@ public class ServiceManager {
         scope.setService(service);
         ServiceScope saved = scopeRepo.save(scope);
         // refresh claim cache
-        resetCache(scope.getScope());
+        refreshCache(scope.getScope());
         return saved;
     }	
 
@@ -379,7 +379,7 @@ public class ServiceManager {
         //refresh cache
         getServiceScopes(serviceId)
             .stream()
-            .forEach(s -> resetCache(s.getScope()));
+            .forEach(s -> refreshCache(s.getScope()));
 
         return saved;  
     }
@@ -486,10 +486,15 @@ public class ServiceManager {
 			return null;
 		}
 	}
-	
+
+    private void refreshCache(String scope) {
+        claimCache.refresh(scope);
+        serviceCache.refresh(scope);
+    }
+    
 	private void resetCache(String scope) {
-		claimCache.refresh(scope);
-		serviceCache.refresh(scope);
+		claimCache.invalidate(scope);
+		serviceCache.invalidate(scope);
 	}
 	
 	private ServiceDTO toDTO(Service service) {

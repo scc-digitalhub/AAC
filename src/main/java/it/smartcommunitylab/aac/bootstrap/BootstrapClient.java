@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.bootstrap;
 
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
 
@@ -136,7 +137,9 @@ public class BootstrapClient {
         }
 
         if (client.getRedirectUris() != null) {
-            bc.redirectUris = client.getRedirectUris().toArray(new String[0]);
+            bc.redirectUris = client.getRedirectUris().stream().filter(u -> StringUtils.hasText(u))
+                    .collect(Collectors.toList())
+                    .toArray(new String[0]);
         }
 
         if (client.getUniqueSpaces() != null) {

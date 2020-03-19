@@ -214,7 +214,7 @@ public class ClientDetailsManager {
         }
         entity.setClientSecretMobile(generateClientSecret());
         entity.setParameters(appData.getParameters());
-        entity.setRedirectUri("");
+        entity.setRedirectUri(null);
         
         entity = clientDetailsRepository.save(entity);
         return convertToClientApp(entity);
@@ -879,8 +879,14 @@ public class ClientDetailsManager {
             client.setAdditionalInformation(info.toJson());
 
             if (data.getRedirectUris() != null) {
-                client.setRedirectUri(
-                        Utils.normalizeValues(StringUtils.collectionToCommaDelimitedString(data.getRedirectUris())));
+                //filter out empty strings
+                List<String> newUris = data.getRedirectUris()
+                        .stream()
+                        .map(u -> StringUtils.trimAllWhitespace(u))
+                        .filter(u -> StringUtils.hasText(u))
+                        .collect(Collectors.toList());
+
+                client.setRedirectUri(StringUtils.collectionToCommaDelimitedString(newUris));
             }
 
             // pass an empty set to reset
@@ -891,11 +897,12 @@ public class ClientDetailsManager {
 
             if (data.getScope() != null) {
                 client.setScope(Utils.normalizeValues(StringUtils.collectionToCommaDelimitedString(data.getScope())));
-            }
+            
 
-            if (!StringUtils.isEmpty(data.getScope())) {
-                Set<String> serviceIds = serviceManager.findServiceIdsByScopes(client.getScope());
-                client.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceIds));
+                if (!CollectionUtils.isEmpty(data.getScope())) {
+                    Set<String> serviceIds = serviceManager.findServiceIdsByScopes(data.getScope());
+                    client.setResourceIds(StringUtils.collectionToCommaDelimitedString(serviceIds));
+                }
             }
 
             if (data.getParameters() != null) {

@@ -231,6 +231,10 @@ angular.module('aac.controllers.customservices', [])
 		}
 	};
 
+	$scope.exportService = function() {
+		$window.open('dev/services/my/'+$scope.currService.serviceId+'/yaml');
+	};
+	
 	/**
 	 * edit/create scope declaration
 	 */

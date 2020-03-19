@@ -157,32 +157,6 @@
     "claims": []
   },
     {
-    "serviceId": "security.vault",
-    "name": "Vault Data Service",
-    "description": "Core service for managing secure resource access and data.",
-    "scopes": [
-      {
-        "scope": "vault.data.read",
-        "name": "Read Vault data",
-        "description": "Read Vault data programmatically",
-        "claims": [],
-        "roles": [],
-        "authority": "ROLE_CLIENT",
-        "approvalRequired": false
-      },
-      {
-        "scope": "vault.data.read.me",
-        "name": "Read Current User Vault Data",
-        "description": "Read Vault data of the current user",
-        "claims": [],
-        "roles": [],
-        "authority": "ROLE_USER",
-        "approvalRequired": true
-      }
-    ],
-    "claims": []
-  },
-    {
     "serviceId": "apikey.management",
     "name": "Api Key",
     "description": "Core service for managing api keys.",
