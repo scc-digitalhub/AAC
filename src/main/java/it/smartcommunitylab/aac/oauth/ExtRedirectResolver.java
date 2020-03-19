@@ -19,47 +19,68 @@ package it.smartcommunitylab.aac.oauth;
 import javax.servlet.ServletContext;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 
 /**
- * {@link RedirectResolver} implementation with a hook to allow redirects to the authorization server
- * for testing purposes
+ * {@link RedirectResolver} implementation with a hook to allow redirects to the
+ * authorization server for testing purposes
  * 
  * @author raman
  *
  */
 public class ExtRedirectResolver extends DefaultRedirectResolver {
 
-	private static final String URL_TEST = "/testtoken";
-	
-	private static String path = null;
-	
-	@Value("${security.redirects.matchports}")
-	private boolean configMatchPorts;
-	
-	@Value("${security.redirects.matchsubdomains}")
+    private static final String URL_TEST = "/testtoken";
+
+    private static String path = null;
+
+    @Value("${security.redirects.matchports}")
+    private boolean configMatchPorts;
+
+    @Value("${security.redirects.matchsubdomains}")
     private boolean configMatchSubDomains;
-	
-	/**
-	 * @param context
-	 */
-	public ExtRedirectResolver(ServletContext context) {
-		super();
-		path = testTokenPath(context);
-		this.setMatchPorts(configMatchPorts);
-		this.setMatchSubdomains(configMatchSubDomains);
-	}
 
-	public static String testTokenPath(ServletContext ctx) {
-		return ctx.getContextPath() + URL_TEST;
-	}
-	
+    @Value("${application.url}")
+    private String applicationURL;
 
-	@Override
-	protected boolean redirectMatches(String requestedRedirect, String redirectUri) {
-		return super.redirectMatches(requestedRedirect, redirectUri) || path.equals(requestedRedirect);
-	}
+    /**
+     * @param context
+     */
+    public ExtRedirectResolver(ServletContext context) {
+        super();
+//		path = testTokenPath(context);
+        path = testTokenPath(applicationURL);
+        this.setMatchPorts(configMatchPorts);
+        this.setMatchSubdomains(configMatchSubDomains);
+    }
 
-	
+//	public static String testTokenPath(ServletContext ctx) {
+//		return ctx.getContextPath() + URL_TEST;
+//	}
+
+    public static String testTokenPath(String baseURL) {
+        return baseURL + URL_TEST;
+    }
+
+    @Override
+    public String resolveRedirect(String requestedRedirect, ClientDetails client) throws OAuth2Exception {
+        // match absolute uri for test token
+        if (requestedRedirect != null && redirectMatches(requestedRedirect, path)) {
+            return requestedRedirect;
+        }
+
+        return super.resolveRedirect(requestedRedirect, client);
+    }
+
+//	@Override
+//	protected boolean redirectMatches(String requestedRedirect, String redirectUri) {
+//	    //DEPRECATED match path for test token
+////		return super.redirectMatches(requestedRedirect, redirectUri) || path.equals(requestedRedirect);
+//	    //match absolute uri for test token
+//	    return super.redirectMatches(requestedRedirect, redirectUri) || super.redirectMatches(requestedRedirect, path);
+//	}
+
 }

@@ -777,6 +777,7 @@ angular.module('aac.controllers.clients', [])
 		.success(function(data) {
 			$scope.clientToken = data.access_token;
 		}).error(function(data) {
+			//TODO clear interceptor, an error here will logout the user!
 			Utils.showError(data.error_description);
 		});
 	};
@@ -788,9 +789,18 @@ angular.module('aac.controllers.clients', [])
 			Utils.showError('Implicit token requires Implict grant type selected!');
 			return;
 		}
-		var hostport = $location.host()+(($location.absUrl().indexOf(':'+$location.port())>0)?(":"+$location.port()):"");
-		var ctx = $location.absUrl().substring($location.absUrl().indexOf(hostport)+hostport.length);
-		ctx = ctx.substring(0,ctx.indexOf('/',1));
+		//DEPRECATED path ctx
+//		var hostport = $location.host()+(($location.absUrl().indexOf(':'+$location.port())>0)?(":"+$location.port()):"");
+//		var ctx = $location.absUrl().substring($location.absUrl().indexOf(hostport)+hostport.length);
+//		//ctx = ctx.substring(0,ctx.indexOf('/',1));
+//		//extract base context by removing angular route and current path '/dev'
+//		ctx = ctx.split('#')[0];		
+//		ctx = ctx.substring(0, ctx.indexOf('/dev'))
+		//
+		//build full redirect
+		//extract base context by removing angular route and current path '/dev'
+		var ctx = $location.absUrl().split('#')[0];	
+		ctx = ctx.substring(0, ctx.indexOf('/dev'))
 		var win = window.open('oauth/authorize?client_id='+$scope.app.clientId+'&response_type=token&grant_type=implicit&redirect_uri='+ctx+'/testtoken');
 		win.onload = function() {
 			var at = processAuthParams(win.location.hash.substring(1));
