@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 
 @Configuration
-@PropertySource(factory = YamlPropertySourceFactory.class, value = "classpath:bootstrap.yml")
+@PropertySource(factory = YamlPropertySourceFactory.class, ignoreResourceNotFound=true, value = "${bootstrap.file}")
 @ConfigurationProperties(prefix = "bootstrap")
 @Validated
 public class BootstrapConfig {

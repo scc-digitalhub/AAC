@@ -177,8 +177,8 @@ adminClient:
     scopes: ${APIM_SCOPES:clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all}
     redirects: ${APIM_REDIRECTS:http://localhost:9443/store/jagg/jaggery_oidc_acs.jag,http://localhost:9443/publisher/jagg/jaggery_oidc_acs.jag}
 
-
-
+bootstrap:
+    file: ${BOOTSTRAP:classpath:/bootstrap.yaml} 
 
 
 #port used to expose actuator
