@@ -30,7 +30,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
@@ -40,7 +44,7 @@ import it.smartcommunitylab.aac.test.openid.OpenidUtils;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class ClientCredentialsGrantTest {
+public class ClientCredentialsGrantTest extends OAuth2BaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -54,47 +58,17 @@ public class ClientCredentialsGrantTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    private static ClientDetails client;
-
     // use a client scope
-    private final static String SCOPE = "user.roles.read";
+    public final static String[] SCOPES = { "user.roles.read" };
 
-    private final static String GRANT_TYPE = "client_credentials";
+    public final static String GRANT_TYPE = "client_credentials";
 
     @Before
     public void init() {
-        if (client == null) {
-            String endpoint = server + ":" + port;
-
-            try {
-                User admin = userRepository.findByUsername(adminUsername);
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        admin.getId(),
-                        GRANT_TYPE, new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
+        super.init();
     }
 
     @After
@@ -104,6 +78,8 @@ public class ClientCredentialsGrantTest {
     @Test
     public void clientCredentialsGrantTestWithBasicAuth()
             throws Exception {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("client credentials grant (with basic auth) with client " + client.getClientId());
 
@@ -126,7 +102,7 @@ public class ClientCredentialsGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", GRANT_TYPE);
-        map.add("scope", SCOPE);
+        map.add("scope", String.join(" ", SCOPES));
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -158,7 +134,9 @@ public class ClientCredentialsGrantTest {
         Assert.assertTrue(StringUtils.isEmpty(refreshToken));
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
 
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
@@ -167,6 +145,8 @@ public class ClientCredentialsGrantTest {
     @Test
     public void clientCredentialsGrantTestWithFormAuth()
             throws Exception {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("client credentials grant (with form auth) with client " + client.getClientId());
 
@@ -182,7 +162,7 @@ public class ClientCredentialsGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", GRANT_TYPE);
-        map.add("scope", SCOPE);
+        map.add("scope", String.join(" ", SCOPES));
         // add client credentials in form
         map.add("client_id", clientId);
         map.add("client_secret", client.getClientSecret());
@@ -218,7 +198,9 @@ public class ClientCredentialsGrantTest {
         Assert.assertTrue(StringUtils.isEmpty(refreshToken));
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
 
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
@@ -227,6 +209,8 @@ public class ClientCredentialsGrantTest {
     @Test
     public void clientCredentialsGrantTestWithNoAuth()
             throws Exception {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("client credentials grant (with no auth) with client " + client.getClientId());
 
@@ -242,7 +226,7 @@ public class ClientCredentialsGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", GRANT_TYPE);
-        map.add("scope", SCOPE);
+        map.add("scope", String.join(" ", SCOPES));
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -262,6 +246,8 @@ public class ClientCredentialsGrantTest {
     public void clientCredentialsGrantTestWithNoSecret()
             throws Exception {
 
+        ClientAppBasic client = getClient();
+
         logger.debug("client credentials grant (with no secret) with client " + client.getClientId());
 
         // check context
@@ -276,7 +262,7 @@ public class ClientCredentialsGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", GRANT_TYPE);
-        map.add("scope", SCOPE);
+        map.add("scope", String.join(" ", SCOPES));
         map.add("client_id", client.getClientId());
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
@@ -296,6 +282,8 @@ public class ClientCredentialsGrantTest {
     @Test
     public void clientCredentialsGrantTestWithWrongAuth()
             throws Exception {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("client credentials grant (with wrong auth) with client " + client.getClientId());
 
@@ -318,7 +306,7 @@ public class ClientCredentialsGrantTest {
         // post as form data
         MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
         map.add("grant_type", GRANT_TYPE);
-        map.add("scope", SCOPE);
+        map.add("scope", String.join(" ", SCOPES));
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -332,6 +320,19 @@ public class ClientCredentialsGrantTest {
 
         logger.trace(response.getBody());
 
+    }
+
+    /*
+     * Helpers
+     */
+    @Override
+    protected String[] getScopes() {
+        return SCOPES;
+    }
+
+    @Override
+    protected String[] getGrantTypes() {
+        return new String[] { GRANT_TYPE };
     }
 
 }

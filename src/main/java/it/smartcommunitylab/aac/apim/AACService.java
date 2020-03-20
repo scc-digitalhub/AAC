@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.keymanager.model;
+package it.smartcommunitylab.aac.apim;
 
 import java.util.List;
 

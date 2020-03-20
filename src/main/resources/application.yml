@@ -173,8 +173,13 @@ api:
 adminClient:
     id: ${APIM_ID:API_MGT_CLIENT_ID}
     secret: ${APIM_SECRET:YOUR_MNGMT_CLIENT_SECRET}
+    grantTypes: ${APIM_GRANT_TYPES:authorization_code,implicit,refresh_token,password,client_credentials,native}
     scopes: ${APIM_SCOPES:clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all}
     redirects: ${APIM_REDIRECTS:http://localhost:9443/store/jagg/jaggery_oidc_acs.jag,http://localhost:9443/publisher/jagg/jaggery_oidc_acs.jag}
+
+bootstrap:
+    file: ${BOOTSTRAP:classpath:/bootstrap.yaml} 
+
 
 #port used to expose actuator
 management:

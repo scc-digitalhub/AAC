@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.manager;
+package it.smartcommunitylab.aac.auth.cie;
 
 import it.smartcommunitylab.aac.dto.AccountProfile;
 

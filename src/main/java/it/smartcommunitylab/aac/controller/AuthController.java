@@ -192,7 +192,8 @@ public class AuthController {
 		}
 		// each time create new OAuth request
 		ClientAppBasic client = clientDetailsAdapter.getByClientId(clientId);
-		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, client.getScope(), client.getDisplayName());
+		String clientScopes = StringUtils.collectionToCommaDelimitedString(client.getScope());
+		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, clientScopes, client.getDisplayName());
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth != null && auth.getAuthorities() != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(AUTHORITY.ROLE_USER.toString())) &&
 			req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
@@ -431,8 +432,8 @@ public class AuthController {
         Map<String,String> map = new HashMap<String, String>();
         map.put("name", existing.getName());
         map.put("surname", existing.getSurname());
-        map.put(Config.NAME_ATTR, existing.getName());
-        map.put(Config.SURNAME_ATTR, existing.getSurname());
+        map.put(Config.USER_ATTR_NAME, existing.getName());
+        map.put(Config.USER_ATTR_SURNAME, existing.getSurname());
         map.put("email", existing.getEmail());
         return map;
     }

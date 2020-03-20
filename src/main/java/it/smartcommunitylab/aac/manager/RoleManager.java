@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +37,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Splitter;
@@ -53,6 +54,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.RoleRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 /**
@@ -66,109 +68,120 @@ public class RoleManager {
     
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+//    @Value("${admin.username}")
+//    private String adminUsername;   
+//    
+//	@Value("${admin.password}")
+//	private String adminPassword;	
+//
     @Value("${admin.username}")
-    private String adminUsername;   
+    private String adminUsername;
     
-	@Value("${admin.password}")
-	private String adminPassword;	
-
+    @Value("${admin.roles}")
+    private String[] adminRoles;
+    
 	@Value("${admin.contexts}")
 	private String[] defaultContexts;
 	
 	@Value("${admin.contextSpaces}")
 	private String[] defaultContextSpaces;
+//	
+//	@Value("${admin.roles}")
+//	private String[] defaultRoles;
 	
-	@Value("${admin.roles}")
-	private String[] defaultRoles;
-	
-	@Autowired
-	private RegistrationService registrationService;
+//	@Autowired
+//	private RegistrationService registrationService;
 	
 	@Autowired
 	private UserRepository userRepository;	
 	
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;	
-
-	@Autowired
-	private ClientDetailsManager clientDetailsManager;	
-
-	private User admin = null; 
 	
-	@PostConstruct
-	public synchronized User init() throws Exception {
-		
-		if (admin != null) {
-			return admin;
-		}
-		
-	    logger.debug("init");
-	    
-		Set<Role> roles = new HashSet<>();
-		Role role = Role.systemAdmin();
-		roles.add(role);
-		
-		if (defaultContexts != null) {
-		    logger.debug("ADMIN default contexts "+Arrays.toString(defaultContexts));
-		    Arrays.asList(defaultContexts).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
-		}
-		
-		if (defaultContextSpaces != null) {
-            logger.debug("ADMIN default contexts spaces "+Arrays.toString(defaultContextSpaces));		    
-			Arrays.asList(defaultContextSpaces).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
-		}
+//	@Autowired
+//	private ClientDetailsManager clientDetailsManager;	
 
-		if (defaultRoles != null) {
-            logger.debug("ADMIN default roles "+Arrays.toString(defaultRoles));		    
-			Arrays.asList(defaultRoles).forEach(ctx -> roles.add(Role.parse(ctx)));
-		}
+//	private User admin = null; 
+	
+//	@PostConstruct
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void init() throws Exception {
+        // create admin as superuser
+        User user = userRepository.findByUsername(adminUsername);
 
-		admin = userRepository.findByUsername(adminUsername);
-		if (admin == null) {
-		    logger.debug("create ADMIN user as "+adminUsername);
-			admin = registrationService.registerOffline(adminUsername, adminUsername, adminUsername, adminPassword, null, false, null);
-		}
-		
-		clientDetailsManager.createAdminClient(admin.getId());
-		
-		admin.getRoles().addAll(roles);
-		userRepository.saveAndFlush(admin);
-		
-		
-		return admin;
-	}
+        logger.debug("create admin roles for " + user.getUsername());
+
+        // build roles
+        Set<Role> roles = new HashSet<>();
+        if (adminRoles != null) {
+            Arrays.asList(adminRoles).forEach(ctx -> roles.add(Role.parse(ctx)));
+        }
+
+        // spaces are managed via roles on owner
+        if (defaultContexts != null) {
+            logger.debug("create admin default contexts " + Arrays.toString(defaultContexts));
+            Arrays.asList(defaultContexts).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
+        }
+
+        if (defaultContextSpaces != null) {
+            logger.debug("create admin default contexts spaces " + Arrays.toString(defaultContextSpaces));
+            Arrays.asList(defaultContextSpaces).forEach(ctx -> roles.add(Role.ownerOf(ctx)));
+        }
+
+        // merge roles
+        user.getRoles().addAll(roles);
+        user = userRepository.saveAndFlush(user);
+    }
 	
-	public User getAdminUser() throws Exception {
-		if (admin == null) {
-			init();
-		}
-		return admin;
-	}
+//	public User getAdminUser() throws Exception {
+//		if (admin == null) {
+//			init();
+//		}
+//		return admin;
+//	}
 	
-	public void updateRoles(User user, Set<Role> rolesToAdd, Set<Role> rolesToDelete) {
-		Set<Role> roles = user.getRoles();
-		roles.removeAll(rolesToDelete);
-		roles.addAll(rolesToAdd);
-		user.setRoles(roles);
-		userRepository.saveAndFlush(user);
-	}
+    public User updateRoles(Long userId, Set<Role> rolesToAdd, Set<Role> rolesToDelete) {
+        User user = userRepository.findOne(userId);
+        Set<Role> roles = user.getRoles();
+        if (rolesToDelete != null) {
+            roles.removeAll(rolesToDelete);
+        }
+        if (rolesToAdd != null) {
+            roles.addAll(rolesToAdd);
+        }
+        user.setRoles(roles);
+        return userRepository.saveAndFlush(user);
+    }
+    
+    //UNUSED
+//	public void updateRoles(User user, Set<Role> rolesToAdd, Set<Role> rolesToDelete) {
+//		Set<Role> roles = user.getRoles();
+//        if(rolesToDelete != null) {
+//            roles.removeAll(rolesToDelete);
+//        }
+//        if(rolesToAdd != null) {
+//            roles.addAll(rolesToAdd);
+//        }
+//		user.setRoles(roles);
+//		userRepository.saveAndFlush(user);
+//	}
 	
-	public void addRole(User user, Role role) {
+//	public void addRole(User user, Role role) {
+////		Set<Role> roles = Sets.newHashSet(user.getRoles());
+//		if (user.getRoles() == null) {
+//			user.setRoles(new HashSet<>());
+//		}
+//		user.getRoles().add(role);
+//		userRepository.saveAndFlush(user);
+//	}
+	
+//	public void removeRole(User user, Role role) {
 //		Set<Role> roles = Sets.newHashSet(user.getRoles());
-		if (user.getRoles() == null) {
-			user.setRoles(new HashSet<>());
-		}
-		user.getRoles().add(role);
-		userRepository.saveAndFlush(user);
-	}
-	
-	public void removeRole(User user, Role role) {
-		Set<Role> roles = Sets.newHashSet(user.getRoles());
-		roles.remove(role);
-		
-		user.setRoles(roles);
-		userRepository.saveAndFlush(user);
-	}	
+//		roles.remove(role);
+//		
+//		user.setRoles(roles);
+//		userRepository.saveAndFlush(user);
+//	}	
 	
 	public Set<Role> getRoles(User user) {
 		return user.getRoles();

@@ -12,7 +12,6 @@ import org.springframework.util.StringUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
-import it.smartcommunitylab.aac.keymanager.model.AACService;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;

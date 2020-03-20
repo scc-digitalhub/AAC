@@ -82,7 +82,7 @@ public class ClaimManager {
     @Autowired
     private UserManager userManager;
 	@Autowired
-	private BasicProfileManager profileManager;
+	private ProfileManager profileManager;
 	@Autowired
 	private ServiceManager serviceManager;
 	@Autowired

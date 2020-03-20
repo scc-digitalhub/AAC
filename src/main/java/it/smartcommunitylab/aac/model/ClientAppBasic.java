@@ -37,7 +37,7 @@ public class ClientAppBasic {
 	private String clientSecret;
 	private String clientSecretMobile;
 	private String name, displayName;
-	private String redirectUris;
+	private Set<String> redirectUris;
 	private Set<String> grantedTypes;
 
 	private boolean nativeAppsAccess;
@@ -52,12 +52,12 @@ public class ClientAppBasic {
 	private String onAfterApprovalWebhook;
 	
 	private String userName;
-	private String scope;
+	private Set<String> scope;
 	
 	private String parameters;
 	
-	private int accessTokenValidity;
-	private int refreshTokenValidity;
+	private Integer accessTokenValidity;
+	private Integer refreshTokenValidity;
 	
 	/**
 	 * @return the clientId
@@ -95,25 +95,32 @@ public class ClientAppBasic {
 	public void setName(String name) {
 		this.name = name;
 	}
-	/**
-	 * @return the redirectUris
-	 */
-	public String getRedirectUris() {
-		return redirectUris;
-	}
-	/**
-	 * @param redirectUris the redirectUris to set
-	 */
-	public void setRedirectUris(String redirectUris) {
-		this.redirectUris = redirectUris;
-	}
+//	/**
+//	 * @return the redirectUris
+//	 */
+//	public String getRedirectUris() {
+//		return redirectUris;
+//	}
+//	/**
+//	 * @param redirectUris the redirectUris to set
+//	 */
+//	public void setRedirectUris(String redirectUris) {
+//		this.redirectUris = redirectUris;
+//	}
+	
 	/**
 	 * @return the grantedTypes
 	 */
 	public Set<String> getGrantedTypes() {
 		return grantedTypes;
 	}
-	/**
+	public Set<String> getRedirectUris() {
+        return redirectUris;
+    }
+    public void setRedirectUris(Set<String> redirectUris) {
+        this.redirectUris = redirectUris;
+    }
+    /**
 	 * @param set the grantedTypes to set
 	 */
 	public void setGrantedTypes(Set<String> set) {
@@ -187,16 +194,23 @@ public class ClientAppBasic {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
-	public String getScope() {
-		return scope;
-	}
-	public void setScope(String scope) {
-		this.scope = scope;
-	}
+//	public String getScope() {
+//		return scope;
+//	}
+//	public void setScope(String scope) {
+//		this.scope = scope;
+//	}
+	
 	public String getParameters() {
 		return parameters;
 	}
-	public void setParameters(String parameters) {
+	public Set<String> getScope() {
+        return scope;
+    }
+    public void setScope(Set<String> scope) {
+        this.scope = scope;
+    }
+    public void setParameters(String parameters) {
 		this.parameters = parameters;
 	}
 	public Map<String, Map<String, Object>> getProviderConfigurations() {
@@ -247,17 +261,17 @@ public class ClientAppBasic {
 	public void setOnAfterApprovalWebhook(String onAfterApprovalWebhook) {
 		this.onAfterApprovalWebhook = onAfterApprovalWebhook;
 	}
-    public int getAccessTokenValidity() {
+    public Integer getAccessTokenValidity() {
         return accessTokenValidity;
     }
     public void setAccessTokenValidity(int accessTokenValidity) {
-        this.accessTokenValidity = accessTokenValidity;
+        this.accessTokenValidity = Integer.valueOf(accessTokenValidity);
     }
-    public int getRefreshTokenValidity() {
+    public Integer getRefreshTokenValidity() {
         return refreshTokenValidity;
     }
     public void setRefreshTokenValidity(int refreshTokenValidity) {
-        this.refreshTokenValidity = refreshTokenValidity;
+        this.refreshTokenValidity = Integer.valueOf(refreshTokenValidity);
     }
 	
 	

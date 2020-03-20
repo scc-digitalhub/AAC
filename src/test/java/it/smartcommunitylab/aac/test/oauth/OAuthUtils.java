@@ -21,45 +21,47 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 
 public class OAuthUtils {
 
-    public static ClientDetailsEntity createClient(String clientId, long developerId, String grantTypes,
-            String[] scopes,
-            String redirectUri)
-            throws Exception {
-        // manually add client to repo
-        ClientDetailsEntity entity = new ClientDetailsEntity();
-
-        entity.setName(clientId);
-        entity.setClientId(clientId);
-        entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT_TRUSTED.name());
-        entity.setAuthorizedGrantTypes(grantTypes);
-        entity.setDeveloperId(developerId);
-        entity.setClientSecret(UUID.randomUUID().toString());
-        entity.setClientSecretMobile(UUID.randomUUID().toString());
-        entity.setRedirectUri(redirectUri);
-        entity.setMobileAppSchema(clientId);
-
-        entity.setScope(String.join(",", scopes));
-
-        ClientAppInfo info = new ClientAppInfo();
-        info.setIdentityProviders(Collections.singletonMap(Config.IDP_INTERNAL, ClientAppInfo.APPROVED));
-        info.setName(clientId);
-        info.setDisplayName(clientId);
-        info.setScopeApprovals(Collections.<String, Boolean>emptyMap());
-
-        entity.setAdditionalInformation(info.toJson());
-        return entity;
-    }
+//    public static ClientDetailsEntity createClient(String clientId, long developerId, String grantTypes,
+//            String[] scopes,
+//            String redirectUri)
+//            throws Exception {
+//        // manually add client to repo
+//        ClientDetailsEntity entity = new ClientDetailsEntity();
+//
+//        entity.setName(clientId);
+//        entity.setClientId(clientId);
+//        entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT_TRUSTED.name());
+//        entity.setAuthorizedGrantTypes(grantTypes);
+//        entity.setDeveloperId(developerId);
+//        entity.setClientSecret(UUID.randomUUID().toString());
+//        entity.setClientSecretMobile(UUID.randomUUID().toString());
+//        entity.setRedirectUri(redirectUri);
+//        entity.setMobileAppSchema(clientId);
+//
+//        entity.setScope(String.join(",", scopes));
+//
+//        ClientAppInfo info = new ClientAppInfo();
+//        info.setIdentityProviders(Collections.singletonMap(Config.IDP_INTERNAL, ClientAppInfo.APPROVED));
+//        info.setName(clientId);
+//        info.setDisplayName(clientId);
+//        info.setScopeApprovals(Collections.<String, Boolean>emptyMap());
+//
+//        entity.setAdditionalInformation(info.toJson());
+//        return entity;
+//    }
 
     public static JWKSet fetchJWKS(TestRestTemplate restTemplate, String endpoint) throws ParseException {
         ResponseEntity<String> response = restTemplate.getForEntity(endpoint,
@@ -74,7 +76,7 @@ public class OAuthUtils {
 
     public static JSONObject getTokenViaAuthCode(
             TestRestTemplate restTemplate, String endpoint,
-            ClientDetails client, String sessionId,
+            ClientAppBasic client, String sessionId,
             String[] scopes)
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
@@ -86,11 +88,11 @@ public class OAuthUtils {
         String clientId = client.getClientId();
         String state = RandomStringUtils.random(5, true, true);
         // redirect does not need urlEncoding because there are no parameters
-        String redirectURL = client.getRegisteredRedirectUri().iterator().next();
+        String redirectURL = client.getRedirectUris().iterator().next();
 
         // manually build URI to avoid sketchy (wrong) resttemplate urlEncoding of
         // queryString
-        //direct call pre-authorize
+        // direct call pre-authorize
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(endpoint + "/eauth/pre-authorize")
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", redirectURL)
@@ -101,7 +103,7 @@ public class OAuthUtils {
 
         URI uri = builder.build().toUri();
         System.out.println("call " + uri.toString());
-        System.out.println("call headers "+headers.toString());
+        System.out.println("call headers " + headers.toString());
 
         // note: TESTrestTemplate does not follow redirects
         ResponseEntity<String> response = restTemplate.exchange(uri,
@@ -110,7 +112,7 @@ public class OAuthUtils {
 
         System.out.println(response.getHeaders().toString());
         System.out.println(response.getBody());
-        
+
         String locationURL = response.getHeaders().getFirst(HttpHeaders.LOCATION);
         System.out.println("location " + locationURL);
 

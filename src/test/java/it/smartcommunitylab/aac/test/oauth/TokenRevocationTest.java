@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.test.oauth;
 
 import java.nio.charset.Charset;
 import java.util.Date;
-import java.util.UUID;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -26,25 +24,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenRevocationEndpoint;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.test.openid.OpenidUtils;
 import it.smartcommunitylab.aac.test.utils.TestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=true" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class TokenRevocationTest {
+public class TokenRevocationTest extends OAuth2BaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -61,49 +55,20 @@ public class TokenRevocationTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
     private static String sessionId;
 
-    private static ClientDetails client;
+    public final static String[] SCOPES = { "profile" };
 
-    private final static String SCOPE = "profile";
-
-    private final static String[] GRANT_TYPES = { "authorization_code", "refresh_token" };
+    public final static String[] GRANT_TYPES = { "authorization_code", "refresh_token" };
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
-        if (client == null) {
-            try {
-
-                User admin = userRepository.findByUsername(adminUsername);
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        admin.getId(),
-                        String.join(",", GRANT_TYPES), new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
+        super.init();
 
         if (StringUtils.isEmpty(sessionId)) {
             // login and validate session
-            sessionId = TestUtils.login(restTemplate, endpoint, adminUsername, adminPassword);
+            sessionId = TestUtils.login(restTemplate, endpoint, getUserName(), getUserPassword());
         }
     }
 
@@ -134,6 +99,8 @@ public class TokenRevocationTest {
 
         logger.debug("accessTokenRevokeWithBasicAuth session " + sessionId);
 
+        ClientAppBasic client = getClient();
+
         // check client and session
         Assert.assertNotNull(client);
         Assert.assertTrue(StringUtils.isNotEmpty(sessionId));
@@ -143,7 +110,7 @@ public class TokenRevocationTest {
 
         // fetch valid token
         JSONObject token = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
-                sessionId, new String[] { SCOPE });
+                sessionId, SCOPES);
 
         logger.trace(token.toString());
 
@@ -233,6 +200,8 @@ public class TokenRevocationTest {
 
         logger.debug("refreshTokenRevokeWithBasicAuth session " + sessionId);
 
+        ClientAppBasic client = getClient();
+
         // check client and session
         Assert.assertNotNull(client);
         Assert.assertTrue(StringUtils.isNotEmpty(sessionId));
@@ -242,7 +211,7 @@ public class TokenRevocationTest {
 
         // fetch valid token
         JSONObject token = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
-                sessionId, new String[] { SCOPE });
+                sessionId, SCOPES);
 
         logger.trace(token.toString());
 
@@ -329,5 +298,18 @@ public class TokenRevocationTest {
 
         // active should be false for revoked token
         Assert.assertFalse(json.getBoolean("active"));
+    }
+
+    /*
+     * Helpers
+     */
+    @Override
+    protected String[] getScopes() {
+        return SCOPES;
+    }
+
+    @Override
+    protected String[] getGrantTypes() {
+        return GRANT_TYPES;
     }
 }

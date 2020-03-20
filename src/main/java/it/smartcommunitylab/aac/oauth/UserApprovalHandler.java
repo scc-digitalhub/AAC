@@ -31,6 +31,7 @@ import javax.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -62,6 +63,9 @@ import it.smartcommunitylab.aac.model.ServiceScope;
 public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // changed
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${application.url}")
+    private String applicationURL;
+    
 	@Autowired
 	private ServletContext servletContext;
 	@Autowired
@@ -142,7 +146,8 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 				}
 		}
 		// or test token redirect uri
-		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
+//		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
+		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(applicationURL))) {
 		    return true;
 		}
 		

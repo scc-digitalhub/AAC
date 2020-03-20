@@ -42,6 +42,7 @@ import org.springframework.web.client.RestClientException;
 
 import com.nimbusds.jose.JOSEException;
 
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenIntrospectionEndpoint;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -53,7 +54,7 @@ import it.smartcommunitylab.aac.test.utils.TestUtils;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class TokenIntrospectionTest {
+public class TokenIntrospectionTest extends OAuth2BaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -70,49 +71,20 @@ public class TokenIntrospectionTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
     private static String sessionId;
 
-    private static ClientDetails client;
+    public final static String[] SCOPES = { "profile" };
 
-    private final static String SCOPE = "profile";
-
-    private final static String GRANT_TYPE = "authorization_code";
+    public final static String GRANT_TYPE = "authorization_code";
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
-        if (client == null) {
-            try {
-
-                User admin = userRepository.findByUsername(adminUsername);
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        admin.getId(),
-                        GRANT_TYPE, new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
+        super.init();
 
         if (StringUtils.isEmpty(sessionId)) {
             // login and validate session
-            sessionId = TestUtils.login(restTemplate, endpoint, adminUsername, adminPassword);
+            sessionId = TestUtils.login(restTemplate, endpoint, getUserName(), getUserPassword());
         }
     }
 
@@ -126,6 +98,8 @@ public class TokenIntrospectionTest {
     public void tokenIntrospectionWithBasicAuth() throws RestClientException, UnsupportedEncodingException,
             NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
 
+        ClientAppBasic client = getClient();
+
         logger.debug("tokenIntrospectionWithBasicAuth");
 
         // check client and session
@@ -137,7 +111,7 @@ public class TokenIntrospectionTest {
 
         // fetch valid token to introspect
         JSONObject token = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
-                sessionId, new String[] { SCOPE });
+                sessionId, SCOPES);
 
         logger.trace(token.toString());
 
@@ -188,7 +162,9 @@ public class TokenIntrospectionTest {
 
         // OPTIONAL
         // scope should contain the requested one
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
 
         // client_id should match
         Assert.assertEquals(client.getClientId(), json.getString("client_id"));
@@ -319,6 +295,8 @@ public class TokenIntrospectionTest {
     public void tokenIntrospectionInactive() {
         logger.debug("tokenIntrospectionInactive");
 
+        ClientAppBasic client = getClient();
+
         // check client and session
         Assert.assertNotNull(client);
         Assert.assertTrue(StringUtils.isNotEmpty(sessionId));
@@ -381,6 +359,8 @@ public class TokenIntrospectionTest {
             NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
         logger.debug("tokenIntrospectionUnauthorized");
 
+        ClientAppBasic client = getClient();
+
         // check client and session
         Assert.assertNotNull(client);
         Assert.assertTrue(StringUtils.isNotEmpty(sessionId));
@@ -389,7 +369,7 @@ public class TokenIntrospectionTest {
 
         // fetch valid token to introspect
         JSONObject token = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
-                sessionId, new String[] { SCOPE });
+                sessionId, SCOPES);
 
         logger.trace(token.toString());
 
@@ -429,6 +409,8 @@ public class TokenIntrospectionTest {
             NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
         logger.debug("tokenIntrospectionUnauthorized");
 
+        ClientAppBasic client = getClient();
+
         // check client and session
         Assert.assertNotNull(client);
         Assert.assertTrue(StringUtils.isNotEmpty(sessionId));
@@ -437,7 +419,7 @@ public class TokenIntrospectionTest {
 
         // fetch valid token to introspect
         JSONObject token = OAuthUtils.getTokenViaAuthCode(restTemplate, server + ":" + port + contextPath, client,
-                sessionId, new String[] { SCOPE });
+                sessionId, SCOPES);
 
         logger.trace(token.toString());
 
@@ -474,6 +456,15 @@ public class TokenIntrospectionTest {
     /*
      * Helpers
      */
+    @Override
+    protected String[] getScopes() {
+        return SCOPES;
+    }
+
+    @Override
+    protected String[] getGrantTypes() {
+        return new String[] { GRANT_TYPE };
+    }
 
     private String[] toStringArray(org.json.JSONArray array) {
         if (array == null) {

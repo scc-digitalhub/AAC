@@ -47,6 +47,7 @@ import com.nimbusds.jwt.SignedJWT;
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.endpoint.JWKSetPublishingEndpoint;
 import it.smartcommunitylab.aac.openid.service.IdTokenHashUtils;
@@ -58,7 +59,7 @@ import it.smartcommunitylab.aac.test.utils.TestUtils;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class ImplicitFlowTest {
+public class ImplicitFlowTest extends OpenidBaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -72,50 +73,21 @@ public class ImplicitFlowTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
+    private static String sessionId;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    private String sessionId;
-
-    private ClientDetails client;
-
-    private final static String SCOPE = "openid";
+    public final static String GRANT_TYPE = "implicit";
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
-        if (client == null) {
-            try {
-
-                User admin = userRepository.findByUsername(adminUsername);
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        admin.getId(),
-                        "implicit", new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
+        super.init();
 
         if (StringUtils.isEmpty(sessionId)) {
             // login and validate session
-            sessionId = TestUtils.login(restTemplate, endpoint, adminUsername, adminPassword);
+            sessionId = TestUtils.login(restTemplate, endpoint, getUserName(), getUserPassword());
         }
 
     }
@@ -130,6 +102,8 @@ public class ImplicitFlowTest {
     public void implicitFlowWithTokenAndIdTokenAsFragment()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("implicit flow (token+id_token) with client " + client.getClientId() + " and user session "
                 + sessionId);
@@ -154,7 +128,7 @@ public class ImplicitFlowTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=token id_token"
                         + "&response_mode=fragment"
                         + "&state=" + state
@@ -179,7 +153,9 @@ public class ImplicitFlowTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "token%20id_token");
         Assert.assertEquals(parameters.getFirst("response_mode"), "fragment");
         Assert.assertEquals(parameters.getFirst("nonce"), nonce);
@@ -309,6 +285,8 @@ public class ImplicitFlowTest {
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
 
+        ClientAppBasic client = getClient();
+
         logger.debug("implicit flow (token+id_token) with client " + client.getClientId() + " and user session "
                 + sessionId);
     }
@@ -317,6 +295,8 @@ public class ImplicitFlowTest {
     public void implicitFlowWithIdTokenAsFragment()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("implicit flow (id_token) with client " + client.getClientId() + " and user session "
                 + sessionId);
@@ -330,6 +310,8 @@ public class ImplicitFlowTest {
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
 
+        ClientAppBasic client = getClient();
+
         logger.debug("implicit flow (id_token) with client " + client.getClientId() + " and user session "
                 + sessionId);
 
@@ -340,6 +322,10 @@ public class ImplicitFlowTest {
     /*
      * Helpers
      */
+    @Override
+    protected String[] getGrantTypes() {
+        return new String[] { GRANT_TYPE };
+    }
 
     private String[] toStringArray(org.json.JSONArray array) {
         if (array == null) {

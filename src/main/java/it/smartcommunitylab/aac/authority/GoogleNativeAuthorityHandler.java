@@ -93,7 +93,7 @@ public class GoogleNativeAuthorityHandler implements NativeAuthorityHandler {
 
 	@Override
 	public String extractUsername(Map<String, String> map) {
-		if (map.get(Config.USERNAME_ATTR) != null) return map.get(Config.USERNAME_ATTR);
+		if (map.get(Config.USER_ATTR_USERNAME) != null) return map.get(Config.USER_ATTR_USERNAME);
 		return map.get("id") + "@google";
 	}
 
