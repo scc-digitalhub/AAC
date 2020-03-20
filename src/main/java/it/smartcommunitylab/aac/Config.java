@@ -31,11 +31,11 @@ public class Config {
 //	public static final long ADMIN_ID = 0l;
 	
 	/** User name attribute alias */
-	public static final String NAME_ATTR = "it.smartcommunitylab.aac.givenname";
+	public static final String USER_ATTR_NAME = "it.smartcommunitylab.aac.givenname";
 	/** User surname attribute alias */
-	public static final String SURNAME_ATTR = "it.smartcommunitylab.aac.surname";
+	public static final String USER_ATTR_SURNAME = "it.smartcommunitylab.aac.surname";
 	/** User surname attribute alias */
-	public static final String USERNAME_ATTR = "it.smartcommunitylab.aac.username";
+	public static final String USER_ATTR_USERNAME = "it.smartcommunitylab.aac.username";
 	/** Internal Attribute Authority */ 
 	public static final String IDP_INTERNAL = "internal";
 	

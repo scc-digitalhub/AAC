@@ -156,8 +156,8 @@ public class AttributesAdapter {
 //		if (!handler.extractAttributes(request)) throw new SecurityException("Invalid attributes for authority "+authority);
 		
 		Map<String, String> attrs = handler.extractAttributes(request, map, mapping);
-		if (attrs.get(Config.USERNAME_ATTR) == null) {
-			attrs.put(Config.USERNAME_ATTR, handler.extractUsername(attrs));
+		if (attrs.get(Config.USER_ATTR_USERNAME) == null) {
+			attrs.put(Config.USER_ATTR_USERNAME, handler.extractUsername(attrs));
 		}
 		return attrs;
 	}
@@ -319,8 +319,8 @@ public class AttributesAdapter {
 			throw new InvalidGrantException("Unsupported authority: " + authority);
 		}
 		Map<String, String> extracted = authorityHandler.extractAttributes(token, params, mapping);
-		if (extracted.get(Config.USERNAME_ATTR) == null) {
-			extracted.put(Config.USERNAME_ATTR, authorityHandler.extractUsername(extracted));
+		if (extracted.get(Config.USER_ATTR_USERNAME) == null) {
+			extracted.put(Config.USER_ATTR_USERNAME, authorityHandler.extractUsername(extracted));
 		}
 		return extracted;
 	}

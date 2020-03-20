@@ -84,7 +84,7 @@ public class DefaultAuthorityHandler implements AuthorityHandler {
 
 	@Override
 	public String extractUsername(Map<String, String> map) {
-		return map.get(Config.USERNAME_ATTR);
+		return map.get(Config.USER_ATTR_USERNAME);
 	}
 
 }
