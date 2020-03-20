@@ -91,47 +91,102 @@ public class ProviderServiceAdapter {
 		return findAndUpdate(auth, attributes);
 	}
 	
-	//TODO rewrite to *only* return User and let updateUser do the update
-	private User findAndUpdate(Authority auth, Map<String, String> attributes) {
-		List<Attribute> list = extractIdentityAttributes(auth, attributes, true);
+    // TODO rewrite to *only* return User and let updateUser do the update
+    private User findAndUpdate(Authority auth, Map<String, String> attributes) {
 
-		// find user by identity attributes
-		List<User> users = userRepository.getUsersByAttributes(list);
-		if (users == null)
-			users = new ArrayList<User>();
-		if (users.size() > 1) {
-			list = extractIdentityAttributes(auth, attributes, false);
-			users = userRepository.getUsersByAttributes(list);
-			if (users == null) users = new ArrayList<User>();
-			if (users.size() > 1) {
-				throw new IllegalArgumentException("The request attributes identify more than one user");
-			}
-		}
-		// fillin attribute list
-		list.clear();
-		populateAttributes(auth, attributes, list, users.isEmpty() ? null : users.get(0).getAttributeEntities());
+        User user = null;
+        // extract all attributes via adapter
+        List<Attribute> list = extractIdentityAttributes(auth, attributes, true);
 
-		User user = null;
-		if (users.isEmpty()) {
-			// new user registration
-			user = new User(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR), new HashSet<Attribute>(list));
-			user.getRoles().add(Role.systemUser());
-			user.setUsername(attributes.get(Config.USERNAME_ATTR));
-			user = userRepository.saveAndFlush(user);
-			updateClaims(user);
-		} else {
-			user = users.get(0);
-			attributeRepository.deleteInBatch(user.getAttributeEntities());
-			user.setAttributeEntities(new HashSet<Attribute>(list));
-			user.updateNames(attributes.get(Config.NAME_ATTR), attributes.get(Config.SURNAME_ATTR));
-			if (user.getUsername() == null) {
-				user.setUsername(attributes.get(Config.USERNAME_ATTR));
-				updateClaims(user);
-			}
-			userRepository.saveAndFlush(user);
-		}
-		return user;
-	}
+        // username is unique, if provided we have an *exact* match
+        if (attributes.get(Config.USER_ATTR_USERNAME) != null) {
+            user = userRepository.findByUsername(attributes.get(Config.USER_ATTR_USERNAME));
+        }
+
+        //TODO rewrite, too convoluted
+        if (user == null) {
+            // find user by identity all attributes
+            List<User> users = userRepository.getUsersByAttributes(list);
+            if (users.size() == 1) {
+                // one match for all attributes, fetch
+                user = users.get(0);
+            } else if (users.size() > 1) {
+                // restrict search to base attributes only
+                list = extractIdentityAttributes(auth, attributes, false);
+                users = userRepository.getUsersByAttributes(list);
+                if (users.size() == 1) {
+                    // one match for all attributes, fetch
+                    user = users.get(0);
+                } else if (users.size() > 1) {
+                    // still too many matches, give up
+                    throw new IllegalArgumentException("The request attributes identify more than one user");
+                }
+            }
+        }
+
+        // clear attribute list
+        list.clear();
+        
+        if(user == null) {
+            //get only new attributes
+            list = populateAttributes(auth, attributes,null);
+            
+            // new user registration
+            user = new User(attributes.get(Config.USER_ATTR_NAME), attributes.get(Config.USER_ATTR_SURNAME),
+                    new HashSet<Attribute>(list));
+            
+            user.getRoles().add(Role.systemUser());
+            user.setUsername(attributes.get(Config.USER_ATTR_USERNAME));
+            user = userRepository.saveAndFlush(user);
+            
+            //TODO remove, new users should not have pre-existing claims
+            updateClaims(user);
+            
+            return user;
+        } else {
+            //merge new and old attributes
+            list = populateAttributes(auth, attributes, user.getAttributeEntities());
+            
+            attributeRepository.deleteInBatch(user.getAttributeEntities());
+            user.setAttributeEntities(new HashSet<Attribute>(list));
+            user.updateNames(attributes.get(Config.USER_ATTR_NAME), attributes.get(Config.USER_ATTR_SURNAME));
+
+            //TODO remove, a pre-existing user without username should not exist
+            if (user.getUsername() == null) {
+                user.setUsername(attributes.get(Config.USER_ATTR_USERNAME));
+                //TODO remove, username can NOT be updated in theory
+                updateClaims(user);
+            }
+            
+            user = userRepository.saveAndFlush(user);
+            
+            return user;
+        }
+
+        //DEPRECATED 
+//        if (users.isEmpty()) {
+//            // new user registration
+//            user = new User(attributes.get(Config.USER_ATTR_NAME), attributes.get(Config.USER_ATTR_SURNAME),
+//                    new HashSet<Attribute>(list));
+//            user.getRoles().add(Role.systemUser());
+//            user.setUsername(attributes.get(Config.USER_ATTR_USERNAME));
+//            user = userRepository.saveAndFlush(user);
+//            
+//            //TODO remove, new users should not have pre-existing claims
+//            updateClaims(user);
+//        } else {
+//            user = users.get(0);
+//            attributeRepository.deleteInBatch(user.getAttributeEntities());
+//            user.setAttributeEntities(new HashSet<Attribute>(list));
+//            user.updateNames(attributes.get(Config.USER_ATTR_NAME), attributes.get(Config.USER_ATTR_SURNAME));
+//            if (user.getUsername() == null) {
+//                user.setUsername(attributes.get(Config.USER_ATTR_USERNAME));
+//                updateClaims(user);
+//            }
+//            userRepository.saveAndFlush(user);
+//        }
+//        return user;
+    }
 
 	/**
 	 * @param user
@@ -145,7 +200,10 @@ public class ProviderServiceAdapter {
 		claimRepository.save(claims);
 	}
 
-	private void populateAttributes(Authority auth, Map<String, String> attributes, List<Attribute> list, Set<Attribute> old) {
+	private  List<Attribute> populateAttributes(Authority auth, Map<String, String> attributes,  Set<Attribute> old) {
+	    List<Attribute> list = new ArrayList<>();
+
+	    //build new from attributes map
 		for (String key : attributes.keySet()) {
 			String value = attributes.get(key);
 			Attribute attr = new Attribute();
@@ -154,6 +212,8 @@ public class ProviderServiceAdapter {
 			attr.setValue(value);
 			list.add(attr);
 		}
+		
+		//merge old
 		if (old != null) {
 			for (Attribute a : old) {
 				if (!a.getAuthority().equals(auth)) {
@@ -165,6 +225,8 @@ public class ProviderServiceAdapter {
 				}
 			}
 		}
+		
+		return list;
 	}
 
 	/**

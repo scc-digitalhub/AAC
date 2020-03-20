@@ -444,8 +444,8 @@ public class RegistrationManager {
         Map<String, String> map = new HashMap<String, String>();
         map.put("name", existing.getName());
         map.put("surname", existing.getSurname());
-        map.put(Config.NAME_ATTR, existing.getName());
-        map.put(Config.SURNAME_ATTR, existing.getSurname());
+        map.put(Config.USER_ATTR_NAME, existing.getName());
+        map.put(Config.USER_ATTR_SURNAME, existing.getSurname());
         map.put("email", existing.getEmail());
         return map;
     }
