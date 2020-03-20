@@ -161,6 +161,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${oauth2.resourceOwnerPassword.allowRefresh}")
     private boolean oauth2ResourceOwnerPasswordAllowRefresh;          
     
+    @Value("${security.redirects.matchports}")
+    private boolean configMatchPorts;
+
+    @Value("${security.redirects.matchsubdomains}")
+    private boolean configMatchSubDomains;
+   
 	@Autowired
 	OAuth2ClientContext oauth2ClientContext;
 
@@ -369,10 +375,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		auth.userDetailsService(getInternalUserDetailsService());
 	}
 
-	@Bean
-	protected ContextExtender contextExtender() {
-		return new ContextExtender();
-	}
+    @Bean
+    protected ContextExtender contextExtender() {
+        return new ContextExtender(applicationURL, configMatchPorts, configMatchSubDomains);
+    }
 
 	@Configuration
 	@EnableAuthorizationServer

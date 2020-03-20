@@ -147,7 +147,7 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 		}
 		// or test token redirect uri
 //		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
-		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(applicationURL))) {
+		if(ExtRedirectResolver.isLocalRedirect(authorizationRequest.getRedirectUri(), applicationURL)) {
 		    return true;
 		}
 		

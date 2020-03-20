@@ -16,8 +16,14 @@
 
 package it.smartcommunitylab.aac.oauth;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.servlet.ServletContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -32,46 +38,65 @@ import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
  *
  */
 public class ExtRedirectResolver extends DefaultRedirectResolver {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String URL_TEST = "/testtoken";
+//    private static final String URL_TEST = "/testtoken";
+    private static final String[] LOCALHOST = { "http://localhost", "http://127.0.0.1" };
 
-    private static String path = null;
+//    @Value("${security.redirects.matchports}")
+//    private boolean configMatchPorts;
 
-    @Value("${security.redirects.matchports}")
-    private boolean configMatchPorts;
+//    @Value("${security.redirects.matchsubdomains}")
+//    private boolean configMatchSubDomains;
 
-    @Value("${security.redirects.matchsubdomains}")
-    private boolean configMatchSubDomains;
+//    @Value("${application.url}")
+    private final String applicationURL;
 
-    @Value("${application.url}")
-    private String applicationURL;
+    private static WhiteboxRedirectResolver localResolver;
 
     /**
      * @param context
      */
-    public ExtRedirectResolver(ServletContext context) {
+    public ExtRedirectResolver(
+            String applicationURL,
+            boolean configMatchPorts,
+            boolean configMatchSubDomains) {
         super();
+        this.applicationURL = applicationURL;
 //		path = testTokenPath(context);
-        path = testTokenPath(applicationURL);
         this.setMatchPorts(configMatchPorts);
         this.setMatchSubdomains(configMatchSubDomains);
+
+        // localhost resolver with relaxed check
+        localResolver = new WhiteboxRedirectResolver();
+        localResolver.setMatchPorts(false);
+
     }
 
 //	public static String testTokenPath(ServletContext ctx) {
 //		return ctx.getContextPath() + URL_TEST;
 //	}
 
-    public static String testTokenPath(String baseURL) {
-        return baseURL + URL_TEST;
+//    public static String testTokenPath(String baseURL) {
+//        return baseURL + URL_TEST;
+//    }
+
+    public static boolean isLocalRedirect(String requestedRedirect, String baseURL) {
+        Set<String> redirectUris = new HashSet<>(Arrays.asList(LOCALHOST));
+        redirectUris.add(baseURL);
+
+        return localResolver.matchingRedirect(redirectUris, requestedRedirect);
     }
 
     @Override
     public String resolveRedirect(String requestedRedirect, ClientDetails client) throws OAuth2Exception {
+        logger.trace("check " + requestedRedirect + " against local resolver");
         // match absolute uri for test token
-        if (requestedRedirect != null && redirectMatches(requestedRedirect, path)) {
+        if (requestedRedirect != null && isLocalRedirect(requestedRedirect, applicationURL)) {
             return requestedRedirect;
         }
 
+        logger.trace("check " + requestedRedirect + " against client redirects");
         return super.resolveRedirect(requestedRedirect, client);
     }
 
@@ -83,4 +108,15 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 //	    return super.redirectMatches(requestedRedirect, redirectUri) || super.redirectMatches(requestedRedirect, path);
 //	}
 
+    public static class WhiteboxRedirectResolver extends DefaultRedirectResolver {
+        public boolean matchingRedirect(Set<String> redirectUris, String requestedRedirect) {
+            for (String redirectUri : redirectUris) {
+                if (requestedRedirect != null && redirectMatches(requestedRedirect, redirectUri)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 }
