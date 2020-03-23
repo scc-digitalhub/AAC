@@ -96,7 +96,7 @@ public class ClaimManager {
 
 	// claims that should not be overwritten
 	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
-	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "groups", "username", "user_name");
+	private Set<String> systemScopes = Sets.newHashSet("scope", "token_type", "client_id", "active", "roles", "groups", "username", "user_name", "space");
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 	
@@ -115,7 +115,7 @@ public class ClaimManager {
 	public Map<String, Object> getUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientDetailsEntity client, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims) {
 		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
 		try {
-			return createUserClaims(userId, authorities, appInfo.getClaimMapping(), scopes, authorizedClaims, requestedClaims, true, null);
+			return createUserClaims(userId, authorities, appInfo.getClaimMapping(), scopes, authorizedClaims, requestedClaims, appInfo.getUniqueSpaces(), true, null);
 		} catch (InvalidDefinitionException e) {
 			// never arrives here
 			return null;
@@ -161,7 +161,7 @@ public class ClaimManager {
 	 */
 	@Transactional(readOnly = true)
 	public Map<String, Object> validateUserClaimsForClientApp(User user, ClientAppInfo appInfo, Set<String> scopes) throws InvalidDefinitionException {
-		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo.getClaimMapping(), scopes, null, null, false, null);
+		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo.getClaimMapping(), scopes, null, null, appInfo.getUniqueSpaces(), false, null);
 	}
 		
 	/**
@@ -175,7 +175,7 @@ public class ClaimManager {
 	 */
 	@Transactional(readOnly = true)
 	public Map<String, Object> validateClaimMapping(User user, String serviceId, String mapping, Set<String> scopes) throws InvalidDefinitionException {
-		Map<String, Object> res = createUserClaims(user.getId().toString(), user.getRoles(), mapping, scopes, null, null, false, serviceId);
+		Map<String, Object> res = createUserClaims(user.getId().toString(), user.getRoles(), mapping, scopes, null, null, null, false, serviceId);
 		ServiceDTO service = serviceManager.getService(serviceId);
 		service.setClaims(serviceManager.getServiceClaims(serviceId));
 		validateMappedClaims(res, service);
@@ -366,7 +366,7 @@ public class ClaimManager {
 	}
 
 	
-	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
+	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, Collection<String> uniqueSpaces, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);
 		
 		// get the base object
@@ -413,6 +413,24 @@ public class ClaimManager {
 				Set<Role> roles = authorities.stream().map(a -> Role.parse(a.getAuthority())).collect(Collectors.toSet());
 				//append roles as authorities list
 				populateRoleClaims(roles, obj);
+				
+				if(uniqueSpaces != null && !uniqueSpaces.isEmpty()) {
+				    //merge and output a fixed claim for spaces selections
+				    Set<String> spaces = new HashSet<>();
+				    for(Role r : roles) {
+				        if(uniqueSpaces.contains(r.getContext())) {
+				            spaces.add(r.getSpace());
+				        }
+				    }
+				    
+				    //output only if populated
+				    if(spaces.size() == 1) {
+				        obj.put("space", spaces.iterator().next());
+				    } else if (spaces.size() > 1) {
+				        obj.put("space", spaces.toArray(new String[0]));
+				    }
+				}
+				
 			} catch (Exception e) {
 				logger.error("error fetching roles for user "+userId, e);
 			}
