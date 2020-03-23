@@ -801,19 +801,48 @@ angular.module('aac.controllers.clients', [])
 		//extract base context by removing angular route and current path '/dev'
 		var ctx = $location.absUrl().split('#')[0];	
 		ctx = ctx.substring(0, ctx.indexOf('/dev'))
-		var win = window.open('oauth/authorize?client_id='+$scope.app.clientId+'&response_type=token&grant_type=implicit&redirect_uri='+ctx+'/testtoken');
-		win.onload = function() {
-			var at = processAuthParams(win.location.hash.substring(1));
-			$timeout(function(){
+		console.log(ctx);
+		var win = window.open('oauth/authorize?client_id='+$scope.app.clientId+'&response_type=token&grant_type=implicit&redirect_uri='+ctx+'/html/modal/token.html');
+//		win.onload = function() {
+//			console.log(win.location);
+//			console.log(win.location.hash.substring(1));
+//			if(win.location.hash) {
+//			var at = processAuthParams(win.location.hash.substring(1));
+//			console.log(at)
+//			}
+////			$timeout(function(){
+////				if (at) {
+////					$scope.implicitToken = at;
+////				} else {
+////					Utils.showError('Problem retrieving the token!');
+////				}
+////			},100);
+////			win.close();
+//		};
+		$scope.tokenWindow = win;
+	};
+	
+	//hack, should handle redirects with interceptor
+	$window.processImplicitTokenWindow = function(loc) {
+		console.log(loc);
+		if($scope.tokenWindow) {
+			console.log('close')
+			$scope.tokenWindow.close();
+			if(loc.hash) {
+				var at = processAuthParams(loc.hash.substring(1));
+				console.log(at);
 				if (at) {
 					$scope.implicitToken = at;
+					console.log($scope.implicitToken);
+					$scope.$apply();
 				} else {
 					Utils.showError('Problem retrieving the token!');
 				}
-			},100);
-			win.close();
-		};
-	};
+			}
+			
+			$scope.tokenWindow = false;
+		}
+	}
 	
 	$scope.copyAsBearer = function(token) {
 //		console.log(navigator);

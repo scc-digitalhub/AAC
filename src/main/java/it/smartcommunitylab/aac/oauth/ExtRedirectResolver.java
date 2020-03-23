@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -82,10 +84,12 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 //    }
 
     public static boolean isLocalRedirect(String requestedRedirect, String baseURL) {
-        Set<String> redirectUris = new HashSet<>(Arrays.asList(LOCALHOST));
-        redirectUris.add(baseURL);
+        //TODO either remove localhost or put behind flag global or in client
+        //we don't want an open redirect for implicit flows
+//        Set<String> redirectUris = new HashSet<>(Arrays.asList(LOCALHOST));
+//        redirectUris.add(baseURL);
 
-        return localResolver.matchingRedirect(redirectUris, requestedRedirect);
+        return localResolver.matchingRedirect(Collections.singleton(baseURL), requestedRedirect);
     }
 
     @Override
@@ -109,7 +113,7 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 //	}
 
     public static class WhiteboxRedirectResolver extends DefaultRedirectResolver {
-        public boolean matchingRedirect(Set<String> redirectUris, String requestedRedirect) {
+        public boolean matchingRedirect(Collection<String> redirectUris, String requestedRedirect) {
             for (String redirectUri : redirectUris) {
                 if (requestedRedirect != null && redirectMatches(requestedRedirect, redirectUri)) {
                     return true;

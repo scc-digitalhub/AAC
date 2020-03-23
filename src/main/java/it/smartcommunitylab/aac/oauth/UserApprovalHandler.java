@@ -145,11 +145,11 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 				    return true;
 				}
 		}
-		// or test token redirect uri
-//		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
-		if(ExtRedirectResolver.isLocalRedirect(authorizationRequest.getRedirectUri(), applicationURL)) {
-		    return true;
-		}
+//		// or test token redirect uri
+////		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
+//		if(ExtRedirectResolver.isLocalRedirect(authorizationRequest.getRedirectUri(), applicationURL)) {
+//		    return true;
+//		}
 		
 		//or "default" scope only requested
 		if(Collections.singleton("default").equals(authorizationRequest.getScope())) {
