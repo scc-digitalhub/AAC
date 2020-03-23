@@ -436,7 +436,8 @@ public class ServiceManager {
 	}
 	
 	public ServiceScopeDTO getServiceScopeDTO(String requestedScope) {
-		return toDTO(getServiceScope(requestedScope));
+	    ServiceScope service = getServiceScope(requestedScope);
+		return service != null ? toDTO(service) : null;
 	}
 
 	/**
@@ -465,6 +466,7 @@ public class ServiceManager {
 				? Collections.emptySet() 
 				: scopes.stream().flatMap(s -> {
 					try {
+					    Set<String> aas = claimCache.get(s);
 						return claimCache.get(s).stream();
 					} catch (ExecutionException e) {
 						return Collections.<String>emptySet().stream();
