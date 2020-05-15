@@ -410,16 +410,23 @@ public class RoleManager {
 			ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
 			ClientAppInfo info = ClientAppInfo.convert(client.getAdditionalInformation());
 			if (info.getUniqueSpaces() != null && !info.getUniqueSpaces().isEmpty()) {
+			    logger.trace("uniqueSpaces is "+info.getUniqueSpaces().toString());
+			    
 				Multimap<String, String> map = LinkedListMultimap.create();
 				for (GrantedAuthority a : authorities) {
 					Role r = Role.parse(a.getAuthority());
-					if (!StringUtils.isEmpty(r.getContext()) && info.getUniqueSpaces().contains(r.getContext())) {
-                        //add each space only once when user has more than one role in it
-                        if(!map.containsEntry(r.getContext(), r.getSpace())) {
-                            map.put(r.getContext(), r.getSpace());
-                        }					    
+					if (!StringUtils.isEmpty(r.getContext())) {
+					    logger.trace("check uniqueSpaces for role context "+r.getContext());
+					    //check if any of the contexts starts with one of the uniqueSpaces
+                        if (info.getUniqueSpaces().stream().filter(s -> r.getContext().startsWith(s)).count() > 0) {
+                            // add each space only once when user has more than one role in it
+                            if (!map.containsEntry(r.getContext(), r.getSpace())) {
+                                map.put(r.getContext(), r.getSpace());
+                            }
+                        }
 					} 
 				}
+				logger.trace("result space map "+map.toString());
 				//remove keys if single element in list, nothing to choose
 				map.keySet().removeIf(k -> map.get(k).size() == 1);
 
