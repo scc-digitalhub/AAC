@@ -74,6 +74,21 @@ jwt:
       sig: ${JWT_KID_SIG:}
       enc: ${JWT_KID_ENC:}
 
+
+saml:
+  type: 
+  keystore:
+    location:
+    password:
+    alias:
+  idp:
+    metadata:
+  sp:
+    id:
+    name:
+    description:
+
+
 #EXTERNAL PROVIDERS
 authorities:
    enabled: ${AUTHORITIES:internal}

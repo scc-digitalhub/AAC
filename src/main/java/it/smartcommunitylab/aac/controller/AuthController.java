@@ -44,6 +44,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
+import org.springframework.security.providers.ExpiringUsernameAuthenticationToken;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -194,9 +195,13 @@ public class AuthController {
 		ClientAppBasic client = clientDetailsAdapter.getByClientId(clientId);
 		String clientScopes = StringUtils.collectionToCommaDelimitedString(client.getScope());
 		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, clientScopes, client.getDisplayName());
+		
+		//get current auth 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth != null && auth.getAuthorities() != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(AUTHORITY.ROLE_USER.toString())) &&
-			req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
+		if (auth != null 
+		        && auth.getAuthorities() != null 
+		        && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(AUTHORITY.ROLE_USER.toString()))
+		        && req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
 			AACOAuthRequest old = (AACOAuthRequest) req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST);
 			oauthRequest.setAuthority(old.getAuthority());
 			// update existing session data
@@ -204,6 +209,7 @@ public class AuthController {
 			a.setDetails(oauthRequest);
 			SecurityContextHolder.getContext().setAuthentication(a);
 		}
+		
 		if (StringUtils.isEmpty(oauthRequest.getAuthority()) && loginAuthorities != null) {
 			oauthRequest.setAuthority(loginAuthorities.split(",")[0].trim());
 		}
@@ -345,7 +351,10 @@ public class AuthController {
 		if (old instanceof AACAuthenticationToken || old instanceof RememberMeAuthenticationToken) {
 			String userId = old.getName();
 			userEntity = userRepository.findOne(Long.parseLong(userId));
-		} else if ( old instanceof UsernamePasswordAuthenticationToken) {
+		} else if ( old instanceof ExpiringUsernameAuthenticationToken) {
+            //saml
+		    userEntity = providerServiceAdapter.updateUser(authorityUrl, toMap(pairs), req);
+        } else if ( old instanceof UsernamePasswordAuthenticationToken) {
 		    //ensure internal users (logged in via user+password) are given the right identity
 		    //avoid impersonation attack via parameters
 	        Registration reg = registrationManager.getUserByEmail(old.getName());

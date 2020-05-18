@@ -69,7 +69,13 @@
       <attributes>pat_attribute_codicefiscale</attributes>
       <identifyingAttributes>pat_attribute_codicefiscale</identifyingAttributes>
   </authorityMapping>
-
+  <authorityMapping name="spid" url="spid" public="false" web="false" useParams="false">
+      <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">familyName</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">fiscalNumber</attributes>
+      <attributes>fiscalNumber</attributes>
+      <identifyingAttributes>fiscalNumber</identifyingAttributes>
+  </authorityMapping>
   <authorityMatching>
       <authority name="google" attribute="email"/>
       <authority name="facebook" attribute="email"/>
