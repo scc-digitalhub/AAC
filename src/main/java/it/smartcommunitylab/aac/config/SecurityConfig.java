@@ -867,8 +867,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 	    
-	    //TODO move away, we do not won't this on every call
-        http.addFilterBefore(samlMetadataGeneratorFilter(), ChannelProcessingFilter.class);
+	    
 	    
 		http
 //		.anonymous().disable()
@@ -891,6 +890,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.and()
 		.csrf()
 			.disable()
+			//TODO move away, we do not want this on every call
+	    .addFilterBefore(samlMetadataGeneratorFilter(), ChannelProcessingFilter.class)
 		.addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class);
 	}
 
