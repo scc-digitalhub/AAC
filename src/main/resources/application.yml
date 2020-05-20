@@ -6,7 +6,7 @@ server:
    tomcat:
      remote_ip_header: ${SERVER_TOMCAT_REMOTE_IP_HEADER:x-forwarded-for}
      protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
-   max-http-header-size: 16000     
+   max-http-header-size: 16000
 
 # APPLICATION EXTERNAL URL
 application:
@@ -36,7 +36,7 @@ security:
       validity: ${ACCESS_TOKEN_VALIDITY:43200}
    refreshtoken:
       validity: ${REFRESH_TOKEN_VALIDITY:2592000}
-   keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
+   keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks}
    rememberme:
       key: ${REMEMBER_ME_KEY:REMEMBER_ME_SECRET_KEY}
    identity: # IDENTITY MAPPING SOURCE FILE
@@ -118,11 +118,19 @@ swagger:
       AACApiKey: AAC API - API Access Key management
       AACAuthorization: AAC API - Authorization management
       AACRoles: AAC API - Role management
+      AACOAuth2: AAC API - OAuth2.0
+      AACOpenID: AAC API - OpenID Connect
+      AACServices: AAC API - Service Definitions
+      AACClaims: AAC API - Custom User Claims
    description:
       AAC: Authorization and Authentication Control APIs - Profile and token info
       AACApiKey: Authorization and Authentication Control APIs - API Key validation and management
       AACAuthorization: Authorization and Authentication Control APIs - Authorization management
       AACRoles: Authorization and Authentication Control APIs - Role managment
+      AACOAuth2: AAC API - OAuth2.0 operations
+      AACOpenID: AAC API - OpenID Connect implementation
+      AACServices: AAC API - Service Definitions - Services (Resources), Scopes, Claims
+      AACClaims: AAC API - Custom User Claims Management
    version: 1.0.0
    license: Apache License, Version 2.0
    licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
@@ -135,11 +143,11 @@ swagger:
 spring:
    messages:
       basename: resources/internal
-      encoding: UTF-8
+      encoding: ${SPRING_MESSAGES_ENCODING:ISO-8859-1}
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
-   contextSpace: 
+   contextSpace:
 
 # EMAIL SERVER FOR NOTIFICATIONS
 mail:
@@ -153,7 +161,7 @@ mail:
 api:
    contextSpace: components/apimanager
 
-# DEFAULT ADMIN CLIENT  
+# DEFAULT ADMIN CLIENT
 adminClient:
     id: ${APIM_ID:API_MGT_CLIENT_ID}
     secret: ${APIM_SECRET:YOUR_MNGMT_CLIENT_SECRET}
@@ -162,8 +170,8 @@ adminClient:
 
 #port used to expose actuator
 management:
-   port: ${MANAGEMENT_PORT:8081} 
-   
+   port: ${MANAGEMENT_PORT:8081}
+
 ---
 # SPRING
 spring:
@@ -171,5 +179,4 @@ spring:
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
-   contextSpace: authorization   
-   
+   contextSpace: authorization

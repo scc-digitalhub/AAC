@@ -27,3 +27,4 @@ aac.log
 /logs/
 /.settings/
 /data/
+*.jar
