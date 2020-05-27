@@ -264,6 +264,9 @@ angular.module('aac.controllers.customservices', [])
 		$scope.scope.claims = ($scope.scope.claims || []).map(function(s) {
 			return typeof s == 'string' ? s : s.text;
 		}); 
+		$scope.scope.roles = ($scope.scope.roles || []).map(function(s) {
+			return typeof s == 'string' ? s : s.text;
+		}); 
 		ServiceScopes.add({serviceId:$scope.currService.serviceId},$scope.scope).$promise.then(function(response) {
 			$scope.reload(response.data);
 			$scope.error = '';

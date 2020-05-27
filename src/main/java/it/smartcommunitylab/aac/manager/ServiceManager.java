@@ -24,8 +24,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -466,7 +464,6 @@ public class ServiceManager {
 				? Collections.emptySet() 
 				: scopes.stream().flatMap(s -> {
 					try {
-					    Set<String> aas = claimCache.get(s);
 						return claimCache.get(s).stream();
 					} catch (ExecutionException e) {
 						return Collections.<String>emptySet().stream();
