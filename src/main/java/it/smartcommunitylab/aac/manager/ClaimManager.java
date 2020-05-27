@@ -284,14 +284,7 @@ public class ClaimManager {
 			UserClaim uc = new UserClaim();
 			uc.setUser(dbUser);
 			if (dbUser.getUsername() != null) uc.setUsername(dbUser.getUsername().toLowerCase());
-			if (!ServiceClaim.ofType(entry.getValue(), serviceClaim.isMultiple(), serviceClaim.getType())) {
-				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
-			}
-			try {
-				uc.setValue(mapper.writeValueAsString(entry.getValue()));
-			} catch (JsonProcessingException e) {
-				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
-			}
+			updateClaimValue(entry, serviceClaim, uc);
 			uc.setClaim(serviceClaim);
 			userClaimRepository.save(uc);
 		}
@@ -326,14 +319,7 @@ public class ClaimManager {
 			UserClaim uc = new UserClaim();
 			uc.setUser(null);
 			uc.setUsername(username.toLowerCase());
-			if (!ServiceClaim.ofType(entry.getValue(), serviceClaim.isMultiple(), serviceClaim.getType())) {
-				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
-			}
-			try {
-				uc.setValue(mapper.writeValueAsString(entry.getValue()));
-			} catch (JsonProcessingException e) {
-				throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
-			}
+			updateClaimValue(entry, serviceClaim, uc);
 			uc.setClaim(serviceClaim);
 			userClaimRepository.save(uc);
 			resClaims.put(entry.getKey(), entry.getValue());
@@ -344,6 +330,18 @@ public class ClaimManager {
 		res.setClaims(resClaims);
 		return res;
 
+	}
+
+	protected void updateClaimValue(Entry<String, Object> entry, ServiceClaim serviceClaim, UserClaim uc)
+			throws InvalidDefinitionException {
+		if (!ServiceClaim.ofType(entry.getValue(), serviceClaim.isMultiple(), serviceClaim.getType())) {
+			throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
+		}
+		try {
+			uc.setValue(mapper.writeValueAsString(entry.getValue()));
+		} catch (JsonProcessingException e) {
+			throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
+		}
 	}
 	
 	public void deleteServiceUserClaims(User owner, String serviceId, String userId) {
