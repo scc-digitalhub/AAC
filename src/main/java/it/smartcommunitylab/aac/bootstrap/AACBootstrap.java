@@ -3,49 +3,30 @@ package it.smartcommunitylab.aac.bootstrap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.codehaus.groovy.runtime.ArrayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mchange.v1.util.ArrayUtils;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.bootstrap.BootstrapClient;
-import it.smartcommunitylab.aac.bootstrap.BootstrapUser;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
-import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
-import it.smartcommunitylab.aac.model.ClientAppInfo;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.ServiceClaim;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.OAuthProviders;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
 
 @Component
 public class AACBootstrap {
@@ -179,7 +160,7 @@ public class AACBootstrap {
                             bc.getId(), clientName,
                             bc.getSecret(), bc.getSecret(),
                             bc.getGrantTypes(), bc.getScopes(), bc.getRedirectUris(),
-                            bc.getUniqueSpaces(), claimMappingCode, bc.getAfterApprovalWebhook(),
+                            bc.getUniqueSpaces(), bc.getRolePrefixes(), claimMappingCode, bc.getAfterApprovalWebhook(),
                             isTrusted);
 
                     logger.trace("created client " + c.getName() + " with id " + c.getClientId() + " developer "
@@ -316,6 +297,7 @@ public class AACBootstrap {
             String[] scopes,
             String[] redirectUris,
             String[] uniqueSpaces,
+            String[] rolePrefixes,
             String claimMappingFunction,
             String afterApprovalWebhook,
             boolean isTrusted) throws Exception {
@@ -375,6 +357,10 @@ public class AACBootstrap {
             // update extended
             if (uniqueSpaces != null) {
                 client.setUniqueSpaces(new HashSet<>(Arrays.asList(uniqueSpaces)));
+            }
+            // update extended
+            if (rolePrefixes != null) {
+                client.setRolePrefixes(new HashSet<>(Arrays.asList(rolePrefixes)));
             }
 
             if (claimMappingFunction != null) {

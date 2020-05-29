@@ -51,7 +51,8 @@ public class ClientAppInfo {
 	private Set<String> uniqueSpaces;
 	private String claimMapping; 
 	private String onAfterApprovalWebhook;
-	
+	private Set<String> rolePrefixes;
+
 	static {
 		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
@@ -175,5 +176,13 @@ public class ClientAppInfo {
 	 */
 	public void setOnAfterApprovalWebhook(String onAfterApprovalWebhook) {
 		this.onAfterApprovalWebhook = onAfterApprovalWebhook;
+	}
+
+	public Set<String> getRolePrefixes() {
+		return rolePrefixes;
+	}
+
+	public void setRolePrefixes(Set<String> rolePrefixes) {
+		this.rolePrefixes = rolePrefixes;
 	}
 }

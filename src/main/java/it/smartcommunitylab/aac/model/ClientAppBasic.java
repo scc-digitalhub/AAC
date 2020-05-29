@@ -50,6 +50,7 @@ public class ClientAppBasic {
 	private Set<String> uniqueSpaces;
 	private String claimMapping; 
 	private String onAfterApprovalWebhook;
+	private Set<String> rolePrefixes;
 	
 	private String userName;
 	private Set<String> scope;
@@ -273,6 +274,10 @@ public class ClientAppBasic {
     public void setRefreshTokenValidity(int refreshTokenValidity) {
         this.refreshTokenValidity = Integer.valueOf(refreshTokenValidity);
     }
-	
-	
+	public Set<String> getRolePrefixes() {
+		return rolePrefixes;
+	}
+	public void setRolePrefixes(Set<String> rolePrefixes) {
+		this.rolePrefixes = rolePrefixes;
+	}
 }

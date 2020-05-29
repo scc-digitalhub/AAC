@@ -19,7 +19,8 @@ public class BootstrapClient {
     private String[] uniqueSpaces;
     private String claimMappingFunction;
     private String afterApprovalWebhook;
-    private boolean isTrusted;
+	private String[] rolePrefixes;
+	private boolean isTrusted;
 
     public String getId() {
         return id;
@@ -109,7 +110,16 @@ public class BootstrapClient {
         this.isTrusted = isTrusted;
     }
 
-    /*
+    
+    public String[] getRolePrefixes() {
+		return rolePrefixes;
+	}
+
+	public void setRolePrefixes(String[] rolePrefixes) {
+		this.rolePrefixes = rolePrefixes;
+	}
+
+	/*
      * Builders
      */
     public static BootstrapClient fromClientApp(ClientAppBasic client) {
@@ -144,6 +154,9 @@ public class BootstrapClient {
 
         if (client.getUniqueSpaces() != null) {
             bc.uniqueSpaces = client.getUniqueSpaces().toArray(new String[0]);
+        }
+        if (client.getRolePrefixes() != null) {
+            bc.rolePrefixes = client.getRolePrefixes().toArray(new String[0]);
         }
 
         if (StringUtils.hasText(client.getOnAfterApprovalWebhook())) {

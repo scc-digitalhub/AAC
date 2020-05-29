@@ -78,6 +78,8 @@ angular.module('aac.controllers.clients', [])
 	$scope.redirectUris = [];
 	//unique spaces
 	$scope.uniqueSpaces = [];
+	//role prefixes
+	$scope.rolePrefixes = [];
 	//services
 	$scope.services = null;
 	// permissions of the current client and services
@@ -188,6 +190,7 @@ angular.module('aac.controllers.clients', [])
 //				$scope.redirectUris = initRedirectUris($scope.app.redirectUris || []);
 				$scope.initRedirectUris(app);
 				$scope.initUniqueSpaces(app);
+				$scope.initRolePrefixes(app);
 				$scope.initGrantTypes($scope.app);
 				$scope.clientId = app.clientId;
 				$scope.claimEnabled.checked = !!app.claimMapping;
@@ -308,6 +311,21 @@ angular.module('aac.controllers.clients', [])
 		$scope.uniqueSpaces = arr;
 	}
 	
+	/*
+	 * role prefixes
+	 */
+	$scope.initRolePrefixes = function(app) {
+		var arr = [];
+		if(app.rolePrefixes) {
+			app.rolePrefixes.forEach(function(rp) {
+				if(rp && rp.trim()) {
+					arr.push({'text': rp});
+				}
+			});
+		}
+		
+		$scope.rolePrefixes = arr;
+	}
 	/**
 	 * return 'active' if the specified client is selected
 	 */
@@ -611,9 +629,15 @@ angular.module('aac.controllers.clients', [])
 	 */
 	$scope.saveClaims = function() {
 		if ($scope.uniqueSpaces) {			
-//			$scope.uniqueSpaces = $scope.uniqueSpaces ? $scope.uniqueSpaces.filter(function(r) { return r && r.text}) : [];
-//			$scope.uniqueSpaces = $scope.uniqueSpaces ? $scope.uniqueSpaces.filter(function(r) { return r }) : [];
 			$scope.app.uniqueSpaces = $scope.uniqueSpaces.map(function(r) {
+				if(r.hasOwnProperty('text')) {
+					return r.text;
+				}
+				return r;
+			});
+		}
+		if ($scope.rolePrefixes) {			
+			$scope.app.rolePrefixes = $scope.rolePrefixes.map(function(r) {
 				if(r.hasOwnProperty('text')) {
 					return r.text;
 				}
@@ -631,6 +655,7 @@ angular.module('aac.controllers.clients', [])
 				$scope.initGrantTypes(app);
 				$scope.initRedirectUris(app);
 				$scope.initUniqueSpaces(app);
+				$scope.initRolePrefixes(app);
 				$scope.claimEnabled.checked = !!app.claimMapping;
 			} else {
 				Utils.showError('Failed to save claims: '+response.errorMessage);
@@ -724,7 +749,7 @@ angular.module('aac.controllers.clients', [])
 	/**
 	 * reset value for client id or secret
 	 */
-	$scope.reset = function(client,param) {
+	$scope.reset = function(client, param) {
 		if (confirm('Are you sure you want to reset '+param+'?')) {
 			var newClient = new ClientAppBasic($scope.app);
 			newClient.$reset({clientId:$scope.clientId,reset:param}, function(response) {
@@ -736,31 +761,12 @@ angular.module('aac.controllers.clients', [])
 					$scope.initGrantTypes(app);
 					$scope.initRedirectUris(app).
 					$scope.initUniqueSpaces(app);
+					$scope.initRolePrefixes(app);
 					$scope.claimEnabled.checked = !!app.claimMapping;
 				} else {
 					Utils.showError('Failed to reset '+param+': '+response.errorMessage);
 				}				
 				
-//				if (response.responseCode == 'OK') {
-//					Utils.showSuccess();
-//
-//					var app = response.data;
-//					for (var i = 0; i < $scope.apps.length; i++) {
-//						if ($scope.apps[i].clientId == client) {
-//							$scope.apps[i] = app;
-//							if ($scope.clientId == client) {
-//								$scope.clientId = app.clientId;
-//								$scope.app = angular.copy(app);
-//								$scope.initGrantTypes($scope.app);
-//								$scope.uniqueSpaces = ($scope.app.uniqueSpaces || []);
-//								$scope.claimEnabled.checked = !!app.claimMapping;
-//							}
-//							return;
-//						}
-//					}
-//				} else {
-//					Utils.showError('Failed to reset '+param+': '+response.errorMessage);
-//				}
 			}, Utils.showError);
 		}
 	};

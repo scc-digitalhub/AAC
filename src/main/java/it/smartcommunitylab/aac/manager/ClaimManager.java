@@ -115,7 +115,7 @@ public class ClaimManager {
 	public Map<String, Object> getUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientDetailsEntity client, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims) {
 		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
 		try {
-			return createUserClaims(userId, authorities, appInfo.getClaimMapping(), scopes, authorizedClaims, requestedClaims, appInfo.getUniqueSpaces(), true, null);
+			return createUserClaims(userId, authorities, appInfo.getClaimMapping(), scopes, authorizedClaims, requestedClaims, appInfo.getUniqueSpaces(), appInfo.getRolePrefixes(), true, null);
 		} catch (InvalidDefinitionException e) {
 			// never arrives here
 			return null;
@@ -161,7 +161,7 @@ public class ClaimManager {
 	 */
 	@Transactional(readOnly = true)
 	public Map<String, Object> validateUserClaimsForClientApp(User user, ClientAppInfo appInfo, Set<String> scopes) throws InvalidDefinitionException {
-		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo.getClaimMapping(), scopes, null, null, appInfo.getUniqueSpaces(), false, null);
+		return createUserClaims(user.getId().toString(), user.getRoles(), appInfo.getClaimMapping(), scopes, null, null, appInfo.getUniqueSpaces(), appInfo.getRolePrefixes(), false, null);
 	}
 		
 	/**
@@ -175,7 +175,7 @@ public class ClaimManager {
 	 */
 	@Transactional(readOnly = true)
 	public Map<String, Object> validateClaimMapping(User user, String serviceId, String mapping, Set<String> scopes) throws InvalidDefinitionException {
-		Map<String, Object> res = createUserClaims(user.getId().toString(), user.getRoles(), mapping, scopes, null, null, null, false, serviceId);
+		Map<String, Object> res = createUserClaims(user.getId().toString(), user.getRoles(), mapping, scopes, null, null, null, null, false, serviceId);
 		ServiceDTO service = serviceManager.getService(serviceId);
 		service.setClaims(serviceManager.getServiceClaims(serviceId));
 		validateMappedClaims(res, service);
@@ -364,7 +364,7 @@ public class ClaimManager {
 	}
 
 	
-	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, Collection<String> uniqueSpaces, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
+	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, Collection<String> uniqueSpaces, Collection<String> rolePrefixes, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
 		BasicProfile ui = profileManager.getBasicProfileById(userId);
 		
 		// get the base object
@@ -408,7 +408,13 @@ public class ClaimManager {
 		//roles
 		if (!Sets.intersection(scopes, roleScopes).isEmpty()) {
 			try {
-				Set<Role> roles = authorities.stream().map(a -> Role.parse(a.getAuthority())).collect(Collectors.toSet());
+				Collection<? extends GrantedAuthority> filtered = authorities;
+				if (rolePrefixes != null) {
+					filtered = filtered.stream().filter(a -> {
+						return rolePrefixes.stream().anyMatch(rp -> rp != null && a.getAuthority().toLowerCase().startsWith(rp));
+					}).collect(Collectors.toSet());
+				}
+				Set<Role> roles = filtered.stream().map(a -> Role.parse(a.getAuthority())).collect(Collectors.toSet());
 				//append roles as authorities list
 				populateRoleClaims(roles, obj);
 				

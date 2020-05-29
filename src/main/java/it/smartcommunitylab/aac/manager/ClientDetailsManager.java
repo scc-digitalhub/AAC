@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,22 +25,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.google.common.base.Joiner;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
@@ -50,8 +43,6 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Response;
-import it.smartcommunitylab.aac.model.ServiceScope;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 /**
@@ -764,6 +755,7 @@ public class ClientDetailsManager {
             res.setProviderConfigurations(info.getProviderConfigurations());
             res.setClaimMapping(info.getClaimMapping());
             res.setUniqueSpaces(info.getUniqueSpaces());
+            res.setRolePrefixes(info.getRolePrefixes());
             res.setOnAfterApprovalWebhook(info.getOnAfterApprovalWebhook());
         }
 
@@ -870,6 +862,9 @@ public class ClientDetailsManager {
 
             if (data.getUniqueSpaces() != null) {
                 info.setUniqueSpaces(data.getUniqueSpaces());
+            }
+            if (data.getRolePrefixes() != null) {
+                info.setRolePrefixes(data.getRolePrefixes().stream().map(p -> p.toLowerCase()).collect(Collectors.toSet()));
             }
 
             if (data.getOnAfterApprovalWebhook() != null) {

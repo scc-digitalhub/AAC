@@ -289,7 +289,16 @@
         "scope": "user.roles.me",
         "name": "Read user roles",
         "description": "Read roles of the current user.",
-        "claims": ["authorities", "roles", "realm_access", "resource_access", "groups", "space"],
+        "claims": ["authorities", "roles", "realm_access", "resource_access", "space"],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },
+      {
+        "scope": "user.groups.me",
+        "name": "Read user groups",
+        "description": "Read role groups of the current user.",
+        "claims": ["groups"],
         "roles": [],
         "authority": "ROLE_USER",
         "approvalRequired": false
