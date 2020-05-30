@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.oauth;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+
 import javax.sql.DataSource;
 
 import org.springframework.dao.EmptyResultDataAccessException;

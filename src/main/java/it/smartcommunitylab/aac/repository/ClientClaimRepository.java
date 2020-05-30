@@ -17,6 +17,8 @@ package it.smartcommunitylab.aac.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -33,4 +35,12 @@ public interface ClientClaimRepository extends JpaRepository<ClientClaim, String
 
 	@Query("select cc from ClientClaim cc where cc.client.clientId = ?1")
 	List<ClientClaim> findByClient(String client);
+	
+	@Query(value="select distinct cc.client.clientId, cc.client.name from ClientClaim cc where cc.claim.service.serviceId = LOWER(?1)", 
+			countQuery = "select count(distinct cc.client.clientId) from ClientClaim cc where cc.claim.service.serviceId = LOWER(?1)")
+	Page<String[]> findClientDataByService(String serviceId, Pageable page);
+
+	@Query("select cc from ClientClaim cc where cc.client.clientId = ?1 and cc.claim.service.serviceId = LOWER(?2)")
+	List<ClientClaim> findByClientAndService(String clientId, String serviceId);
+
 }

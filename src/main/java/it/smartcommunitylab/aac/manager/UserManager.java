@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.manager;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;

@@ -57,6 +57,7 @@ import it.smartcommunitylab.aac.Config.CLAIM_TYPE;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
+import it.smartcommunitylab.aac.dto.ClientClaimProfileDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.UserClaimProfileDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
@@ -68,6 +69,7 @@ import it.smartcommunitylab.aac.model.ServiceClaim;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.model.UserClaim;
 import it.smartcommunitylab.aac.repository.ClientClaimRepository;
+import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserClaimRepository;
 
 /**
@@ -89,6 +91,8 @@ public class ClaimManager {
 	private UserClaimRepository userClaimRepository;
 	@Autowired
 	private ClientClaimRepository clientClaimRepository;
+    @Autowired
+    private ClientDetailsRepository clientDetailsRepository;
 
 	private Set<String> profileScopes = Sets.newHashSet(Config.SCOPE_BASIC_PROFILE);
 	private Set<String> accountScopes = Sets.newHashSet(Config.SCOPE_ACCOUNT_PROFILE);
@@ -284,7 +288,7 @@ public class ClaimManager {
 			UserClaim uc = new UserClaim();
 			uc.setUser(dbUser);
 			if (dbUser.getUsername() != null) uc.setUsername(dbUser.getUsername().toLowerCase());
-			updateClaimValue(entry, serviceClaim, uc);
+			uc.setValue(retrieveClaimValue(entry, serviceClaim));
 			uc.setClaim(serviceClaim);
 			userClaimRepository.save(uc);
 		}
@@ -319,7 +323,7 @@ public class ClaimManager {
 			UserClaim uc = new UserClaim();
 			uc.setUser(null);
 			uc.setUsername(username.toLowerCase());
-			updateClaimValue(entry, serviceClaim, uc);
+			uc.setValue(retrieveClaimValue(entry, serviceClaim));
 			uc.setClaim(serviceClaim);
 			userClaimRepository.save(uc);
 			resClaims.put(entry.getKey(), entry.getValue());
@@ -332,13 +336,13 @@ public class ClaimManager {
 
 	}
 
-	protected void updateClaimValue(Entry<String, Object> entry, ServiceClaim serviceClaim, UserClaim uc)
+	protected String retrieveClaimValue(Entry<String, Object> entry, ServiceClaim serviceClaim)
 			throws InvalidDefinitionException {
 		if (!ServiceClaim.ofType(entry.getValue(), serviceClaim.isMultiple(), serviceClaim.getType())) {
 			throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
 		}
 		try {
-			uc.setValue(mapper.writeValueAsString(entry.getValue()));
+			return mapper.writeValueAsString(entry.getValue());
 		} catch (JsonProcessingException e) {
 			throw new InvalidDefinitionException("Invalid claim value. Claim "+ entry.getKey() +", " +entry.getValue());
 		}
@@ -764,4 +768,107 @@ public class ClaimManager {
 //		);
 //		System.err.println(res);
 //	}
+
+	/**
+	 * @param owner
+	 * @param serviceId
+	 * @param name
+	 * @param page
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	public Page<ClientClaimProfileDTO> getServiceClientClaims(User owner, String serviceId, Pageable page) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return new PageImpl<>(Collections.emptyList());
+		
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		Page<String[]> clientData = clientClaimRepository.findClientDataByService(serviceId.toLowerCase(), page);
+		return clientData.map(arr -> new ClientClaimProfileDTO(arr[0], arr[1]));
+	}
+
+	/**
+	 * @param owner
+	 * @param serviceId
+	 * @param clientId
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	public ClientClaimProfileDTO getServiceClientClaims(User owner, String serviceId, String clientId) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return null;
+		
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		List<ClientClaim> claims = clientClaimRepository.findByClientAndService(clientId, serviceId);
+		ClientClaimProfileDTO clientClaims = new ClientClaimProfileDTO();
+		ClientDetailsEntity client = null;
+
+		if (claims.isEmpty()) {
+			client = clientDetailsRepository.findByClientId(clientId); 
+		} else {
+			client = claims.get(0).getClient();
+		}
+		clientClaims.setClientId(clientId);
+		clientClaims.setName(client.getName());
+		clientClaims.setClaims(new HashMap<>());
+		claims.forEach(cc -> clientClaims.getClaims().put(ServiceClaim.qualifiedName(service.getNamespace(), cc.getClaim().getClaim()), ServiceClaim.typedValue(cc.getClaim(), cc.getValue())));
+		return clientClaims;	
+	}
+
+	/**
+	 * @param owner
+	 * @param serviceId
+	 * @param clientId
+	 * @param dto
+	 * @return
+	 * @throws InvalidDefinitionException 
+	 */
+	public ClientClaimProfileDTO saveServiceClientClaims(User owner, String serviceId, String clientId, ClientClaimProfileDTO dto) throws InvalidDefinitionException {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return null;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		List<ClientClaim> claims = clientClaimRepository.findByClientAndService(clientId, serviceId);
+		if (!claims.isEmpty()) {
+			clientClaimRepository.delete(claims);
+		}
+		Map<String, ServiceClaim> qClaims = serviceManager.getServiceClaimsDB(serviceId).stream().collect(Collectors.toMap(c -> ServiceClaim.qualifiedName(service.getNamespace(), c.getClaim()), c -> c));
+		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId); 
+
+		for (Entry<String, Object> entry : dto.getClaims().entrySet()) {
+			if (!qClaims.containsKey(entry.getKey())) {
+				throw new SecurityException("Unauthorized claim modification: " + serviceId+", "+ entry.getKey());
+			}
+			ServiceClaim serviceClaim = qClaims.get(entry.getKey());
+			ClientClaim cc = new ClientClaim();
+			cc.setClient(client);
+			cc.setValue(retrieveClaimValue(entry, serviceClaim));
+			cc.setClaim(serviceClaim);
+			clientClaimRepository.save(cc);
+		}
+		
+		return getServiceClientClaims(owner, serviceId, clientId);	
+	}
+
+	/**
+	 * @param owner
+	 * @param serviceId
+	 * @param clientId
+	 */
+	public void deleteServiceClientClaims(User owner, String serviceId, String clientId) {
+		Set<String> userContexts = serviceManager.getUserContexts(owner);
+		ServiceDTO service = serviceManager.getService(serviceId.toLowerCase());
+		if (service == null) return;
+		if (!userContexts.contains(service.getContext())) {
+			throw new SecurityException("Not authorized to access service " + serviceId);
+		}
+		clientClaimRepository.delete(clientClaimRepository.findByClientAndService(clientId, serviceId));
+	}
 }

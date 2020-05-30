@@ -103,6 +103,26 @@ public class ClientDetailsEntity implements ClientDetails {
 	private String parameters;	
 	
 
+	// TODO: client metadata as of RFC 7591
+	// - client_id	 				-> client_id
+	// - client_secret 				-> client_secret
+	// - redirect_uris 				-> redirectUri (array of strings)
+	// - token_endpoint_auth_method	-> TODO (string)
+	// - grant_types				-> authorizedGrantTypes (array of strings)
+	// - response_types 			-> TODO  (array of strings)
+	// - client_name				-> name (string)
+	// - client_uri					-> TODO (string)
+	// - logo_uri					-> TODO (string)
+	// - scope						-> scope (string space separated)
+	// - contacts					-> TODO (array of strings, e.g., emails)
+	// - tos_uri					-> TODO (string)
+	// - policy_uri					-> TODO (string)
+	// - jwks_uri					-> TODO (string)
+	// - jwks						-> TODO (document)
+	// - software_id				-> TODO (string)
+	// - software_version			-> TODO (string)
+	// - client_id_issued_at		-> TODO (seconds)
+	// - client_secret_expires_at	-> TODO (seconds)
 
 	public String getName() {
 		return name;
