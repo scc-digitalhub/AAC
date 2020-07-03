@@ -106,6 +106,7 @@ public class APIMProviderService {
 	
 	public ClientAppBasic getClient(String consumerKey) throws Exception {
 		ClientDetailsEntity entity = clientDetailsRepository.findByClientId(consumerKey);
+		if(entity == null) return null;
 		ClientAppBasic resApp = clientDetailsManager.convertToClientApp(entity);
 		
 		return resApp;
