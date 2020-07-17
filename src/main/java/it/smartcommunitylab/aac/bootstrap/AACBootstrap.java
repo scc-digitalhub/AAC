@@ -32,6 +32,9 @@ import it.smartcommunitylab.aac.model.User;
 public class AACBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${bootstrap.apply}")
+    private boolean apply;
+
     @Value("${admin.username}")
     private String adminUsername;
 
@@ -62,8 +65,12 @@ public class AACBootstrap {
             initServices();
 
             // custom bootstrap
-            logger.debug("application bootstrap");
-            bootstrap();
+            if (apply) {
+                logger.debug("application bootstrap");
+                bootstrap();
+            } else {
+                logger.debug("bootstrap disabled by config");
+            }
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

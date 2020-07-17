@@ -180,6 +180,7 @@ adminClient:
     redirects: ${APIM_REDIRECTS:http://localhost:9443/store/jagg/jaggery_oidc_acs.jag,http://localhost:9443/publisher/jagg/jaggery_oidc_acs.jag}
 
 bootstrap:
+    apply: ${BOOTSTRAP_APPLY:false}
     file: ${BOOTSTRAP:classpath:/bootstrap.yaml} 
 
 
