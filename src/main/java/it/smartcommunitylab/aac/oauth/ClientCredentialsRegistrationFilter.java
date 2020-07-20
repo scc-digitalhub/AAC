@@ -74,7 +74,8 @@ public class ClientCredentialsRegistrationFilter extends ClientCredentialsTokenE
 		
 		String clientSecretServer = clientDetails.getClientSecret();
 		Set<String> grantTypes = clientDetails.getAuthorizedGrantTypes();
-		checkCredentialsWithMobile(clientSecret, clientDetails, grantTypes, clientSecretServer);
+//		checkCredentialsWithMobile(clientSecret, clientDetails, grantTypes, clientSecretServer);
+        checkCredentials(clientSecret, clientSecretServer);
 
 		if (clientDetails.getScope() == null || !clientDetails.getScope().contains(Config.SCOPE_USERMANAGEMENT)) {
 			throw new BadCredentialsException("Insufficient permissions for user management");

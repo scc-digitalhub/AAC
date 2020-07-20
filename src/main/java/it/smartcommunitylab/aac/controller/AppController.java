@@ -224,11 +224,11 @@ public class AppController {
 
         switch (reset) {
         case "clientSecret":
-            response = resetSecret(clientId, false);
+            response = resetSecret(clientId);
             break;
-        case "clientSecretMobile":
-            response = resetSecret(clientId, true);
-            break;
+//        case "clientSecretMobile":
+//            response = resetSecret(clientId, true);
+//            break;
 
         }
         return response;
@@ -243,14 +243,14 @@ public class AppController {
      * @return {@link Response} entity containing the stored app
      *         {@link ClientAppBasic} descriptor
      */
-    protected Response resetSecret(String clientId, boolean resetClientSecretMobile) {
+    protected Response resetSecret(String clientId) {
         Response response = new Response();
         userManager.checkClientIdOwnership(clientId);
-        if (resetClientSecretMobile) {
-            response.setData(clientDetailsAdapter.resetClientSecretMobile(clientId));
-        } else {
+//        if (resetClientSecretMobile) {
+//            response.setData(clientDetailsAdapter.resetClientSecretMobile(clientId));
+//        } else {
             response.setData(clientDetailsAdapter.resetClientSecret(clientId));
-        }
+//        }
         return response;
     }
 

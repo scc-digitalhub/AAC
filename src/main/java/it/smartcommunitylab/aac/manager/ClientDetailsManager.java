@@ -65,7 +65,7 @@ public class ClientDetailsManager {
             Config.GRANT_TYPE_AUTHORIZATION_CODE,
             Config.GRANT_TYPE_IMPLICIT,
             Config.GRANT_TYPE_CLIENT_CREDENTIALS,
-            Config.GRANT_TYPE_NATIVE,
+//            Config.GRANT_TYPE_NATIVE,
             Config.GRANT_TYPE_PASSWORD,
             Config.GRANT_TYPE_REFRESH_TOKEN,
             Config.GRANT_TYPE_DEVICE_CODE
@@ -110,7 +110,7 @@ public class ClientDetailsManager {
      * @throws Exception
      */
     public ClientAppBasic create(String clientId, Long userId,
-            String clientName, String clientSecret, String clientSecretMobile,
+            String clientName, String clientSecret,
             String[] grantTypes, String[] scopes,
             String[] redirectUris) throws IllegalArgumentException {
 
@@ -133,7 +133,7 @@ public class ClientDetailsManager {
         // always request internal idp
         appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
 
-        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
+        return this.create(clientId, userId, appData, clientSecret, 
                 Config.AUTHORITY.ROLE_CLIENT.toString());
     }
 
@@ -144,7 +144,7 @@ public class ClientDetailsManager {
      * @throws Exception
      */
     public ClientAppBasic createTrusted(String clientId, Long userId,
-            String clientName, String clientSecret, String clientSecretMobile,
+            String clientName, String clientSecret, 
             String[] grantTypes, String[] scopes,
             String[] redirectUris) throws IllegalArgumentException {
 
@@ -167,7 +167,7 @@ public class ClientDetailsManager {
         // always request internal idp
         appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
 
-        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
+        return this.create(clientId, userId, appData, clientSecret, 
                 Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
@@ -203,7 +203,7 @@ public class ClientDetailsManager {
         if (appData.getScope() != null) {
             entity.setScope(StringUtils.collectionToCommaDelimitedString(appData.getScope()));
         }
-        entity.setClientSecretMobile(generateClientSecret());
+//        entity.setClientSecretMobile(generateClientSecret());
         entity.setParameters(appData.getParameters());
         entity.setRedirectUri(null);
         
@@ -221,8 +221,8 @@ public class ClientDetailsManager {
      * @throws Exception
      */
     public ClientAppBasic create(ClientAppBasic appData, Long userId,
-            String clientId, String clientSecret, String clientSecretMobile) throws IllegalArgumentException {
-        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
+            String clientId, String clientSecret) throws IllegalArgumentException {
+        return this.create(clientId, userId, appData, clientSecret, 
                 Config.AUTHORITY.ROLE_CLIENT.toString());
     }
 
@@ -233,8 +233,8 @@ public class ClientDetailsManager {
      * @throws Exception
      */
     public ClientAppBasic createTrusted(ClientAppBasic appData, Long userId,
-            String clientId, String clientSecret, String clientSecretMobile) throws IllegalArgumentException {
-        return this.create(clientId, userId, appData, clientSecret, clientSecretMobile,
+            String clientId, String clientSecret) throws IllegalArgumentException {
+        return this.create(clientId, userId, appData, clientSecret, 
                 Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
@@ -248,7 +248,7 @@ public class ClientDetailsManager {
      */
     protected ClientAppBasic create(String clientId, Long userId,
             ClientAppBasic appData,
-            String clientSecret, String clientSecretMobile,
+            String clientSecret,
             String clientAuthorities) throws IllegalArgumentException {
         ClientDetailsEntity client = new ClientDetailsEntity();
 
@@ -268,9 +268,9 @@ public class ClientDetailsManager {
             clientSecret = generateClientSecret();
         }
 
-        if (!StringUtils.hasText(clientSecretMobile)) {
-            clientSecretMobile = generateClientSecret();
-        }
+//        if (!StringUtils.hasText(clientSecretMobile)) {
+//            clientSecretMobile = generateClientSecret();
+//        }
 
         ClientDetailsEntity old = clientDetailsRepository.findByClientId(clientId);
         if (old != null) {
@@ -283,7 +283,7 @@ public class ClientDetailsManager {
         client.setAuthorities(clientAuthorities);
         client.setDeveloperId(userId);
         client.setClientSecret(clientSecret);
-        client.setClientSecretMobile(clientSecretMobile);
+//        client.setClientSecretMobile(clientSecretMobile);
 
         // init fields
         client.setScope("");
@@ -350,7 +350,7 @@ public class ClientDetailsManager {
 //        clientDetailsRepository.save(client);
 //        return convertToClientApp(client);
 
-        return update(clientId, data, null, null, null);
+        return update(clientId, data, null, null);
     }
 
     /**
@@ -363,8 +363,8 @@ public class ClientDetailsManager {
      */
     public ClientAppBasic update(String clientId,
             ClientAppBasic appData,
-            String clientSecret, String clientSecretMobile) throws EntityNotFoundException, IllegalArgumentException {
-        return update(clientId, appData, clientSecret, clientSecretMobile, Config.AUTHORITY.ROLE_CLIENT.toString());
+            String clientSecret) throws EntityNotFoundException, IllegalArgumentException {
+        return update(clientId, appData, clientSecret, Config.AUTHORITY.ROLE_CLIENT.toString());
     }
 
     /**
@@ -377,8 +377,8 @@ public class ClientDetailsManager {
      */
     public ClientAppBasic updateTrusted(String clientId,
             ClientAppBasic appData,
-            String clientSecret, String clientSecretMobile) throws EntityNotFoundException, IllegalArgumentException {
-        return update(clientId, appData, clientSecret, clientSecretMobile,
+            String clientSecret) throws EntityNotFoundException, IllegalArgumentException {
+        return update(clientId, appData, clientSecret, 
                 Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
@@ -392,7 +392,7 @@ public class ClientDetailsManager {
      */
     protected ClientAppBasic update(String clientId,
             ClientAppBasic appData,
-            String clientSecret, String clientSecretMobile,
+            String clientSecret, 
             String clientAuthorities) throws EntityNotFoundException, IllegalArgumentException {
 
         if (!StringUtils.hasText(clientId)) {
@@ -424,9 +424,9 @@ public class ClientDetailsManager {
         if (StringUtils.hasText(clientSecret)) {
             client.setClientSecret(clientSecret);
         }
-        if (StringUtils.hasText(clientSecretMobile)) {
-            client.setClientSecretMobile(clientSecretMobile);
-        }
+//        if (StringUtils.hasText(clientSecretMobile)) {
+//            client.setClientSecretMobile(clientSecretMobile);
+//        }
         // convert additional fields
         client = convertFromClientApp(client, appData);
 
@@ -520,15 +520,15 @@ public class ClientDetailsManager {
         return null;
     }
 
-    /**
-     * Reset clientSecretMobile
-     * 
-     * @param clientId
-     * @return updated {@link ClientDetailsEntity} instance
-     */
-    public ClientAppBasic resetClientSecretMobile(String clientId) {
-        return convertToClientApp(resetClientData(clientId, true));
-    }
+//    /**
+//     * Reset clientSecretMobile
+//     * 
+//     * @param clientId
+//     * @return updated {@link ClientDetailsEntity} instance
+//     */
+//    public ClientAppBasic resetClientSecretMobile(String clientId) {
+//        return convertToClientApp(resetClientData(clientId));
+//    }
 
     /**
      * Reset client secret
@@ -537,19 +537,19 @@ public class ClientDetailsManager {
      * @return updated {@link ClientDetailsEntity} instance
      */
     public ClientAppBasic resetClientSecret(String clientId) {
-        return convertToClientApp(resetClientData(clientId, false));
+        return convertToClientApp(resetClientData(clientId));
     }
 
-    public ClientDetailsEntity resetClientData(String clientId, boolean resetClientSecretMobile) {
+    public ClientDetailsEntity resetClientData(String clientId) {
         ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
         if (client == null) {
             throw new IllegalArgumentException("client app not found");
         }
-        if (resetClientSecretMobile) {
-            client.setClientSecretMobile(generateClientSecret());
-        } else {
+//        if (resetClientSecretMobile) {
+//            client.setClientSecretMobile(generateClientSecret());
+//        } else {
             client.setClientSecret(generateClientSecret());
-        }
+//        }
         client = clientDetailsRepository.save(client);
         return client;
     }
@@ -690,7 +690,7 @@ public class ClientDetailsManager {
         entity.setDeveloperId(userId);
         entity.setClientSecret(generateClientSecret());
         entity.setScope(StringUtils.collectionToCommaDelimitedString(appData.getScope()));
-        entity.setClientSecretMobile(generateClientSecret());
+//        entity.setClientSecretMobile(generateClientSecret());
         entity.setParameters(appData.getParameters());
 
         entity = clientDetailsRepository.save(entity);
@@ -709,8 +709,13 @@ public class ClientDetailsManager {
 
         res.setClientId(e.getClientId());
         res.setClientSecret(e.getClientSecret());
-        res.setClientSecretMobile(e.getClientSecretMobile());
-        res.setGrantedTypes(e.getAuthorizedGrantTypes());
+//        res.setClientSecretMobile(e.getClientSecretMobile());
+        
+        //filter grant types to match supported
+        
+        Set<String> grantTypes =e.getAuthorizedGrantTypes().stream().filter(gt -> Arrays.asList(GRANT_TYPES).contains(gt)).collect(Collectors.toSet());       
+        res.setGrantedTypes(grantTypes);
+        
         // TODO write username instead of id, add field
         res.setUserName(e.getDeveloperId().toString());
 

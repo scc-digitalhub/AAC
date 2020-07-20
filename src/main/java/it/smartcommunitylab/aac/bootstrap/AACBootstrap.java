@@ -165,7 +165,7 @@ public class AACBootstrap {
 
                     ClientAppBasic c = createClient(developerId,
                             bc.getId(), clientName,
-                            bc.getSecret(), bc.getSecret(),
+                            bc.getSecret(), 
                             bc.getGrantTypes(), bc.getScopes(), bc.getRedirectUris(),
                             bc.getUniqueSpaces(), bc.getRolePrefixes(), claimMappingCode, bc.getAfterApprovalWebhook(),
                             isTrusted);
@@ -299,7 +299,7 @@ public class AACBootstrap {
     public ClientAppBasic createClient(
             long ownerId,
             String clientId, String clientName,
-            String clientSecret, String clientSecretMobile,
+            String clientSecret,
             String[] grantTypes,
             String[] scopes,
             String[] redirectUris,
@@ -314,11 +314,11 @@ public class AACBootstrap {
 
             if (isTrusted) {
                 client = clientManager.createTrusted(clientId, ownerId,
-                        clientName, clientSecret, clientSecretMobile,
+                        clientName, clientSecret, 
                         grantTypes, scopes, redirectUris);
             } else {
                 client = clientManager.create(clientId, ownerId,
-                        clientName, clientSecret, clientSecretMobile,
+                        clientName, clientSecret, 
                         grantTypes, scopes, redirectUris);
             }
 //            // create
@@ -379,9 +379,9 @@ public class AACBootstrap {
             }
 
             if (isTrusted) {
-                client = clientManager.updateTrusted(clientId, appData, clientSecret, clientSecretMobile);
+                client = clientManager.updateTrusted(clientId, appData, clientSecret);
             } else {
-                client = clientManager.update(clientId, appData, clientSecret, clientSecretMobile);
+                client = clientManager.update(clientId, appData, clientSecret);
             }
 
             // approve idp and scopes

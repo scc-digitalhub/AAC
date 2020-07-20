@@ -126,7 +126,7 @@ public class OAuth2AwareControllerTest {
 		entity.setAuthorizedGrantTypes("password,client_credentials,implicit");
 		entity.setDeveloperId(developerId);
 		entity.setClientSecret(UUID.randomUUID().toString());
-		entity.setClientSecretMobile(UUID.randomUUID().toString());
+//		entity.setClientSecretMobile(UUID.randomUUID().toString());
 		entity.setScope(getScopes());
 		entity.setName(client);
 

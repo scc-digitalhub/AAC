@@ -96,7 +96,7 @@ public abstract class OAuth2BaseTest {
             User user = getUser();
 
             ClientAppBasic client = clientManager.createTrusted(UUID.randomUUID().toString(), user.getId(),
-                    getClass().getName(), null, null,
+                    getClass().getName(), null,
                     getGrantTypes(), getScopes(), new String[] { endpoint });
             clients.put(getClassName(), client);
         }

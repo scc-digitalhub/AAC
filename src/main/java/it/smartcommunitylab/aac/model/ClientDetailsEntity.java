@@ -59,8 +59,9 @@ public class ClientDetailsEntity implements ClientDetails {
 	@Column(name = "client_secret",nullable = false)
 	private String clientSecret;
 
-	@Column(name = "client_secret_mobile",nullable = false)
-	private String clientSecretMobile;
+	   //DEPRECATED legacy Native Flow
+//	@Column(name = "client_secret_mobile",nullable = false)
+//	private String clientSecretMobile;
 
 	@Column(name = "mobile_app_schema", unique=true,columnDefinition="LONGTEXT")
 	private String mobileAppSchema; 
@@ -222,20 +223,21 @@ public class ClientDetailsEntity implements ClientDetails {
 		this.clientSecret = clientSecret;
 	}
 
-	/**
-	 * @return {@link #clientSecretMobile} value
-	 */
-	public String getClientSecretMobile() {
-		return clientSecretMobile;
-	}
-
-	/**
-	 * 
-	 * @param clientSecretMobile value to set
-	 */
-	public void setClientSecretMobile(String clientSecretMobile) {
-		this.clientSecretMobile = clientSecretMobile;
-	}
+	   //DEPRECATED legacy Native Flow
+//	/**
+//	 * @return {@link #clientSecretMobile} value
+//	 */
+//	public String getClientSecretMobile() {
+//		return clientSecretMobile;
+//	}
+//
+//	/**
+//	 * 
+//	 * @param clientSecretMobile value to set
+//	 */
+//	public void setClientSecretMobile(String clientSecretMobile) {
+//		this.clientSecretMobile = clientSecretMobile;
+//	}
 
 	/**
 	 * @param additionalInformation the additionalInformation to set

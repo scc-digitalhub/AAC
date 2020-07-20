@@ -115,7 +115,7 @@ angular.module('aac.controllers.clients', [])
 			password: 'Password',
 			client_credentials: 'Client Credentials',
 			refresh_token: 'Refresh token',
-			native: 'Native'
+//			native: 'Native'
 			
 	}
 	$scope.grantTypes = {
@@ -124,7 +124,7 @@ angular.module('aac.controllers.clients', [])
 			password: false,
 			client_credentials: false,
 			refresh_token: false,
-			native: false
+//			native: false
 	}
 	
 	$scope.claimEnabled = {checked: false};
@@ -223,7 +223,10 @@ angular.module('aac.controllers.clients', [])
 		}
 		if (app.grantedTypes) {
 			app.grantedTypes.forEach(function(gt){
-				$scope.grantTypes[gt] = true;
+				//pick only valid
+				if($scope.grantTypes.hasOwnProperty(gt)) {
+					$scope.grantTypes[gt] = true;
+				}
 			});
 		}
 	}
@@ -606,8 +609,8 @@ angular.module('aac.controllers.clients', [])
 //				return r.text;
 //			}).join(',');
 		}
-		console.log($scope.app)
 		$scope.app.grantedTypes = newGt;
+		console.log($scope.app)
 		var newClient = new ClientAppBasic($scope.app);
 		newClient.$update({clientId:$scope.clientId}, function(response) {
 			if (response.responseCode == 'OK') {

@@ -294,7 +294,7 @@ public class APIKeyControllerTest {
         entity.setAuthorizedGrantTypes("password,client_credentials,implicit");
         entity.setDeveloperId(developerId);
         entity.setClientSecret(UUID.randomUUID().toString());
-        entity.setClientSecretMobile(UUID.randomUUID().toString());
+//        entity.setClientSecretMobile(UUID.randomUUID().toString());
         entity.setScope("authorization.manage,apikey.client.me");
         String resourcesId = "" + serviceManager.findServiceIdsByScopes(
                 new HashSet<>(Arrays.asList(new String[] { "authorization.manage", "apikey.client.me" })));

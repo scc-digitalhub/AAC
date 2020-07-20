@@ -35,7 +35,7 @@ public class ClientAppBasic {
 
 	private String clientId;
 	private String clientSecret;
-	private String clientSecretMobile;
+//	private String clientSecretMobile;
 	private String name, displayName;
 	private Set<String> redirectUris;
 	private Set<String> grantedTypes;
@@ -139,18 +139,19 @@ public class ClientAppBasic {
 	public void setNativeAppsAccess(boolean nativeAppsAccess) {
 		this.nativeAppsAccess = nativeAppsAccess;
 	}
-	/**
-	 * @return the clientSecretMobile
-	 */
-	public String getClientSecretMobile() {
-		return clientSecretMobile;
-	}
-	/**
-	 * @param clientSecretMobile the clientSecretMobile to set
-	 */
-	public void setClientSecretMobile(String clientSecretMobile) {
-		this.clientSecretMobile = clientSecretMobile;
-	}
+	//DEPRECATED legacy Native Flow
+//	/**
+//	 * @return the clientSecretMobile
+//	 */
+//	public String getClientSecretMobile() {
+//		return clientSecretMobile;
+//	}
+//	/**
+//	 * @param clientSecretMobile the clientSecretMobile to set
+//	 */
+//	public void setClientSecretMobile(String clientSecretMobile) {
+//		this.clientSecretMobile = clientSecretMobile;
+//	}
 	/**
 	 * @return the identityProviders
 	 */

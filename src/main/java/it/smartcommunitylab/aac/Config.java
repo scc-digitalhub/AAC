@@ -82,7 +82,6 @@ public class Config {
 	/** Predefined system role R_PROVIDER */
 	public static final String R_PROVIDER = "ROLE_PROVIDER";
 
-	public static final String GRANT_TYPE_NATIVE = "native";
 	public static final String GRANT_TYPE_IMPLICIT = "implicit";
 	public static final String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
     public static final String GRANT_TYPE_PASSWORD = "password";
