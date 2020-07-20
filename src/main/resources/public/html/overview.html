@@ -35,13 +35,13 @@
 </table>
 
 <table class="table table-borderless">
-    <tr>
-      <td><a href ng-click="getClientToken()">Get client credentials flow token</a></td>
+    <tr ng-if="grantTypes['client_credentials']" >
+      <td><a href  ng-click="getClientToken()">Get client credentials flow token</a></td>
       <td  class="token-wrapper">{{clientToken}}</td>
       <td ng-if="clientToken"><a href="" ng-click="copyAsToken(clientToken)">Copy Token</a></td>
       <td ng-if="clientToken"><a href=""ng-click="copyAsBearer(clientToken)">Copy Bearer</a></td>      
     </tr>
-    <tr>
+    <tr ng-if="grantTypes['implicit']" >
       <td><a href ng-click="getImplicitToken()">Get implicit flow token</a></td>
       <td class="token-wrapper">{{implicitToken}}</td>
       <td ng-if="implicitToken"><a href=""ng-click="copyAsToken(implicitToken)">Copy Token</a></td>

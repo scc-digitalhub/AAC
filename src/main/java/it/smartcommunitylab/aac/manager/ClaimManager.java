@@ -96,7 +96,7 @@ public class ClaimManager {
 
 	private Set<String> profileScopes = Sets.newHashSet(Config.SCOPE_BASIC_PROFILE);
 	private Set<String> accountScopes = Sets.newHashSet(Config.SCOPE_ACCOUNT_PROFILE);
-	private Set<String> roleScopes = Sets.newHashSet(Config.SCOPE_ROLE);
+	private Set<String> roleScopes = Sets.newHashSet(Config.SCOPE_ROLE, Config.SCOPE_GROUP);
 
 	// claims that should not be overwritten
 	private Set<String> reservedScopes = JWTClaimsSet.getRegisteredNames();
@@ -378,6 +378,10 @@ public class ClaimManager {
 		 * OpenID claims
 		 * see https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
 		 */
+        //openid
+        if(scopes.contains(Config.SCOPE_OPENID)) {
+            obj.putAll(toOpenIdJson(ui));
+        }		
 		//profile
 		if(scopes.contains(Config.SCOPE_PROFILE)) {
 		    obj.putAll(toProfileJson(ui));
@@ -385,11 +389,14 @@ public class ClaimManager {
 		
         // email
         if (scopes.contains(Config.SCOPE_EMAIL)) {
-            // TEMP set claims static for every handler
-            obj.put("email", ui.getUsername());
-            obj.put("email_verified", true);
-
+            obj.putAll(toEmailJson(ui));
         }
+        
+        //address
+        //TODO
+
+        //phone
+        //TODO
         
         /*
          * AAC claims
@@ -419,9 +426,18 @@ public class ClaimManager {
 					}).collect(Collectors.toSet());
 				}
 				Set<Role> roles = filtered.stream().map(a -> Role.parse(a.getAuthority())).collect(Collectors.toSet());
-				//append roles as authorities list
-				populateRoleClaims(roles, obj);
 				
+				if(scopes.contains(Config.SCOPE_ROLE)) {
+				    //append roles as authorities list
+				    populateRoleClaims(roles, obj);
+				}
+				
+                if(scopes.contains(Config.SCOPE_GROUP)) {
+                    //append groups as authorities list
+                    populateGroupClaims(roles, obj);
+                }				
+				
+				//spaces
 				if(uniqueSpaces != null && !uniqueSpaces.isEmpty()) {
 				    //merge and output a fixed claim for spaces selections
 				    Set<String> spaces = new HashSet<>();
@@ -647,13 +663,9 @@ public class ClaimManager {
         return obj;
     }
 
-    private Map<String, Object> toProfileJson(BasicProfile ui) {
+    private Map<String, Object> toOpenIdJson(BasicProfile ui) {
 
         Map<String, Object> obj = new HashMap<>();
-        obj.put("name", ui.getSurname() + " " + ui.getName());
-        obj.put("given_name", ui.getName());
-        obj.put("family_name", ui.getSurname());
-
         obj.put("preferred_username", ui.getUsername());
         // also write username in alternate claim
         obj.put("username", ui.getUsername());
@@ -663,7 +675,27 @@ public class ClaimManager {
 
         return obj;
     }
+    
+    private Map<String, Object> toProfileJson(BasicProfile ui) {
+
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("name", ui.getSurname() + " " + ui.getName());
+        obj.put("given_name", ui.getName());
+        obj.put("family_name", ui.getSurname());
+
+        return obj;
+    }    
 	
+    private Map<String, Object> toEmailJson(BasicProfile ui) {
+
+        Map<String, Object> obj = new HashMap<>();
+        // TEMP set claims static for every handler
+        obj.put("email", ui.getUsername());
+        obj.put("email_verified", true);
+
+        return obj;
+    }        
+    
 	private Set<String> getClaimsForScopeSet(Set<String> scopes) {
 		return serviceManager.getClaimsForScopes(scopes);
 	}	
@@ -685,6 +717,24 @@ public class ClaimManager {
 		}
 		return target;
 	}
+
+    private void populateGroupClaims(Set<Role> roles, Map<String, Object> claims) {
+        if (roles != null) {
+            
+            // build list of "groups" (as plain array)
+            // define a group as context+space, ignoring role
+            Set<String> groups = new HashSet<>();
+            for (Role role : roles) {
+//                if (!StringUtils.isEmpty(role.getContext()) && !StringUtils.isEmpty(role.getSpace())) {
+//                    groups.add(role.getContext() + "/" + role.getSpace());
+//                }
+                if (!StringUtils.isEmpty(role.getSpace())) {
+                    groups.add(role.asSlug());
+                }
+            }
+            claims.put("groups", groups.toArray(new String[0]));                   
+        }
+    }	
 	
 	private void populateRoleClaims(Set<Role> roles, Map<String, Object> claims) {
 		if (roles != null) {
@@ -736,18 +786,19 @@ public class ClaimManager {
 //            claims.put("resource_access", resourceRolesObj);
             
             
-            // also build list of "groups" (as plain array)
-            // define a group as context+space, ignoring role
-            Set<String> groups = new HashSet<>();
-            for (Role role : roles) {
-//                if (!StringUtils.isEmpty(role.getContext()) && !StringUtils.isEmpty(role.getSpace())) {
-//                    groups.add(role.getContext() + "/" + role.getSpace());
-//                }
-            	if (!StringUtils.isEmpty(role.getSpace())) {
-            		groups.add(role.asSlug());
-            	}
-            }
-            claims.put("groups", groups.toArray(new String[0]));                   
+            //MOVED to custom scope
+//            // also build list of "groups" (as plain array)
+//            // define a group as context+space, ignoring role
+//            Set<String> groups = new HashSet<>();
+//            for (Role role : roles) {
+////                if (!StringUtils.isEmpty(role.getContext()) && !StringUtils.isEmpty(role.getSpace())) {
+////                    groups.add(role.getContext() + "/" + role.getSpace());
+////                }
+//            	if (!StringUtils.isEmpty(role.getSpace())) {
+//            		groups.add(role.asSlug());
+//            	}
+//            }
+//            claims.put("groups", groups.toArray(new String[0]));                   
         }
 	}
 	
