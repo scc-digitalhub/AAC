@@ -67,15 +67,32 @@
       
       <div class="text-center mt-n4" th:if="${session.authorities.size() > 1}">
         <p th:text="#{lbl_login_providers}">Login with</p>
-        <div class="row justify-content-center">
-          <div class="col col-12 col-md-4  mb-3" th:if="${session.authorities.get('adc') != null}">
-                <div><a class="btn btn-block btn-outline-primary" href="./adc">CPS / SPID</a></div>      
+        <div class="row  d-md-none justify-content-center">
+          <div class="col col-12 mb-3" th:if="${session.authorities.get('adc') != null}">
+                <div><a class="btn btn-block btn-outline-primary" href="./auth/adc-oauth/callback">CPS / SPID</a></div>      
           </div>
-          <div class="col col-12 col-md-4  mb-3"  th:if="${session.authorities.get('google') != null}">
-                <div><a class="btn btn-block btn-outline-primary" href="./google">GOOGLE</a></div>      
+          <div class="col col-12 mb-3" th:if="${session.authorities.get('cie') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/cie-oauth/callback">CIE</a></div>      
           </div>
-          <div class="col col-12 col-md-4  mb-3"  th:if="${session.authorities.get('facebook') != null}">
-                <div><a class="btn btn-block btn-outline-primary" href="./google">FACEBOOK</a></div>      
+          <div class="col col-12 mb-3"  th:if="${session.authorities.get('google') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/google-oauth/callback">GOOGLE</a></div>      
+          </div>
+          <div class="col col-12 mb-3"  th:if="${session.authorities.get('facebook') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/facebook-oauth/callback">FACEBOOK</a></div>      
+          </div>
+      </div>
+      <div class="row d-none d-md-flex justify-content-center">
+          <div class="col mb-3" th:if="${session.authorities.get('adc') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/adc-oauth/callback">CPS / SPID</a></div>      
+          </div>
+          <div class="col mb-3" th:if="${session.authorities.get('cie') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/cie-oauth/callback">CIE</a></div>      
+          </div>
+          <div class="col mb-3"  th:if="${session.authorities.get('google') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/google-oauth/callback">GOOGLE</a></div>      
+          </div>
+          <div class="col mb-3"  th:if="${session.authorities.get('facebook') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/facebook-oauth/callback">FACEBOOK</a></div>      
           </div>
       </div>
     </div>  

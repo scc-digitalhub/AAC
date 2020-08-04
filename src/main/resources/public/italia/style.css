@@ -181,3 +181,7 @@ tags-input {
 .form-check label {
   margin-bottom: 0 !important;
 }
+
+.loginbtn  {
+  padding: 12px !important; 
+}

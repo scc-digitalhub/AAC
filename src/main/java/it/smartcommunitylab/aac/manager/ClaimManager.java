@@ -59,8 +59,8 @@ import it.smartcommunitylab.aac.dto.AccountProfile;
 import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.dto.ClientClaimProfileDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
-import it.smartcommunitylab.aac.dto.UserClaimProfileDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
+import it.smartcommunitylab.aac.dto.UserClaimProfileDTO;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientClaim;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -369,7 +369,7 @@ public class ClaimManager {
 
 	
 	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, Collection<String> uniqueSpaces, Collection<String> rolePrefixes, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
-		BasicProfile ui = profileManager.getBasicProfileById(userId);
+		AccountProfile ui = profileManager.getAccountProfileById(userId);
 		
 		// get the base object
 		Map<String, Object> obj = toBaseJson(ui);
@@ -663,7 +663,7 @@ public class ClaimManager {
         return obj;
     }
 
-    private Map<String, Object> toOpenIdJson(BasicProfile ui) {
+    private Map<String, Object> toOpenIdJson(AccountProfile ui) {
 
         Map<String, Object> obj = new HashMap<>();
         obj.put("preferred_username", ui.getUsername());
@@ -676,7 +676,7 @@ public class ClaimManager {
         return obj;
     }
     
-    private Map<String, Object> toProfileJson(BasicProfile ui) {
+    private Map<String, Object> toProfileJson(AccountProfile ui) {
 
         Map<String, Object> obj = new HashMap<>();
         obj.put("name", ui.getSurname() + " " + ui.getName());
@@ -686,12 +686,19 @@ public class ClaimManager {
         return obj;
     }    
 	
-    private Map<String, Object> toEmailJson(BasicProfile ui) {
+    private Map<String, Object> toEmailJson(AccountProfile ui) {
 
         Map<String, Object> obj = new HashMap<>();
-        // TEMP set claims static for every handler
-        obj.put("email", ui.getUsername());
-        obj.put("email_verified", true);
+        if (ui.getAccounts() != null) {
+        	for (String account: ui.getAccounts().keySet()) {
+        		Map<String, String> attrs = ui.getAccounts().get(account);
+        		if (attrs.containsKey(Config.USER_ATTR_EMAIL)) {
+        	        obj.put("email", ui.getUsername());
+        	        obj.put("email_verified", true);
+        	        return obj;
+        		}
+        	}
+        }
 
         return obj;
     }        

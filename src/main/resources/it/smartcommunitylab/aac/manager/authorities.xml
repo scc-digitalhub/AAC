@@ -25,6 +25,7 @@
       <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
+      <attributes alias="it.smartcommunitylab.aac.email">email</attributes>
       <attributes>name</attributes>
       <attributes>link</attributes>
       <identifyingAttributes>email</identifyingAttributes>
@@ -33,41 +34,54 @@
       <attributes alias="it.smartcommunitylab.aac.givenname">first_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
+      <attributes alias="it.smartcommunitylab.aac.email">email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
   </authorityMapping>
   <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="false">
       <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">surname</attributes>
+      <attributes alias="it.smartcommunitylab.aac.email">email</attributes>
       <attributes>email</attributes>
       <identifyingAttributes>email</identifyingAttributes>
   </authorityMapping>
-  <authorityMapping name="adc" url="adc" public="false" web="true" >
-      <attributes alias="it.smartcommunitylab.aac.givenname">pat_attribute_nome</attributes>
-      <attributes alias="it.smartcommunitylab.aac.surname">pat_attribute_cognome</attributes>
-      <attributes>pat_attribute_email</attributes>
-      <attributes>pat_attribute_capdomicilio</attributes>
-      <attributes>pat_attribute_capresidenza</attributes>
-      <attributes>pat_attribute_cellulare</attributes>
-      <attributes>pat_attribute_cittadomicilio</attributes>
-      <attributes>pat_attribute_cittaresidenza</attributes>
-      <attributes>pat_attribute_datanascita</attributes>
-      <attributes>pat_attribute_emailaddresspersonale</attributes>
-      <attributes>pat_attribute_indirizzodomicilio</attributes>
-      <attributes>pat_attribute_indirizzoresidenza</attributes>
-      <attributes>pat_attribute_luogonascita</attributes>
-      <attributes>pat_attribute_provinciadomicilio</attributes>
-      <attributes>pat_attribute_provincianascita</attributes>
-      <attributes>pat_attribute_provinciaresidenza</attributes>
-      <attributes>pat_attribute_sesso</attributes>
-      <attributes>pat_attribute_statodomicilio</attributes>
-      <attributes>pat_attribute_statonascita</attributes>
-      <attributes>pat_attribute_statoresidenza</attributes>
-      <attributes>pat_attribute_telefono</attributes>
-      <attributes>pat_attribute_titolo</attributes>
-      <attributes>pat_attribute_subjectdn</attributes>
-      <attributes>pat_attribute_issuerdn</attributes>
-      <attributes>pat_attribute_codicefiscale</attributes>
-      <identifyingAttributes>pat_attribute_codicefiscale</identifyingAttributes>
+  <authorityMapping name="adc" url="adc" public="false" web="true">
+      <attributes alias="it.smartcommunitylab.aac.givenname">accounts.adc.eu.trentorise.smartcampus.surname</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">accounts.adc.eu.trentorise.smartcampus.givenname</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">accounts.adc.pat_attribute_codicefiscale</attributes>
+      <attributes alias="it.smartcommunitylab.aac.email">accounts.adc.pat_attribute_email</attributes>
+      <attributes>accounts.adc.pat_attribute_capdomicilio</attributes>
+      <attributes>accounts.adc.pat_attribute_capresidenza</attributes>
+      <attributes>accounts.adc.pat_attribute_cellulare</attributes>
+      <attributes>accounts.adc.pat_attribute_cittadomicilio</attributes>
+      <attributes>accounts.adc.pat_attribute_cittaresidenza</attributes>
+      <attributes>accounts.adc.pat_attribute_datanascita</attributes>
+      <attributes>accounts.adc.pat_attribute_emailaddresspersonale</attributes>
+      <attributes>accounts.adc.pat_attribute_indirizzodomicilio</attributes>
+      <attributes>accounts.adc.pat_attribute_indirizzoresidenza</attributes>
+      <attributes>accounts.adc.pat_attribute_luogonascita</attributes>
+      <attributes>accounts.adc.pat_attribute_provinciadomicilio</attributes>
+      <attributes>accounts.adc.pat_attribute_provincianascita</attributes>
+      <attributes>accounts.adc.pat_attribute_provinciaresidenza</attributes>
+      <attributes>accounts.adc.pat_attribute_sesso</attributes>
+      <attributes>accounts.adc.pat_attribute_statodomicilio</attributes>
+      <attributes>accounts.adc.pat_attribute_statonascita</attributes>
+      <attributes>accounts.adc.pat_attribute_statoresidenza</attributes>
+      <attributes>accounts.adc.pat_attribute_telefono</attributes>
+      <attributes>accounts.adc.pat_attribute_titolo</attributes>
+      <attributes>accounts.adc.pat_attribute_subjectdn</attributes>
+      <attributes>accounts.adc.pat_attribute_issuerdn</attributes>
+      <attributes>accounts.adc.pat_attribute_codicefiscale</attributes>
+      <identifyingAttributes>accounts.adc.pat_attribute_codicefiscale</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="cie" url="cie" public="false" web="true">
+      <attributes alias="it.smartcommunitylab.aac.givenname">accounts.cie.eu.trentorise.smartcampus.surname</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">accounts.cie.eu.trentorise.smartcampus.givenname</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">accounts.cie.fiscalNumberId</attributes>
+      <attributes alias="it.smartcommunitylab.aac.email">accounts.cie.email</attributes>
+      <attributes alias="fiscalNumberId">accounts.cie.fiscalNumberId</attributes>
+      <attributes alias="dateOfBirthId">accounts.cie.dateOfBirthId</attributes>
+      <attributes alias="email">accounts.cie.email</attributes>
+      <identifyingAttributes>accounts.cie.fiscalNumberId</identifyingAttributes>
   </authorityMapping>
 
   <authorityMatching>
@@ -77,6 +91,10 @@
   </authorityMatching>
   <authorityMatching>
       <authority name="facebook" attribute="id"/>
+  </authorityMatching>
+  <authorityMatching>
+      <authority name="cie" attribute="accounts.cie.fiscalNumberId"/>
+      <authority name="adc" attribute="accounts.adc.pat_attribute_codicefiscale"/>
   </authorityMatching>
 
 </authorities>

@@ -62,6 +62,7 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 			result.put(USERNAME_ATTRIBUTE, user.getEmail());
 			result.put(Config.USER_ATTR_NAME, user.getName());
 			result.put(Config.USER_ATTR_SURNAME, user.getSurname());
+			result.put(Config.USER_ATTR_EMAIL, user.getEmail());
 			return result;
 		}
 	}
