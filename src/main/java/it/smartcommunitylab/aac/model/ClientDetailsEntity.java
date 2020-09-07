@@ -27,6 +27,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,7 +43,7 @@ import it.smartcommunitylab.aac.common.Utils;
  *
  */
 @Entity
-@Table(name = "oauth_client_details")
+@Table(name = "oauth_client_details", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "developerId" }))
 public class ClientDetailsEntity implements ClientDetails {
 	private static final long serialVersionUID = -286007838648327741L;
 
@@ -50,7 +51,8 @@ public class ClientDetailsEntity implements ClientDetails {
 	
 	private static ObjectMapper mapper = new ObjectMapper();
 
-	@Column(name = "name", unique=true)
+//	@Column(name = "name", unique=true)
+    @Column(name = "name")	
 	private String name;	
 	
 	@Column(name = "client_id", unique=true)

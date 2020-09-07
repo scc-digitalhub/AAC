@@ -187,7 +187,7 @@ public class ClientDetailsManager {
             throw new IllegalArgumentException("An app name cannot be empty");
         }
 
-        ClientDetailsEntity old = clientDetailsRepository.findByName(appData.getName());
+        ClientDetailsEntity old = clientDetailsRepository.findByNameAndDeveloperId(appData.getName(), userId);
         if (old != null) {
             throw new IllegalArgumentException("An app with the same name already exists");
         }
@@ -677,7 +677,7 @@ public class ClientDetailsManager {
             ClientAppInfo.convert(cde.getAdditionalInformation());
         }
 
-        ClientDetailsEntity old = clientDetailsRepository.findByName(appData.getName());
+        ClientDetailsEntity old = clientDetailsRepository.findByNameAndDeveloperId(appData.getName(), userId );
         if (old != null) {
             entity = old;
         }
