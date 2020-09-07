@@ -869,7 +869,12 @@ public class ClientDetailsManager {
                 info.setUniqueSpaces(data.getUniqueSpaces());
             }
             if (data.getRolePrefixes() != null) {
-                info.setRolePrefixes(data.getRolePrefixes().stream().map(p -> p.toLowerCase()).collect(Collectors.toSet()));
+                Set<String> prefixes = data.getRolePrefixes().stream().map(p -> p.toLowerCase()).collect(Collectors.toSet());
+                if(!prefixes.isEmpty()) {
+                    info.setRolePrefixes(prefixes);
+                } else {
+                    info.setRolePrefixes(null);
+                }
             }
 
             if (data.getOnAfterApprovalWebhook() != null) {
