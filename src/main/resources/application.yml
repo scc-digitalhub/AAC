@@ -6,7 +6,7 @@ server:
    tomcat:
      remote_ip_header: ${SERVER_TOMCAT_REMOTE_IP_HEADER:x-forwarded-for}
      protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
-   max-http-header-size: 16000     
+   max-http-header-size: 32000     
 
 # APPLICATION EXTERNAL URL
 application:
