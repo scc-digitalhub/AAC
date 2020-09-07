@@ -606,8 +606,8 @@ public class ServiceManager {
 		if (!StringUtils.hasText(scope.getScope())) {
 			throw new IllegalArgumentException("empty resource mapping ID");
 		}
-		if (!scope.getScope().matches("[\\w\\.-]+")) {
-			throw new IllegalArgumentException("Invalid service scope value: only alpha-numeric characters and '_.-' allowed");
+		if (!scope.getScope().matches("[\\w\\.-:]+")) {
+			throw new IllegalArgumentException("Invalid service scope value: only alpha-numeric characters and ':_.-' allowed");
 		};
 		if (!StringUtils.hasText(scope.getName())) {
 			throw new IllegalArgumentException("empty resource mapping name");
