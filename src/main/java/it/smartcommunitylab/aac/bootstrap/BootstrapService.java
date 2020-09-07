@@ -266,7 +266,12 @@ public class BootstrapService {
             dto.setName(serviceScope.getName());
             dto.setDescription(serviceScope.getDescription());
             dto.setApprovalRequired(serviceScope.isApprovalRequired());
-            dto.setAuthority(AUTHORITY.valueOf(serviceScope.getAuthority()));
+            if(StringUtils.hasText(serviceScope.getAuthority())) {
+                dto.setAuthority(AUTHORITY.valueOf(serviceScope.getAuthority()));
+            } else {
+                //set USER as default
+                dto.setAuthority(AUTHORITY.ROLE_USER);
+            }
             dto.setClaims(Collections.emptyList());
             dto.setRoles(Collections.emptyList());
 
