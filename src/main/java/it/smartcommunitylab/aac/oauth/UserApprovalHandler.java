@@ -94,8 +94,23 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	    AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
 		if (!result.isApproved()) return result;
 
+        // note: session with principal contains stale info about roles, fetched at
+        // login
+        Collection<? extends GrantedAuthority> selectedAuthorities = userAuthentication
+                .getAuthorities();
+        // fetch again from db
+        try {
+            User user = (User) userAuthentication.getPrincipal();
+            long userId = Long.parseLong(user.getUsername());
+            it.smartcommunitylab.aac.model.User userEntity = userManager.findOne(userId);
+            selectedAuthorities = roleManager.buildAuthorities(userEntity);
+        } catch (Exception e) {
+            // user is not available
+            logger.error("user not found: " + e.getMessage());
+        }   
+		
 		// see if the user has to perform the space selection 
-		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), userAuthentication.getAuthorities());
+		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), selectedAuthorities);
 		if (spaces != null && !spaces.isEmpty()) {
 			Map<String, String> newParams = new HashMap<String, String>(authorizationRequest.getApprovalParameters());
 			authorizationRequest.setApprovalParameters(newParams);

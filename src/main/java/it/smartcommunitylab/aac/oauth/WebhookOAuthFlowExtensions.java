@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -42,6 +43,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.web.client.RestTemplate;
 
@@ -62,7 +65,9 @@ import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.SymmetricKeyJWTValidatorCacheService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
+import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
+import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
@@ -78,7 +83,11 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 	
 	@Value("${jwt.issuer}")
 	private String issuer;
-
+    
+	@Autowired
+    private RoleManager roleManager;
+    @Autowired
+    private UserManager userManager;        
 	@Autowired
 	private ClaimManager claimManager;
 	@Autowired
@@ -143,7 +152,23 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 	}
 	
 	protected String extractToken(AuthorizationRequest authorizationRequest, Authentication userAuthentication, ClientDetailsEntity client) throws FlowExecutionException {
-		Map<String, Object> claimMap = claimManager.getUserClaims(userAuthentication.getName(), userAuthentication.getAuthorities(), client, authorizationRequest.getScope(), null, null);
+	    //TODO cleanup handling of autorities in session!! it's a mess
+        // note: session with principal contains stale info about roles, fetched at
+        // login
+        Collection<? extends GrantedAuthority> selectedAuthorities = userAuthentication
+                .getAuthorities();
+        // fetch again from db
+        try {
+            User user = (User) userAuthentication.getPrincipal();
+            long userId = Long.parseLong(user.getUsername());
+            it.smartcommunitylab.aac.model.User userEntity = userManager.findOne(userId);
+            selectedAuthorities = roleManager.buildAuthorities(userEntity);
+        } catch (Exception e) {
+            // user is not available
+            logger.error("user not found: " + e.getMessage());
+        }   
+	    
+		Map<String, Object> claimMap = claimManager.getUserClaims(userAuthentication.getName(), selectedAuthorities, client, authorizationRequest.getScope(), null, null);
 		JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder();
 		claimMap.entrySet().forEach(e -> builder.claim(e.getKey(), e.getValue()));
 		
