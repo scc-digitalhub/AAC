@@ -65,8 +65,9 @@ public class ClientDetailsEntity implements ClientDetails {
 //	@Column(name = "client_secret_mobile",nullable = false)
 //	private String clientSecretMobile;
 
-	@Column(name = "mobile_app_schema", unique=true,columnDefinition="LONGTEXT")
-	private String mobileAppSchema; 
+    //DEPRECATED legacy Native Flow
+//	@Column(name = "mobile_app_schema", unique=true,columnDefinition="LONGTEXT")
+//	private String mobileAppSchema; 
 	
 	@Column(name = "resource_ids",columnDefinition="LONGTEXT")
 	private String resourceIds;
@@ -381,11 +382,11 @@ public class ClientDetailsEntity implements ClientDetails {
 		this.parameters = parameters;
 	}
 
-	public String getMobileAppSchema() {
-		return mobileAppSchema;
-	}
-
-	public void setMobileAppSchema(String mobileAppSchema) {
-		this.mobileAppSchema = mobileAppSchema;
-	}
+//	public String getMobileAppSchema() {
+//		return mobileAppSchema;
+//	}
+//
+//	public void setMobileAppSchema(String mobileAppSchema) {
+//		this.mobileAppSchema = mobileAppSchema;
+//	}
 }

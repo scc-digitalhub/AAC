@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.manager;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,9 +25,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.google.common.collect.Sets;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
@@ -44,6 +52,8 @@ import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 /**
  * Support for the management of client app registration details
@@ -69,6 +79,36 @@ public class ClientDetailsManager {
             Config.GRANT_TYPE_PASSWORD,
             Config.GRANT_TYPE_REFRESH_TOKEN,
             Config.GRANT_TYPE_DEVICE_CODE
+    };
+
+    private static final String[] SERVER_SIDE_GRANT_TYPES = {
+            Config.GRANT_TYPE_AUTHORIZATION_CODE,
+            Config.GRANT_TYPE_IMPLICIT,
+            Config.GRANT_TYPE_REFRESH_TOKEN
+    };
+    
+    private static final String[] JWT_SIGN_ALGOS = {
+            JWSAlgorithm.NONE.getName(),
+            JWSAlgorithm.RS256.getName(),
+            JWSAlgorithm.RS384.getName(),
+            JWSAlgorithm.RS512.getName(),
+            JWSAlgorithm.ES256.getName(),
+            JWSAlgorithm.ES384.getName(),
+            JWSAlgorithm.ES512.getName(),
+            JWSAlgorithm.PS256.getName(),
+            JWSAlgorithm.PS384.getName(),
+            JWSAlgorithm.PS512.getName(),
+            JWSAlgorithm.HS256.getName(),
+            JWSAlgorithm.HS384.getName(),
+            JWSAlgorithm.HS512.getName()
+    };
+    
+    private static final String[] JWT_ENC_ALGOS = {
+            JWEAlgorithm.DIR.getName(),
+            JWEAlgorithm.A128GCMKW.getName(),
+            JWEAlgorithm.A192GCMKW.getName(),
+            JWEAlgorithm.A256GCMKW.getName(),
+
     };
 
     @Autowired
@@ -133,7 +173,7 @@ public class ClientDetailsManager {
         // always request internal idp
         appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
 
-        return this.create(clientId, userId, appData, clientSecret, 
+        return this.create(clientId, userId, appData, clientSecret,
                 Config.AUTHORITY.ROLE_CLIENT.toString());
     }
 
@@ -144,7 +184,7 @@ public class ClientDetailsManager {
      * @throws Exception
      */
     public ClientAppBasic createTrusted(String clientId, Long userId,
-            String clientName, String clientSecret, 
+            String clientName, String clientSecret,
             String[] grantTypes, String[] scopes,
             String[] redirectUris) throws IllegalArgumentException {
 
@@ -167,7 +207,7 @@ public class ClientDetailsManager {
         // always request internal idp
         appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
 
-        return this.create(clientId, userId, appData, clientSecret, 
+        return this.create(clientId, userId, appData, clientSecret,
                 Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
@@ -206,7 +246,7 @@ public class ClientDetailsManager {
 //        entity.setClientSecretMobile(generateClientSecret());
         entity.setParameters(appData.getParameters());
         entity.setRedirectUri(null);
-        
+
         entity = clientDetailsRepository.save(entity);
         return convertToClientApp(entity);
 
@@ -222,7 +262,7 @@ public class ClientDetailsManager {
      */
     public ClientAppBasic create(ClientAppBasic appData, Long userId,
             String clientId, String clientSecret) throws IllegalArgumentException {
-        return this.create(clientId, userId, appData, clientSecret, 
+        return this.create(clientId, userId, appData, clientSecret,
                 Config.AUTHORITY.ROLE_CLIENT.toString());
     }
 
@@ -234,7 +274,7 @@ public class ClientDetailsManager {
      */
     public ClientAppBasic createTrusted(ClientAppBasic appData, Long userId,
             String clientId, String clientSecret) throws IllegalArgumentException {
-        return this.create(clientId, userId, appData, clientSecret, 
+        return this.create(clientId, userId, appData, clientSecret,
                 Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
@@ -378,7 +418,7 @@ public class ClientDetailsManager {
     public ClientAppBasic updateTrusted(String clientId,
             ClientAppBasic appData,
             String clientSecret) throws EntityNotFoundException, IllegalArgumentException {
-        return update(clientId, appData, clientSecret, 
+        return update(clientId, appData, clientSecret,
                 Config.AUTHORITY.ROLE_CLIENT_TRUSTED.toString());
     }
 
@@ -392,7 +432,7 @@ public class ClientDetailsManager {
      */
     protected ClientAppBasic update(String clientId,
             ClientAppBasic appData,
-            String clientSecret, 
+            String clientSecret,
             String clientAuthorities) throws EntityNotFoundException, IllegalArgumentException {
 
         if (!StringUtils.hasText(clientId)) {
@@ -510,10 +550,45 @@ public class ClientDetailsManager {
             return "name cannot be empty";
         }
         // for server-side or native access redirect URLs are required
-        if ((data.hasServerSideAccess() || data.isNativeAppsAccess())
-                && (data.getRedirectUris() == null || CollectionUtils.isEmpty(data.getRedirectUris()))) {
-            return "redirect URL is required for Server-side or native access";
+        boolean isServerSide = data.getGrantedTypes().stream()
+                .anyMatch(g -> ArrayUtils.contains(SERVER_SIDE_GRANT_TYPES, (g)));
+
+        if (isServerSide
+                && CollectionUtils.isEmpty(data.getRedirectUris())) {
+            return "redirect URL is required for server-side access";
         }
+        
+        //JWT config
+        if(StringUtils.hasText(data.getJwtSignAlgorithm())) {
+            if(!ArrayUtils.contains(JWT_SIGN_ALGOS, data.getJwtSignAlgorithm())) {
+                return "Invalid JWT Sign algorithm";
+            }
+            
+            //any algo except HS256 requires a custom jwks
+            if (!JWSAlgorithm.HS256.getName().equals(data.getJwtSignAlgorithm()) &&
+                    (!StringUtils.hasText(data.getJwks()) && !StringUtils.hasText(data.getJwksUri()))) {
+                return "To use a custom algorithm you need to provide a JWKSet";
+            }
+        }
+        if(StringUtils.hasText(data.getJwtEncAlgorithm())) {
+            if(!ArrayUtils.contains(JWT_ENC_ALGOS, data.getJwtEncAlgorithm())) {
+                return "Invalid JWT Enc algorithm";
+            }
+            
+            if(data.getJwtEncMethod() == null) {
+                return "Required JWT Enc method";
+            }
+        }
+        //TODO validate jwks, for now check if valid json
+        if(StringUtils.hasText(data.getJwks())) {
+            try {
+                JWKSet jwks = JWKSet.parse(data.getJwks());
+            } catch (ParseException e) {
+                return "Unable to parse JWK Set";
+            }
+        }
+        
+
 //		if (data.isNativeAppsAccess() && (data.getNativeAppSignatures() == null || data.getNativeAppSignatures().isEmpty())) {
 //			return "app signature is required for native access";
 //		}
@@ -548,7 +623,7 @@ public class ClientDetailsManager {
 //        if (resetClientSecretMobile) {
 //            client.setClientSecretMobile(generateClientSecret());
 //        } else {
-            client.setClientSecret(generateClientSecret());
+        client.setClientSecret(generateClientSecret());
 //        }
         client = clientDetailsRepository.save(client);
         return client;
@@ -677,7 +752,7 @@ public class ClientDetailsManager {
             ClientAppInfo.convert(cde.getAdditionalInformation());
         }
 
-        ClientDetailsEntity old = clientDetailsRepository.findByNameAndDeveloperId(appData.getName(), userId );
+        ClientDetailsEntity old = clientDetailsRepository.findByNameAndDeveloperId(appData.getName(), userId);
         if (old != null) {
             entity = old;
         }
@@ -710,12 +785,13 @@ public class ClientDetailsManager {
         res.setClientId(e.getClientId());
         res.setClientSecret(e.getClientSecret());
 //        res.setClientSecretMobile(e.getClientSecretMobile());
-        
-        //filter grant types to match supported
-        
-        Set<String> grantTypes =e.getAuthorizedGrantTypes().stream().filter(gt -> Arrays.asList(GRANT_TYPES).contains(gt)).collect(Collectors.toSet());       
+
+        // filter grant types to match supported
+
+        Set<String> grantTypes = e.getAuthorizedGrantTypes().stream()
+                .filter(gt -> Arrays.asList(GRANT_TYPES).contains(gt)).collect(Collectors.toSet());
         res.setGrantedTypes(grantTypes);
-        
+
         // TODO write username instead of id, add field
         res.setUserName(e.getDeveloperId().toString());
 
@@ -732,7 +808,7 @@ public class ClientDetailsManager {
         res.setDisplayName(res.getName());
         res.setScope(e.getScope());
         res.setParameters(e.getParameters());
-        res.setMobileAppSchema(e.getMobileAppSchema());
+//        res.setMobileAppSchema(e.getMobileAppSchema());
 
         ClientAppInfo info = ClientAppInfo.convert(e.getAdditionalInformation());
         if (info != null) {
@@ -762,6 +838,14 @@ public class ClientDetailsManager {
             res.setUniqueSpaces(info.getUniqueSpaces());
             res.setRolePrefixes(info.getRolePrefixes());
             res.setOnAfterApprovalWebhook(info.getOnAfterApprovalWebhook());
+
+            // jwt
+            res.setJwks(info.getJwks());
+            res.setJwksUri(info.getJwksUri());
+            res.setJwtSignAlgorithm(info.getJwtSignAlgorithm());
+            res.setJwtEncAlgorithm(info.getJwtEncAlgorithm());
+            res.setJwtEncMethod(info.getJwtEncMethod());
+
         }
 
         res.setRedirectUris(e.getRegisteredRedirectUri());
@@ -826,11 +910,12 @@ public class ClientDetailsManager {
                 info.setDisplayName(info.getName());
             }
 
-            if (StringUtils.hasText(data.getMobileAppSchema())) {
-                client.setMobileAppSchema(data.getMobileAppSchema());
-            } else {
-                client.setMobileAppSchema(generateSchema(client.getClientId()));
-            }
+            // deprecated legacy flow
+//            if (StringUtils.hasText(data.getMobileAppSchema())) {
+//                client.setMobileAppSchema(data.getMobileAppSchema());
+//            } else {
+//                client.setMobileAppSchema(generateSchema(client.getClientId()));
+//            }
 
             if (info.getIdentityProviders() == null) {
                 info.setIdentityProviders(new HashMap<String, Integer>());
@@ -869,8 +954,9 @@ public class ClientDetailsManager {
                 info.setUniqueSpaces(data.getUniqueSpaces());
             }
             if (data.getRolePrefixes() != null) {
-                Set<String> prefixes = data.getRolePrefixes().stream().map(p -> p.toLowerCase()).collect(Collectors.toSet());
-                if(!prefixes.isEmpty()) {
+                Set<String> prefixes = data.getRolePrefixes().stream().map(p -> p.toLowerCase())
+                        .collect(Collectors.toSet());
+                if (!prefixes.isEmpty()) {
                     info.setRolePrefixes(prefixes);
                 } else {
                     info.setRolePrefixes(null);
@@ -881,10 +967,42 @@ public class ClientDetailsManager {
                 info.setOnAfterApprovalWebhook(data.getOnAfterApprovalWebhook());
             }
 
+            // JWT
+            if (data.getJwks() != null) {
+                if(data.getJwks().isEmpty()) {
+                    info.setJwks(null);
+                } else {
+                    info.setJwks(data.getJwks());
+                }
+            }
+            if (data.getJwksUri() != null) {
+                if(data.getJwksUri().isEmpty()) {
+                    info.setJwksUri(null);
+                } else {
+                    info.setJwksUri(data.getJwksUri());
+                }
+            }
+            if (data.getJwtSignAlgorithm() != null) {
+                if(data.getJwtSignAlgorithm().isEmpty()) {
+                    info.setJwtSignAlgorithm(null);
+                } else {
+                    info.setJwtSignAlgorithm(data.getJwtSignAlgorithm());
+                }
+            }
+            if (data.getJwtEncAlgorithm() != null) {
+                if(data.getJwtEncAlgorithm().isEmpty()) {
+                    info.setJwtEncAlgorithm(null);   
+                } else {                 
+                    info.setJwtEncAlgorithm(data.getJwtEncAlgorithm());
+                    info.setJwtEncMethod(data.getJwtEncMethod());
+                }
+            }
+
+            //TODO we should write only populated fields.
             client.setAdditionalInformation(info.toJson());
 
             if (data.getRedirectUris() != null) {
-                //filter out empty strings
+                // filter out empty strings
                 List<String> newUris = data.getRedirectUris()
                         .stream()
                         .map(u -> StringUtils.trimAllWhitespace(u))
@@ -902,7 +1020,6 @@ public class ClientDetailsManager {
 
             if (data.getScope() != null) {
                 client.setScope(Utils.normalizeValues(StringUtils.collectionToCommaDelimitedString(data.getScope())));
-            
 
                 if (!CollectionUtils.isEmpty(data.getScope())) {
                     Set<String> serviceIds = serviceManager.findServiceIdsByScopes(data.getScope());
@@ -972,13 +1089,13 @@ public class ClientDetailsManager {
         return UUID.randomUUID().toString();
     }
 
-    /**
-     * Generate schema identifier
-     * 
-     * @return
-     */
-    private String generateSchema(String clientId) {
-        return clientId;
-    }
+//    /**
+//     * Generate schema identifier
+//     * 
+//     * @return
+//     */
+//    private String generateSchema(String clientId) {
+//        return clientId;
+//    }
 
 }

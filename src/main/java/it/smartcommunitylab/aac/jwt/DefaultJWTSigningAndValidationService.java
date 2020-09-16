@@ -25,6 +25,7 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.SignedJWT;
@@ -78,13 +79,16 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
         // convert all keys in the keystore to a map based on key id
         if (keyStore != null && keyStore.getJwkSet() != null) {
             for (JWK key : keyStore.getKeys()) {
-                if (!Strings.isNullOrEmpty(key.getKeyID())) {
-                    // use the key ID that's built into the key itself
-                    this.keys.put(key.getKeyID(), key);
-                } else {
-                    // create a random key id
-                    String fakeKid = UUID.randomUUID().toString();
-                    this.keys.put(fakeKid, key);
+                // check if key is for sign
+                if (key.getKeyUse() == null || key.getKeyUse().equals(KeyUse.SIGNATURE)) {
+                    if (!Strings.isNullOrEmpty(key.getKeyID())) {
+                        // use the key ID that's built into the key itself
+                        this.keys.put(key.getKeyID(), key);
+                    } else {
+                        // create a random key id
+                        String fakeKid = UUID.randomUUID().toString();
+                        this.keys.put(fakeKid, key);
+                    }
                 }
             }
         }
@@ -190,7 +194,10 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
 
         if (defaultSignerKeyId == null && keys.size() == 1) {
             // if there's only one key, it's the default
-            setDefaultSignerKeyId(keys.keySet().iterator().next());
+            Map.Entry<String, JWK> jwk = keys.entrySet().iterator().next();
+            setDefaultSignerKeyId(jwk.getKey());
+            // also the algorithm is the only available
+            setDefaultSigningAlgorithmName(jwk.getValue().getAlgorithm().getName());
         }
     }
 

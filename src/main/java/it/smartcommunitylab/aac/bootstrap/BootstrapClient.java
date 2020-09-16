@@ -6,7 +6,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 public class BootstrapClient {
     private String id;
@@ -19,8 +22,15 @@ public class BootstrapClient {
     private String[] uniqueSpaces;
     private String claimMappingFunction;
     private String afterApprovalWebhook;
-	private String[] rolePrefixes;
-	private boolean isTrusted;
+    private String[] rolePrefixes;
+    private boolean isTrusted;
+    private String jwtSignAlgorithm;
+//    private String jwtSignKey;
+    private String jwtEncAlgorithm;
+    private String jwtEncMethod;
+//    private String jwtEncKey;
+    private String jwks;
+    private String jwksUri;
 
     public String getId() {
         return id;
@@ -110,16 +120,55 @@ public class BootstrapClient {
         this.isTrusted = isTrusted;
     }
 
-    
     public String[] getRolePrefixes() {
-		return rolePrefixes;
-	}
+        return rolePrefixes;
+    }
 
-	public void setRolePrefixes(String[] rolePrefixes) {
-		this.rolePrefixes = rolePrefixes;
-	}
+    public void setRolePrefixes(String[] rolePrefixes) {
+        this.rolePrefixes = rolePrefixes;
+    }
 
-	/*
+    public String getJwtSignAlgorithm() {
+        return jwtSignAlgorithm;
+    }
+
+    public void setJwtSignAlgorithm(String jwtSignAlgorithm) {
+        this.jwtSignAlgorithm = jwtSignAlgorithm;
+    }
+
+    public String getJwtEncAlgorithm() {
+        return jwtEncAlgorithm;
+    }
+
+    public void setJwtEncAlgorithm(String jwtEncAlgorithm) {
+        this.jwtEncAlgorithm = jwtEncAlgorithm;
+    }
+
+    public String getJwtEncMethod() {
+        return jwtEncMethod;
+    }
+
+    public void setJwtEncMethod(String jwtEncMethod) {
+        this.jwtEncMethod = jwtEncMethod;
+    }
+
+    public String getJwks() {
+        return jwks;
+    }
+
+    public void setJwks(String jwks) {
+        this.jwks = jwks;
+    }
+
+    public String getJwksUri() {
+        return jwksUri;
+    }
+
+    public void setJwksUri(String jwksUri) {
+        this.jwksUri = jwksUri;
+    }
+
+    /*
      * Builders
      */
     public static BootstrapClient fromClientApp(ClientAppBasic client) {
@@ -168,6 +217,36 @@ public class BootstrapClient {
             byte[] bytes = client.getClaimMapping().getBytes(Charset.forName("UTF-8"));
             String claimMappingCode = new String(Base64.getEncoder().encode(bytes));
             bc.setClaimMappingFunction(claimMappingCode);
+        }
+
+        // jwt
+        if (StringUtils.hasText(client.getJwtSignAlgorithm())) {
+            bc.setJwtSignAlgorithm(client.getJwtSignAlgorithm());
+        }
+
+        if (StringUtils.hasText(client.getJwtEncAlgorithm()) && StringUtils.hasText(client.getJwtEncMethod())) {
+            bc.setJwtEncAlgorithm(client.getJwtEncAlgorithm());
+            bc.setJwtEncMethod(client.getJwtEncMethod());
+
+        }
+
+        if (StringUtils.hasText(client.getJwksUri())) {
+            bc.setJwksUri(client.getJwksUri());
+        }
+
+        if (StringUtils.hasText(client.getJwks())) {
+            // check if valid json
+            try {
+                // TODO replace with sane org.json, minidev could break data..
+//                JSONObject json = new JSONParser(JSONParser.MODE_PERMISSIVE).parse(client.getJwks(), JSONObject.class);
+
+                // transform code base64encoded
+                byte[] bytes = client.getJwks().getBytes(Charset.forName("UTF-8"));
+                String claimMappingCode = new String(Base64.getEncoder().encode(bytes));
+                bc.setJwks(claimMappingCode);
+            } catch (Exception jex) {
+                // invalid, skip
+            }
         }
 
         return bc;

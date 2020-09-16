@@ -46,6 +46,16 @@ public interface JWTEncryptionAndDecryptionService {
 	 * @return
 	 */
 	public Collection<EncryptionMethod> getAllEncryptionEncsSupported();
+	
+	   /**
+     * Get the default signing algorithm for use when nothing else has been specified.
+     * @return
+     */
+    public JWEAlgorithm getDefaultAlgorithm();
+    
+    public String getDefaultDecryptionKeyId();
+    
+    public String getDefaultEncryptionKeyId();
 
 	/**
 	 * TODO add functionality for encrypting and decrypting using a specified key id.

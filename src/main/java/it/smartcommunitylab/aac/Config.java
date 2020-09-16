@@ -83,6 +83,8 @@ public class Config {
 	public static final String R_ADMIN = "ROLE_ADMIN";
 	/** Predefined system role R_PROVIDER */
 	public static final String R_PROVIDER = "ROLE_PROVIDER";
+	/** Predefined system role R_DEVELOPER */
+    public static final String R_DEVELOPER = "R_DEVELOPER";    
 
 	public static final String GRANT_TYPE_IMPLICIT = "implicit";
 	public static final String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
@@ -142,11 +144,18 @@ public class Config {
     public static final String SCOPE_AUTH_MANAGE = "authorization.manage";
     public static final String SCOPE_AUTH_SCHEMA_MANAGE = "authorization.schema.manage";
 
-	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
-	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
-	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC = "encrypted_response_enc";
-	public static final String CLIENT_PARAM_JWKS = "jwks";
-	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
+//	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
+//	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
+//	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC = "encrypted_response_enc";
+//	public static final String CLIENT_PARAM_JWKS = "jwks";
+//	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
+    
+    public static final String CLIENT_INFO_JWT_SIGN_ALG = "jwtSignAlgorithm";
+    public static final String CLIENT_INFO_JWT_ENC_ALG = "jwtEncAlgorithm";
+    public static final String CLIENT_INFO_JWT_ENC_METHOD = "jwtEncMethod";
+    public static final String CLIENT_INFO_JWKS = "jwks";
+    public static final String CLIENT_INFO_JWKS_URI = "jwksUri";
+    public static final String CLIENT_INFO_WEBHOOK_AFTER_APPROVAL= "onAfterApprovalWebhook";
 
 	public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 	

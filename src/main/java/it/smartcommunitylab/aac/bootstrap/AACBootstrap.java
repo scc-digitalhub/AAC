@@ -163,11 +163,21 @@ public class AACBootstrap {
                                 "UTF-8");
                     }
 
+                    // jwks is base64encoded
+                    String jwks = null;
+                    if (StringUtils.hasText(bc.getJwks())) {
+                        jwks = new String(Base64.getDecoder().decode(
+                                bc.getJwks()),
+                                "UTF-8");
+                    }
+
                     ClientAppBasic c = createClient(developerId,
                             bc.getId(), clientName,
-                            bc.getSecret(), 
+                            bc.getSecret(),
                             bc.getGrantTypes(), bc.getScopes(), bc.getRedirectUris(),
                             bc.getUniqueSpaces(), bc.getRolePrefixes(), claimMappingCode, bc.getAfterApprovalWebhook(),
+                            bc.getJwtSignAlgorithm(), bc.getJwtEncMethod(), bc.getJwtEncAlgorithm(),
+                            bc.getJwks(), bc.getJwksUri(),
                             isTrusted);
 
                     logger.trace("created client " + c.getName() + " with id " + c.getClientId() + " developer "
@@ -307,6 +317,11 @@ public class AACBootstrap {
             String[] rolePrefixes,
             String claimMappingFunction,
             String afterApprovalWebhook,
+            String jwtSignAlgo,
+            String jwtEncMethod,
+            String jwtEncAlgo,
+            String jwks,
+            String jwksUri,
             boolean isTrusted) throws Exception {
 
         ClientAppBasic client = clientManager.findByClientId(clientId);
@@ -314,11 +329,11 @@ public class AACBootstrap {
 
             if (isTrusted) {
                 client = clientManager.createTrusted(clientId, ownerId,
-                        clientName, clientSecret, 
+                        clientName, clientSecret,
                         grantTypes, scopes, redirectUris);
             } else {
                 client = clientManager.create(clientId, ownerId,
-                        clientName, clientSecret, 
+                        clientName, clientSecret,
                         grantTypes, scopes, redirectUris);
             }
 //            // create
@@ -376,6 +391,20 @@ public class AACBootstrap {
 
             if (afterApprovalWebhook != null) {
                 client.setOnAfterApprovalWebhook(afterApprovalWebhook);
+            }
+
+            if (jwtSignAlgo != null) {
+                client.setJwtSignAlgorithm(jwtSignAlgo);
+            }
+            if (jwtEncAlgo != null && jwtEncMethod != null) {
+                client.setJwtEncAlgorithm(jwtEncAlgo);
+                client.setJwtEncMethod(jwtEncMethod);
+            }
+            if (jwksUri != null) {
+                client.setJwksUri(jwksUri);
+            }
+            if (jwks != null) {
+                client.setJwks(jwks);
             }
 
             if (isTrusted) {

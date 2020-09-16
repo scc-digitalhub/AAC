@@ -29,7 +29,9 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
  * @author jricher
  *
  */
-@Service
+//DEPRECATED, unified into clientKeyCache
+//@Service
+@Deprecated
 public class SymmetricKeyJWTValidatorCacheService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

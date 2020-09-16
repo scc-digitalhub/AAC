@@ -45,6 +45,7 @@ import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
+import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
@@ -70,10 +71,13 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     private int refreshTokenValidity;
 
     @Autowired
-    private JWTSigningAndValidationService jwtService;
+    private JWTService jwtService;
 
-    @Autowired
-    private ClientKeyCacheService keyService;
+//    @Autowired
+//    private JWTSigningAndValidationService jwtService;
+
+//    @Autowired
+//    private ClientKeyCacheService keyService;
 
     @Autowired
     private ClientDetailsRepository clientRepository;
@@ -117,7 +121,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
                 + " value " + accessToken.toString());
 
         OAuth2Request request = authentication.getOAuth2Request();
-        logger.trace("oauth2 request parameters " +request.getRequestParameters().toString());
+        logger.trace("oauth2 request parameters " + request.getRequestParameters().toString());
 
         // build a new token with correct claims
         AACOAuth2AccessToken result = new AACOAuth2AccessToken(accessToken);
@@ -182,9 +186,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             Collection<? extends GrantedAuthority> authAuthorities = authentication.getOAuth2Request().getAuthorities();
 
             Multimap<String, String> roleSpaces = roleManager.getRoleSpacesToNarrow(clientId, userAuthorities);
-            Collection<GrantedAuthority> selectedAuthorities = roleManager.narrowAuthoritiesSpaces(roleSpaces, userAuthorities, authAuthorities);
+            Collection<GrantedAuthority> selectedAuthorities = roleManager.narrowAuthoritiesSpaces(roleSpaces,
+                    userAuthorities, authAuthorities);
 
-            logger.trace("selected authorities: "+selectedAuthorities.toString());
+            logger.trace("selected authorities: " + selectedAuthorities.toString());
 
             // delegate to claim manager
             Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities,
@@ -195,7 +200,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             }
             claims.putAll(userClaims);
         }
-        
+
         // eventual client claims
         Map<String, Object> clientClaims = claimManager.getClientClaims(clientId, request.getScope());
         claims.putAll(clientClaims);
@@ -362,7 +367,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
                 nbf = iat;
             }
-            
+
             jwtClaims.issueTime(iat);
             jwtClaims.notBeforeTime(nbf);
 
@@ -376,71 +381,85 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             }
         });
 
-        JWT token = null;
+        JWTClaimsSet jwtClaimsSet = jwtClaims.build();
+        logger.trace("dump jwtClaims " + jwtClaimsSet.toString());
 
-        // check client wants also encryption
-        if (ClientKeyCacheService.getEncryptedResponseAlg(client) != null
-                && !ClientKeyCacheService.getEncryptedResponseAlg(client).equals(Algorithm.NONE)
-                && ClientKeyCacheService.getEncryptedResponseEnc(client) != null
-                && !ClientKeyCacheService.getEncryptedResponseEnc(client).equals(Algorithm.NONE)
-                && (!Strings.isNullOrEmpty(ClientKeyCacheService.getJwksUri(client))
-                        || ClientKeyCacheService.getJwks(client) != null)) {
+        JWT token = jwtService.buildAndSignJWT(client, jwtClaimsSet);
 
-            JWTEncryptionAndDecryptionService encrypter = keyService.getEncrypter(client);
-
-            if (encrypter != null) {
-                token = new EncryptedJWT(new JWEHeader(ClientKeyCacheService.getEncryptedResponseAlg(client),
-                        ClientKeyCacheService.getEncryptedResponseEnc(client)), jwtClaims.build());
-
-                encrypter.encryptJwt((JWEObject) token);
-
-            } else {
-                logger.error("Couldn't find encrypter for client: " + client.getClientId());
-            }
-
-        } else {
-            // check if custom signed defined
-            if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
-                JWTSigningAndValidationService signer = keyService.getSigner(client);
-
-                if (signer != null) {
-                    JWSAlgorithm signingAlg = signer.getDefaultSigningAlgorithm();
-                    String signerKeyId = signer.getDefaultSignerKeyId();
-                    JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
-                            signerKeyId,
-                            null, null);
-
-                    logger.debug("create signed jwt with algo " + signingAlg.getName() + " kid " + signerKeyId);
-                    token = new SignedJWT(header, jwtClaims.build());
-
-                    // sign it with the client key
-                    signer.signJwt((SignedJWT) token);
-                } else {
-                    logger.error("Couldn't find signer for client: " + client.getClientId());
-                }
-
-            } else {
-                // use system
-                JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
-                String signerKeyId = jwtService.getDefaultSignerKeyId();
-                JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
-                        signerKeyId,
-                        null, null);
-
-                logger.debug("create signed jwt with algo " + signingAlg.getName() + " kid " + signerKeyId);
-                token = new SignedJWT(header, jwtClaims.build());
-
-                // sign it with the server's key
-                jwtService.signJwt((SignedJWT) token);
-            }
-
+        if(token == null) {
+            logger.error("Null token from JWT service");
+            return null;
         }
-
         // serialize to string
         String result = token.serialize();
-        logger.debug("encoded jwt token " + result);
+        logger.debug("signed jwt token " + result);
 
         return result;
+
+        // DEPRECATED, build locally JWT
+//        // check client wants also encryption
+//        if (ClientKeyCacheService.getEncryptedResponseAlg(client) != null
+//                && !ClientKeyCacheService.getEncryptedResponseAlg(client).equals(Algorithm.NONE)
+//                && ClientKeyCacheService.getEncryptedResponseEnc(client) != null
+//                && !ClientKeyCacheService.getEncryptedResponseEnc(client).equals(Algorithm.NONE)
+//                && (!Strings.isNullOrEmpty(ClientKeyCacheService.getJwksUri(client))
+//                        || ClientKeyCacheService.getJwks(client) != null)) {
+//
+//            JWTEncryptionAndDecryptionService encrypter = keyService.getEncrypter(client);
+//
+//            if (encrypter != null) {
+//                token = new EncryptedJWT(new JWEHeader(ClientKeyCacheService.getEncryptedResponseAlg(client),
+//                        ClientKeyCacheService.getEncryptedResponseEnc(client)), jwtClaimsSet);
+//
+//                encrypter.encryptJwt((JWEObject) token);
+//
+//            } else {
+//                logger.error("Couldn't find encrypter for client: " + client.getClientId());
+//            }
+//
+//        } else {
+//            // check if custom signed defined
+//            if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
+//                JWTSigningAndValidationService signer = keyService.getSigner(client);
+//
+//                if (signer != null) {
+//                    JWSAlgorithm signingAlg = signer.getDefaultSigningAlgorithm();
+//                    String signerKeyId = signer.getDefaultSignerKeyId();
+//                    JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
+//                            signerKeyId,
+//                            null, null);
+//
+//                    logger.debug("create signed jwt with algo " + signingAlg.getName() + " kid " + signerKeyId);
+//                    token = new SignedJWT(header, jwtClaimsSet);
+//
+//                    // sign it with the client key
+//                    signer.signJwt((SignedJWT) token);
+//                } else {
+//                    logger.error("Couldn't find signer for client: " + client.getClientId());
+//                }
+//
+//            } else {
+//                // use system
+//                JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
+//                String signerKeyId = jwtService.getDefaultSignerKeyId();
+//                JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
+//                        signerKeyId,
+//                        null, null);
+//
+//                logger.debug("create signed jwt with algo " + signingAlg.getName() + " kid " + signerKeyId);
+//                token = new SignedJWT(header, jwtClaimsSet);
+//
+//                // sign it with the server's key
+//                jwtService.signJwt((SignedJWT) token);
+//            }
+//
+//        }
+//
+//        // serialize to string
+//        String result = token.serialize();
+//        logger.debug("encoded jwt token " + result);
+//
+//        return result;
     }
 
     @Override
@@ -480,10 +499,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     }
 
     private Set<String> getServiceIds(Set<String> scopes) {
-    	if (scopes != null && !scopes.isEmpty()) {
-    		return serviceManager.findServiceIdsByScopes(scopes);
-    	}
-    	return Collections.emptySet();
+        if (scopes != null && !scopes.isEmpty()) {
+            return serviceManager.findServiceIdsByScopes(scopes);
+        }
+        return Collections.emptySet();
     }
 
 }

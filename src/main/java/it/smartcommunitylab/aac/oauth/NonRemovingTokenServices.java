@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.DefaultExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
@@ -204,6 +205,11 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
                 logger.debug("existing access token for authentication "+authentication.getName() + " is valid");       			    
 			    //need to check if value is changed via enhancer
 			    OAuth2AccessToken accessToken = tokenEnhancer != null ? tokenEnhancer.enhance(existingAccessToken, authentication) : existingAccessToken;
+		        if(accessToken == null || !StringUtils.hasText(accessToken.getValue())) {
+//			        throw new AuthenticationServiceException("Token generation error");
+                    throw new RuntimeException("Token generation error");
+
+		        }
 			    if (!existingAccessToken.getValue().equals(accessToken.getValue())) {
 			        logger.debug("existing access token for authentication "+authentication.getName() + " needs to be updated");       
 
@@ -230,8 +236,12 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		}
         logger.debug("create access token for authentication "+authentication.getName() + " as new");     
 		OAuth2AccessToken accessToken = createAccessToken(authentication, refreshToken);
+	    if(accessToken == null || !StringUtils.hasText(accessToken.getValue())) {
+//           throw new AuthenticationServiceException("Token generation error");
+            throw new RuntimeException("Token generation error");
+        }
 		localTokenStore.storeAccessToken(accessToken, authentication);
-		if (refreshToken != null) {
+		if (refreshToken != null && StringUtils.hasText(refreshToken.getValue())) {
 			localTokenStore.storeRefreshToken(refreshToken, authentication);
 		}
 		traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'", authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));

@@ -1,0 +1,37 @@
+<div>
+   <p>{{'jwt.howto_message'| translate}}</p>
+	<p>{{'jwt.info_message'| translate}}</p>
+</div>
+<form role="form" name="jwtForm">
+	<table class="table table-bordered align-middle">
+		<tr>
+			<th>jwtSignAlgorithm</th>
+			<td><input type="text" class="form-control form-control-sm"
+				ng-model="app.jwtSignAlgorithm"></td>
+		</tr>
+		<tr>
+			<th>jwtEncAlgorithm</th>
+			<td><input type="text" class="form-control form-control-sm"
+				ng-model="app.jwtEncAlgorithm"></td>
+		</tr>
+		<tr>
+			<th>jwtEncMethod</th>
+			<td><input type="text" class="form-control form-control-sm"
+				ng-model="app.jwtEncMethod"></td>
+		</tr>
+		<tr>
+			<th>jwks</th>
+			<td>
+				<div ui-ace="aceOption" ng-model="app.jwks"></div>
+			</td>
+		</tr>
+		<tr>
+			<th>jwksUri</th>
+			<td><input type="text" class="form-control form-control-sm"
+				ng-model="app.jwksUri"></td>
+		</tr>
+	</table>
+	<button type="button" ng-click="saveJwt()"
+		class="btn btn-primary float-right" ng-disabled="jwtForm.$invalid">Save</button>
+
+</form>
