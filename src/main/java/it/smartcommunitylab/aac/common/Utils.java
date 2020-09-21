@@ -78,38 +78,38 @@ public class Utils {
 		return "/auth/"+provider+"-oauth/callback";
 	}
 	
-	public static String extractUserFromTenant(String tenant) {
-		String un = tenant;
-		
-		int index = un.indexOf('@');
-		int lastIndex = un.lastIndexOf('@');
-		
-		if (index != lastIndex) {
-			un = un.substring(0, lastIndex);
-		} else if (un.endsWith("@carbon.super")) {
-			un = un.substring(0, un.indexOf('@'));
-		}
-		
-		return un;
-	}
-	public static String getUserNameAtTenant(String username, String tenantName) {
-		return username + "@" + tenantName;
-	}
-	
-	public static String[] extractInfoFromTenant(String tenant) {
-		int index = tenant.indexOf('@');
-		int lastIndex = tenant.lastIndexOf('@');
-		
-		if (index != lastIndex) {
-			String result[] = new String[2];
-			result[0] = tenant.substring(0, lastIndex);
-			result[1] = tenant.substring(lastIndex + 1, tenant.length());
-			return result;
-		} else if (tenant.endsWith("@carbon.super")) {
-			return tenant.split("@");
-		}
-		return new String[] {tenant, "carbon.super"};
-	}	
+//	public static String extractUserFromTenant(String tenant) {
+//		String un = tenant;
+//		
+//		int index = un.indexOf('@');
+//		int lastIndex = un.lastIndexOf('@');
+//		
+//		if (index != lastIndex) {
+//			un = un.substring(0, lastIndex);
+//		} else if (un.endsWith("@carbon.super")) {
+//			un = un.substring(0, un.indexOf('@'));
+//		}
+//		
+//		return un;
+//	}
+//	public static String getUserNameAtTenant(String username, String tenantName) {
+//		return username + "@" + tenantName;
+//	}
+//	
+//	public static String[] extractInfoFromTenant(String tenant) {
+//		int index = tenant.indexOf('@');
+//		int lastIndex = tenant.lastIndexOf('@');
+//		
+//		if (index != lastIndex) {
+//			String result[] = new String[2];
+//			result[0] = tenant.substring(0, lastIndex);
+//			result[1] = tenant.substring(lastIndex + 1, tenant.length());
+//			return result;
+//		} else if (tenant.endsWith("@carbon.super")) {
+//			return tenant.split("@");
+//		}
+//		return new String[] {tenant, "carbon.super"};
+//	}	
 	
 //	public static String parseHeaderToken(HttpServletRequest request) {
 //		Enumeration<String> headers = request.getHeaders("Authorization");

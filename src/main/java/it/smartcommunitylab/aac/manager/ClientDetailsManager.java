@@ -729,49 +729,58 @@ public class ClientDetailsManager {
         }
         return convertToClientApp(client);
     }
-
-    /**
-     * Create or update a Client from {@link ClientAppBasic} descriptor
-     * 
-     * @param appData
-     * @param userId
-     * @return {@link ClientAppBasic} descriptor of the created Client
-     * @throws Exception
-     */
-    // TODO remove if not needed
-    @Deprecated
-    public ClientAppBasic createOrUpdate(ClientAppBasic appData, Long userId) throws Exception {
-        ClientDetailsEntity entity = new ClientDetailsEntity();
-        ClientAppInfo info = new ClientAppInfo();
-        if (!StringUtils.hasText(appData.getName())) {
-            throw new IllegalArgumentException("An app name cannot be empty");
+    
+    public ClientAppBasic findByNameAndUserId(String name, Long userId) {
+        ClientDetailsEntity client = clientDetailsRepository.findByNameAndDeveloperId(name, userId);
+        if (client == null) {
+            return null;
         }
-        info.setName(appData.getName());
-
-        for (ClientDetailsEntity cde : clientDetailsRepository.findAll()) {
-            ClientAppInfo.convert(cde.getAdditionalInformation());
-        }
-
-        ClientDetailsEntity old = clientDetailsRepository.findByNameAndDeveloperId(appData.getName(), userId);
-        if (old != null) {
-            entity = old;
-        }
-
-        entity.setAdditionalInformation(info.toJson());
-        entity.setName(appData.getName());
-        entity.setClientId(generateClientId());
-        entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT.toString());
-        entity.setAuthorizedGrantTypes(StringUtils.arrayToCommaDelimitedString(defaultGrantTypes()));
-        entity.setDeveloperId(userId);
-        entity.setClientSecret(generateClientSecret());
-        entity.setScope(StringUtils.collectionToCommaDelimitedString(appData.getScope()));
-//        entity.setClientSecretMobile(generateClientSecret());
-        entity.setParameters(appData.getParameters());
-
-        entity = clientDetailsRepository.save(entity);
-        return convertToClientApp(entity);
-
+        return convertToClientApp(client);
     }
+
+
+//    /**
+//     * Create or update a Client from {@link ClientAppBasic} descriptor
+//     * 
+//     * @param appData
+//     * @param userId
+//     * @return {@link ClientAppBasic} descriptor of the created Client
+//     * @throws Exception
+//     */
+//    // TODO remove if not needed
+//    @Deprecated
+//    public ClientAppBasic createOrUpdate(ClientAppBasic appData, Long userId) throws Exception {
+//        ClientDetailsEntity entity = new ClientDetailsEntity();
+//        ClientAppInfo info = new ClientAppInfo();
+//        if (!StringUtils.hasText(appData.getName())) {
+//            throw new IllegalArgumentException("An app name cannot be empty");
+//        }
+//        info.setName(appData.getName());
+//
+//        for (ClientDetailsEntity cde : clientDetailsRepository.findAll()) {
+//            ClientAppInfo.convert(cde.getAdditionalInformation());
+//        }
+//
+//        ClientDetailsEntity old = clientDetailsRepository.findByNameAndDeveloperId(appData.getName(), userId);
+//        if (old != null) {
+//            entity = old;
+//        }
+//
+//        entity.setAdditionalInformation(info.toJson());
+//        entity.setName(appData.getName());
+//        entity.setClientId(generateClientId());
+//        entity.setAuthorities(Config.AUTHORITY.ROLE_CLIENT.toString());
+//        entity.setAuthorizedGrantTypes(StringUtils.arrayToCommaDelimitedString(defaultGrantTypes()));
+//        entity.setDeveloperId(userId);
+//        entity.setClientSecret(generateClientSecret());
+//        entity.setScope(StringUtils.collectionToCommaDelimitedString(appData.getScope()));
+////        entity.setClientSecretMobile(generateClientSecret());
+//        entity.setParameters(appData.getParameters());
+//
+//        entity = clientDetailsRepository.save(entity);
+//        return convertToClientApp(entity);
+//
+//    }
 
     /**
      * Convert DB object to the simplified client representation

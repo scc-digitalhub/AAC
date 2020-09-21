@@ -275,28 +275,29 @@ public class UserManager {
         return user.getFullName();
     }
 
-    /**
-     * Currently constructs name as the `email @ apimanager-tenant`
-     * 
-     * @param l
-     * @return
-     */
-    public String getUserInternalName(long userId) {
-        User user = userRepository.findOne(userId);
-        if (user == null)
-            throw new EntityNotFoundException("No user found: " + userId);
-        Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
-
-        String domain = null;
-        if (providerRoles.isEmpty()) {
-            domain = "carbon.super";
-        } else {
-            Role role = providerRoles.iterator().next();
-            domain = role.getSpace();
-        }
-
-        return Utils.getUserNameAtTenant(user.getUsername(), domain);
-    }
+//    /**
+//     * Currently constructs name as the `email @ apimanager-tenant`
+//     * 
+//     * @param l
+//     * @return
+//     */
+//    @Deprecated
+//    public String getUserInternalName(long userId) {
+//        User user = userRepository.findOne(userId);
+//        if (user == null)
+//            throw new EntityNotFoundException("No user found: " + userId);
+//        Set<Role> providerRoles = user.contextRole(Config.R_PROVIDER, apiProviderContext);
+//
+//        String domain = null;
+//        if (providerRoles.isEmpty()) {
+//            domain = "carbon.super";
+//        } else {
+//            Role role = providerRoles.iterator().next();
+//            domain = role.getSpace();
+//        }
+//
+//        return Utils.getUserNameAtTenant(user.getUsername(), domain);
+//    }
 
     /**
      * Get all the roles of the user for the specified clientId
