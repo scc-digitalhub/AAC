@@ -20,6 +20,5 @@ RUN  addgroup -g ${USER_GROUP_ID} ${USER_GROUP}; \
 
 WORKDIR ${USER_HOME}
 COPY --chown=aac:aac --from=mvn /tmp/target/aac.jar ${USER_HOME}
-COPY --chown=aac:aac init.sh ${USER_HOME}
 USER aac
 ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar ${APP}"]
