@@ -78,7 +78,7 @@ public class APIMProviderService {
 
         if (client == null) {
             // create
-            client = clientManager.create(clientId, userId,
+            client = clientManager.create(userId,
                     clientName, clientSecret,
                     grantTypes.toArray(new String[0]), scopes, redirectUris);
 

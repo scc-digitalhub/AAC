@@ -149,6 +149,25 @@ public class ClientDetailsManager {
      * @return {@link ClientAppBasic} descriptor of the created Client
      * @throws Exception
      */
+    public ClientAppBasic create(Long userId,
+            String clientName, String clientSecret,
+            String[] grantTypes, String[] scopes,
+            String[] redirectUris) throws IllegalArgumentException {
+
+        // check if userId+clientName already exists
+        ClientDetailsEntity client = clientDetailsRepository.findByNameAndDeveloperId(clientName, userId);
+        if (client != null) {
+            throw new IllegalArgumentException("An app with the same id already exists");
+
+        }
+
+        // generate new clientId
+        String clientId = generateClientId();
+
+        return create(clientId, userId, clientName, clientSecret, grantTypes, scopes, redirectUris);
+
+    }
+    
     public ClientAppBasic create(String clientId, Long userId,
             String clientName, String clientSecret,
             String[] grantTypes, String[] scopes,
