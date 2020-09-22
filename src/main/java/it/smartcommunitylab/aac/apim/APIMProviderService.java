@@ -4,9 +4,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,16 @@ public class APIMProviderService {
 //    @Value("${api.contextSpace}")
 //    private String apiProviderContext;
 
+    private static final String[] GRANT_TYPES = {
+            Config.GRANT_TYPE_AUTHORIZATION_CODE,
+            Config.GRANT_TYPE_IMPLICIT,
+            Config.GRANT_TYPE_CLIENT_CREDENTIALS,
+//            Config.GRANT_TYPE_NATIVE,
+            Config.GRANT_TYPE_PASSWORD,
+            Config.GRANT_TYPE_REFRESH_TOKEN,
+            Config.GRANT_TYPE_DEVICE_CODE
+    };
+
     public APIMClient createClient(
             String clientId,
             String userName,
@@ -67,6 +80,11 @@ public class APIMProviderService {
             grantTypes = Collections.singleton(Config.GRANT_TYPE_CLIENT_CREDENTIALS);
         }
 
+        // filter grant types and accept only those supported, apim tries to assign
+        // non-standard types
+        Set<String> grantedTypes = grantTypes.stream().filter(gt -> ArrayUtils.contains(GRANT_TYPES, gt))
+                .collect(Collectors.toSet());
+
         // check if exists by id
         if (StringUtils.hasText(clientId)) {
             client = clientManager.findByClientId(clientId);
@@ -80,7 +98,7 @@ public class APIMProviderService {
             // create
             client = clientManager.create(userId,
                     clientName, clientSecret,
-                    grantTypes.toArray(new String[0]), scopes, redirectUris);
+                    grantedTypes.toArray(new String[0]), scopes, redirectUris);
 
             // fetch clientSecret, if generated
             clientSecret = client.getClientSecret();
@@ -94,7 +112,7 @@ public class APIMProviderService {
         ClientAppBasic appData = client;
         appData.setName(clientName);
         appData.setDisplayName(displayName);
-        appData.setGrantedTypes(new HashSet<>(grantTypes));
+        appData.setGrantedTypes(grantedTypes);
         appData.setScope(new HashSet<>(Arrays.asList((scopes))));
         appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
 
@@ -126,16 +144,24 @@ public class APIMProviderService {
             grantTypes = Collections.singleton(Config.GRANT_TYPE_CLIENT_CREDENTIALS);
         }
 
+        // filter grant types and accept only those supported, apim tries to assign
+        // non-standard types
+        Set<String> grantedTypes = grantTypes.stream().filter(gt -> ArrayUtils.contains(GRANT_TYPES, gt))
+                .collect(Collectors.toSet());
+
         // update basic
         ClientAppBasic appData = client;
         appData.setName(clientName);
         appData.setDisplayName(displayName);
         // NOTE: if APIm does not provide these values we will reset them to null
-        appData.setGrantedTypes(new HashSet<>(grantTypes));
+        appData.setGrantedTypes(grantedTypes);
         // TODO check, looks like apim wants to use custom method for scopes
+//        if (scopes != null) {
 //        appData.setScope(new HashSet<>(Arrays.asList((scopes))));
-        appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
-
+//        }
+        if (redirectUris != null) {
+            appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
+        }
         // NOTE: APIM client need manual Idp and scope approval from AAC
 
         client = clientManager.update(clientId, appData, clientSecret);
@@ -152,7 +178,7 @@ public class APIMProviderService {
             // error
             throw new EntityNotFoundException("no client with id " + clientId);
         }
-        
+
         ClientAppBasic appData = client;
         appData.setAccessTokenValidity(validity);
 

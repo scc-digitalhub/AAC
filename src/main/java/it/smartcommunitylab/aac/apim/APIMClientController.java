@@ -78,9 +78,9 @@ public class APIMClientController {
             // always assign CLIENT_CREDENTIALS
             grantTypes = Collections.singleton(Config.GRANT_TYPE_CLIENT_CREDENTIALS);
         }
-        String[] scopes = app.getScope() != null ? app.getScope().split(APIMClient.SEPARATOR) : null;
+        String[] scopes = app.getScope() != null ? app.getScope().split(APIMClient.SEPARATOR) : new String[0];
         String[] redirectUris = app.getRedirectUris() != null ? app.getRedirectUris().split(APIMClient.SEPARATOR)
-                : null;
+                : new String[0];
 
         return wso2Manager.createClient(clientId, un, clientName, displayName, clientSecret, grantTypes, scopes,
                 redirectUris);
