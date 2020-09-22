@@ -1,7 +1,12 @@
 package it.smartcommunitylab.aac.apim;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.util.CollectionUtils;
+
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 
 public class APIMClient {
@@ -27,7 +32,11 @@ public class APIMClient {
     private String userName;
     private String scope;
 
-    private String parameters;
+    private Map<String, Object> parameters;
+
+    public APIMClient() {
+        this.parameters = Collections.emptyMap();
+    }
 
     public String getClientId() {
         return clientId;
@@ -141,17 +150,17 @@ public class APIMClient {
         this.scope = scope;
     }
 
-    public String getParameters() {
-        return parameters;
-    }
-
-    public void setParameters(String parameters) {
-        this.parameters = parameters;
-    }
-
     /*
      * Builders
      */
+
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, Object> parameters) {
+        this.parameters = parameters;
+    }
 
     public static APIMClient from(ClientAppBasic app) {
         APIMClient client = new APIMClient();
@@ -163,13 +172,20 @@ public class APIMClient {
         client.clientId = app.getClientId();
         client.clientSecret = app.getClientSecret();
         client.grantedTypes = app.getGrantedTypes();
-        client.scope = String.join(SEPARATOR, app.getScope());
-        client.redirectUris = String.join(SEPARATOR, app.getRedirectUris());
+        client.scope = CollectionUtils.isEmpty(app.getScope()) ? ""
+                : String.join(SEPARATOR, app.getScope());
+        client.redirectUris = CollectionUtils.isEmpty(app.getRedirectUris()) ? ""
+                : String.join(SEPARATOR, app.getRedirectUris());
         // deprecated
         client.clientSecretMobile = "";
         client.nativeAppsAccess = false;
         client.mobileAppSchema = app.getMobileAppSchema();
 
+        // apim expects grantTypes in parameters as a string
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("grant_types", String.join(SEPARATOR, app.getGrantedTypes()));
+
+        client.parameters = parameters;
         return client;
     }
 
