@@ -7,12 +7,14 @@ import java.util.Map;
 
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import it.smartcommunitylab.aac.model.ClientAppBasic;
+import net.minidev.json.JSONObject;
 
-//ignore data from APIM for paramers, we can't properly deserialize it 
-@JsonIgnoreProperties(value = { "parameters" }, allowGetters = true)
+////ignore data from APIM for paramers, we can't properly deserialize it 
+//@JsonIgnoreProperties(value = { "parameters" }, allowGetters = true)
 public class APIMClient {
 
     // TODO check with apim
@@ -36,10 +38,13 @@ public class APIMClient {
     private String userName;
     private String scope;
 
-    private Map<String, String> parameters;
+    @JsonIgnore
+    private Map<String, String> parametersMap;
+    private String parameters;
 
     public APIMClient() {
-        this.parameters = Collections.emptyMap();
+        this.parametersMap = Collections.emptyMap();
+        this.parameters = "";
     }
 
     public String getClientId() {
@@ -154,17 +159,25 @@ public class APIMClient {
         this.scope = scope;
     }
 
-    /*
-     * Builders
-     */
+//    public Map<String, String> getParametersMap() {
+//        return parametersMap;
+//    }
+//
+//    public void setParametersMap(Map<String, String> parametersMap) {
+//        this.parametersMap = parametersMap;
+//    }
 
-    public Map<String, String> getParameters() {
+    public String getParameters() {
         return parameters;
     }
 
-    public void setParameters(Map<String, String> parameters) {
+    public void setParameters(String parameters) {
         this.parameters = parameters;
     }
+
+    /*
+     * Builders
+     */
 
     public static APIMClient from(ClientAppBasic app) {
         APIMClient client = new APIMClient();
@@ -189,7 +202,9 @@ public class APIMClient {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("grant_types", String.join(SEPARATOR, app.getGrantedTypes()));
 
-        client.parameters = parameters;
+        client.parametersMap = parameters;
+        // serialize as JSON for apim to understand values..
+        client.parameters = JSONObject.toJSONString(parameters);
         return client;
     }
 
