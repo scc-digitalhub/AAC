@@ -7,8 +7,12 @@ import java.util.Map;
 
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 
+//ignore data from APIM for paramers, we can't properly deserialize it 
+@JsonIgnoreProperties(value = { "parameters" }, allowGetters = true)
 public class APIMClient {
 
     // TODO check with apim
@@ -32,7 +36,7 @@ public class APIMClient {
     private String userName;
     private String scope;
 
-    private Map<String, Object> parameters;
+    private Map<String, String> parameters;
 
     public APIMClient() {
         this.parameters = Collections.emptyMap();
@@ -154,11 +158,11 @@ public class APIMClient {
      * Builders
      */
 
-    public Map<String, Object> getParameters() {
+    public Map<String, String> getParameters() {
         return parameters;
     }
 
-    public void setParameters(Map<String, Object> parameters) {
+    public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
     }
 
@@ -182,7 +186,7 @@ public class APIMClient {
         client.mobileAppSchema = app.getMobileAppSchema();
 
         // apim expects grantTypes in parameters as a string
-        Map<String, Object> parameters = new HashMap<>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put("grant_types", String.join(SEPARATOR, app.getGrantedTypes()));
 
         client.parameters = parameters;
