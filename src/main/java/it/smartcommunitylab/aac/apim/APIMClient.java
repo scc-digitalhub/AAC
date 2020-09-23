@@ -40,6 +40,15 @@ public class APIMClient {
 
     @JsonIgnore
     private Map<String, String> parametersMap;
+
+    // parameters serialized
+    // something like
+    // {"tokenScope":"default",
+    // "validityPeriod":"3600",
+    // "callback_url":null,
+    // "grant_types":"refresh_token,password,client_credentials,urn:ietf:params:oauth:grant-type:jwt-bearer",
+    // "key_type":"PRODUCTION",
+    // "username":"admin"}'
     private String parameters;
 
     public APIMClient() {
@@ -198,9 +207,15 @@ public class APIMClient {
         client.nativeAppsAccess = false;
         client.mobileAppSchema = app.getMobileAppSchema();
 
-        // apim expects grantTypes in parameters as a string
         Map<String, String> parameters = new HashMap<>();
+        // apim expects grantTypes in parameters as a string
         parameters.put("grant_types", String.join(SEPARATOR, app.getGrantedTypes()));
+        // apim expects subject as username string in parameters
+        // THIS will break since subject != username
+        parameters.put("username", app.getUserName());
+        // additional parameters
+        parameters.put("validityPeriod", String.valueOf((int) Math.floor(app.getAccessTokenValidity() / 1000)));
+        parameters.put("tokenScope", "default");
 
         client.parametersMap = parameters;
         // serialize as JSON for apim to understand values..
