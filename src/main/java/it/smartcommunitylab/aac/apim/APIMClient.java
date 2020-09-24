@@ -214,8 +214,11 @@ public class APIMClient {
         // THIS will break since subject != username
         parameters.put("username", app.getUserName());
         // additional parameters
-        parameters.put("validityPeriod", String.valueOf((int) Math.floor(app.getAccessTokenValidity() / 1000)));
+        parameters.put("validityPeriod", String.valueOf((int) app.getAccessTokenValidity()));
         parameters.put("tokenScope", "default");
+
+        // lets put also additional information in here even if apim doesn't use it now
+        parameters.put("refreshPeriod", String.valueOf((int) app.getRefreshTokenValidity()));
 
         client.parametersMap = parameters;
         // serialize as JSON for apim to understand values..
