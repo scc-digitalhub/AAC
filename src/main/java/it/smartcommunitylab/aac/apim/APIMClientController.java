@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.Utils;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -62,10 +64,11 @@ public class APIMClientController {
     // custom mapper, TODO check if needed
     private static final ObjectMapper mapper = new ObjectMapper().configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    @RequestMapping(value = "/wso2/client/{userName:.+}", method = RequestMethod.POST)
-    public @ResponseBody APIMClient createClient(HttpServletResponse response, @RequestBody APIMClient app,
-            @PathVariable("userName") String userName) throws Exception {
+    @RequestMapping(value = "/wso2/client", method = RequestMethod.POST)
+    public @ResponseBody APIMClient createClient(HttpServletResponse response, @RequestBody APIMClient app)
+            throws Exception {
 
+        String userName = app.getUserName();
         String un = extractUserFromTenant(userName);
 
         // extract data
@@ -82,6 +85,11 @@ public class APIMClientController {
         String[] redirectUris = app.getRedirectUris() != null ? app.getRedirectUris().split(APIMClient.SEPARATOR)
                 : new String[0];
 
+        if (!StringUtils.hasText(userName) || !StringUtils.hasText(un) || !StringUtils.hasText(clientName)) {
+            throw new InvalidDefinitionException("invalid parameters");
+        }
+
+        logger.trace("received create for " + app.toString());
         return wso2Manager.createClient(clientId, un, clientName, displayName, clientSecret, grantTypes, scopes,
                 redirectUris);
 
@@ -109,7 +117,7 @@ public class APIMClientController {
 
     }
 
-    @RequestMapping(value = "/wso2/client/validity/{clientId}/{validity}", method = RequestMethod.PATCH)
+    @RequestMapping(value = "/wso2/client/{clientId}/validity/{validity}", method = RequestMethod.PATCH)
     public @ResponseBody APIMClient updateTokenValidity(HttpServletResponse response,
             @PathVariable("clientId") String clientId, @PathVariable("validity") Integer validity) throws Exception {
 
@@ -117,7 +125,7 @@ public class APIMClientController {
 
     }
 
-    @RequestMapping(value = "/wso2/client/scope/{clientId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/wso2/client/{clientId}/scope", method = RequestMethod.PUT)
     public @ResponseBody APIMClient updateClientScope(HttpServletResponse response,
             @PathVariable("clientId") String clientId,
             @RequestParam String scope) throws Exception {
@@ -142,53 +150,53 @@ public class APIMClientController {
 
     }
 
-    @RequestMapping("/wso2/client/token_revoke/{token}")
-    public @ResponseBody String revokeToken(@PathVariable String token) {
-        OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
-        if (accessTokenObj != null) {
-            if (accessTokenObj.getRefreshToken() != null) {
-                tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
-            }
-            tokenStore.removeAccessToken(accessTokenObj);
-        }
-        return "";
-    }
+//    @RequestMapping("/wso2/token/revoke/{token}")
+//    public @ResponseBody String revokeToken(@PathVariable String token) {
+//        OAuth2AccessToken accessTokenObj = tokenStore.readAccessToken(token);
+//        if (accessTokenObj != null) {
+//            if (accessTokenObj.getRefreshToken() != null) {
+//                tokenStore.removeRefreshToken(accessTokenObj.getRefreshToken());
+//            }
+//            tokenStore.removeAccessToken(accessTokenObj);
+//        }
+//        return "";
+//    }
 
-    @RequestMapping(value = "/wso2/resources/{userName:.+}", method = RequestMethod.POST)
-    public @ResponseBody void createResources(HttpServletResponse response, @RequestBody AACService service,
-            @PathVariable("userName") String userName) throws Exception {
-        try {
-
-            String un = userName.replace("-AT-", "@");
-            String[] info = extractInfoFromTenant(un);
-
-            boolean ok = wso2Manager.createResource(service, info[0], info[1]);
-
-            if (!ok) {
-                response.setStatus(HttpStatus.BAD_REQUEST.value());
-            }
-
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        }
-
-    }
-
-    @RequestMapping(value = "/wso2/resources/{resourceName:.+}", method = RequestMethod.DELETE)
-    public @ResponseBody void deleteResources(HttpServletResponse response,
-            @PathVariable("resourceName") String resourceName) throws Exception {
-        try {
-
-            String name = URLDecoder.decode(resourceName, "UTF-8");
-
-            wso2Manager.deleteResource(name);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        }
-
-    }
+//    @RequestMapping(value = "/wso2/resources/{userName:.+}", method = RequestMethod.POST)
+//    public @ResponseBody void createResources(HttpServletResponse response, @RequestBody AACService service,
+//            @PathVariable("userName") String userName) throws Exception {
+//        try {
+//
+//            String un = userName.replace("-AT-", "@");
+//            String[] info = extractInfoFromTenant(un);
+//
+//            boolean ok = wso2Manager.createResource(service, info[0], info[1]);
+//
+//            if (!ok) {
+//                response.setStatus(HttpStatus.BAD_REQUEST.value());
+//            }
+//
+//        } catch (Exception e) {
+//            logger.error(e.getMessage(), e);
+//            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        }
+//
+//    }
+//
+//    @RequestMapping(value = "/wso2/resources/{resourceName:.+}", method = RequestMethod.DELETE)
+//    public @ResponseBody void deleteResources(HttpServletResponse response,
+//            @PathVariable("resourceName") String resourceName) throws Exception {
+//        try {
+//
+//            String name = URLDecoder.decode(resourceName, "UTF-8");
+//
+//            wso2Manager.deleteResource(name);
+//        } catch (Exception e) {
+//            logger.error(e.getMessage(), e);
+//            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        }
+//
+//    }
 
     /*
      * Helpers - TODO cleanup
@@ -226,6 +234,17 @@ public class APIMClientController {
             return tenant.split("@");
         }
         return new String[] { tenant, "carbon.super" };
+    }
+
+    @ExceptionHandler(InvalidDefinitionException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Map<String, Object> invalid(InvalidDefinitionException e) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", "invalid_argument");
+        error.put("error_description", e.getMessage());
+
+        return error;
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

@@ -156,9 +156,9 @@ public class APIMProviderService {
         // NOTE: if APIm does not provide these values we will reset them to null
         appData.setGrantedTypes(grantedTypes);
         // TODO check, looks like apim wants to use custom method for scopes
-//        if (scopes != null) {
-//        appData.setScope(new HashSet<>(Arrays.asList((scopes))));
-//        }
+        if (scopes != null) {
+            appData.setScope(new HashSet<>(Arrays.asList((scopes))));
+        }
         if (redirectUris != null) {
             appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
         }
@@ -180,7 +180,10 @@ public class APIMProviderService {
         }
 
         ClientAppBasic appData = client;
+        // set both to the requested value, workaround for client credentials token
+        // TODO fix wrong handling of client credentials token duration
         appData.setAccessTokenValidity(validity);
+        appData.setRefreshTokenValidity(validity);
 
         client = clientManager.update(clientId, appData);
 

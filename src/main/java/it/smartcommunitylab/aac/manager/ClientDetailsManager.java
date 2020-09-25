@@ -951,17 +951,18 @@ public class ClientDetailsManager {
 
             if (data.getIdentityProviders() != null) {
                 for (String key : attributesAdapter.getAuthorityUrls().keySet()) {
-                    if (data.getIdentityProviders().get(key)) {
-                        Integer value = info.getIdentityProviders().get(key);
-                        AuthorityMapping a = attributesAdapter.getAuthority(key);
-                        if (value == null || value == ClientAppInfo.UNKNOWN) {
-                            info.getIdentityProviders().put(key,
-                                    a.isPublic() ? ClientAppInfo.APPROVED : ClientAppInfo.REQUESTED);
+                    if(data.getIdentityProviders().containsKey(key)) {
+                        if (data.getIdentityProviders().get(key)) {
+                            Integer value = info.getIdentityProviders().get(key);
+                            AuthorityMapping a = attributesAdapter.getAuthority(key);
+                            if (value == null || value == ClientAppInfo.UNKNOWN) {
+                                info.getIdentityProviders().put(key,
+                                        a.isPublic() ? ClientAppInfo.APPROVED : ClientAppInfo.REQUESTED);
+                            }
+                        } else {
+                            info.getIdentityProviders().remove(key);
                         }
-                    } else {
-                        info.getIdentityProviders().remove(key);
                     }
-
                     if (data.getProviderConfigurations() != null && data.getProviderConfigurations().containsKey(key)) {
                         if (info.getProviderConfigurations() == null) {
                             info.setProviderConfigurations(new HashMap<>());

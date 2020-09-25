@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,6 +25,7 @@ public class APIMClient {
     private String clientId;
     private String clientSecret;
     private String clientSecretMobile;
+    @NotNull
     private String name;
     private String displayName;
     private String redirectUris;
@@ -35,11 +38,12 @@ public class APIMClient {
     private Map<String, Boolean> identityProviders;
     private Map<String, Boolean> identityProviderApproval;
 
+    @NotNull
     private String userName;
     private String scope;
 
-    @JsonIgnore
-    private Map<String, String> parametersMap;
+//    @JsonIgnore
+    private Map<String, String> parameters;
 
     // parameters serialized
     // something like
@@ -49,11 +53,11 @@ public class APIMClient {
     // "grant_types":"refresh_token,password,client_credentials,urn:ietf:params:oauth:grant-type:jwt-bearer",
     // "key_type":"PRODUCTION",
     // "username":"admin"}'
-    private String parameters;
+//    private String parameters;
 
     public APIMClient() {
-        this.parametersMap = Collections.emptyMap();
-        this.parameters = "";
+        this.parameters = Collections.emptyMap();
+//        this.parameters = "";
     }
 
     public String getClientId() {
@@ -168,25 +172,25 @@ public class APIMClient {
         this.scope = scope;
     }
 
-//    public Map<String, String> getParametersMap() {
-//        return parametersMap;
+//    public String getParameters() {
+//        return parameters;
 //    }
 //
-//    public void setParametersMap(Map<String, String> parametersMap) {
-//        this.parametersMap = parametersMap;
+//    public void setParameters(String parameters) {
+//        this.parameters = parameters;
 //    }
-
-    public String getParameters() {
-        return parameters;
-    }
-
-    public void setParameters(String parameters) {
-        this.parameters = parameters;
-    }
 
     /*
      * Builders
      */
+
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
 
     public static APIMClient from(ClientAppBasic app) {
         APIMClient client = new APIMClient();
@@ -215,14 +219,15 @@ public class APIMClient {
         parameters.put("username", app.getUserName());
         // additional parameters
         parameters.put("validityPeriod", String.valueOf((int) app.getAccessTokenValidity()));
-        parameters.put("tokenScope", "default");
+        parameters.put("tokenScope", String.join(SEPARATOR, app.getScope()));
 
         // lets put also additional information in here even if apim doesn't use it now
         parameters.put("refreshPeriod", String.valueOf((int) app.getRefreshTokenValidity()));
+        client.parameters = parameters;
 
-        client.parametersMap = parameters;
-        // serialize as JSON for apim to understand values..
-        client.parameters = JSONObject.toJSONString(parameters);
+//        client.parametersMap = parameters;
+//        // serialize as JSON for apim to understand values..
+//        client.parameters = JSONObject.toJSONString(parameters);
         return client;
     }
 
