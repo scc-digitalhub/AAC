@@ -93,7 +93,9 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	@Override
 	public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
 	    AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
-		if (!result.isApproved()) return result;
+//		if (!result.isApproved()) {
+//			return result;
+//		}
 
         // note: session with principal contains stale info about roles, fetched at
         // login
