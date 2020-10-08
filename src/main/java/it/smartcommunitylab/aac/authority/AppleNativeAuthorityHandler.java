@@ -80,6 +80,11 @@ public class AppleNativeAuthorityHandler implements NativeAuthorityHandler {
 		try {
 			ConfigurableJWTProcessor<SecurityContext> jwtProcessor = getProcessor();
 			JWTClaimsSet claimsSet = jwtProcessor.process(token, null);
+			if (!claimsSet.getIssuer().equals("https://appleid.apple.com")) {
+				throw new SecurityException("Error validating apple token " + token + ": invalid issuer");
+				
+			}
+			
 
 			Map<String, Object> result = claimsSet.getClaims();
 			return extractAttributes(result, mapping);
@@ -144,9 +149,11 @@ public class AppleNativeAuthorityHandler implements NativeAuthorityHandler {
 	
 			// Set the required JWT claims for access tokens issued by the Connect2id
 			// server, may differ with other servers
-			jwtProcessor.setJWTClaimsSetVerifier(new DefaultJWTClaimsVerifier(
-			    new JWTClaimsSet.Builder().issuer("https://appleid.apple.com").build(),
-			    new HashSet<String>(Arrays.asList("sub", "iat", "exp", "iss", "aud", "email"))));
+			jwtProcessor.setJWTClaimsSetVerifier(new DefaultJWTClaimsVerifier());
+
+//			jwtProcessor.setJWTClaimsSetVerifier(new DefaultJWTClaimsVerifier(
+//			    new JWTClaimsSet.Builder().issuer("https://appleid.apple.com").build(),
+//			    new HashSet<String>(Arrays.asList("sub", "iat", "exp", "iss", "aud", "email"))));
 		}
 		return jwtProcessor;
 		
