@@ -15,6 +15,7 @@ import com.google.common.collect.Maps;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.apimanager.APIManager;
 import it.smartcommunitylab.aac.apimanager.wso2.WSO2APIManager;
+import it.smartcommunitylab.aac.authority.AppleNativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
@@ -61,6 +62,8 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 		map.put("google", gh);
 		FBNativeAuthorityHandler fh = new FBNativeAuthorityHandler();
 		map.put("facebook", fh);
+		AppleNativeAuthorityHandler ah = new AppleNativeAuthorityHandler();
+		map.put("apple", ah);
 		
 		NativeAuthorityHandlerContainer bean = new NativeAuthorityHandlerContainer(map);
 		
