@@ -12,6 +12,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.authority.AppleNativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
@@ -46,6 +47,8 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 		map.put("googlelocal", gh);
 		FBAuthorityHandler fh = new FBAuthorityHandler();
 		map.put("facebooklocal", fh);
+		AppleNativeAuthorityHandler ah = new AppleNativeAuthorityHandler();
+		map.put("applelocal", ah);
 		
 		NativeAuthorityHandlerContainer bean = new NativeAuthorityHandlerContainer(map);
 		

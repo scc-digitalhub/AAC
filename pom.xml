@@ -204,7 +204,14 @@
     <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-    </dependency>    
+    </dependency>   
+    
+    <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>9.0.1</version>
+    </dependency>
+     
     
 	</dependencies>
 
