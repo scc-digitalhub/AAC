@@ -153,42 +153,16 @@ public class AppleNativeAuthorityHandler implements NativeAuthorityHandler {
 	}
 
 
-	public static void main(String[] args) throws Exception {
-//		String s = "-----BEGIN PRIVATE KEY-----\r\n"
-//				+ "-----END PRIVATE KEY-----";
+//	public static void main(String[] args) throws Exception {
+//		String accessToken = "";
 //
-//		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-//		Reader rdr = new StringReader(s);
-//		PemObject parsed = new org.bouncycastle.openssl.PEMParser(rdr).readPemObject();
-//		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(parsed.getContent());
-//		KeyFactory factory = KeyFactory.getInstance("ECDSA");
-//		PrivateKey privateKey = factory.generatePrivate(spec);
+//		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = getProcessor();
+//		JWTClaimsSet claimsSet = jwtProcessor.process(accessToken, null);
 //
-//		final JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("").build();
+//		// Print out the token claims set
+//		System.out.println(claimsSet.toJSONObject());
 //
-//		Date when = new Date();
-//		
-//		final JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().issuer("").issueTime(when)
-//				.expirationTime(new Date(when.toInstant().plusSeconds(6*30*24*60*60).toEpochMilli()))
-//				.audience("https://appleid.apple.com")
-//				.subject("").build();
 //
-//		SignedJWT signedJWT = new SignedJWT(header, claimsSet);
-//		JWSSigner signer = new ECDSASigner((java.security.interfaces.ECPrivateKey) privateKey);
-//		signedJWT.sign(signer);
-//		String token = signedJWT.serialize();
-//
-//		System.out.println(token);
-		
-		String accessToken = "";
-
-		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = getProcessor();
-		JWTClaimsSet claimsSet = jwtProcessor.process(accessToken, null);
-
-		// Print out the token claims set
-		System.out.println(claimsSet.toJSONObject());
-
-
-	}
+//	}
 
 }
