@@ -34,7 +34,7 @@
     <title th:text="#{lbl_login_title}">AAC Login</title>
 </head>
 <body>
-  <img class="logo" src="img/ls_logo.png" alt="SmartCommunity" />
+  <img class="logo" src="img/ls_logo.png" style="padding-top: 3rem!important" alt="SmartCommunity" />
   <div class="clear"></div>
   
   <div class="row" th:if="${session.authorities.get('internal')} != null">
@@ -47,21 +47,21 @@
           <div class="col-md-12 form-group"><label th:text="#{lbl_user}">: </label><input class="form-control" type="text" name="username"/></div>
           <div class="col-md-12 form-group"><label th:text="#{lbl_pwd}">: </label><input class="form-control" type="password" name="password"/></div>
           <div class="col-md-12 form-group"><button class="btn btn-primary" th:text="#{lbl_login}">Login</button></div>
-          <div class="col-md-12 form-group"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a></div>
-          <div class="col-md-12 form-group"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>
+          <div class="col-md-6 text-center form-group"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a></div>
+          <div class="col-md-6 text-center form-group"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>
           <div>&nbsp;</div>
       </form>
       </div>
     </div>
   </div>
-            
+           
   <div class="text-center">
     <p th:text="#{lbl_login_providers}">Login with</p>
-    <ul class="pprovider">
-           <li th:each="entry : ${session.authorities.entrySet()}" th:if="'internal' != ${entry.key}">
-            <a th:attr="href='.'+${entry.value}" th:text="${entry.key.toUpperCase()}">PROVIDER</a>
-           </li>
-    </ul>
+    <div class="col-md-offset-4 col-md-4 row">
+           <div class="col-md-6" th:each="entry : ${session.authorities.entrySet()}" th:if="'internal' != ${entry.key}">
+            <a style="background-color: #666666;padding: 1rem;min-width: 150px;display: inline-block; color: #fff; line-height: 2em; font-size: larger; margin-bottom:2rem" th:attr="href='.'+${entry.value}" th:text="${entry.key.toUpperCase()}">PROVIDER</a>
+           </div>
+    </div>
   </div>
 </body>
 </html>

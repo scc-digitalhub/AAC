@@ -47,8 +47,8 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 	@Override
 	public Map<String, String> extractAttributes(HttpServletRequest request, Map<String,String> map, AuthorityMapping mapping) {
 		String email = null;
-		if (request != null) email = request.getParameter("email");
-		if (email == null) email = map.get("email");
+		if (request != null) email = (String)request.getAttribute("email");
+		//if (email == null) email = map.get("email");
 		
 		Registration user = manager.getUserByEmail(email);
 		if (user == null) {

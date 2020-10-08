@@ -109,10 +109,11 @@ public class RegistrationController {
 
 			SecurityContextHolder.getContext().setAuthentication(a);
 			
+			req.setAttribute("email", user.getEmail());
+
 			String redirect = String
-					.format("redirect:/eauth/internal?target=%s&email=%s",
-							target,
-							user.getEmail());
+					.format("forward:/eauth/internal?target=%s",
+							target);
 			return redirect;
 		} catch (RegistrationException e) {
 			model.addAttribute("error", e.getClass().getSimpleName());

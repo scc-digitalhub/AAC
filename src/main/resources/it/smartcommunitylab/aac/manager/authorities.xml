@@ -49,7 +49,7 @@
       <attributes>email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
   </authorityMapping>
-  <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="true">
+  <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="false">
       <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">surname</attributes>
       <attributes>email</attributes>
@@ -82,6 +82,14 @@
       <attributes>pat_attribute_issuerdn</attributes>
       <attributes>pat_attribute_base64</attributes>
       <identifyingAttributes>pat_attribute_codicefiscale</identifyingAttributes>
+  </authorityMapping>
+ <authorityMapping name="cie" url="cie" public="false" web="true" >
+      <attributes alias="it.smartcommunitylab.aac.givenname">accounts.cie.eu.trentorise.smartcampus.surname</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">accounts.cie.eu.trentorise.smartcampus.givenname</attributes>
+      <attributes alias="fiscalNumberId">accounts.cie.fiscalNumberId</attributes>
+      <attributes alias="dateOfBirthId">accounts.cie.dateOfBirthId</attributes>
+      <attributes alias="email">accounts.cie.email</attributes>
+      <identifyingAttributes>accounts.cie.fiscalNumberId</identifyingAttributes>
   </authorityMapping>
 
   <authorityMatching>

@@ -163,8 +163,15 @@ public class CustomOAuth2RequestFactory<userManager> implements OAuth2RequestFac
 				user = users.get(0);
 			}
 		} else {
-			userId = userManager.getUserId();
-			user = userRepository.findOne(userId);
+			try {
+				userId = userManager.getUserId();
+				user = userRepository.findOne(userId);
+			} catch (Exception e) {
+				logger.error("error recovering user. grant type: "+requestParameters.get("grant_type"));
+				newScopes = scopes;
+				// Not a user ID as expected, live null
+			}
+
 		}
 
 		if (user != null) {

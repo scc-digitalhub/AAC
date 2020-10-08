@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.authority;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.web.client.RestTemplate;
 
 import eu.trentorise.smartcampus.network.JsonUtils;
 import eu.trentorise.smartcampus.network.RemoteConnector;
@@ -38,6 +39,8 @@ import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
  */
 public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 
+	private RestTemplate restTemplate = new RestTemplate();
+
 	@Override
 	public Map<String, String> extractAttributes(String token, Map<String,String> map, AuthorityMapping mapping) throws SecurityException  {
 		
@@ -45,7 +48,8 @@ public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 			Map<String, Object> result = null;
 			try {
 				result = validateV3(token);
-			} catch (Exception e) {
+			} catch(Exception e){
+				e.printStackTrace();
 				// invalid token or invalid token version
 			}
 			if (result == null) {
@@ -67,7 +71,8 @@ public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> validateV3(String token) throws SecurityException, RemoteException {
-		String s = RemoteConnector.getJSON("https://www.googleapis.com", "/oauth2/v3/tokeninfo?id_token="+token, null);
+		String s = restTemplate.getForObject("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token="+token, String.class);
+		
 		Map<String,Object> result = JsonUtils.toObject(s, Map.class);
 		if (result == null || !validAuidence(result) || !result.containsKey("sub")) {
 			throw new SecurityException("Incorrect google token "+ token+": "+s);
@@ -93,6 +98,7 @@ public class GoogleAuthorityHandler implements NativeAuthorityHandler {
 	 * @return
 	 * @throws RemoteException
 	 */
+
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> validateV1(String token) throws SecurityException, RemoteException {
 		// first, we have to validate that the token is a correct platform token
