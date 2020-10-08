@@ -35,6 +35,20 @@
       <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
   </authorityMapping>
+  <authorityMapping name="googlelocal" url="googlelocal" public="true" web="false">
+      <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
+      <attributes>email</attributes>
+      <attributes>name</attributes>
+      <attributes>link</attributes>
+      <identifyingAttributes>id</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="facebooklocal" url="facebooklocal" public="true" web="false">
+      <attributes alias="it.smartcommunitylab.aac.givenname">first_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
+      <attributes>email</attributes>
+      <identifyingAttributes>id</identifyingAttributes>
+  </authorityMapping>
   <authorityMapping name="internal" url="internal" public="false" web="true"  useParams="true">
       <attributes alias="it.smartcommunitylab.aac.givenname">name</attributes>
       <attributes alias="it.smartcommunitylab.aac.surname">surname</attributes>
@@ -69,14 +83,25 @@
       <attributes>pat_attribute_codicefiscale</attributes>
       <identifyingAttributes>pat_attribute_codicefiscale</identifyingAttributes>
   </authorityMapping>
+ <authorityMapping name="cie" url="cie" public="false" web="true" >
+      <attributes alias="eu.trentorise.smartcampus.givenname">nameId</attributes>
+      <attributes alias="eu.trentorise.smartcampus.surname">familyNameId</attributes>
+      <attributes>fiscalNumberId</attributes>
+      <attributes>dateOfBirthId</attributes>
+      <attributes>email</attributes>
+      <identifyingAttributes>fiscalNumberId</identifyingAttributes>
+  </authorityMapping>
 
   <authorityMatching>
       <authority name="google" attribute="email"/>
       <authority name="facebook" attribute="email"/>
       <authority name="internal" attribute="email"/>
+      <authority name="googlelocal" attribute="email"/>
+      <authority name="facebooklocal" attribute="email"/>
   </authorityMatching>
   <authorityMatching>
       <authority name="facebook" attribute="id"/>
+      <authority name="facebooklocal" attribute="id"/>
   </authorityMatching>
 
 </authorities>

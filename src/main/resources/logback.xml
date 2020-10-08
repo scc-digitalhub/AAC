@@ -11,7 +11,7 @@
 	</appender>
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${aac.log.folder:-logs}/aac.log</file>
+    <file>/home/dev/wso2/logs/aac.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
       <fileNamePattern>aac.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -30,7 +30,7 @@
             <appender-ref ref="FILE" />
 	</logger>	
 	
-	<logger name="org.springframework.security" level="ERROR" additivity="false">
+	<logger name="org.springframework" level="ERROR" additivity="false">
             <appender-ref ref="FILE" />
 	</logger>		
 	
