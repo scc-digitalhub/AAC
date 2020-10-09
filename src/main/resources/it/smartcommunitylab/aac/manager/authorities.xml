@@ -113,6 +113,7 @@
       <authority name="googlelocal" attribute="email"/>
       <authority name="facebooklocal" attribute="email"/>
       <authority name="applelocal" attribute="email"/>
+      <authority name="apple" attribute="email"/>
   </authorityMatching>
   <authorityMatching>
       <authority name="facebook" attribute="id"/>
