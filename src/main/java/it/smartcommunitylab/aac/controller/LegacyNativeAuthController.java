@@ -80,6 +80,12 @@ public class LegacyNativeAuthController {
 		String authority = "facebook";
 		return processNativeAuth(device, request, response, authority);
 	}
+	@RequestMapping("/eauth/authorize/applelocal")
+	public ModelAndView authoriseWithAppleLocal(Device device, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		
+		String authority = "apple";
+		return processNativeAuth(device, request, response, authority);
+	}
 
 
 	protected ModelAndView processNativeAuth(Device device, HttpServletRequest request, HttpServletResponse response,

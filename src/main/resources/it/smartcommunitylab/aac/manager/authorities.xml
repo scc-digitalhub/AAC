@@ -19,7 +19,7 @@
 
 <authorities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="http://aac.smartcommunitylab.it/jaxbmodel"  
-  xsi:schemaLocation="http://aac.smartcommunitylab.it/jaxbmodel ../../../../../jaxb/binding/attributeSchema.xsd">
+  xsi:schemaLocation="http://aac.smartcommunitylab.it/jaxbmodel ../../../../jaxb/binding/attributeSchema.xsd">
 
   <authorityMapping name="google" url="google" public="true" useParams="true">
       <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
@@ -34,6 +34,12 @@
       <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
       <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="apple" url="apple" public="false" useParams="true">
+      <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.surname">family_name</attributes>
+      <attributes alias="it.smartcommunitylab.aac.username">email</attributes>
+      <identifyingAttributes>email</identifyingAttributes>
   </authorityMapping>
   <authorityMapping name="googlelocal" url="googlelocal" public="true" web="false">
       <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
