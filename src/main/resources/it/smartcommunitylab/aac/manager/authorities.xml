@@ -19,7 +19,7 @@
 
 <authorities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="http://aac.smartcommunitylab.it/jaxbmodel"  
-  xsi:schemaLocation="http://aac.smartcommunitylab.it/jaxbmodel ../../../../../jaxb/binding/attributeSchema.xsd">
+  xsi:schemaLocation="http://aac.smartcommunitylab.it/jaxbmodel ../../../../jaxb/binding/attributeSchema.xsd">
 
   <authorityMapping name="google" url="google" public="true" useParams="true">
       <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
@@ -34,6 +34,13 @@
       <attributes alias="it.smartcommunitylab.aac.surname">last_name</attributes>
       <attributes>email</attributes>
       <identifyingAttributes>id</identifyingAttributes>
+  </authorityMapping>
+  <authorityMapping name="apple" url="apple" public="false" web="true">
+      <attributes alias="eu.trentorise.smartcampus.givenname">given_name</attributes>
+      <attributes alias="eu.trentorise.smartcampus.surname">family_name</attributes>
+      <attributes>email</attributes>
+      <attributes>sub</attributes>
+      <identifyingAttributes>email</identifyingAttributes>
   </authorityMapping>
   <authorityMapping name="googlelocal" url="googlelocal" public="true" web="false">
       <attributes alias="it.smartcommunitylab.aac.givenname">given_name</attributes>
@@ -105,6 +112,7 @@
       <authority name="facebook" attribute="email"/>
       <authority name="facebooklocal" attribute="email"/>
       <authority name="internal" attribute="email"/>
+      <authority name="apple" attribute="email"/>
       <authority name="applelocal" attribute="email"/>
   </authorityMatching>
   <authorityMatching>

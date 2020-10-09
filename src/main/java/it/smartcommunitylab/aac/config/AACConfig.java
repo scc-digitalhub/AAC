@@ -45,10 +45,13 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 		
 		GoogleAuthorityHandler gh = new GoogleAuthorityHandler();
 		map.put("googlelocal", gh);
+		map.put("google", gh);
 		FBAuthorityHandler fh = new FBAuthorityHandler();
 		map.put("facebooklocal", fh);
+		map.put("facebook", fh);
 		AppleNativeAuthorityHandler ah = new AppleNativeAuthorityHandler();
 		map.put("applelocal", ah);
+		map.put("apple", ah);
 		
 		NativeAuthorityHandlerContainer bean = new NativeAuthorityHandlerContainer(map);
 		
