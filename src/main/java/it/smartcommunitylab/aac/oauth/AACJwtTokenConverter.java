@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth;
 
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -43,6 +44,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTService;
@@ -69,6 +71,9 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
 
     @Value("${security.refreshtoken.validity}")
     private int refreshTokenValidity;
+    
+    @Value("${server.max-http-header-size}")
+    private int maxHttpHeaderSize;
 
     @Autowired
     private JWTService jwtService;
@@ -393,7 +398,28 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
         // serialize to string
         String result = token.serialize();
         logger.debug("signed jwt token " + result);
+        
+        // implicit flow isn't suited for large JWT transferred as fragment
+        String grantType = authentication.getOAuth2Request().getGrantType();
+        if (Config.GRANT_TYPE_IMPLICIT.equals(grantType)) {
+            // check size and print warn if exceeds 16k
+            int jwtTargetSize = 16 * 1024;
+            int jwtBytesSize = result.getBytes(Charset.forName("UTF-8")).length;
+            if (jwtBytesSize >= jwtTargetSize) {
+                logger.warn(
+                        "jwt token bytes size " + String.valueOf(jwtBytesSize) + " is exceeding the safe threshold");
+            }
 
+            // also check if we consume more than half the header space
+            // this will leave no space for id token
+            if (accessToken.getScope().contains("openid")
+                    && jwtBytesSize > Math.max(jwtTargetSize, maxHttpHeaderSize/2)) {
+                logger.error(
+                        "jwt token bytes size " + String.valueOf(jwtBytesSize)
+                                + " is exceeding the space available in header");
+            }
+        }
+        
         return result;
 
         // DEPRECATED, build locally JWT
