@@ -73,6 +73,9 @@ jwt:
    kid:
       sig: ${JWT_KID_SIG:}
       enc: ${JWT_KID_ENC:}
+   claims:
+      includeInternalRoles: false
+      includeResourceRoles: false
 
 #EXTERNAL PROVIDERS
 authorities:

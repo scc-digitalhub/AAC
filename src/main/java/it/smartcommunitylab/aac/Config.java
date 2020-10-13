@@ -81,10 +81,12 @@ public class Config {
 	public static final String R_USER = "ROLE_USER";
 	/** Predefined system role ADMIN */
 	public static final String R_ADMIN = "ROLE_ADMIN";
+    /** Predefined system role R_OWNER */
+    public static final String R_OWNER = "ROLE_OWNER";	
 	/** Predefined system role R_PROVIDER */
 	public static final String R_PROVIDER = "ROLE_PROVIDER";
 	/** Predefined system role R_DEVELOPER */
-    public static final String R_DEVELOPER = "R_DEVELOPER";    
+    public static final String R_DEVELOPER = "ROLE_DEVELOPER";    
 
 	public static final String GRANT_TYPE_IMPLICIT = "implicit";
 	public static final String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
