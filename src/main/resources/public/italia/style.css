@@ -185,3 +185,9 @@ tags-input {
 .loginbtn  {
   padding: 12px !important; 
 }
+
+.customization-block {
+	background-color: #CD7171;
+	border: 2px dotted #ccc;
+	margin-bottom: 5px;
+}

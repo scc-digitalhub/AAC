@@ -423,6 +423,12 @@ angular.module('aac.controllers.clients', [])
 		$scope.switchClientView('settings');
 	};
 	/**
+	 * switch to app 'customization'
+	 */
+	$scope.viewCustomization = function() {
+		$scope.switchClientView('customization');
+	};		
+	/**
 	 * switch to app 'jwt'
 	 */
 	$scope.viewJwt = function() {
@@ -633,6 +639,29 @@ angular.module('aac.controllers.clients', [])
 			}
 		}, Utils.showError);
 	};
+	/**
+	 * Save current app customization
+	 */
+	$scope.saveCustomization = function() {
+		
+		var newClient = new ClientAppBasic($scope.app);
+		newClient.$update({clientId:$scope.clientId}, function(response) {
+			if (response.responseCode == 'OK') {
+				Utils.showSuccess();
+				var app = response.data;
+				$scope.app = angular.copy(app);
+				//TODO check if these are redundant
+				$scope.initGrantTypes(app);
+				$scope.initRedirectUris(app);
+				$scope.initUniqueSpaces(app);
+				$scope.initRolePrefixes(app);
+				$scope.claimEnabled.checked = !!app.claimMapping;
+			} else {
+				Utils.showError('Failed to save claims: '+response.errorMessage);
+			}
+		}, Utils.showError);
+	};		
+	
 	/**
 	 * Save current app JWT config
 	 */

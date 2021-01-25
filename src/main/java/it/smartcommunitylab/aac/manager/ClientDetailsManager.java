@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,6 +31,8 @@ import java.util.stream.Stream;
 import javax.persistence.EntityNotFoundException;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +114,14 @@ public class ClientDetailsManager {
 
     };
 
+    private static final Whitelist WHITELIST_RELAXED_NOIMG = Whitelist.relaxed()
+            .removeTags("img")
+            .addTags("nav", "button", "hr")
+            .addProtocols("a", "href", "#")
+            .addAttributes(":all", "class")
+            .addAttributes(":all", "style")
+            .addAttributes(":all", "role");
+    
     @Autowired
     private ClientDetailsRepository clientDetailsRepository;
 
@@ -564,10 +575,18 @@ public class ClientDetailsManager {
         if (client == null) {
             return "app not found";
         }
+        
         // name should not be empty
-        if (data.getName() == null || data.getName().trim().isEmpty()) {
+        if (data.getName() == null ) {
             return "name cannot be empty";
         }
+        
+        // name should be plain text
+        String name = Jsoup.clean(data.getName(), Whitelist.none());
+        if (!StringUtils.hasText(name.trim())) {
+            return "name cannot be empty";
+        }               
+        
         // for server-side or native access redirect URLs are required
         boolean isServerSide = data.getGrantedTypes().stream()
                 .anyMatch(g -> ArrayUtils.contains(SERVER_SIDE_GRANT_TYPES, (g)));
@@ -607,6 +626,37 @@ public class ClientDetailsManager {
             }
         }
         
+        // validate description fields
+        if (StringUtils.hasText(data.getHeaderText())) {
+            if (!Jsoup.isValid(data.getHeaderText(), WHITELIST_RELAXED_NOIMG)) {
+                logger.debug("header text fails validation: " + data.getHeaderText());
+                return "Only valid basic html tags (no img) are supported for description fields";
+            }
+        }
+        if (StringUtils.hasText(data.getFooterText())) {
+            if (!Jsoup.isValid(data.getFooterText(), WHITELIST_RELAXED_NOIMG)) {
+                logger.debug("footer text fails validation: " + data.getFooterText());
+                return "Only valid basic html tags (no img) are supported for description fields";
+            }
+        }
+        if (StringUtils.hasText(data.getLoginText())) {
+            if (!Jsoup.isValid(data.getLoginText(),WHITELIST_RELAXED_NOIMG)) {
+                logger.debug("footer text fails validation: " + data.getLoginText());
+                return "Only valid basic html tags (no img) are supported for description fields";
+            }
+        }
+        if (StringUtils.hasText(data.getRegistrationText())) {
+            if (!Jsoup.isValid(data.getRegistrationText(),WHITELIST_RELAXED_NOIMG)) {
+                logger.debug("footer text fails validation: " + data.getRegistrationText());
+                return "Only valid basic html tags (no img) are supported for description fields";
+            }
+        }
+        if (StringUtils.hasText(data.getAccessConfirmationText())) {
+            if (!Jsoup.isValid(data.getAccessConfirmationText(),WHITELIST_RELAXED_NOIMG)) {
+                logger.debug("footer text fails validation: " + data.getAccessConfirmationText());
+                return "Only valid basic html tags (no img) are supported for description fields";
+            }
+        }        
 
 //		if (data.isNativeAppsAccess() && (data.getNativeAppSignatures() == null || data.getNativeAppSignatures().isEmpty())) {
 //			return "app signature is required for native access";
@@ -716,6 +766,38 @@ public class ClientDetailsManager {
         return convertToClientApp(client);
     }
 
+    public Map<String, String> getClientCustomizations(String clientId) {
+        ClientDetailsEntity entity = clientDetailsRepository.findByClientId(clientId);
+        if (entity == null) {
+            throw new IllegalArgumentException("client not found");
+        }
+        ClientAppInfo info = ClientAppInfo.convert(entity.getAdditionalInformation());
+        Map<String, String> res = new HashMap<>();
+        if (StringUtils.hasText(info.getDisplayName())) {
+            res.put("displayName", info.getDisplayName());
+        }        
+        if (StringUtils.hasText(info.getHeaderText())) {
+            res.put("headerText", info.getHeaderText());
+        }
+        if (StringUtils.hasText(info.getFooterText())) {
+            res.put("footerText", info.getFooterText());
+        }
+        if (StringUtils.hasText(info.getLoginText())) {
+            res.put("loginText", info.getLoginText());
+        }
+        if (StringUtils.hasText(info.getRegistrationText())) {
+            res.put("registrationText", info.getRegistrationText());
+        }        
+        if (StringUtils.hasText(info.getAccessConfirmationText())) {
+            res.put("accessConfirmationText", info.getAccessConfirmationText());
+        }        
+        if (StringUtils.hasText(info.getInfoUri())) {
+            res.put("infoUri", info.getInfoUri());
+        }        
+        return res;
+    }
+    
+    
     /**
      * @param userId
      * @return {@link List} of {@link ClientAppBasic} objects representing client
@@ -874,6 +956,15 @@ public class ClientDetailsManager {
             res.setJwtEncAlgorithm(info.getJwtEncAlgorithm());
             res.setJwtEncMethod(info.getJwtEncMethod());
 
+            //additional text
+            res.setHeaderText(info.getHeaderText());
+            res.setFooterText(info.getFooterText());
+            res.setLoginText(info.getLoginText());
+            res.setRegistrationText(info.getRegistrationText());
+            res.setAccessConfirmationText(info.getAccessConfirmationText());
+            
+            // client uris
+            res.setInfoUri(info.getInfoUri());
         }
 
         res.setRedirectUris(e.getRegisteredRedirectUri());
@@ -1025,6 +1116,48 @@ public class ClientDetailsManager {
                     info.setJwtEncAlgorithm(data.getJwtEncAlgorithm());
                     info.setJwtEncMethod(data.getJwtEncMethod());
                 }
+            }
+
+            // additional text
+            if (data.getHeaderText() != null) {
+                if (StringUtils.hasText(data.getHeaderText())) {
+                    info.setHeaderText(Jsoup.clean(data.getHeaderText(), WHITELIST_RELAXED_NOIMG));
+                } else {
+                    info.setHeaderText("");
+                }
+            }
+            if (data.getHeaderText() != null) {
+                if (StringUtils.hasText(data.getFooterText())) {
+                    info.setFooterText(Jsoup.clean(data.getFooterText(), WHITELIST_RELAXED_NOIMG));
+                } else {
+                    info.setFooterText("");
+                }
+            }
+            if (data.getLoginText() != null) {
+                if (StringUtils.hasText(data.getLoginText())) {
+                    info.setLoginText(Jsoup.clean(data.getLoginText(), WHITELIST_RELAXED_NOIMG));
+                } else {
+                    info.setLoginText("");
+                }
+            }
+            if (data.getRegistrationText() != null) {
+                if (StringUtils.hasText(data.getRegistrationText())) {
+                    info.setRegistrationText(Jsoup.clean(data.getRegistrationText(), WHITELIST_RELAXED_NOIMG));
+                } else {
+                    info.setRegistrationText("");
+                }
+            }
+            if (data.getAccessConfirmationText() != null) {
+                if (StringUtils.hasText(data.getAccessConfirmationText())) {
+                    info.setAccessConfirmationText(Jsoup.clean(data.getAccessConfirmationText(), WHITELIST_RELAXED_NOIMG));
+                } else {
+                    info.setAccessConfirmationText("");
+                }
+            }            
+
+            // client uris
+            if (data.getInfoUri() != null) {
+                info.setInfoUri(data.getInfoUri());
             }
 
             //TODO we should write only populated fields.

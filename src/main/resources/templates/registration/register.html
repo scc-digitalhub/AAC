@@ -37,11 +37,18 @@
     </head>
     <body>
       <div class="container">
-        <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
-        <div class="clear"></div>
+		  <div th:if= "${headerText == null}">
+	        <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
+	        <div class="clear"></div>
+		  </div>
+		  <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if= "${headerText != null}"  th:utext="${headerText}"></div>        
+        <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if= "${registrationText != null}"  th:utext="${registrationText}"></div> 
         <div class="row justify-content-center">
           <div class="col-md-offset-4 col-md-4">
             <div class="panel panel-default">
+			      <h4 class="text-center" th:if= "${displayName == null}"  th:text="#{lbl_register_title}">AAC</h4>
+			      <h4 class="text-center" th:if= "${displayName != null}"  th:text="${displayName}">AAC</h4>                
+               <h5  th:text="#{lbl_register_title}">Register</h5>
             <!-- <form:form modelAttribute="reg"> -->
              <form action="#" th:action="@{/internal/register}" th:object="${reg}" method="post">
                 <div>&nbsp;</div>
@@ -84,6 +91,8 @@
             </div>
           </div>
         </div>
+         
+         <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if= "${footerText != null}"  th:utext="${footerText}"></div>        
       </div>  
     </body>
 </html>
