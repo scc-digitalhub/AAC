@@ -38,6 +38,9 @@ public class ClientAppInfo {
     private static ObjectMapper mapper = new ObjectMapper();
 
     private String name, displayName;
+    private String headerText, footerText;
+    private String loginText, registrationText, accessConfirmationText;
+    private String infoUri;
 
     private Map<String, Boolean> scopeApprovals;
 
@@ -114,6 +117,54 @@ public class ClientAppInfo {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getHeaderText() {
+        return headerText;
+    }
+
+    public void setHeaderText(String headerText) {
+        this.headerText = headerText;
+    }
+
+    public String getFooterText() {
+        return footerText;
+    }
+
+    public void setFooterText(String footerText) {
+        this.footerText = footerText;
+    }
+
+    public String getLoginText() {
+        return loginText;
+    }
+
+    public void setLoginText(String loginText) {
+        this.loginText = loginText;
+    }
+
+    public String getRegistrationText() {
+        return registrationText;
+    }
+
+    public void setRegistrationText(String registrationText) {
+        this.registrationText = registrationText;
+    }
+
+    public String getAccessConfirmationText() {
+        return accessConfirmationText;
+    }
+
+    public void setAccessConfirmationText(String accessConfirmationText) {
+        this.accessConfirmationText = accessConfirmationText;
+    }
+
+    public String getInfoUri() {
+        return infoUri;
+    }
+
+    public void setInfoUri(String infoUri) {
+        this.infoUri = infoUri;
     }
 
     public Set<String> getUniqueSpaces() {

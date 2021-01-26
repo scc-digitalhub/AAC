@@ -25,6 +25,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
 import javax.validation.Valid;
 import javax.validation.Validation;
@@ -40,10 +41,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,6 +59,7 @@ import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.manager.AttributesAdapter;
+import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.RegistrationService;
 import it.smartcommunitylab.aac.model.Registration;
 import springfox.documentation.annotations.ApiIgnore;
@@ -74,6 +78,10 @@ public class RegistrationController {
     
 	@Autowired
     private AttributesAdapter attributesAdapter;	
+	
+
+    @Autowired
+    private ClientDetailsManager clientDetailsAdapter;	
 	
 	/**
 	 * Login the user 
@@ -156,6 +164,14 @@ public class RegistrationController {
 	public String regPage(Model model,
 			HttpServletRequest req) {
 		model.addAttribute("reg", new RegistrationBean());
+		
+        // check if we have a clientId
+        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
+        if (clientId != null) {
+            // fetch client customizations for login screen
+            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
+            model.addAllAttributes(customizations);
+        }
 		return "registration/register";
 	}
 	
@@ -175,6 +191,7 @@ public class RegistrationController {
 			HttpServletRequest req) 
 	{
 		if (result.hasErrors()) {
+		    HttpSession s = req.getSession();
 			return "registration/register";
         }
 		try {
