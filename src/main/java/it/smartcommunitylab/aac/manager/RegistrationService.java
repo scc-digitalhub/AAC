@@ -16,57 +16,51 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.Registration;
-import it.smartcommunitylab.aac.model.User;
 
+//TODO evaluate removal in favour of manager
 @Component
 public class RegistrationService {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private RegistrationManager manager;
-	
-	public Registration register(String name, String surname, String email, String password, String lang) throws RegistrationException {
-		try {
-			return manager.register(name, surname, email, password, lang);
-		} catch (Exception e) {
-			// try to recover from duplicate creation
-			return manager.register(name, surname, email, password, lang);
-		}
-	}
-	
-	public Registration confirm(String confirmationToken) throws RegistrationException {
-		return manager.confirm(confirmationToken);
-	}
-	public Registration getUserByPwdResetToken(String confirmationToken) throws RegistrationException {
-		return manager.getUserByPwdResetToken(confirmationToken);
-	}
+    @Autowired
+    private RegistrationManager manager;
 
-	public void resendConfirm(String email) throws RegistrationException {
-		manager.resendConfirm(email);
-	}
+    public Registration register(String name, String surname, String email, String password, String lang)
+            throws RegistrationException {
+        try {
+            return manager.register(name, surname, email, password, lang);
+        } catch (Exception e) {
+            // try to recover from duplicate creation
+            return manager.register(name, surname, email, password, lang);
+        }
+    }
 
-	public void resetPassword(String email) throws RegistrationException {
-		manager.resetPassword(email);
-	}
-	
-	public void updatePassword(String email, String password) throws RegistrationException {
-		manager.updatePassword(email, password);
-	}
-	
-	public User registerOffline(String name, String surname, String email, String password, String lang, boolean changePwdOnFirstAccess, String confirmationKey) throws RegistrationException {
-		return manager.registerOffline(name, surname, email, password, lang, changePwdOnFirstAccess, confirmationKey);
-	}
+    public Registration confirm(String confirmationToken) throws RegistrationException {
+        return manager.confirm(confirmationToken);
+    }
 
-	
-	public Registration getUser(String email, String password) throws RegistrationException {
-		return manager.getUser(email, password); 
-	}
+    public Registration getUserByPwdResetToken(String confirmationToken) throws RegistrationException {
+        return manager.getUserByPwdResetToken(confirmationToken);
+    }
+
+    public void resendConfirm(String email) throws RegistrationException {
+        manager.resendConfirm(email);
+    }
+
+    public void resetPassword(String email) throws RegistrationException {
+        manager.resetPassword(email);
+    }
+
+    public void updatePassword(String email, String password) throws RegistrationException {
+        manager.updatePassword(email, password);
+    }
+
+    public Registration getUser(String email, String password) throws RegistrationException {
+        return manager.getUser(email, password);
+    }
 
 }

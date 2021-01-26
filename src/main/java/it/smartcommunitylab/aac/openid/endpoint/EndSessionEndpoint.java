@@ -32,7 +32,6 @@ import com.nimbusds.jwt.JWTParser;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
@@ -172,7 +171,8 @@ public static final String END_SESSION_URL = "/endsession";
 		// registered AND the URI given is in that list, then...
 		if (!Strings.isNullOrEmpty(redirectUri) && 
 			client != null && client.getRedirectUris() != null) {
-			Set<String> redirects = Utils.delimitedStringToSet(client.getRedirectUris(), ",");
+//			Set<String> redirects = Utils.delimitedStringToSet(client.getRedirectUris(), ",");
+            Set<String> redirects = client.getRedirectUris();	    
 			if (redirects.contains(redirectUri)) {
 				// TODO: future, add the redirect URI to the model for the display page for an interstitial
 				// m.addAttribute("redirectUri", postLogoutRedirectUri);

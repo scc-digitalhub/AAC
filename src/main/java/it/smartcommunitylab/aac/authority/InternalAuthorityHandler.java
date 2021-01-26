@@ -60,8 +60,9 @@ public class InternalAuthorityHandler implements AuthorityHandler {
 		} else {
 			Map<String, String> result = new HashMap<String, String>();
 			result.put(USERNAME_ATTRIBUTE, user.getEmail());
-			result.put(Config.NAME_ATTR, user.getName());
-			result.put(Config.SURNAME_ATTR, user.getSurname());
+			result.put(Config.USER_ATTR_NAME, user.getName());
+			result.put(Config.USER_ATTR_SURNAME, user.getSurname());
+			result.put(Config.USER_ATTR_EMAIL, user.getEmail());
 			return result;
 		}
 	}

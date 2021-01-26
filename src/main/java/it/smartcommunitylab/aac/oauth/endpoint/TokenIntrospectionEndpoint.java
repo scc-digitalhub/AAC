@@ -181,7 +181,7 @@ public class TokenIntrospectionEndpoint {
                 // fallback values, fetch from auth
                 String userId = auth.getName();
                 boolean applicationToken = false;
-                String tenant = "";
+//                String tenant = "";
                 User user = null;
 
                 if (ArrayUtils.contains(userGrantTypes, grantType)) {
@@ -210,14 +210,17 @@ public class TokenIntrospectionEndpoint {
 
                 if (user != null) {
                     userId = Long.toString(user.getId());
-
-                    // fetch AAC tenant and userName
-                    String internalName = userManager.getUserInternalName(user.getId());
-                    String localName = internalName.substring(0, internalName.lastIndexOf('@'));
-                    tenant = internalName.substring(internalName.lastIndexOf('@') + 1);
-
-                    // TODO use userName instead of localName?
-                    result.setUsername(localName);
+                    result.setUsername(user.getUsername());
+                    
+                    //APIM specific, deprecated in favor of customClaimMapping
+//                    // fetch AAC tenant and userName
+//                    String internalName = userManager.getUserInternalName(user.getId());
+//                    String localName = internalName.substring(0, internalName.lastIndexOf('@'));
+//                    tenant = internalName.substring(internalName.lastIndexOf('@') + 1);
+//
+//                    // TODO use userName instead of localName?
+//                    result.setUsername(localName);
+                    
 
                 }
 
@@ -227,7 +230,7 @@ public class TokenIntrospectionEndpoint {
                 result.setAac_user_id(userId);
                 result.setAac_grantType(grantType);
                 result.setAac_applicationToken(applicationToken);
-                result.setAac_am_tenant(tenant);
+//                result.setAac_am_tenant(tenant);
 
                 if (refreshToken != null) {
                     // these make sense only on refresh tokens with expiration

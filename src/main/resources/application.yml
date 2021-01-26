@@ -6,7 +6,7 @@ server:
    tomcat:
      remote_ip_header: ${SERVER_TOMCAT_REMOTE_IP_HEADER:x-forwarded-for}
      protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
-   max-http-header-size: 16000
+   max-http-header-size: 32000     
 
 # APPLICATION EXTERNAL URL
 application:
@@ -36,7 +36,9 @@ security:
       validity: ${ACCESS_TOKEN_VALIDITY:43200}
    refreshtoken:
       validity: ${REFRESH_TOKEN_VALIDITY:2592000}
-   keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks}
+   authcode:
+      validity: ${AUTH_CODE_VALIDITY:600}      
+   keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
    rememberme:
       key: ${REMEMBER_ME_KEY:REMEMBER_ME_SECRET_KEY}
    identity: # IDENTITY MAPPING SOURCE FILE
@@ -58,13 +60,22 @@ oauth2:
    jwt: ${ENABLE_JWT:false}
    introspection:
       permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:true}
-
+   pkce:
+      allowRefresh: true
+   clientCredentials:
+      allowRefresh: true
+   resourceOwnerPassword:
+      allowRefresh: false
+            
 #JWT
 jwt:
    issuer: ${JWT_ISSUER:${application.url}}
    kid:
       sig: ${JWT_KID_SIG:}
       enc: ${JWT_KID_ENC:}
+   claims:
+      includeInternalRoles: false
+      includeResourceRoles: false
 
 #EXTERNAL PROVIDERS
 authorities:
@@ -143,7 +154,9 @@ swagger:
 spring:
    messages:
       basename: resources/internal
-      encoding: ${SPRING_MESSAGES_ENCODING:ISO-8859-1}
+      encoding: UTF-8
+   resources:
+      cache-period: 3600
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
@@ -165,8 +178,14 @@ api:
 adminClient:
     id: ${APIM_ID:API_MGT_CLIENT_ID}
     secret: ${APIM_SECRET:YOUR_MNGMT_CLIENT_SECRET}
+    grantTypes: ${APIM_GRANT_TYPES:authorization_code,implicit,refresh_token,password,client_credentials,native}
     scopes: ${APIM_SCOPES:clientmanagement,orgmanagement,apimanagement,openid,email,profile,user.roles.me,user.roles.read,profile.basicprofile.me,profile.accountprofile.me,profile.basicprofile.all,profile.accountprofile.all}
     redirects: ${APIM_REDIRECTS:http://localhost:9443/store/jagg/jaggery_oidc_acs.jag,http://localhost:9443/publisher/jagg/jaggery_oidc_acs.jag}
+
+bootstrap:
+    apply: ${BOOTSTRAP_APPLY:false}
+    file: ${BOOTSTRAP:classpath:/bootstrap.yaml} 
+
 
 #port used to expose actuator
 management:

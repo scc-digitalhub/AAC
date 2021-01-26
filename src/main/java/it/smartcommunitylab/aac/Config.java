@@ -28,12 +28,16 @@ public class Config {
 
 	public static final String DEFAULT_LANG = "en";
 	
+//	public static final long ADMIN_ID = 0l;
+	
 	/** User name attribute alias */
-	public static final String NAME_ATTR = "it.smartcommunitylab.aac.givenname";
+	public static final String USER_ATTR_NAME = "it.smartcommunitylab.aac.givenname";
 	/** User surname attribute alias */
-	public static final String SURNAME_ATTR = "it.smartcommunitylab.aac.surname";
+	public static final String USER_ATTR_SURNAME = "it.smartcommunitylab.aac.surname";
 	/** User surname attribute alias */
-	public static final String USERNAME_ATTR = "it.smartcommunitylab.aac.username";
+	public static final String USER_ATTR_USERNAME = "it.smartcommunitylab.aac.username";
+	/** User surname attribute alias */
+	public static final String USER_ATTR_EMAIL = "it.smartcommunitylab.aac.email";
 	/** Internal Attribute Authority */ 
 	public static final String IDP_INTERNAL = "internal";
 	
@@ -77,10 +81,13 @@ public class Config {
 	public static final String R_USER = "ROLE_USER";
 	/** Predefined system role ADMIN */
 	public static final String R_ADMIN = "ROLE_ADMIN";
+    /** Predefined system role R_OWNER */
+    public static final String R_OWNER = "ROLE_OWNER";	
 	/** Predefined system role R_PROVIDER */
 	public static final String R_PROVIDER = "ROLE_PROVIDER";
+	/** Predefined system role R_DEVELOPER */
+    public static final String R_DEVELOPER = "ROLE_DEVELOPER";    
 
-	public static final String GRANT_TYPE_NATIVE = "native";
 	public static final String GRANT_TYPE_IMPLICIT = "implicit";
 	public static final String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
     public static final String GRANT_TYPE_PASSWORD = "password";
@@ -111,12 +118,19 @@ public class Config {
 	/** Predefined scope for user creation and management */
     public static final String SCOPE_USERMANAGEMENT = "usermanagement";
     public static final String SCOPE_ROLE = "user.roles.me";
+    public static final String SCOPE_GROUP = "user.groups.me";    
     public static final String SCOPE_ROLES_READ = "user.roles.read";
     public static final String SCOPE_ROLES_WRITE = "user.roles.write";
 
     /** scopes for client management */
     public static final String SCOPE_CLIENTMANAGEMENT = "clientmanagement";
     public static final String SCOPE_CLIENT_ROLES_READ_ALL = "client.roles.read.all";
+
+    /** scopes for api key */
+    public static final String SCOPE_APIKEY_CLIENT_ALL = "apikey.client.all";
+    public static final String SCOPE_APIKEY_CLIENT = "apikey.client.me";
+    public static final String SCOPE_APIKEY_USER_CLIENT = "apikey.user.client";
+    public static final String SCOPE_APIKEY_USER = "apikey.user.me";
 
     /** scopes for api management */
     public static final String SCOPE_APIMANAGEMENT = "apimanagement";
@@ -132,11 +146,18 @@ public class Config {
     public static final String SCOPE_AUTH_MANAGE = "authorization.manage";
     public static final String SCOPE_AUTH_SCHEMA_MANAGE = "authorization.schema.manage";
 
-	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
-	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
-	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC = "encrypted_response_enc";
-	public static final String CLIENT_PARAM_JWKS = "jwks";
-	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
+//	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
+//	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";
+//	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ENC = "encrypted_response_enc";
+//	public static final String CLIENT_PARAM_JWKS = "jwks";
+//	public static final String CLIENT_PARAM_JWKS_URI = "jwks_uri";
+    
+    public static final String CLIENT_INFO_JWT_SIGN_ALG = "jwtSignAlgorithm";
+    public static final String CLIENT_INFO_JWT_ENC_ALG = "jwtEncAlgorithm";
+    public static final String CLIENT_INFO_JWT_ENC_METHOD = "jwtEncMethod";
+    public static final String CLIENT_INFO_JWKS = "jwks";
+    public static final String CLIENT_INFO_JWKS_URI = "jwksUri";
+    public static final String CLIENT_INFO_WEBHOOK_AFTER_APPROVAL= "onAfterApprovalWebhook";
 
 	public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 	

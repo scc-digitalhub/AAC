@@ -14,22 +14,23 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.auth.cie;
+
+import it.smartcommunitylab.aac.dto.AccountProfile;
 
 /**
+ * Interface for User Unique identities to be used for 2factor confirmation.
  * @author raman
  *
  */
-public class FlowExecutionException extends RuntimeException {
-
-
-	private static final long serialVersionUID = -3503766183106053795L;
+public interface IdentitySource {
 
 	/**
-	 * @param string
+	 * Find user identity string for specific provider, userId and profile data
+	 * @param provider
+	 * @param userId
+	 * @param profile
+	 * @return
 	 */
-	public FlowExecutionException(String string) {
-		super(string);
-	}
-
+	String getUserIdentity(String provider, Long userId, AccountProfile profile);
 }

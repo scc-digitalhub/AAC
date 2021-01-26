@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
@@ -64,7 +65,9 @@ public class OAuth2AwareControllerTest {
 		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
 
 		try {
-			user = registrationManager.registerOffline("NAME", "SURNAME", username, password, null, false, null);
+			Registration reg = registrationManager.registerOffline("NAME", "SURNAME", username, password, null, false, null);
+	        user = userRepository.findOne(Long.parseLong(reg.getUserId()));
+
 		} catch (AlreadyRegisteredException e) {
 			user = userRepository.findByUsername(username);
 		}
@@ -123,7 +126,7 @@ public class OAuth2AwareControllerTest {
 		entity.setAuthorizedGrantTypes("password,client_credentials,implicit");
 		entity.setDeveloperId(developerId);
 		entity.setClientSecret(UUID.randomUUID().toString());
-		entity.setClientSecretMobile(UUID.randomUUID().toString());
+//		entity.setClientSecretMobile(UUID.randomUUID().toString());
 		entity.setScope(getScopes());
 		entity.setName(client);
 

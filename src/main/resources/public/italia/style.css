@@ -32,33 +32,15 @@ body {
     display: initial !important;
 }
 
-ul.pprovider {
-	margin: 0 auto;
-	padding: 0;
-	list-style-type: none;
-	width: 50%;
-	max-width: 200px;
-}
-
-ul.pprovider li {
-	background-color: #666666;
-	/*padding: 15%;*/
-	margin: 10%;
-	max-height: 100px;
-}
-
-ul.pprovider li a {
-	color: #ffffff;
-	text-decoration: none;
-	font-size: larger;
-	display: block;
-	/*width: 100%;*/
-	line-height: 3em;
+.provider div .btn {
+  min-width: 200px;
+  display: inline-block;	
 }
 
 img.logo {
 	float: right;
-	padding: 5% 5% 0 0;
+	padding: 3rem 5% 0 0;
+	height: 128px;
 }
 
 div.authorities {
@@ -198,4 +180,8 @@ tags-input {
 }
 .form-check label {
   margin-bottom: 0 !important;
+}
+
+.loginbtn  {
+  padding: 12px !important; 
 }

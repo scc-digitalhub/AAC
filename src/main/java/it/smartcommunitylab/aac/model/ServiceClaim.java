@@ -226,6 +226,7 @@ public class ServiceClaim {
 					return Double.parseDouble(value);
 				}
 			}
+			case type_string: return mapper.readValue(value, String.class);
 			case type_object: return mapper.readValue(value, HashMap.class);
 			default: return value; 
 			}

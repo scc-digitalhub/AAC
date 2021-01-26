@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.manager;
+package it.smartcommunitylab.aac.auth.cie;
 
 import java.io.BufferedReader;
 import java.io.IOException;

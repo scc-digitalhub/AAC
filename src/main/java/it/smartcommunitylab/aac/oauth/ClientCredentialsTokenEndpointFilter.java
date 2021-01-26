@@ -111,12 +111,16 @@ public class ClientCredentialsTokenEndpointFilter extends
 			}
 		}
 		
+		  //DEPRECATED legacy Native Flow
+//		if ("authorization_code".equals(grant_type) || "refresh_token".equals(grant_type) || "password".equals(grant_type) || "native".equals(grant_type)) {
+//			checkCredentialsWithMobile(clientSecret, clientDetails, grantTypes, clientSecretServer);
+//		} else {
+//			checkCredentials(clientSecret, clientSecretServer);
+//		}
 		
-		if ("authorization_code".equals(grant_type) || "refresh_token".equals(grant_type) || "password".equals(grant_type) || "native".equals(grant_type)) {
-			checkCredentialsWithMobile(clientSecret, clientDetails, grantTypes, clientSecretServer);
-		} else {
-			checkCredentials(clientSecret, clientSecretServer);
-		}
+		//TODO rewrite with proper authManager 
+		checkCredentials(clientSecret, clientSecretServer);
+		
 		return createAuthentication(clientId, clientDetails, clientSecretServer);
 	}
 
@@ -126,19 +130,20 @@ public class ClientCredentialsTokenEndpointFilter extends
 		            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
 		}
 	}
-
-	protected void checkCredentialsWithMobile(String clientSecret, ClientDetailsEntity clientDetails,
-			Set<String> grantTypes, String clientSecretServer) {
-		String clientSecretMobile = clientDetails.getClientSecretMobile();
-		if (clientSecretMobile.equals(clientSecret) && !grantTypes.contains(Config.GRANT_TYPE_NATIVE)) {
-			throw new BadCredentialsException("Native app access is not enabled");
-		}
-		
-		if (!clientSecretServer.equals(clientSecret) && !clientSecretMobile.equals(clientSecret)) {
-		    throw new BadCredentialsException(messages.getMessage(
-		            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
-		}
-	}
+	
+	   //DEPRECATED legacy Native Flow
+//	protected void checkCredentialsWithMobile(String clientSecret, ClientDetailsEntity clientDetails,
+//			Set<String> grantTypes, String clientSecretServer) {
+//		String clientSecretMobile = clientDetails.getClientSecretMobile();
+//		if (clientSecretMobile.equals(clientSecret) && !grantTypes.contains(Config.GRANT_TYPE_NATIVE)) {
+//			throw new BadCredentialsException("Native app access is not enabled");
+//		}
+//		
+//		if (!clientSecretServer.equals(clientSecret) && !clientSecretMobile.equals(clientSecret)) {
+//		    throw new BadCredentialsException(messages.getMessage(
+//		            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+//		}
+//	}
 	
 	protected UsernamePasswordAuthenticationToken createAuthentication(String clientId, ClientDetailsEntity clientDetails, String clientSecretServer) {
 		UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(clientId, clientSecretServer);

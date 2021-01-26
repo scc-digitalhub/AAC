@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package it.smartcommunitylab.aac.keymanager.model;
+package it.smartcommunitylab.aac.apim;
 
 import java.util.List;
 

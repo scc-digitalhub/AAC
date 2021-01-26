@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.oauth;
 
-import javax.servlet.ServletContext;
-
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -25,14 +23,24 @@ import org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoi
 
 /**
  * Context extension to customize the OAuth2 authorization endpoint
+ * 
  * @author raman
  *
  */
 public class ContextExtender implements ApplicationContextAware {
 
-	@Override
-	public void setApplicationContext(ApplicationContext ctx) throws BeansException {
-		ctx.getBean(AuthorizationEndpoint.class).setRedirectResolver(new ExtRedirectResolver(ctx.getBean(ServletContext.class)));
-	}
+    private final ExtRedirectResolver redirectResolver;
+
+    public ContextExtender(String applicationURL, boolean configMatchPorts, boolean configMatchSubDomains) {
+        super();
+
+        this.redirectResolver = new ExtRedirectResolver(applicationURL, configMatchPorts, configMatchSubDomains);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext ctx) throws BeansException {
+//		ctx.getBean(AuthorizationEndpoint.class).setRedirectResolver(new ExtRedirectResolver(ctx.getBean(ServletContext.class)));
+        ctx.getBean(AuthorizationEndpoint.class).setRedirectResolver(redirectResolver);
+    }
 
 }

@@ -31,6 +31,7 @@ import javax.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -52,6 +53,7 @@ import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ServiceScope;
+import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 
 /**
  * Extension of {@link TokenStoreUserApprovalHandler} to enable automatic authorization
@@ -62,6 +64,9 @@ import it.smartcommunitylab.aac.model.ServiceScope;
 public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // changed
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${application.url}")
+    private String applicationURL;
+    
 	@Autowired
 	private ServletContext servletContext;
 	@Autowired
@@ -88,10 +93,27 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 	@Override
 	public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
 	    AuthorizationRequest result = super.checkForPreApproval(authorizationRequest, userAuthentication);
-		if (!result.isApproved()) return result;
+//		if (!result.isApproved()) {
+//			return result;
+//		}
 
+        // note: session with principal contains stale info about roles, fetched at
+        // login
+        Collection<? extends GrantedAuthority> selectedAuthorities = userAuthentication
+                .getAuthorities();
+        // fetch again from db
+        try {
+            User user = (User) userAuthentication.getPrincipal();
+            long userId = Long.parseLong(user.getUsername());
+            it.smartcommunitylab.aac.model.User userEntity = userManager.findOne(userId);
+            selectedAuthorities = roleManager.buildAuthorities(userEntity);
+        } catch (Exception e) {
+            // user is not available
+            logger.error("user not found: " + e.getMessage());
+        }   
+		
 		// see if the user has to perform the space selection 
-		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), userAuthentication.getAuthorities());
+		Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(), selectedAuthorities);
 		if (spaces != null && !spaces.isEmpty()) {
 			Map<String, String> newParams = new HashMap<String, String>(authorizationRequest.getApprovalParameters());
 			authorizationRequest.setApprovalParameters(newParams);
@@ -141,10 +163,11 @@ public class UserApprovalHandler extends ApprovalStoreUserApprovalHandler { // c
 				    return true;
 				}
 		}
-		// or test token redirect uri
-		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
-		    return true;
-		}
+//		// or test token redirect uri
+////		if(authorizationRequest.getRedirectUri().equals(ExtRedirectResolver.testTokenPath(servletContext))) {
+//		if(ExtRedirectResolver.isLocalRedirect(authorizationRequest.getRedirectUri(), applicationURL)) {
+//		    return true;
+//		}
 		
 		//or "default" scope only requested
 		if(Collections.singleton("default").equals(authorizationRequest.getScope())) {

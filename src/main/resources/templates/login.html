@@ -35,11 +35,11 @@
     <title th:text="#{lbl_login_title}">AAC Login</title>
 </head>
 <body>
-  <img class="logo" src="img/ls_logo.png" alt="SmartCommunity" />
+  <img class="logo d-none d-md-block" src="img/ls_logo.png" alt="SmartCommunity" />
   <div class="clear"></div>
-  
-  <div class="row justify-content-center" th:if="${session.authorities.get('internal')} != null">
-    <div class="col-md-offset-4 col-md-4">
+
+  <div class="row mt-md-0 mt-5 justify-content-center" th:if="${session.authorities.get('internal')} != null">
+    <div class="col-xl-offset-4 col-xl-4 col-lg-offset-3 col-lg-6 col-md-8 col-md-offset-2 col-sm-offset-1 col-sm-10">
       <div class="panel panel-default">
       <h4 class="text-center" th:text="#{lbl_login_title}">AAC Login</h4>
       <form action="login" method="post">
@@ -56,24 +56,50 @@
 			        <svg class="password-icon-visible icon icon-sm"><use xlink:href="./italia/svg/sprite.svg#it-password-visible"></use></svg>
 			        <svg class="password-icon-invisible icon icon-sm d-none"><use xlink:href="./italia/svg/sprite.svg#it-password-invisible"></use></svg>
 			      </span>
+            <div class="col-md-12 mt-2"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>
+	          <div class="row px-2 mt-4 align-items-center">
+	            <div class="col-md-8"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a></div>
+	            <div class="col-md-4 text-right"><button class="btn btn-primary" th:text="#{lbl_login}">Login</button></div>
+	          </div>
           </div>
-          <div class="col-md-12 form-group text-center"><button class="btn btn-primary" th:text="#{lbl_login}">Login</button></div>
-          <div class="col-md-12 text-center"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a></div><br/>
-          <div class="col-md-12 text-center"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>
-          <div>&nbsp;</div>
       </form>
       </div>
-    </div>
-  </div>
+      
+      <div class="text-center mt-n4" th:if="${session.authorities.size() > 1}">
+        <p th:text="#{lbl_login_providers}">Login with</p>
+        <div class="row  d-md-none justify-content-center">
+          <div class="col col-12 mb-3" th:if="${session.authorities.get('adc') != null}">
+                <div><a class="btn btn-block btn-outline-primary" href="./auth/adc-oauth/callback">CPS / SPID</a></div>      
+          </div>
+          <div class="col col-12 mb-3" th:if="${session.authorities.get('cie') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/cie-oauth/callback">CIE</a></div>      
+          </div>
+          <div class="col col-12 mb-3"  th:if="${session.authorities.get('google') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/google-oauth/callback">GOOGLE</a></div>      
+          </div>
+          <div class="col col-12 mb-3"  th:if="${session.authorities.get('facebook') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/facebook-oauth/callback">FACEBOOK</a></div>      
+          </div>
+      </div>
+      <div class="row d-none d-md-flex justify-content-center">
+          <div class="col mb-3" th:if="${session.authorities.get('adc') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/adc-oauth/callback">CPS / SPID</a></div>      
+          </div>
+          <div class="col mb-3" th:if="${session.authorities.get('cie') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/cie-oauth/callback">CIE</a></div>      
+          </div>
+          <div class="col mb-3"  th:if="${session.authorities.get('google') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/google-oauth/callback">GOOGLE</a></div>      
+          </div>
+          <div class="col mb-3"  th:if="${session.authorities.get('facebook') != null}">
+                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/facebook-oauth/callback">FACEBOOK</a></div>      
+          </div>
+      </div>
+    </div>  
             
-  <div class="text-center" th:if="${session.authorities.size() > 1}">
-    <p th:text="#{lbl_login_providers}">Login with</p>
-    <ul class="pprovider">
-           <li th:each="entry : ${session.authorities.entrySet()}" th:if="'internal' != ${entry.key}">
-            <a th:attr="href='.'+${entry.value}" th:text="${entry.key.toUpperCase()}">PROVIDER</a>
-           </li>
-    </ul>
-  </div>
+    </div>
+  </div>  
+            
   <script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
 </body>
 </html>

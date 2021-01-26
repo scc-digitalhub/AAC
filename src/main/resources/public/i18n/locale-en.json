@@ -1,0 +1,6 @@
+{
+	"jwt": {
+		"info_message": "Leave empty to use system defaults.",
+		"howto_message": "Configuring a custom algorithm requires custom JWTSet (or jwksURI), except for HS256 which uses client secret as key "
+	}
+}

@@ -24,12 +24,14 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.DefaultExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -41,6 +43,7 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 
@@ -89,6 +92,11 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 
 	@Transactional(propagation=Propagation.REQUIRES_NEW, isolation=Isolation.SERIALIZABLE)
 	public OAuth2AccessToken refreshAccessToken(String refreshTokenValue, TokenRequest request) throws AuthenticationException {
+
+        if (StringUtils.isEmpty(refreshTokenValue)) {
+            throw new InvalidRequestException(
+                    "Refresh token is required. Please check if refresh_token parameter is provided");
+        }
 		return refreshWithRepeat(refreshTokenValue, request, false);
 	}
 
@@ -107,6 +115,13 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 
         logger.trace("auth "+authentication.getOAuth2Request().toString());
         logger.trace("clientAuth scopes "+String.valueOf(clientAuth.getScope()));
+    
+        //validate now if client is the same as the authorized one
+        String clientId = authentication.getOAuth2Request().getClientId();
+        if (clientId == null || !clientId.equals(request.getClientId())) {
+            throw new InvalidGrantException("Wrong client for this refresh token: " + refreshTokenValue);
+        }
+
         
         //check here if requested scopes are subset of granted
         //we don't trust upstream process since it breaks on some cases..
@@ -190,6 +205,11 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
                 logger.debug("existing access token for authentication "+authentication.getName() + " is valid");       			    
 			    //need to check if value is changed via enhancer
 			    OAuth2AccessToken accessToken = tokenEnhancer != null ? tokenEnhancer.enhance(existingAccessToken, authentication) : existingAccessToken;
+		        if(accessToken == null || !StringUtils.hasText(accessToken.getValue())) {
+//			        throw new AuthenticationServiceException("Token generation error");
+                    throw new RuntimeException("Token generation error");
+
+		        }
 			    if (!existingAccessToken.getValue().equals(accessToken.getValue())) {
 			        logger.debug("existing access token for authentication "+authentication.getName() + " needs to be updated");       
 
@@ -216,8 +236,12 @@ public class NonRemovingTokenServices extends DefaultTokenServices {
 		}
         logger.debug("create access token for authentication "+authentication.getName() + " as new");     
 		OAuth2AccessToken accessToken = createAccessToken(authentication, refreshToken);
+	    if(accessToken == null || !StringUtils.hasText(accessToken.getValue())) {
+//           throw new AuthenticationServiceException("Token generation error");
+            throw new RuntimeException("Token generation error");
+        }
 		localTokenStore.storeAccessToken(accessToken, authentication);
-		if (refreshToken != null) {
+		if (refreshToken != null && StringUtils.hasText(refreshToken.getValue())) {
 			localTokenStore.storeRefreshToken(refreshToken, authentication);
 		}
 		traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'", authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));

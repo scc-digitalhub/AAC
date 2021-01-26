@@ -1,0 +1,6 @@
+{
+	"jwt": {
+		"info_message": "Lasciare vuoto per usare il default di sistema",
+		"howto_message": "Configurare un algoritmo custom richiede un JWKSet (o jwksURI), eccetto per HS256 che usa il client secret come chiave "
+	}
+}

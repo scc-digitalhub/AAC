@@ -31,7 +31,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -40,17 +39,15 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.nimbusds.jose.JOSEException;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
-import it.smartcommunitylab.aac.test.openid.OpenidUtils;
+
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.test.utils.TestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class PKCEGrantTest {
+public class PKCEGrantTest extends OAuth2BaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -64,54 +61,25 @@ public class PKCEGrantTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
     private static String sessionId;
 
-    private static ClientDetails client;
+    public final static String[] SCOPES = { "profile" };
 
-    private final static String SCOPE = "profile";
-
-    private final static String[] GRANT_TYPES = { "authorization_code", "refresh_token" };
+    public final static String[] GRANT_TYPES = { "authorization_code", "refresh_token" };
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
-        if (client == null) {
-            try {
-                User admin = userRepository.findByUsername(adminUsername);
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        admin.getId(),
-                        String.join(",", GRANT_TYPES), new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                client = null;
-            }
-        }
+        super.init();
 
         if (StringUtils.isEmpty(sessionId)) {
             logger.error("session is null, create");
 
             // login and validate session
-            sessionId = TestUtils.login(restTemplate, endpoint, adminUsername, adminPassword);
+            sessionId = TestUtils.login(restTemplate, endpoint, getUserName(), getUserPassword());
         }
 
     }
@@ -126,6 +94,8 @@ public class PKCEGrantTest {
     public void pkceAuthCodeGrantWithPlainChallenge()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("pkce auth_code grant (plain challenge) with client " + client.getClientId() + " and user session "
                 + sessionId);
@@ -154,7 +124,7 @@ public class PKCEGrantTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=code"
                         + "&response_mode=query"
                         + "&code_challenge=" + codeChallenge
@@ -180,7 +150,9 @@ public class PKCEGrantTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "code");
         Assert.assertEquals(parameters.getFirst("response_mode"), "query");
         Assert.assertEquals(parameters.getFirst("code_challenge"), codeChallenge);
@@ -248,11 +220,14 @@ public class PKCEGrantTest {
 
         // basic validation
         Assert.assertTrue(StringUtils.isNotEmpty(accessToken));
-        Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
+        // we do not expect a refresh token by default
+        // Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
 
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
@@ -264,6 +239,8 @@ public class PKCEGrantTest {
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
 
+        ClientAppBasic client = getClient();
+        
         logger.debug("pkce auth_code grant (S256 challenge) with client " + client.getClientId() + " and user session "
                 + sessionId);
 
@@ -294,7 +271,7 @@ public class PKCEGrantTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=code"
                         + "&response_mode=query"
                         + "&code_challenge=" + codeChallenge
@@ -320,7 +297,9 @@ public class PKCEGrantTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "code");
         Assert.assertEquals(parameters.getFirst("response_mode"), "query");
         Assert.assertEquals(parameters.getFirst("code_challenge"), codeChallenge);
@@ -388,11 +367,14 @@ public class PKCEGrantTest {
 
         // basic validation
         Assert.assertTrue(StringUtils.isNotEmpty(accessToken));
-        Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
+        // we do not expect a refresh token by default
+        // Assert.assertTrue(StringUtils.isNotEmpty(refreshToken));
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
 
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
@@ -403,6 +385,8 @@ public class PKCEGrantTest {
     public void pkceAuthCodeGrantWithWrongPlainChallenge()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("pkce auth_code grant (wrong plain challenge) with client " + client.getClientId()
                 + " and user session "
@@ -432,7 +416,7 @@ public class PKCEGrantTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=code"
                         + "&response_mode=query"
                         + "&code_challenge=" + codeChallenge
@@ -458,7 +442,9 @@ public class PKCEGrantTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "code");
         Assert.assertEquals(parameters.getFirst("response_mode"), "query");
         Assert.assertEquals(parameters.getFirst("code_challenge"), codeChallenge);
@@ -524,6 +510,8 @@ public class PKCEGrantTest {
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
 
+        ClientAppBasic client = getClient();
+
         logger.debug("pkce auth_code grant (no plain challenge) with client " + client.getClientId()
                 + " and user session "
                 + sessionId);
@@ -552,7 +540,7 @@ public class PKCEGrantTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=code"
                         + "&response_mode=query"
                         + "&code_challenge=" + codeChallenge
@@ -578,7 +566,9 @@ public class PKCEGrantTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "code");
         Assert.assertEquals(parameters.getFirst("response_mode"), "query");
         Assert.assertEquals(parameters.getFirst("code_challenge"), codeChallenge);
@@ -644,6 +634,16 @@ public class PKCEGrantTest {
         random.nextBytes(code);
 
         return Base64.getUrlEncoder().withoutPadding().encodeToString(code);
+    }
+
+    @Override
+    protected String[] getScopes() {
+        return SCOPES;
+    }
+
+    @Override
+    protected String[] getGrantTypes() {
+        return GRANT_TYPES;
     }
 
 }

@@ -24,7 +24,7 @@ public class AACTokenIntrospection extends TokenIntrospection {
 	private String aac_user_id;
 	private String aac_grantType;
 	private Boolean aac_applicationToken;
-	private String aac_am_tenant;
+//	private String aac_am_tenant;
 	
 	/**
 	 * @return the aac_user_id
@@ -62,16 +62,16 @@ public class AACTokenIntrospection extends TokenIntrospection {
 	public void setAac_applicationToken(Boolean aac_applicationToken) {
 		this.aac_applicationToken = aac_applicationToken;
 	}
-	/**
-	 * @return the aac_am_tenant
-	 */
-	public String getAac_am_tenant() {
-		return aac_am_tenant;
-	}
-	/**
-	 * @param aac_am_tenant the aac_am_tenant to set
-	 */
-	public void setAac_am_tenant(String aac_am_tenant) {
-		this.aac_am_tenant = aac_am_tenant;
-	}
+//	/**
+//	 * @return the aac_am_tenant
+//	 */
+//	public String getAac_am_tenant() {
+//		return aac_am_tenant;
+//	}
+//	/**
+//	 * @param aac_am_tenant the aac_am_tenant to set
+//	 */
+//	public void setAac_am_tenant(String aac_am_tenant) {
+//		this.aac_am_tenant = aac_am_tenant;
+//	}
 }

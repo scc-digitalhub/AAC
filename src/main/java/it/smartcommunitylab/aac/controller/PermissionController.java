@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,12 +24,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -43,8 +48,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.yaml.snakeyaml.Yaml;
 
+import it.smartcommunitylab.aac.bootstrap.BootstrapService;
+import it.smartcommunitylab.aac.bootstrap.BootstrapService.BootstrapServiceClaim;
+import it.smartcommunitylab.aac.bootstrap.BootstrapService.BootstrapServiceScope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.YamlUtils;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
@@ -55,6 +65,7 @@ import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Permissions;
 import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.model.Service;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import springfox.documentation.annotations.ApiIgnore;
@@ -78,6 +89,7 @@ public class PermissionController {
 	private ServiceManager serviceManager;
 	@Autowired
 	private ClaimManager claimManager;
+	//TODO remove and replace with clientManager
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
 	@Autowired
@@ -91,7 +103,7 @@ public class PermissionController {
 	 * @return {@link Response} entity containing the processed app {@link Permissions} descriptor
 	 * @throws Exception 
 	 */
-	@RequestMapping(value="/dev/permissions/{clientId}/{serviceId:.*}",method=RequestMethod.PUT)
+	@RequestMapping(value="/dev/permissions/{clientId}/{serviceId:.*}",method=RequestMethod.PUT, produces= {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public @ResponseBody Response savePermissions(@RequestBody Permissions permissions, @PathVariable String clientId, @PathVariable String serviceId) throws Exception {
 		Response response = new Response();
 		// check that the client is owned by the current user
@@ -136,7 +148,7 @@ public class PermissionController {
 	 * @param serviceId
 	 * @return {@link Response} entity containing the app {@link Permissions} descriptor
 	 */
-	@RequestMapping(value="/dev/permissions/{clientId}/{serviceId:.*}",method=RequestMethod.GET)
+	@RequestMapping(value="/dev/permissions/{clientId}/{serviceId:.*}",method=RequestMethod.GET, produces= {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public @ResponseBody Response getPermissions(@PathVariable String clientId, @PathVariable String serviceId) {
 		Response response = new Response();
 		userManager.checkClientIdOwnership(clientId);
@@ -153,7 +165,7 @@ public class PermissionController {
 	 * @param clientId
 	 * @return {@link Response} entity containing the service {@link Service} descriptors
 	 */
-	@RequestMapping(value = "/dev/services/{clientId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/dev/services/{clientId}", method = RequestMethod.GET, produces= {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public @ResponseBody Response getServices(@PathVariable String clientId, @RequestParam(required = false) String name, Pageable page) throws Exception {
 		Response response = new Response();
 		userManager.checkClientIdOwnership(clientId);
@@ -193,7 +205,7 @@ public class PermissionController {
 	 * Read services defined by the current user
 	 * @return {@link Response} entity containing the service {@link Service} descriptors
 	 */
-	@RequestMapping(value="/dev/services/my/{serviceId:.*}",method=RequestMethod.GET)
+	@RequestMapping(value="/dev/services/my/{serviceId:.*}",method=RequestMethod.GET, produces= {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public @ResponseBody Response myService(@PathVariable String serviceId) {
 		Response response = new Response();
 		ServiceDTO service = serviceManager.getService(serviceId);
@@ -221,13 +233,33 @@ public class PermissionController {
 	 * @param serviceId
 	 * @return
 	 */
-	@RequestMapping(value="/dev/services/my/{serviceId:.*}",method=RequestMethod.DELETE)
+	@RequestMapping(value="/dev/services/my/{serviceId:.*}",method=RequestMethod.DELETE, produces= {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public @ResponseBody Response deleteService(@PathVariable String serviceId) {
 		Response response = new Response();
 		serviceManager.deleteService(userManager.getUser(), serviceId);
 		
 		return response;
 	}
+	
+	
+    @RequestMapping(value = "/dev/services/my/{serviceId:.*}/yaml", method = RequestMethod.GET)
+    public void yamlService(@PathVariable String serviceId, HttpServletResponse response) throws IOException {
+        ServiceDTO service = serviceManager.getService(serviceId);
+        service.setScopes(serviceManager.getServiceScopes(serviceId));
+        service.setClaims(serviceManager.getServiceClaims(serviceId));
+
+        Yaml yaml = YamlUtils.getInstance(true, BootstrapService.class, BootstrapServiceScope.class, BootstrapServiceClaim.class);
+        String res = yaml.dump(BootstrapService.fromDTO(service));
+
+        // write as file
+        response.setContentType("text/yaml");
+        response.setHeader("Content-Disposition", "attachment;filename=" + service.getServiceId() + ".yaml");
+        ServletOutputStream out = response.getOutputStream();
+        out.print(res);
+        out.flush();
+        out.close();
+
+    }
 	
 	/**
 	 * Validate claim mapping
@@ -259,7 +291,9 @@ public class PermissionController {
 	 * @param id 
 	 * @return
 	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/scope/{scope:.*}",method=RequestMethod.DELETE)
+	//NOTE: needs produces(json) annotation otherwise spring will interpret scopes.something as extension
+	//eg. user.me for spring is .me format, and triggers HttpMediaTypeNotAcceptableException
+	@RequestMapping(value="/dev/services/my/{serviceId}/scope/{scope:.*}",method=RequestMethod.DELETE, produces= {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public @ResponseBody Response deleteScope(@PathVariable String serviceId, @PathVariable String scope) {
 		Response response = new Response();
 		serviceManager.deleteServiceScope(userManager.getUser(), serviceId, scope);
@@ -284,7 +318,7 @@ public class PermissionController {
 	 * @param id 
 	 * @return
 	 */
-	@RequestMapping(value="/dev/services/my/{serviceId}/claim/{claim:.*}",method=RequestMethod.DELETE)
+	@RequestMapping(value="/dev/services/my/{serviceId}/claim/{claim:.*}",method=RequestMethod.DELETE, produces= {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public @ResponseBody Response deleteClaim(@PathVariable String serviceId, @PathVariable String claim) {
 		Response response = new Response();
 		serviceManager.deleteServiceClaim(userManager.getUser(), serviceId, claim);
@@ -375,6 +409,7 @@ public class PermissionController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public Response processGenericError(Exception ex) {
+	    ex.printStackTrace();
 		logger.error(ex.getMessage(), ex);
 		return Response.error(ex.getMessage());
     }

@@ -7,6 +7,12 @@
              </td>
         </tr>
         <tr>
+            <th width="30%">Role prefix filters</th>
+            <td>
+            <tags-input type="url" placeholder="Add a prefix" class="form-control form-control-sm" ng-model="rolePrefixes"></tags-input>
+             </td>
+        </tr>
+        <tr>
             <th>Custom Claim Mapping Function <span ng-if="claimEnabled.checked">(<a href="" ng-click="validateClaims()">Validate</a>)</span>
               <br/><br/>
               <div ng-if="validationResult">result: <pre>{{validationResult | json:4}}</pre></div>

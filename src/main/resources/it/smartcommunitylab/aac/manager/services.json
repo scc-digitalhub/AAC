@@ -1,14 +1,14 @@
 [
   {
-    "serviceId": "carbon.super-AAC-1.0.0",
-    "name": "User profile service",
-    "description": "Core service for managing basic user profiles",
+    "serviceId": "aac.oidc",
+    "name": "OpenID Connect",
+    "description": "Core service for accessing user profiles",
     "scopes": [
       {
         "scope": "openid",
         "name": "Read user's username",
         "description": "User identity information (username and identifier). Read access only.",
-        "claims": ["sub", "username", "user_name", "preferred_username"],
+        "claims": [ "username", "user_name", "preferred_username"],
         "roles": [],
         "authority": "ROLE_USER",
         "approvalRequired": false
@@ -17,16 +17,7 @@
         "scope": "profile",
         "name": "Read user's standard profile",
         "description": "Basic user profile data (name, surname, email). Read access only.",
-        "claims": ["sub", "username", "user_name", "preferred_username", "name", "given_name", "family_name", "middle_name", "nickname", "profile", "picture", "website", "gender", "zoneinfo", "locale", "updated_at", "birthdate"],
-        "roles": [],
-        "authority": "ROLE_USER",
-        "approvalRequired": false
-      },
-      {
-        "scope": "profile.basicprofile.me",
-        "name": "Read user's basic profile",
-        "description": "Basic profile of the current platform user. Read access only.",
-        "claims": ["sub", "username", "user_name", "preferred_username", "name", "given_name", "family_name", "email"],
+        "claims": ["username", "user_name", "preferred_username", "name", "given_name", "family_name", "middle_name", "nickname", "profile", "picture", "website", "gender", "zoneinfo", "locale", "updated_at", "birthdate"],
         "roles": [],
         "authority": "ROLE_USER",
         "approvalRequired": false
@@ -36,6 +27,97 @@
         "name": "Read user's email",
         "description": "Basic user's email.",
         "claims": ["email", "email_verified"],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },
+      {
+        "scope": "address",
+        "name": "Read user's address",
+        "description": "Basic user's address.",
+        "claims": ["address"],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },
+      {
+        "scope": "phone",
+        "name": "Read user's phone",
+        "description": "Basic user's phone.",
+        "claims": ["phone_number", "phone_number_verified"],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      }
+    ],
+    "claims": [
+        { "claim": "username",  "name": "user name", "multiple": false, "type": "string" }, 
+        { "claim": "user_name",  "name": "user name", "multiple": false, "type": "string" }, 
+        { "claim": "preferred_username",  "name": "preferred user name", "multiple": false, "type": "string" }, 
+        { "claim": "name",  "name": "full name", "multiple": false, "type": "string" }, 
+        { "claim": "given_name",  "name": "given name", "multiple": false, "type": "string" }, 
+        { "claim": "family_name",  "name": "family name", "multiple": false, "type": "string" }, 
+        { "claim": "middle_name",  "name": "middle name", "multiple": false, "type": "string" }, 
+        { "claim": "nickname",  "name": "nickname", "multiple": false, "type": "string" }, 
+        { "claim": "profile",  "name": "profile", "multiple": false, "type": "string" }, 
+        { "claim": "picture",  "name": "picture", "multiple": false, "type": "string" }, 
+        { "claim": "website",  "name": "website", "multiple": false, "type": "string" }, 
+        { "claim": "gender",  "name": "gender", "multiple": false, "type": "string" }, 
+        { "claim": "zoneinfo",  "name": "time zone info", "multiple": false, "type": "string" }, 
+        { "claim": "locale",  "name": "locale", "multiple": false, "type": "string" }, 
+        { "claim": "updated_at",  "name": "update time", "multiple": false, "type": "string" }, 
+        { "claim": "birthdate",  "name": "birthday date", "multiple": false, "type": "string" }, 
+        { "claim": "email",  "name": "email", "multiple": false, "type": "string" }, 
+        { "claim": "email_verified",  "name": "verified email", "multiple": false, "type": "string" }, 
+        { "claim": "phone_number",  "name": "phone number", "multiple": false, "type": "string" }, 
+        { "claim": "phone_number_verified",  "name": "verified phone number", "multiple": false, "type": "string" }, 
+        { "claim": "address",  "name": "address", "multiple": false, "type": "string" }, 
+        { "claim": "accounts",  "name": "user accounts", "multiple": true, "type": "object" }
+    ]
+  },
+  {
+    "serviceId": "aac.roles",
+    "name": "Role Service",
+    "description": "Core service for accessing user roles.",
+    "scopes": [
+      {
+        "scope": "user.roles.me",
+        "name": "Read user roles",
+        "description": "Read roles of the current user.",
+        "claims": ["authorities", "roles", "realm_access", "resource_access", "space"],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },
+      {
+        "scope": "user.groups.me",
+        "name": "Read user groups",
+        "description": "Read role groups of the current user.",
+        "claims": ["groups"],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      }
+    ],
+    "claims": [
+         { "claim": "roles", "name": "roles", "multiple": true, "type": "string" }, 
+         { "claim": "realm_access", "name": "realm access roles", "multiple": true, "type": "string" }, 
+         { "claim": "authorities", "name": "authorities", "multiple": true, "type": "string" }, 
+         { "claim": "groups", "name": "groups", "multiple": true, "type": "string" }, 
+         { "claim": "resource_access", "name": "resouce access", "multiple": true, "type": "object" }, 
+         { "claim": "space", "name": "space", "multiple": true, "type": "string" }         
+    ]
+  },  
+  {
+    "serviceId": "carbon.super-AAC-1.0.0",
+    "name": "User profile service",
+    "description": "Core service for managing basic user profiles",
+    "scopes": [
+      {
+        "scope": "profile.basicprofile.me",
+        "name": "Read user's basic profile",
+        "description": "Basic profile of the current platform user. Read access only.",
+        "claims": ["sub", "username", "user_name", "preferred_username", "name", "given_name", "family_name", "email"],
         "roles": [],
         "authority": "ROLE_USER",
         "approvalRequired": false
@@ -69,32 +151,9 @@
       }
     ],
     "claims": [
-        { "claim": "sub", "name": "subject", "multiple": false, "type": "string" }, 
-        { "claim": "username",  "name": "user name", "multiple": false, "type": "string" }, 
-        { "claim": "user_name",  "name": "user name", "multiple": false, "type": "string" }, 
-        { "claim": "preferred_username",  "name": "preferred user name", "multiple": false, "type": "string" }, 
-        { "claim": "name",  "name": "full name", "multiple": false, "type": "string" }, 
-        { "claim": "given_name",  "name": "given name", "multiple": false, "type": "string" }, 
-        { "claim": "family_name",  "name": "family name", "multiple": false, "type": "string" }, 
-        { "claim": "middle_name",  "name": "middle name", "multiple": false, "type": "string" }, 
-        { "claim": "nickname",  "name": "nickname", "multiple": false, "type": "string" }, 
-        { "claim": "profile",  "name": "profile", "multiple": false, "type": "string" }, 
-        { "claim": "picture",  "name": "picture", "multiple": false, "type": "string" }, 
-        { "claim": "website",  "name": "website", "multiple": false, "type": "string" }, 
-        { "claim": "gender",  "name": "gender", "multiple": false, "type": "string" }, 
-        { "claim": "zoneinfo",  "name": "time zone info", "multiple": false, "type": "string" }, 
-        { "claim": "locale",  "name": "locale", "multiple": false, "type": "string" }, 
-        { "claim": "updated_at",  "name": "update time", "multiple": false, "type": "string" }, 
-        { "claim": "birthdate",  "name": "birthday date", "multiple": false, "type": "string" }, 
-        { "claim": "email",  "name": "email", "multiple": false, "type": "string" }, 
-        { "claim": "email_verified",  "name": "verified email", "multiple": false, "type": "string" }, 
-        { "claim": "phone_number",  "name": "phone number", "multiple": false, "type": "string" }, 
-        { "claim": "phone_number_verified",  "name": "verified phone number", "multiple": false, "type": "string" }, 
-        { "claim": "address",  "name": "address", "multiple": false, "type": "string" }, 
         { "claim": "accounts",  "name": "user accounts", "multiple": true, "type": "object" }
     ]
-  },
-  
+  },  
   
   {
     "serviceId": "smartcommunity.usermanagement",
@@ -157,31 +216,49 @@
     "claims": []
   },
     {
-    "serviceId": "security.vault",
-    "name": "Vault Data Service",
-    "description": "Core service for managing secure resource access and data.",
+    "serviceId": "apikey.management",
+    "name": "Api Key",
+    "description": "Core service for managing api keys.",
     "scopes": [
       {
-        "scope": "vault.data.read",
-        "name": "Read Vault data",
-        "description": "Read Vault data programmatically",
+        "scope": "apikey.user.me",
+        "name": "Manage Current User Api Keys",
+        "description": "Manage current user Api Keys",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },
+      {
+        "scope": "apikey.user.client",
+        "name": "Manage Current User Current Client Api Keys",
+        "description": "Manage current user current client own Api Keys",
+        "claims": [],
+        "roles": [],
+        "authority": "ROLE_USER",
+        "approvalRequired": false
+      },      
+      {
+        "scope": "apikey.client.me",
+        "name": "Manage Current Client Api Keys",
+        "description": "Manage current client Api Keys",
         "claims": [],
         "roles": [],
         "authority": "ROLE_CLIENT",
         "approvalRequired": false
       },
       {
-        "scope": "vault.data.read.me",
-        "name": "Read Current User Vault Data",
-        "description": "Read Vault data of the current user",
+        "scope": "apikey.client.all",
+        "name": "Manage All Client Api Keys",
+        "description": "Manage all Client Api Keys",
         "claims": [],
         "roles": [],
-        "authority": "ROLE_USER",
+        "authority": "ROLE_CLIENT",
         "approvalRequired": true
-      }
+      }      
     ],
     "claims": []
-  },
+  },  
     {
     "serviceId": "service.management",
     "name": "Service Definition Management",
@@ -268,15 +345,6 @@
     "description": "Core service for managing user roles.",
     "scopes": [
       {
-        "scope": "user.roles.me",
-        "name": "Read user roles",
-        "description": "Read roles of the current user.",
-        "claims": ["authorities", "roles", "realm_access", "resource_access", "groups"],
-        "roles": [],
-        "authority": "ROLE_USER",
-        "approvalRequired": false
-      },
-      {
         "scope": "user.roles.write",
         "name": "Write user roles",
         "description": "Modify the roles of the specified user within a tenant.",
@@ -322,12 +390,6 @@
         "approvalRequired": false
       }
     ],
-    "claims": [
-         { "claim": "roles", "name": "roles", "multiple": true, "type": "string" }, 
-         { "claim": "realm_access", "name": "realm access roles", "multiple": true, "type": "string" }, 
-         { "claim": "authorities", "name": "authorities", "multiple": true, "type": "string" }, 
-         { "claim": "groups", "name": "groups", "multiple": true, "type": "string" }, 
-         { "claim": "resource_access", "name": "resouce access", "multiple": true, "type": "object" } 
-    ]
+    "claims": []
   }
 ]

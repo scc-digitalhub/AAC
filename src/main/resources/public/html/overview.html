@@ -16,12 +16,8 @@
         <td>{{app.clientSecret}}</td>
     </tr>
     <tr>
-        <th>clientSecret mobile</th>
-        <td>{{app.clientSecretMobile}}</td>
-    </tr>
-    <tr>
         <th>redirect Web server URLs</th>
-        <td>{{app.redirectUris.split(',').join(', ')}}</td>
+        <td>{{showRedirectUris(app)}}</td>
     </tr>
     <tr>
         <th>Grant types</th>
@@ -29,20 +25,26 @@
     </tr>
     <tr>
         <th>Enabled identity providers</th>
-        <td>{{identityProviders(app)}}</td>
+        <td>{{showIdentityProviders(app)}}</td>
+    </tr>
+    <tr>
+        <th>Enabled scopes</th>
+        <td>{{showClientScopes(app)}}</td>
     </tr>
     
 </table>
 
 <table class="table table-borderless">
-    <tr>
-      <td><a href ng-click="getClientToken()">Get client credentials flow token</a></td>
+    <tr ng-if="grantTypes['client_credentials']" >
+      <td><a href  ng-click="getClientToken()">Get client credentials flow token</a></td>
       <td  class="token-wrapper">{{clientToken}}</td>
-      <td ng-if="clientToken"><a href="" ng-click="copyBearer(clientToken)">Copy Token</a></td>
+      <td ng-if="clientToken"><a href="" ng-click="copyAsToken(clientToken)">Copy Token</a></td>
+      <td ng-if="clientToken"><a href=""ng-click="copyAsBearer(clientToken)">Copy Bearer</a></td>      
     </tr>
-    <tr>
+    <tr ng-if="grantTypes['implicit']" >
       <td><a href ng-click="getImplicitToken()">Get implicit flow token</a></td>
       <td class="token-wrapper">{{implicitToken}}</td>
-      <td ng-if="implicitToken"><a href=""ng-click="copyBearer(implicitToken)">Copy Token</a></td>
+      <td ng-if="implicitToken"><a href=""ng-click="copyAsToken(implicitToken)">Copy Token</a></td>
+      <td ng-if="implicitToken"><a href=""ng-click="copyAsBearer(implicitToken)">Copy Bearer</a></td>      
     </tr>
 </table>

@@ -38,6 +38,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -92,7 +93,8 @@ public class LegacyNativeAuthController {
 		}
 		// each time create new OAuth request
 		ClientAppBasic client = clientDetailsAdapter.getByClientId(clientId);
-		AACOAuthRequest oauthRequest = new AACOAuthRequest(request, device, client.getScope(), client.getDisplayName());
+	      String clientScopes = StringUtils.collectionToCommaDelimitedString(client.getScope());
+		AACOAuthRequest oauthRequest = new AACOAuthRequest(request, device, clientScopes, client.getDisplayName());
 		
 		List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(request.getRequestURI()+"?"+request.getQueryString()), "UTF-8");
 

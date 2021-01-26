@@ -14,23 +14,44 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.manager;
+package it.smartcommunitylab.aac.dto;
 
-import it.smartcommunitylab.aac.dto.AccountProfile;
+import java.util.Map;
 
 /**
- * Interface for User Unique identities to be used for 2factor confirmation.
  * @author raman
  *
  */
-public interface IdentitySource {
+public class ClientClaimProfileDTO {
 
-	/**
-	 * Find user identity string for specific provider, userId and profile data
-	 * @param provider
-	 * @param userId
-	 * @param profile
-	 * @return
-	 */
-	String getUserIdentity(String provider, Long userId, AccountProfile profile);
+	private String clientId, name;
+	Map<String, Object> claims;
+	
+	public String getClientId() {
+		return clientId;
+	}
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public Map<String, Object> getClaims() {
+		return claims;
+	}
+	public void setClaims(Map<String, Object> claims) {
+		this.claims = claims;
+	}
+	public ClientClaimProfileDTO() {
+		super();
+	}
+	public ClientClaimProfileDTO(String clientId, String name) {
+		super();
+		this.clientId = clientId;
+		this.name = name;
+	}
+
 }

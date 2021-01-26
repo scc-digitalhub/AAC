@@ -11,6 +11,8 @@
 			</div>
 			<div class="col-md-3 text-right">
 				<div ng-if="clientId != null && clientView == 'overview'" >
+					<button class="btn btn-info col-md-5 col-md-offset-6" type="button"
+						ng-click="exportClient()">Export</button>
 					<button class="btn btn-danger col-md-5 col-md-offset-6" type="button"
 						ng-click="removeClient()">Delete</button>
 				</div>
@@ -29,6 +31,9 @@
 				  </li>
           <li class="nav-item">
             <a class="nav-link  {{activeView('settings')}}" href ng-click="viewSettings()">Settings</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link  {{activeView('jwt')}}" href ng-click="viewJwt()">JWT</a>
           </li>
           <li class="nav-item">
             <a class="nav-link  {{activeView('claims')}}" href ng-click="viewClaims()">Roles & Claims</a>

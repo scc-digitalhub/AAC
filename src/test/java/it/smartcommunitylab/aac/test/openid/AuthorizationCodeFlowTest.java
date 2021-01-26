@@ -50,6 +50,10 @@ import com.nimbusds.jwt.SignedJWT;
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.manager.ClientDetailsManager;
+import it.smartcommunitylab.aac.manager.RegistrationManager;
+import it.smartcommunitylab.aac.manager.UserManager;
+import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.openid.endpoint.JWKSetPublishingEndpoint;
 import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
@@ -62,7 +66,7 @@ import it.smartcommunitylab.aac.test.utils.TestUtils;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "oauth2.jwt=false" })
 @ActiveProfiles("test")
 @EnableConfigurationProperties
-public class AuthorizationCodeFlowTest {
+public class AuthorizationCodeFlowTest extends OpenidBaseTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String server = "http://localhost";
@@ -76,50 +80,21 @@ public class AuthorizationCodeFlowTest {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${admin.username}")
-    private String adminUsername;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
     private static String sessionId;
 
-    private static ClientDetails client;
-
-    private final static String SCOPE = "openid";
+    private final static String[] GRANT_TYPES = { "authorization_code", "refresh_token" };
 
     @Before
     public void init() {
         String endpoint = server + ":" + port;
-        if (client == null) {
-            try {
-
-                User admin = userRepository.findByUsername(adminUsername);
-                // use local address as redirect
-                // also save it
-                client = clientDetailsRepository.saveAndFlush(OpenidUtils.createClient(
-                        UUID.randomUUID().toString(),
-                        admin.getId(),
-                        "authorization_code", new String[] { SCOPE },
-                        endpoint));
-            } catch (Exception e) {
-                e.printStackTrace();
-                client = null;
-            }
-        }
+        super.init();
 
         if (StringUtils.isEmpty(sessionId)) {
             // login and validate session
-            sessionId = TestUtils.login(restTemplate, endpoint, adminUsername, adminPassword);
+            sessionId = TestUtils.login(restTemplate, endpoint, getUserName(), getUserPassword());
         }
 
     }
@@ -134,6 +109,8 @@ public class AuthorizationCodeFlowTest {
     public void authCodeFlowWithFormAuthSecretBasic()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
+
+        ClientAppBasic client = getClient();
 
         logger.debug("auth_code flow (form+secret_basic) with client " + client.getClientId() + " and user session "
                 + sessionId);
@@ -158,7 +135,7 @@ public class AuthorizationCodeFlowTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=code"
                         + "&response_mode=query"
                         + "&state=" + state
@@ -183,7 +160,9 @@ public class AuthorizationCodeFlowTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "code");
         Assert.assertEquals(parameters.getFirst("response_mode"), "query");
         Assert.assertEquals(parameters.getFirst("nonce"), nonce);
@@ -259,8 +238,10 @@ public class AuthorizationCodeFlowTest {
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
-
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
+        
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
 
@@ -318,7 +299,7 @@ public class AuthorizationCodeFlowTest {
         Assert.assertEquals(issuer, claims.getString("iss"));
         // nonce should match with the one passed
         Assert.assertEquals(nonce, claims.getString("nonce"));
-        //not in spec
+        // not in spec
 //        // scope should contain the requested ones
 //        Assert.assertTrue(claims.getString("scope").contains(SCOPE));
         // audience should contain or match ourselves
@@ -350,6 +331,8 @@ public class AuthorizationCodeFlowTest {
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
             NoSuchAlgorithmException, InvalidKeySpecException {
 
+        ClientAppBasic client = getClient();
+
         logger.debug("auth_code flow (form+secret_post) with client " + client.getClientId() + " and user session "
                 + sessionId);
 
@@ -373,7 +356,7 @@ public class AuthorizationCodeFlowTest {
                 server + ":" + port + contextPath + "/eauth/authorize?"
                         + "client_id=" + clientId
                         + "&redirect_uri=" + redirectURL
-                        + "&scope=" + SCOPE
+                        + "&scope=" + String.join(" ", SCOPES)
                         + "&response_type=code"
                         + "&response_mode=query"
                         + "&state=" + state
@@ -398,7 +381,9 @@ public class AuthorizationCodeFlowTest {
 
         Assert.assertEquals(parameters.getFirst("client_id"), clientId);
         Assert.assertEquals(parameters.getFirst("redirect_uri"), redirectURL);
-        Assert.assertTrue(parameters.getFirst("scope").contains(SCOPE));
+        for (String s : SCOPES) {
+            Assert.assertTrue(parameters.getFirst("scope").contains(s));
+        }
         Assert.assertEquals(parameters.getFirst("response_type"), "code");
         Assert.assertEquals(parameters.getFirst("response_mode"), "query");
         Assert.assertEquals(parameters.getFirst("nonce"), nonce);
@@ -468,8 +453,10 @@ public class AuthorizationCodeFlowTest {
         Assert.assertEquals("Bearer", tokenType);
 
         // check scope
-        Assert.assertTrue(json.getString("scope").contains(SCOPE));
-
+        for (String s : SCOPES) {
+            Assert.assertTrue(json.getString("scope").contains(s));
+        }
+        
         // validate expires (in seconds) at least 120s
         Assert.assertTrue(expiresIn > 120);
 
@@ -527,7 +514,7 @@ public class AuthorizationCodeFlowTest {
         Assert.assertEquals(issuer, claims.getString("iss"));
         // nonce should match with the one passed
         Assert.assertEquals(nonce, claims.getString("nonce"));
-        //not in spec
+        // not in spec
 //        // scope should contain the requested ones
 //        Assert.assertTrue(claims.getString("scope").contains(SCOPE));
         // audience should contain or match ourselves
@@ -557,6 +544,10 @@ public class AuthorizationCodeFlowTest {
     /*
      * Helpers
      */
+    @Override
+    protected String[] getGrantTypes() {
+        return GRANT_TYPES;
+    }
 
     private String[] toStringArray(org.json.JSONArray array) {
         if (array == null) {

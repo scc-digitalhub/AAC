@@ -24,150 +24,168 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Additional app info descriptor
+ * 
  * @author raman
  *
  */
 public class ClientAppInfo {
-	
-	public static final int APPROVED = 1;
-	public static final int REJECTED = 2;
-	public static final int REQUESTED = 0;
-	public static final Integer UNKNOWN = -1;
 
+    public static final int APPROVED = 1;
+    public static final int REJECTED = 2;
+    public static final int REQUESTED = 0;
+    public static final Integer UNKNOWN = -1;
 
-	private static ObjectMapper mapper = new ObjectMapper();
-	
-	private String name, displayName;
+    private static ObjectMapper mapper = new ObjectMapper();
 
-	private Map<String, Boolean> scopeApprovals;
-	
-	private Map<String, Integer> identityProviders;
-	
-	private String scope;
-	
-	private Map<String, Map<String, Object>> providerConfigurations;
-	
-	private Set<String> uniqueSpaces;
-	private String claimMapping; 
-	private String onAfterApprovalWebhook;
-	
-	static {
-		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-	}
-	
-	public static ClientAppInfo convert(Map<String,Object> map) {
-		return mapper.convertValue(map, ClientAppInfo.class);
-	}
+    private String name, displayName;
 
-	public String toJson() throws Exception {
-		return mapper.writeValueAsString(this);
-	}
-	
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
+    private Map<String, Boolean> scopeApprovals;
 
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+    private Map<String, Integer> identityProviders;
 
-	/**
-	 * @return the scopeApprovals
-	 */
-	public Map<String, Boolean> getScopeApprovals() {
-		return scopeApprovals;
-	}
+    // DEPRECATED: unused, TODO remove
+//	private String scope;
 
-	/**
-	 * @param scopeApprovals the scopeApprovals to set
-	 */
-	public void setScopeApprovals(Map<String, Boolean> scopeApprovals) {
-		this.scopeApprovals = scopeApprovals;
-	}
+    private Map<String, Map<String, Object>> providerConfigurations;
 
-	/**
-	 * @return the identityProviders
-	 */
-	public Map<String, Integer> getIdentityProviders() {
-		return identityProviders;
-	}
+    private Set<String> uniqueSpaces;
+    private String claimMapping;
+    private String onAfterApprovalWebhook;
+    private Set<String> rolePrefixes;
 
-	/**
-	 * @param identityProviders the identityProviders to set
-	 */
-	public void setIdentityProviders(Map<String, Integer> identityProviders) {
-		this.identityProviders = identityProviders;
-	}
+    private String jwtSignAlgorithm;
+    private String jwtEncAlgorithm;
+    private String jwtEncMethod;
+    private String jwks;
+    private String jwksUri;
 
-	public String getScope() {
-		return scope;
-	}
+    static {
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
-	public void setScope(String scope) {
-		this.scope = scope;
-	}
+    public static ClientAppInfo convert(Map<String, Object> map) {
+        return mapper.convertValue(map, ClientAppInfo.class);
+    }
 
-	public Map<String, Map<String, Object>> getProviderConfigurations() {
-		return providerConfigurations;
-	}
+    // TODO make converter static
+    public String toJson() throws IllegalArgumentException {
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
 
-	public void setProviderConfigurations(Map<String, Map<String, Object>> providerConfigurations) {
-		this.providerConfigurations = providerConfigurations;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getDisplayName() {
-		return displayName;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
+    public Map<String, Boolean> getScopeApprovals() {
+        return scopeApprovals;
+    }
 
-	/**
-	 * @return the uniqueSpaces
-	 */
-	public Set<String> getUniqueSpaces() {
-		return uniqueSpaces;
-	}
+    public void setScopeApprovals(Map<String, Boolean> scopeApprovals) {
+        this.scopeApprovals = scopeApprovals;
+    }
 
-	/**
-	 * @param uniqueSpaces the uniqueSpaces to set
-	 */
-	public void setUniqueSpaces(Set<String> uniqueSpaces) {
-		this.uniqueSpaces = uniqueSpaces;
-	}
+    public Map<String, Integer> getIdentityProviders() {
+        return identityProviders;
+    }
 
-	/**
-	 * @return the claimMapping
-	 */
-	public String getClaimMapping() {
-		return claimMapping;
-	}
+    public void setIdentityProviders(Map<String, Integer> identityProviders) {
+        this.identityProviders = identityProviders;
+    }
 
-	/**
-	 * @param claimMapping the claimMapping to set
-	 */
-	public void setClaimMapping(String claimMapping) {
-		this.claimMapping = claimMapping;
-	}
+    public Map<String, Map<String, Object>> getProviderConfigurations() {
+        return providerConfigurations;
+    }
 
-	/**
-	 * @return the onAfterApprovalWebhook
-	 */
-	public String getOnAfterApprovalWebhook() {
-		return onAfterApprovalWebhook;
-	}
+    public void setProviderConfigurations(Map<String, Map<String, Object>> providerConfigurations) {
+        this.providerConfigurations = providerConfigurations;
+    }
 
-	/**
-	 * @param onAfterApprovalWebhook the onAfterApprovalWebhook to set
-	 */
-	public void setOnAfterApprovalWebhook(String onAfterApprovalWebhook) {
-		this.onAfterApprovalWebhook = onAfterApprovalWebhook;
-	}
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public Set<String> getUniqueSpaces() {
+        return uniqueSpaces;
+    }
+
+    public void setUniqueSpaces(Set<String> uniqueSpaces) {
+        this.uniqueSpaces = uniqueSpaces;
+    }
+
+    public String getClaimMapping() {
+        return claimMapping;
+    }
+
+    public void setClaimMapping(String claimMapping) {
+        this.claimMapping = claimMapping;
+    }
+
+    public String getOnAfterApprovalWebhook() {
+        return onAfterApprovalWebhook;
+    }
+
+    public void setOnAfterApprovalWebhook(String onAfterApprovalWebhook) {
+        this.onAfterApprovalWebhook = onAfterApprovalWebhook;
+    }
+
+    public Set<String> getRolePrefixes() {
+        return rolePrefixes;
+    }
+
+    public void setRolePrefixes(Set<String> rolePrefixes) {
+        this.rolePrefixes = rolePrefixes;
+    }
+
+    public String getJwtSignAlgorithm() {
+        return jwtSignAlgorithm;
+    }
+
+    public void setJwtSignAlgorithm(String jwtSignAlgorithm) {
+        this.jwtSignAlgorithm = jwtSignAlgorithm;
+    }
+
+    public String getJwtEncAlgorithm() {
+        return jwtEncAlgorithm;
+    }
+
+    public void setJwtEncAlgorithm(String jwtEncAlgorithm) {
+        this.jwtEncAlgorithm = jwtEncAlgorithm;
+    }
+
+    public String getJwtEncMethod() {
+        return jwtEncMethod;
+    }
+
+    public void setJwtEncMethod(String jwtEncMethod) {
+        this.jwtEncMethod = jwtEncMethod;
+    }
+
+    public String getJwks() {
+        return jwks;
+    }
+
+    public void setJwks(String jwks) {
+        this.jwks = jwks;
+    }
+
+    public String getJwksUri() {
+        return jwksUri;
+    }
+
+    public void setJwksUri(String jwksUri) {
+        this.jwksUri = jwksUri;
+    }
+
 }

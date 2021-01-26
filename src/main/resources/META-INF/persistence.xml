@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.0"
-	xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
 	<persistence-unit name="aac">
 		<class>it.smartcommunitylab.aac.model.Registration</class>
-    <class>it.smartcommunitylab.aac.model.Role</class>
+		<class>it.smartcommunitylab.aac.model.Role</class>
 		<class>it.smartcommunitylab.aac.model.User</class>
 		<class>it.smartcommunitylab.aac.model.Attribute</class>
 		<class>it.smartcommunitylab.aac.model.Authority</class>
 		<class>it.smartcommunitylab.aac.model.ClientDetailsEntity</class>
-    <class>it.smartcommunitylab.aac.model.APIKeyEntity</class>
-    <class>it.smartcommunitylab.aac.model.UserCertificate</class>
-    <class>it.smartcommunitylab.aac.model.PersistentLogin</class>
-    <class>it.smartcommunitylab.aac.model.OAuthApproval</class>
-    <class>it.smartcommunitylab.aac.model.Service</class>
-    <class>it.smartcommunitylab.aac.model.ServiceScope</class>
-    <class>it.smartcommunitylab.aac.model.ServiceClaim</class>
-    <class>it.smartcommunitylab.aac.model.UserClaim</class>
-    <class>it.smartcommunitylab.aac.model.ClientClaim</class>
+		<class>it.smartcommunitylab.aac.model.APIKeyEntity</class>
+		<class>it.smartcommunitylab.aac.model.UserCertificate</class>
+		<class>it.smartcommunitylab.aac.model.PersistentLogin</class>
+		<class>it.smartcommunitylab.aac.model.OAuthApproval</class>
+		<class>it.smartcommunitylab.aac.model.Service</class>
+		<class>it.smartcommunitylab.aac.model.ServiceScope</class>
+		<class>it.smartcommunitylab.aac.model.ServiceClaim</class>
+		<class>it.smartcommunitylab.aac.model.UserClaim</class>
+		<class>it.smartcommunitylab.aac.model.ClientClaim</class>
 	</persistence-unit>
 </persistence>

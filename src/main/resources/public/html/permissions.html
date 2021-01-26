@@ -1,10 +1,22 @@
-  <table class="table border-bottom">
-    <tr ng-repeat="item in services">
-      <td class="align-middle"> 
-      <bold><a href ng-click="changeServicePermissions(item)">{{item.name}}</a></bold>
-      <br/>{{item.description}}
-      </td>
-    </tr>
-  </table>
-  <div ng-include="'./html/service-perm.html'"></div>
+<br>
+<h5>Core</h5>
+<table class="table border-bottom">
+	<tr ng-repeat="item in services"
+		ng-if="item.serviceId.startsWith('aac.')">
+		<td class="align-middle"><bold>
+			<a href ng-click="changeServicePermissions(item)">{{item.name}}</a></bold> <br />{{item.description}}
+		</td>
+	</tr>
+</table>
+<br><br>
+<h5>Services</h5>
+<table class="table border-bottom">
+	<tr ng-repeat="item in services"
+		ng-if="!item.serviceId.startsWith('aac.')">
+		<td class="align-middle"><bold>
+			<a href ng-click="changeServicePermissions(item)">{{item.name}}</a></bold> <br />{{item.description}}
+		</td>
+	</tr>
+</table>
+<div ng-include="'./html/service-perm.html'"></div>
 

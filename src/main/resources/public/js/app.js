@@ -1,4 +1,5 @@
 var app = angular.module('dev', [
+	'pascalprecht.translate',
 	'ngRoute',
 	'ngResource',
 	'angularSpinner',
@@ -12,9 +13,19 @@ var app = angular.module('dev', [
 	'ui.ace'
 	]);
 
-app.config(function ($httpProvider) {
-	  $httpProvider.interceptors.push('loadingHttpInterceptor');
-	  $httpProvider.interceptors.push('accessDeniedInterceptor');
+app.config(function ($httpProvider, $translateProvider) {
+		$httpProvider.interceptors.push('loadingHttpInterceptor');
+		$httpProvider.interceptors.push('accessDeniedInterceptor');
+		$translateProvider.useStaticFilesLoader({
+			prefix: 'i18n/locale-',
+			suffix: '.json'
+		});
+		var lang = navigator.languages
+		? navigator.languages[0]
+		: (navigator.language || navigator.userLanguage);
+		lang = (lang.substring(0,lang.indexOf('-'))) || 'en';
+		console.log('Detected language', lang);
+		$translateProvider.preferredLanguage(lang);
 	})
 
 app.run(function($rootScope){

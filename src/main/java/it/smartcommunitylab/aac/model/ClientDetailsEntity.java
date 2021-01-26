@@ -27,6 +27,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,7 +43,7 @@ import it.smartcommunitylab.aac.common.Utils;
  *
  */
 @Entity
-@Table(name = "oauth_client_details")
+@Table(name = "oauth_client_details", uniqueConstraints = @UniqueConstraint(columnNames = { "name", "developerId" }))
 public class ClientDetailsEntity implements ClientDetails {
 	private static final long serialVersionUID = -286007838648327741L;
 
@@ -50,7 +51,8 @@ public class ClientDetailsEntity implements ClientDetails {
 	
 	private static ObjectMapper mapper = new ObjectMapper();
 
-	@Column(name = "name", unique=true)
+//	@Column(name = "name", unique=true)
+    @Column(name = "name")	
 	private String name;	
 	
 	@Column(name = "client_id", unique=true)
@@ -59,11 +61,13 @@ public class ClientDetailsEntity implements ClientDetails {
 	@Column(name = "client_secret",nullable = false)
 	private String clientSecret;
 
-	@Column(name = "client_secret_mobile",nullable = false)
-	private String clientSecretMobile;
+	   //DEPRECATED legacy Native Flow
+//	@Column(name = "client_secret_mobile",nullable = false)
+//	private String clientSecretMobile;
 
-	@Column(name = "mobile_app_schema", unique=true,columnDefinition="LONGTEXT")
-	private String mobileAppSchema; 
+    //DEPRECATED legacy Native Flow
+//	@Column(name = "mobile_app_schema", unique=true,columnDefinition="LONGTEXT")
+//	private String mobileAppSchema; 
 	
 	@Column(name = "resource_ids",columnDefinition="LONGTEXT")
 	private String resourceIds;
@@ -103,6 +107,26 @@ public class ClientDetailsEntity implements ClientDetails {
 	private String parameters;	
 	
 
+	// TODO: client metadata as of RFC 7591
+	// - client_id	 				-> client_id
+	// - client_secret 				-> client_secret
+	// - redirect_uris 				-> redirectUri (array of strings)
+	// - token_endpoint_auth_method	-> TODO (string)
+	// - grant_types				-> authorizedGrantTypes (array of strings)
+	// - response_types 			-> TODO  (array of strings)
+	// - client_name				-> name (string)
+	// - client_uri					-> TODO (string)
+	// - logo_uri					-> TODO (string)
+	// - scope						-> scope (string space separated)
+	// - contacts					-> TODO (array of strings, e.g., emails)
+	// - tos_uri					-> TODO (string)
+	// - policy_uri					-> TODO (string)
+	// - jwks_uri					-> TODO (string)
+	// - jwks						-> TODO (document)
+	// - software_id				-> TODO (string)
+	// - software_version			-> TODO (string)
+	// - client_id_issued_at		-> TODO (seconds)
+	// - client_secret_expires_at	-> TODO (seconds)
 
 	public String getName() {
 		return name;
@@ -202,20 +226,21 @@ public class ClientDetailsEntity implements ClientDetails {
 		this.clientSecret = clientSecret;
 	}
 
-	/**
-	 * @return {@link #clientSecretMobile} value
-	 */
-	public String getClientSecretMobile() {
-		return clientSecretMobile;
-	}
-
-	/**
-	 * 
-	 * @param clientSecretMobile value to set
-	 */
-	public void setClientSecretMobile(String clientSecretMobile) {
-		this.clientSecretMobile = clientSecretMobile;
-	}
+	   //DEPRECATED legacy Native Flow
+//	/**
+//	 * @return {@link #clientSecretMobile} value
+//	 */
+//	public String getClientSecretMobile() {
+//		return clientSecretMobile;
+//	}
+//
+//	/**
+//	 * 
+//	 * @param clientSecretMobile value to set
+//	 */
+//	public void setClientSecretMobile(String clientSecretMobile) {
+//		this.clientSecretMobile = clientSecretMobile;
+//	}
 
 	/**
 	 * @param additionalInformation the additionalInformation to set
@@ -357,11 +382,11 @@ public class ClientDetailsEntity implements ClientDetails {
 		this.parameters = parameters;
 	}
 
-	public String getMobileAppSchema() {
-		return mobileAppSchema;
-	}
-
-	public void setMobileAppSchema(String mobileAppSchema) {
-		this.mobileAppSchema = mobileAppSchema;
-	}
+//	public String getMobileAppSchema() {
+//		return mobileAppSchema;
+//	}
+//
+//	public void setMobileAppSchema(String mobileAppSchema) {
+//		this.mobileAppSchema = mobileAppSchema;
+//	}
 }
