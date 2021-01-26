@@ -35,13 +35,19 @@
     <title th:text="#{lbl_login_title}">AAC Login</title>
 </head>
 <body>
-  <img class="logo d-none d-md-block" src="img/ls_logo.png" alt="SmartCommunity" />
-  <div class="clear"></div>
-
+<div class="container">
+  <div th:if= "${headerText == null}">
+    <img class="logo d-none d-md-block" src="img/ls_logo.png" alt="SmartCommunity" />
+    <div class="clear"></div>  
+  </div>
+  <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if= "${headerText != null}"  th:utext="${headerText}"></div>
+  <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if= "${loginText != null}"  th:utext="${loginText}"></div>
   <div class="row mt-md-0 mt-5 justify-content-center" th:if="${session.authorities.get('internal')} != null">
     <div class="col-xl-offset-4 col-xl-4 col-lg-offset-3 col-lg-6 col-md-8 col-md-offset-2 col-sm-offset-1 col-sm-10">
       <div class="panel panel-default">
-      <h4 class="text-center" th:text="#{lbl_login_title}">AAC Login</h4>
+      <h4 class="text-center" th:if= "${displayName == null}"  th:text="#{lbl_login_title}">AAC</h4>
+      <h4 class="text-center" th:if= "${displayName != null}"  th:text="${displayName}">AAC</h4>      
+      <h5 th:text="#{lbl_login}">Login</h5>
       <form action="login" method="post">
           <div class="text-center error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
           <div>&nbsp;</div>
@@ -95,11 +101,12 @@
                 <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/facebook-oauth/callback">FACEBOOK</a></div>      
           </div>
       </div>
-    </div>  
-            
+    </div>     
     </div>
   </div>  
-            
-  <script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
+
+  <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if= "${footerText != null}"  th:utext="${footerText}"></div>
+</div>            
+<script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
 </body>
 </html>

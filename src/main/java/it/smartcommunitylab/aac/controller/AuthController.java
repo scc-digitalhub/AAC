@@ -151,7 +151,7 @@ public class AuthController {
 						resultAuthorities.put(idp, authorities.get(idp));
 				}
 
-				if (resultAuthorities.isEmpty()) {
+				if (resultAuthorities.isEmpty()) {			    
 					model.put("message", "No Identity Providers assigned to the app");
 					return new ModelAndView("oauth_error", model);
 				}
@@ -160,6 +160,11 @@ public class AuthController {
 					return new ModelAndView("redirect:"
 							+ Utils.filterRedirectURL(resultAuthorities.keySet().iterator().next()));
 				}
+				
+				//fetch client customizations for login screen
+				Map<String,String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
+				model.putAll(customizations);
+				
 			}
 		}
 		logger.debug("resultAuthorities "+resultAuthorities.keySet().toString());
