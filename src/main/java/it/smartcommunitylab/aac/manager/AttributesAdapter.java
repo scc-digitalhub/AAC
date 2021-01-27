@@ -40,7 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -49,8 +48,6 @@ import com.google.common.collect.Multimap;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
-import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
-import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
 import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jaxbmodel.Authorities;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
@@ -77,7 +74,7 @@ public class AttributesAdapter {
 	@Autowired
 	private AuthorityHandlerContainer authorityHandlerManager;
 	@Autowired
-	private NativeAuthorityHandlerContainer nativeAuthorityHandlerManager;
+//	private NativeAuthorityHandlerContainer nativeAuthorityHandlerManager;
 	
     @Value("${authorities.enabled}")
     private String[] enabledAuthoritiesArray;
@@ -303,26 +300,26 @@ public class AttributesAdapter {
 		return list;
 	}
 
-	/**
-	 * @param name
-	 * @param token
-	 * @param params
-	 * @return
-	 */
-	public Map<String, String> getNativeAttributes(String authority, String token, Map<String, String> params) {
-		NativeAuthorityHandler authorityHandler = nativeAuthorityHandlerManager.getAuthorityHandler(authority);
-		if (authorityHandler == null) {
-			throw new InvalidGrantException("Invalid authority: "+ authority);
-		}
-		AuthorityMapping mapping = authorities.get(authority);
-		if (mapping == null) {
-			throw new InvalidGrantException("Unsupported authority: " + authority);
-		}
-		Map<String, String> extracted = authorityHandler.extractAttributes(token, params, mapping);
-		if (extracted.get(Config.USER_ATTR_USERNAME) == null) {
-			extracted.put(Config.USER_ATTR_USERNAME, authorityHandler.extractUsername(extracted));
-		}
-		return extracted;
-	}
+//	/**
+//	 * @param name
+//	 * @param token
+//	 * @param params
+//	 * @return
+//	 */
+//	public Map<String, String> getNativeAttributes(String authority, String token, Map<String, String> params) {
+//		NativeAuthorityHandler authorityHandler = nativeAuthorityHandlerManager.getAuthorityHandler(authority);
+//		if (authorityHandler == null) {
+//			throw new InvalidGrantException("Invalid authority: "+ authority);
+//		}
+//		AuthorityMapping mapping = authorities.get(authority);
+//		if (mapping == null) {
+//			throw new InvalidGrantException("Unsupported authority: " + authority);
+//		}
+//		Map<String, String> extracted = authorityHandler.extractAttributes(token, params, mapping);
+//		if (extracted.get(Config.USER_ATTR_USERNAME) == null) {
+//			extracted.put(Config.USER_ATTR_USERNAME, authorityHandler.extractUsername(extracted));
+//		}
+//		return extracted;
+//	}
 
 }

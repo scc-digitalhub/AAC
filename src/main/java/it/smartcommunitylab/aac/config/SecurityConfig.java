@@ -100,7 +100,6 @@ import it.smartcommunitylab.aac.oauth.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
 import it.smartcommunitylab.aac.oauth.MockDataAwareOAuth2SuccessHandler;
 import it.smartcommunitylab.aac.oauth.MultitenantOAuth2ClientAuthenticationProcessingFilter;
-import it.smartcommunitylab.aac.oauth.NativeTokenGranter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
 import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
@@ -522,18 +521,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 granters.add(passwordTokenGranter);
             }
 
-            // custom native flow support
-            granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(),
-                    endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
             return new CompositeTokenGranter(granters);
-
-//			List<TokenGranter> granters = new ArrayList<TokenGranter>(Arrays.asList(endpoints.getTokenGranter()));
-//			granters.add(0, new ImplicitTokenGranter(endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
-//			// insert PKCE auth code granter as the first one, before default implementation
-//			granters.add(0,new PKCEAwareTokenGranter(endpoints.getTokenServices(), endpoints.getAuthorizationCodeServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory()));
-//			// custom native flow support
-//			granters.add(new NativeTokenGranter(userManager, providerServiceAdapter, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory(), "native"));
-//			return new CompositeTokenGranter(granters);
         }
     }
 

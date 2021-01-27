@@ -80,16 +80,6 @@ public class ProviderServiceAdapter {
 		return findAndUpdate(auth, attributes);
 	}
 
-	public User updateNativeUser(String authority, String token, Map<String, String> params) {
-		Authority auth = authorityRepository.findByRedirectUrl(authority);
-		if (auth == null) {
-			throw new IllegalArgumentException("Unknown authority URL: " + authority);
-		}
-		// read received attribute values
-		Map<String, String> attributes = attrAdapter.getNativeAttributes(auth.getName(), token, params);
-		
-		return findAndUpdate(auth, attributes);
-	}
 	
     // TODO rewrite to *only* return User and let updateUser do the update
     private User findAndUpdate(Authority auth, Map<String, String> attributes) {

@@ -21,11 +21,7 @@ import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
 import it.smartcommunitylab.aac.authority.FBAuthorityHandler;
-import it.smartcommunitylab.aac.authority.FBNativeAuthorityHandler;
-import it.smartcommunitylab.aac.authority.GoogleNativeAuthorityHandler;
 import it.smartcommunitylab.aac.authority.InternalAuthorityHandler;
-import it.smartcommunitylab.aac.authority.NativeAuthorityHandler;
-import it.smartcommunitylab.aac.authority.NativeAuthorityHandlerContainer;
 import it.smartcommunitylab.aac.oauth.CachedServiceScopeServices;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
@@ -47,20 +43,6 @@ public class AACConfig extends WebMvcConfigurerAdapter {
 		FBAuthorityHandler fh = new FBAuthorityHandler();
 		map.put("facebook", fh);
 		AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
-		return bean;
-	}
-
-	@Bean
-	public NativeAuthorityHandlerContainer getNativeAuthorityHandlerContainer() {
-		Map<String, NativeAuthorityHandler> map = Maps.newTreeMap();
-		
-		GoogleNativeAuthorityHandler gh = new GoogleNativeAuthorityHandler(clientDetailsRepository);
-		map.put("google", gh);
-		FBNativeAuthorityHandler fh = new FBNativeAuthorityHandler();
-		map.put("facebook", fh);
-		
-		NativeAuthorityHandlerContainer bean = new NativeAuthorityHandlerContainer(map);
-		
 		return bean;
 	}
 
