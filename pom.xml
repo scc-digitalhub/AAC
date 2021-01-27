@@ -117,14 +117,17 @@
          <groupId>com.h2database</groupId>
          <artifactId>h2</artifactId>
       </dependency>
-
-      <dependency>
-         <groupId>c3p0</groupId>
-         <artifactId>c3p0</artifactId>
-         <version>0.9.1.2</version>
-         <type>jar</type>
-         <scope>compile</scope>
-      </dependency>
+		<dependency>
+		    <groupId>com.zaxxer</groupId>
+		    <artifactId>HikariCP</artifactId>
+		    </dependency>
+<!--       <dependency> -->
+<!--          <groupId>c3p0</groupId> -->
+<!--          <artifactId>c3p0</artifactId> -->
+<!--          <version>0.9.1.2</version> -->
+<!--          <type>jar</type> -->
+<!--          <scope>compile</scope> -->
+<!--       </dependency> -->
 
       <dependency>
          <groupId>joda-time</groupId>
