@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.apikey.model.APIKeyEntity;
  * @author raman
  *
  */
-public interface ApiKeyRepository extends JpaRepository<APIKeyEntity, String> {
+public interface APIKeyRepository extends JpaRepository<APIKeyEntity, String> {
 
     List<APIKeyEntity> findByClientId(String clientId);
 

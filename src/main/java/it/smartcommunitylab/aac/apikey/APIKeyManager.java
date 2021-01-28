@@ -40,9 +40,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import it.smartcommunitylab.aac.apikey.model.APIKey;
 import it.smartcommunitylab.aac.apikey.model.APIKeyEntity;
-import it.smartcommunitylab.aac.apikey.repository.ApiKeyRepository;
+import it.smartcommunitylab.aac.apikey.repository.APIKeyRepository;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -63,7 +62,7 @@ public class APIKeyManager {
 
     // TODO replace with keyService
     @Autowired
-    private ApiKeyRepository keyRepo;
+    private APIKeyRepository keyRepo;
 
     // TODO replace with clientService
     @Autowired

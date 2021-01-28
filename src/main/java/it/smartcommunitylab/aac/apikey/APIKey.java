@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package it.smartcommunitylab.aac.apikey.model;
+package it.smartcommunitylab.aac.apikey;
 
 import java.util.Collections;
 import java.util.Map;
@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.smartcommunitylab.aac.apikey.model.APIKeyEntity;
 
 /**
  * @author raman
