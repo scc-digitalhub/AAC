@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -79,7 +80,7 @@ public class OAuthUtils {
             ClientAppBasic client, String sessionId,
             String[] scopes)
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
+            NoSuchAlgorithmException, InvalidKeySpecException, JSONException {
 
         // request token
         HttpHeaders headers = new HttpHeaders();

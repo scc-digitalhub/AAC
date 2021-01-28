@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -101,7 +102,7 @@ public class ImplicitFlowTest extends OpenidBaseTest {
     @Test
     public void implicitFlowWithTokenAndIdTokenAsFragment()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
+            NoSuchAlgorithmException, InvalidKeySpecException, JSONException {
 
         ClientAppBasic client = getClient();
 

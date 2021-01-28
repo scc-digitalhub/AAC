@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -93,7 +94,7 @@ public class PKCEGrantTest extends OAuth2BaseTest {
     @Test
     public void pkceAuthCodeGrantWithPlainChallenge()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
+            NoSuchAlgorithmException, InvalidKeySpecException, JSONException {
 
         ClientAppBasic client = getClient();
 
@@ -237,7 +238,7 @@ public class PKCEGrantTest extends OAuth2BaseTest {
     @Test
     public void pkceAuthCodeGrantWithS256Challenge()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
+            NoSuchAlgorithmException, InvalidKeySpecException, JSONException {
 
         ClientAppBasic client = getClient();
         
@@ -384,7 +385,7 @@ public class PKCEGrantTest extends OAuth2BaseTest {
     @Test
     public void pkceAuthCodeGrantWithWrongPlainChallenge()
             throws RestClientException, UnsupportedEncodingException, ParseException, JOSEException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
+            NoSuchAlgorithmException, InvalidKeySpecException, JSONException {
 
         ClientAppBasic client = getClient();
 

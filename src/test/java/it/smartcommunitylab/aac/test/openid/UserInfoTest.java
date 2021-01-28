@@ -7,6 +7,7 @@ import java.text.ParseException;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
@@ -95,7 +96,7 @@ public class UserInfoTest extends OpenidBaseTest {
     @Test
     public void fetchUserInfoAsJsonViaGet()
             throws RestClientException, UnsupportedEncodingException, NoSuchAlgorithmException,
-            InvalidKeySpecException, ParseException, JOSEException {
+            InvalidKeySpecException, ParseException, JOSEException, JSONException {
         logger.debug("fetchUserInfo");
 
         User user = getUser();
@@ -175,7 +176,8 @@ public class UserInfoTest extends OpenidBaseTest {
         Assert.assertTrue(StringUtils.isNotBlank(json.optString("email_verified")));
 
         // also validate that NO claims are empty
-        for (Object key : json.keySet()) {
+        while (json.keys().hasNext()) {
+            String key = json.keys().next().toString(); 
             Assert.assertFalse(json.isNull((String) key));
         }
     }

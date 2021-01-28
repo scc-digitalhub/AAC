@@ -53,8 +53,8 @@ import org.springframework.web.servlet.ModelAndView;
 import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.apikey.APIKey;
 import it.smartcommunitylab.aac.apikey.APIKeyManager;
-import it.smartcommunitylab.aac.apikey.model.APIKey;
 import it.smartcommunitylab.aac.bootstrap.BootstrapClient;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.manager.ClaimManager;

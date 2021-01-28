@@ -45,8 +45,16 @@ import it.smartcommunitylab.aac.oauth.IsolationSupportHibernateJpaDialect;
 //@EntityScan({"it.smartcommunitylab.aac.model"})
 @EnableTransactionManagement
 //@EnableSpringDataWebSupport
+@EntityScan(basePackages = {
+        "it.smartcommunitylab.aac.model",
+        "it.smartcommunitylab.aac.apikey.model",
+        "it.smartcommunitylab.aac.profiles.model",
+        "it.smartcommunitylab.aac.roles.model" })
 @EnableJpaRepositories(basePackages = {
-        "it.smartcommunitylab.aac.repository" }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
+        "it.smartcommunitylab.aac.repository",
+        "it.smartcommunitylab.aac.apikey.repository",
+        "it.smartcommunitylab.aac.profiles.repository",
+        "it.smartcommunitylab.aac.roles.repository" }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
 public class DatabaseConfig {
 
     @Autowired
@@ -68,7 +76,7 @@ public class DatabaseConfig {
 //
 //        return bean;
 //    }
-    
+
     @Bean
     public HikariDataSource getDataSource() throws PropertyVetoException {
         HikariDataSource bean = new HikariDataSource();
@@ -77,8 +85,7 @@ public class DatabaseConfig {
         bean.setJdbcUrl(env.getProperty("jdbc.url"));
         bean.setUsername(env.getProperty("jdbc.user"));
         bean.setPassword(env.getProperty("jdbc.password"));
-        
-        
+
 //        
 //        bean.setAcquireIncrement(5);
 //        bean.setIdleConnectionTestPeriod(60);
@@ -88,7 +95,6 @@ public class DatabaseConfig {
 
         return bean;
     }
-    
 
     @Bean(name = "entityManagerFactory")
     public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() throws PropertyVetoException {
@@ -110,7 +116,11 @@ public class DatabaseConfig {
         props.setProperty("hibernate.hbm2ddl.auto", "update");
         bean.setJpaProperties(props);
 
-        bean.setPackagesToScan("it.smartcommunitylab.aac.model", "it.smartcommunitylab.aac.dto");
+        bean.setPackagesToScan(
+                "it.smartcommunitylab.aac.model",
+                "it.smartcommunitylab.aac.apikey.model",
+                "it.smartcommunitylab.aac.profiles.model",
+                "it.smartcommunitylab.aac.roles.model");
 //		bean.setPersistenceUnitManager(null);
 
         return bean;

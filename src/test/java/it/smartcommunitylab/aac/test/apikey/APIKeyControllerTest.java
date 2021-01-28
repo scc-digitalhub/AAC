@@ -36,8 +36,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.apikey.APIKey;
 import it.smartcommunitylab.aac.apikey.APIKeyManager;
-import it.smartcommunitylab.aac.apikey.model.APIKey;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.ServiceManager;
 import it.smartcommunitylab.aac.model.ClientAppInfo;

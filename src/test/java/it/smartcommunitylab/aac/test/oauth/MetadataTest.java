@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.test.oauth;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
@@ -126,7 +127,7 @@ public class MetadataTest {
     }
 
     @Test
-    public void validateIssuer() {
+    public void validateIssuer() throws JSONException {
         logger.debug("validateIssuer");
         // load config from url
         ResponseEntity<String> response = restTemplate.getForEntity(
@@ -141,7 +142,7 @@ public class MetadataTest {
     }
 
     @Test
-    public void validateproviderClaims() {
+    public void validateproviderClaims() throws JSONException {
         logger.debug("validateClaims");
         // load config from url
         ResponseEntity<String> response = restTemplate.getForEntity(
@@ -166,7 +167,7 @@ public class MetadataTest {
     }
 
     @Test
-    public void validateEndpoints() {
+    public void validateEndpoints() throws JSONException {
         logger.debug("validateEndpoints");
         // load config from url
         ResponseEntity<String> response = restTemplate.getForEntity(
@@ -180,8 +181,8 @@ public class MetadataTest {
         // https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation
         String responseIssuer = json.getString("issuer");
 
-        for (Object k : json.keySet()) {
-            String key = k.toString();
+        while (json.keys().hasNext()) {            
+            String key = json.keys().next().toString();
 
             if (key.endsWith("_endpoint")) {
                 // check if it matches issuer

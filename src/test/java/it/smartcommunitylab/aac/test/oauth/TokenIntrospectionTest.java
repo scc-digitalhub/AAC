@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
@@ -96,7 +97,7 @@ public class TokenIntrospectionTest extends OAuth2BaseTest {
 
     @Test
     public void tokenIntrospectionWithBasicAuth() throws RestClientException, UnsupportedEncodingException,
-            NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
+            NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException, JSONException {
 
         ClientAppBasic client = getClient();
 
@@ -292,7 +293,7 @@ public class TokenIntrospectionTest extends OAuth2BaseTest {
 //    }
 
     @Test
-    public void tokenIntrospectionInactive() {
+    public void tokenIntrospectionInactive() throws JSONException {
         logger.debug("tokenIntrospectionInactive");
 
         ClientAppBasic client = getClient();
@@ -351,12 +352,12 @@ public class TokenIntrospectionTest extends OAuth2BaseTest {
 
         // REQUIRED
         // no other claims in response to avoid information leak
-        Assert.assertTrue(json.keySet().size() == 1);
+        Assert.assertTrue(json.length() == 1);
     }
 
     @Test
     public void tokenIntrospectionUnauthorized() throws RestClientException, UnsupportedEncodingException,
-            NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
+            NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException, JSONException {
         logger.debug("tokenIntrospectionUnauthorized");
 
         ClientAppBasic client = getClient();
@@ -406,7 +407,7 @@ public class TokenIntrospectionTest extends OAuth2BaseTest {
 
     @Test
     public void tokenIntrospectionUnauthenticated() throws RestClientException, UnsupportedEncodingException,
-            NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException {
+            NoSuchAlgorithmException, InvalidKeySpecException, ParseException, JOSEException, JSONException {
         logger.debug("tokenIntrospectionUnauthorized");
 
         ClientAppBasic client = getClient();

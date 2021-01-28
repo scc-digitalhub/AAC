@@ -49,4 +49,10 @@ public class BootstrapUser extends AbstractUser {
         this.roles = roles;
     }
 
+    // TODO set a standard
+    @Override
+    public String getId() {
+        return "realm" + "|" + username;
+    }
+
 }
