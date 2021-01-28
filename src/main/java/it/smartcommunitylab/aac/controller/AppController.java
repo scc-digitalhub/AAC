@@ -53,11 +53,10 @@ import org.springframework.web.servlet.ModelAndView;
 import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.apikey.manager.APIKeyManager;
+import it.smartcommunitylab.aac.apikey.APIKeyManager;
+import it.smartcommunitylab.aac.apikey.model.APIKey;
 import it.smartcommunitylab.aac.bootstrap.BootstrapClient;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.YamlUtils;
-import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -69,6 +68,7 @@ import it.smartcommunitylab.aac.model.Response.RESPONSE;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.utils.YamlUtils;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**

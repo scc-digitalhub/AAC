@@ -35,7 +35,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.utils.Utils;
 
 /**
  * DB entity storing the client app information

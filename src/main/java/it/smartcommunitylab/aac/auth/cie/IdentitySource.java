@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.auth.cie;
 
-import it.smartcommunitylab.aac.dto.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 /**
  * Interface for User Unique identities to be used for 2factor confirmation.

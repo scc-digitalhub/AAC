@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.apikey.manager;
+package it.smartcommunitylab.aac.apikey;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -40,14 +40,14 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import it.smartcommunitylab.aac.dto.APIKey;
+import it.smartcommunitylab.aac.apikey.model.APIKey;
+import it.smartcommunitylab.aac.apikey.model.APIKeyEntity;
+import it.smartcommunitylab.aac.apikey.repository.ApiKeyRepository;
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.APIKeyEntity;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.ApiKeyRepository;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 
 /**
@@ -61,9 +61,11 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 public class APIKeyManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    // TODO replace with keyService
     @Autowired
     private ApiKeyRepository keyRepo;
 
+    // TODO replace with clientService
     @Autowired
     private ClientDetailsRepository clientRepo;
 
@@ -79,6 +81,7 @@ public class APIKeyManager {
     @Value("${jwt.issuer}")
     private String issuer;
 
+    // TODO move to keyService
 //    // Cache of the keys
 //    private static final Map<String, APIKey> keyCache = new HashMap<>();
 
@@ -158,6 +161,7 @@ public class APIKeyManager {
         }
     }
 
+    // TODO move to keyService
     /**
      * @param key
      * @return true if the key exists, and either the validity is not defined (i.e.,
@@ -204,6 +208,9 @@ public class APIKeyManager {
         logger.debug("removed API Key " + key);
     }
 
+    
+    
+    //TODO: move to keyService generic method, implement here 2 methods createClientKey and createUserKey
     /**
      * Create a new key for the specified client app
      * 
@@ -399,7 +406,7 @@ public class APIKeyManager {
 
         if (scopes != null) {
             // filter and allow only those enabled on client
-            //TODO additionally filter to only those approved by user
+            // TODO additionally filter to only those approved by user
             ClientDetailsEntity client = clientRepo.findByClientId(entity.getClientId());
             Set<String> targetScopes = new HashSet<>(scopes);
             targetScopes.retainAll(client.getScope());

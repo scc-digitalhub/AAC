@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.common;
+package it.smartcommunitylab.aac.utils;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;

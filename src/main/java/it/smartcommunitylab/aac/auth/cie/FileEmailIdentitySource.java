@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-import it.smartcommunitylab.aac.dto.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 /**
  * @author raman

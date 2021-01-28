@@ -52,7 +52,6 @@ import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -67,6 +66,7 @@ import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.OAuthApprovalRepository;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.utils.Utils;
 
 /**
  * Logged in user data manager.

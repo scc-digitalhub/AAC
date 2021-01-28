@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import it.smartcommunitylab.aac.apikey.manager.APIKeyManager;
+import it.smartcommunitylab.aac.apikey.APIKeyManager;
+import it.smartcommunitylab.aac.apikey.model.APIKey;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.dto.APIKey;
 import it.smartcommunitylab.aac.model.Response;
 
 /**

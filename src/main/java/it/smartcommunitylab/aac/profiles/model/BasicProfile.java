@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  ******************************************************************************/
-package it.smartcommunitylab.aac.dto;
+package it.smartcommunitylab.aac.profiles.model;
 
 import it.smartcommunitylab.aac.model.User;
 

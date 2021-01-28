@@ -45,14 +45,14 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.common.Utils;
-import it.smartcommunitylab.aac.dto.RoleModel;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.roles.dto.RoleModel;
+import it.smartcommunitylab.aac.utils.Utils;
 
 /**
  * Used to check whether the user has the administrator rights.

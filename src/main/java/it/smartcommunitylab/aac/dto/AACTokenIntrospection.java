@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.dto;
 
+import it.smartcommunitylab.aac.oauth.TokenIntrospection;
+
 /**
  * @author raman
  *

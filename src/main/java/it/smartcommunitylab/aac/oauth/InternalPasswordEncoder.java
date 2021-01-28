@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import it.smartcommunitylab.aac.common.PasswordHash;
+import it.smartcommunitylab.aac.utils.PasswordHash;
 
 /**
  * @author raman

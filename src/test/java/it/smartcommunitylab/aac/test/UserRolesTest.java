@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.dto.RoleModel;
 import it.smartcommunitylab.aac.manager.RegistrationManager;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.model.Registration;
@@ -30,6 +29,7 @@ import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.roles.dto.RoleModel;
 
 //TODO rewrite tests
 //@RunWith(SpringJUnit4ClassRunner.class)

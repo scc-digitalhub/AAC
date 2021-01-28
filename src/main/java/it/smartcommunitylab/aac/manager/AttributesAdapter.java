@@ -48,7 +48,6 @@ import com.google.common.collect.Multimap;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.jaxbmodel.Authorities;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMatching;
@@ -56,6 +55,7 @@ import it.smartcommunitylab.aac.jaxbmodel.Match;
 import it.smartcommunitylab.aac.model.Attribute;
 import it.smartcommunitylab.aac.model.Authority;
 import it.smartcommunitylab.aac.repository.AuthorityRepository;
+import it.smartcommunitylab.aac.utils.Utils;
 
 /**
  * This class manages all operations on attributes.

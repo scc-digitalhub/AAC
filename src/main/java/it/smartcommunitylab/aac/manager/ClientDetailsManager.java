@@ -48,13 +48,13 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
 import it.smartcommunitylab.aac.jaxbmodel.AuthorityMapping;
 import it.smartcommunitylab.aac.model.ClientAppBasic;
 import it.smartcommunitylab.aac.model.ClientAppInfo;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.utils.Utils;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 

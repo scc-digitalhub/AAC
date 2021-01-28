@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.common;
+package it.smartcommunitylab.aac.utils;
 
 import java.util.Enumeration;
 import java.util.HashSet;

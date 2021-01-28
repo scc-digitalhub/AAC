@@ -15,7 +15,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.common;
+package it.smartcommunitylab.aac.utils;
 
 import java.util.ArrayList;
 import java.util.List;

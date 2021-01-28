@@ -58,7 +58,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.AUTHORITY;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.manager.AttributesAdapter;
 import it.smartcommunitylab.aac.manager.ClientDetailsManager;
 import it.smartcommunitylab.aac.manager.MobileAuthManager;
@@ -70,6 +69,7 @@ import it.smartcommunitylab.aac.model.Registration;
 import it.smartcommunitylab.aac.oauth.AACAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuthRequest;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.utils.Utils;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**

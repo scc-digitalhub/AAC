@@ -45,14 +45,14 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import it.smartcommunitylab.aac.common.SecurityUtils;
-import it.smartcommunitylab.aac.dto.AccountProfile;
-import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.manager.ProfileManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.utils.SecurityUtils;
 
 /**
  * @author raman

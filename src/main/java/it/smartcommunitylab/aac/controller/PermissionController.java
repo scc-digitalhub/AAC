@@ -54,7 +54,6 @@ import it.smartcommunitylab.aac.bootstrap.BootstrapService;
 import it.smartcommunitylab.aac.bootstrap.BootstrapService.BootstrapServiceClaim;
 import it.smartcommunitylab.aac.bootstrap.BootstrapService.BootstrapServiceScope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.YamlUtils;
 import it.smartcommunitylab.aac.dto.ServiceDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceClaimDTO;
 import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
@@ -68,6 +67,7 @@ import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Service;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.utils.YamlUtils;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**

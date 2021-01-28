@@ -47,7 +47,6 @@ import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NotConfirmedException;
 import it.smartcommunitylab.aac.common.NotRegisteredException;
-import it.smartcommunitylab.aac.common.PasswordHash;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.model.Attribute;
@@ -56,6 +55,7 @@ import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.repository.RegistrationRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.utils.PasswordHash;
 
 /**
  * @author raman

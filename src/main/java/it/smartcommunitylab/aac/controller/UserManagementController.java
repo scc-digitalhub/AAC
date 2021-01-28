@@ -39,13 +39,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.dto.DataList;
-import it.smartcommunitylab.aac.dto.RoleModel;
 import it.smartcommunitylab.aac.dto.UserDTO;
 import it.smartcommunitylab.aac.manager.RoleManager;
 import it.smartcommunitylab.aac.manager.UserManager;
 import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.roles.dto.RoleModel;
 
 /**
  * @author raman

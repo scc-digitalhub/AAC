@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package it.smartcommunitylab.aac.model;
+package it.smartcommunitylab.aac.apikey.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

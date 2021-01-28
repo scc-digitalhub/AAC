@@ -14,13 +14,13 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.repository;
+package it.smartcommunitylab.aac.apikey.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import it.smartcommunitylab.aac.model.APIKeyEntity;
+import it.smartcommunitylab.aac.apikey.model.APIKeyEntity;
 
 /**
  * @author raman

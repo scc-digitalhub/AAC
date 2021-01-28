@@ -16,9 +16,9 @@
 
 package it.smartcommunitylab.aac.manager;
 
-import it.smartcommunitylab.aac.dto.AccountProfile;
-import it.smartcommunitylab.aac.dto.BasicProfile;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.repository.UserRepository;
 
 import java.util.ArrayList;

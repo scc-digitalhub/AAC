@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package it.smartcommunitylab.aac.repository;
+package it.smartcommunitylab.aac.roles.repository;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;

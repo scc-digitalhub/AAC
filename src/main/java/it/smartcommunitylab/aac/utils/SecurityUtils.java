@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.common;
+package it.smartcommunitylab.aac.utils;
 
 import java.util.Collection;
 import java.util.Collections;

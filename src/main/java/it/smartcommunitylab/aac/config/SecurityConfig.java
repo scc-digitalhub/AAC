@@ -78,7 +78,6 @@ import org.yaml.snakeyaml.Yaml;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.auth.cie.FileEmailIdentitySource;
 import it.smartcommunitylab.aac.auth.cie.IdentitySource;
-import it.smartcommunitylab.aac.common.Utils;
 import it.smartcommunitylab.aac.manager.OAuth2ClientDetailsProviderImpl;
 import it.smartcommunitylab.aac.manager.ProviderServiceAdapter;
 import it.smartcommunitylab.aac.manager.UserManager;
@@ -121,6 +120,7 @@ import it.smartcommunitylab.aac.openid.endpoint.UserInfoEndpoint;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
 import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.utils.Utils;
 
 @Configuration
 @EnableOAuth2Client

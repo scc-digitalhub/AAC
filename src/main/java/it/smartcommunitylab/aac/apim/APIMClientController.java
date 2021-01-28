@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.utils.Utils;
 import springfox.documentation.annotations.ApiIgnore;
 
 @ApiIgnore
