@@ -198,7 +198,7 @@ public class RoleManager {
 	 * @return
 	 */
 	public List<User> findUsersByRole(String role, String context, String space, int page, int pageSize) {
-		Pageable pageable = new PageRequest(page, pageSize);
+		Pageable pageable = PageRequest.of(page, pageSize);
 		return userRepository.findByFullRole(role, context, space, pageable);
 	}
 	/**
@@ -210,7 +210,7 @@ public class RoleManager {
 	 * @return
 	 */
 	public List<User> findUsersByRole(String role, String context, int page, int pageSize) {
-		Pageable pageable = new PageRequest(page, pageSize);
+		Pageable pageable = PageRequest.of(page, pageSize);
 		return userRepository.findByRole(role, context, pageable);
 	}
 
@@ -223,7 +223,7 @@ public class RoleManager {
 	 * @return
 	 */
 	public List<User> findUsersByContext(String context, String space, int page, int pageSize) {
-		Pageable pageable = new PageRequest(page, pageSize);
+		Pageable pageable = PageRequest.of(page, pageSize);
 		return userRepository.findByRoleContext(context, space, pageable);
 	}
 
@@ -236,7 +236,7 @@ public class RoleManager {
 	 * @return
 	 */
 	public List<User> findUsersByContextAndRole(String context, String space, String role, int page, int pageSize) {
-		Pageable pageable = new PageRequest(page, pageSize);
+		Pageable pageable = PageRequest.of(page, pageSize);
 		return userRepository.findByRoleContextAndRole(context, space, role, pageable);
 	}
 
@@ -249,7 +249,7 @@ public class RoleManager {
 	 * @return
 	 */
 	public List<User> findUsersByContextNested(String context, String space, String role, int page, int pageSize) {
-		Pageable pageable = new PageRequest(page, pageSize);
+		Pageable pageable = PageRequest.of(page, pageSize);
 		Role r = new Role();
 		r.setContext(context);
 		r.setSpace(space);
