@@ -41,10 +41,7 @@ import it.smartcommunitylab.aac.oauth.IsolationSupportHibernateJpaDialect;
  *
  */
 @Configuration
-//@EntityScan({"it.smartcommunitylab.aac.model", "it.smartcommunitylab.aac.dto"})
-//@EntityScan({"it.smartcommunitylab.aac.model"})
 @EnableTransactionManagement
-//@EnableSpringDataWebSupport
 @EntityScan(basePackages = {
         "it.smartcommunitylab.aac.model",
         "it.smartcommunitylab.aac.apikey.model",
@@ -116,6 +113,9 @@ public class DatabaseConfig {
         props.setProperty("hibernate.hbm2ddl.auto", "update");
         bean.setJpaProperties(props);
 
+        // explicitely mark packages for persistence unit
+        // TODO rework, align with @EntityScan
+        // spring boot 2.x should fix the issue
         bean.setPackagesToScan(
                 "it.smartcommunitylab.aac.model",
                 "it.smartcommunitylab.aac.apikey.model",

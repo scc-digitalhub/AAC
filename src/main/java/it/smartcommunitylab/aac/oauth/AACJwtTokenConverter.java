@@ -66,10 +66,10 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${security.accesstoken.validity}")
+    @Value("${oauth2.accesstoken.validity}")
     private int accessTokenValidity;
 
-    @Value("${security.refreshtoken.validity}")
+    @Value("${oauth2.refreshtoken.validity}")
     private int refreshTokenValidity;
     
     @Value("${server.max-http-header-size}")

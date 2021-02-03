@@ -1,96 +1,173 @@
 package it.smartcommunitylab.aac.config;
 
-import java.util.Locale;
+import java.beans.PropertyVetoException;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.ShallowEtagHeaderFilter;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.springframework.web.servlet.i18n.CookieLocaleResolver;
-
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
+import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
+import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.auth.cie.FileEmailIdentitySource;
+import it.smartcommunitylab.aac.auth.cie.IdentitySource;
 import it.smartcommunitylab.aac.authority.AuthorityHandler;
 import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
 import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
 import it.smartcommunitylab.aac.authority.FBAuthorityHandler;
 import it.smartcommunitylab.aac.authority.InternalAuthorityHandler;
+import it.smartcommunitylab.aac.manager.OAuth2ClientDetailsProviderImpl;
+import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
+import it.smartcommunitylab.aac.oauth.AACJDBCClientDetailsService;
+import it.smartcommunitylab.aac.oauth.AACJwtTokenConverter;
+import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
+import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.CachedServiceScopeServices;
+import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
+import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
+import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
+import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.repository.UserRepository;
 
-@Configuration 
-public class AACConfig extends WebMvcConfigurerAdapter {
+@Configuration
+public class AACConfig {
 
-	@Autowired
-	private ClientDetailsRepository clientDetailsRepository;
+    @Value("${oauth2.jwt}")
+    private boolean oauth2UseJwt;
 
-	@Bean
-	public CachedServiceScopeServices getResourceStorage() {
-		return new CachedServiceScopeServices();
-	}
-	
-	@Bean
-	public AuthorityHandlerContainer getAuthorityHandlerContainer() {
-		Map<String, AuthorityHandler> map = Maps.newTreeMap();
-		map.put(Config.IDP_INTERNAL, getInternalHandler());
-		FBAuthorityHandler fh = new FBAuthorityHandler();
-		map.put("facebook", fh);
-		AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
-		return bean;
-	}
+    @Value("${oauth2.accesstoken.validity}")
+    private int accessTokenValidity;
 
-	@Bean
-	public DefaultAuthorityHandler getDefaultHandler() {
-		return new DefaultAuthorityHandler();
-	}
-	@Bean
-	public InternalAuthorityHandler getInternalHandler() {
-		return new InternalAuthorityHandler();
-	}
+    @Value("${oauth2.refreshtoken.validity}")
+    private int refreshTokenValidity;
 
-	@Bean
-	public CookieLocaleResolver getLocaleResolver() {
-		CookieLocaleResolver bean = new CookieLocaleResolver();
-		bean.setDefaultLocale(Locale.ITALY);
-		return bean;
-	}	
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ClientDetailsRepository clientDetailsRepository;
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Autowired
+    private TokenStore tokenStore;
+
+    @Autowired
+    private OIDCTokenEnhancer tokenEnhancer;
+
+    @Autowired
+    private AACJwtTokenConverter tokenConverter;
+
+    /*
+     * OAuth
+     */
+    // TODO split specifics to dedicated configurer
 
     @Bean
-    FilterRegistrationBean shallowEtagBean () {
-        FilterRegistrationBean filter = new FilterRegistrationBean();
-        filter.setFilter(new ShallowEtagHeaderFilter());
-        filter.addUrlPatterns("/html/*", "/js/*", "/css/*", "/fonts/*", "/lib/*", "/italia/*");
-//        frb.setOrder(2);
-        return filter;
+    public AutoJdbcTokenStore getTokenStore() throws PropertyVetoException {
+        return new AutoJdbcTokenStore(dataSource);
     }
-	   
-	@Override
-	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**").allowedMethods("PUT", "DELETE", "GET", "POST").allowedOrigins("*");
-	}	
-	
-    @Override
-    public void configurePathMatch(final PathMatchConfigurer configurer) {
-        //configure a sane path mapping, avoid huge security holes with: 
-        // * spring security considering /about /about/ /about.any correctly as different
-        // * spring MVC considering all those the same
-        // result is only /about is protected by antMatcher, all the other variants are open to the world
-        configurer.setUseSuffixPatternMatch(false);
-        configurer.setUseTrailingSlashMatch(false);
+
+    @Bean
+    public JdbcApprovalStore getApprovalStore() throws PropertyVetoException {
+        return new JdbcApprovalStore(dataSource);
     }
-    
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        // configure a sane path mapping by disabling content negotiation via extensions
-        // the default breaks every single mapping which receives a path ending with
-        // '.x', like 'user.roles.me'
-        configurer.favorPathExtension(false);
+
+    @Bean
+    @Primary
+    public JdbcClientDetailsService getClientDetails() throws PropertyVetoException {
+        JdbcClientDetailsService bean = new AACJDBCClientDetailsService(dataSource);
+        bean.setRowMapper(getClientDetailsRowMapper());
+        return bean;
     }
+
+    @Bean
+    @Primary
+    public UserDetailsService getInternalUserDetailsService() {
+        return new InternalUserDetailsRepo();
+    }
+
+    @Bean
+    public ClientDetailsRowMapper getClientDetailsRowMapper() {
+        return new ClientDetailsRowMapper(userRepository);
+    }
+
+    @Bean
+    @Primary
+    public OAuth2ClientDetailsProvider getOAuth2ClientDetailsProvider() throws PropertyVetoException {
+        return new OAuth2ClientDetailsProviderImpl(clientDetailsRepository);
+    }
+
+    @Bean
+    public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(filter);
+        registration.setOrder(-100);
+        return registration;
+    }
+
+    @Bean
+    public CachedServiceScopeServices getResourceStorage() {
+        return new CachedServiceScopeServices();
+    }
+
+    @Bean("appTokenServices")
+    public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
+        NonRemovingTokenServices bean = new NonRemovingTokenServices();
+        bean.setTokenStore(tokenStore);
+        bean.setSupportRefreshToken(true);
+        bean.setReuseRefreshToken(true);
+        bean.setAccessTokenValiditySeconds(accessTokenValidity);
+        bean.setRefreshTokenValiditySeconds(refreshTokenValidity);
+        bean.setClientDetailsService(getClientDetails());
+        if (oauth2UseJwt) {
+            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer, tokenConverter));
+        } else {
+            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));
+        }
+
+        return bean;
+    }
+
+    /*
+     * Authorities handlers
+     */
+
+    @Bean
+    public IdentitySource getIdentitySource() {
+        return new FileEmailIdentitySource();
+    }
+
+    @Bean
+    public AuthorityHandlerContainer getAuthorityHandlerContainer() {
+        Map<String, AuthorityHandler> map = Maps.newTreeMap();
+        map.put(Config.IDP_INTERNAL, getInternalHandler());
+        FBAuthorityHandler fh = new FBAuthorityHandler();
+        map.put("facebook", fh);
+        AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
+        return bean;
+    }
+
+    @Bean
+    public DefaultAuthorityHandler getDefaultHandler() {
+        return new DefaultAuthorityHandler();
+    }
+
+    @Bean
+    public InternalAuthorityHandler getInternalHandler() {
+        return new InternalAuthorityHandler();
+    }
+
 }

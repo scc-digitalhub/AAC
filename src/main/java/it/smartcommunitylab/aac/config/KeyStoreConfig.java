@@ -21,7 +21,7 @@ public class KeyStoreConfig {
 
     private JWKSetKeyStore keyStore;
 
-    @Bean()
+    @Bean
     @Primary
     public JWKSetKeyStore getJWKSetKeyStore() {
         if (keyStore == null) {

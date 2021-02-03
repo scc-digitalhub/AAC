@@ -50,7 +50,7 @@ public class JWTConfig {
     @Autowired
     private JWKSetKeyStore jwtKeyStore;
 
-    @Bean()
+    @Bean
     public JWTSigningAndValidationService getJWTSigningAndValidationService()
             throws NoSuchAlgorithmException, InvalidKeySpecException {
 
@@ -93,7 +93,7 @@ public class JWTConfig {
         return service;
     }
 
-    @Bean()
+    @Bean
     public JWTEncryptionAndDecryptionService getJWTEncryptionAndDecryptionService()
             throws JOSEException, NoSuchAlgorithmException, InvalidKeySpecException {
 
