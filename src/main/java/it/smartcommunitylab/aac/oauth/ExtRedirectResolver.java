@@ -16,9 +16,12 @@
 
 package it.smartcommunitylab.aac.oauth;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
@@ -38,7 +41,7 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 
 //    private static final String URL_TEST = "/testtoken";
     private static final String[] LOCALHOST = { "http://localhost", "http://127.0.0.1" };
-
+    private static final String[] INTERNAL_URLS = { "html/modal/token.html" };
 //    @Value("${security.redirects.matchports}")
 //    private boolean configMatchPorts;
 
@@ -58,7 +61,13 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
             boolean configMatchPorts,
             boolean configMatchSubDomains) {
         super();
-        this.applicationURL = applicationURL;
+
+        if (!StringUtils.endsWith(applicationURL, "/")) {
+            // add slash to support every local path
+            this.applicationURL = applicationURL + "/";
+        } else {
+            this.applicationURL = applicationURL;
+        }
 //		path = testTokenPath(context);
         this.setMatchPorts(configMatchPorts);
         this.setMatchSubdomains(configMatchSubDomains);
@@ -77,13 +86,16 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 //        return baseURL + URL_TEST;
 //    }
 
-    public static boolean isLocalRedirect(String requestedRedirect, String baseURL) {
-        //TODO either remove localhost or put behind flag global or in client
-        //we don't want an open redirect for implicit flows
+    public boolean isLocalRedirect(String requestedRedirect, String baseURL) {
+        // TODO either remove localhost or put behind flag global or in client
+        // we don't want an open redirect for implicit flows
 //        Set<String> redirectUris = new HashSet<>(Arrays.asList(LOCALHOST));
 //        redirectUris.add(baseURL);
 
-        return localResolver.matchingRedirect(Collections.singleton(baseURL), requestedRedirect);
+        Collection<String> localRedirects = Arrays.stream(INTERNAL_URLS).map(u -> baseURL.concat(u))
+                .collect(Collectors.toList());
+
+        return localResolver.matchingRedirect(localRedirects, requestedRedirect);
     }
 
     @Override
