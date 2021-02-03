@@ -272,6 +272,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     // TODO customize authenticationprovider to handle per realm sessions
+    @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
