@@ -89,7 +89,7 @@ public class UserRolesTest {
             long userId = Long.parseLong(reg1.getUserId());
             logger.debug("delete user "+USERNAME + " with id "+String.valueOf(userId));
             regRepository.delete(reg1);
-            userRepository.delete(userId);
+            userRepository.deleteById(userId);
         }
         
         Registration reg2 =registrationManager.getUserByEmail(USERNAME2); 
@@ -97,7 +97,7 @@ public class UserRolesTest {
             long userId = Long.parseLong(reg2.getUserId());
             logger.debug("delete user "+USERNAME2 + " with id "+String.valueOf(userId));
             regRepository.delete(reg2);
-            userRepository.delete(userId);
+            userRepository.deleteById(userId);
         }
         
         Registration regT =registrationManager.getUserByEmail(TENANTUSERNAME); 
@@ -105,7 +105,7 @@ public class UserRolesTest {
             long userId = Long.parseLong(regT.getUserId());
             logger.debug("delete user "+TENANTUSERNAME + " with id "+String.valueOf(userId));
             regRepository.delete(regT);
-            userRepository.delete(userId);
+            userRepository.deleteById(userId);
         }
         
         
