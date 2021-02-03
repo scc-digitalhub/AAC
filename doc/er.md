@@ -1,5 +1,25 @@
 # Entity details
 
+Entities are managed via different models, each designed to fullfil a specific role in the application stack.
+
+From a top-down perspective we can usually find:
+
+* entity(DTO): complete view detached from repository used between services and towards API clients
+* entityImpl: service - specific view, derived from db model - detached
+* entityModel: database-managed entity view
+* entityAbstract: base abstract class used to model core entities
+
+While many API use only *dto* and *model*, some require a more complex representation:
+
+* client
+* user
+
+Different services will merge the base DB model entity with service-specific data, for example OAuth2 client properties, User Idp account attributes etc.
+
+As implementation rule, every conversion between *models* and *dto* should be handled by static builders, avoiding manual property setting where possible.
+
+As naming rule, entity without suffix should indicate the detached DTO, while internal representations can use different suffixes such as *-impl*,*-model* etc.
+
 ## Core
 
 ### Realm
