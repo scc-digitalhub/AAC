@@ -184,7 +184,8 @@ public class AuthController {
 	 * @throws Exception
 	 */
 	@RequestMapping("/eauth/authorize")
-	public ModelAndView authorise(Device device,
+	public ModelAndView authorise(
+	        Device device,
 			HttpServletRequest req,
 			@RequestParam(value = "authorities", required = false) String loginAuthorities)
 			throws Exception {

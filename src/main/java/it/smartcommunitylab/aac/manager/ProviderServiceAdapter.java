@@ -187,7 +187,7 @@ public class ProviderServiceAdapter {
 		
 		List<UserClaim> claims = claimRepository.findByUsername(user.getUsername());
 		claims.forEach(c -> c.setUser(user));
-		claimRepository.save(claims);
+		claimRepository.saveAll(claims);
 	}
 
 	private  List<Attribute> populateAttributes(Authority auth, Map<String, String> attributes,  Set<Attribute> old) {

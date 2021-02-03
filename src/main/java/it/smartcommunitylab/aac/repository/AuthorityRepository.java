@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.model.Authority;
  *
  */
 @Repository
-public interface AuthorityRepository extends JpaRepository<Authority, String> {
+public interface AuthorityRepository extends CustomJpaRepository<Authority, String> {
 
 	/**
 	 * Find by unique authority redirect path URL

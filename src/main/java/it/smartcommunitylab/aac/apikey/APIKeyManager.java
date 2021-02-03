@@ -203,7 +203,7 @@ public class APIKeyManager {
      */
     public void deleteKey(String key) {
         keysCache.invalidate(key);
-        keyRepo.delete(key);
+        keyRepo.deleteById(key);
         logger.debug("removed API Key " + key);
     }
 

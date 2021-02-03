@@ -21,12 +21,13 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import it.smartcommunitylab.aac.apikey.model.APIKeyEntity;
+import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 
 /**
  * @author raman
  *
  */
-public interface APIKeyRepository extends JpaRepository<APIKeyEntity, String> {
+public interface APIKeyRepository extends CustomJpaRepository<APIKeyEntity, String> {
 
     List<APIKeyEntity> findByClientId(String clientId);
 

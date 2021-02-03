@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
  *
  */
 @Repository
-public interface ClientDetailsRepository extends JpaRepository<ClientDetailsEntity, Long> {
+public interface ClientDetailsRepository extends CustomJpaRepository<ClientDetailsEntity, Long> {
 
 	@Query("select c from ClientDetailsEntity c where c.developerId=?1")
 	public List<ClientDetailsEntity> findByDeveloperId(Long developerId);

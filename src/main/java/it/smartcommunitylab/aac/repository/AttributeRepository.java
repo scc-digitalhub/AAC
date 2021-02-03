@@ -25,6 +25,6 @@ import it.smartcommunitylab.aac.model.Attribute;
  *
  */
 @Repository
-public interface AttributeRepository extends JpaRepository<Attribute, Long> {
+public interface AttributeRepository extends CustomJpaRepository<Attribute, Long> {
 
 }

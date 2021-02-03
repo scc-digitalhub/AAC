@@ -32,7 +32,7 @@ import it.smartcommunitylab.aac.model.Service;
  *
  */
 @Repository
-public interface ServiceModelRepository extends JpaRepository<Service, String> {
+public interface ServiceModelRepository extends CustomJpaRepository<Service, String> {
 
 	@Query("select s from Service s where s.name like %?1%")
 	Page<Service> findByName(String name, Pageable pageable);

@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.model.UserCertificate;
  * @author raman
  *
  */
-public interface UserCertificateRepository extends JpaRepository<UserCertificate, Long> {
+public interface UserCertificateRepository extends CustomJpaRepository<UserCertificate, Long> {
 	
 	UserCertificate findByUsernameAndProvider(String username, String provider);
 }

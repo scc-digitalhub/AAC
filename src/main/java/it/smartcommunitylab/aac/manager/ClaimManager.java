@@ -275,7 +275,7 @@ public class ClaimManager {
 		}
 		List<UserClaim> claims = userClaimRepository.findByUserAndService(Long.parseLong(userId), serviceId);
 		if (!claims.isEmpty()) {
-			userClaimRepository.delete(claims);
+			userClaimRepository.deleteAll(claims);
 		}
 		Map<String, ServiceClaim> qClaims = serviceManager.getServiceClaimsDB(serviceId).stream().collect(Collectors.toMap(c -> ServiceClaim.qualifiedName(service.getNamespace(), c.getClaim()), c -> c));
 		User dbUser = userManager.findOne(Long.parseLong(userId)); 
@@ -310,7 +310,7 @@ public class ClaimManager {
 		}
 		List<UserClaim> claims = userClaimRepository.findByUsernameAndService(username, serviceId);
 		if (!claims.isEmpty()) {
-			userClaimRepository.delete(claims);
+			userClaimRepository.deleteAll(claims);
 		}
 		Map<String, ServiceClaim> qClaims = serviceManager.getServiceClaimsDB(serviceId).stream().collect(Collectors.toMap(c -> ServiceClaim.qualifiedName(service.getNamespace(), c.getClaim()), c -> c));
 
@@ -355,7 +355,7 @@ public class ClaimManager {
 		if (!userContexts.contains(service.getContext())) {
 			throw new SecurityException("Not authorized to access service " + serviceId);
 		}
-		userClaimRepository.delete(userClaimRepository.findByUserAndService(Long.parseLong(userId), serviceId));
+		userClaimRepository.deleteAll(userClaimRepository.findByUserAndService(Long.parseLong(userId), serviceId));
 	}
 	public void deleteServiceUserClaimsByUsername(User owner, String serviceId, String username) {
 		Set<String> userContexts = serviceManager.getUserContexts(owner);
@@ -364,7 +364,7 @@ public class ClaimManager {
 		if (!userContexts.contains(service.getContext())) {
 			throw new SecurityException("Not authorized to access service " + serviceId);
 		}
-		userClaimRepository.delete(userClaimRepository.findByUsernameAndService(username, serviceId));
+		userClaimRepository.deleteAll(userClaimRepository.findByUsernameAndService(username, serviceId));
 	}
 
 	
@@ -904,7 +904,7 @@ public class ClaimManager {
 		}
 		List<ClientClaim> claims = clientClaimRepository.findByClientAndService(clientId, serviceId);
 		if (!claims.isEmpty()) {
-			clientClaimRepository.delete(claims);
+			clientClaimRepository.deleteAll(claims);
 		}
 		Map<String, ServiceClaim> qClaims = serviceManager.getServiceClaimsDB(serviceId).stream().collect(Collectors.toMap(c -> ServiceClaim.qualifiedName(service.getNamespace(), c.getClaim()), c -> c));
 		ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId); 
@@ -936,6 +936,6 @@ public class ClaimManager {
 		if (!userContexts.contains(service.getContext())) {
 			throw new SecurityException("Not authorized to access service " + serviceId);
 		}
-		clientClaimRepository.delete(clientClaimRepository.findByClientAndService(clientId, serviceId));
+		clientClaimRepository.deleteAll(clientClaimRepository.findByClientAndService(clientId, serviceId));
 	}
 }

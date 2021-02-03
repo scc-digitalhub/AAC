@@ -412,9 +412,9 @@ public class UserManager {
     public void deleteUser(Long userId) {
         // TODO revoke social?
         User user = userRepository.findOne(userId);
-        clientDetailsRepository.delete(clientDetailsRepository.findByDeveloperId(userId));
+        clientDetailsRepository.deleteAll(clientDetailsRepository.findByDeveloperId(userId));
 
-        approvalRepository.delete(approvalRepository.findByUserId(userId.toString()));
+        approvalRepository.deleteAll(approvalRepository.findByUserId(userId.toString()));
 
         Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByUserName(userId.toString());
         for (OAuth2AccessToken token : tokens) {
@@ -424,7 +424,7 @@ public class UserManager {
         if (reg != null) {
             regRepository.delete(reg);
         }
-        userRepository.delete(userId);
+        userRepository.deleteById(userId);
     }
 
     /**
@@ -478,7 +478,7 @@ public class UserManager {
      * @return
      */
     public List<ConnectedAppProfile> deleteConnectedApp(Long user, String clientId) {
-        approvalRepository.delete(approvalRepository.findByUserIdAndClientId(user.toString(), clientId));
+        approvalRepository.deleteAll(approvalRepository.findByUserIdAndClientId(user.toString(), clientId));
         Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByClientIdAndUserName(clientId, user.toString());
         for (OAuth2AccessToken token : tokens) {
             if (token.getRefreshToken() != null) {

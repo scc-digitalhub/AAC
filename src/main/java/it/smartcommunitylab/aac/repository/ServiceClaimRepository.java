@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.model.ServiceClaim;
  *
  */
 @Repository
-public interface ServiceClaimRepository extends JpaRepository<ServiceClaim, Long> {
+public interface ServiceClaimRepository extends CustomJpaRepository<ServiceClaim, Long> {
 
 	@Query("select s from ServiceClaim s where s.service.serviceId = LOWER(?1)")
 	List<ServiceClaim> findByService(String serviceId);

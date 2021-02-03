@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.model.Registration;
  *
  */
 @Repository
-public interface RegistrationRepository extends JpaRepository<Registration, Long>{
+public interface RegistrationRepository extends CustomJpaRepository<Registration, Long>{
 
 	@Query("select r from Registration r where r.email=?1")
 	Registration findByEmail(String email);

@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.model.UserClaim;
  *
  */
 @Repository
-public interface UserClaimRepository extends JpaRepository<UserClaim, Long> {
+public interface UserClaimRepository extends CustomJpaRepository<UserClaim, Long> {
 	
 	@Query("select uc from UserClaim uc where uc.user.id = ?1")
 	List<UserClaim> findByUser(Long userId);

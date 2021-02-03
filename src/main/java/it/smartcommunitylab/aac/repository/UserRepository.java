@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.model.User;
  *
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom {
+public interface UserRepository extends CustomJpaRepository<User, Long>, UserRepositoryCustom {
 
 	@Query("select u from User u where u.name=?1")
 	User findByName(String text);	

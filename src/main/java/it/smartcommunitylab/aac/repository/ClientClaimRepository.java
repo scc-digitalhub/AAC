@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.model.ClientClaim;
  *
  */
 @Repository
-public interface ClientClaimRepository extends JpaRepository<ClientClaim, String> {
+public interface ClientClaimRepository extends CustomJpaRepository<ClientClaim, String> {
 
 	@Query("select cc from ClientClaim cc where cc.client.clientId = ?1")
 	List<ClientClaim> findByClient(String client);

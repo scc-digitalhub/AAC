@@ -262,7 +262,7 @@ public class ServiceManager {
 				throw new SecurityException("Unauthorized operation for service: " + serviceId);
 			}
 			Set<String> scopes = getServiceScopes(serviceId).stream().map(s -> s.getScope()).collect(Collectors.toSet());
-			serviceRepo.delete(serviceId.toLowerCase());
+			serviceRepo.deleteById(serviceId.toLowerCase());
 			// refresh claim cache
 			scopes.forEach(s -> resetCache(s));
 		}
