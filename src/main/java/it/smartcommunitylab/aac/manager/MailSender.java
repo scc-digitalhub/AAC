@@ -57,8 +57,10 @@ public class MailSender {
 	@Autowired @Value("${mail.protocol}")
 	private String mailProtocol;
 
-	@Value("classpath:/javamail.properties")
-	private Resource mailProps;
+	//TODO evaluate if needed
+	// add additional props to application.yaml to expose as ENV var
+//	@Value("classpath:javamail.properties")
+//	private Resource mailProps;
 		
 	@Autowired
 	private TemplateEngine templateEngine;
@@ -75,10 +77,10 @@ public class MailSender {
 		mailSender.setProtocol(mailProtocol);    	
 		mailSender.setPassword(mailPwd);
     	mailSender.setUsername(mailUser);
-
-    	Properties props = new Properties();
-		props.load(mailProps.getInputStream());
-		mailSender.setJavaMailProperties(props);
+//
+//    	Properties props = new Properties();
+//		props.load(mailProps.getInputStream());
+//		mailSender.setJavaMailProperties(props);
     	
     }
     
