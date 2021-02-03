@@ -156,7 +156,7 @@ spring:
       basename: resources/internal
       encoding: UTF-8
    resources:
-      cache-period: 3600
+      cache.period: 3600
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
@@ -189,7 +189,8 @@ bootstrap:
 
 #port used to expose actuator
 management:
-   port: ${MANAGEMENT_PORT:8081}
+   server:
+    port: ${MANAGEMENT_PORT:8081}
 
 ---
 # SPRING
