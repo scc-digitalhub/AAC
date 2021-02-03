@@ -10,7 +10,7 @@
    <parent>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
-      <version>1.5.22.RELEASE</version>
+      <version>2.0.9.RELEASE</version>
    </parent>
 
    <properties>
@@ -21,15 +21,21 @@
    </properties>
 
    <dependencies>
+      <!-- keep only for upgrade -->
+		<dependency>
+		   <groupId>org.springframework.boot</groupId>
+		   <artifactId>spring-boot-properties-migrator</artifactId>
+		   <scope>runtime</scope>
+		</dependency>
 
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-web</artifactId>
       </dependency>
-      <dependency>
-         <groupId>org.springframework.mobile</groupId>
-         <artifactId>spring-mobile-device</artifactId>
-      </dependency>
+<!--       <dependency> -->
+<!--          <groupId>org.springframework.mobile</groupId> -->
+<!--          <artifactId>spring-mobile-device</artifactId> -->
+<!--       </dependency> -->
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-security</artifactId>
@@ -51,6 +57,7 @@
       <dependency>
          <groupId>org.springframework.security</groupId>
          <artifactId>spring-security-jwt</artifactId>
+         <version>1.1.1.RELEASE</version>
       </dependency>
 <!--     DISABLE devTools -->
       <dependency>
@@ -82,8 +89,7 @@
       <dependency>
          <groupId>org.apache.commons</groupId>
          <artifactId>commons-lang3</artifactId>
-         <version>3.5</version>
-      </dependency>
+         </dependency>
 
       <dependency>
          <groupId>org.apache.httpcomponents</groupId>
@@ -104,6 +110,7 @@
       <dependency>
          <groupId>org.springframework.security.oauth</groupId>
          <artifactId>spring-security-oauth2</artifactId>
+         <version>2.0.19.RELEASE</version>
       </dependency>
 
 
