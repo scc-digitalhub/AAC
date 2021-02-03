@@ -34,10 +34,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
@@ -650,8 +652,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return resource;
     }
 
+    
+    //client auth provider uses plaintext passwords
+    public DaoAuthenticationProvider clientAuthProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+        authProvider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+        return authProvider;
+    }
+    
     @Bean
     protected ResourceServerConfiguration tokenIntrospectionResources() {
+        
         ResourceServerConfiguration resource = new ResourceServerConfiguration() {
             public void setConfigurers(List<ResourceServerConfigurer> configurers) {
                 super.setConfigurers(configurers);
@@ -667,8 +679,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .antMatchers(TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL)
                         .hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
                         .and().httpBasic()
-                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
-            }
+                        .and().authenticationProvider(clientAuthProvider());
+//                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+                }
         }));
         resource.setOrder(12);
         return resource;
