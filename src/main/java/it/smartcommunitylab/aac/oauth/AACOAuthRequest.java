@@ -22,12 +22,12 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.mobile.device.Device;
+//import org.springframework.mobile.device.Device;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.Config.DEVICE_TYPE;
+//import it.smartcommunitylab.aac.Config.DEVICE_TYPE;
 
 /**
  * @author raman
@@ -40,14 +40,15 @@ public class AACOAuthRequest implements Serializable {
 	private String clientApp;
 	private String redirectUri;
 	private Set<String> scopes;
-	private DEVICE_TYPE device;
+//	private DEVICE_TYPE device;
 	private String grantType;
 	private boolean rememberMe;
 	private boolean strongAuthConfirmed;
 	private String authority;
 	
-	public AACOAuthRequest(HttpServletRequest request, Device device, String clientScope, String clientApp) {
-		clientId = request.getParameter(OAuth2Utils.CLIENT_ID);
+//	public AACOAuthRequest(HttpServletRequest request, Device device, String clientScope, String clientApp) {
+    public AACOAuthRequest(HttpServletRequest request, String clientScope, String clientApp) {
+	clientId = request.getParameter(OAuth2Utils.CLIENT_ID);
 		this.clientApp = clientApp;
 		grantType = request.getParameter(OAuth2Utils.GRANT_TYPE);
 		redirectUri = request.getParameter(OAuth2Utils.REDIRECT_URI);
@@ -60,16 +61,18 @@ public class AACOAuthRequest implements Serializable {
 		for (String s :  scopeArr) {
 			scopes.addAll(OAuth2Utils.parseParameterList(s));
 		}
-		this.device = device.isMobile() 
-				? DEVICE_TYPE.MOBILE
-				: device.isTablet()
-				? DEVICE_TYPE.TABLET
-				: device.isNormal() 
-				? DEVICE_TYPE.DESKTOP
-				: DEVICE_TYPE.UNKNOWN;
-		// TODO recognize webview
+//		this.device = device.isMobile() 
+//				? DEVICE_TYPE.MOBILE
+//				: device.isTablet()
+//				? DEVICE_TYPE.TABLET
+//				: device.isNormal() 
+//				? DEVICE_TYPE.DESKTOP
+//				: DEVICE_TYPE.UNKNOWN;
+//		// TODO recognize webview
 		
-		this.rememberMe = isPortableDevice() || isParamRememberMe(request.getParameter(Config.PARAM_REMEMBER_ME));
+//		this.rememberMe = isPortableDevice() || isParamRememberMe(request.getParameter(Config.PARAM_REMEMBER_ME));
+		this.rememberMe = isParamRememberMe(request.getParameter(Config.PARAM_REMEMBER_ME));
+
 	}
 	
 	/**
@@ -86,23 +89,24 @@ public class AACOAuthRequest implements Serializable {
 		return false;
 	}
 
-	public boolean isPortableDevice() {
-		switch(device) {
-		case MOBILE:
-		case TABLET:
-		case WEBVIEW:
-			return true;
-		default:
-			return false;	
-		}
-	}
-
-	public boolean isWebView() {
-		return device.equals(DEVICE_TYPE.WEBVIEW);
-	}
+//	public boolean isPortableDevice() {
+//		switch(device) {
+//		case MOBILE:
+//		case TABLET:
+//		case WEBVIEW:
+//			return true;
+//		default:
+//			return false;	
+//		}
+//	}
+//
+//	public boolean isWebView() {
+//		return device.equals(DEVICE_TYPE.WEBVIEW);
+//	}
 
 	public boolean isMobile2FactorRequested() {
-		return isPortableDevice() && !isWebView() && (scopes.contains(Config.SCOPE_OPERATION_CONFIRMED));
+//		return isPortableDevice() && !isWebView() && (scopes.contains(Config.SCOPE_OPERATION_CONFIRMED));
+	    return scopes.contains(Config.SCOPE_OPERATION_CONFIRMED);
 	}
 	public boolean isMobile2FactorConfirmed() {
 		return strongAuthConfirmed;
@@ -126,9 +130,9 @@ public class AACOAuthRequest implements Serializable {
 		return scopes;
 	}
 
-	public DEVICE_TYPE getDevice() {
-		return device;
-	}
+//	public DEVICE_TYPE getDevice() {
+//		return device;
+//	}
 
 	public boolean isRememberMe() {
 		return rememberMe;
@@ -151,9 +155,14 @@ public class AACOAuthRequest implements Serializable {
 	}
 
     @Override
+//    public String toString() {
+//        return "AACOAuthRequest [clientId=" + clientId + ", clientApp=" + clientApp + ", redirectUri=" + redirectUri
+//                + ", scopes=" + scopes + ", device=" + device + ", grantType=" + grantType + ", rememberMe="
+//                + rememberMe + ", strongAuthConfirmed=" + strongAuthConfirmed + ", authority=" + authority + "]";
+//    }
     public String toString() {
         return "AACOAuthRequest [clientId=" + clientId + ", clientApp=" + clientApp + ", redirectUri=" + redirectUri
-                + ", scopes=" + scopes + ", device=" + device + ", grantType=" + grantType + ", rememberMe="
+                + ", scopes=" + scopes + ", grantType=" + grantType + ", rememberMe="
                 + rememberMe + ", strongAuthConfirmed=" + strongAuthConfirmed + ", authority=" + authority + "]";
     }
 	

@@ -64,8 +64,8 @@ public class Config {
 		}
 	};
 
-	/** Requesting device type */
-	public enum DEVICE_TYPE {MOBILE, TABLET, DESKTOP, UNKNOWN, WEBVIEW};
+//	/** Requesting device type */
+//	public enum DEVICE_TYPE {MOBILE, TABLET, DESKTOP, UNKNOWN, WEBVIEW};
 	
 	/** operation scope requiring strong 2-factor authentication */
 	public static final String SCOPE_OPERATION_CONFIRMED = "operation.confirmed";

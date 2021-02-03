@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mobile.device.Device;
+//import org.springframework.mobile.device.Device;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.RememberMeAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -185,7 +185,7 @@ public class AuthController {
 	 */
 	@RequestMapping("/eauth/authorize")
 	public ModelAndView authorise(
-	        Device device,
+//	        Device device,
 			HttpServletRequest req,
 			@RequestParam(value = "authorities", required = false) String loginAuthorities)
 			throws Exception {
@@ -199,7 +199,8 @@ public class AuthController {
 		// each time create new OAuth request
 		ClientAppBasic client = clientDetailsAdapter.getByClientId(clientId);
 		String clientScopes = StringUtils.collectionToCommaDelimitedString(client.getScope());
-		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, clientScopes, client.getDisplayName());
+//		AACOAuthRequest oauthRequest = new AACOAuthRequest(req, device, clientScopes, client.getDisplayName());
+	    AACOAuthRequest oauthRequest = new AACOAuthRequest(req, clientScopes, client.getDisplayName());
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth != null && auth.getAuthorities() != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(AUTHORITY.ROLE_USER.toString())) &&
 			req.getSession().getAttribute(Config.SESSION_ATTR_AAC_OAUTH_REQUEST) != null) {
