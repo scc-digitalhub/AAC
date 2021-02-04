@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.model;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -34,7 +35,6 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.api.client.util.Sets;
 
 /**
  * DB entity representing the user: user ID, social ID, and the attributes
@@ -72,8 +72,8 @@ public class User implements Serializable {
 	
 	public User() {
 		super();
-		this.roles = Sets.newHashSet();
-		this.attributeEntities = Sets.newHashSet();
+		this.roles = Collections.emptySet();
+		this.attributeEntities = Collections.emptySet();
 	}
 	
 	
@@ -88,7 +88,7 @@ public class User implements Serializable {
 		super();
 		updateNames(name, surname);
 		this.attributeEntities = attrs;
-		this.roles = Sets.newHashSet();
+		this.roles = Collections.emptySet();
 	}
 
 	public Long getId() {
