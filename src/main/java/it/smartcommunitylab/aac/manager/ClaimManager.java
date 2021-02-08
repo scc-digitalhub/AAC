@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.manager;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,8 +46,6 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.nimbusds.jwt.JWTClaimsSet;
 
 import delight.nashornsandbox.NashornSandbox;
@@ -115,16 +114,24 @@ public class ClaimManager {
 	 * @param requestedClaims
 	 * @return
 	 */
-	@Transactional(readOnly = true)
-	public Map<String, Object> getUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientDetailsEntity client, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims) {
-		ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
-		try {
-			return createUserClaims(userId, authorities, appInfo.getClaimMapping(), scopes, authorizedClaims, requestedClaims, appInfo.getUniqueSpaces(), appInfo.getRolePrefixes(), true, null);
-		} catch (InvalidDefinitionException e) {
-			// never arrives here
-			return null;
-		}
-	}
+	
+   public Map<String, Object> getUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, ClientDetailsEntity client, Set<String> scopes) {
+       return getUserClaims(userId, authorities, client, scopes, null, null);
+   }	
+	
+    @Transactional(readOnly = true)
+    public Map<String, Object> getUserClaims(String userId, Collection<? extends GrantedAuthority> authorities,
+            ClientDetailsEntity client, Set<String> scopes, Set<String> authorizedClaims, Set<String> requestedClaims) {
+        // TODO handle authorized/requested claims in caller
+        ClientAppInfo appInfo = ClientAppInfo.convert(client.getAdditionalInformation());
+        try {
+            return createUserClaims(userId, authorities, appInfo.getClaimMapping(), scopes, authorizedClaims,
+                    requestedClaims, appInfo.getUniqueSpaces(), appInfo.getRolePrefixes(), true, null);
+        } catch (InvalidDefinitionException e) {
+            // never arrives here
+            return null;
+        }
+    }
 
 	/**
 	 * Return claims explicitly associated to the client application
@@ -368,7 +375,7 @@ public class ClaimManager {
 	}
 
 	
-	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, JsonObject authorizedClaims, JsonObject requestedClaims, Collection<String> uniqueSpaces, Collection<String> rolePrefixes, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
+	private Map<String, Object> createUserClaims(String userId, Collection<? extends GrantedAuthority> authorities, String mapping, Set<String> scopes, Set<String> authorizedClaims, Set<String>  requestedClaims, Collection<String> uniqueSpaces, Collection<String> rolePrefixes, boolean suppressErrors, String excludedServiceId) throws InvalidDefinitionException {
 		AccountProfile ui = profileManager.getAccountProfileById(userId);
 		
 		// get the base object
@@ -462,9 +469,10 @@ public class ClaimManager {
 		}
 		
 		Set<String> allowedByScope = getClaimsForScopeSet(scopes);
-		Set<String> authorizedByClaims = extractUserInfoClaimsIntoSet(authorizedClaims);
-		Set<String> requestedByClaims = extractUserInfoClaimsIntoSet(requestedClaims);
-
+//		Set<String> authorizedByClaims = extractUserInfoClaimsIntoSet(authorizedClaims);
+//		Set<String> requestedByClaims = extractUserInfoClaimsIntoSet(requestedClaims);
+	    Set<String> authorizedByClaims = (authorizedClaims == null ? Collections.emptySet() : authorizedClaims);
+        Set<String> requestedByClaims = (requestedClaims  == null ? Collections.emptySet() : requestedClaims);
 		/*
 		 * Filtering
 		 */
@@ -721,14 +729,18 @@ public class ClaimManager {
 	 * Returns an empty set if the input is null.
 	 * @param claims the claims request to process
 	 */
-	private Set<String> extractUserInfoClaimsIntoSet(JsonObject claims) {
+	//TODO move to openid managers / protocol spec handling
+	public Set<String> extractUserInfoClaimsIntoSet(Map<String, Serializable> claims) {
 		Set<String> target = new HashSet<>();
 		if (claims != null) {
-			JsonObject userinfoAuthorized = claims.getAsJsonObject("userinfo");
+		    //TODO parse via objectmapper or disassemble in caller
+		    //for now unsupported
+//			JsonObject userinfoAuthorized = claims.getAsJsonObject("userinfo");
+		    Serializable userinfoAuthorized = claims.get("userinfo");
 			if (userinfoAuthorized != null) {
-				for (Entry<String, JsonElement> entry : userinfoAuthorized.entrySet()) {
-					target.add(entry.getKey());
-				}
+//				for (Entry<String, JsonElement> entry : userinfoAuthorized.entrySet()) {
+//					target.add(entry.getKey());
+//				}
 			}
 		}
 		return target;

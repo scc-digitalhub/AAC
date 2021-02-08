@@ -105,11 +105,16 @@ public class UserInfoEndpoint {
 
         model.addAttribute(UserInfoView.SCOPE, auth.getOAuth2Request().getScope());
 
-        model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.getOAuth2Request().getExtensions().get("claims"));
 
         model.addAttribute(UserInfoView.USER_INFO, user);
 
         model.addAttribute(UserInfoView.SELECTED_AUTHORITIES, userAuthorities);
+        
+        //TODO extract requested claims as per openid spec - disabled now
+//        model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.getOAuth2Request().getExtensions().get("claims"));     
+        model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, null);        
+        model.addAttribute(UserInfoView.REQUESTED_CLAIMS, null);
+        
         // content negotiation
 
         // start off by seeing if the client has registered for a signed/encrypted JWT

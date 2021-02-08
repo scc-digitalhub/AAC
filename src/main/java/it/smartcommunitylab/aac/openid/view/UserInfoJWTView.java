@@ -83,8 +83,10 @@ public class UserInfoJWTView extends UserInfoView {
             ClientDetailsEntity client = (ClientDetailsEntity) model.get(CLIENT);
 
             // use the parser to import the user claims into the object
-            StringWriter writer = new StringWriter();
-            gson.toJson(json, writer);
+//            StringWriter writer = new StringWriter();
+//            gson.toJson(json, writer);
+            String writer = mapper.writeValueAsString(json);
+
 
             Set<String> scope = (Set<String>) model.get(SCOPE);
             List<String> audiences = new LinkedList<>();

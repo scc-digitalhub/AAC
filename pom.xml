@@ -163,11 +163,11 @@
 			<version>1.4</version>
 		</dependency>
 
-		<dependency>
-			<groupId>javax.activation</groupId>
-			<artifactId>activation</artifactId>
-			<version>1.1</version>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>javax.activation</groupId> -->
+<!-- 			<artifactId>activation</artifactId> -->
+<!-- 			<version>1.1</version> -->
+<!-- 		</dependency> -->
 
 		<dependency>
 			<groupId>commons-logging</groupId>
@@ -202,10 +202,7 @@
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
 			</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-		</dependency>
+
 
 		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bctls-jdk15on -->
 <!-- 		<dependency> -->

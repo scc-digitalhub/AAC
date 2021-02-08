@@ -148,6 +148,7 @@ public class APIKeyManager {
                 List<GrantedAuthority> userAuthorities = roleManager.buildAuthorities(user);
                 // populate user fields
                 // TODO cache these
+                //TODO handle requested/authorized claims                
                 Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), userAuthorities,
                         client, scope, null, null);
                 apikey.setUserClaims(userClaims);

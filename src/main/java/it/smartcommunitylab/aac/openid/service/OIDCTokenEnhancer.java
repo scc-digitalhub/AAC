@@ -128,7 +128,7 @@ public class OIDCTokenEnhancer {
             Multimap<String, String> roleSpaces = roleManager.getRoleSpacesToNarrow(clientId, userAuthorities);
             Collection<GrantedAuthority> selectedAuthorities = roleManager.narrowAuthoritiesSpaces(roleSpaces,
                     userAuthorities, authAuthorities);
-
+            //TODO handle requested/authorized claims                
             Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
             // set directly, ignore extracted

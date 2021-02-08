@@ -197,6 +197,7 @@ public class AACJwtTokenConverter extends JwtAccessTokenConverter {
             logger.trace("selected authorities: " + selectedAuthorities.toString());
 
             // delegate to claim manager
+            //TODO handle requested/authorized claims                
             Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
             // set directly later on, ignore provided

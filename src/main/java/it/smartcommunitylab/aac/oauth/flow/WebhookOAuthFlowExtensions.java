@@ -167,6 +167,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
         }
 
         // TODO move claim building to claimManager or claimService - and ADD CACHE!
+        //TODO handle requested/authorized claims                
         Map<String, Object> claimMap = claimManager.getUserClaims(userAuthentication.getName(), selectedAuthorities,
                 client, authorizationRequest.getScope(), null, null);
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder();

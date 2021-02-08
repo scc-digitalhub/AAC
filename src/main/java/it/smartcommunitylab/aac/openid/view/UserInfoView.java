@@ -16,6 +16,7 @@
 package it.smartcommunitylab.aac.openid.view;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Map;
@@ -24,6 +25,8 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.DeserializationConfig.Feature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +35,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.servlet.view.AbstractView;
-
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import it.smartcommunitylab.aac.manager.ClaimManager;
 import it.smartcommunitylab.aac.model.ClientDetailsEntity;
@@ -58,30 +54,12 @@ public class UserInfoView extends AbstractView {
 
 	public static final String VIEWNAME = "userInfoView";
 
-	private static JsonParser jsonParser = new JsonParser();
 	
 	@Autowired
 	private ClaimManager claimManager;
+
+    protected static final ObjectMapper mapper = new ObjectMapper().configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	
-	protected Gson gson = new GsonBuilder().setExclusionStrategies(new ExclusionStrategy() {
-
-		@Override
-		public boolean shouldSkipField(FieldAttributes f) {
-
-			return false;
-		}
-
-		@Override
-		public boolean shouldSkipClass(Class<?> clazz) {
-			// skip the JPA binding wrapper
-			if (clazz.equals(BeanPropertyBindingResult.class)) {
-				return true;
-			}
-			return false;
-		}
-
-	}).create();
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -103,15 +81,16 @@ public class UserInfoView extends AbstractView {
 		response.setCharacterEncoding("UTF-8");
 
 
-		JsonObject authorizedClaims = null;
-		JsonObject requestedClaims = null;
+		Map<String, Serializable> authorizedClaims = null;
+		Map<String, Serializable>  requestedClaims = null;
 		Collection<? extends GrantedAuthority> selectedAuthorities = null;
-		if (model.get(AUTHORIZED_CLAIMS) != null) {
-			authorizedClaims = jsonParser.parse((String) model.get(AUTHORIZED_CLAIMS)).getAsJsonObject();
-		}
-		if (model.get(REQUESTED_CLAIMS) != null) {
-			requestedClaims = jsonParser.parse((String) model.get(REQUESTED_CLAIMS)).getAsJsonObject();
-		}
+		//TODO properly parse from map. For now claim request is unsupported
+//		if (model.get(AUTHORIZED_CLAIMS) != null) {
+//			authorizedClaims = jsonParser.parse((String) model.get(AUTHORIZED_CLAIMS)).getAsJsonObject();
+//		}
+//		if (model.get(REQUESTED_CLAIMS) != null) {
+//			requestedClaims = jsonParser.parse((String) model.get(REQUESTED_CLAIMS)).getAsJsonObject();
+//		}
 		if (model.get(SELECTED_AUTHORITIES) != null) {
 			selectedAuthorities = (Collection<? extends GrantedAuthority>) model.get(SELECTED_AUTHORITIES);
 		}
@@ -128,7 +107,9 @@ public class UserInfoView extends AbstractView {
 	protected void writeOut(Map<String, Object> json, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
 		try {
 			Writer out = response.getWriter();
-			gson.toJson(json, out);
+			out.write(mapper.writeValueAsString(json));
+//			gson.toJson(json, out);
+			
 		} catch (IOException e) {
 
 			logger.error("IOException in UserInfoView.java: ", e);
@@ -150,8 +131,9 @@ public class UserInfoView extends AbstractView {
 	 * @param requestedClaims the claims requested in the RequestObject
 	 * @return the filtered JsonObject result
 	 */
-	private Map<String, Object> toJsonFromRequestObj(User user, Collection<? extends GrantedAuthority> selectedAuthorities, ClientDetailsEntity client, Set<String> scope, JsonObject authorizedClaims, JsonObject requestedClaims) {		
-		return claimManager.getUserClaims(user.getId().toString(), selectedAuthorities, client, scope, authorizedClaims, requestedClaims);
+	private Map<String, Object> toJsonFromRequestObj(User user, Collection<? extends GrantedAuthority> selectedAuthorities, ClientDetailsEntity client, Set<String> scope, Map<String, Serializable>  authorizedClaims, Map<String, Serializable>  requestedClaims) {		
+		//TODO handle claim extraction in openid manager, protocol specific
+	    return claimManager.getUserClaims(user.getId().toString(), selectedAuthorities, client, scope, claimManager.extractUserInfoClaimsIntoSet(authorizedClaims), claimManager.extractUserInfoClaimsIntoSet(requestedClaims));
 	}
 
 }
