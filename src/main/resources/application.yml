@@ -194,11 +194,11 @@ management:
    server:
     port: ${MANAGEMENT_PORT:8081}
 
----
-# SPRING
-spring:
-   profiles: authorization
-
-# ROLE PREFIX FOR AUTHORIZATION CHECK
-authorization:
-   contextSpace: authorization
+#---
+## SPRING
+#spring:
+#   profiles: authorization
+#
+## ROLE PREFIX FOR AUTHORIZATION CHECK
+#authorization:
+#   contextSpace: authorization

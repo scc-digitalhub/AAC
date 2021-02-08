@@ -243,30 +243,30 @@
 
 	</dependencies>
 
-	<profiles>
-		<profile>
-			<id>local</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<run.profiles>local${profile.authorization}</run.profiles>
-			</properties>
-		</profile>
-		<profile>
-			<id>authorization</id>
-			<properties>
-				<profile.authorization>,authorization</profile.authorization>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>it.smartcommunitylab.aac.authorization</groupId>
-					<artifactId>aac-authorization-web</artifactId>
-					<version>0.5.0-SNAPSHOT</version>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
+<!-- 	<profiles> -->
+<!-- 		<profile> -->
+<!-- 			<id>local</id> -->
+<!-- 			<activation> -->
+<!-- 				<activeByDefault>true</activeByDefault> -->
+<!-- 			</activation> -->
+<!-- 			<properties> -->
+<!-- 				<run.profiles>local${profile.authorization}</run.profiles> -->
+<!-- 			</properties> -->
+<!-- 		</profile> -->
+<!-- 		<profile> -->
+<!-- 			<id>authorization</id> -->
+<!-- 			<properties> -->
+<!-- 				<profile.authorization>,authorization</profile.authorization> -->
+<!-- 			</properties> -->
+<!-- 			<dependencies> -->
+<!-- 				<dependency> -->
+<!-- 					<groupId>it.smartcommunitylab.aac.authorization</groupId> -->
+<!-- 					<artifactId>aac-authorization-web</artifactId> -->
+<!-- 					<version>0.5.0-SNAPSHOT</version> -->
+<!-- 				</dependency> -->
+<!-- 			</dependencies> -->
+<!-- 		</profile> -->
+<!-- 	</profiles> -->
 
 	<build>
 		<plugins>
