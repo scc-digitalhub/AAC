@@ -212,10 +212,17 @@
 <!-- 		</dependency> -->
 
 		<!-- Nashorn Sandbox -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.javadelight</groupId> -->
+<!-- 			<artifactId>delight-nashorn-sandbox</artifactId> -->
+<!-- 			<version>0.1.26</version> -->
+<!-- 		</dependency> -->
+
+		<!-- use graal js for sandbox -->
 		<dependency>
-			<groupId>org.javadelight</groupId>
-			<artifactId>delight-nashorn-sandbox</artifactId>
-			<version>0.1.26</version>
+		  <groupId>org.javadelight</groupId>
+		  <artifactId>delight-graaljs-sandbox</artifactId>
+		  <version>0.1.2</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->

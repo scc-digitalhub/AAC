@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.slf4j.Logger;
@@ -48,8 +50,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nimbusds.jwt.JWTClaimsSet;
 
-import delight.nashornsandbox.NashornSandbox;
-import delight.nashornsandbox.NashornSandboxes;
+import delight.graaljssandbox.GraalSandbox;
+import delight.graaljssandbox.GraalSandboxes;
 import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.Config.CLAIM_TYPE;
@@ -639,10 +641,16 @@ public class ClaimManager {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> executeScript(Map<String, Object> obj, String func) throws ScriptException, IOException {
-		//TODO use a threadPool/cache to avoid the expensive sandbox creation at each call
-	    NashornSandbox sandbox = createSandbox();		
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> executeScript(Map<String, Object> obj, String func)
+            throws ScriptException, IOException {
+        // use scriptmanager, java11+
+        // TODO handle resources
+        // TODO use a threadPool/cache to avoid the expensive sandbox creation at each call
+        // TODO handle cache for mapping
+        // TODO move to dedicated service for JS execution
+//	    NashornSandbox sandbox = createSandbox();		
+        GraalSandbox sandbox = createSandbox();
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			StringWriter writer = new StringWriter();
@@ -657,7 +665,7 @@ public class ClaimManager {
 		} finally {
 			sandbox.getExecutor().shutdown();
 		}
-	}
+    }
 
 	/**
 	 * @param ui
@@ -830,15 +838,26 @@ public class ClaimManager {
         }
 	}
 	
-	private NashornSandbox createSandbox() {
-		NashornSandbox sandbox;
-		sandbox = NashornSandboxes.create();
-		sandbox.setMaxCPUTime(100);
-		sandbox.setMaxMemory(10*1024*1024);
-		sandbox.setMaxPreparedStatements(30); // because preparing scripts for execution is expensive
-		sandbox.setExecutor(Executors.newSingleThreadExecutor());
-		return sandbox;
-	} 
+//	private NashornSandbox createSandbox() {
+//		NashornSandbox sandbox;
+//		sandbox = NashornSandboxes.create();
+//		sandbox.setMaxCPUTime(100);
+//		sandbox.setMaxMemory(10*1024*1024);
+//		sandbox.setMaxPreparedStatements(30); // because preparing scripts for execution is expensive
+//		sandbox.setExecutor(Executors.newSingleThreadExecutor());
+//		return sandbox;
+//	}
+	
+	   private GraalSandbox createSandbox() {
+	       GraalSandbox sandbox;
+	        sandbox = GraalSandboxes.create();
+	        sandbox.setMaxCPUTime(100);
+	        sandbox.setMaxMemory(10*1024*1024);
+	        sandbox.setMaxPreparedStatements(30); // because preparing scripts for execution is expensive
+	        sandbox.setExecutor(Executors.newSingleThreadExecutor());
+	        return sandbox;
+	    } 
+	
 //	
 //	public static void main(String[] args) throws Exception {
 //		Map<String, Object> res = new ClaimManager().executeScript(
