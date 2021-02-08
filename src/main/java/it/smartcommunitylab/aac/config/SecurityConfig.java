@@ -39,7 +39,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
@@ -89,6 +88,7 @@ import it.smartcommunitylab.aac.oauth.OAuthClientUserDetails;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.OAuthProviders;
 import it.smartcommunitylab.aac.oauth.OAuthProviders.ClientResources;
+import it.smartcommunitylab.aac.oauth.PlaintextPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
@@ -447,7 +447,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /*
-     * API resources
+     * API resources : user
      */
 
     @Bean
@@ -557,50 +557,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    protected ResourceServerConfiguration wso2ClientResources() {
-        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
-            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
-                super.setConfigurers(configurers);
-            }
-        };
-        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
-            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-                resources.resourceId(null);
-            }
-
-            public void configure(HttpSecurity http) throws Exception {
-                http.antMatcher("/wso2/client/**").authorizeRequests().anyRequest()
-                        .access("#oauth2.hasScope('" + Config.SCOPE_CLIENTMANAGEMENT + "')").and().csrf().disable();
-            }
-
-        }));
-        resource.setOrder(7);
-        return resource;
-    }
-
-    @Bean
-    protected ResourceServerConfiguration wso2APIResources() {
-        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
-            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
-                super.setConfigurers(configurers);
-            }
-        };
-        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
-            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-                resources.resourceId(null);
-            }
-
-            public void configure(HttpSecurity http) throws Exception {
-                http.antMatcher("/wso2/resources/**").authorizeRequests().anyRequest()
-                        .access("#oauth2.hasScope('" + Config.SCOPE_APIMANAGEMENT + "')").and().csrf().disable();
-            }
-
-        }));
-        resource.setOrder(8);
-        return resource;
-    }
-
-    @Bean
     protected ResourceServerConfiguration authorizationResources() {
         ResourceServerConfiguration resource = new ResourceServerConfiguration() {
             public void setConfigurers(List<ResourceServerConfigurer> configurers) {
@@ -627,6 +583,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return resource;
     }
 
+    /*
+     * OPENID API Resources: User
+     */
+
     @Bean
     protected ResourceServerConfiguration userInfoResources() {
         ResourceServerConfiguration resource = new ResourceServerConfiguration() {
@@ -652,18 +612,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return resource;
     }
 
-    
-    //client auth provider uses plaintext passwords
+    /*
+     * OAUTH2 API Resources : Client
+     */
+
+    // client auth provider uses plaintext passwords
     public DaoAuthenticationProvider clientAuthProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
-        authProvider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+        authProvider.setPasswordEncoder(PlaintextPasswordEncoder.getInstance());
         return authProvider;
     }
-    
+
     @Bean
     protected ResourceServerConfiguration tokenIntrospectionResources() {
-        
         ResourceServerConfiguration resource = new ResourceServerConfiguration() {
             public void setConfigurers(List<ResourceServerConfigurer> configurers) {
                 super.setConfigurers(configurers);
@@ -680,8 +642,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
                         .and().httpBasic()
                         .and().authenticationProvider(clientAuthProvider());
-//                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
-                }
+            }
         }));
         resource.setOrder(12);
         return resource;
@@ -704,12 +665,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .antMatchers(TokenRevocationEndpoint.TOKEN_REVOCATION_URL)
                         .hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
                         .and().httpBasic()
-                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+                        .and().authenticationProvider(clientAuthProvider());
             }
         }));
         resource.setOrder(13);
         return resource;
     }
+
+    /*
+     * API Resources : services and claims
+     */
 
     @Bean
     protected ResourceServerConfiguration serviceManagementResources() {
@@ -764,6 +729,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return resource;
     }
 
+    /*
+     * APIkey
+     */
+
     @Bean
     protected ResourceServerConfiguration apiKeyResources() {
         ResourceServerConfiguration resource = new ResourceServerConfiguration() {
@@ -780,7 +749,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 http.regexMatcher("/apikeycheck(.*)").authorizeRequests()
                         .regexMatchers("/apikeycheck(.*)").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_TRUSTED")
                         .and().httpBasic()
-                        .and().userDetailsService(new OAuthClientUserDetails(clientDetailsRepository));
+                        .and().authenticationProvider(clientAuthProvider());
 
                 http.csrf().disable();
             }
@@ -847,6 +816,53 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         }));
         resource.setOrder(18);
+        return resource;
+    }
+
+    /*
+     * WSO2 integration
+     */
+    @Bean
+    protected ResourceServerConfiguration wso2ClientResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.antMatcher("/wso2/client/**").authorizeRequests().anyRequest()
+                        .access("#oauth2.hasScope('" + Config.SCOPE_CLIENTMANAGEMENT + "')").and().csrf().disable();
+            }
+
+        }));
+        resource.setOrder(7);
+        return resource;
+    }
+
+    @Bean
+    protected ResourceServerConfiguration wso2APIResources() {
+        ResourceServerConfiguration resource = new ResourceServerConfiguration() {
+            public void setConfigurers(List<ResourceServerConfigurer> configurers) {
+                super.setConfigurers(configurers);
+            }
+        };
+        resource.setConfigurers(Arrays.<ResourceServerConfigurer>asList(new ResourceServerConfigurerAdapter() {
+            public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+                resources.resourceId(null);
+            }
+
+            public void configure(HttpSecurity http) throws Exception {
+                http.antMatcher("/wso2/resources/**").authorizeRequests().anyRequest()
+                        .access("#oauth2.hasScope('" + Config.SCOPE_APIMANAGEMENT + "')").and().csrf().disable();
+            }
+
+        }));
+        resource.setOrder(8);
         return resource;
     }
 
