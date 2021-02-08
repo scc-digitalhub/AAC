@@ -125,19 +125,19 @@
 
 
 		<!-- JPA 2.0 -->
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derby</artifactId>
-			<scope>test</scope>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.derby</groupId> -->
+<!-- 			<artifactId>derby</artifactId> -->
+<!-- 			<scope>test</scope> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.zaxxer</groupId>
-			<artifactId>HikariCP</artifactId>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.zaxxer</groupId> -->
+<!-- 			<artifactId>HikariCP</artifactId> -->
+<!-- 		</dependency> -->
 		<!-- <dependency> -->
 		<!-- <groupId>c3p0</groupId> -->
 		<!-- <artifactId>c3p0</artifactId> -->
@@ -151,10 +151,10 @@
 <!-- 			<artifactId>joda-time</artifactId> -->
 <!-- 		</dependency> -->
 
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>javax.validation</groupId> -->
+<!-- 			<artifactId>validation-api</artifactId> -->
+<!-- 		</dependency> -->
 		<!-- Use to bean validation -->
 
 		<dependency>
@@ -201,19 +201,18 @@
 		<dependency>
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
-			<version>8.2</version>
-		</dependency>
+			</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bctls-jdk15on -->
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bctls-jdk15on</artifactId>
-			<version>1.61</version>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.bouncycastle</groupId> -->
+<!-- 			<artifactId>bctls-jdk15on</artifactId> -->
+<!-- 			<version>1.61</version> -->
+<!-- 		</dependency> -->
 
 		<!-- Nashorn Sandbox -->
 		<dependency>
@@ -231,8 +230,7 @@
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
 			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>2.3.2</version>
-		</dependency>
+			</dependency>
 		<!-- https://mvnrepository.com/artifact/com.sun.istack/istack-commons-runtime -->
 		<dependency>
 			<groupId>com.sun.istack</groupId>

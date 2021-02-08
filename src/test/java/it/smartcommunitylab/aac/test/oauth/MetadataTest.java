@@ -122,7 +122,7 @@ public class MetadataTest {
         // validate response 200ish
         Assert.assertTrue((response.getStatusCode().is2xxSuccessful()));
         // validate application/json
-        Assert.assertTrue(response.getHeaders().getContentType().equals(MediaType.APPLICATION_JSON_UTF8));
+        Assert.assertTrue(response.getHeaders().getContentType().equals(MediaType.APPLICATION_JSON));
 
     }
 

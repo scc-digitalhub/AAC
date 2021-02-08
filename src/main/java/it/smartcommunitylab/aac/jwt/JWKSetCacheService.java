@@ -17,6 +17,7 @@
  *******************************************************************************/
 package it.smartcommunitylab.aac.jwt;
 
+import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -34,11 +35,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.gson.JsonParseException;
 import com.nimbusds.jose.jwk.JWKSet;
-
-import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
-import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 
 /**
  *
@@ -106,7 +103,7 @@ public class JWKSetCacheService {
             try {
                 String jsonString = restTemplate.getForObject(uri, String.class);
                 return JWKSet.parse(jsonString);
-            } catch (JsonParseException | RestClientException e) {
+            } catch (ParseException | RestClientException e) {
                 throw new IllegalArgumentException("Unable to load JWK Set");
             }
         }
