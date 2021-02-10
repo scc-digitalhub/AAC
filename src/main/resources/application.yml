@@ -53,7 +53,7 @@ security:
 
 #OAUTH2
 oauth2:
-   jwt: ${ENABLE_JWT:false}
+   jwt: ${ENABLE_JWT:true}
    introspection:
       permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:true}
    pkce:
