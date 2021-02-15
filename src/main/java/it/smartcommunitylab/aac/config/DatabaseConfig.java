@@ -44,11 +44,17 @@ import it.smartcommunitylab.aac.oauth.IsolationSupportHibernateJpaDialect;
 @EnableTransactionManagement
 @EntityScan(basePackages = {
         "it.smartcommunitylab.aac.model",
+        "it.smartcommunitylab.aac.core.persistence",
+        "it.smartcommunitylab.aac.internal.persistence",
+
         "it.smartcommunitylab.aac.apikey.model",
         "it.smartcommunitylab.aac.profiles.model",
         "it.smartcommunitylab.aac.roles.model" })
 @EnableJpaRepositories(basePackages = {
         "it.smartcommunitylab.aac.repository",
+        "it.smartcommunitylab.aac.core.persistence",
+        "it.smartcommunitylab.aac.internal.persistence",
+
         "it.smartcommunitylab.aac.apikey.repository",
         "it.smartcommunitylab.aac.profiles.repository",
         "it.smartcommunitylab.aac.roles.repository" }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
@@ -118,6 +124,8 @@ public class DatabaseConfig {
         // spring boot 2.x should fix the issue
         bean.setPackagesToScan(
                 "it.smartcommunitylab.aac.model",
+                "it.smartcommunitylab.aac.core.persistence",
+                "it.smartcommunitylab.aac.internal.persistence",
                 "it.smartcommunitylab.aac.apikey.model",
                 "it.smartcommunitylab.aac.profiles.model",
                 "it.smartcommunitylab.aac.roles.model");

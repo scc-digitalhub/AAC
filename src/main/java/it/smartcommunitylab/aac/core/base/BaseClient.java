@@ -1,6 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
-public abstract class AbstractClient {
+public abstract class BaseClient {
     private String realm;
     private String name;
 

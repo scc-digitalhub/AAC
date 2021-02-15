@@ -1,8 +1,6 @@
 package it.smartcommunitylab.aac.bootstrap;
 
-import it.smartcommunitylab.aac.core.base.AbstractUser;
-
-public class BootstrapUser extends AbstractUser {
+public class BootstrapUser {
     private String realm;
     private String email;
     private String username;
@@ -50,7 +48,6 @@ public class BootstrapUser extends AbstractUser {
     }
 
     // TODO set a standard
-    @Override
     public String getId() {
         return "realm" + "|" + username;
     }

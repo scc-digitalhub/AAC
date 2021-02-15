@@ -21,6 +21,21 @@ package it.smartcommunitylab.aac.common;
  *
  */
 public class InvalidPasswordException extends RegistrationException {
-	private static final long serialVersionUID = 3481701175901182216L;
+    private static final long serialVersionUID = 3481701175901182216L;
 
+    public InvalidPasswordException() {
+        super();
+    }
+
+    public InvalidPasswordException(String message) {
+        super(message);
+    }
+
+    public InvalidPasswordException(Throwable cause) {
+        super(cause);
+    }
+
+    public InvalidPasswordException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

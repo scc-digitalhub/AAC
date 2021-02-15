@@ -107,14 +107,6 @@ public class OIDCTokenEnhancer {
         String signed = accessToken.getValue();
         logger.trace("signed access token used for oidc is " + signed);
 
-//        JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
-//
-//        if (ClientKeyCacheService.getSignedResponseAlg(client) != null) {
-//            signingAlg = ClientKeyCacheService.getSignedResponseAlg(client);
-//        }
-//
-//		JWT idToken = null;
-
         JWTClaimsSet.Builder idClaims = new JWTClaimsSet.Builder();
         // add claims for user details if requested via scopes
         if (user != null) {
@@ -128,7 +120,7 @@ public class OIDCTokenEnhancer {
             Multimap<String, String> roleSpaces = roleManager.getRoleSpacesToNarrow(clientId, userAuthorities);
             Collection<GrantedAuthority> selectedAuthorities = roleManager.narrowAuthoritiesSpaces(roleSpaces,
                     userAuthorities, authAuthorities);
-            //TODO handle requested/authorized claims                
+            // TODO handle requested/authorized claims
             Map<String, Object> userClaims = claimManager.getUserClaims(user.getId().toString(), selectedAuthorities,
                     client, scope, null, null);
             // set directly, ignore extracted
@@ -212,100 +204,6 @@ public class OIDCTokenEnhancer {
 
         return idToken;
 
-        // DEPRECATED, old code to locally build JWT
-//		if (ClientKeyCacheService.getEncryptedResponseAlg(client) != null && !ClientKeyCacheService.getEncryptedResponseAlg(client).equals(Algorithm.NONE)
-//				&& ClientKeyCacheService.getEncryptedResponseEnc(client) != null && !ClientKeyCacheService.getEncryptedResponseEnc(client).equals(Algorithm.NONE)
-//				&& (!Strings.isNullOrEmpty(ClientKeyCacheService.getJwksUri(client)) || ClientKeyCacheService.getJwks(client) != null)) {
-//
-//			JWTEncryptionAndDecryptionService encrypter = encrypters.getEncrypter(client);
-//
-//			if (encrypter != null) {
-//
-//				idToken = new EncryptedJWT(new JWEHeader(ClientKeyCacheService.getEncryptedResponseAlg(client), ClientKeyCacheService.getEncryptedResponseEnc(client)), idClaims.build());
-//
-//				encrypter.encryptJwt((JWEObject) idToken);
-//
-//			} else {
-//				logger.error("Couldn't find encrypter for client: " + client.getClientId());
-//			}
-//
-//		} else {
-//
-//			if (signingAlg.equals(Algorithm.NONE)) {
-//				// unsigned ID token
-//				idToken = new PlainJWT(idClaims.build());
-//
-//			} else {
-//
-//				// signed ID token
-//
-//				if (signingAlg.equals(JWSAlgorithm.HS256)
-//						|| signingAlg.equals(JWSAlgorithm.HS384)
-//						|| signingAlg.equals(JWSAlgorithm.HS512)) {
-//
-//					JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
-//							jwtService.getDefaultSignerKeyId(),
-//							null, null);
-//					idToken = new SignedJWT(header, idClaims.build());
-//
-//					JWTSigningAndValidationService signer = symmetricCacheService.getSymmetricValidator(client);
-//
-//					// sign it with the client's secret
-//					signer.signJwt((SignedJWT) idToken);
-//				} else {
-//					idClaims.claim("kid", jwtService.getDefaultSignerKeyId());
-//
-//					JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
-//							jwtService.getDefaultSignerKeyId(),
-//							null, null);
-//
-//					idToken = new SignedJWT(header, idClaims.build());
-//
-//					// sign it with the server's key
-//					jwtService.signJwt((SignedJWT) idToken);
-//				}
-//			}
-//
-//		}
-//
-//        return idToken;
     }
-//
-//	private SignedJWT createJWT(ClientDetailsEntity client, OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
-//		OAuth2Request originalAuthRequest = authentication.getOAuth2Request();
-//
-//		String clientId = originalAuthRequest.getClientId();
-//
-//		Builder builder = new JWTClaimsSet.Builder()
-//				.claim("azp", clientId)
-//				.issuer(issuer)
-//				.issueTime(new Date())
-//				.expirationTime(accessToken.getExpiration())
-//				.subject(authentication.getName())
-//				.jwtID(UUID.randomUUID().toString()); // set a random NONCE in the middle of it
-//
-//		String audience = (String) originalAuthRequest.getExtensions().get("aud");
-//		if (!Strings.isNullOrEmpty(audience)) {
-//			builder.audience(Lists.newArrayList(audience));
-//		}
-//
-//		JWTClaimsSet claims = builder.build();
-//
-//		JWSAlgorithm signingAlg = jwtService.getDefaultSigningAlgorithm();
-//		JWSHeader header = new JWSHeader(signingAlg, null, null, null, null, null, null, null, null, null,
-//				jwtService.getDefaultSignerKeyId(),
-//				null, null);
-//		SignedJWT signed = new SignedJWT(header, claims);
-//
-//		jwtService.signJwt(signed);
-//		return signed;
-//	}	
-
-//    private Set<String> getServiceIds(Set<String> scopes) {
-//    	if (scopes != null && !scopes.isEmpty()) {
-//    		return serviceManager.findServiceIdsByScopes(scopes);
-//    	}
-//    	return Collections.emptySet();
-//    }
 
 }

@@ -82,6 +82,20 @@ jwt:
 #EXTERNAL PROVIDERS
 authorities:
    enabled: ${AUTHORITIES:internal}
+   internal:
+      confirmation:
+        required: true
+        validity: 86400
+      password:
+        minLength: 8
+        maxLength: 20
+        requireAlpha: true
+        requireNumber: false
+        requireSpecial: false
+        supportWhitespace: false
+        reset:
+          enabled: true
+          validity: 86400
 
 oauth-providers:
   providers:

@@ -18,44 +18,44 @@ package it.smartcommunitylab.aac.profiles.model;
 import it.smartcommunitylab.aac.model.User;
 
 public class BasicProfile {
-	
-	private String name;
-	private String surname;
-	private String username;
-	private String userId;
 
-	public String getName() {
-		return name;
-	}
+    private String name;
+    private String surname;
+    private String username;
+    private String userId;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getSurname() {
-		return surname;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setSurname(String surname) {
-		this.surname = surname;
-	}
+    public String getSurname() {
+        return surname;
+    }
 
-	public String getUserId() {
-		return userId;
-	}
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
 
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
+    public String getUserId() {
+        return userId;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
-	
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     /**
      * @param user
      * @return
@@ -64,11 +64,11 @@ public class BasicProfile {
         if (user == null) {
             return null;
         }
-        BasicProfile minProfile = new BasicProfile();
-        minProfile.setName(user.getName());
-        minProfile.setSurname(user.getSurname());
-        minProfile.setUserId(user.getId().toString());
-        minProfile.setUsername(user.getUsername());
-        return minProfile;
+        BasicProfile profile = new BasicProfile();
+        profile.setName(user.getName());
+        profile.setSurname(user.getSurname());
+        profile.setUserId(user.getId().toString());
+        profile.setUsername(user.getUsername());
+        return profile;
     }
 }
