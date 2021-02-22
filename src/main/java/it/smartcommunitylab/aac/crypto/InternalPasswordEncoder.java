@@ -14,12 +14,9 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.oauth;
-
+package it.smartcommunitylab.aac.crypto;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import it.smartcommunitylab.aac.utils.PasswordHash;
 
 /**
  * @author raman
@@ -27,18 +24,18 @@ import it.smartcommunitylab.aac.utils.PasswordHash;
  */
 public class InternalPasswordEncoder implements PasswordEncoder {
 
-	@Override
-	public String encode(CharSequence rawPassword) {
-		return rawPassword.toString();
-	}
+    @Override
+    public String encode(CharSequence rawPassword) {
+        return rawPassword.toString();
+    }
 
-	@Override
-	public boolean matches(CharSequence rawPassword, String encodedPassword) {
-		try {
-			return PasswordHash.validatePassword(rawPassword.toString(), encodedPassword);
-		} catch (Exception e) {
-			return false;
-		}
-	}
+    @Override
+    public boolean matches(CharSequence rawPassword, String encodedPassword) {
+        try {
+            return PasswordHash.validatePassword(rawPassword.toString(), encodedPassword);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 }

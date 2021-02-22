@@ -3,18 +3,25 @@ package it.smartcommunitylab.aac.internal;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Constants;
@@ -24,15 +31,20 @@ import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.AttributeEntityService;
-import it.smartcommunitylab.aac.core.UserEntityService;
+import it.smartcommunitylab.aac.core.AttributeProvider;
+import it.smartcommunitylab.aac.core.IdentityProvider;
+import it.smartcommunitylab.aac.core.Role;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.service.AttributeEntityService;
+import it.smartcommunitylab.aac.core.service.RoleService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.utils.PasswordHash;
 
 @Service
-public class InternalUserManager {
+public class InternalUserManager implements IdentityProvider, AttributeProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${authorities.internal.confirmation.required}")
@@ -64,10 +76,66 @@ public class InternalUserManager {
     private InternalUserService accountService;
 
     @Autowired
-    private UserEntityService userRepository;
+    private UserEntityService userService;
 
     @Autowired
-    private AttributeEntityService attributeRepository;
+    private AttributeEntityService attributeService;
+
+    @Autowired
+    private RoleService roleService;
+
+    /*
+     * Init
+     */
+
+    @Value("${admin.username}")
+    private String adminUsername;
+
+    @Value("${admin.password}")
+    private String adminPassword;
+
+    @Value("${admin.roles}")
+    private String[] adminRoles;
+
+    @PostConstruct
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void init() throws Exception {
+        // create admin as superuser
+        logger.debug("create admin user " + adminUsername);
+        InternalUserAccount account = accountService.findAccount(null, adminUsername);
+        if (account == null) {
+            // register as new
+            UserEntity user = userService.addUser(userService.createUser().getUuid(), adminUsername);
+            account = accountService.addAccount(user.getUuid(), null, adminUsername, null, null, null, null);
+
+        }
+
+        String subject = account.getSubject();
+
+        // re-set password
+        setPassword(subject, null, adminUsername, adminPassword, false);
+
+        // assign authorities as roles
+        // at minimum we set ADMIN+DEV
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.systemAdmin());
+        roles.add(Role.systemDeveloper());
+
+        if (adminRoles != null) {
+            Arrays.asList(adminRoles).forEach(r -> roles.add(Role.parse(r)));
+        }
+
+        roleService.addRoles(subject, roles);
+
+        logger.trace("admin user id " + String.valueOf(account.getId()));
+    }
+
+    /*
+     * Providers
+     */
+    public String getSubject(String realm, String username) throws NoSuchUserException {
+        return accountService.getSubject(realm, username);
+    }
 
     public InternalUserIdentity getIdentity(String realm, String userId) throws NoSuchUserException {
         return getIdentity(realm, userId, false);
@@ -80,11 +148,18 @@ public class InternalUserManager {
         if (!fetchAttributes) {
             return InternalUserIdentity.from(account);
         } else {
-            List<AttributeEntity> attributes = attributeRepository.findAttributes(Constants.AUTHORITY_INTERNAL,
+            List<AttributeEntity> attributes = attributeService.findAttributes(Constants.AUTHORITY_INTERNAL,
                     account.getId());
 
             return InternalUserIdentity.from(account, attributes);
         }
+    }
+
+    @Override
+    public UserAttributes getAttributes(String realm, String userId) throws NoSuchUserException {
+        // we need to fetch account, attributes are linked
+        // leverage builder and return attributes
+        return getIdentity(realm, userId, true).getAttributes();
     }
 
     /*
@@ -140,12 +215,12 @@ public class InternalUserManager {
         // check subject, if missing generate
         UserEntity user = null;
         if (StringUtils.hasText(subject)) {
-            user = userRepository.getUser(subject);
+            user = userService.getUser(subject);
         }
 
         if (user == null) {
-            subject = userRepository.createUser().getUuid();
-            user = userRepository.addUser(subject, userId);
+            subject = userService.createUser().getUuid();
+            user = userService.addUser(subject, userId);
         }
 
         // add internal account
@@ -186,7 +261,9 @@ public class InternalUserManager {
         List<AttributeEntity> attributes = Collections.emptyList();
 
         if (attributesMap != null) {
-            attributes = attributeRepository.setAttributes(subject, Constants.AUTHORITY_INTERNAL, account.getId(),
+            // note: internal authority has a single provider, internal
+            attributes = attributeService.setAttributes(subject, Constants.AUTHORITY_INTERNAL,
+                    Constants.AUTHORITY_INTERNAL, account.getId(),
                     attributesMap);
         }
 
@@ -217,7 +294,9 @@ public class InternalUserManager {
         List<AttributeEntity> attributes = Collections.emptyList();
 
         if (attributesMap != null) {
-            attributes = attributeRepository.setAttributes(subject, Constants.AUTHORITY_INTERNAL, account.getId(),
+            // note: internal authority has a single provider, internal
+            attributes = attributeService.setAttributes(subject, Constants.AUTHORITY_INTERNAL,
+                    Constants.AUTHORITY_INTERNAL, account.getId(),
                     attributesMap);
         }
 
@@ -521,4 +600,5 @@ public class InternalUserManager {
         String rnd = UUID.randomUUID().toString();
         return rnd;
     }
+
 }

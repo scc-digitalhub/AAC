@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 //import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 
-import it.smartcommunitylab.aac.oauth.IsolationSupportHibernateJpaDialect;
+import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 
 /**
  * @author raman
@@ -43,21 +43,13 @@ import it.smartcommunitylab.aac.oauth.IsolationSupportHibernateJpaDialect;
 @Configuration
 @EnableTransactionManagement
 @EntityScan(basePackages = {
-        "it.smartcommunitylab.aac.model",
         "it.smartcommunitylab.aac.core.persistence",
         "it.smartcommunitylab.aac.internal.persistence",
-
-        "it.smartcommunitylab.aac.apikey.model",
-        "it.smartcommunitylab.aac.profiles.model",
-        "it.smartcommunitylab.aac.roles.model" })
+})
 @EnableJpaRepositories(basePackages = {
-        "it.smartcommunitylab.aac.repository",
         "it.smartcommunitylab.aac.core.persistence",
         "it.smartcommunitylab.aac.internal.persistence",
-
-        "it.smartcommunitylab.aac.apikey.repository",
-        "it.smartcommunitylab.aac.profiles.repository",
-        "it.smartcommunitylab.aac.roles.repository" }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
+}, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
 public class DatabaseConfig {
 
     @Autowired
@@ -123,12 +115,8 @@ public class DatabaseConfig {
         // TODO rework, align with @EntityScan
         // spring boot 2.x should fix the issue
         bean.setPackagesToScan(
-                "it.smartcommunitylab.aac.model",
                 "it.smartcommunitylab.aac.core.persistence",
-                "it.smartcommunitylab.aac.internal.persistence",
-                "it.smartcommunitylab.aac.apikey.model",
-                "it.smartcommunitylab.aac.profiles.model",
-                "it.smartcommunitylab.aac.roles.model");
+                "it.smartcommunitylab.aac.internal.persistence");
 //		bean.setPersistenceUnitManager(null);
 
         return bean;

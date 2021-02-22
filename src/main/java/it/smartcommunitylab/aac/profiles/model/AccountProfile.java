@@ -16,88 +16,84 @@
 
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-
-import it.smartcommunitylab.aac.model.Attribute;
-import it.smartcommunitylab.aac.model.User;
 
 /**
  * User registration information (different account of the registered user)
+ * 
  * @author raman
  *
  */
 public class AccountProfile extends BasicProfile {
 
-	private Map<String,Map<String,String>> attributes;
-	
-	public AccountProfile() {
-		attributes = new HashMap<String, Map<String,String>>();
-	}
+    // identitying core attributes
+    private String authority;
+    private String provider;
 
-	public Map<String,Map<String,String>> getAccounts() {
-		return attributes;
-	}
-	
-	/**
-	 * Return all the attributes of the specified account
-	 * @param account
-	 * @return
-	 */
-	public Map<String,String> getAccountAttributes(String account) {
-		return attributes.get(account);
-	}
-	
-	/**
-	 * Return the value for the specified attribute of the specified account.
-	 * @param account
-	 * @param attribute
-	 * @return
-	 */
-	public String getAttribute(String account, String attribute) {
-		if (!attributes.containsKey(account)) return null;
-		return attributes.get(account).get(attribute);
-	}
-	
-	/**
-	 * Add attribute
-	 * @param account
-	 * @param attribute
-	 * @param value
-	 */
-	public void addAttribute(String account, String attribute, String value) {
-		if (account != null && attribute != null) {
-			if (attributes.get(account) == null) {
-				attributes.put(account, new HashMap<String, String>());
-			}
-			attributes.get(account).put(attribute, value);
-		}
-	}
-	
-	
-    /**
-     * @param user
-     * @return
-     */
-    public static AccountProfile fromUser(User user) {
-        if (user == null) {
-            return null;
-        }
-        
-        AccountProfile minProfile = new AccountProfile();
-        Set<Attribute> attrs = user.getAttributeEntities();
-        if (attrs != null) {
-            for (Attribute a : attrs) {
-                String account = a.getAuthority().getName();
-                minProfile.addAttribute(account, a.getKey(), a.getValue());
-            }
-        }
-        minProfile.setUsername(user.getUsername());
-        minProfile.setName(user.getName());
-        minProfile.setSurname(user.getSurname());
-        minProfile.setUserId(user.getId().toString());
+    // userId identities the user for the authority
+    private String userId;
 
-        return minProfile;
+    // this contains additional attributes from provider
+    // do not expose private data!
+    private Map<String, String> attributes;
+
+    public AccountProfile() {
     }
+
+    public String getAuthority() {
+        return authority;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
+
+//    /**
+//     * @param user
+//     * @return
+//     */
+//    public static AccountProfile fromUser(User user) {
+//        if (user == null) {
+//            return null;
+//        }
+//
+//        AccountProfile minProfile = new AccountProfile();
+//        Set<Attribute> attrs = user.getAttributeEntities();
+//        if (attrs != null) {
+//            for (Attribute a : attrs) {
+//                String account = a.getAuthority().getName();
+//                minProfile.addAttribute(account, a.getKey(), a.getValue());
+//            }
+//        }
+//        minProfile.setUsername(user.getUsername());
+//        minProfile.setName(user.getName());
+//        minProfile.setSurname(user.getSurname());
+//        minProfile.setUserId(user.getId().toString());
+//
+//        return minProfile;
+//    }
 }

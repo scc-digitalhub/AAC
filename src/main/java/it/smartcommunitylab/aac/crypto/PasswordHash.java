@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.utils;
+package it.smartcommunitylab.aac.crypto;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;

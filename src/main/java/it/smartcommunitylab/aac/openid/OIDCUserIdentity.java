@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.openid;
 
+import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,9 +12,13 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Constants;
 import it.smartcommunitylab.aac.core.base.BaseIdentity;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
-public class OIDCUserIdentity extends BaseIdentity {
+public class OIDCUserIdentity extends BaseIdentity implements Serializable {
+
+    private static final long serialVersionUID = 2760694301395978161L;
 
     private String realm;
     private String userId;
@@ -25,49 +30,40 @@ public class OIDCUserIdentity extends BaseIdentity {
         attributes = Collections.emptySet();
     }
 
-    public String getRealm() {
-        return realm;
+    @Override
+    public String getAuthority() {
+        return Constants.AUTHORITY_OIDC;
     }
 
-    public void setRealm(String realm) {
-        this.realm = realm;
+    @Override
+    public void eraseCredentials() {
+        // we do not have credentials or sensible data
+
+    }
+
+    @Override
+    public Object getCredentials() {
+        // we do not have credentials or sensible data
+        return null;
+    }
+
+    /*
+     * props: only getters we want this to be immutable
+     */
+    public String getRealm() {
+        return realm;
     }
 
     public String getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getProvider() {
         return provider;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public Set<AbstractMap.SimpleEntry<String, String>> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Set<AbstractMap.SimpleEntry<String, String>> attributes) {
-        this.attributes = attributes;
-    }
-
-    @Override
-    public String getAuthority() {
-        return Constants.AUTHORITY_OIDC;
     }
 
     /*
@@ -75,10 +71,10 @@ public class OIDCUserIdentity extends BaseIdentity {
      */
     public static OIDCUserIdentity from(OIDCUserAccount user, Collection<AttributeEntity> attributes) {
         OIDCUserIdentity i = new OIDCUserIdentity();
-        i.setRealm(user.getRealm());
-        i.setProvider(user.getProvider());
-        i.setUserId(user.getUserId());
-        i.setUsername(user.getUsername());
+        i.realm = user.getRealm();
+        i.provider = user.getProvider();
+        i.userId = user.getUserId();
+        i.username = user.getUsername();
 
         Set<AbstractMap.SimpleEntry<String, String>> attrs = new HashSet<>();
         // static map base attrs
@@ -95,7 +91,7 @@ public class OIDCUserIdentity extends BaseIdentity {
                 attributes.stream().map(a -> createAttribute(a.getKey(), a.getValue())).collect(Collectors.toSet()));
 
         // filter empty or null attributes
-        i.setAttributes(attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet()));
+        i.attributes = attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet());
 
         return i;
 
@@ -122,4 +118,41 @@ public class OIDCUserIdentity extends BaseIdentity {
     }
 
     private static final String ATTRIBUTE_PREFIX = Constants.AUTHORITY_OIDC + ".";
+
+    @Override
+    public String getEmailAddress() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getFirstName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getLastName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getFullName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public BasicProfile toProfile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public UserAttributes getAttributes() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

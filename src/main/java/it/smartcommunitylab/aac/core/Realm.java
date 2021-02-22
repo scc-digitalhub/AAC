@@ -1,6 +1,6 @@
-package it.smartcommunitylab.aac.core.base;
+package it.smartcommunitylab.aac.core;
 
-public abstract class AbstractRealm {
+public abstract class Realm {
 
     private String name;
     private String slug;

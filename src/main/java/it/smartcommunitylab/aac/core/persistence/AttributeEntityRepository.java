@@ -19,6 +19,10 @@ public interface AttributeEntityRepository extends CustomJpaRepository<Attribute
 
     List<AttributeEntity> findBySubjectAndAuthorityAndUserId(String subject, String authority, Long userId);
 
-    AttributeEntity findByAuthorityAndUserIdAndKey(String authority, Long userId, String key);
+    List<AttributeEntity> findBySubjectAndAuthorityAndProviderAndUserId(String subject, String authority,
+            String provider, Long userId);
+
+    AttributeEntity findByAuthorityAndProviderAndUserIdAndKey(String authority, String provider, Long userId,
+            String key);
 
 }

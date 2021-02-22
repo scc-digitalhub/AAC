@@ -12,33 +12,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
-import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
-import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.auth.cie.FileEmailIdentitySource;
-import it.smartcommunitylab.aac.auth.cie.IdentitySource;
-import it.smartcommunitylab.aac.authority.AuthorityHandler;
-import it.smartcommunitylab.aac.authority.AuthorityHandlerContainer;
-import it.smartcommunitylab.aac.authority.DefaultAuthorityHandler;
-import it.smartcommunitylab.aac.authority.FBAuthorityHandler;
-import it.smartcommunitylab.aac.authority.InternalAuthorityHandler;
-import it.smartcommunitylab.aac.manager.OAuth2ClientDetailsProviderImpl;
-import it.smartcommunitylab.aac.model.ClientDetailsRowMapper;
-import it.smartcommunitylab.aac.oauth.AACJDBCClientDetailsService;
-import it.smartcommunitylab.aac.oauth.AACJwtTokenConverter;
-import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
-import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
-import it.smartcommunitylab.aac.oauth.CachedServiceScopeServices;
-import it.smartcommunitylab.aac.oauth.InternalUserDetailsRepo;
-import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
-import it.smartcommunitylab.aac.oauth.OAuth2ClientDetailsProvider;
-import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
-import it.smartcommunitylab.aac.repository.UserRepository;
+
 
 @Configuration
 public class AACConfig {
@@ -52,122 +29,122 @@ public class AACConfig {
     @Value("${oauth2.refreshtoken.validity}")
     private int refreshTokenValidity;
 
-    @Autowired
-    private UserRepository userRepository;
+//    @Autowired
+//    private UserRepository userRepository;
+//
+////    @Autowired
+////    private ClientDetailsRepository clientDetailsRepository;
+//
+//    @Autowired
+//    private DataSource dataSource;
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
+//    @Autowired
+//    private TokenStore tokenStore;
+//
+//    @Autowired
+//    private OIDCTokenEnhancer tokenEnhancer;
+//
+//    @Autowired
+//    private AACJwtTokenConverter tokenConverter;
+//
+//    /*
+//     * OAuth
+//     */
+//    // TODO split specifics to dedicated configurer
+//
+//    @Bean
+//    public AutoJdbcTokenStore getTokenStore() throws PropertyVetoException {
+//        return new AutoJdbcTokenStore(dataSource);
+//    }
+//
+//    @Bean
+//    public JdbcApprovalStore getApprovalStore() throws PropertyVetoException {
+//        return new JdbcApprovalStore(dataSource);
+//    }
+//
+//    @Bean
+//    @Primary
+//    public JdbcClientDetailsService getClientDetails() throws PropertyVetoException {
+//        JdbcClientDetailsService bean = new AACJDBCClientDetailsService(dataSource);
+//        bean.setRowMapper(getClientDetailsRowMapper());
+//        return bean;
+//    }
 
-    @Autowired
-    private DataSource dataSource;
+//    @Bean
+//    @Primary
+//    public UserDetailsService getInternalUserDetailsService() {
+//        return new InternalUserDetailsRepo();
+//    }
+//
+//    @Bean
+//    public ClientDetailsRowMapper getClientDetailsRowMapper() {
+//        return new ClientDetailsRowMapper(userRepository);
+//    }
+//
+//    @Bean
+//    @Primary
+//    public OAuth2ClientDetailsProvider getOAuth2ClientDetailsProvider() throws PropertyVetoException {
+//        return new OAuth2ClientDetailsProviderImpl(clientDetailsRepository);
+//    }
 
-    @Autowired
-    private TokenStore tokenStore;
+//    @Bean
+//    public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
+//        FilterRegistrationBean registration = new FilterRegistrationBean();
+//        registration.setFilter(filter);
+//        registration.setOrder(-100);
+//        return registration;
+//    }
 
-    @Autowired
-    private OIDCTokenEnhancer tokenEnhancer;
+//    @Bean
+//    public CachedServiceScopeServices getResourceStorage() {
+//        return new CachedServiceScopeServices();
+//    }
 
-    @Autowired
-    private AACJwtTokenConverter tokenConverter;
+//    @Bean("appTokenServices")
+//    public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
+//        NonRemovingTokenServices bean = new NonRemovingTokenServices();
+//        bean.setTokenStore(tokenStore);
+//        bean.setSupportRefreshToken(true);
+//        bean.setReuseRefreshToken(true);
+//        bean.setAccessTokenValiditySeconds(accessTokenValidity);
+//        bean.setRefreshTokenValiditySeconds(refreshTokenValidity);
+//        bean.setClientDetailsService(getClientDetails());
+//        if (oauth2UseJwt) {
+//            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer, tokenConverter));
+//        } else {
+//            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));
+//        }
+//
+//        return bean;
+//    }
 
-    /*
-     * OAuth
-     */
-    // TODO split specifics to dedicated configurer
-
-    @Bean
-    public AutoJdbcTokenStore getTokenStore() throws PropertyVetoException {
-        return new AutoJdbcTokenStore(dataSource);
-    }
-
-    @Bean
-    public JdbcApprovalStore getApprovalStore() throws PropertyVetoException {
-        return new JdbcApprovalStore(dataSource);
-    }
-
-    @Bean
-    @Primary
-    public JdbcClientDetailsService getClientDetails() throws PropertyVetoException {
-        JdbcClientDetailsService bean = new AACJDBCClientDetailsService(dataSource);
-        bean.setRowMapper(getClientDetailsRowMapper());
-        return bean;
-    }
-
-    @Bean
-    @Primary
-    public UserDetailsService getInternalUserDetailsService() {
-        return new InternalUserDetailsRepo();
-    }
-
-    @Bean
-    public ClientDetailsRowMapper getClientDetailsRowMapper() {
-        return new ClientDetailsRowMapper(userRepository);
-    }
-
-    @Bean
-    @Primary
-    public OAuth2ClientDetailsProvider getOAuth2ClientDetailsProvider() throws PropertyVetoException {
-        return new OAuth2ClientDetailsProviderImpl(clientDetailsRepository);
-    }
-
-    @Bean
-    public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
-        registration.setFilter(filter);
-        registration.setOrder(-100);
-        return registration;
-    }
-
-    @Bean
-    public CachedServiceScopeServices getResourceStorage() {
-        return new CachedServiceScopeServices();
-    }
-
-    @Bean("appTokenServices")
-    public NonRemovingTokenServices getTokenServices() throws PropertyVetoException {
-        NonRemovingTokenServices bean = new NonRemovingTokenServices();
-        bean.setTokenStore(tokenStore);
-        bean.setSupportRefreshToken(true);
-        bean.setReuseRefreshToken(true);
-        bean.setAccessTokenValiditySeconds(accessTokenValidity);
-        bean.setRefreshTokenValiditySeconds(refreshTokenValidity);
-        bean.setClientDetailsService(getClientDetails());
-        if (oauth2UseJwt) {
-            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer, tokenConverter));
-        } else {
-            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));
-        }
-
-        return bean;
-    }
-
-    /*
-     * Authorities handlers
-     */
-
-    @Bean
-    public IdentitySource getIdentitySource() {
-        return new FileEmailIdentitySource();
-    }
-
-    @Bean
-    public AuthorityHandlerContainer getAuthorityHandlerContainer() {
-        Map<String, AuthorityHandler> map = Maps.newTreeMap();
-        map.put(Config.IDP_INTERNAL, getInternalHandler());
-        FBAuthorityHandler fh = new FBAuthorityHandler();
-        map.put("facebook", fh);
-        AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
-        return bean;
-    }
-
-    @Bean
-    public DefaultAuthorityHandler getDefaultHandler() {
-        return new DefaultAuthorityHandler();
-    }
-
-    @Bean
-    public InternalAuthorityHandler getInternalHandler() {
-        return new InternalAuthorityHandler();
-    }
+//    /*
+//     * Authorities handlers
+//     */
+//
+//    @Bean
+//    public IdentitySource getIdentitySource() {
+//        return new FileEmailIdentitySource();
+//    }
+//
+//    @Bean
+//    public AuthorityHandlerContainer getAuthorityHandlerContainer() {
+//        Map<String, AuthorityHandler> map = Maps.newTreeMap();
+//        map.put(Config.IDP_INTERNAL, getInternalHandler());
+//        FBAuthorityHandler fh = new FBAuthorityHandler();
+//        map.put("facebook", fh);
+//        AuthorityHandlerContainer bean = new AuthorityHandlerContainer(map);
+//        return bean;
+//    }
+//
+//    @Bean
+//    public DefaultAuthorityHandler getDefaultHandler() {
+//        return new DefaultAuthorityHandler();
+//    }
+//
+//    @Bean
+//    public InternalAuthorityHandler getInternalHandler() {
+//        return new InternalAuthorityHandler();
+//    }
 
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.repository;
 
 import java.sql.Connection;
 import java.sql.SQLException;

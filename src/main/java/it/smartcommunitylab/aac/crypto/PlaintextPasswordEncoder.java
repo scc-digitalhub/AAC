@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.crypto;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 

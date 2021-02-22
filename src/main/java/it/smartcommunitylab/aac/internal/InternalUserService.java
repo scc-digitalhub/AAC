@@ -22,8 +22,8 @@ public class InternalUserService {
     /*
      * Get
      */
-    public String getSubject(String realm, String userId) throws NoSuchUserException {
-        InternalUserAccount account = getAccount(realm, userId);
+    public String getSubject(String realm, String username) throws NoSuchUserException {
+        InternalUserAccount account = getAccount(realm, username);
         return account.getSubject();
 
 //        UserEntity user = userRepository.getUser(account.getSubject());
@@ -35,13 +35,18 @@ public class InternalUserService {
 //        return user.getUuid();
     }
 
-    public InternalUserAccount findAccount(String realm, String userId) {
-        return accountRepository.findByRealmAndUserId(realm, userId);
+    public InternalUserAccount findAccount(String userId) {
+        // userId is numeric
+        return accountRepository.findByUserId(Long.parseLong(userId));
+    }
+
+    public InternalUserAccount findAccount(String realm, String username) {
+        return accountRepository.findByRealmAndUsername(realm, username);
 
     }
 
-    public InternalUserAccount getAccount(String realm, String userId) throws NoSuchUserException {
-        InternalUserAccount account = accountRepository.findByRealmAndUserId(realm, userId);
+    public InternalUserAccount getAccount(String realm, String username) throws NoSuchUserException {
+        InternalUserAccount account = accountRepository.findByRealmAndUsername(realm, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -73,7 +78,7 @@ public class InternalUserService {
     public InternalUserAccount addAccount(
             String subject,
             String realm,
-            String userId,
+            String username,
             String email,
             String name,
             String surname,
@@ -82,7 +87,7 @@ public class InternalUserService {
         InternalUserAccount account = new InternalUserAccount();
         account.setSubject(subject);
         account.setRealm(realm);
-        account.setUserId(userId);
+        account.setUsername(username);
         // by default disable login
         account.setPassword(null);
         account.setEmail(email);
@@ -147,8 +152,8 @@ public class InternalUserService {
 
     public void deleteAccount(String subject,
             String realm,
-            String userId) {
-        InternalUserAccount account = accountRepository.findByRealmAndUserId(realm, userId);
+            String username) {
+        InternalUserAccount account = accountRepository.findByRealmAndUsername(realm, username);
         if (account != null) {
             accountRepository.delete(account);
         }

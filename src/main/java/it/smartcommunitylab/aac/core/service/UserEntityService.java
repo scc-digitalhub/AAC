@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.core.service;
 
 import java.util.UUID;
 

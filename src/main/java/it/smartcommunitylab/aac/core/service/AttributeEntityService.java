@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.core.service;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -20,7 +20,8 @@ public class AttributeEntityService {
     private AttributeEntityRepository attributeRepository;
 
     public List<AttributeEntity> setAttributes(
-            String subject, String authority, long userId,
+            String subject, String authority, String provider,
+            long userId,
             Set<AbstractMap.SimpleEntry<String, String>> attributesMap) {
         List<AttributeEntity> attributes = new ArrayList<>();
 
@@ -31,7 +32,7 @@ public class AttributeEntityService {
         toRemove.addAll(oldAttributes);
 
         for (AbstractMap.SimpleEntry<String, String> attr : attributesMap) {
-            AttributeEntity a = addOrUpdateAttribute(subject, Constants.AUTHORITY_INTERNAL,
+            AttributeEntity a = addOrUpdateAttribute(subject, Constants.AUTHORITY_INTERNAL, provider,
                     userId, attr.getKey(), attr.getValue());
             attributes.add(a);
             if (toRemove.contains(a)) {
@@ -47,13 +48,16 @@ public class AttributeEntityService {
     }
 
     public AttributeEntity addOrUpdateAttribute(String subject,
-            String authority, long userId,
+            String authority, String provider,
+            long userId,
             String key, String value) {
-        AttributeEntity a = attributeRepository.findByAuthorityAndUserIdAndKey(authority, userId, key);
+        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+                key);
         if (a == null) {
             a = new AttributeEntity();
             a.setSubject(subject);
             a.setAuthority(authority);
+            a.setProvider(provider);
             a.setUserId(userId);
             a.setKey(key);
         }
@@ -66,10 +70,12 @@ public class AttributeEntityService {
 
     public AttributeEntity addAttribute(
             String subject,
-            String authority, long userId,
+            String authority, String provider,
+            long userId,
             String key, String value) {
 
-        AttributeEntity a = attributeRepository.findByAuthorityAndUserIdAndKey(authority, userId, key);
+        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+                key);
         if (a != null) {
             throw new IllegalArgumentException("duplicate key");
         }
@@ -77,6 +83,7 @@ public class AttributeEntityService {
         a = new AttributeEntity();
         a.setSubject(subject);
         a.setAuthority(authority);
+        a.setProvider(provider);
         a.setUserId(userId);
         a.setKey(key);
         a.setValue(value);
@@ -89,9 +96,11 @@ public class AttributeEntityService {
 
     public AttributeEntity updateAttribute(
             String subject,
-            String authority, long userId,
+            String authority, String provider,
+            long userId,
             String key, String value) {
-        AttributeEntity a = attributeRepository.findByAuthorityAndUserIdAndKey(authority, userId, key);
+        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+                key);
         if (a == null) {
             throw new NoSuchElementException();
         }
@@ -103,10 +112,12 @@ public class AttributeEntityService {
     }
 
     public void deleteAttribute(String subject,
-            String authority, long userId,
+            String authority, String provider,
+            long userId,
             String key) {
 
-        AttributeEntity a = attributeRepository.findByAuthorityAndUserIdAndKey(authority, userId, key);
+        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+                key);
         if (a != null) {
             attributeRepository.delete(a);
         }

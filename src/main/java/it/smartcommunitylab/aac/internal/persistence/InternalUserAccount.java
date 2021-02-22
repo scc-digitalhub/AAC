@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.Constants;
 import it.smartcommunitylab.aac.core.base.BaseAccount;
 
 @Entity
-@Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "user_id" }))
+@Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "username" }))
 public class InternalUserAccount extends BaseAccount {
 
     @Id
@@ -32,8 +32,8 @@ public class InternalUserAccount extends BaseAccount {
     private String realm;
 
     // login
-    @Column(name = "user_id")
-    private String userId;
+    @Column(name = "username")
+    private String username;
     private String password;
 
     // attributes
@@ -48,13 +48,13 @@ public class InternalUserAccount extends BaseAccount {
     @Column(name = "confirmation_deadline")
     private Date confirmationDeadline;
 
-    @Column(name = "confirmation_key", unique = true)
+    @Column(name = "confirmation_key", unique = true, nullable = true)
     private String confirmationKey;
 
     @Column(name = "reset_deadline")
     private Date resetDeadline;
 
-    @Column(name = "reset_key", unique = true)
+    @Column(name = "reset_key", unique = true, nullable = true)
     private String resetKey;
 
     @Column(name = "change_first_access")
@@ -78,13 +78,18 @@ public class InternalUserAccount extends BaseAccount {
     public String getProvider() {
         // for internal we have a single provider,
         // we add realm to identify where user belongs
-        return Constants.AUTHORITY_INTERNAL + "|" + realm;
+        return Constants.AUTHORITY_INTERNAL + "|" + String.valueOf(realm);
     }
 
     @Override
     public String getUsername() {
-        // we use userId as username
-        return userId;
+        return username;
+    }
+
+    @Override
+    public String getUserId() {
+        // our id at authority level is the internal id
+        return String.valueOf(id);
     }
 
     /*
@@ -114,12 +119,8 @@ public class InternalUserAccount extends BaseAccount {
         this.realm = realm;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {

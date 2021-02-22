@@ -1,79 +1,44 @@
 package it.smartcommunitylab.aac.internal;
 
+import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Constants;
+import it.smartcommunitylab.aac.core.base.BaseAttributes;
 import it.smartcommunitylab.aac.core.base.BaseIdentity;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
-public class InternalUserIdentity extends BaseIdentity {
+public class InternalUserIdentity extends BaseIdentity implements UserDetails, Serializable {
 
+    // TODO use a global version as serial uid
+    private static final long serialVersionUID = -2050916229494701678L;
+
+    // TODO make fields final
     private String realm;
     private String userId;
     private String provider;
     private String username;
     private String email;
+    // not immutable field
+    private String password;
 
-    private Set<AbstractMap.SimpleEntry<String, String>> attributes;
+    // we keep attributes in base map impl
+    private BaseAttributes attributes;
 
     protected InternalUserIdentity() {
-        attributes = Collections.emptySet();
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Set<AbstractMap.SimpleEntry<String, String>> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Set<AbstractMap.SimpleEntry<String, String>> attributes) {
-        this.attributes = attributes;
+        attributes = null;
     }
 
     @Override
@@ -81,16 +46,59 @@ public class InternalUserIdentity extends BaseIdentity {
         return Constants.AUTHORITY_INTERNAL;
     }
 
+    @Override
+    public String getCredentials() {
+        return password;
+    }
+
+    @Override
+    public UserAttributes getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public void eraseCredentials() {
+        // clear
+        this.password = null;
+    }
+
+    /*
+     * props: only getters, we want this to be immutable
+     */
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEmailAddress() {
+        return email;
+    }
+
     /*
      * Builder
      */
     public static InternalUserIdentity from(InternalUserAccount user) {
         InternalUserIdentity i = new InternalUserIdentity();
-        i.setRealm(user.getRealm());
-        i.setProvider(user.getProvider());
-        i.setUserId(user.getUserId());
-        i.setUsername(user.getUsername());
-        i.setEmail(user.getEmail());
+        i.realm = user.getRealm();
+        i.provider = user.getProvider();
+        i.userId = user.getUserId();
+        i.username = user.getUsername();
+        i.email = user.getEmail();
+
+        // we do not copy password by default
+        // let service handle the retrieval
 
         Set<AbstractMap.SimpleEntry<String, String>> attrs = new HashSet<>();
         // static map base attrs
@@ -101,8 +109,10 @@ public class InternalUserIdentity extends BaseIdentity {
         attrs.add(createAttribute("lang", user.getLang()));
         attrs.add(createAttribute("confirmed", Boolean.toString(user.isConfirmed())));
 
-        // filter empty or null attributes
-        i.setAttributes(attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet()));
+        // filter empty or null attributes and build bag
+        i.attributes = new BaseAttributes(
+                Constants.AUTHORITY_INTERNAL, i.provider,
+                attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet()));
 
         return i;
 
@@ -111,13 +121,17 @@ public class InternalUserIdentity extends BaseIdentity {
     public static InternalUserIdentity from(InternalUserAccount user, Collection<AttributeEntity> attributes) {
         InternalUserIdentity i = from(user);
 
-        // also map additional attrs
-        Set<AbstractMap.SimpleEntry<String, String>> attrs = i.getAttributes();
+        Set<Map.Entry<String, String>> attrs = new HashSet<>();
+        // add base attributes
+        attrs.addAll(i.getAttributes().getAttributes().entrySet());
+        // also map additional attrs, we will reset provider
         attrs.addAll(
                 attributes.stream().map(a -> createAttribute(a.getKey(), a.getValue())).collect(Collectors.toSet()));
 
-        // filter empty or null attributes
-        i.setAttributes(attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet()));
+        // filter empty or null attributes and build bag
+        i.attributes = new BaseAttributes(
+                Constants.AUTHORITY_INTERNAL, i.provider,
+                attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet()));
 
         return i;
 
@@ -144,4 +158,73 @@ public class InternalUserIdentity extends BaseIdentity {
     }
 
     private static final String ATTRIBUTE_PREFIX = Constants.AUTHORITY_INTERNAL + ".";
+
+    @Override
+    public String getFirstName() {
+        return attributes.getAttribute("name");
+    }
+
+    @Override
+    public String getLastName() {
+        return attributes.getAttribute("surname");
+    }
+
+    @Override
+    public String getFullName() {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.hasText(attributes.getAttribute("name"))) {
+            sb.append(attributes.getAttribute("name")).append(" ");
+        }
+        if (StringUtils.hasText(attributes.getAttribute("surname"))) {
+            sb.append(attributes.getAttribute("surname"));
+        }
+        return sb.toString().trim();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // not provided here
+        return null;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public BasicProfile toProfile() {
+        BasicProfile profile = new BasicProfile();
+        profile.setUsername(username);
+        profile.setName(getFirstName());
+        profile.setSurname(getLastName());
+        profile.setEmail(email);
+
+        return profile;
+    }
+
 }

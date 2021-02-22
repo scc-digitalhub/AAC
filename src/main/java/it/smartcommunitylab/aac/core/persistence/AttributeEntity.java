@@ -9,7 +9,8 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "attributes", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "authority", "user_id",
+@Table(name = "attributes", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "authority", "provider",
+        "user_id",
         "attr_key" }))
 public class AttributeEntity {
 
@@ -23,6 +24,8 @@ public class AttributeEntity {
     private String subject;
 
     private String authority;
+
+    private String provider;
 
     @Column(name = "user_id")
     private Long userId;
@@ -57,6 +60,14 @@ public class AttributeEntity {
         this.authority = authority;
     }
 
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
     public Long getUserId() {
         return userId;
     }
@@ -87,6 +98,7 @@ public class AttributeEntity {
         int result = 1;
         result = prime * result + ((authority == null) ? 0 : authority.hashCode());
         result = prime * result + ((key == null) ? 0 : key.hashCode());
+        result = prime * result + ((provider == null) ? 0 : provider.hashCode());
         result = prime * result + ((subject == null) ? 0 : subject.hashCode());
         result = prime * result + ((userId == null) ? 0 : userId.hashCode());
         return result;
@@ -110,6 +122,11 @@ public class AttributeEntity {
             if (other.key != null)
                 return false;
         } else if (!key.equals(other.key))
+            return false;
+        if (provider == null) {
+            if (other.provider != null)
+                return false;
+        } else if (!provider.equals(other.provider))
             return false;
         if (subject == null) {
             if (other.subject != null)

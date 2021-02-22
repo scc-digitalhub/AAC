@@ -15,14 +15,12 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.profiles.model;
 
-import it.smartcommunitylab.aac.model.User;
-
 public class BasicProfile {
 
     private String name;
     private String surname;
     private String username;
-    private String userId;
+    private String email;
 
     public String getName() {
         return name;
@@ -40,14 +38,6 @@ public class BasicProfile {
         this.surname = surname;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getUsername() {
         return username;
     }
@@ -56,19 +46,28 @@ public class BasicProfile {
         this.username = username;
     }
 
-    /**
-     * @param user
-     * @return
-     */
-    public static BasicProfile fromUser(User user) {
-        if (user == null) {
-            return null;
-        }
-        BasicProfile profile = new BasicProfile();
-        profile.setName(user.getName());
-        profile.setSurname(user.getSurname());
-        profile.setUserId(user.getId().toString());
-        profile.setUsername(user.getUsername());
-        return profile;
+    public String getEmail() {
+        return email;
     }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+//    /**
+//     * @param user
+//     * @return
+//     */
+//    public static BasicProfile fromUser(User user) {
+//        if (user == null) {
+//            return null;
+//        }
+//        BasicProfile profile = new BasicProfile();
+//        profile.setName(user.getName());
+//        profile.setSurname(user.getSurname());
+//        profile.setUserId(user.getId().toString());
+//        profile.setUsername(user.getUsername());
+//        return profile;
+//    }
+
 }
