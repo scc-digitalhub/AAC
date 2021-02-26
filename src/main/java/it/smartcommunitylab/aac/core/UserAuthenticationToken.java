@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -8,43 +9,96 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.model.Subject;
 
 /**
- * @author raman
  *
  */
 public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
 
+    // auth principal is the subject
     private final Subject principal;
-    // subject user with multiple identities bound
-    private User details;
+    // subject userDetails with multiple identities bound
+    private UserDetails details;
     // we collect authentications for identities
-    // this way consumers will be able to check if a identity is authenticated
-    private Set<RealmAuthenticationToken> tokens;
+    // this way consumers will be able to verify if a identity is authenticated
+    // (by default only authenticated identities should populate userDetails)
+    // note: we could have more than one token for the same identity, someone else
+    // should evaluate
+    // we should also purge expired auth tokens
+    private final Set<ExtendedAuthenticationToken> tokens;
 
     public UserAuthenticationToken(
             Subject principal,
-            RealmAuthenticationToken auth,
-            UserIdentity identity, Collection<? extends GrantedAuthority> authorities) {
+            ExtendedAuthenticationToken auth,
+            UserIdentity identity,
+            Collection<UserAttributes> attributeSets,
+            Collection<? extends GrantedAuthority> authorities) {
         // we set authorities via super
-        // we support null authorities list
+        // we don't support null authorities list
         super(authorities);
 
+        Assert.notEmpty(authorities, "authorities can not be empty");
         Assert.notNull(principal, "principal is required");
         Assert.notNull(auth, "auth token for identity is required");
         Assert.notNull(identity, "identity is required");
 
         this.principal = principal;
-        this.details = new User(principal.getSubject(), identity, authorities);
+        this.details = new UserDetails(principal.getSubjectId(), identity, attributeSets, authorities);
 
         this.tokens = new HashSet<>();
         this.tokens.add(auth);
         boolean isAuthenticated = auth.isAuthenticated();
 
         super.setAuthenticated(isAuthenticated); // must use super, as we override
+    }
+
+    public UserAuthenticationToken(
+            Subject principal, Collection<? extends GrantedAuthority> authorities,
+            UserAuthenticationToken... authenticationTokens) {
+        super(authorities);
+
+        Assert.notEmpty(authorities, "authorities can not be empty");
+        Assert.notNull(principal, "principal is required");
+        Assert.notEmpty(authenticationTokens, "at least one authentication token is required");
+
+        this.principal = principal;
+        this.tokens = new HashSet<>();
+
+        // use first token as base
+        UserAuthenticationToken token = authenticationTokens[0];
+        boolean isAuthenticated = token.isAuthenticated();
+        this.details = new UserDetails(principal.getSubjectId(), token.getUser().getIdentities(),
+                token.getUser().getAttributeSets(), authorities);
+
+        // add auth tokens
+        this.tokens.addAll(token.getAuthentications());
+
+        // process additional tokens
+        Arrays.stream(authenticationTokens).skip(1).forEach(t -> {
+            // identities
+            for (UserIdentity i : t.getUser().getIdentities()) {
+                details.addIdentity(i);
+            }
+
+            // attributes
+            for (UserAttributes ras : t.getUser().getAttributeSets()) {
+                details.addAttributeSet(ras);
+            }
+
+            // tokens
+            tokens.addAll(t.getAuthentications());
+        });
+
+        super.setAuthenticated(isAuthenticated); // must use super, as we override
+
     }
 
     @Override
@@ -63,11 +117,17 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
         return details;
     }
 
-    public String getSubject() {
-        return principal.getSubject();
+    @JsonIgnore
+    public Subject getSubject() {
+        return principal;
     }
 
-    public User getUser() {
+    public String getSubjectId() {
+        return principal.getSubjectId();
+    }
+
+    @JsonIgnore
+    public UserDetails getUser() {
         return details;
     }
 
@@ -89,34 +149,44 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
      * Auth tokens
      */
 
-    public void addAuthentication(RealmAuthenticationToken auth) {
+    public void addAuthentication(ExtendedAuthenticationToken auth) {
         // TODO implement a proper lock
         synchronized (this) {
             this.tokens.add(auth);
         }
     }
 
-    public RealmAuthenticationToken getAuthentication(String realm, String authority, String provider,
-            String principal) {
-        RealmAuthenticationToken token = null;
-        for (RealmAuthenticationToken t : tokens) {
+    public ExtendedAuthenticationToken getAuthentication(
+            String realm,
+            String authority,
+            String provider,
+            String userId) {
+        ExtendedAuthenticationToken token = null;
+        for (ExtendedAuthenticationToken t : tokens) {
             if (t.getRealm().equals(realm)
                     && t.getAuthority().equals(authority)
                     && t.getProvider().equals(provider)
-                    && t.getPrincipal().equals(principal)) {
+                    && t.getPrincipal().getUserId().equals(userId)) {
                 token = t;
                 break;
             }
         }
 
+        // we return the original
+        // we expect consumers to avoid mangling the token or resetting the
+        // authenticated flag
         return token;
     }
 
-    public void eraseAuthentication(RealmAuthenticationToken auth) {
+    public void eraseAuthentication(ExtendedAuthenticationToken auth) {
         // TODO implement a proper lock
         synchronized (this) {
             this.tokens.remove(auth);
         }
+    }
+
+    public Set<ExtendedAuthenticationToken> getAuthentications() {
+        return tokens;
     }
 
     @Override

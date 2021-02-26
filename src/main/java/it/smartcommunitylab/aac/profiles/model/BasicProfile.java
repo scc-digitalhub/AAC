@@ -22,6 +22,16 @@ public class BasicProfile {
     private String username;
     private String email;
 
+    public BasicProfile() {
+    }
+
+    public BasicProfile(BasicProfile bp) {
+        name = bp.getName();
+        surname = bp.getSurname();
+        username = bp.getUsername();
+        email = bp.getEmail();
+    }
+
     public String getName() {
         return name;
     }

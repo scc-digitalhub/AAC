@@ -6,9 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
+import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
-public interface InternalUserAccountRepository extends CustomJpaRepository<InternalUserAccount, Long> {
+public interface InternalUserAccountRepository
+        extends CustomJpaRepository<InternalUserAccount, Long>, DetachableJpaRepository<InternalUserAccount> {
 
     @Query("select u from InternalUserAccount u where u.id=?1")
     InternalUserAccount findByUserId(Long userId);
@@ -21,8 +23,10 @@ public interface InternalUserAccountRepository extends CustomJpaRepository<Inter
 
     List<InternalUserAccount> findBySubject(String subject);
 
+    List<InternalUserAccount> findBySubjectAndRealm(String subject, String realm);
+
     List<InternalUserAccount> findByRealm(String realm);
 
-    List<InternalUserAccount> findByRealmAndEmail(String realm, String email);
+    InternalUserAccount findByRealmAndEmail(String realm, String email);
 
 }

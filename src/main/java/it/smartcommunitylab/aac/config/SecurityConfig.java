@@ -30,6 +30,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,13 +50,14 @@ import org.springframework.web.filter.CompositeFilter;
 import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.AuthorityManager;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.persistence.RoleEntityRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.internal.InternalAuthenticationProvider;
-import it.smartcommunitylab.aac.internal.InternalUserDetailsService;
-import it.smartcommunitylab.aac.internal.InternalUserSubjectResolver;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
-
+import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
+import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 import it.smartcommunitylab.aac.utils.Utils;
 
 @Configuration
@@ -86,6 +88,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private DataSource dataSource;
+    
+    @Autowired
+    private AuthorityManager authorityManager;
 
 //    @Autowired
 //    private UserRepository userRepository;
@@ -226,42 +231,55 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return handler;
     }
 
-    // TODO customize authenticationprovider to handle per realm sessions
+    
     @Bean
     @Override
+    @Primary
     public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+        return extendedAuthenticationManager();
     }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.userDetailsService(userDetailsService);
-        auth.authenticationProvider(internalAuthProvider());
+    
+    @Bean
+    public ExtendedAuthenticationManager extendedAuthenticationManager() throws Exception {
+        return new ExtendedAuthenticationManager(authorityManager);
     }
+    
+//    // TODO customize authenticationprovider to handle per realm sessions
+//    @Bean
+//    @Override
+//    public AuthenticationManager authenticationManagerBean() throws Exception {
+//        return super.authenticationManagerBean();
+//    }
+//
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+////        auth.userDetailsService(userDetailsService);
+//        auth.authenticationProvider(internalAuthProvider());
+//    }
 
     @Autowired
     private InternalUserAccountRepository userRepository;
     @Autowired
     private RoleEntityRepository roleRepository;
 
-    public InternalUserDetailsService userDetailsService() {
-        return new InternalUserDetailsService(userRepository, roleRepository);
-    }
-
-    // internal authentication provider
-    // TODO use singleton
-    @Bean
-    public InternalAuthenticationProvider internalAuthProvider() throws Exception {
-        InternalAuthenticationProvider provider = new InternalAuthenticationProvider(userDetailsService());
-        provider.setPasswordEncoder(getInternalPasswordEncoder());
-        return provider;
-    }
-
-    @Bean
-    public InternalUserSubjectResolver internalSubjectResolver() throws Exception {
-        InternalUserSubjectResolver resolver = new InternalUserSubjectResolver(userRepository);
-        return resolver;
-    }
+//    public InternalUserDetailsService userDetailsService() {
+//        return new InternalUserDetailsService(userRepository, roleRepository);
+//    }
+//
+//    // internal authentication provider
+//    // TODO use singleton
+//    @Bean
+//    public InternalAuthenticationProvider internalAuthProvider() throws Exception {
+//        InternalAuthenticationProvider provider = new InternalAuthenticationProvider(userDetailsService());
+//        provider.setPasswordEncoder(getInternalPasswordEncoder());
+//        return provider;
+//    }
+//
+//    @Bean
+//    public InternalSubjectResolver internalSubjectResolver() throws Exception {
+//        InternalSubjectResolver resolver = new InternalSubjectResolver(userRepository);
+//        return resolver;
+//    }
 
 //    // TODO rework after integrating authorization server from lib
 //    @Bean

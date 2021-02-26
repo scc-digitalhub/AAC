@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.model;
 
 import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.util.Assert;
@@ -6,12 +6,12 @@ import org.springframework.util.StringUtils;
 
 public class Subject implements AuthenticatedPrincipal {
 
-    private final String subject;
+    private final String subjectId;
     private final String name;
 
     public Subject(String subject, String name) {
         Assert.notNull(subject, "subject can not be null");
-        this.subject = subject;
+        this.subjectId = subject;
         if (StringUtils.hasText(name)) {
             this.name = name;
         } else {
@@ -24,15 +24,15 @@ public class Subject implements AuthenticatedPrincipal {
         return name;
     }
 
-    public String getSubject() {
-        return subject;
+    public String getSubjectId() {
+        return subjectId;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((subject == null) ? 0 : subject.hashCode());
+        result = prime * result + ((subjectId == null) ? 0 : subjectId.hashCode());
         return result;
     }
 
@@ -45,17 +45,17 @@ public class Subject implements AuthenticatedPrincipal {
         if (getClass() != obj.getClass())
             return false;
         Subject other = (Subject) obj;
-        if (subject == null) {
-            if (other.subject != null)
+        if (subjectId == null) {
+            if (other.subjectId != null)
                 return false;
-        } else if (!subject.equals(other.subject))
+        } else if (!subjectId.equals(other.subjectId))
             return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "Subject [subject=" + subject + ", name=" + name + "]";
+        return "Subject [subjectId=" + subjectId + ", name=" + name + "]";
     }
 
 }

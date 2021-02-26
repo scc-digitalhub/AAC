@@ -2,21 +2,24 @@ package it.smartcommunitylab.aac.core.base;
 
 import org.springframework.security.core.CredentialsContainer;
 
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
-public abstract class BaseIdentity implements UserIdentity, CredentialsContainer {
+/*
+ * Base class for user identities
+ * implements erase credentials if account is a credentialsContainer
+ */
+public abstract class BaseIdentity extends AbstractIdentity {
 
-    protected UserAccount account;
-
-    @Override
-    public UserAccount getAccount() {
-        return account;
+    protected BaseIdentity(String authority, String provider, String realm) {
+        super(authority, provider, realm);
     }
 
-    public abstract UserAttributes getAttributes();
+    public void eraseCredentials() {
+        if (getAccount() instanceof CredentialsContainer) {
+            ((CredentialsContainer) getAccount()).eraseCredentials();
+        }
+    }
+    
 
-    public abstract Object getCredentials();
 
 }

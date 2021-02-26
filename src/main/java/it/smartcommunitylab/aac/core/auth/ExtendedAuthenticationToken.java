@@ -1,30 +1,74 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.core.auth;
 
 import java.util.Collection;
+import java.util.Date;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
-public class RealmAuthenticationToken implements Authentication,
-        CredentialsContainer {
+import com.ibm.icu.util.Calendar;
+
+import it.smartcommunitylab.aac.core.UserAuthenticatedPrincipal;
+
+/*
+ * An authenticationToken holding both the provider token and a resolved identity
+ * 
+ */
+
+public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = -1302725087208017064L;
 
-    private final String realm;
+    private final UserAuthenticatedPrincipal principal;
+
     private final String authority;
     private final String provider;
+    private final String realm;
 
-    private AbstractAuthenticationToken token;
+    private Authentication token;
 
-    public RealmAuthenticationToken(String realm, String authority, String provider,
-            AbstractAuthenticationToken token) {
+    // audit
+    private final Date issueTime;
+    // TODO add expire date and validity checks
+
+    public ExtendedAuthenticationToken(String authority, String provider, String realm,
+            UserAuthenticatedPrincipal principal,
+            Authentication token) {
+        super(token.getAuthorities());
         this.token = token;
-        this.realm = realm;
+        this.principal = principal;
         this.authority = authority;
         this.provider = provider;
+        this.realm = realm;
+        // set creation time
+        this.issueTime = Calendar.getInstance().getTime();
 
+    }
+
+    public ExtendedAuthenticationToken(String authority, String provider, String realm,
+            UserAuthenticatedPrincipal principal,
+            Authentication token,
+            Collection<GrantedAuthority> authorities) {
+        super(authorities);
+        this.token = token;
+        this.principal = principal;
+        this.authority = authority;
+        this.provider = provider;
+        this.realm = realm;
+        // set creation time
+        this.issueTime = Calendar.getInstance().getTime();
+
+    }
+
+    public Authentication getToken() {
+        return token;
+    }
+
+    @Override
+    public UserAuthenticatedPrincipal getPrincipal() {
+        return principal;
     }
 
     @Override
@@ -34,12 +78,12 @@ public class RealmAuthenticationToken implements Authentication,
 
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return token.getAuthorities();
+        return super.getAuthorities();
     }
 
     @Override
     public Object getCredentials() {
-        // no credentials exposed, refer to embedded token
+// no credentials exposed, refer to embedded token
         return null;
     }
 
@@ -55,16 +99,9 @@ public class RealmAuthenticationToken implements Authentication,
 
     @Override
     public void eraseCredentials() {
-        token.eraseCredentials();
-    }
-
-    @Override
-    public Object getPrincipal() {
-        return token.getPrincipal();
-    }
-
-    public String getRealm() {
-        return realm;
+        if (token instanceof CredentialsContainer) {
+            ((CredentialsContainer) token).eraseCredentials();
+        }
     }
 
     public String getAuthority() {
@@ -75,8 +112,12 @@ public class RealmAuthenticationToken implements Authentication,
         return provider;
     }
 
-    public AbstractAuthenticationToken getAuthenticationToken() {
-        return token;
+    public String getRealm() {
+        return realm;
+    }
+
+    public Date getIssueTime() {
+        return issueTime;
     }
 
     @Override
@@ -90,7 +131,6 @@ public class RealmAuthenticationToken implements Authentication,
         int result = super.hashCode();
         result = prime * result + ((authority == null) ? 0 : authority.hashCode());
         result = prime * result + ((provider == null) ? 0 : provider.hashCode());
-        result = prime * result + ((realm == null) ? 0 : realm.hashCode());
         result = prime * result + ((token == null) ? 0 : token.hashCode());
         return result;
     }
@@ -103,7 +143,7 @@ public class RealmAuthenticationToken implements Authentication,
             return false;
         if (getClass() != obj.getClass())
             return false;
-        RealmAuthenticationToken other = (RealmAuthenticationToken) obj;
+        ExtendedAuthenticationToken other = (ExtendedAuthenticationToken) obj;
         if (authority == null) {
             if (other.authority != null)
                 return false;
@@ -113,11 +153,6 @@ public class RealmAuthenticationToken implements Authentication,
             if (other.provider != null)
                 return false;
         } else if (!provider.equals(other.provider))
-            return false;
-        if (realm == null) {
-            if (other.realm != null)
-                return false;
-        } else if (!realm.equals(other.realm))
             return false;
         if (token == null) {
             if (other.token != null)
@@ -132,10 +167,9 @@ public class RealmAuthenticationToken implements Authentication,
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString()).append(": ");
 
-        sb.append("Realm: ").append(this.getRealm()).append("; ");
         sb.append("Authority: ").append(this.getAuthority()).append("; ");
         sb.append("Provider: ").append(this.getProvider()).append("; ");
-        // token
+// token
         sb.append("Principal: ").append(this.getPrincipal()).append("; ");
         sb.append("Credentials: [PROTECTED]; ");
         sb.append("Authenticated: ").append(this.isAuthenticated()).append("; ");
@@ -158,5 +192,4 @@ public class RealmAuthenticationToken implements Authentication,
 
         return sb.toString();
     }
-
 }

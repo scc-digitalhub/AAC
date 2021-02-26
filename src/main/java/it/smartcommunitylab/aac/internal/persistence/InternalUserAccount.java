@@ -7,18 +7,21 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
-import it.smartcommunitylab.aac.Constants;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseAccount;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 @Entity
 @Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "username" }))
-public class InternalUserAccount extends BaseAccount {
+public class InternalUserAccount implements UserAccount {
 
     @Id
     @GeneratedValue
@@ -28,6 +31,9 @@ public class InternalUserAccount extends BaseAccount {
     @NotNull
     @Column(name = "subject_id")
     private String subject;
+
+    @Transient
+    private String provider;
 
     private String realm;
 
@@ -71,14 +77,17 @@ public class InternalUserAccount extends BaseAccount {
 
     @Override
     public String getAuthority() {
-        return Constants.AUTHORITY_INTERNAL;
+        return SystemKeys.AUTHORITY_INTERNAL;
     }
 
     @Override
     public String getProvider() {
-        // for internal we have a single provider,
-        // we add realm to identify where user belongs
-        return Constants.AUTHORITY_INTERNAL + "|" + String.valueOf(realm);
+        return provider == null ? SystemKeys.AUTHORITY_INTERNAL : provider;
+    }
+
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_ACCOUNT;
     }
 
     @Override
@@ -229,6 +238,22 @@ public class InternalUserAccount extends BaseAccount {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    @Override
+    public AccountProfile toProfile() {
+        AccountProfile profile = new AccountProfile();
+        profile.setAuthority(getAuthority());
+        profile.setProvider(getProvider());
+        profile.setRealm(getRealm());
+        profile.setUsername(getUsername());
+        profile.setUserId(getUserId());
+
+        return profile;
     }
 
 }

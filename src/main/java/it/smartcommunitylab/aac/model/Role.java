@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.model;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;

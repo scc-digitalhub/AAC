@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import it.smartcommunitylab.aac.core.Role;
 import it.smartcommunitylab.aac.core.persistence.RoleEntity;
 import it.smartcommunitylab.aac.core.persistence.RoleEntityRepository;
+import it.smartcommunitylab.aac.model.Role;
 
 @Service
 public class RoleService {

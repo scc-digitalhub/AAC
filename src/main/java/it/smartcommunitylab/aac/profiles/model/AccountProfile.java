@@ -24,14 +24,15 @@ import java.util.Map;
  * @author raman
  *
  */
-public class AccountProfile extends BasicProfile {
+public class AccountProfile {
 
-    // identitying core attributes
     private String authority;
     private String provider;
+    private String realm;
 
-    // userId identities the user for the authority
+    // userId identifies the user for the provider
     private String userId;
+    private String username;
 
     // this contains additional attributes from provider
     // do not expose private data!
@@ -64,6 +65,14 @@ public class AccountProfile extends BasicProfile {
         this.userId = userId;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String name) {
+        this.username = name;
+    }
+
     public Map<String, String> getAttributes() {
         return attributes;
     }
@@ -72,28 +81,12 @@ public class AccountProfile extends BasicProfile {
         this.attributes = attributes;
     }
 
-//    /**
-//     * @param user
-//     * @return
-//     */
-//    public static AccountProfile fromUser(User user) {
-//        if (user == null) {
-//            return null;
-//        }
-//
-//        AccountProfile minProfile = new AccountProfile();
-//        Set<Attribute> attrs = user.getAttributeEntities();
-//        if (attrs != null) {
-//            for (Attribute a : attrs) {
-//                String account = a.getAuthority().getName();
-//                minProfile.addAttribute(account, a.getKey(), a.getValue());
-//            }
-//        }
-//        minProfile.setUsername(user.getUsername());
-//        minProfile.setName(user.getName());
-//        minProfile.setSurname(user.getSurname());
-//        minProfile.setUserId(user.getId().toString());
-//
-//        return minProfile;
-//    }
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
 }

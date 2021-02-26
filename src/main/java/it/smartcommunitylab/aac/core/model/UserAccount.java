@@ -1,17 +1,20 @@
 package it.smartcommunitylab.aac.core.model;
 
-public interface UserAccount {
+import java.io.Serializable;
 
-    public String getAuthority();
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
-    public String getRealm();
+/*
+ * An account used to login users into a realm, from an authority via a provider 
+ */
 
-    public String getUserId();
+public interface UserAccount extends UserResource, Serializable {
 
-    public String getProvider();
-
+    // we require at least a name
+    // we should make no assumptions on the content
     public String getUsername();
 
-//    public AccountProfile toProfile();
-    
+    // mapper to account profile
+    public AccountProfile toProfile();
+
 }

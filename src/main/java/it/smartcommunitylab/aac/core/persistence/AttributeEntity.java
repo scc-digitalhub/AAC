@@ -9,7 +9,7 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "attributes", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "authority", "provider",
+@Table(name = "attributes", uniqueConstraints = @UniqueConstraint(columnNames = { "authority", "provider",
         "user_id",
         "attr_key" }))
 public class AttributeEntity {
@@ -18,17 +18,15 @@ public class AttributeEntity {
     @GeneratedValue
     private Long id;
 
-    // user
     @NotNull
-    @Column(name = "subject_id")
-    private String subject;
-
     private String authority;
 
+    @NotNull
     private String provider;
 
+    @NotNull
     @Column(name = "user_id")
-    private Long userId;
+    private String userId;
 
     @Column(name = "attr_key")
     private String key;
@@ -42,14 +40,6 @@ public class AttributeEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
     }
 
     public String getAuthority() {
@@ -68,11 +58,11 @@ public class AttributeEntity {
         this.provider = provider;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -99,7 +89,6 @@ public class AttributeEntity {
         result = prime * result + ((authority == null) ? 0 : authority.hashCode());
         result = prime * result + ((key == null) ? 0 : key.hashCode());
         result = prime * result + ((provider == null) ? 0 : provider.hashCode());
-        result = prime * result + ((subject == null) ? 0 : subject.hashCode());
         result = prime * result + ((userId == null) ? 0 : userId.hashCode());
         return result;
     }
@@ -128,11 +117,6 @@ public class AttributeEntity {
                 return false;
         } else if (!provider.equals(other.provider))
             return false;
-        if (subject == null) {
-            if (other.subject != null)
-                return false;
-        } else if (!subject.equals(other.subject))
-            return false;
         if (userId == null) {
             if (other.userId != null)
                 return false;
@@ -143,7 +127,7 @@ public class AttributeEntity {
 
     @Override
     public String toString() {
-        return "AttributeEntity [subject=" + subject + ", authority=" + authority + ", userId=" + userId + ", key="
+        return "AttributeEntity [authority=" + authority + ", userId=" + userId + ", key="
                 + key + ", value=" + value + "]";
     }
 

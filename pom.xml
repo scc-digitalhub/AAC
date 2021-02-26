@@ -79,21 +79,25 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 		<!-- Google authentication -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.google.api-client</groupId> -->
-<!-- 			<artifactId>google-api-client</artifactId> -->
-<!-- 			<version>1.21.0</version> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.google.api-client</groupId> -->
-<!-- 			<artifactId>google-api-client-servlet</artifactId> -->
-<!-- 			<version>1.21.0</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.google.api-client</groupId> -->
+		<!-- <artifactId>google-api-client</artifactId> -->
+		<!-- <version>1.21.0</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.google.api-client</groupId> -->
+		<!-- <artifactId>google-api-client-servlet</artifactId> -->
+		<!-- <version>1.21.0</version> -->
+		<!-- </dependency> -->
 
-		<!-- SCO -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
 		<dependency>
@@ -111,32 +115,32 @@
 			<artifactId>spring-context-support</artifactId>
 			<type>jar</type>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.security.oauth.boot</groupId>
-			<artifactId>spring-security-oauth2-autoconfigure</artifactId>
-			<version>2.3.8.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security.oauth</groupId>
-			<artifactId>spring-security-oauth2</artifactId>
-			<version>2.3.8.RELEASE</version>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.security.oauth.boot</groupId> -->
+		<!-- <artifactId>spring-security-oauth2-autoconfigure</artifactId> -->
+		<!-- <version>2.3.8.RELEASE</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.security.oauth</groupId> -->
+		<!-- <artifactId>spring-security-oauth2</artifactId> -->
+		<!-- <version>2.3.8.RELEASE</version> -->
+		<!-- </dependency> -->
 
 
 		<!-- JPA 2.0 -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.apache.derby</groupId> -->
-<!-- 			<artifactId>derby</artifactId> -->
-<!-- 			<scope>test</scope> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.derby</groupId> -->
+		<!-- <artifactId>derby</artifactId> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.zaxxer</groupId> -->
-<!-- 			<artifactId>HikariCP</artifactId> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.zaxxer</groupId> -->
+		<!-- <artifactId>HikariCP</artifactId> -->
+		<!-- </dependency> -->
 		<!-- <dependency> -->
 		<!-- <groupId>c3p0</groupId> -->
 		<!-- <artifactId>c3p0</artifactId> -->
@@ -145,15 +149,15 @@
 		<!-- <scope>compile</scope> -->
 		<!-- </dependency> -->
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>joda-time</groupId> -->
-<!-- 			<artifactId>joda-time</artifactId> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>joda-time</groupId> -->
+		<!-- <artifactId>joda-time</artifactId> -->
+		<!-- </dependency> -->
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>javax.validation</groupId> -->
-<!-- 			<artifactId>validation-api</artifactId> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>javax.validation</groupId> -->
+		<!-- <artifactId>validation-api</artifactId> -->
+		<!-- </dependency> -->
 		<!-- Use to bean validation -->
 
 		<dependency>
@@ -162,17 +166,17 @@
 			<version>1.4</version>
 		</dependency>
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>javax.activation</groupId> -->
-<!-- 			<artifactId>activation</artifactId> -->
-<!-- 			<version>1.1</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>javax.activation</groupId> -->
+		<!-- <artifactId>activation</artifactId> -->
+		<!-- <version>1.1</version> -->
+		<!-- </dependency> -->
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>commons-logging</groupId> -->
-<!-- 			<artifactId>commons-logging</artifactId> -->
-<!-- 			<version>1.2</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>commons-logging</groupId> -->
+		<!-- <artifactId>commons-logging</artifactId> -->
+		<!-- <version>1.2</version> -->
+		<!-- </dependency> -->
 
 		<dependency>
 			<groupId>io.springfox</groupId>
@@ -200,28 +204,28 @@
 		<dependency>
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
-			</dependency>
+		</dependency>
 
 
 		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bctls-jdk15on -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.bouncycastle</groupId> -->
-<!-- 			<artifactId>bctls-jdk15on</artifactId> -->
-<!-- 			<version>1.61</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.bouncycastle</groupId> -->
+		<!-- <artifactId>bctls-jdk15on</artifactId> -->
+		<!-- <version>1.61</version> -->
+		<!-- </dependency> -->
 
 		<!-- Nashorn Sandbox -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.javadelight</groupId> -->
-<!-- 			<artifactId>delight-nashorn-sandbox</artifactId> -->
-<!-- 			<version>0.1.26</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.javadelight</groupId> -->
+		<!-- <artifactId>delight-nashorn-sandbox</artifactId> -->
+		<!-- <version>0.1.26</version> -->
+		<!-- </dependency> -->
 
 		<!-- use graal js for sandbox -->
 		<dependency>
-		  <groupId>org.javadelight</groupId>
-		  <artifactId>delight-graaljs-sandbox</artifactId>
-		  <version>0.1.2</version>
+			<groupId>org.javadelight</groupId>
+			<artifactId>delight-graaljs-sandbox</artifactId>
+			<version>0.1.2</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
@@ -233,40 +237,40 @@
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
 			<artifactId>jakarta.xml.bind-api</artifactId>
-			</dependency>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.sun.istack/istack-commons-runtime -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.sun.istack</groupId> -->
-<!-- 			<artifactId>istack-commons-runtime</artifactId> -->
-<!-- 			<version>3.0.10</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.sun.istack</groupId> -->
+		<!-- <artifactId>istack-commons-runtime</artifactId> -->
+		<!-- <version>3.0.10</version> -->
+		<!-- </dependency> -->
 
 	</dependencies>
 
-<!-- 	<profiles> -->
-<!-- 		<profile> -->
-<!-- 			<id>local</id> -->
-<!-- 			<activation> -->
-<!-- 				<activeByDefault>true</activeByDefault> -->
-<!-- 			</activation> -->
-<!-- 			<properties> -->
-<!-- 				<run.profiles>local${profile.authorization}</run.profiles> -->
-<!-- 			</properties> -->
-<!-- 		</profile> -->
-<!-- 		<profile> -->
-<!-- 			<id>authorization</id> -->
-<!-- 			<properties> -->
-<!-- 				<profile.authorization>,authorization</profile.authorization> -->
-<!-- 			</properties> -->
-<!-- 			<dependencies> -->
-<!-- 				<dependency> -->
-<!-- 					<groupId>it.smartcommunitylab.aac.authorization</groupId> -->
-<!-- 					<artifactId>aac-authorization-web</artifactId> -->
-<!-- 					<version>0.5.0-SNAPSHOT</version> -->
-<!-- 				</dependency> -->
-<!-- 			</dependencies> -->
-<!-- 		</profile> -->
-<!-- 	</profiles> -->
+	<!-- <profiles> -->
+	<!-- <profile> -->
+	<!-- <id>local</id> -->
+	<!-- <activation> -->
+	<!-- <activeByDefault>true</activeByDefault> -->
+	<!-- </activation> -->
+	<!-- <properties> -->
+	<!-- <run.profiles>local${profile.authorization}</run.profiles> -->
+	<!-- </properties> -->
+	<!-- </profile> -->
+	<!-- <profile> -->
+	<!-- <id>authorization</id> -->
+	<!-- <properties> -->
+	<!-- <profile.authorization>,authorization</profile.authorization> -->
+	<!-- </properties> -->
+	<!-- <dependencies> -->
+	<!-- <dependency> -->
+	<!-- <groupId>it.smartcommunitylab.aac.authorization</groupId> -->
+	<!-- <artifactId>aac-authorization-web</artifactId> -->
+	<!-- <version>0.5.0-SNAPSHOT</version> -->
+	<!-- </dependency> -->
+	<!-- </dependencies> -->
+	<!-- </profile> -->
+	<!-- </profiles> -->
 
 	<build>
 		<plugins>
@@ -286,35 +290,35 @@
 					<executable>true</executable>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jaxb2-maven-plugin</artifactId>
-				<version>2.5.0</version>
-				<executions>
-					<execution>
-						<id>SmartCommunity</id>
-						<goals>
-							<goal>xjc</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<sources>
-						<source>src/main/resources/jaxb/binding</source>
-					</sources>
-					<outputDirectory>src/main/generated-sources</outputDirectory>
-					<clearOutputDir>false</clearOutputDir>
-					<noPackageLevelAnnotations>true</noPackageLevelAnnotations>
-					<locale>en</locale>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.jvnet.jaxb2_commons</groupId>
-						<artifactId>jaxb2-value-constructor</artifactId>
-						<version>3.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
+			<!-- <plugin> -->
+			<!-- <groupId>org.codehaus.mojo</groupId> -->
+			<!-- <artifactId>jaxb2-maven-plugin</artifactId> -->
+			<!-- <version>2.5.0</version> -->
+			<!-- <executions> -->
+			<!-- <execution> -->
+			<!-- <id>SmartCommunity</id> -->
+			<!-- <goals> -->
+			<!-- <goal>xjc</goal> -->
+			<!-- </goals> -->
+			<!-- </execution> -->
+			<!-- </executions> -->
+			<!-- <configuration> -->
+			<!-- <sources> -->
+			<!-- <source>src/main/resources/jaxb/binding</source> -->
+			<!-- </sources> -->
+			<!-- <outputDirectory>src/main/generated-sources</outputDirectory> -->
+			<!-- <clearOutputDir>false</clearOutputDir> -->
+			<!-- <noPackageLevelAnnotations>true</noPackageLevelAnnotations> -->
+			<!-- <locale>en</locale> -->
+			<!-- </configuration> -->
+			<!-- <dependencies> -->
+			<!-- <dependency> -->
+			<!-- <groupId>org.jvnet.jaxb2_commons</groupId> -->
+			<!-- <artifactId>jaxb2-value-constructor</artifactId> -->
+			<!-- <version>3.0</version> -->
+			<!-- </dependency> -->
+			<!-- </dependencies> -->
+			<!-- </plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>

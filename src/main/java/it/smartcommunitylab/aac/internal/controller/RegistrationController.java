@@ -49,8 +49,9 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.UserAuthenticationToken;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
-import it.smartcommunitylab.aac.internal.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
+import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -82,7 +83,6 @@ public class RegistrationController {
 
     @Autowired
     private InternalUserManager userManager;
-
 
     /**
      * Redirect to registration page
@@ -136,13 +136,14 @@ public class RegistrationController {
                 // fetch existing subject for account linking
                 UserAuthenticationToken auth = sessionManager.getUserAuthentication();
                 if (auth != null) {
+                    // TODO check if already logged via internal, can't bind internal accounts
                     // link to session
-                    subject = auth.getSubject();
+                    subject = auth.getSubject().getSubjectId();
                 }
             }
             String realm = "";
 
-            InternalUserIdentity user = userManager.registerIdentity(subject, realm, null, reg.getPassword(),
+            InternalUserAccount user = userManager.registerAccount(subject, realm, null, reg.getPassword(),
                     reg.getEmail(), reg.getName(),
                     reg.getSurname(), reg.getLang(), null);
 
@@ -196,7 +197,7 @@ public class RegistrationController {
             String subject = UUID.randomUUID().toString();
             String realm = "";
 
-            InternalUserIdentity user = userManager.registerIdentity(subject, realm, null, reg.getPassword(),
+            InternalUserAccount user = userManager.registerAccount(subject, realm, null, reg.getPassword(),
                     reg.getEmail(), reg.getName(),
                     reg.getSurname(), reg.getLang(), null);
 

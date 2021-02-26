@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 @EnableJpaRepositories(basePackages = {
         "it.smartcommunitylab.aac.core.persistence",
         "it.smartcommunitylab.aac.internal.persistence",
+        "it.smartcommunitylab.aac.repository",
 }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
 public class DatabaseConfig {
 

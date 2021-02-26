@@ -48,12 +48,15 @@
       <h4 class="text-center" th:if= "${displayName == null}"  th:text="#{lbl_login_title}">AAC</h4>
       <h4 class="text-center" th:if= "${displayName != null}"  th:text="${displayName}">AAC</h4>      
       <h5 th:text="#{lbl_login}">Login</h5>
-      <form action="login" method="post">
+      <form th:action=${loginAction} th:object="${login}" method="post">
+      <input type="hidden" name="realm" th:value="${realm}" /> 
+      <input type="hidden" name="provider" th:value="${provider}" /> 
+      
           <div class="text-center error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
           <div>&nbsp;</div>
           <div class="col-md-12 form-group">
             <label th:text="#{lbl_user}" for="username">: </label>
-            <input class="form-control" type="text" id="username" name="username"/>
+            <input class="form-control" type="text" id="username" name="username" />
           </div>
           <div class="col-md-12 form-group">
             <label th:text="#{lbl_pwd}" for="password">: </label>

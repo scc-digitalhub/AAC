@@ -83,6 +83,7 @@ jwt:
 authorities:
    enabled: ${AUTHORITIES:internal}
    internal:
+      linking: false
       confirmation:
         required: true
         validity: 86400
@@ -173,6 +174,7 @@ spring:
       encoding: UTF-8
    resources:
       cache.period: 3600
+   h2.console.enabled: false       
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:

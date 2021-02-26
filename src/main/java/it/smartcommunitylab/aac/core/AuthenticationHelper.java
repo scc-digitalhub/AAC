@@ -8,6 +8,6 @@ public interface AuthenticationHelper {
 
     public UserAuthenticationToken getUserAuthentication();
 
-    public User getUserDetails();
+    public UserDetails getUserDetails();
 
 }

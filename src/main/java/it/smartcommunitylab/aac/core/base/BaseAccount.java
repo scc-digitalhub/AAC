@@ -1,22 +1,25 @@
 package it.smartcommunitylab.aac.core.base;
 
-import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 /*
- * Base class for user identities
+ * Base class for user accounts
+ * offers mapper to profile
  */
+public abstract class BaseAccount extends AbstractAccount {
 
-public abstract class BaseAccount implements UserAccount {
+    protected BaseAccount(String authority, String provider, String realm) {
+        super(authority, provider, realm);
+    }
 
-    public abstract String getAuthority();
+    public AccountProfile toProfile() {
+        AccountProfile ap = new AccountProfile();
+        ap.setAuthority(getAuthority());
+        ap.setProvider(getProvider());
+        ap.setRealm(getRealm());
+        ap.setUserId(getUserId());
+        ap.setUsername(getUsername());
 
-    public abstract String getRealm();
-
-    // an identifier at authority level
-    public abstract String getUserId();
-
-    public abstract String getProvider();
-
-    public abstract String getUsername();
-
+        return ap;
+    }
 }

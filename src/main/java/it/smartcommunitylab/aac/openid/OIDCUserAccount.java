@@ -14,12 +14,12 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Constants;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseAccount;
 
 @Entity
 @Table(name = "oidc_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "user_id" }))
-public class OIDCUserAccount extends BaseAccount {
+public class OIDCUserAccount {
 
     @Id
     @GeneratedValue
@@ -66,22 +66,22 @@ public class OIDCUserAccount extends BaseAccount {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    @Override
-    public String getAuthority() {
-        return Constants.AUTHORITY_OIDC;
-    }
-
-    @Override
-    public String getProvider() {
-        // we add realm to identify where user belongs
-        return Constants.AUTHORITY_OIDC + "|" + realm + "|" + providerId;
-    }
-
-    @Override
-    public String getUsername() {
-        // we use email as username, fallback to userId
-        return StringUtils.hasText(email) ? email : userId;
-    }
+//    @Override
+//    public String getAuthority() {
+//        return SystemKeys.AUTHORITY_OIDC;
+//    }
+//
+//    @Override
+//    public String getProvider() {
+//        // we add realm to identify where user belongs
+//        return SystemKeys.AUTHORITY_OIDC + "|" + realm + "|" + providerId;
+//    }
+//
+//    @Override
+//    public String getUsername() {
+//        // we use email as username, fallback to userId
+//        return StringUtils.hasText(email) ? email : userId;
+//    }
 
     /*
      * Fields

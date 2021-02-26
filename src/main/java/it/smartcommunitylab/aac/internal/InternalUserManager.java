@@ -5,10 +5,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,27 +26,32 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Constants;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidInputException;
 import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.AttributeProvider;
-import it.smartcommunitylab.aac.core.IdentityProvider;
-import it.smartcommunitylab.aac.core.Role;
+import it.smartcommunitylab.aac.core.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.service.AttributeEntityService;
 import it.smartcommunitylab.aac.core.service.RoleService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserService;
+import it.smartcommunitylab.aac.model.Role;
 
 @Service
-public class InternalUserManager implements IdentityProvider, AttributeProvider {
+public class InternalUserManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${authorities.internal.confirmation.required}")
@@ -78,14 +85,14 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
     @Autowired
     private UserEntityService userService;
 
-    @Autowired
-    private AttributeEntityService attributeService;
+//    @Autowired
+//    private AttributeEntityService attributeService;
 
     @Autowired
     private RoleService roleService;
 
     /*
-     * Init
+     * User store init
      */
 
     @Value("${admin.username}")
@@ -101,19 +108,23 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void init() throws Exception {
         // create admin as superuser
-        logger.debug("create admin user " + adminUsername);
-        InternalUserAccount account = accountService.findAccount(null, adminUsername);
+        logger.debug("create internal admin user " + adminUsername);
+        InternalUserAccount account = accountService.findAccount(SystemKeys.REALM_GLOBAL, adminUsername);
         if (account == null) {
             // register as new
             UserEntity user = userService.addUser(userService.createUser().getUuid(), adminUsername);
-            account = accountService.addAccount(user.getUuid(), null, adminUsername, null, null, null, null);
+            account = accountService.addAccount(user.getUuid(), SystemKeys.REALM_GLOBAL, adminUsername, null, null,
+                    null, null);
 
         }
 
         String subject = account.getSubject();
 
         // re-set password
-        setPassword(subject, null, adminUsername, adminPassword, false);
+        setPassword(subject, SystemKeys.REALM_GLOBAL, adminUsername, adminPassword, false);
+
+        // ensure account is unlocked
+        this.approveConfirmation(subject, SystemKeys.REALM_GLOBAL, adminUsername);
 
         // assign authorities as roles
         // at minimum we set ADMIN+DEV
@@ -137,35 +148,17 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
         return accountService.getSubject(realm, username);
     }
 
-    public InternalUserIdentity getIdentity(String realm, String userId) throws NoSuchUserException {
-        return getIdentity(realm, userId, false);
-    }
-
-    public InternalUserIdentity getIdentity(String realm, String userId, boolean fetchAttributes)
-            throws NoSuchUserException {
-        InternalUserAccount account = accountService.getAccount(realm, userId);
-
-        if (!fetchAttributes) {
-            return InternalUserIdentity.from(account);
-        } else {
-            List<AttributeEntity> attributes = attributeService.findAttributes(Constants.AUTHORITY_INTERNAL,
-                    account.getId());
-
-            return InternalUserIdentity.from(account, attributes);
-        }
-    }
-
-    @Override
-    public UserAttributes getAttributes(String realm, String userId) throws NoSuchUserException {
-        // we need to fetch account, attributes are linked
-        // leverage builder and return attributes
-        return getIdentity(realm, userId, true).getAttributes();
+    public InternalUserAccount getAccount(String realm, String username) throws NoSuchUserException {
+        return accountService.findAccount(realm, username);
     }
 
     /*
-     * Account handling as identity
+     * Account handling
+     * 
+     * TODO evaluate dropping extra attributes, maybe those belong to a 'user'
+     * attributeStore since we can't validate
      */
-    public InternalUserIdentity registerIdentity(
+    public InternalUserAccount registerAccount(
             String subject,
             String realm,
             String userId,
@@ -174,7 +167,7 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
             String name,
             String surname,
             String lang,
-            Set<AbstractMap.SimpleEntry<String, String>> attributesMap) throws RegistrationException {
+            Set<Map.Entry<String, String>> attributesMap) throws RegistrationException {
 
         // remediate missing username
         if (!StringUtils.hasText(userId)) {
@@ -218,6 +211,8 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
             user = userService.getUser(subject);
         }
 
+        // TODO resolve subject via attributes
+
         if (user == null) {
             subject = userService.createUser().getUuid();
             user = userService.addUser(subject, userId);
@@ -260,18 +255,22 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
         // persist attributes
         List<AttributeEntity> attributes = Collections.emptyList();
 
-        if (attributesMap != null) {
-            // note: internal authority has a single provider, internal
-            attributes = attributeService.setAttributes(subject, Constants.AUTHORITY_INTERNAL,
-                    Constants.AUTHORITY_INTERNAL, account.getId(),
-                    attributesMap);
-        }
+//        if (attributesMap != null) {
+//            // note: internal authority has a single provider, internal
+//            attributes = attributeService.setAttributes(subject, SystemKeys.AUTHORITY_INTERNAL,
+//                    SystemKeys.AUTHORITY_INTERNAL, account.getId(),
+//                    attributesMap);
+//        }
+//
+//        return InternalUserIdentity.from(account, attributes);
 
-        return InternalUserIdentity.from(account, attributes);
+        // note entity is still attached
+        // TODO evaluate detach
+        return account;
 
     }
 
-    public InternalUserIdentity updateAccount(
+    public InternalUserAccount updateAccount(
             String subject,
             String realm,
             String userId,
@@ -279,7 +278,7 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
             String name,
             String surname,
             String lang,
-            Set<AbstractMap.SimpleEntry<String, String>> attributesMap) throws NoSuchUserException {
+            Set<Map.Entry<String, String>> attributesMap) throws NoSuchUserException {
 
         InternalUserAccount account = accountService.getAccount(realm, userId);
         account.setSubject(subject);
@@ -290,17 +289,19 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
 
         account = accountService.updateAccount(account);
 
-        // persist attributes
-        List<AttributeEntity> attributes = Collections.emptyList();
-
-        if (attributesMap != null) {
-            // note: internal authority has a single provider, internal
-            attributes = attributeService.setAttributes(subject, Constants.AUTHORITY_INTERNAL,
-                    Constants.AUTHORITY_INTERNAL, account.getId(),
-                    attributesMap);
-        }
-
-        return InternalUserIdentity.from(account, attributes);
+//        // persist attributes
+//        List<AttributeEntity> attributes = Collections.emptyList();
+//
+//        if (attributesMap != null) {
+//            // note: internal authority has a single provider, internal
+//            attributes = attributeService.setAttributes(subject, SystemKeys.AUTHORITY_INTERNAL,
+//                    SystemKeys.AUTHORITY_INTERNAL, account.getId(),
+//                    attributesMap);
+//        }
+//
+        // note entity is still attached
+        // TODO evaluate detach
+        return account;
     }
 
     public void deleteAccount(
@@ -417,7 +418,7 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
         }
     }
 
-    public InternalUserIdentity doPasswordReset(
+    public InternalUserAccount doPasswordReset(
             String resetKey) {
 
         if (!StringUtils.hasText(resetKey)) {
@@ -464,7 +465,9 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
                 account = accountService.updateAccount(account);
             }
 
-            return InternalUserIdentity.from(account);
+            // note entity is still attached
+            // TODO evaluate detach
+            return account;
 
         } catch (NoSuchUserException ne) {
             logger.error("invalid key, not found in db");
@@ -475,7 +478,7 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
     /*
      * Confirmation
      */
-    public InternalUserIdentity doConfirmation(
+    public InternalUserAccount doConfirmation(
             String confirmationKey) {
 
         if (!StringUtils.hasText(confirmationKey)) {
@@ -523,7 +526,9 @@ public class InternalUserManager implements IdentityProvider, AttributeProvider 
                 account = accountService.updateAccount(account);
             }
 
-            return InternalUserIdentity.from(account);
+            // note entity is still attached
+            // TODO evaluate detach
+            return account;
         } catch (NoSuchUserException ne) {
             logger.error("invalid key, not found in db");
             throw new InvalidInputException("invalid-key");
