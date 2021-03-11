@@ -98,6 +98,13 @@ authorities:
           enabled: true
           validity: 86400
 
+
+providers:
+  identity:
+  attributes:
+
+
+
 oauth-providers:
   providers:
     - provider: facebook
