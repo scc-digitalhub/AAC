@@ -43,28 +43,33 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
     }
 
     @Override
-    public Subject resolveByUserId(String userId) throws NoSuchUserException {
+    public Subject resolveByUserId(String userId) {
         logger.debug("resolve by user id " + userId);
+        try {
+            InternalUserAccount account = accountProvider.getInternalAccount(userId);
 
-        InternalUserAccount account = accountProvider.getInternalAccount(userId);
-
-        // build subject with username
-        return new Subject(account.getSubject(), account.getUsername());
+            // build subject with username
+            return new Subject(account.getSubject(), account.getUsername());
+        } catch (NoSuchUserException nex) {
+            return null;
+        }
     }
 
     @Override
-    public Subject resolveByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
-        String realm = getRealm();
+    public Subject resolveByIdentifyingAttributes(Map<String, String> attributes) {
+        try {
+            // let provider resolve to an account
+            DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(attributes);
 
-        // let provider resolve to an account
-        DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(attributes);
+            // we need to fetch the internal object
+            // provider has exported the internalId
+            InternalUserAccount iaccount = accountProvider.getInternalAccount(account.getInternalUserId());
 
-        // we need to fetch the internal object
-        // provider has exported the internalId
-        InternalUserAccount iaccount = accountProvider.getInternalAccount(account.getInternalUserId());
-
-        // build subject with username
-        return new Subject(iaccount.getSubject(), iaccount.getUsername());
+            // build subject with username
+            return new Subject(iaccount.getSubject(), iaccount.getUsername());
+        } catch (NoSuchUserException nex) {
+            return null;
+        }
     }
 
     @Override
@@ -89,7 +94,7 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
     }
 
     @Override
-    public Subject resolveByLinkingAttributes(Map<String, String> attributes) throws NoSuchUserException {
+    public Subject resolveByLinkingAttributes(Map<String, String> attributes) {
 
         if (attributes.keySet().containsAll(Arrays.asList("realm", "email"))
                 && getRealm().equals((attributes.get("realm")))) {
@@ -98,16 +103,20 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
             idAttrs.put("realm", getRealm());
             idAttrs.put("email", attributes.get("email"));
             // let provider resolve to an account
-            DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(idAttrs);
+            try {
+                DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(idAttrs);
 
-            // we need to fetch the internal object
-            // provider has exported the internalId
-            InternalUserAccount iaccount = accountProvider.getInternalAccount(account.getInternalUserId());
+                // we need to fetch the internal object
+                // provider has exported the internalId
+                InternalUserAccount iaccount = accountProvider.getInternalAccount(account.getInternalUserId());
 
-            // build subject with username
-            return new Subject(iaccount.getSubject(), iaccount.getUsername());
+                // build subject with username
+                return new Subject(iaccount.getSubject(), iaccount.getUsername());
+            } catch (NoSuchUserException nex) {
+                return null;
+            }
         } else {
-            throw new NoSuchUserException("No internal user found matching attributes");
+            return null;
         }
     }
 

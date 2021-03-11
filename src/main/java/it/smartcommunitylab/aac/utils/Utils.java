@@ -29,7 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.core.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 
 /**
  * Common methods and functions

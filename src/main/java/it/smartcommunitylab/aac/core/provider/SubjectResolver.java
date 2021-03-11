@@ -18,7 +18,8 @@ public interface SubjectResolver {
      * Providers should be able to translate to internal id
      */
 
-    public Subject resolveByUserId(String userId) throws NoSuchUserException;
+    // TODO return Optional<> instead of null
+    public Subject resolveByUserId(String userId);
 
     /*
      * Identifying attributes
@@ -29,19 +30,23 @@ public interface SubjectResolver {
      * To identify the provider consumers will need additional information
      */
 
-    public Subject resolveByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException;
+    public Subject resolveByIdentifyingAttributes(Map<String, String> attributes);
 
     public Collection<Set<String>> getIdentifyingAttributes();
 
     /*
      * Account linking
      * 
-     * A set of attributes which, when matched by other resolvers, enables linking
-     * to the same subject across providers. Usually a subset of identifying
+     * A set of attributes which, when *all* matched by other resolvers, enables
+     * linking to the same subject across providers. Usually a subset of identifying
      * attributes.
      */
 
-    public Subject resolveByLinkingAttributes(Map<String, String> attributes) throws NoSuchUserException;
+    // TODO re-evaluate account linking for 2 scenarios:
+    // multi-login and
+    // additional-identity-fetch
+
+    public Subject resolveByLinkingAttributes(Map<String, String> attributes);
 
     public Collection<String> getLinkingAttributes();
 

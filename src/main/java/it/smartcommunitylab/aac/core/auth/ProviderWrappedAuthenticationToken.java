@@ -7,6 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.ibm.icu.util.Calendar;
+
 public class ProviderWrappedAuthenticationToken implements Authentication,
         CredentialsContainer {
 
@@ -16,6 +18,9 @@ public class ProviderWrappedAuthenticationToken implements Authentication,
     private final String provider;
 
     private AbstractAuthenticationToken token;
+
+    // audit
+    private WebAuthenticationDetails authenticationDetails;
 
     public ProviderWrappedAuthenticationToken(String authority, String provider,
             AbstractAuthenticationToken token) {
@@ -76,6 +81,14 @@ public class ProviderWrappedAuthenticationToken implements Authentication,
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         throw new IllegalArgumentException("Cannot set this token to trusted");
+    }
+
+    public WebAuthenticationDetails getAuthenticationDetails() {
+        return authenticationDetails;
+    }
+
+    public void setAuthenticationDetails(WebAuthenticationDetails authenticationDetails) {
+        this.authenticationDetails = authenticationDetails;
     }
 
     @Override

@@ -16,12 +16,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.service.AttributeEntityService;
-import it.smartcommunitylab.aac.core.service.RoleService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.openid.OIDCUserManager;
+import it.smartcommunitylab.aac.roles.RoleService;
+
+/*
+ * Manager for users
+ * 
+ * should handle all the operations on accounts, by relying on authority managers
+ */
 
 @Service
 public class UserManager {
@@ -46,6 +52,5 @@ public class UserManager {
 
     @Autowired
     private OIDCUserManager oidcUserManager;
-
 
 }

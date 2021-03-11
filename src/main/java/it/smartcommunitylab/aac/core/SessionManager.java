@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.model.Subject;
 
 @Service
@@ -96,5 +97,18 @@ public class SessionManager implements AuthenticationHelper {
     }
 
     // TODO track active sessions via SessionRegistry
+
+    public void listSession() {
+
+    }
+
+    public void listSessions(String providerId) {
+
+    }
+
+    public void destroySessions(String providerId) {
+        // destroy sessions for users with an authentication from the given provider
+        // we revoke session but not tokens
+    }
 
 }

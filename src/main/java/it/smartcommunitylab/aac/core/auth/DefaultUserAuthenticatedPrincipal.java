@@ -1,25 +1,46 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.UserAuthenticatedPrincipal;
-
 public class DefaultUserAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
 
-    private final String userId;
-    private final String name;
-    private final Map<String, String> attributes;
+    private final String authority;
+    private final String provider;
+    private final String realm;
 
-    public DefaultUserAuthenticatedPrincipal(String userId, String name, Map<String, String> attributes) {
-        Assert.notNull(name, "name cannot be null");
+    private final String userId;
+    private String name;
+    private Map<String, String> attributes;
+
+    public DefaultUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId) {
         Assert.notNull(userId, "userId cannot be null");
-        Assert.notNull(attributes, "attributes cannot be null");
+        Assert.notNull(authority, "authority cannot be null");
+        Assert.notNull(provider, "provider cannot be null");
+        Assert.notNull(realm, "realm cannot be null");
 
         this.userId = userId;
-        this.name = name;
-        this.attributes = attributes;
+        this.authority = authority;
+        this.realm = realm;
+        this.provider = provider;
+        this.attributes = Collections.emptyMap();
+    }
+
+    @Override
+    public String getAuthority() {
+        return authority;
+    }
+
+    @Override
+    public String getRealm() {
+        return realm;
+    }
+
+    @Override
+    public String getProvider() {
+        return provider;
     }
 
     @Override
@@ -35,6 +56,14 @@ public class DefaultUserAuthenticatedPrincipal implements UserAuthenticatedPrinc
     @Override
     public Map<String, String> getAttributes() {
         return attributes;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
     }
 
 }

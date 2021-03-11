@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntityRepository;
@@ -15,8 +16,12 @@ import it.smartcommunitylab.aac.core.persistence.AttributeEntityRepository;
 @Service
 public class AttributeEntityService {
 
-    @Autowired
-    private AttributeEntityRepository attributeRepository;
+    private final AttributeEntityRepository attributeRepository;
+
+    public AttributeEntityService(AttributeEntityRepository attributeRepository) {
+        Assert.notNull(attributeRepository, "attribute repository is mandatory");
+        this.attributeRepository = attributeRepository;
+    }
 
     /*
      * crud

@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
@@ -45,12 +46,15 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 @EntityScan(basePackages = {
         "it.smartcommunitylab.aac.core.persistence",
         "it.smartcommunitylab.aac.internal.persistence",
+        "it.smartcommunitylab.aac.openid.persistence",
 })
 @EnableJpaRepositories(basePackages = {
         "it.smartcommunitylab.aac.core.persistence",
         "it.smartcommunitylab.aac.internal.persistence",
+        "it.smartcommunitylab.aac.openid.persistence",
         "it.smartcommunitylab.aac.repository",
 }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
+@EnableJpaAuditing
 public class DatabaseConfig {
 
     @Autowired
@@ -117,7 +121,8 @@ public class DatabaseConfig {
         // spring boot 2.x should fix the issue
         bean.setPackagesToScan(
                 "it.smartcommunitylab.aac.core.persistence",
-                "it.smartcommunitylab.aac.internal.persistence");
+                "it.smartcommunitylab.aac.internal.persistence",
+                "it.smartcommunitylab.aac.openid.persistence");
 //		bean.setPersistenceUnitManager(null);
 
         return bean;

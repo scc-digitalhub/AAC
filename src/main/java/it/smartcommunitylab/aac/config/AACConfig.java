@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
-
 
 @Configuration
 public class AACConfig {
@@ -28,6 +28,8 @@ public class AACConfig {
 
     @Value("${oauth2.refreshtoken.validity}")
     private int refreshTokenValidity;
+
+
 
 //    @Autowired
 //    private UserRepository userRepository;

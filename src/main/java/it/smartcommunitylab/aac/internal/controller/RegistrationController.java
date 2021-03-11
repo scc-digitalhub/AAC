@@ -46,8 +46,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.SessionManager;
-import it.smartcommunitylab.aac.core.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.dto.RegistrationBean;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
@@ -73,7 +74,7 @@ public class RegistrationController {
     private boolean accountLinking;
 
     @Autowired
-    private SessionManager sessionManager;
+    private AuthenticationHelper sessionManager;
 
 //    @Autowired
 //    private RegistrationService regService;

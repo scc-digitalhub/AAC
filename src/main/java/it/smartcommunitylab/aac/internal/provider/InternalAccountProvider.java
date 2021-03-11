@@ -69,14 +69,14 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
         if (account == null
                 && attributes.keySet().containsAll(Arrays.asList("realm", "username"))
-                && getRealm().equals((attributes.get("realm")))) {
+                && realm.equals((attributes.get("realm")))) {
             account = accountRepository.findByRealmAndUsername(realm, attributes.get("username"));
         }
 
 
         if (account == null
                 && attributes.keySet().containsAll(Arrays.asList("realm", "email"))
-                && getRealm().equals((attributes.get("realm")))) {
+                && realm.equals((attributes.get("realm")))) {
             account = accountRepository.findByRealmAndEmail(realm, attributes.get("email"));
         }
 

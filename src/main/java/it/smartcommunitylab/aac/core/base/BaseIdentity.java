@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.profiles.model.BasicProfile;
  */
 public abstract class BaseIdentity extends AbstractIdentity {
 
-    protected BaseIdentity(String authority, String provider, String realm) {
+    public BaseIdentity(String authority, String provider, String realm) {
         super(authority, provider, realm);
     }
 

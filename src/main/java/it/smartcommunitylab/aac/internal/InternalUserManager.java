@@ -3,9 +3,9 @@ package it.smartcommunitylab.aac.internal;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidInputException;
@@ -33,17 +34,9 @@ import it.smartcommunitylab.aac.common.InvalidPasswordException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.AccountProvider;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.core.service.AttributeEntityService;
-import it.smartcommunitylab.aac.core.service.RoleService;
+import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -88,8 +81,8 @@ public class InternalUserManager {
 //    @Autowired
 //    private AttributeEntityService attributeService;
 
-    @Autowired
-    private RoleService roleService;
+//    @Autowired
+//    private RoleService roleService;
 
     /*
      * User store init
@@ -109,36 +102,44 @@ public class InternalUserManager {
     public void init() throws Exception {
         // create admin as superuser
         logger.debug("create internal admin user " + adminUsername);
+        UserEntity user = null;
         InternalUserAccount account = accountService.findAccount(SystemKeys.REALM_GLOBAL, adminUsername);
-        if (account == null) {
+        if (account != null) {
+            // check if user exists, recreate if needed
+            user = userService.findUser(account.getSubject());
+            if (user == null) {
+                user = userService.addUser(userService.createUser().getUuid(), adminUsername);
+            }
+        } else {
             // register as new
-            UserEntity user = userService.addUser(userService.createUser().getUuid(), adminUsername);
+            user = userService.addUser(userService.createUser().getUuid(), adminUsername);
             account = accountService.addAccount(user.getUuid(), SystemKeys.REALM_GLOBAL, adminUsername, null, null,
                     null, null);
-
         }
 
-        String subject = account.getSubject();
+        String subjectId = account.getSubject();
 
         // re-set password
-        setPassword(subject, SystemKeys.REALM_GLOBAL, adminUsername, adminPassword, false);
+        setPassword(subjectId, SystemKeys.REALM_GLOBAL, adminUsername, adminPassword, false);
 
         // ensure account is unlocked
-        this.approveConfirmation(subject, SystemKeys.REALM_GLOBAL, adminUsername);
+        this.approveConfirmation(subjectId, SystemKeys.REALM_GLOBAL, adminUsername);
 
         // assign authorities as roles
         // at minimum we set ADMIN+DEV
-        Set<Role> roles = new HashSet<>();
-        roles.add(Role.systemAdmin());
-        roles.add(Role.systemDeveloper());
+        Set<Map.Entry<String, String>> roles = new HashSet<>();
+        roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_ADMIN));
+        roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_DEVELOPER));
+        for (String role : adminRoles) {
+            roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, role));
 
-        if (adminRoles != null) {
-            Arrays.asList(adminRoles).forEach(r -> roles.add(Role.parse(r)));
         }
+        List<UserRoleEntity> userRoles = userService.updateRoles(subjectId, roles);
 
-        roleService.addRoles(subject, roles);
-
-        logger.trace("admin user id " + String.valueOf(account.getId()));
+        logger.debug("admin user id " + String.valueOf(account.getId()));
+        logger.debug("admin user " + user.toString());
+        logger.debug("admin user roles " + userRoles.toString());
+        logger.debug("admin account " + account.toString());
     }
 
     /*
@@ -208,7 +209,7 @@ public class InternalUserManager {
         // check subject, if missing generate
         UserEntity user = null;
         if (StringUtils.hasText(subject)) {
-            user = userService.getUser(subject);
+            user = userService.findUser(subject);
         }
 
         // TODO resolve subject via attributes

@@ -9,10 +9,8 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "user_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "context", "space",
-        "role",
-}))
-public class RoleEntity {
+@Table(name = "user_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "role" }))
+public class UserRoleEntity {
     @Id
     @GeneratedValue
     private Long id;
@@ -22,9 +20,8 @@ public class RoleEntity {
     @Column(name = "subject_id")
     private String subject;
 
-    // role definition
-    private String context;
-    private String space;
+    private String realm;
+
     @NotNull
     private String role;
 
@@ -44,20 +41,12 @@ public class RoleEntity {
         this.subject = subject;
     }
 
-    public String getContext() {
-        return context;
+    public String getRealm() {
+        return realm;
     }
 
-    public void setContext(String context) {
-        this.context = context;
-    }
-
-    public String getSpace() {
-        return space;
-    }
-
-    public void setSpace(String space) {
-        this.space = space;
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public String getRole() {
@@ -72,9 +61,8 @@ public class RoleEntity {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((context == null) ? 0 : context.hashCode());
+        result = prime * result + ((realm == null) ? 0 : realm.hashCode());
         result = prime * result + ((role == null) ? 0 : role.hashCode());
-        result = prime * result + ((space == null) ? 0 : space.hashCode());
         result = prime * result + ((subject == null) ? 0 : subject.hashCode());
         return result;
     }
@@ -87,21 +75,16 @@ public class RoleEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        RoleEntity other = (RoleEntity) obj;
-        if (context == null) {
-            if (other.context != null)
+        UserRoleEntity other = (UserRoleEntity) obj;
+        if (realm == null) {
+            if (other.realm != null)
                 return false;
-        } else if (!context.equals(other.context))
+        } else if (!realm.equals(other.realm))
             return false;
         if (role == null) {
             if (other.role != null)
                 return false;
         } else if (!role.equals(other.role))
-            return false;
-        if (space == null) {
-            if (other.space != null)
-                return false;
-        } else if (!space.equals(other.space))
             return false;
         if (subject == null) {
             if (other.subject != null)
@@ -109,6 +92,11 @@ public class RoleEntity {
         } else if (!subject.equals(other.subject))
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "UserRoleEntity [id=" + id + ", subject=" + subject + ", realm=" + realm + ", role=" + role + "]";
     }
 
 }

@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -13,6 +14,7 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseAccount;
@@ -21,6 +23,7 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 @Entity
 @Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "username" }))
+@EntityListeners(AuditingEntityListener.class)
 public class InternalUserAccount implements UserAccount {
 
     @Id
@@ -36,6 +39,9 @@ public class InternalUserAccount implements UserAccount {
     private String provider;
 
     private String realm;
+
+    @Transient
+    private String userId;
 
     // login
     @Column(name = "username")
@@ -97,8 +103,16 @@ public class InternalUserAccount implements UserAccount {
 
     @Override
     public String getUserId() {
-        // our id at authority level is the internal id
-        return String.valueOf(id);
+        if (userId == null) {
+            // use our id at authority level is the internal id
+            return String.valueOf(id);
+        }
+
+        return userId;
+    }
+
+    public void setUserId(String id) {
+        userId = id;
     }
 
     /*
@@ -254,6 +268,16 @@ public class InternalUserAccount implements UserAccount {
         profile.setUserId(getUserId());
 
         return profile;
+    }
+
+    @Override
+    public String toString() {
+        return "InternalUserAccount [id=" + id + ", subject=" + subject + ", provider=" + provider + ", realm=" + realm
+                + ", username=" + username + ", email=" + email + ", name=" + name + ", surname=" + surname + ", lang="
+                + lang + ", confirmed=" + confirmed + ", confirmationDeadline=" + confirmationDeadline
+                + ", confirmationKey=" + confirmationKey + ", resetDeadline=" + resetDeadline + ", resetKey=" + resetKey
+                + ", changeOnFirstAccess=" + changeOnFirstAccess + ", createDate=" + createDate + ", modifiedDate="
+                + modifiedDate + "]";
     }
 
 }

@@ -59,7 +59,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     public Collection<UserAttributes> getAttributes() {
         // manually map attributes into sets
         List<UserAttributes> attributes = new ArrayList<>();
-        // TODO rework
+        // TODO rework and move to attributeProvider, here we should simly store them
         String internalUserId = this.parseResourceId(userId);
         DefaultAttributesImpl profile = new DefaultAttributesImpl(getAuthority(), getProvider(), getRealm());
         profile.setInternalUserId(internalUserId);
@@ -71,13 +71,13 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
         DefaultAttributesImpl email = new DefaultAttributesImpl(getAuthority(), getProvider(), getRealm());
         email.setIdentifier("internal.email");
-        email.setInternalUserId(internalUserId);        
+        email.setInternalUserId(internalUserId);
         email.addAttribute("email", account.getEmail());
         attributes.add(email);
 
         DefaultAttributesImpl username = new DefaultAttributesImpl(getAuthority(), getProvider(), getRealm());
         username.setIdentifier("internal.username");
-        username.setInternalUserId(internalUserId);        
+        username.setInternalUserId(internalUserId);
         username.addAttribute("username", account.getUsername());
         attributes.add(username);
 

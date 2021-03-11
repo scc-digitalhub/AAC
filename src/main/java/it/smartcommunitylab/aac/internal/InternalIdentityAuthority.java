@@ -5,62 +5,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.IdentityAuthority;
-import it.smartcommunitylab.aac.core.persistence.RoleEntityRepository;
+import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 
 @Service
 public class InternalIdentityAuthority implements IdentityAuthority {
 
-    @Autowired
-    private InternalUserManager internalUserManager;
+    // TODO make consistent with global config
+    public static final String AUTHORITY_URL = "/auth/internal/";
 
-    @Autowired
-    private UserEntityService userService;
+    private final InternalUserAccountRepository accountRepository;
 
-    @Autowired
-    private InternalUserAccountRepository userRepository;
-
-    @Autowired
-    private RoleEntityRepository roleRepository;
-
-    // idp, keep track of global
-    public static final String GLOBAL_IDP = "_global";
-    private InternalIdentityProvider globalIdp;
+    // identity providers by id
     private Map<String, InternalIdentityProvider> providers = new HashMap<>();
+
+    public InternalIdentityAuthority(InternalUserAccountRepository accountRepository) {
+        Assert.notNull(accountRepository, "account repository is mandatory");
+        this.accountRepository = accountRepository;
+
+    }
 
     @Override
     public String getAuthorityId() {
         return SystemKeys.AUTHORITY_INTERNAL;
-    }
-
-    @PostConstruct
-    public void init() throws Exception {
-        // create global idp
-        // these users access every realm, they will have realm=""
-        // we expect no client/services in global realm!
-        this.globalIdp = new InternalIdentityProvider(
-                GLOBAL_IDP,
-                userService, userRepository, roleRepository,
-                SystemKeys.REALM_GLOBAL);
-
-        // create internal idp for internal realm
-        // kind of system realm fully functional
-        InternalIdentityProvider internalIdp = new InternalIdentityProvider(
-                "internal",
-                userService, userRepository, roleRepository,
-                SystemKeys.REALM_INTERNAL);
-
-        registerIdp(internalIdp);
     }
 
     private void registerIdp(InternalIdentityProvider idp) {
@@ -69,11 +43,7 @@ public class InternalIdentityAuthority implements IdentityAuthority {
 
     @Override
     public IdentityProvider getIdentityProvider(String providerId) {
-        if (GLOBAL_IDP.equals(providerId)) {
-            return globalIdp;
-        } else {
-            return providers.get(providerId);
-        }
+        return providers.get(providerId);
     }
 
     @Override
@@ -86,6 +56,48 @@ public class InternalIdentityAuthority implements IdentityAuthority {
         // unpack id
         // TODO
         return null;
+    }
+
+    @Override
+    public void registerIdentityProvider(ConfigurableProvider idp) {
+        // we support only identity provider as resource providers
+        if (idp != null
+                && getAuthorityId().equals(idp.getAuthority())
+                && SystemKeys.RESOURCE_IDENTITY.equals(idp.getType())) {
+            String providerId = idp.getProvider();
+            String realm = idp.getRealm();
+
+            // link to internal repos
+            InternalIdentityProvider internalIdp = new InternalIdentityProvider(
+                    providerId,
+                    accountRepository,
+                    realm);
+
+            // register
+            registerIdp(internalIdp);
+        }
+    }
+
+    @Override
+    public void unregisterIdentityProvider(String providerId) {
+        if (providers.containsKey(providerId)) {
+            synchronized (this) {
+                InternalIdentityProvider idp = providers.get(providerId);
+
+                // can't unregister default provider, check
+                if (SystemKeys.REALM_GLOBAL.equals(idp.getRealm())) {
+                    return;
+                }
+
+                // someone else should have already destroyed sessions
+                idp.shutdown();
+
+                // remove
+                providers.remove(providerId);
+            }
+
+        }
+
     }
 
 }

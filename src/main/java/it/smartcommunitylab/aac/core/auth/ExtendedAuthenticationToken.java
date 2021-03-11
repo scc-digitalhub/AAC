@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.auth;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -9,8 +10,6 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.ibm.icu.util.Calendar;
-
-import it.smartcommunitylab.aac.core.UserAuthenticatedPrincipal;
 
 /*
  * An authenticationToken holding both the provider token and a resolved identity
@@ -36,7 +35,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
     public ExtendedAuthenticationToken(String authority, String provider, String realm,
             UserAuthenticatedPrincipal principal,
             Authentication token) {
-        super(token.getAuthorities());
+        super(Collections.emptyList());
         this.token = token;
         this.principal = principal;
         this.authority = authority;
@@ -77,7 +76,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
-    public Collection<GrantedAuthority> getAuthorities() {
+    public Collection<GrantedAuthority> getAuthorities() {        
         return super.getAuthorities();
     }
 

@@ -34,10 +34,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.SessionManager;
-import it.smartcommunitylab.aac.core.UserAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
@@ -70,7 +70,7 @@ public class LoginController {
         if (!SystemKeys.REALM_GLOBAL.equals(realm)) {
             builder.queryParam("r", realm);
         }
-        if (!InternalIdentityAuthority.GLOBAL_IDP.equals(providerId)) {
+        if (!"".equals(providerId)) {
             builder.queryParam("p", providerId);
         }
 
@@ -83,7 +83,7 @@ public class LoginController {
             builder.append("/").append(realm);
         }
         builder.append("/login/internal");
-        if (!InternalIdentityAuthority.GLOBAL_IDP.equals(providerId)) {
+        if (!"".equals(providerId)) {
             builder.append("/").append(providerId);
         }
 
@@ -101,7 +101,7 @@ public class LoginController {
             RedirectAttributes attr,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
         String realm = SystemKeys.REALM_GLOBAL;
-        String providerId = InternalIdentityAuthority.GLOBAL_IDP;
+        String providerId = "";
 
         // fetch realm+provider
         if (realmKey.isPresent()) {
@@ -134,7 +134,7 @@ public class LoginController {
             HttpServletRequest req, HttpServletResponse res) throws Exception {
 
         String realm = SystemKeys.REALM_GLOBAL;
-        String providerId = InternalIdentityAuthority.GLOBAL_IDP;
+        String providerId = "";
 
         // fetch realm+provider
         if (realmKey.isPresent()) {
@@ -182,7 +182,7 @@ public class LoginController {
             HttpServletRequest req) {
 
         String realm = SystemKeys.REALM_GLOBAL;
-        String providerId = InternalIdentityAuthority.GLOBAL_IDP;
+        String providerId = "";
 
         if (login.getRealm() != null) {
             realm = login.getRealm();

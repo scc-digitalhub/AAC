@@ -3,8 +3,8 @@ package it.smartcommunitylab.aac.core.provider;
 import java.util.Collection;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 public interface IdentityProvider extends ResourceProvider {
@@ -28,10 +28,13 @@ public interface IdentityProvider extends ResourceProvider {
     public SubjectResolver getSubjectResolver();
 
     /*
-     * convert identities from authenticatedPrincipal
+     * convert identities from authenticatedPrincipal. for usage during login
+     * 
+     * if given a subjectId the idp should update the account
      */
 
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal) throws NoSuchUserException;
+    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+            throws NoSuchUserException;
 
     /*
      * fetch identities from this provider
@@ -43,6 +46,16 @@ public interface IdentityProvider extends ResourceProvider {
     public UserIdentity getIdentity(String userId) throws NoSuchUserException;
 
     public UserIdentity getIdentity(String userId, boolean fetchAttributes) throws NoSuchUserException;
+
+    /*
+     * fetch for subject
+     * 
+     * opt-in, loads identities outside login for persisted accounts linked to the
+     * subject
+     * 
+     * providers implementing this will enable the managers to fetch identities
+     * outside the login flow!
+     */
 
     public Collection<UserIdentity> listIdentities(String subject);
 

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.core.auth;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,7 +11,7 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.Subject;
@@ -34,6 +34,9 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     // should evaluate
     // we should also purge expired auth tokens
     private final Set<ExtendedAuthenticationToken> tokens;
+
+    // web authentication details
+    private WebAuthenticationDetails webAuthenticationDetails;
 
     public UserAuthenticationToken(
             Subject principal,
@@ -187,6 +190,17 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
     public Set<ExtendedAuthenticationToken> getAuthentications() {
         return tokens;
+    }
+
+    /*
+     * web auth details
+     */
+    public WebAuthenticationDetails getWebAuthenticationDetails() {
+        return webAuthenticationDetails;
+    }
+
+    public void setWebAuthenticationDetails(WebAuthenticationDetails webAuthenticationDetails) {
+        this.webAuthenticationDetails = webAuthenticationDetails;
     }
 
     @Override

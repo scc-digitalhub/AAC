@@ -39,6 +39,10 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
@@ -51,13 +55,18 @@ import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.AuthorityManager;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationManager;
-import it.smartcommunitylab.aac.core.persistence.RoleEntityRepository;
+import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
+import it.smartcommunitylab.aac.openid.OIDCAuthority;
+import it.smartcommunitylab.aac.openid.service.OIDCClientRegistrationRepository;
+import it.smartcommunitylab.aac.openid.service.OIDCLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.openid.service.OIDCRedirectAuthenticationFilter;
 import it.smartcommunitylab.aac.utils.Utils;
 
 @Configuration
@@ -83,14 +92,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${security.redirects.matchsubdomains}")
     private boolean configMatchSubDomains;
 
+    @Bean
+    @ConfigurationProperties(prefix = "providers")
+    public ProvidersProperties globalProviders() {
+        return new ProvidersProperties();
+    }
+
 //    @Autowired
 //    OAuth2ClientContext oauth2ClientContext;
 
     @Autowired
     private DataSource dataSource;
-    
+
     @Autowired
     private AuthorityManager authorityManager;
+
+    @Autowired
+    private OIDCClientRegistrationRepository clientRegistrationRepository;
+
+    @Autowired
+    private UserEntityService userService;
+
+    @Autowired
+    private ExtendedAuthenticationManager authManager;
 
 //    @Autowired
 //    private UserRepository userRepository;
@@ -216,9 +240,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .rememberMeServices(rememberMeServices())
                 .and()
                 .csrf()
-                .disable();
+                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
-//                .addFilterBefore(extOAuth2Filter(), BasicAuthenticationFilter.class);
+                .addFilterBefore(getOIDCAuthorityFilters(authManager, clientRegistrationRepository),
+                        BasicAuthenticationFilter.class);
+
     }
 
     /**
@@ -231,19 +257,45 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return handler;
     }
 
-    
     @Bean
     @Override
     @Primary
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return extendedAuthenticationManager();
     }
-    
+
     @Bean
     public ExtendedAuthenticationManager extendedAuthenticationManager() throws Exception {
-        return new ExtendedAuthenticationManager(authorityManager);
+        return new ExtendedAuthenticationManager(authorityManager, userService);
     }
-    
+
+    public CompositeFilter getOIDCAuthorityFilters(AuthenticationManager authManager,
+            OIDCClientRegistrationRepository clientRegistrationRepository) {
+        // build filters bound to shared client + request repos
+        AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
+        OIDCRedirectAuthenticationFilter redirectFilter = new OIDCRedirectAuthenticationFilter(
+                clientRegistrationRepository);
+        redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
+
+        OIDCLoginAuthenticationFilter loginFilter = new OIDCLoginAuthenticationFilter(clientRegistrationRepository);
+        loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
+        loginFilter.setAuthenticationManager(authManager);
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(loginFilter);
+        filters.add(redirectFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    @Bean
+    public OIDCClientRegistrationRepository clientRegistrationRepository() {
+        return new OIDCClientRegistrationRepository();
+    }
+
 //    // TODO customize authenticationprovider to handle per realm sessions
 //    @Bean
 //    @Override
@@ -257,10 +309,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        auth.authenticationProvider(internalAuthProvider());
 //    }
 
-    @Autowired
-    private InternalUserAccountRepository userRepository;
-    @Autowired
-    private RoleEntityRepository roleRepository;
+//    @Autowired
+//    private InternalUserAccountRepository userRepository;
+//    @Autowired
+//    private RoleEntityRepository roleRepository;
 
 //    public InternalUserDetailsService userDetailsService() {
 //        return new InternalUserDetailsService(userRepository, roleRepository);

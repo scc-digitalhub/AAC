@@ -84,4 +84,9 @@ public class DefaultIdentityImpl extends BaseIdentity implements CredentialsCont
     public static final String ATTRIBUTES_EMAIL = "email";
     public static final String ATTRIBUTES_PROFILE = "profile";
 
+    @Override
+    public String toString() {
+        return "DefaultIdentityImpl [account=" + account + ", attributes=" + attributes + "]";
+    }
+
 }
