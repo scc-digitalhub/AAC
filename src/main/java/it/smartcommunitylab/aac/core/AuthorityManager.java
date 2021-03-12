@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
-import it.smartcommunitylab.aac.openid.OIDCAuthority;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
+import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 
 @Service
 public class AuthorityManager {
@@ -21,15 +22,19 @@ public class AuthorityManager {
     private InternalIdentityAuthority internalAuthority;
 
     @Autowired
-    private OIDCAuthority oidcAuthority;
+    private OIDCIdentityAuthority oidcAuthority;
+
+    @Autowired
+    private SamlIdentityAuthority samlAuthority;
 
     public IdentityAuthority getIdentityAuthority(String authority) {
         if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
             return internalAuthority;
         } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
             return oidcAuthority;
+        } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
+            return samlAuthority;
         }
-
         return null;
     }
 
@@ -37,6 +42,7 @@ public class AuthorityManager {
         List<IdentityAuthority> result = new ArrayList<>();
         result.add(internalAuthority);
         result.add(oidcAuthority);
+        result.add(samlAuthority);
 
         return result;
     }

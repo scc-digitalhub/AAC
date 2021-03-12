@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid;
+package it.smartcommunitylab.aac.openid.provider;
 
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
 public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
@@ -16,7 +17,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     public static final String PROVIDER_FACEBOOK = "facebook";
     public static final String PROVIDER_GITHUB = "github";
 
-    public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCAuthority.AUTHORITY_URL
+    public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
 
     protected OIDCIdentityProviderConfig(String provider, String realm) {

@@ -43,6 +43,7 @@ import org.springframework.security.oauth2.client.web.AuthorizationRequestReposi
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
@@ -63,10 +64,13 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountReposito
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
-import it.smartcommunitylab.aac.openid.OIDCAuthority;
-import it.smartcommunitylab.aac.openid.service.OIDCClientRegistrationRepository;
-import it.smartcommunitylab.aac.openid.service.OIDCLoginAuthenticationFilter;
-import it.smartcommunitylab.aac.openid.service.OIDCRedirectAuthenticationFilter;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
+import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
+import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
+import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
+import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
+import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.utils.Utils;
 
 @Configuration
@@ -109,6 +113,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private OIDCClientRegistrationRepository clientRegistrationRepository;
+
+    @Autowired
+    private SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
     @Autowired
     private UserEntityService userService;
@@ -242,6 +249,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
+                .addFilterBefore(getSamlAuthorityFilters(authManager, relyingPartyRegistrationRepository),
+                        BasicAuthenticationFilter.class)
                 .addFilterBefore(getOIDCAuthorityFilters(authManager, clientRegistrationRepository),
                         BasicAuthenticationFilter.class);
 
@@ -269,6 +278,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new ExtendedAuthenticationManager(authorityManager, userService);
     }
 
+    /*
+     * OIDC Auth
+     */
+
+    @Bean
+    public OIDCClientRegistrationRepository clientRegistrationRepository() {
+        return new OIDCClientRegistrationRepository();
+    }
+
     public CompositeFilter getOIDCAuthorityFilters(AuthenticationManager authManager,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         // build filters bound to shared client + request repos
@@ -291,9 +309,33 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return filter;
     }
 
+    /*
+     * Saml2 Auth
+     */
+
     @Bean
-    public OIDCClientRegistrationRepository clientRegistrationRepository() {
-        return new OIDCClientRegistrationRepository();
+    public SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
+        return new SamlRelyingPartyRegistrationRepository();
+    }
+
+    public CompositeFilter getSamlAuthorityFilters(AuthenticationManager authManager,
+            SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+        // build filters
+        SamlWebSsoAuthenticationRequestFilter requestFilter = new SamlWebSsoAuthenticationRequestFilter(
+                relyingPartyRegistrationRepository);
+
+        SamlWebSsoAuthenticationFilter ssoFilter = new SamlWebSsoAuthenticationFilter(
+                relyingPartyRegistrationRepository);
+        ssoFilter.setAuthenticationManager(authManager);
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(requestFilter);
+        filters.add(ssoFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
     }
 
 //    // TODO customize authenticationprovider to handle per realm sessions

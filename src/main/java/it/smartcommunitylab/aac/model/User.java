@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.model;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +25,10 @@ public class User {
     private Collection<UserIdentity> identities;
 
     // roles are OUTSIDE aac (ie not grantedAuthorities)
+    // roles are associated to USER(=subjectId) not single identities/realms
+    // this field should be used for caching, consumers should refresh
+    // otherwise we should implement an (external) expiring + refreshing cache with
+    // locking
     private Set<Role> roles;
 
     // additional attributes as flatMap
@@ -82,13 +87,33 @@ public class User {
     public void setIdentities(Collection<UserIdentity> identities) {
         this.identities = identities;
     }
+    /*
+     * Roles are mutable and comparable
+     */
 
     public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+    public void setRoles(Collection<Role> rr) {
+        this.roles = new HashSet<>();
+        addRoles(rr);
+    }
+
+    public void addRoles(Collection<Role> rr) {
+        roles.addAll(rr);
+    }
+
+    public void removeRoles(Collection<Role> rr) {
+        roles.removeAll(rr);
+    }
+
+    public void addRole(Role r) {
+        this.roles.add(r);
+    }
+
+    public void removeRole(Role r) {
+        this.roles.remove(r);
     }
 
     public Map<String, String> getAttributes() {

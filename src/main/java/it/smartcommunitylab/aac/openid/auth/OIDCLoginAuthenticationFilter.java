@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.service;
+package it.smartcommunitylab.aac.openid.auth;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -29,7 +30,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.openid.OIDCAuthority;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
 /*
  * Custom oauth2 login filter, handles login via auth code 
@@ -37,7 +38,7 @@ import it.smartcommunitylab.aac.openid.OIDCAuthority;
  */
 public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = OIDCAuthority.AUTHORITY_URL + "login/*";
+    public static final String DEFAULT_FILTER_URI = OIDCIdentityAuthority.AUTHORITY_URL + "login/*";
 
     // we need to load client registration
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -51,10 +52,14 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
     }
 
     public OIDCLoginAuthenticationFilter(ClientRegistrationRepository clientRegistrationRepository,
-            String filterProcessesUrl) {
-        super(filterProcessesUrl);
+            String filterProcessingUrl) {
+        super(filterProcessingUrl);
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         this.clientRegistrationRepository = clientRegistrationRepository;
+
+        //TODO evaluate adopting changeSessionStrategy to avoid fixation attacks
+//        setAllowSessionCreation(true);
+//        setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
 
     }
 

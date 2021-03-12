@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.provider;
+package it.smartcommunitylab.aac.saml.provider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,20 +21,20 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.DefaultAccountImpl;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
-public class OIDCSubjectResolver extends AbstractProvider implements SubjectResolver {
+public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final OIDCAccountProvider accountProvider;
+    private final SamlAccountProvider accountProvider;
 
-    protected OIDCSubjectResolver(String providerId, OIDCUserAccountRepository accountRepository, String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
+    protected SamlSubjectResolver(String providerId, SamlUserAccountRepository accountRepository, String realm) {
+        super(SystemKeys.AUTHORITY_SAML, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
 
         // build an internal provider bound to repository
-        this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, realm);
+        this.accountProvider = new SamlAccountProvider(providerId, accountRepository, realm);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     public Subject resolveByUserId(String userId) {
         logger.debug("resolve by user id " + userId);
         try {
-            OIDCUserAccount account = accountProvider.getOIDCAccount(userId);
+            SamlUserAccount account = accountProvider.getSamlAccount(userId);
 
             // build subject with username
             return new Subject(account.getSubject(), account.getUsername());
@@ -63,7 +63,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
 
             // we need to fetch the internal object
             // provider has exported the internalId
-            OIDCUserAccount iaccount = accountProvider.getOIDCAccount(account.getInternalUserId());
+            SamlUserAccount iaccount = accountProvider.getSamlAccount(account.getInternalUserId());
 
             // build subject with username
             return new Subject(iaccount.getSubject(), iaccount.getUsername());
@@ -105,7 +105,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
 
                 // we need to fetch the internal object
                 // provider has exported the internalId
-                OIDCUserAccount iaccount = accountProvider.getOIDCAccount(account.getInternalUserId());
+                SamlUserAccount iaccount = accountProvider.getSamlAccount(account.getInternalUserId());
 
                 // build subject with username
                 return new Subject(iaccount.getSubject(), iaccount.getUsername());

@@ -24,8 +24,7 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.openid.OIDCAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 

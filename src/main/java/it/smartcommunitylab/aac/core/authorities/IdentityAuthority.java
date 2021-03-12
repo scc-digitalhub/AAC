@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core.authorities;
 
 import java.util.List;
 
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
@@ -33,8 +34,8 @@ public interface IdentityAuthority {
      * implementations should unregister+register, we want identities and sessions
      * to be invalidated if config changes
      */
-    public void registerIdentityProvider(ConfigurableProvider idp);
+    public void registerIdentityProvider(ConfigurableProvider idp) throws IllegalArgumentException, SystemException;
 
-    public void unregisterIdentityProvider(String providerId);
+    public void unregisterIdentityProvider(String providerId) throws SystemException;
 
 }

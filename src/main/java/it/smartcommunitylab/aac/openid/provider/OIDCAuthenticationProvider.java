@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.OIDCAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
@@ -81,7 +81,7 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return OAuth2LoginAuthenticationToken.class.isAssignableFrom(authentication);
+        return authentication != null && OAuth2LoginAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
     @Override

@@ -64,81 +64,52 @@ public class ProviderManager {
         if (providers != null) {
             // identity providers
             for (ProviderConfiguration providerConfig : providers.getIdentity()) {
-                // check match
-                if (!SystemKeys.RESOURCE_IDENTITY.equals(providerConfig.getType())) {
-                    continue;
-                }
-
-                // we handle only global providers, add others via bootstrap
-                if (SystemKeys.REALM_GLOBAL.equals(providerConfig.getRealm()) || providerConfig.getRealm() == null) {
-                    logger.debug(
-                            "register provider for " + providerConfig.getType() + " in global realm: "
-                                    + providerConfig.toString());
-
-                    // translate config
-                    ConfigurableProvider provider = new ConfigurableProvider(providerConfig.getAuthority(),
-                            providerConfig.getProvider(), SystemKeys.REALM_GLOBAL);
-                    provider.setType(providerConfig.getType());
-                    provider.setEnabled(true);
-                    for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
-                        provider.setConfigurationProperty(entry.getKey(), entry.getValue());
+                try {
+                    // check match
+                    if (!SystemKeys.RESOURCE_IDENTITY.equals(providerConfig.getType())) {
+                        continue;
                     }
 
-                    // register
-                    registerProvider(provider);
+                    // we handle only global providers, add others via bootstrap
+                    if (SystemKeys.REALM_GLOBAL.equals(providerConfig.getRealm())
+                            || providerConfig.getRealm() == null) {
+                        logger.debug(
+                                "register provider for " + providerConfig.getType() + " in global realm: "
+                                        + providerConfig.toString());
+
+                        // translate config
+                        ConfigurableProvider provider = new ConfigurableProvider(providerConfig.getAuthority(),
+                                providerConfig.getProvider(), SystemKeys.REALM_GLOBAL);
+                        provider.setType(providerConfig.getType());
+                        provider.setEnabled(true);
+                        for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
+                            provider.setConfigurationProperty(entry.getKey(), entry.getValue());
+                        }
+
+                        // register
+                        registerProvider(provider);
+                    }
+                } catch (SystemException | IllegalArgumentException ex) {
+                    logger.error("error registering provider :" + ex.getMessage(), ex);
                 }
             }
 
             // attribute providers
             for (ProviderConfiguration providerConfig : providers.getAttributes()) {
-                // check match
-                if (!SystemKeys.RESOURCE_ATTRIBUTES.equals(providerConfig.getType())) {
-                    continue;
-                }
+                try {
+                    // check match
+                    if (!SystemKeys.RESOURCE_ATTRIBUTES.equals(providerConfig.getType())) {
+                        continue;
+                    }
 
-                // TODO
+                    // TODO
+                } catch (SystemException | IllegalArgumentException ex) {
+                    logger.error("error registering provider :" + ex.getMessage(), ex);
+                }
             }
         }
 
     }
-
-//    @PostConstruct
-//    public void init() throws Exception {
-//
-//        // create global idp
-//        // these users access administative contexts, they will have realm=""
-//        // we expect no client/services in global realm!
-//        IdentityAuthority internal = authorityManager.getIdentityAuthority(SystemKeys.AUTHORITY_INTERNAL);
-//
-//        ConfigurableProvider internalIdp = new ConfigurableProvider(
-//                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
-//                SystemKeys.REALM_GLOBAL);
-//        internalIdp.setType(SystemKeys.RESOURCE_IDENTITY);
-//        internal.registerIdentityProvider(internalIdp);
-//
-//        // TODO read global realm providers from config
-//
-//        // dev config
-//
-//        // create test internal idp
-//        ConfigurableProvider tenant1Idp = new ConfigurableProvider(SystemKeys.AUTHORITY_INTERNAL, "internal",
-//                "tenant1");
-//        tenant1Idp.setType(SystemKeys.RESOURCE_IDENTITY);
-//        internal.registerIdentityProvider(tenant1Idp);
-//
-//        // build dev oidc
-//        ConfigurableProvider googleIdp = new ConfigurableProvider(SystemKeys.AUTHORITY_OIDC, "google",
-//                SystemKeys.REALM_GLOBAL);
-//        googleIdp.setType(SystemKeys.RESOURCE_IDENTITY);
-//        googleIdp.setConfigurationProperty("clientName", "google");
-//        googleIdp.setConfigurationProperty("clientId",
-//                "776995207870-bi6sgup0a1fm1g5pk7hqjujufv0equtt.apps.googleusercontent.com");
-//        googleIdp.setConfigurationProperty("clientSecret", "aNtTQcOCYt-Pc9kIhJm-Tzsu");
-//
-//        IdentityAuthority oidc = authorityManager.getIdentityAuthority(SystemKeys.AUTHORITY_OIDC);
-//        oidc.registerIdentityProvider(googleIdp);
-//
-//    }
 
     /*
      * Enable/disable providers with authorities

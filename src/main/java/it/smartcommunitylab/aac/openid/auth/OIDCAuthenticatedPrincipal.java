@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid;
+package it.smartcommunitylab.aac.openid.auth;
 
 import java.util.HashMap;
 import java.util.Map;

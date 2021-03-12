@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.openid.service;
+package it.smartcommunitylab.aac.openid.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

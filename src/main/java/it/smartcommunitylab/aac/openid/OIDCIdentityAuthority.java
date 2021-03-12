@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -14,12 +15,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
-import it.smartcommunitylab.aac.openid.service.OIDCClientRegistrationRepository;
 
 @Service
-public class OIDCAuthority implements IdentityAuthority {
+public class OIDCIdentityAuthority implements IdentityAuthority {
 
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/oidc/";
@@ -37,7 +38,7 @@ public class OIDCAuthority implements IdentityAuthority {
         return SystemKeys.AUTHORITY_OIDC;
     }
 
-    public OIDCAuthority(
+    public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
 
@@ -81,27 +82,39 @@ public class OIDCAuthority implements IdentityAuthority {
     }
 
     @Override
-    public void registerIdentityProvider(ConfigurableProvider idp) {
+    public void registerIdentityProvider(ConfigurableProvider cp) {
         // we support only identity provider as resource providers
-        if (idp != null
-                && getAuthorityId().equals(idp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(idp.getType())) {
-            String providerId = idp.getProvider();
-            String realm = idp.getRealm();
+        if (cp != null
+                && getAuthorityId().equals(cp.getAuthority())
+                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
+            String providerId = cp.getProvider();
+            String realm = cp.getRealm();
 
-            // link to internal repos
-            // TODO add attribute store as persistentStore
-            OIDCIdentityProvider oidp = new OIDCIdentityProvider(
-                    providerId,
-                    accountRepository, null,
-                    idp,
-                    realm);
+            try {
+                // link to internal repos
+                // TODO add attribute store as persistentStore
+                OIDCIdentityProvider idp = new OIDCIdentityProvider(
+                        providerId,
+                        accountRepository, null,
+                        cp,
+                        realm);
 
-            // register
-            providers.put(oidp.getProvider(), oidp);
+                // build registration, will ensure configuration is valid *before* registering
+                // the provider in repositories
+                ClientRegistration registration = idp.getClientRegistration();
 
-            // add client registration to registry
-            clientRegistrationRepository.addRegistration(oidp.getClientRegistration());
+                // register
+                providers.put(idp.getProvider(), idp);
+
+                // add client registration to registry
+                clientRegistrationRepository.addRegistration(registration);
+            } catch (Exception ex) {
+                // cleanup
+                clientRegistrationRepository.removeRegistration(providerId);
+                providers.remove(providerId);
+
+                throw new IllegalArgumentException("invalid provider configuration: " + ex.getMessage(), ex);
+            }
         }
     }
 

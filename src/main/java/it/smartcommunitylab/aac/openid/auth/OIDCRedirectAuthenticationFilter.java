@@ -1,9 +1,9 @@
-package it.smartcommunitylab.aac.openid.service;
+package it.smartcommunitylab.aac.openid.auth;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 
-import it.smartcommunitylab.aac.openid.OIDCAuthority;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
 /*
  * Build authorization request for external OIDC providers and redirects user-agent
@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.openid.OIDCAuthority;
 
 public class OIDCRedirectAuthenticationFilter extends OAuth2AuthorizationRequestRedirectFilter {
 
-    public static final String DEFAULT_FILTER_URI = OIDCAuthority.AUTHORITY_URL + "authorize";
+    public static final String DEFAULT_FILTER_URI = OIDCIdentityAuthority.AUTHORITY_URL + "authorize";
 
     public OIDCRedirectAuthenticationFilter(ClientRegistrationRepository clientRegistrationRepository) {
         this(clientRegistrationRepository, DEFAULT_FILTER_URI);

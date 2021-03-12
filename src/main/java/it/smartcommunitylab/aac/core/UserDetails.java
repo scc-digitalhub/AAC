@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -20,7 +21,6 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.model.Role;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
 /*
@@ -40,10 +40,10 @@ public class UserDetails implements org.springframework.security.core.userdetail
     private final String subjectId;
 
     // this is mutable, we want to keep one "identity" mapped
+    // TODO evaluate removal from here, should be managed only ouside authentication
     private BasicProfile profile;
 
-    // identities are stored with addressable keys
-    // we enforce a single identity per <authority/provider/realm>
+    // identities are stored with addressable keys (userId)
     private final Map<String, UserIdentity> identities;
 
     // we extract attributes from identities
@@ -57,14 +57,6 @@ public class UserDetails implements org.springframework.security.core.userdetail
     // note permission checks are performed on authToken authorities, not here
     // TODO remove, should be left in token, we keep for interface compatibiilty
     private final Set<GrantedAuthority> authorities;
-
-    // roles are OUTSIDE aac
-    // these can be modified
-    // roles are associated to USER(=subjectId) not single identities/realms
-    // this field should be used for caching, consumers should refresh
-    // otherwise we should implement an (external) expiring + refreshing cache with
-    // locking
-    private Set<Role> roles;
 
     // we don't support account enabled/disabled
     private final boolean enabled;
@@ -95,9 +87,6 @@ public class UserDetails implements org.springframework.security.core.userdetail
         // authorities are immutable
         this.authorities = Collections.unmodifiableSet(sortAuthorities(authorities));
 
-        // roles should be updated after login, or fetched during execution
-        this.roles = new HashSet<>();
-
         // always enabled
         this.enabled = true;
     }
@@ -127,9 +116,6 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
         // authorities are immutable
         this.authorities = Collections.unmodifiableSet(sortAuthorities(authorities));
-
-        // roles should be updated after login, or fetched during execution
-        this.roles = new HashSet<>();
 
         // always enabled
         this.enabled = true;
@@ -204,46 +190,55 @@ public class UserDetails implements org.springframework.security.core.userdetail
      * modifiable from outside. We expect identities to not be corrupted by
      * consumers
      */
+
+    public UserIdentity getIdentity(String userId) {
+        return identities.get(userId);
+    }
+
     public Collection<UserIdentity> getIdentities() {
         return Collections.unmodifiableCollection(identities.values());
     }
 
-    public Collection<UserIdentity> getIdentities(String realm) {
-        String baseKey = realm + "|";
-        Set<String> keys = identities.keySet().stream().filter(k -> k.startsWith(baseKey)).collect(Collectors.toSet());
-        return Collections.unmodifiableSet(identities.entrySet().stream()
-                .filter(e -> keys.contains(e.getKey()))
-                .map(e -> e.getValue())
-                .collect(Collectors.toSet()));
-
+    public List<UserIdentity> getIdentities(String realm) {
+        return Collections.unmodifiableList(identities.values().stream()
+                .filter(u -> realm.equals(u.getRealm()))
+                .collect(Collectors.toList()));
     }
 
-    // we enforce a single identity per realm+authority+provider
-    public UserIdentity getIdentity(String realm, String authority, String provider) {
-        String key = realm + "|" + authority + "|" + provider;
-        return identities.get(key);
+    public List<UserIdentity> getIdentities(String realm, String authority) {
+        return Collections.unmodifiableList(identities.values().stream()
+                .filter(u -> (realm.equals(u.getRealm()) && authority.equals(u.getAuthority())))
+                .collect(Collectors.toList()));
+    }
+
+    public List<UserIdentity> getIdentities(String realm, String authority, String provider) {
+        return Collections.unmodifiableList(identities.values().stream()
+                .filter(u -> (realm.equals(u.getRealm()) && authority.equals(u.getAuthority())
+                        && provider.equals(u.getProvider())))
+                .collect(Collectors.toList()));
     }
 
     public boolean hasAnyIdentity(String realm) {
-        String baseKey = realm + "|";
-        return identities.keySet().stream().anyMatch(k -> k.startsWith(baseKey));
+        return identities.values().stream().anyMatch(u -> realm.equals(u.getRealm()));
     }
 
     // add a new identity to current user
     public void addIdentity(UserIdentity identity) {
-        String key = identity.getRealm() + "|" + identity.getAuthority() + "|" + identity.getProvider();
 
         // we add or replace
-        identities.put(key, identity);
+        identities.put(identity.getUserId(), identity);
 
         // we also check if profile is incomplete
         updateProfile(identity.toProfile());
     }
 
     // remove an identity from user
+    public void eraseIdentity(String userId) {
+        identities.remove(userId);
+    }
+
     public void eraseIdentity(UserIdentity identity) {
-        String key = identity.getRealm() + "|" + identity.getAuthority() + "|" + identity.getProvider();
-        identities.remove(key);
+        identities.remove(identity.getUserId());
     }
 
     private void updateProfile(BasicProfile p) {
@@ -308,35 +303,6 @@ public class UserDetails implements org.springframework.security.core.userdetail
         String key = attributeSet.getRealm() + "|" + attributeSet.getAuthority() + "|" + attributeSet.getProvider()
                 + "|" + attributeSet.getIdentifier();
         attributes.remove(key);
-    }
-
-    /*
-     * Roles are mutable and comparable
-     */
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Collection<Role> rr) {
-        this.roles = new HashSet<>();
-        addRoles(rr);
-    }
-
-    public void addRoles(Collection<Role> rr) {
-        roles.addAll(rr);
-    }
-
-    public void removeRoles(Collection<Role> rr) {
-        roles.removeAll(rr);
-    }
-
-    public void addRole(Role r) {
-        this.roles.add(r);
-    }
-
-    public void removeRole(Role r) {
-        this.roles.remove(r);
     }
 
     /*
