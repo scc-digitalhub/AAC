@@ -43,7 +43,10 @@ public interface AttributeProvider extends ResourceProvider {
     public Collection<String> listCustomAttributes(String setId);
 
     /*
-     * these are the global sets this provider supports
+     * these are the global sets this provider supports.
+     * 
+     * do note only *system* providers should support global sets, user defined
+     * should only return their namespaced attributes.
      */
     public boolean canProvide(String globalSetId);
 
@@ -57,13 +60,15 @@ public interface AttributeProvider extends ResourceProvider {
 
     /*
      * The provider should expose translation between their representation and the
-     * global schema.
+     * global schema. Implementations are supposed to check if they can handle the
+     * model (for example if class matches their model)
      * 
      * Could be a no-op, could expose only a subset..
      * 
      * we usually expect at least sets for: profile, email
      * 
-     * note that we expect all sets declared as supported present in responses.
+     * note that we expect all sets declared as supported present in responses,
+     * filled as good as possible given the identity provided.
      * 
      * Sets returned from identity conversion are *always* used for token claims
      */

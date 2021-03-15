@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -85,6 +86,14 @@ public class ProviderManager {
                         for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
                             provider.setConfigurationProperty(entry.getKey(), entry.getValue());
                         }
+
+                        // by default global providers persist account + attributes
+                        String persistenceLevel = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
+                        if (StringUtils.hasText(providerConfig.getPersistence())) {
+                            // set persistence level
+                            persistenceLevel = providerConfig.getPersistence();
+                        }
+                        provider.setPersistence(persistenceLevel);
 
                         // register
                         registerProvider(provider);

@@ -1,78 +1,81 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.core.model.UserAttributes;
+import org.springframework.util.Assert;
+
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 /*
- * Default Attributes is an instantiable bean which contains attributes bound to a user
+ * Default Attributes describes an attributeSet as a model definition, detached from user resources.
+ * Keys are required and should present the whole list of attributes available from the set.
+ * The collection of attributes can contain descriptive or sample values.
+ * 
+ * Providers are not required to fulfill all keys, consumers should be able to handle null and react accordingly
+ * 
+ * Models do not persist a relation with a provider, but provider-specific collections should be namespaced.
  */
+public class DefaultAttributesImpl implements AttributeSet {
 
-public class DefaultAttributesImpl extends BaseAttributes {
+    private final String identifier;
 
-    private String internalUserId;
+    private Collection<String> keys;
+
     private Map<String, String> attributes;
 
-    public DefaultAttributesImpl(String authority, String provider, String realm) {
-        super(authority, provider, realm);
-        this.attributes = new HashMap<>();
+    private boolean isMutable;
+
+    public DefaultAttributesImpl(String identifier) {
+        Assert.hasText(identifier, "a valid identifier is required");
+        this.identifier = identifier;
+        this.keys = new HashSet<>();
+        this.attributes = Collections.emptyMap();
+        this.isMutable = true;
     }
 
-    public String getInternalUserId() {
-        return internalUserId;
+    public DefaultAttributesImpl(String identifier, String[] keys) {
+        Assert.hasText(identifier, "a valid identifier is required");
+        this.identifier = identifier;
+        this.keys = new HashSet<>();
+        this.keys.addAll(Arrays.asList(keys));
+        this.attributes = Collections.emptyMap();
+        this.isMutable = true;
+
     }
 
-    public void setInternalUserId(String internalUserId) {
-        this.internalUserId = internalUserId;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    @Override
-    public String getUserId() {
-        // leverage the default mapper to translate internalId
-        return exportInternalId(internalUserId);
+    public Collection<String> getKeys() {
+        // we protect our representation from modifications
+        return Collections.unmodifiableCollection(keys);
+    }
+
+    public void setKeys(Collection<String> keys) {
+        if (!isMutable) {
+            throw new IllegalArgumentException("this definition is not mutable");
+        }
+
+        this.keys = keys;
+
     }
 
     public Map<String, String> getAttributes() {
-        return attributes;
+        // we protect our representation from modifications
+        return Collections.unmodifiableMap(attributes);
     }
 
-    public void addAttributes(Collection<Map.Entry<String, String>> attributes) {
-        // we pack attribute list in map, overlapping keys will contain last value
-        for (Map.Entry<String, String> attr : attributes) {
-            this.attributes.put(attr.getKey(), attr.getValue());
+    public void setAttributes(Map<String, String> attributes) {
+        if (!isMutable) {
+            throw new IllegalArgumentException("this definition is not mutable");
         }
-    }
 
-    public void setAttributes(Collection<Map.Entry<String, String>> attributes) {
-        // we pack attribute list in map, overlapping keys will contain last value
-        this.attributes = new HashMap<>();
-        addAttributes(attributes);
-    }
-
-    public void addAttribute(String key, String value) {
-        if (value == null) {
-            // set empty
-            value = "";
-        }
-        this.attributes.put(key, value);
-    }
-
-    public void deleteAttribute(String key) {
-        this.attributes.remove(key);
-    }
-
-    public boolean hasAttribute(String key) {
-        return attributes.containsKey(key);
-    }
-
-    public String getAttribute(String key) {
-        if (attributes.containsKey(key)) {
-            return attributes.get(key);
-        } else {
-            return null;
-        }
+        this.attributes = attributes;
     }
 
 }

@@ -12,29 +12,24 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseIdentity;
+import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
-public class OIDCUserIdentity extends BaseIdentity implements Serializable {
-
-    protected OIDCUserIdentity(String authority, String provider, String realm) {
-        super(authority, provider, realm);
-        // TODO Auto-generated constructor stub
-    }
+public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializable {
 
     private static final long serialVersionUID = 2760694301395978161L;
 
-    private String realm;
-    private String userId;
-    private String provider;
     private String username;
     private Set<AbstractMap.SimpleEntry<String, String>> attributes;
 
-//    protected OIDCUserIdentity() {
-//        attributes = Collections.emptySet();
-//    }
+    protected OIDCUserIdentity(String provider, String realm) {
+        super(SystemKeys.AUTHORITY_OIDC, provider, realm);
+        attributes = Collections.emptySet();
+    }
 
     @Override
     public String getAuthority() {
@@ -56,52 +51,44 @@ public class OIDCUserIdentity extends BaseIdentity implements Serializable {
     /*
      * props: only getters we want this to be immutable
      */
-    public String getRealm() {
-        return realm;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public Collection<UserAttributes> getAttributes() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
      * Builder
      */
-//    public static OIDCUserIdentity from(OIDCUserAccount user, Collection<AttributeEntity> attributes) {
-//        OIDCUserIdentity i = new OIDCUserIdentity();
-//        i.realm = user.getRealm();
-////        i.provider = user.getProvider();
-//        i.userId = user.getUserId();
-////        i.username = user.getUsername();
-//
-//        Set<AbstractMap.SimpleEntry<String, String>> attrs = new HashSet<>();
-//        // static map base attrs
-//        attrs.add(createAttribute("email", user.getEmail()));
-//        attrs.add(createAttribute("email_verified", Boolean.toString(user.getEmailVerified())));
-//        attrs.add(createAttribute("name", user.getName()));
-//        attrs.add(createAttribute("given_name", user.getGivenName()));
-//        attrs.add(createAttribute("family_name", user.getFamilyName()));
-//        attrs.add(createAttribute("profile", user.getProfileUri()));
-//        attrs.add(createAttribute("picture", user.getPictureUri()));
-//
-//        // also map additional attrs
-//        attrs.addAll(
-//                attributes.stream().map(a -> createAttribute(a.getKey(), a.getValue())).collect(Collectors.toSet()));
-//
-//        // filter empty or null attributes
-//        i.attributes = attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet());
-//
-//        return i;
-//
-//    }
+    public static OIDCUserIdentity from(OIDCUserAccount user, Collection<AttributeEntity> attributes) {
+        OIDCUserIdentity i = new OIDCUserIdentity(user.getProvider(), user.getRealm());
+        i.account = user;
+        i.username = user.getUsername();
+
+        Set<AbstractMap.SimpleEntry<String, String>> attrs = new HashSet<>();
+        // static map base attrs
+        attrs.add(createAttribute("email", user.getEmail()));
+        attrs.add(createAttribute("email_verified", Boolean.toString(user.getEmailVerified())));
+        attrs.add(createAttribute("name", user.getName()));
+        attrs.add(createAttribute("given_name", user.getGivenName()));
+        attrs.add(createAttribute("family_name", user.getFamilyName()));
+        attrs.add(createAttribute("profile", user.getProfileUri()));
+        attrs.add(createAttribute("picture", user.getPictureUri()));
+
+        // also map additional attrs
+        attrs.addAll(
+                attributes.stream().map(a -> createAttribute(a.getKey(), a.getValue())).collect(Collectors.toSet()));
+
+        // filter empty or null attributes
+        i.attributes = attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet());
+
+        return i;
+
+    }
 
     /*
      * Helpers
@@ -124,23 +111,5 @@ public class OIDCUserIdentity extends BaseIdentity implements Serializable {
     }
 
     private static final String ATTRIBUTE_PREFIX = SystemKeys.AUTHORITY_OIDC + ".";
-
-    @Override
-    public BasicProfile toProfile() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<UserAttributes> getAttributes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public UserAccount getAccount() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
 }

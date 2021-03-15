@@ -12,9 +12,14 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.AttributeStore;
+import it.smartcommunitylab.aac.attributes.InMemoryAttributeStore;
+import it.smartcommunitylab.aac.attributes.NullAttributeStore;
+import it.smartcommunitylab.aac.attributes.PersistentAttributeStore;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.AttributeEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
@@ -25,7 +30,11 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/oidc/";
 
+    // private account repository
     private final OIDCUserAccountRepository accountRepository;
+
+    // system attributes repository
+    private final AttributeEntityService attributeEntityService;
 
     // identity providers by id
     private final Map<String, OIDCIdentityProvider> providers = new HashMap<>();
@@ -40,12 +49,15 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
+            AttributeEntityService attributeEntityService,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
 
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(attributeEntityService, "attributeEntity service is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountRepository = accountRepository;
+        this.attributeEntityService = attributeEntityService;
         this.clientRegistrationRepository = clientRegistrationRepository;
 //
 //        // global client registration repository to be used by global filters
@@ -92,10 +104,11 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
             try {
                 // link to internal repos
-                // TODO add attribute store as persistentStore
+                // add attribute store where requested
+                AttributeStore attributeStore = getAttributeStore(providerId, cp.getPersistence());
                 OIDCIdentityProvider idp = new OIDCIdentityProvider(
                         providerId,
-                        accountRepository, null,
+                        accountRepository, attributeStore,
                         cp,
                         realm);
 
@@ -139,6 +152,19 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     /*
      * helpers
      */
+
+    private AttributeStore getAttributeStore(String providerId, String persistence) {
+        // we generate a new store for each provider
+        AttributeStore store = new NullAttributeStore();
+        if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
+            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId, attributeEntityService);
+        } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
+            store = new InMemoryAttributeStore();
+        }
+
+        return store;
+    }
+
     private String extractProviderId(String userId) throws IllegalArgumentException {
         if (!StringUtils.hasText(userId)) {
             throw new IllegalArgumentException("empty or null id");

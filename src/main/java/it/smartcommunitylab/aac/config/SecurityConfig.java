@@ -102,6 +102,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new ProvidersProperties();
     }
 
+    @Bean
+    @ConfigurationProperties(prefix = "attributesets")
+    public AttributeSetsProperties systemAttributeSets() {
+        return new AttributeSetsProperties();
+    }
+
 //    @Autowired
 //    OAuth2ClientContext oauth2ClientContext;
 

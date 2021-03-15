@@ -15,15 +15,15 @@ public interface AttributeStore extends AttributeService {
      */
     public void setAttributes(
             String userId,
-            Set<Map.Entry<String, String>> attributesMap);
+            Set<Map.Entry<String, String>> attributesSet);
 
     public void addAttribute(
             String userId,
             String key, String value);
-
-    public void addOrUpdateAttribute(
-            String userId,
-            String key, String value);
+//
+//    public void addOrUpdateAttribute(
+//            String userId,
+//            String key, String value);
 
     public void updateAttribute(
             String userId,

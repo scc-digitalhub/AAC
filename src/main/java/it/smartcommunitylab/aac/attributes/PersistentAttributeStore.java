@@ -66,32 +66,25 @@ public class PersistentAttributeStore implements AttributeStore {
 
     @Override
     public void setAttributes(String userId, Set<Entry<String, String>> attributesMap) {
-        // TODO Auto-generated method stub
-
+        // replace all attributes
+        List<AttributeEntity> attributes = attributeService.setAttributes(authority, provider, userId, attributesMap);
     }
 
     @Override
     public void addAttribute(String userId, String key, String value) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void addOrUpdateAttribute(String userId, String key, String value) {
-        // TODO Auto-generated method stub
-
+        // add as new, will trigger error if exists
+        AttributeEntity attribute = attributeService.addAttribute(authority, provider, userId, key, value);
     }
 
     @Override
     public void updateAttribute(String userId, String key, String value) {
-        // TODO Auto-generated method stub
+        AttributeEntity attribute = attributeService.updateAttribute(authority, provider, userId, key, value);
 
     }
 
     @Override
     public void deleteAttribute(String userId, String key) {
-        // TODO Auto-generated method stub
-
+        attributeService.deleteAttribute(authority, provider, userId, key);
     }
 
 }

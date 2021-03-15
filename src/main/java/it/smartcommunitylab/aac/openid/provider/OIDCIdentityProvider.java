@@ -1,11 +1,16 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.util.Assert;
@@ -24,6 +29,7 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.openid.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
@@ -175,18 +181,22 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
 
         account = accountRepository.save(account);
 
-        // update additional attributes in store
-        // TODO
+        // update additional attributes in store, remove stale
+        // avoid jwt attributes
+        // TODO avoid attributes in account
+        Set<Entry<String, String>> principalAttributes = principal.getAttributes().entrySet().stream()
+                .filter(e -> !ArrayUtils.contains(JWT_ATTRIBUTES, e.getKey()))
+                .collect(Collectors.toSet());
+
+        attributeStore.setAttributes(userId, principalAttributes);
 
         // build identity
         // detach account
         account = accountRepository.detach(account);
         // rewrite internal userId
         account.setUserId(exportInternalId(userId));
-        // TODO write custom model
-        DefaultIdentityImpl identity = new DefaultIdentityImpl(SystemKeys.AUTHORITY_OIDC, provider, realm);
-        identity.setAccount(account);
-        identity.setAttributes(Collections.emptyList());
+        // write custom model
+        OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
         return identity;
     }
 
@@ -226,5 +236,20 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         return identities;
 
     }
+
+    public static String[] JWT_ATTRIBUTES = {
+            IdTokenClaimNames.ACR,
+            IdTokenClaimNames.AMR,
+            IdTokenClaimNames.AT_HASH,
+            IdTokenClaimNames.AUD,
+            IdTokenClaimNames.AUTH_TIME,
+            IdTokenClaimNames.AZP,
+            IdTokenClaimNames.C_HASH,
+            IdTokenClaimNames.EXP,
+            IdTokenClaimNames.IAT,
+            IdTokenClaimNames.ISS,
+            IdTokenClaimNames.NONCE,
+            IdTokenClaimNames.SUB
+    };
 
 }

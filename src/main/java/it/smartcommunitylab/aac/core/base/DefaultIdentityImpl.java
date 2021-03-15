@@ -20,11 +20,12 @@ import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
 public class DefaultIdentityImpl extends BaseIdentity implements CredentialsContainer {
 
-    private UserAccount account;
+    protected UserAccount account;
     private Collection<UserAttributes> attributes;
 
     public DefaultIdentityImpl(String authority, String provider, String realm) {
         super(authority, provider, realm);
+        attributes = Collections.emptyList();
     }
 
     @Override

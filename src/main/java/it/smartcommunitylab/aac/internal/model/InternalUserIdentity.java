@@ -17,7 +17,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseIdentity;
-import it.smartcommunitylab.aac.core.base.DefaultAttributesImpl;
+import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
@@ -61,7 +61,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
         List<UserAttributes> attributes = new ArrayList<>();
         // TODO rework and move to attributeProvider, here we should simly store them
         String internalUserId = this.parseResourceId(userId);
-        DefaultAttributesImpl profile = new DefaultAttributesImpl(getAuthority(), getProvider(), getRealm());
+        DefaultUserAttributesImpl profile = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm());
         profile.setInternalUserId(internalUserId);
         profile.setIdentifier("internal.profile");
         profile.addAttribute("name", account.getName());
@@ -69,13 +69,13 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
         profile.addAttribute("email", account.getEmail());
         attributes.add(profile);
 
-        DefaultAttributesImpl email = new DefaultAttributesImpl(getAuthority(), getProvider(), getRealm());
+        DefaultUserAttributesImpl email = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm());
         email.setIdentifier("internal.email");
         email.setInternalUserId(internalUserId);
         email.addAttribute("email", account.getEmail());
         attributes.add(email);
 
-        DefaultAttributesImpl username = new DefaultAttributesImpl(getAuthority(), getProvider(), getRealm());
+        DefaultUserAttributesImpl username = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm());
         username.setIdentifier("internal.username");
         username.setInternalUserId(internalUserId);
         username.addAttribute("username", account.getUsername());

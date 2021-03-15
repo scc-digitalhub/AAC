@@ -50,6 +50,8 @@ public class ProvidersProperties {
 
         private String realm;
 
+        private String persistence;
+
         private Map<String, String> configuration;
 
         public ProviderConfiguration() {
@@ -94,6 +96,14 @@ public class ProvidersProperties {
 
         public void setConfiguration(Map<String, String> configuration) {
             this.configuration = configuration;
+        }
+
+        public String getPersistence() {
+            return persistence;
+        }
+
+        public void setPersistence(String persistence) {
+            this.persistence = persistence;
         }
 
         @Override

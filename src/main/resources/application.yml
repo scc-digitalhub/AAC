@@ -104,6 +104,19 @@ providers:
   attributes:
 
 
+attributesets:
+  sets:
+    - identifier: sub
+      keys: sub      
+    - identifier: profile
+      keys: name,family_name,given_name,middle_name,nickname,preferred_username,profile,picture,website,gender,birthdate,zoneinfo,locale,updated_at
+    - identifier: email
+      keys: email,email_verified     
+    - identifier: phone
+      keys: phone_number,phone_number_verified 
+    - identifier: address
+      keys: formatted,street_address,locality,region,postal_code,country
+    
 
 oauth-providers:
   providers:
