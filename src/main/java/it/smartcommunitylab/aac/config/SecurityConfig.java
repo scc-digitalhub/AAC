@@ -68,6 +68,7 @@ import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
+import it.smartcommunitylab.aac.saml.auth.SamlMetadataFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
@@ -334,7 +335,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 relyingPartyRegistrationRepository);
         ssoFilter.setAuthenticationManager(authManager);
 
+        SamlMetadataFilter metadataFilter = new SamlMetadataFilter(relyingPartyRegistrationRepository);
+
         List<Filter> filters = new ArrayList<>();
+        filters.add(metadataFilter);
         filters.add(requestFilter);
         filters.add(ssoFilter);
 

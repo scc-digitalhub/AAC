@@ -37,6 +37,10 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
     // web authentication details
     private WebAuthenticationDetails webAuthenticationDetails;
+    
+    // audit
+    //TODO
+    
 
     public UserAuthenticationToken(
             Subject principal,

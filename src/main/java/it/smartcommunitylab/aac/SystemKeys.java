@@ -7,6 +7,10 @@ public class SystemKeys {
     public static final String AUTHORITY_OIDC = "oidc";
     public static final String AUTHORITY_SAML = "saml";
 
+    public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
+    public static final String CLIENT_TYPE_SAML = "saml";
+    public static final String CLIENT_TYPE_OIDC = "oidc";
+
     public static final String RESOURCE_USER = "user";
     public static final String RESOURCE_ACCOUNT = "account";
     public static final String RESOURCE_ATTRIBUTES = "attributes";

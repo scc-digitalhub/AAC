@@ -9,17 +9,17 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "user_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "role" }))
-public class UserRoleEntity {
+@Table(name = "client_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "client_id", "realm", "role" }))
+public class ClientRoleEntity {
     @Id
     @GeneratedValue
     private Long id;
 
-    // user
     @NotNull
-    @Column(name = "subject_id")
-    private String subject;
+    @Column(name = "client_id")
+    private String clientId;
 
+    @NotNull
     private String realm;
 
     @NotNull
@@ -33,12 +33,12 @@ public class UserRoleEntity {
         this.id = id;
     }
 
-    public String getSubject() {
-        return subject;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     public String getRealm() {
@@ -57,21 +57,22 @@ public class UserRoleEntity {
         this.role = role;
     }
 
-    protected UserRoleEntity() {
+    protected ClientRoleEntity() {
+
     }
 
-    public UserRoleEntity(String subject) {
+    public ClientRoleEntity(String clientId) {
         super();
-        this.subject = subject;
+        this.clientId = clientId;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ((clientId == null) ? 0 : clientId.hashCode());
         result = prime * result + ((realm == null) ? 0 : realm.hashCode());
         result = prime * result + ((role == null) ? 0 : role.hashCode());
-        result = prime * result + ((subject == null) ? 0 : subject.hashCode());
         return result;
     }
 
@@ -83,7 +84,12 @@ public class UserRoleEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        UserRoleEntity other = (UserRoleEntity) obj;
+        ClientRoleEntity other = (ClientRoleEntity) obj;
+        if (clientId == null) {
+            if (other.clientId != null)
+                return false;
+        } else if (!clientId.equals(other.clientId))
+            return false;
         if (realm == null) {
             if (other.realm != null)
                 return false;
@@ -94,17 +100,12 @@ public class UserRoleEntity {
                 return false;
         } else if (!role.equals(other.role))
             return false;
-        if (subject == null) {
-            if (other.subject != null)
-                return false;
-        } else if (!subject.equals(other.subject))
-            return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "UserRoleEntity [id=" + id + ", subject=" + subject + ", realm=" + realm + ", role=" + role + "]";
+        return "ClientRoleEntity [id=" + id + ", clientId=" + clientId + ", realm=" + realm + ", role=" + role + "]";
     }
 
 }

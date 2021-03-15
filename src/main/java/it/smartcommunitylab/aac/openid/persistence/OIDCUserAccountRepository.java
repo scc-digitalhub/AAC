@@ -12,9 +12,6 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface OIDCUserAccountRepository
         extends CustomJpaRepository<OIDCUserAccount, Long>, DetachableJpaRepository<OIDCUserAccount> {
 
-    @Query("select u from OIDCUserAccount u where u.id=?1")
-    OIDCUserAccount findByUserId(Long userId);
-
     OIDCUserAccount findByRealmAndProviderAndUserId(String realm, String provider, String userId);
 
     OIDCUserAccount findByRealmAndProviderAndEmail(String realm, String provider, String email);

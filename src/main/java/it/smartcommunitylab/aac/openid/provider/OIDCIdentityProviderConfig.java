@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.openid.provider;
 
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
@@ -53,7 +54,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         String jwkSetUri = getConfigurationProperty("jwkSetUri");
         String userInfoUri = getConfigurationProperty("userInfoUri");
 
-        // TODO add autoconfiguration support
+        // autoconfiguration support from well-known
         String issuerUri = getConfigurationProperty("issuerUri");
 
         // via builder,
@@ -64,7 +65,14 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         if (template != null) {
             // use template
             builder = template;
-        } else {
+        }
+
+        // check for autoconf, will override template
+        if (StringUtils.hasText(issuerUri)) {
+            builder = ClientRegistrations.fromIssuerLocation(issuerUri);
+        }
+
+        if (template == null) {
             // set with default if not from template
             builder.clientAuthenticationMethod(new ClientAuthenticationMethod(clientAuthenticationMethod));
             builder.scope(scope);
@@ -75,7 +83,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         // TODO check PKCE
         builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
         // add our redirect template
-        builder.redirectUriTemplate(DEFAULT_REDIRECT_URL);
+        builder.redirectUri(DEFAULT_REDIRECT_URL);
 
         // set client
         builder.clientId(clientId);
@@ -111,9 +119,9 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     public static ClientRegistration.Builder getCommonBuilder(String registrationId, String name) {
         ClientRegistration.Builder builder = null;
         if (PROVIDER_GOOGLE.equals(name)) {
-            builder = CommonOAuth2Provider.GOOGLE.getBuilder(registrationId);          
+            builder = CommonOAuth2Provider.GOOGLE.getBuilder(registrationId);
         } else if (PROVIDER_FACEBOOK.equals(name)) {
-            builder =  CommonOAuth2Provider.FACEBOOK.getBuilder(registrationId);
+            builder = CommonOAuth2Provider.FACEBOOK.getBuilder(registrationId);
         } else if (PROVIDER_GITHUB.equals(name)) {
             builder = CommonOAuth2Provider.GITHUB.getBuilder(registrationId);
         }

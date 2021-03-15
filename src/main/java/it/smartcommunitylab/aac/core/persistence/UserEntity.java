@@ -49,7 +49,7 @@ public class UserEntity {
     private String loginProvider;
 
     protected UserEntity() {
-    };
+    }
 
     public UserEntity(@NotNull String uuid) {
         super();

@@ -46,20 +46,29 @@ public class UserEntityService {
         return u;
     }
 
-    public UserEntity addUser(String uuid, String username) {
-        UserEntity u = new UserEntity(uuid);
+    public UserEntity addUser(String uuid, String username) throws IllegalArgumentException {
+        UserEntity u = userRepository.findByUuid(uuid);
+        if (u != null) {
+            throw new IllegalArgumentException("user already exists");
+        }
+
+        u = new UserEntity(uuid);
         u.setUsername(username);
         u = userRepository.save(u);
         return u;
     }
 
-    public UserEntity addUser(String uuid, String username, List<String> roles) {
-        UserEntity u = new UserEntity(uuid);
+    public UserEntity addUser(String uuid, String username, List<String> roles) throws IllegalArgumentException {
+        UserEntity u = userRepository.findByUuid(uuid);
+        if (u != null) {
+            throw new IllegalArgumentException("user already exists");
+        }
+
+        u = new UserEntity(uuid);
         u.setUsername(username);
         u = userRepository.save(u);
         for (String role : roles) {
-            UserRoleEntity r = new UserRoleEntity();
-            r.setSubject(uuid);
+            UserRoleEntity r = new UserRoleEntity(uuid);
             r.setRealm(SystemKeys.REALM_GLOBAL);
             r.setRole(role);
             userRoleRepository.save(r);
@@ -101,15 +110,18 @@ public class UserEntityService {
 
     public List<UserRoleEntity> updateRoles(String uuid, String realm, Collection<String> roles)
             throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
+
+        UserEntity u = userRepository.findByUuid(uuid);
+        if (u == null) {
+            throw new NoSuchUserException("no user for subject " + uuid);
+        }
 
         // fetch current roles
         List<UserRoleEntity> oldRoles = userRoleRepository.findBySubjectAndRealm(uuid, realm);
 
         // unpack roles
         Set<UserRoleEntity> newRoles = roles.stream().map(r -> {
-            UserRoleEntity re = new UserRoleEntity();
-            re.setSubject(uuid);
+            UserRoleEntity re = new UserRoleEntity(uuid);
             re.setRealm(realm);
             re.setRole(r);
             return re;
@@ -122,21 +134,24 @@ public class UserEntityService {
         userRoleRepository.deleteAll(toDelete);
         userRoleRepository.saveAll(toAdd);
 
-        return userRoleRepository.findBySubjectAndRealm(u.getUuid(), realm);
+        return userRoleRepository.findBySubjectAndRealm(uuid, realm);
 
     }
 
     public List<UserRoleEntity> updateRoles(String uuid, Collection<Map.Entry<String, String>> roles)
             throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
+
+        UserEntity u = userRepository.findByUuid(uuid);
+        if (u == null) {
+            throw new NoSuchUserException("no user for subject " + uuid);
+        }
 
         // fetch current roles
         List<UserRoleEntity> oldRoles = userRoleRepository.findBySubject(uuid);
 
         // unpack roles
         Set<UserRoleEntity> newRoles = roles.stream().map(e -> {
-            UserRoleEntity re = new UserRoleEntity();
-            re.setSubject(uuid);
+            UserRoleEntity re = new UserRoleEntity(uuid);
             re.setRealm(e.getKey());
             re.setRole(e.getValue());
             return re;
@@ -149,13 +164,17 @@ public class UserEntityService {
         userRoleRepository.deleteAll(toDelete);
         userRoleRepository.saveAll(toAdd);
 
-        return userRoleRepository.findBySubject(u.getUuid());
+        return userRoleRepository.findBySubject(uuid);
 
     }
 
     public UserEntity updateLogin(String uuid, String provider, Date loginDate, String loginIp)
             throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
+
+        UserEntity u = userRepository.findByUuid(uuid);
+        if (u == null) {
+            throw new NoSuchUserException("no user for subject " + uuid);
+        }
 
         u.setLoginProvider(provider);
         u.setLoginDate(loginDate);
@@ -168,6 +187,11 @@ public class UserEntityService {
     public UserEntity deleteUser(String uuid) {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
+            // also search roles
+            List<UserRoleEntity> roles = userRoleRepository.findBySubject(uuid);
+            userRoleRepository.deleteAll(roles);
+
+            // remove entity
             userRepository.delete(u);
         }
 
