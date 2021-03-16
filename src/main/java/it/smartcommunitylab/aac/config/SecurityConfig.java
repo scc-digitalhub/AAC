@@ -91,11 +91,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${security.rememberme.key}")
     private String remembermeKey;
 
-    @Value("${security.redirects.matchports}")
-    private boolean configMatchPorts;
-
-    @Value("${security.redirects.matchsubdomains}")
-    private boolean configMatchSubDomains;
 
     @Bean
     @ConfigurationProperties(prefix = "providers")

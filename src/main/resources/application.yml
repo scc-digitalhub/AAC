@@ -39,9 +39,7 @@ security:
       key: ${REMEMBER_ME_KEY:REMEMBER_ME_SECRET_KEY}
    identity: # IDENTITY MAPPING SOURCE FILE
       source: ${IDENTITY_SOURCE:file:///path/to/identities.txt}
-   redirects:
-      matchports: ${REDIRECT_MATCH_PORTS:true}
-      matchsubdomains: ${REDIRECT_MATCH_SUBDOMAINS:true}
+
 #   basic:
 #      enabled: false
    cie: # CIE 2-factor authentication properties
@@ -53,6 +51,9 @@ security:
 
 #OAUTH2
 oauth2:
+   redirects:
+      matchports: ${REDIRECT_MATCH_PORTS:true}
+      matchsubdomains: ${REDIRECT_MATCH_SUBDOMAINS:true}
    jwt: ${ENABLE_JWT:true}
    introspection:
       permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:true}
