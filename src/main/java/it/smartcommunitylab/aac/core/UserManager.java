@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.core.service.AttributeEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.openid.OIDCUserManager;
 import it.smartcommunitylab.aac.roles.RoleService;
 

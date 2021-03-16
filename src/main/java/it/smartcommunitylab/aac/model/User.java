@@ -29,7 +29,7 @@ public class User {
     // this field should be used for caching, consumers should refresh
     // otherwise we should implement an (external) expiring + refreshing cache with
     // locking
-    private Set<Role> roles;
+    private Set<SpaceRole> roles;
 
     // additional attributes as flatMap
     private Map<String, String> attributes;
@@ -91,28 +91,28 @@ public class User {
      * Roles are mutable and comparable
      */
 
-    public Set<Role> getRoles() {
+    public Set<SpaceRole> getRoles() {
         return roles;
     }
 
-    public void setRoles(Collection<Role> rr) {
+    public void setRoles(Collection<SpaceRole> rr) {
         this.roles = new HashSet<>();
         addRoles(rr);
     }
 
-    public void addRoles(Collection<Role> rr) {
+    public void addRoles(Collection<SpaceRole> rr) {
         roles.addAll(rr);
     }
 
-    public void removeRoles(Collection<Role> rr) {
+    public void removeRoles(Collection<SpaceRole> rr) {
         roles.removeAll(rr);
     }
 
-    public void addRole(Role r) {
+    public void addRole(SpaceRole r) {
         this.roles.add(r);
     }
 
-    public void removeRole(Role r) {
+    public void removeRole(SpaceRole r) {
         this.roles.remove(r);
     }
 

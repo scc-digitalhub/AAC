@@ -1,15 +1,34 @@
 package it.smartcommunitylab.aac.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import it.smartcommunitylab.aac.SystemKeys;
+
+@JsonInclude(Include.NON_NULL) 
 public class ClientApp {
+
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String clientId;
+
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String realm;
+
+    @NotBlank
     private String type;
 
+    @NotBlank
     private String name;
     private String description;
 
@@ -31,6 +50,14 @@ public class ClientApp {
 
     // hook
     // TODO
+
+    public ClientApp() {
+        this.configuration = new HashMap<>();
+        this.scopes = new ArrayList<>();
+        this.providers = new ArrayList<>();
+        this.name = "";
+        this.description = "";
+    }
 
     public String getClientId() {
         return clientId;

@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.oauth.client;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,6 +36,7 @@ public class OAuth2ClientInfo {
 
     public String toJson() throws IllegalArgumentException {
         try {
+            mapper.setSerializationInclusion(Include.NON_EMPTY);
             return mapper.writeValueAsString(this);
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage());

@@ -29,4 +29,5 @@ public class SystemKeys {
     public static final String PERSISTENCE_LEVEL_MEMORY = "memory";
     public static final String PERSISTENCE_LEVEL_REPOSITORY = "repository";
 
+    public static final String SLUG_PATTERN = "^[a-zA-Z0-9_-]+$";
 }

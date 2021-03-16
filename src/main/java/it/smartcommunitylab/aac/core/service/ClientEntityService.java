@@ -82,6 +82,20 @@ public class ClientEntityService {
 
         return c;
     }
+    
+    public Collection<ClientEntity> listClients() {
+        return clientRepository.findAll();
+    }
+    
+    public Collection<ClientEntity> listClients(String realm) {
+        return clientRepository.findByRealm(realm);        
+    }
+    
+    public Collection<ClientEntity> listClients(String realm, String type) {
+        return clientRepository.findByRealmAndType(realm, type);        
+    }
+    
+    
 
     public ClientEntity updateClient(String clientId,
             String name, String description,
@@ -119,8 +133,13 @@ public class ClientEntityService {
      * Client roles
      */
     public List<ClientRoleEntity> getRoles(String clientId) throws NoSuchClientException {
-        ClientEntity c = getClient(clientId);
-        return clientRoleRepository.findByClientId(c.getClientId());
+//        ClientEntity c = getClient(clientId);
+        return clientRoleRepository.findByClientId(clientId);
+    }
+
+    public List<ClientRoleEntity> getRoles(String clientId, String realm) throws NoSuchClientException {
+//      ClientEntity c = getClient(clientId);
+        return clientRoleRepository.findByClientIdAndRealm(clientId, realm);
     }
 
     /*

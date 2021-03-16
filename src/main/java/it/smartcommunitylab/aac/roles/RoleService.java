@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntityRepository;
 
@@ -20,7 +20,7 @@ public class RoleService {
     @Autowired
     private SpaceRoleEntityRepository roleRepository;
 
-    public Set<Role> getRoles(String subject) {
+    public Set<SpaceRole> getRoles(String subject) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubject(subject);
 
         return rr.stream()
@@ -28,7 +28,7 @@ public class RoleService {
                 .collect(Collectors.toSet());
     }
 
-    public Set<Role> getRoles(String subject, String context) {
+    public Set<SpaceRole> getRoles(String subject, String context) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubjectAndContext(subject, context);
 
         return rr.stream()
@@ -36,7 +36,7 @@ public class RoleService {
                 .collect(Collectors.toSet());
     }
 
-    public Set<Role> getRoles(String subject, String context, String space) {
+    public Set<SpaceRole> getRoles(String subject, String context, String space) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubjectAndContextAndSpace(subject, context, space);
 
         return rr.stream()
@@ -44,7 +44,7 @@ public class RoleService {
                 .collect(Collectors.toSet());
     }
 
-    public Role addRole(String subject, String context, String space, String role) {
+    public SpaceRole addRole(String subject, String context, String space, String role) {
         // check if exists
         SpaceRoleEntity r = roleRepository.findBySubjectAndContextAndSpaceAndRole(subject, context, space, role);
         if (r == null) {
@@ -68,16 +68,16 @@ public class RoleService {
         }
     }
 
-    public Set<Role> addRoles(String subject, Collection<Role> roles) {
+    public Set<SpaceRole> addRoles(String subject, Collection<SpaceRole> roles) {
         return roles.stream()
                 .map(r -> addRole(subject, r.getContext(), r.getSpace(), r.getRole()))
                 .collect(Collectors.toSet());
     }
 
-    public void removeRoles(String subject, Collection<Role> roles) {
+    public void removeRoles(String subject, Collection<SpaceRole> roles) {
         // collect matching entitites
         Set<SpaceRoleEntity> rr = new HashSet<>();
-        for (Role role : roles) {
+        for (SpaceRole role : roles) {
             SpaceRoleEntity r = roleRepository.findBySubjectAndContextAndSpaceAndRole(subject, role.getContext(),
                     role.getSpace(), role.getRole());
             if (r != null) {
@@ -90,7 +90,7 @@ public class RoleService {
         }
     }
 
-    public Set<Role> setRoles(String subject, Collection<Role> roles) {
+    public Set<SpaceRole> setRoles(String subject, Collection<SpaceRole> roles) {
 
         List<SpaceRoleEntity> rr = new ArrayList<>();
 
@@ -100,7 +100,7 @@ public class RoleService {
         List<SpaceRoleEntity> toRemove = new ArrayList<>();
         toRemove.addAll(oldRoles);
 
-        for (Role role : roles) {
+        for (SpaceRole role : roles) {
             SpaceRoleEntity r = roleRepository.findBySubjectAndContextAndSpaceAndRole(subject, role.getContext(),
                     role.getSpace(), role.getRole());
 
@@ -132,9 +132,9 @@ public class RoleService {
      * Helpers
      */
 
-    private static Role toRole(SpaceRoleEntity r) {
+    private static SpaceRole toRole(SpaceRoleEntity r) {
         // we keep this private to avoid exposing the builder
-        return new Role(r.getContext(), r.getSpace(), r.getRole());
+        return new SpaceRole(r.getContext(), r.getSpace(), r.getRole());
     }
 
 }

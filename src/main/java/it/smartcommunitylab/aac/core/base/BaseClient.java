@@ -4,12 +4,16 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+
 public abstract class BaseClient extends AbstractClient {
 
     private String name;
     private String description;
 
     private Set<String> providers;
+    
     private Set<String> scopes;
 
     public BaseClient(String realm, String clientId) {

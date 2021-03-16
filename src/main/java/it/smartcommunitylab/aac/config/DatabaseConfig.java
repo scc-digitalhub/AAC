@@ -48,7 +48,9 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.internal.persistence",
         "it.smartcommunitylab.aac.openid.persistence",
         "it.smartcommunitylab.aac.saml.persistence",
-        "it.smartcommunitylab.aac.roles.persistence"
+        "it.smartcommunitylab.aac.roles.persistence",
+        "it.smartcommunitylab.aac.oauth.persistence",
+
 })
 @EnableJpaRepositories(basePackages = {
         "it.smartcommunitylab.aac.core.persistence",
@@ -56,6 +58,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.openid.persistence",
         "it.smartcommunitylab.aac.saml.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
+        "it.smartcommunitylab.aac.oauth.persistence",
         "it.smartcommunitylab.aac.repository",
 }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
 @EnableJpaAuditing
@@ -128,7 +131,8 @@ public class DatabaseConfig {
                 "it.smartcommunitylab.aac.internal.persistence",
                 "it.smartcommunitylab.aac.openid.persistence",
                 "it.smartcommunitylab.aac.saml.persistence",
-                "it.smartcommunitylab.aac.roles.persistence");
+                "it.smartcommunitylab.aac.roles.persistence",
+                "it.smartcommunitylab.aac.oauth.persistence");
 //		bean.setPersistenceUnitManager(null);
 
         return bean;

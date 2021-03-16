@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.Collection;
+
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.model.ClientApp;
 
 /*
@@ -7,13 +10,17 @@ import it.smartcommunitylab.aac.model.ClientApp;
  */
 public interface ClientAppService {
     /*
-     * Client registration
+     * Client registration, per realm
      */
-    public ClientApp getClient(String clientId);
+    public Collection<ClientApp> listClients(String realm);
 
-    public ClientApp updateClient(String clientId, ClientApp app);
+    public ClientApp getClient(String realm, String clientId) throws NoSuchClientException;
 
-    public ClientApp registerClient(ClientApp app);
+    public ClientApp updateClient(String realm, String clientId, ClientApp app) throws NoSuchClientException;
 
-    public void deleteClient(String clientId);
+    public ClientApp registerClient(String realm, String name);
+
+    public ClientApp registerClient(String realm, ClientApp app);
+
+    public void deleteClient(String realm, String clientId);
 }

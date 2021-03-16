@@ -13,4 +13,6 @@ public interface ClientEntityRepository extends CustomJpaRepository<ClientEntity
 
     List<ClientEntity> findByRealm(String realm);
 
+    List<ClientEntity> findByRealmAndType(String realm, String type);
+
 }

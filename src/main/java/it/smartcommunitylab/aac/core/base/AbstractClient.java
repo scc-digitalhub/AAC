@@ -4,11 +4,14 @@ import java.io.Serializable;
 
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import it.smartcommunitylab.aac.core.model.Client;
 
 public abstract class AbstractClient implements Client, Serializable {
 
     private final String realm;
+    
     protected final String clientId;
 
     public AbstractClient(String realm, String clientId) {

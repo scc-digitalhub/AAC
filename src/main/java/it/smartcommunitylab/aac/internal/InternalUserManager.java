@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserService;
-import it.smartcommunitylab.aac.model.Role;
+import it.smartcommunitylab.aac.model.SpaceRole;
 
 @Service
 public class InternalUserManager {
