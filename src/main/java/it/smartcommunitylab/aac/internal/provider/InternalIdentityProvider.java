@@ -79,11 +79,8 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         String userId = principal.getUserId();
         String username = principal.getName();
 
-        // get the internal account entity
-        InternalUserAccount account = accountRepository.findByRealmAndUsername(getRealm(), username);
-
-        if (account == null) {
-            // error, user should already exists for authentication
+        // userId should be username, check
+        if (!parseResourceId(userId).equals(username)) {
             throw new NoSuchUserException();
         }
 
@@ -91,6 +88,14 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             // this better exists
             throw new NoSuchUserException();
 
+        }
+
+        // get the internal account entity
+        InternalUserAccount account = accountRepository.findByRealmAndUsername(getRealm(), username);
+
+        if (account == null) {
+            // error, user should already exists for authentication
+            throw new NoSuchUserException();
         }
 
         // subjectId is always present, is derived from the same account table

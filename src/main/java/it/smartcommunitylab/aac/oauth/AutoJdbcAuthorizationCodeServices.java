@@ -27,6 +27,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
+import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
@@ -34,21 +35,22 @@ import org.springframework.security.oauth2.provider.code.RandomValueAuthorizatio
 import org.springframework.util.Assert;
 
 /**
- * Authorization code services with DB table creation on startup. 
- * Also supports lifetime limit as per RFC6749
+ * Authorization code services with DB table creation on startup. Also supports
+ * lifetime limit as per RFC6749
  * https://tools.ietf.org/html/rfc6749#section-4.1.1
  * 
  * @see {@link JdbcAuthorizationCodeServices}
  * @author raman
  *
  */
-public class AutoJdbcAuthorizationCodeServices extends RandomValueAuthorizationCodeServices {
+public class AutoJdbcAuthorizationCodeServices extends RandomValueAuthorizationCodeServices
+        implements PeekableAuthorizationCodeServices {
 
     private static final int DEFAULT_CODE_VALIDITY_SECONDS = 10 * 60;
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);";
-    private static final String DEFAULT_SELECT_STATEMENT = "select code, expiresAt, authentication from oauth_code where code = ?";
-    private static final String DEFAULT_INSERT_STATEMENT = "insert into oauth_code (code, expiresAt, authentication) values (?, ?, ?)";
+    private static final String DEFAULT_CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), client_id VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);";
+    private static final String DEFAULT_SELECT_STATEMENT = "select code, client_id, expiresAt, authentication from oauth_code where code = ?";
+    private static final String DEFAULT_INSERT_STATEMENT = "insert into oauth_code (code, client_id, expiresAt, authentication) values (?, ?, ?, ?)";
     private static final String DEFAULT_DELETE_STATEMENT = "delete from oauth_code where code = ?";
 
     private String createAuthenticationSql = DEFAULT_CREATE_TABLE_STATEMENT;
@@ -78,14 +80,52 @@ public class AutoJdbcAuthorizationCodeServices extends RandomValueAuthorizationC
         this.codeValidityMillis = codeValidity * 1000;
     }
 
+    public OAuth2Authentication peekAuthorizationCode(String code)
+            throws InvalidGrantException {
+        OAuth2Authentication auth = this.load(code);
+        // we can return null if missing
+        return auth;
+    }
+
     @Override
     protected void store(String code, OAuth2Authentication authentication) {
+        // extract clientId
+        String clientId = authentication.getOAuth2Request().getClientId();
+
         jdbcTemplate.update(insertAuthenticationSql,
                 new Object[] {
-                        code,
+                        code, clientId,
                         new java.sql.Timestamp(System.currentTimeMillis() + codeValidityMillis),
                         new SqlLobValue(SerializationUtils.serialize(authentication))
                 }, new int[] { Types.VARCHAR, Types.TIMESTAMP, Types.BLOB });
+    }
+
+    public OAuth2Authentication load(String code) {
+        Pair<OAuth2Authentication, Long> authentication;
+        try {
+            authentication = jdbcTemplate.queryForObject(selectAuthenticationSql,
+                    new RowMapper<Pair<OAuth2Authentication, Long>>() {
+                        public Pair<OAuth2Authentication, Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
+                            OAuth2Authentication a = SerializationUtils.deserialize(rs.getBytes("authentication"));
+                            Long e = rs.getTimestamp("expiresAt").getTime();
+                            return Pair.of(a, e);
+                        }
+                    }, code);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+
+        if (authentication != null) {
+            long expiresAt = authentication.getSecond().longValue();
+            OAuth2Authentication oauth = authentication.getFirst();
+
+            // validate expire
+            if (System.currentTimeMillis() < expiresAt) {
+                return oauth;
+            }
+        }
+
+        return null;
     }
 
     public OAuth2Authentication remove(String code) {

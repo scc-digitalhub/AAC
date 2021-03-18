@@ -16,10 +16,12 @@ import it.smartcommunitylab.aac.attributes.AttributeStore;
 import it.smartcommunitylab.aac.attributes.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.PersistentAttributeStore;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.AttributeEntityService;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
@@ -41,11 +43,6 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
     // oauth shared services
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
-
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_OIDC;
-    }
 
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
@@ -76,6 +73,11 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
+    public String getAuthorityId() {
+        return SystemKeys.AUTHORITY_OIDC;
+    }
+
+    @Override
     public IdentityProvider getIdentityProvider(String providerId) {
         return providers.get(providerId);
     }
@@ -101,6 +103,13 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
                 && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
             String providerId = cp.getProvider();
             String realm = cp.getRealm();
+
+            // check if id clashes with another provider from a different realm
+            OIDCIdentityProvider e = providers.get(providerId);
+            if (e != null && !realm.equals(e.getRealm())) {
+                // name clash
+                throw new RegistrationException("a provider with the same id already exists under a different realm");
+            }
 
             try {
                 // link to internal repos
@@ -128,17 +137,25 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
                 throw new IllegalArgumentException("invalid provider configuration: " + ex.getMessage(), ex);
             }
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 
     @Override
-    public void unregisterIdentityProvider(String providerId) {
+    public void unregisterIdentityProvider(String realm, String providerId) {
         if (providers.containsKey(providerId)) {
             synchronized (this) {
+                OIDCIdentityProvider idp = providers.get(providerId);
+
+                // check realm match
+                if (!realm.equals(idp.getRealm())) {
+                    throw new IllegalArgumentException("realm does not match");
+                }
+
                 // remove from repository to disable filters
                 clientRegistrationRepository.removeRegistration(providerId);
 
-                OIDCIdentityProvider idp = providers.get(providerId);
                 // someone else should have already destroyed sessions
 
                 // remove

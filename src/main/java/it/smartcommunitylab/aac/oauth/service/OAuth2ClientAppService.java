@@ -73,6 +73,7 @@ public class OAuth2ClientAppService implements ClientAppService {
         if (app.getConfiguration() == null) {
             // add as new
             OAuth2Client client = clientService.addClient(realm,
+                    app.getClientId(),
                     app.getName(), app.getDescription(),
                     app.getScopes(), app.getProviders(),
                     null,
@@ -99,6 +100,7 @@ public class OAuth2ClientAppService implements ClientAppService {
 
             // add as new
             OAuth2Client client = clientService.addClient(realm,
+                    app.getClientId(),
                     app.getName(), app.getDescription(),
                     app.getScopes(), app.getProviders(),
                     clientApp.getSecret(),
@@ -124,7 +126,12 @@ public class OAuth2ClientAppService implements ClientAppService {
         }
 
         // unpack
-        OAuth2Client clientApp = OAuth2Client.convert(app.getConfiguration());
+        Map<String, Serializable> configMap = app.getConfiguration();
+        configMap.put("realm", realm);
+        // we set a placeholder for clientId to use the converter
+        // TODO fix properly
+        configMap.put("clientId", "<clientId>");
+        OAuth2Client clientApp = OAuth2Client.convert(configMap);
 
         // update
         client = clientService.updateClient(clientId,

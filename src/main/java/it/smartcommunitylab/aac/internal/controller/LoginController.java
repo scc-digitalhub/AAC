@@ -237,7 +237,7 @@ public class LoginController {
 
             // get provider for realm and wrap
             ProviderWrappedAuthenticationToken wrappedAuthRequest = authManager
-                    .wrapAuthentication(SystemKeys.AUTHORITY_INTERNAL, providerId, authRequest);
+                    .wrapProviderAuthentication(SystemKeys.AUTHORITY_INTERNAL, providerId, authRequest);
 
             // use authManager, we could leverage internal idp to access auth provider
             Authentication authResponse = authManager.authenticate(wrappedAuthRequest);

@@ -19,13 +19,14 @@ public abstract class ExtendedAuthenticationProvider extends AbstractConfigurabl
         return SystemKeys.RESOURCE_AUTHENTICATION;
     }
 
-    public ExtendedAuthenticationToken authenticateExtended(Authentication authentication)
+    @Override
+    public ExtendedAuthenticationToken authenticate(Authentication authentication)
             throws AuthenticationException {
 
         // process authentication
         // subclasses should implement the validation
         // TODO implement preAuthChecks
-        Authentication authResponse = authenticate(authentication);
+        Authentication authResponse = doAuthenticate(authentication);
 
         // TODO implement postAuthChecks
 
@@ -40,6 +41,8 @@ public abstract class ExtendedAuthenticationProvider extends AbstractConfigurabl
     }
 
     // subclasses need to implement this, they should have the knowledge
+    protected abstract Authentication doAuthenticate(Authentication authentication);
+
     protected abstract UserAuthenticatedPrincipal createUserPrincipal(Object principal);
 
     protected ExtendedAuthenticationToken createExtendedAuthentication(UserAuthenticatedPrincipal principal,

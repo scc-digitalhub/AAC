@@ -89,7 +89,7 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         String codeVerifier = this.secureKeyGenerator.generateKey();
         attributes.put(PkceParameterNames.CODE_VERIFIER, codeVerifier);
         try {
-            String codeChallenge = createHash(codeVerifier);
+            String codeChallenge = createS256Hash(codeVerifier);
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeChallenge);
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
         } catch (NoSuchAlgorithmException e) {
@@ -97,7 +97,7 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         }
     }
 
-    private static String createHash(String value) throws NoSuchAlgorithmException {
+    private static String createS256Hash(String value) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] digest = md.digest(value.getBytes(StandardCharsets.US_ASCII));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);

@@ -82,6 +82,7 @@ public class ProviderManager {
                         ConfigurableProvider provider = new ConfigurableProvider(providerConfig.getAuthority(),
                                 providerConfig.getProvider(), SystemKeys.REALM_GLOBAL);
                         provider.setType(providerConfig.getType());
+                        provider.setName(providerConfig.getName());
                         provider.setEnabled(true);
                         for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
                             provider.setConfigurationProperty(entry.getKey(), entry.getValue());
@@ -158,7 +159,7 @@ public class ProviderManager {
 
             // terminate sessions
             sessionManager.destroySessions(providerId);
-            a.unregisterIdentityProvider(providerId);
+            a.unregisterIdentityProvider(provider.getRealm(), providerId);
         } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
             // TODO attribute providers
         } else {

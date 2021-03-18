@@ -31,57 +31,61 @@ import it.smartcommunitylab.aac.Config;
 
 /**
  * Exclude 'operation.confirmed' scope from the client scopes validation
+ * 
  * @author raman
  *
  */
 public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	public void validateScope(AuthorizationRequest authorizationRequest, ClientDetails client) throws InvalidScopeException {
-		validateScope(authorizationRequest.getScope(), client.getScope());
-	}
+    public void validateScope(AuthorizationRequest authorizationRequest, ClientDetails client)
+            throws InvalidScopeException {
+        validateScope(authorizationRequest.getScope(), client.getScope());
+    }
 
-	public void validateScope(TokenRequest tokenRequest, ClientDetails client) throws InvalidScopeException {
-	    //check grant type and act accordingly
+    public void validateScope(TokenRequest tokenRequest, ClientDetails client) throws InvalidScopeException {
+        // check grant type and act accordingly
         String grantType = tokenRequest.getGrantType();
-        //NOTE that TokenEndpoint will simply ignore requestFactory scopes for refresh grant 
-        // and insert *after* this check the ones fetched from request WITHOUT VALIDATION!
-        if(Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
-                Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) || 
+        // NOTE that TokenEndpoint will simply ignore requestFactory scopes for refresh
+        // grant
+        // and insert *after* this check the ones fetched from request WITHOUT
+        // VALIDATION!
+        if (Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
+                Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) ||
                 Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
             validateScope(tokenRequest.getScope(), client.getScope());
         } else {
             // enforce spec, no scope associated to these flows
             if (!tokenRequest.getScope().isEmpty()) {
-                throw new InvalidScopeException("token request for "+grantType+" should not have scopes associated");
+                throw new InvalidScopeException(
+                        "token request for " + grantType + " should not have scopes associated");
             }
         }
-		
-	}
-	
-	private void validateScope(Set<String> requestScopes, Set<String> clientScopes) {
+
+    }
+
+    private void validateScope(Set<String> requestScopes, Set<String> clientScopes) {
 
         logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
                 + " against client " + String.valueOf(clientScopes.toString()));
-	    
-		// handle default case
-		if (Collections.singleton("default").equals(requestScopes)) return;
-		
-		if (clientScopes != null && !clientScopes.isEmpty()) {
-			for (String scope : requestScopes) {
-				if (Config.SCOPE_OPERATION_CONFIRMED.equals(scope) ||
-//					Config.OPENID_SCOPE.equals(scope) ||
-					"default".equals(scope)) continue;
-				if (!clientScopes.contains(scope)) {
-					throw new InvalidScopeException("Invalid scope: " + scope, clientScopes);
-				}
-			}
-		}
-		
-		if (requestScopes.isEmpty()) {
-		    logger.debug("empty scopes");
-			throw new InvalidScopeException("Empty scope (either the client or the user is not allowed the requested scopes)");
-		}
-	}
+
+        // handle default case
+
+        if (clientScopes != null && !clientScopes.isEmpty()) {
+            for (String scope : requestScopes) {
+                if (Config.SCOPE_OPERATION_CONFIRMED.equals(scope))
+                    continue;
+                if (!clientScopes.contains(scope)) {
+                    throw new InvalidScopeException("Invalid scope: " + scope, clientScopes);
+                }
+            }
+        }
+
+//        if (requestScopes.isEmpty()) {
+//            logger.debug("empty scopes");
+//            throw new InvalidScopeException(
+//                    "Empty scope (either the client or the user is not allowed the requested scopes)");
+//        }
+    }
 
 }

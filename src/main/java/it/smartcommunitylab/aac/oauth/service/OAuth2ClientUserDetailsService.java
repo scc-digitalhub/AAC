@@ -23,7 +23,8 @@ import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
  * employ a plaintext password encoder, since client secrets are stored
  * plaintext
  * 
- * TODO add symmetric key encryption to secrets at rest
+ * TODO add symmetric key encryption to secrets at rest TODO drop class and
+ * avoid mimic userDetails, we can provide clientDetails and use our providers
  * 
  * @author raman
  *

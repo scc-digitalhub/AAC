@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,6 +44,8 @@ import org.springframework.security.oauth2.client.web.AuthorizationRequestReposi
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -60,10 +63,17 @@ import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
+import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
+import it.smartcommunitylab.aac.oauth.ClientBasicAuthFilter;
+import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientPKCEAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
@@ -90,7 +100,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${security.rememberme.key}")
     private String remembermeKey;
-
 
     @Bean
     @ConfigurationProperties(prefix = "providers")
@@ -121,6 +130,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserEntityService userService;
+
+    @Autowired
+    private ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private OAuth2ClientUserDetailsService clientUserDetailsService;
+
+    @Autowired
+    private PeekableAuthorizationCodeServices authCodeServices;
 
     @Autowired
     private ExtendedAuthenticationManager authManager;
@@ -232,7 +250,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //		.anonymous().disable()
                 .authorizeRequests()
                 .antMatchers("/eauth/authorize/**").permitAll()
-                .antMatchers("/oauth/authorize", "/eauth/**").authenticated()
+                .antMatchers("/oauth/authorize", "/eauth/**").permitAll()
+//                .antMatchers("/oauth/authorize", "/eauth/**").authenticated()
                 .antMatchers("/", "/dev**", "/account/**")
                 .hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
                 .antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
@@ -251,6 +270,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
+                .addFilterBefore(
+                        getOAuth2ProviderFilters(clientDetailsService, clientUserDetailsService, authCodeServices),
+                        BasicAuthenticationFilter.class)
                 .addFilterBefore(getSamlAuthorityFilters(authManager, relyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(getOIDCAuthorityFilters(authManager, clientRegistrationRepository),
@@ -336,6 +358,55 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filters.add(metadataFilter);
         filters.add(requestFilter);
         filters.add(ssoFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    /*
+     * OAuth2
+     */
+//    @Bean
+//    public ClientDetailsUserDetailsService clientDetailsUserDetailsService(ClientDetailsService clientDetailsService) {
+//       return new ClientDetailsUserDetailsService(clientDetailsService);                
+//    }
+
+//    public DaoAuthenticationProvider clientAuthProvider(ClientDetailsService clientDetailsService) {
+//        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+//        authProvider.setUserDetailsService(new ClientDetailsUserDetailsService(clientDetailsService));
+//        authProvider.setPasswordEncoder(PlaintextPasswordEncoder.getInstance());
+//        return authProvider;
+//    }
+
+    public Filter getOAuth2ProviderFilters(
+            ClientDetailsService clientDetailsService,
+            OAuth2ClientUserDetailsService clientUserDetailsService,
+            PeekableAuthorizationCodeServices authCodeServices) {
+
+//        // get auth provider and build a dedicated authmanager
+//        DaoAuthenticationProvider authProvider = clientAuthProvider(clientDetailsService);
+//        ProviderManager authManager = new ProviderManager(authProvider);
+//        BasicAuthenticationFilter basicAuth = new BasicAuthenticationFilter(authManager);
+//        return basicAuth;
+
+        OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
+                clientUserDetailsService, authCodeServices);
+        OAuth2ClientAuthenticationProvider secretAuthProvider = new OAuth2ClientAuthenticationProvider(
+                clientUserDetailsService);
+        ProviderManager authManager = new ProviderManager(secretAuthProvider, pkceAuthProvider);
+
+        // TODO add realm style endpoints
+        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
+        formTokenEndpointFilter.setAuthenticationManager(authManager);
+
+        ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
+        basicTokenEndpointFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(basicTokenEndpointFilter);
+        filters.add(formTokenEndpointFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);

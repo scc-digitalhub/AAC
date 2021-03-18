@@ -52,6 +52,8 @@ public class ProvidersProperties {
 
         private String persistence;
 
+        private String name;
+
         private Map<String, String> configuration;
 
         public ProviderConfiguration() {
@@ -104,6 +106,14 @@ public class ProvidersProperties {
 
         public void setPersistence(String persistence) {
             this.persistence = persistence;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
 
         @Override

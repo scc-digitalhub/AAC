@@ -178,7 +178,11 @@ public class OAuth2ClientService implements ClientService {
         ClientEntity client = clientService.createClient();
         String clientId = client.getClientId();
 
-        return this.addClient(clientId, realm, name,
+        return this.addClient(realm, clientId, name);
+    }
+
+    public OAuth2Client addClient(String realm, String clientId, String name) {
+        return this.addClient(realm, clientId, name,
                 null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null);
     }
@@ -203,7 +207,7 @@ public class OAuth2ClientService implements ClientService {
         String clientId = client.getClientId();
 
         return addClient(
-                clientId, realm,
+                realm, clientId,
                 name, description,
                 scopes,
                 providers,
@@ -220,7 +224,7 @@ public class OAuth2ClientService implements ClientService {
     }
 
     public OAuth2Client addClient(
-            String clientId, String realm,
+            String realm, String clientId,
             String name, String description,
             Collection<String> scopes,
             Collection<String> providers,
@@ -237,18 +241,18 @@ public class OAuth2ClientService implements ClientService {
         // TODO add custom validator for class
         // manual validation for now
         if (!StringUtils.hasText(clientId)) {
-            throw new IllegalArgumentException("clientId cannot be empty");
+            // regenerate clientId
+            clientId = clientService.createClient().getClientId();
         }
 
         if (!StringUtils.hasText(realm)) {
             throw new IllegalArgumentException("realm cannot be empty");
         }
-        
-        //TODO validate secret
-        if(!StringUtils.hasText(clientSecret)) {
+
+        // TODO validate secret
+        if (!StringUtils.hasText(clientSecret)) {
             clientSecret = generateClientSecret();
         }
-        
 
         if (authorizedGrantTypes != null) {
             // check if valid grants
@@ -339,13 +343,31 @@ public class OAuth2ClientService implements ClientService {
             }
         }
 
+        String tokenTypeValue = null;
         if (tokenType != null) {
             if (!ArrayUtils.contains(TokenType.values(), tokenType)) {
                 throw new IllegalArgumentException("Invalid token type");
             }
+
+            tokenTypeValue = tokenType.getValue();
         } else {
             // default is null, will use system default
             tokenType = null;
+        }
+
+        String jwtSignAlgorithmName = null;
+        if (jwtSignAlgorithm != null) {
+            jwtSignAlgorithmName = jwtSignAlgorithm.getName();
+        }
+
+        String jwtEncMethodName = null;
+        if (jwtEncMethod != null) {
+            jwtEncMethodName = jwtEncMethod.getName();
+        }
+
+        String jwtEncAlgorithmName = null;
+        if (jwtEncAlgorithm != null) {
+            jwtEncAlgorithmName = jwtEncAlgorithm.getName();
         }
 
         ClientEntity client = clientService.findClient(clientId);
@@ -359,12 +381,12 @@ public class OAuth2ClientService implements ClientService {
 
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
-        oauth.setTokenType(tokenType.getValue());
+        oauth.setTokenType(tokenTypeValue);
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
-        oauth.setJwtSignAlgorithm(jwtSignAlgorithm.getName());
-        oauth.setJwtEncMethod(jwtEncMethod.getName());
-        oauth.setJwtEncAlgorithm(jwtEncAlgorithm.getName());
+        oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);
+        oauth.setJwtEncMethod(jwtEncMethodName);
+        oauth.setJwtEncAlgorithm(jwtEncAlgorithmName);
         oauth.setJwks(jwks);
         oauth.setJwksUri(jwksUri);
         if (additionalInfo != null) {

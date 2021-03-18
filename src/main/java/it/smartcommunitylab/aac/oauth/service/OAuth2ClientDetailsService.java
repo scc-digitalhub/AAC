@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 
@@ -48,7 +49,8 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         }
 
         // build details
-        BaseClientDetails clientDetails = new BaseClientDetails();
+        OAuth2ClientDetails clientDetails = new OAuth2ClientDetails();
+        clientDetails.setRealm(client.getRealm());
         clientDetails.setClientId(clientId);
         clientDetails.setClientSecret(oauth.getClientSecret());
         clientDetails.setScope(StringUtils.commaDelimitedListToSet(client.getScopes()));

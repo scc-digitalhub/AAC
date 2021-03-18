@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
@@ -73,16 +74,42 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         logger.debug("authentication manager created");
     }
 
-    public ProviderWrappedAuthenticationToken wrapAuthentication(String authority, String provider,
+    public ProviderWrappedAuthenticationToken wrapProviderAuthentication(String authority, String provider,
             AbstractAuthenticationToken authentication) throws AuthenticationException {
         return new ProviderWrappedAuthenticationToken(authority, provider, authentication);
+    }
+
+    public RealmWrappedAuthenticationToken wrapRealmAuthentication(String realm, String authority,
+            AbstractAuthenticationToken authentication) throws AuthenticationException {
+        return new RealmWrappedAuthenticationToken(realm, authority, authentication);
     }
 
     public AbstractAuthenticationToken unwrapAuthentication(ProviderWrappedAuthenticationToken authentication) {
         return authentication.getAuthenticationToken();
     }
 
-    @Override
+    public AbstractAuthenticationToken unwrapAuthentication(RealmWrappedAuthenticationToken authentication) {
+        return authentication.getAuthenticationToken();
+    }
+
+//    @Override
+//    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+//        logger.debug("process authentication for " + authentication.getName());
+//
+//        if (!supports(authentication.getClass())) {
+//            logger.error("invalid authentication class: " + authentication.getClass().getName());
+//            throw new AuthenticationServiceException("invalid request");
+//        }
+//
+//        // extract provider info by unwrapping request
+//        ProviderWrappedAuthenticationToken request = (ProviderWrappedAuthenticationToken) authentication;
+//        String authorityId = request.getAuthority();
+//        String providerId = request.getProvider();
+//        AbstractAuthenticationToken token = request.getAuthenticationToken();
+//        WebAuthenticationDetails webAuthDetails = request.getAuthenticationDetails();
+//    }
+    
+    
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         logger.debug("process authentication for " + authentication.getName());
 
@@ -138,7 +165,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
         // perform extended authentication
         logger.debug("perform authentication via provider");
-        ExtendedAuthenticationToken auth = provider.authenticateExtended(token);
+        ExtendedAuthenticationToken auth = provider.authenticate(token);
         logger.debug("received authentication token from provider");
         logger.trace("auth token is " + auth.toString());
 
@@ -358,8 +385,39 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
     public boolean supports(Class<?> authentication) {
         // we support only requests with provider ids
+        // TODO extend to support lookup providerId or realm in details as parameter map
         return (ProviderWrappedAuthenticationToken.class
-                .isAssignableFrom(authentication));
+                .isAssignableFrom(authentication) ||
+                RealmWrappedAuthenticationToken.class.isAssignableFrom(authentication));
+    }
+
+    public ProviderWrappedAuthenticationToken wrapAuthentication(String realm,
+            AbstractAuthenticationToken authentication) throws AuthenticationException {
+
+        // we ask each provider for the given realm if it can handle the request,
+        // first match will win.
+        // TODO extend logic to catch authErrors and fallback to the next
+        // example use case: internal password + external db or PAT
+        String authority = null;
+        String providerId = null;
+        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+            List<IdentityProvider> providers = ia.getIdentityProviders(realm);
+            for (IdentityProvider idp : providers) {
+                ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
+                if (eap.supports(authentication.getClass())) {
+                    authority = eap.getAuthority();
+                    providerId = eap.getProvider();
+                    break;
+                }
+            }
+        }
+
+        if (authority == null || providerId == null) {
+            throw new ProviderNotFoundException(" no suitable provider found");
+
+        }
+
+        return new ProviderWrappedAuthenticationToken(authority, providerId, authentication);
     }
 
 }

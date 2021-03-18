@@ -1,6 +1,13 @@
 package it.smartcommunitylab.aac;
 
 public class SystemKeys {
+
+    // to be upgraded when serialized objects are updated, breaks db
+    // TODO implement
+    public static final String AAC_CORE_SERIAL_VERSION = "";
+    public static final String AAC_OAUTH2_SERIAL_VERSION = "";
+    public static final String AAC_SAML_SERIAL_VERSION = "";
+
     public static final String REALM_GLOBAL = "";
 
     public static final String AUTHORITY_INTERNAL = "internal";

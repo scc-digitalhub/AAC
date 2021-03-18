@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.oauth.model;
 
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum AuthorizationGrantType {
 
     AUTHORIZATION_CODE("authorization_code"),
@@ -19,8 +21,23 @@ public enum AuthorizationGrantType {
         this.value = value;
     }
 
+    @JsonValue
     public String getValue() {
         return value;
+    }
+    
+    public String toString() {
+        return value;
+    }
+
+    public static AuthorizationGrantType parse(String value) {
+        for (AuthorizationGrantType gt : AuthorizationGrantType.values()) {
+            if (gt.value.equalsIgnoreCase(value)) {
+                return gt;
+            }
+        }
+
+        return null;
     }
 
 }

@@ -59,9 +59,15 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        // TODO extract registrationId and check if matches our providerid
-        //
+    public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
+        // extract registrationId and check if matches our providerId
+        OAuth2LoginAuthenticationToken loginAuthenticationToken = (OAuth2LoginAuthenticationToken) authentication;
+        String registrationId = loginAuthenticationToken.getClientRegistration().getRegistrationId();
+        if (!getProvider().equals(registrationId)) {
+            // this login is not for us, let others process it
+            return null;
+        }
+
         // delegate to oauth providers in sequence
         Authentication auth = oidcProvider.authenticate(authentication);
         if (auth == null) {

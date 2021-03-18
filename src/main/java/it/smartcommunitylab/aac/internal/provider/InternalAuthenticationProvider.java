@@ -53,8 +53,11 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
         // just delegate to dao
+        // TODO check if realm matches, maybe via authDetails?
+        // anyway given that we can have a single internal idp per realm we can consider
+        // this safe
         return authProvider.authenticate(authentication);
     }
 
@@ -71,12 +74,10 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
         String username = details.getUsername();
         String userId = this.exportInternalId(username);
 
-        InternalUserAccount account = accountRepository.findByRealmAndUsername(getRealm(), username);
         // fallback to username
-        String name = account.getUsername();
+        String name = username;
         // add auth-related attributes
         Map<String, String> attributes = new HashMap<>();
-        attributes.put("id", Long.toString(account.getId()));
 
         Instant now = new Date().toInstant();
         // format date

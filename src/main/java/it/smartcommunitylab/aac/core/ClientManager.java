@@ -124,10 +124,9 @@ public class ClientManager {
 
             if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
                 oauthClientAppService.deleteClient(realm, clientId);
+            } else {
+                throw new IllegalArgumentException("invalid client type");
             }
-
-            throw new IllegalArgumentException("invalid client type");
-
         }
     }
 
@@ -196,7 +195,7 @@ public class ClientManager {
         String type = entity.getType();
 
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            //convert to credentials
+            // convert to credentials
             ClientSecret secret = mapper.convertValue(credentials, ClientSecret.class);
             return oauthClientService.setClientCredentials(clientId, secret);
         }

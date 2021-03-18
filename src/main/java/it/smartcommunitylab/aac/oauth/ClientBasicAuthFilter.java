@@ -1,0 +1,145 @@
+package it.smartcommunitylab.aac.oauth;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
+import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationConverter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+
+public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilter {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
+    private BasicAuthenticationConverter authenticationConverter = new BasicAuthenticationConverter();
+
+    public ClientBasicAuthFilter(String filterProcessingUrl) {
+        super(filterProcessingUrl);
+        // override request matcher
+        RequestMatcher requestMatcher = new BasicAuthRequestMatcher(new AntPathRequestMatcher(filterProcessingUrl));
+        setRequiresAuthenticationRequestMatcher(requestMatcher);
+    }
+
+    public ClientBasicAuthFilter(String... filterProcessingUrl) {
+        super(filterProcessingUrl[0]);
+        // override request matcher, we want to support global AND realm paths
+        List<RequestMatcher> antMatchers = Arrays.stream(filterProcessingUrl).map(u -> new AntPathRequestMatcher(u))
+                .collect(Collectors.toList());
+        RequestMatcher requestMatcher = new BasicAuthRequestMatcher(new OrRequestMatcher(antMatchers));
+        setRequiresAuthenticationRequestMatcher(requestMatcher);
+    }
+
+    /**
+     * @param authenticationEntryPoint the authentication entry point to set
+     */
+    public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
+        this.authenticationEntryPoint = authenticationEntryPoint;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        super.afterPropertiesSet();
+        setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
+            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+                    AuthenticationException exception) throws IOException, ServletException {
+                if (exception instanceof BadCredentialsException) {
+                    exception = new BadCredentialsException(exception.getMessage(),
+                            new BadClientCredentialsException());
+                }
+                authenticationEntryPoint.commence(request, response, exception);
+            }
+        });
+        setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                    Authentication authentication) throws IOException, ServletException {
+                // no-op - just allow filter chain to continue to token endpoint
+            }
+        });
+    }
+
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request,
+            HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+        // use basic auth converter, will throw exception if header is malformed
+        UsernamePasswordAuthenticationToken basicRequest = this.authenticationConverter.convert(request);
+
+        String clientId = (String) basicRequest.getPrincipal();
+        String clientSecret = (String) basicRequest.getCredentials();
+
+        clientId = clientId.trim();
+
+        if (clientSecret == null) {
+            clientSecret = "";
+        }
+
+        if (!StringUtils.hasText(clientId)) {
+            throw new BadCredentialsException("No client credentials presented");
+        }
+
+        // convert to our authRequest
+        UsernamePasswordAuthenticationToken authRequest = new ClientSecretAuthenticationToken(clientId,
+                clientSecret);
+
+        // collect request details
+        WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
+        authRequest.setDetails(webAuthenticationDetails);
+
+        // let authManager process request
+        return this.getAuthenticationManager().authenticate(authRequest);
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+            FilterChain chain, Authentication authResult) throws IOException, ServletException {
+        super.successfulAuthentication(request, response, chain, authResult);
+        chain.doFilter(request, response);
+    }
+
+    protected static class BasicAuthRequestMatcher implements RequestMatcher {
+        private RequestMatcher requestMatcher;
+
+        public BasicAuthRequestMatcher(RequestMatcher requestMatcher) {
+            Assert.notNull(requestMatcher, "request matcher is mandatory");
+            this.requestMatcher = requestMatcher;
+        }
+
+        @Override
+        public boolean matches(HttpServletRequest request) {
+            if (requestMatcher.matches(request)) {
+
+                // check if basic auth header
+                String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+                return StringUtils.startsWithIgnoreCase(header, "Basic");
+
+            } else {
+                return false;
+            }
+        }
+    }
+
+}

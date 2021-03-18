@@ -47,9 +47,15 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        // TODO extract registrationId and check if matches our providerid
-//
+    public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
+        // extract registrationId and check if matches our providerid
+        Saml2AuthenticationToken loginAuthenticationToken = (Saml2AuthenticationToken) authentication;
+        String registrationId = loginAuthenticationToken.getRelyingPartyRegistration().getRegistrationId();
+        if (!getProvider().equals(registrationId)) {
+            // this login is not for us, let others process it
+            return null;
+        }
+
         // delegate to openSaml, and leverage default converter
         Authentication token = openSamlProvider.authenticate(authentication);
         Saml2Authentication auth = (Saml2Authentication) token;

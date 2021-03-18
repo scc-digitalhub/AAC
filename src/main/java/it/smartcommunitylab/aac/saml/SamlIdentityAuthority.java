@@ -12,6 +12,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -75,6 +76,12 @@ public class SamlIdentityAuthority implements IdentityAuthority {
             String providerId = cp.getProvider();
             String realm = cp.getRealm();
 
+            SamlIdentityProvider e = providers.get(providerId);
+            if (e != null && !realm.equals(e.getRealm())) {
+                // name clash
+                throw new RegistrationException("a provider with the same id already exists under a different realm");
+            }
+
             try {
                 // link to internal repos
                 // TODO add attribute store as persistentStore
@@ -101,17 +108,25 @@ public class SamlIdentityAuthority implements IdentityAuthority {
 
                 throw new IllegalArgumentException("invalid provider configuration: " + ex.getMessage(), ex);
             }
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 
     @Override
-    public void unregisterIdentityProvider(String providerId) {
+    public void unregisterIdentityProvider(String realm, String providerId) {
         if (providers.containsKey(providerId)) {
             synchronized (this) {
+                SamlIdentityProvider idp = providers.get(providerId);
+
+                // check realm match
+                if (!realm.equals(idp.getRealm())) {
+                    throw new IllegalArgumentException("realm does not match");
+                }
+
                 // remove from repository to disable filters
                 relyingPartyRegistrationRepository.removeRegistration(providerId);
 
-                SamlIdentityProvider idp = providers.get(providerId);
                 // someone else should have already destroyed sessions
 
                 // remove

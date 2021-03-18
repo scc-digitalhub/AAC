@@ -258,7 +258,7 @@ public class OAuth2Client extends BaseClient {
 
         Set<String> authorizedGrantTypes = StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes());
         c.authorizedGrantTypes = authorizedGrantTypes.stream()
-                .map(a -> AuthorizationGrantType.valueOf(a)).collect(Collectors.toSet());
+                .map(a -> AuthorizationGrantType.parse(a)).collect(Collectors.toSet());
 
         c.redirectUris.addAll(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
 
