@@ -58,8 +58,8 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         this.clientRegistrationRepository = clientRegistrationRepository;
 
         // TODO evaluate adopting changeSessionStrategy to avoid fixation attacks
-//        setAllowSessionCreation(true);
-//        setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
+        setAllowSessionCreation(true);
+        setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
 
     }
 

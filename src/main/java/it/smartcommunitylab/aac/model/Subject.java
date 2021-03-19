@@ -1,10 +1,12 @@
 package it.smartcommunitylab.aac.model;
 
+import java.io.Serializable;
+
 import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-public class Subject implements AuthenticatedPrincipal {
+public class Subject implements AuthenticatedPrincipal, Serializable {
 
     private final String subjectId;
     private final String name;

@@ -12,24 +12,75 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.AuthorityManager;
+import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
+import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 
 @Configuration
+@Order(1)
 public class AACConfig {
+    /*
+     * Core aac should be bootstrapped at @1
+     */
 
-    @Value("${oauth2.jwt}")
-    private boolean oauth2UseJwt;
+    @Autowired
+    private DataSource dataSource;
 
-    @Value("${oauth2.accesstoken.validity}")
-    private int accessTokenValidity;
+    @Autowired
+    private AuthorityManager authorityManager;
 
-    @Value("${oauth2.refreshtoken.validity}")
-    private int refreshTokenValidity;
+    /*
+     * provider manager depends on authorities + static config + datasource
+     */
 
+    @Autowired
+    private ProviderManager providerManager;
 
+    @Bean
+    @ConfigurationProperties(prefix = "providers")
+    public ProvidersProperties globalProviders() {
+        return new ProvidersProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "attributesets")
+    public AttributeSetsProperties systemAttributeSets() {
+        return new AttributeSetsProperties();
+    }
+
+    /*
+     * authManager depends on provider + userService
+     */
+    @Autowired
+    private UserEntityService userService;
+
+    @Bean
+    public ExtendedAuthenticationManager extendedAuthenticationManager() throws Exception {
+        return new ExtendedAuthenticationManager(providerManager, userService);
+    }
+
+    /*
+     * we need all beans covering authorities here, otherwise we won't be able to
+     * build the authmanager (it depends on providerManager -> authorityManager)
+     */
+    @Bean
+    public OIDCClientRegistrationRepository clientRegistrationRepository() {
+        return new OIDCClientRegistrationRepository();
+    }
+
+    @Bean
+    public SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
+        return new SamlRelyingPartyRegistrationRepository();
+    }
 
 //    @Autowired
 //    private UserRepository userRepository;

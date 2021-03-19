@@ -31,6 +31,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -54,25 +55,30 @@ import org.springframework.security.web.authentication.rememberme.JdbcTokenRepos
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
 import org.yaml.snakeyaml.Yaml;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
+import it.smartcommunitylab.aac.internal.InternalLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 import it.smartcommunitylab.aac.oauth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.OAuth2RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientPKCEAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
@@ -85,6 +91,7 @@ import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.utils.Utils;
 
 @Configuration
+@Order(3)
 //@EnableOAuth2Client
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -101,29 +108,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${security.rememberme.key}")
     private String remembermeKey;
 
-    @Bean
-    @ConfigurationProperties(prefix = "providers")
-    public ProvidersProperties globalProviders() {
-        return new ProvidersProperties();
-    }
-
-    @Bean
-    @ConfigurationProperties(prefix = "attributesets")
-    public AttributeSetsProperties systemAttributeSets() {
-        return new AttributeSetsProperties();
-    }
-
 //    @Autowired
 //    OAuth2ClientContext oauth2ClientContext;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Autowired
-    private AuthorityManager authorityManager;
-
-    @Autowired
-    private it.smartcommunitylab.aac.core.ProviderManager providerManager;
 
     @Autowired
     private OIDCClientRegistrationRepository clientRegistrationRepository;
@@ -132,16 +118,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
     @Autowired
-    private UserEntityService userService;
+    private OAuth2ClientDetailsService clientDetailsService;
 
-    @Autowired
-    private ClientDetailsService clientDetailsService;
-
-    @Autowired
-    private OAuth2ClientUserDetailsService clientUserDetailsService;
-
-    @Autowired
-    private PeekableAuthorizationCodeServices authCodeServices;
+//    @Autowired
+//    private OAuth2ClientUserDetailsService clientUserDetailsService;
 
     @Autowired
     private ExtendedAuthenticationManager authManager;
@@ -249,18 +229,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
+
         http
-//		.anonymous().disable()
                 .authorizeRequests()
-                .antMatchers("/eauth/authorize/**").permitAll()
-                .antMatchers("/oauth/authorize", "/eauth/**").permitAll()
-//                .antMatchers("/oauth/authorize", "/eauth/**").authenticated()
-                .antMatchers("/", "/dev**", "/account/**")
-                .hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
-                .antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
+                // whitelist login pages
+                .antMatchers("/login").permitAll()
+                .antMatchers("/-/{realm}/login").permitAll()
+                // whitelist assets
+                // TODO change path to /assets (and build)
+                .antMatchers("/css/**").permitAll()
+                .antMatchers("/img/**").permitAll()
+                .antMatchers("/italia/**").permitAll()
+                //whitelist api
+                //TODO fix
+                .antMatchers("/api/**").permitAll()
+                // anything else requires auth
+                .anyRequest().authenticated()
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+                // use a realm aware entryPoint
+//                .authenticationEntryPoint(new RealmAwareAuthenticationEntryPoint("/login"))
+                .defaultAuthenticationEntryPointFor(
+                        oauth2AuthenticationEntryPoint(clientDetailsService, "/login"),
+                        new AntPathRequestMatcher("/oauth/**"))
+                .defaultAuthenticationEntryPointFor(
+                        new RealmAwareAuthenticationEntryPoint("/login"),
+                        new AntPathRequestMatcher("/**"))
                 .accessDeniedPage("/accesserror")
                 .and()
                 .logout()
@@ -273,13 +267,42 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
-                .addFilterBefore(
-                        getOAuth2ProviderFilters(clientDetailsService, clientUserDetailsService, authCodeServices),
+                .addFilterBefore(getInternalAuthorityFilters(authManager),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(getSamlAuthorityFilters(authManager, relyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(getOIDCAuthorityFilters(authManager, clientRegistrationRepository),
                         BasicAuthenticationFilter.class);
+
+//        http
+////		.anonymous().disable()
+//                .authorizeRequests()
+////                .antMatchers("/eauth/authorize/**").permitAll()
+////                .antMatchers("/oauth/authorize", "/eauth/**").permitAll()
+////                .antMatchers("/oauth/authorize", "/eauth/**").authenticated()
+//                .antMatchers("/", "/dev**", "/account/**")
+//                .hasAnyAuthority((restrictedAccess ? "ROLE_MANAGER" : "ROLE_USER"), "ROLE_ADMIN")
+//                .antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
+//                .and()
+//                .exceptionHandling()
+//                //use a realm aware entryPoint
+//                .authenticationEntryPoint(new RealmAwareAuthenticationEntryPoint("/login"))
+//                .accessDeniedPage("/accesserror")
+//                .and()
+//                .logout()
+//                .logoutSuccessHandler(logoutSuccessHandler()).permitAll()
+////                .and()
+////                .rememberMe()
+////                .key(remembermeKey)
+////                .rememberMeServices(rememberMeServices())
+//                .and()
+//                .csrf()
+//                .disable()
+////                // TODO replace with filterRegistrationBean and explicitely map urls
+//                .addFilterBefore(getSamlAuthorityFilters(authManager, relyingPartyRegistrationRepository),
+//                        BasicAuthenticationFilter.class)
+//                .addFilterBefore(getOIDCAuthorityFilters(authManager, clientRegistrationRepository),
+//                        BasicAuthenticationFilter.class);
 
     }
 
@@ -297,22 +320,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     @Primary
     public AuthenticationManager authenticationManagerBean() throws Exception {
-        return extendedAuthenticationManager();
+//        return extendedAuthenticationManager();
+        return authManager;
     }
 
-    @Bean
-    public ExtendedAuthenticationManager extendedAuthenticationManager() throws Exception {
-        return new ExtendedAuthenticationManager(providerManager, userService);
+    /*
+     * Internal auth
+     */
+
+    public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager) {
+        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter();
+        loginFilter.setAuthenticationManager(authManager);
+        
+        List<Filter> filters = new ArrayList<>();
+        filters.add(loginFilter);
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
     }
 
     /*
      * OIDC Auth
      */
-
-    @Bean
-    public OIDCClientRegistrationRepository clientRegistrationRepository() {
-        return new OIDCClientRegistrationRepository();
-    }
 
     public CompositeFilter getOIDCAuthorityFilters(AuthenticationManager authManager,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
@@ -340,11 +370,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      * Saml2 Auth
      */
 
-    @Bean
-    public SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
-        return new SamlRelyingPartyRegistrationRepository();
-    }
-
     public CompositeFilter getSamlAuthorityFilters(AuthenticationManager authManager,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         // build filters
@@ -371,6 +396,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     /*
      * OAuth2
      */
+
+    private OAuth2RealmAwareAuthenticationEntryPoint oauth2AuthenticationEntryPoint(
+            OAuth2ClientDetailsService clientDetailsService, String loginUrl) {
+        return new OAuth2RealmAwareAuthenticationEntryPoint(clientDetailsService, loginUrl);
+
+    }
+
 //    @Bean
 //    public ClientDetailsUserDetailsService clientDetailsUserDetailsService(ClientDetailsService clientDetailsService) {
 //       return new ClientDetailsUserDetailsService(clientDetailsService);                
@@ -382,40 +414,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        authProvider.setPasswordEncoder(PlaintextPasswordEncoder.getInstance());
 //        return authProvider;
 //    }
-
-    public Filter getOAuth2ProviderFilters(
-            ClientDetailsService clientDetailsService,
-            OAuth2ClientUserDetailsService clientUserDetailsService,
-            PeekableAuthorizationCodeServices authCodeServices) {
-
-//        // get auth provider and build a dedicated authmanager
-//        DaoAuthenticationProvider authProvider = clientAuthProvider(clientDetailsService);
-//        ProviderManager authManager = new ProviderManager(authProvider);
-//        BasicAuthenticationFilter basicAuth = new BasicAuthenticationFilter(authManager);
-//        return basicAuth;
-
-        OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
-                clientUserDetailsService, authCodeServices);
-        OAuth2ClientAuthenticationProvider secretAuthProvider = new OAuth2ClientAuthenticationProvider(
-                clientUserDetailsService);
-        ProviderManager authManager = new ProviderManager(secretAuthProvider, pkceAuthProvider);
-
-        // TODO add realm style endpoints
-        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
-        formTokenEndpointFilter.setAuthenticationManager(authManager);
-
-        ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
-        basicTokenEndpointFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
-
-        List<Filter> filters = new ArrayList<>();
-        filters.add(basicTokenEndpointFilter);
-        filters.add(formTokenEndpointFilter);
-
-        CompositeFilter filter = new CompositeFilter();
-        filter.setFilters(filters);
-
-        return filter;
-    }
 
 //    // TODO customize authenticationprovider to handle per realm sessions
 //    @Bean

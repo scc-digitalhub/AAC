@@ -15,7 +15,9 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.profiles.model;
 
-public class BasicProfile {
+import java.io.Serializable;
+
+public class BasicProfile implements Serializable {
 
     private String name;
     private String surname;

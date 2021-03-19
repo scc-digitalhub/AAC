@@ -1,10 +1,11 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.security.core.AuthenticatedPrincipal;
 
-public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal {
+public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, Serializable {
 
     public String getAuthority();
 

@@ -155,7 +155,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     @Override
     public String getAuthenticationUrl() {
         // TODO build a realm-bound url, need updates on filters
-        return InternalIdentityAuthority.AUTHORITY_URL + "login" + getProvider();
+        return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
     }
 
     @Override

@@ -4,14 +4,19 @@ import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.Filter;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.token.TokenService;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.CompositeTokenGranter;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
@@ -27,9 +32,11 @@ import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.bind.support.DefaultSessionAttributeStore;
 import org.springframework.web.bind.support.SessionAttributeStore;
+import org.springframework.web.filter.CompositeFilter;
 
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
@@ -37,11 +44,15 @@ import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
+import it.smartcommunitylab.aac.oauth.ClientBasicAuthFilter;
+import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ExtRedirectResolver;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
+import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 import it.smartcommunitylab.aac.oauth.token.AuthorizationCodeTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ClientCredentialsTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ImplicitTokenGranter;
@@ -50,7 +61,8 @@ import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 
 @Configuration
-public class OAuth2Config {
+@Order(2)
+public class OAuth2Config extends WebSecurityConfigurerAdapter {
 
     @Value("${application.url}")
     private String applicationURL;
@@ -87,6 +99,40 @@ public class OAuth2Config {
 
     @Autowired
     private AuthenticationManager authManager;
+
+    @Autowired
+    private OAuth2ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private PeekableAuthorizationCodeServices authCodeServices;
+
+    /*
+     * Configure a separated security context for oauth2 tokenEndpoints
+     */
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        // match only TokenEndpoint
+        // TODO add requestMatcher to match also introspect etc
+        http.antMatcher("/oauth/token")
+                .authorizeRequests((authorizeRequests) -> authorizeRequests
+                        .anyRequest().hasAnyAuthority("ROLE_CLIENT"))
+                // disable request cache, we override redirects but still better enforce it
+                .requestCache((requestCache) -> requestCache.disable())
+                .exceptionHandling()
+                // use 403 for tokenEndpoint
+                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .accessDeniedPage("/accesserror")
+                .and()
+                .csrf()
+                .disable()
+                .addFilterBefore(
+                        getOAuth2ProviderFilters(clientDetailsService, authCodeServices),
+                        BasicAuthenticationFilter.class);
+
+        // we don't want a session for these endpoints, each request should be evaluated
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
 
     @Bean
     public AuthenticationHelper authenticationHelper() {
@@ -130,16 +176,16 @@ public class OAuth2Config {
     }
 
     @Bean
-    public ClientDetailsService getClientDetailsService(ClientEntityService clientService,
+    public OAuth2ClientDetailsService getClientDetailsService(ClientEntityService clientService,
             OAuth2ClientEntityRepository clientRepository) throws PropertyVetoException {
         return new OAuth2ClientDetailsService(clientService, clientRepository);
     }
 
-    // TODO remove class
-    @Bean
-    public OAuth2ClientUserDetailsService getClientUserDetailsService(OAuth2ClientEntityRepository clientRepository) {
-        return new OAuth2ClientUserDetailsService(clientRepository);
-    }
+//    // TODO remove class
+//    @Bean
+//    public OAuth2ClientUserDetailsService getClientUserDetailsService(OAuth2ClientEntityRepository clientRepository) {
+//        return new OAuth2ClientUserDetailsService(clientRepository);
+//    }
 
     @Bean
     public UserApprovalHandler getUserApprovalHandler() {
@@ -272,6 +318,35 @@ public class OAuth2Config {
         tokenEndpoint.setOAuth2RequestValidator(oauth2RequestValidator);
 
         return tokenEndpoint;
+    }
+
+    public Filter getOAuth2ProviderFilters(
+            OAuth2ClientDetailsService clientDetailsService,
+            PeekableAuthorizationCodeServices authCodeServices) {
+
+        // build auth providers for oauth2 clients
+        OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
+                clientDetailsService, authCodeServices);
+        OAuth2ClientAuthenticationProvider secretAuthProvider = new OAuth2ClientAuthenticationProvider(
+                clientDetailsService);
+        ProviderManager authManager = new ProviderManager(secretAuthProvider, pkceAuthProvider);
+
+        // build auth filters for TokenEndpoint
+        // TODO add realm style endpoints
+        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
+        formTokenEndpointFilter.setAuthenticationManager(authManager);
+
+        ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
+        basicTokenEndpointFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(basicTokenEndpointFilter);
+        filters.add(formTokenEndpointFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
     }
 
 }

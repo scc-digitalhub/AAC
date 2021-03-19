@@ -45,9 +45,9 @@ import it.smartcommunitylab.aac.internal.dto.InternalLoginBean;
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import springfox.documentation.annotations.ApiIgnore;
 
-@Controller
-@RequestMapping
-public class LoginController {
+//@Controller
+//@RequestMapping
+public class InternalLoginController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -90,83 +90,83 @@ public class LoginController {
         return builder.toString();
     }
 
-    @RequestMapping(value = {
-            "/login/internal",
-            "/{realm}/login/internal",
-            "/{realm}/login/internal/{providerId}"
-    }, method = RequestMethod.GET)
-    public String loginDispatch(
-            @PathVariable("realm") Optional<String> realmKey,
-            @PathVariable("providerId") Optional<String> providerKey,
-            RedirectAttributes attr,
-            HttpServletRequest req, HttpServletResponse res) throws Exception {
-        String realm = SystemKeys.REALM_GLOBAL;
-        String providerId = "";
-
-        // fetch realm+provider
-        if (realmKey.isPresent()) {
-            realm = realmKey.get();
-        }
-        if (providerKey.isPresent()) {
-            providerId = providerKey.get();
-        }
+//    @RequestMapping(value = {
+//            "/login/internal",
+//            "/{realm}/login/internal",
+//            "/{realm}/login/internal/{providerId}"
+//    }, method = RequestMethod.GET)
+//    public String loginDispatch(
+//            @PathVariable("realm") Optional<String> realmKey,
+//            @PathVariable("providerId") Optional<String> providerKey,
+//            RedirectAttributes attr,
+//            HttpServletRequest req, HttpServletResponse res) throws Exception {
+//        String realm = SystemKeys.REALM_GLOBAL;
+//        String providerId = "";
 //
-//        // todo verify idp + cleanup
-        //
-        // use redirect with params, can refresh
-        return "redirect:" + buildLoginPage(realm, providerId);
-
-        // use model, cant refresh
-//        String loginAction = buildLoginAction(realm, providerId);
-//        attr.addFlashAttribute("loginAction", loginAction);
-//        attr.addFlashAttribute("realm", realm);
-//        attr.addFlashAttribute("provider", providerId);
-
-//        return "redirect:/login";
-
-    }
-
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public String login(
-            @RequestParam("r") Optional<String> realmKey,
-            @RequestParam("p") Optional<String> providerKey,
-            Model model,
-            HttpServletRequest req, HttpServletResponse res) throws Exception {
-
-        String realm = SystemKeys.REALM_GLOBAL;
-        String providerId = "";
-
-        // fetch realm+provider
-        if (realmKey.isPresent()) {
-            realm = realmKey.get();
-        }
-        if (providerKey.isPresent()) {
-            providerId = providerKey.get();
-        }
-
-        if (!model.containsAttribute("loginAction")) {
-            model.addAttribute("realm", realm);
-            model.addAttribute("provider", providerId);
-            model.addAttribute("loginAction", buildLoginAction(realm, providerId));
-        }
-
+//        // fetch realm+provider
+//        if (realmKey.isPresent()) {
+//            realm = realmKey.get();
+//        }
+//        if (providerKey.isPresent()) {
+//            providerId = providerKey.get();
+//        }
+////
+////        // todo verify idp + cleanup
+//        //
+//        // use redirect with params, can refresh
+//        return "redirect:" + buildLoginPage(realm, providerId);
 //
-//        Map<String, Object> model = new HashMap<String, Object>();
-//        model.put("realm", realm);
-//        model.put("provider", providerId);
-//        model.put("loginPath", loginPath);
-//        model.put("loginText", loginPath);
-
-        model.addAttribute("loginText", model.getAttribute("loginAction"));
-
-        Map<String, String> authorities = new HashMap<>();
-        authorities.put("internal", "internal");
-        logger.debug("authorities from adapter: " + authorities.keySet().toString());
-        req.getSession().setAttribute("authorities", authorities);
-
-//        return new ModelAndView("login", model);
-        return "login";
-    }
+//        // use model, cant refresh
+////        String loginAction = buildLoginAction(realm, providerId);
+////        attr.addFlashAttribute("loginAction", loginAction);
+////        attr.addFlashAttribute("realm", realm);
+////        attr.addFlashAttribute("provider", providerId);
+//
+////        return "redirect:/login";
+//
+//    }
+//
+//    @RequestMapping(value = "/login", method = RequestMethod.GET)
+//    public String login(
+//            @RequestParam("r") Optional<String> realmKey,
+//            @RequestParam("p") Optional<String> providerKey,
+//            Model model,
+//            HttpServletRequest req, HttpServletResponse res) throws Exception {
+//
+//        String realm = SystemKeys.REALM_GLOBAL;
+//        String providerId = "";
+//
+//        // fetch realm+provider
+//        if (realmKey.isPresent()) {
+//            realm = realmKey.get();
+//        }
+//        if (providerKey.isPresent()) {
+//            providerId = providerKey.get();
+//        }
+//
+//        if (!model.containsAttribute("loginAction")) {
+//            model.addAttribute("realm", realm);
+//            model.addAttribute("provider", providerId);
+//            model.addAttribute("loginAction", buildLoginAction(realm, providerId));
+//        }
+//
+////
+////        Map<String, Object> model = new HashMap<String, Object>();
+////        model.put("realm", realm);
+////        model.put("provider", providerId);
+////        model.put("loginPath", loginPath);
+////        model.put("loginText", loginPath);
+//
+//        model.addAttribute("loginText", model.getAttribute("loginAction"));
+//
+//        Map<String, String> authorities = new HashMap<>();
+//        authorities.put("internal", "internal");
+//        logger.debug("authorities from adapter: " + authorities.keySet().toString());
+//        req.getSession().setAttribute("authorities", authorities);
+//
+////        return new ModelAndView("login", model);
+//        return "login";
+//    }
 
     @ApiIgnore
     @RequestMapping(value = {
@@ -245,10 +245,10 @@ public class LoginController {
             UserAuthenticationToken authentication = (UserAuthenticationToken) authResponse;
 
 //            // replace in session
-//            sessionManager.setSession(authentication);
+            sessionManager.setSession(authentication);
 
             // merge session
-            sessionManager.mergeSession(authentication);
+//            sessionManager.mergeSession(authentication);
 
 //            // perform auth via provider
 //            RealmAwareUsernamePasswordAuthenticationToken authResponse = (RealmAwareUsernamePasswordAuthenticationToken) authProvider

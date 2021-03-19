@@ -28,29 +28,33 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="-1" />
     <!-- Design Italia -->
-    <link rel="stylesheet" href="italia/css/bootstrap-italia.min.css"/>   
-    <script>window.__PUBLIC_PATH__ = 'italia/fonts'</script>    
-    <link href="italia/style.css" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}"/>   
+    <script th:inline="javascript">
+      const contextpath = /*[[@{/}]]*/ "/";
+      window.__PUBLIC_PATH__ = contextpath+'italia/fonts'
+     </script>
+    
+    <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
     <title th:text="#{lbl_login_title}">AAC Login</title>
 </head>
 <body>
 <div class="container">
   <div th:if= "${headerText == null}">
-    <img class="logo d-none d-md-block" src="img/ls_logo.png" alt="SmartCommunity" />
+    <img class="logo d-none d-md-block" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
     <div class="clear"></div>  
   </div>
   <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if= "${headerText != null}"  th:utext="${headerText}"></div>
   <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if= "${loginText != null}"  th:utext="${loginText}"></div>
-  <div class="row mt-md-0 mt-5 justify-content-center" th:if="${session.authorities.get('internal')} != null">
+  <div class="row mt-md-0 mt-5 justify-content-center" th:if="${internalAuthority} != null">
     <div class="col-xl-offset-4 col-xl-4 col-lg-offset-3 col-lg-6 col-md-8 col-md-offset-2 col-sm-offset-1 col-sm-10">
       <div class="panel panel-default">
       <h4 class="text-center" th:if= "${displayName == null}"  th:text="#{lbl_login_title}">AAC</h4>
       <h4 class="text-center" th:if= "${displayName != null}"  th:text="${displayName}">AAC</h4>      
       <h5 th:text="#{lbl_login}">Login</h5>
-      <form th:action=${loginAction} th:object="${login}" method="post">
-      <input type="hidden" name="realm" th:value="${realm}" /> 
-      <input type="hidden" name="provider" th:value="${provider}" /> 
+      <form th:action=${internalAuthority.loginUrl} th:object="${login}" method="post">
+      <input type="hidden" name="realm" th:value="${internalAuthority.realm}" /> 
+      <input type="hidden" name="provider" th:value="${internalAuthority.provider}" /> 
       
           <div class="text-center error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
           <div>&nbsp;</div>
@@ -62,8 +66,8 @@
             <label th:text="#{lbl_pwd}" for="password">: </label>
             <input class="form-control input-password" type="password" id="password" name="password"/>
 			      <span class="password-icon" aria-hidden="true">
-			        <svg class="password-icon-visible icon icon-sm"><use xlink:href="./italia/svg/sprite.svg#it-password-visible"></use></svg>
-			        <svg class="password-icon-invisible icon icon-sm d-none"><use xlink:href="./italia/svg/sprite.svg#it-password-invisible"></use></svg>
+			        <svg class="password-icon-visible icon icon-sm"><use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use></svg>
+			        <svg class="password-icon-invisible icon icon-sm d-none"><use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use></svg>
 			      </span>
             <div class="col-md-12 mt-2"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset password</a></div>
 	          <div class="row px-2 mt-4 align-items-center">
@@ -74,35 +78,22 @@
       </form>
       </div>
       
-      <div class="text-center mt-n4" th:if="${session.authorities.size() > 1}">
+      <div class="text-center mt-n4" th:if="${externalAuthorities.size() > 0}">
         <p th:text="#{lbl_login_providers}">Login with</p>
         <div class="row  d-md-none justify-content-center">
-          <div class="col col-12 mb-3" th:if="${session.authorities.get('adc') != null}">
-                <div><a class="btn btn-block btn-outline-primary" href="./auth/adc-oauth/callback">CPS / SPID</a></div>      
-          </div>
-          <div class="col col-12 mb-3" th:if="${session.authorities.get('cie') != null}">
-                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/cie-oauth/callback">CIE</a></div>      
-          </div>
-          <div class="col col-12 mb-3"  th:if="${session.authorities.get('google') != null}">
-                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/google-oauth/callback">GOOGLE</a></div>      
-          </div>
-          <div class="col col-12 mb-3"  th:if="${session.authorities.get('facebook') != null}">
-                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/facebook-oauth/callback">FACEBOOK</a></div>      
-          </div>
+        
+       <div class="col col-12 mb-3"  th:each="authority: ${externalAuthorities}">
+	         <div>
+	            <a class="btn btn-block btn-outline-primary" th:href="${authority.loginUrl}" th:text="${authority.name}"></a>  
+	        </div>
+        </div>
       </div>
       <div class="row d-none d-md-flex justify-content-center">
-          <div class="col mb-3" th:if="${session.authorities.get('adc') != null}">
-                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/adc-oauth/callback">CPS / SPID</a></div>      
-          </div>
-          <div class="col mb-3" th:if="${session.authorities.get('cie') != null}">
-                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/cie-oauth/callback">CIE</a></div>      
-          </div>
-          <div class="col mb-3"  th:if="${session.authorities.get('google') != null}">
-                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/google-oauth/callback">GOOGLE</a></div>      
-          </div>
-          <div class="col mb-3"  th:if="${session.authorities.get('facebook') != null}">
-                <div><a class="btn loginbtn btn-block btn-outline-primary" href="./auth/facebook-oauth/callback">FACEBOOK</a></div>      
-          </div>
+       <div class="col mb-3"  th:each="authority: ${externalAuthorities}">
+            <div>
+               <a class="btn loginbtn btn-block btn-outline-primary" th:href="${authority.loginUrl}" th:text="${authority.name}"></a>  
+           </div>
+        </div>            
       </div>
     </div>     
     </div>
@@ -110,6 +101,6 @@
 
   <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if= "${footerText != null}"  th:utext="${footerText}"></div>
 </div>            
-<script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
+<script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}"  type="text/javascript" charset="utf-8"></script>    
 </body>
 </html>

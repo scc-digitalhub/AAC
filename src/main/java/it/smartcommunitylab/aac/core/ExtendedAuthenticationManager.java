@@ -77,27 +77,10 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         logger.debug("authentication manager created");
     }
 
-//    @Override
-//    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-//        logger.debug("process authentication for " + authentication.getName());
-//
-//        if (!supports(authentication.getClass())) {
-//            logger.error("invalid authentication class: " + authentication.getClass().getName());
-//            throw new AuthenticationServiceException("invalid request");
-//        }
-//
-//        // extract provider info by unwrapping request
-//        ProviderWrappedAuthenticationToken request = (ProviderWrappedAuthenticationToken) authentication;
-//        String authorityId = request.getAuthority();
-//        String providerId = request.getProvider();
-//        AbstractAuthenticationToken token = request.getAuthenticationToken();
-//        WebAuthenticationDetails webAuthDetails = request.getAuthenticationDetails();
-//    }
-
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         logger.debug("process authentication for " + authentication.getName());
 
-        if (authentication instanceof WrappedAuthenticationToken) {
+        if (!(authentication instanceof WrappedAuthenticationToken)) {
             logger.error("invalid authentication class: " + authentication.getClass().getName());
             throw new AuthenticationServiceException("invalid request");
         }
@@ -178,27 +161,23 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             UserAuthenticationToken result = null;
 
-            // TODO rework loop, implement attemptAuthenticate which return null
+            // TODO rework loop
             for (IdentityProvider idp : providers) {
-                try {
-                    ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
-                    if (eap == null) {
-                        continue;
-                    }
+                ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
+                if (eap == null) {
+                    continue;
+                }
 
-                    result = doAuthenticate(request, eap);
-
-                    if (result != null) {
-                        break;
-                    }
-                } catch (AuthenticationException ae) {
-                    // skip
+                result = attempAuthenticate(request, eap);
+                if (result != null) {
+                    break;
                 }
             }
 
             if (result == null) {
                 throw new BadCredentialsException("invalid authentication request");
             }
+
             return result;
 
         } else {
@@ -208,12 +187,38 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
     }
 
     /*
-     * Attemp authentication, returns null if request is not supported, throws error
-     * if invalid
+     * Attemp authentication, returns null if request is not supported or if invalid
      */
     protected UserAuthenticationToken attempAuthenticate(WrappedAuthenticationToken request,
             ExtendedAuthenticationProvider provider) throws AuthenticationException {
-        return null;
+        /*
+         * Extended authentication:
+         * 
+         * process auth request via specific provider and obtain a valid userAuth
+         * containing a principal
+         */
+        AbstractAuthenticationToken token = request.getAuthenticationToken();
+
+        // check if request is supported
+        if (!provider.supports(token.getClass())) {
+            return null;
+        }
+
+        try {
+            // perform extended authentication
+            logger.debug("perform authentication via provider");
+            ExtendedAuthenticationToken auth = provider.authenticate(token);
+            logger.debug("received authentication token from provider");
+
+            if (auth == null) {
+                logger.error("null authentication result");
+                return null;
+            }
+
+            return createSuccessAuthentication(request, auth);
+        } catch (AuthenticationException ae) {
+            return null;
+        }
     }
 
     /*
@@ -419,8 +424,8 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             if (currentAuth != null) {
                 // merge authorities
                 Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
-                authorities.addAll(currentAuth.getAuthorities());
-                authorities.addAll(userAuth.getAuthorities());
+                grantedAuthorities.addAll(currentAuth.getAuthorities());
+                grantedAuthorities.addAll(userAuth.getAuthorities());
 
                 // current authentication is first, new extends
                 result = new UserAuthenticationToken(subject, grantedAuthorities, currentAuth, userAuth);

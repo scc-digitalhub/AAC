@@ -97,7 +97,7 @@ public class AutoJdbcAuthorizationCodeServices extends RandomValueAuthorizationC
                         code, clientId,
                         new java.sql.Timestamp(System.currentTimeMillis() + codeValidityMillis),
                         new SqlLobValue(SerializationUtils.serialize(authentication))
-                }, new int[] { Types.VARCHAR, Types.TIMESTAMP, Types.BLOB });
+                }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.TIMESTAMP, Types.BLOB });
     }
 
     public OAuth2Authentication load(String code) {

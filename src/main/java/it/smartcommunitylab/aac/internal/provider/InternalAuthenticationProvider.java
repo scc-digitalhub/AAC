@@ -81,7 +81,7 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
 
         Instant now = new Date().toInstant();
         // format date
-        attributes.put("loginDate", DateTimeFormatter.RFC_1123_DATE_TIME.format(now));
+        attributes.put("loginDate", DateTimeFormatter.ISO_INSTANT.format(now));
 
         DefaultUserAuthenticatedPrincipal user = new DefaultUserAuthenticatedPrincipal(SystemKeys.AUTHORITY_INTERNAL,
                 getProvider(), getRealm(), userId);

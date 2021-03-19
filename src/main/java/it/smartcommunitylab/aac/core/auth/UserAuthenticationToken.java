@@ -37,10 +37,9 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
     // web authentication details
     private WebAuthenticationDetails webAuthenticationDetails;
-    
+
     // audit
-    //TODO
-    
+    // TODO
 
     public UserAuthenticationToken(
             Subject principal,
@@ -106,6 +105,17 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
         super.setAuthenticated(isAuthenticated); // must use super, as we override
 
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     * 
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private UserAuthenticationToken() {
+        this(null, null, null, null, null);
     }
 
     @Override

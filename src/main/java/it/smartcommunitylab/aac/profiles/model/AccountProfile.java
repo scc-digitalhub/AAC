@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.profiles.model;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -24,7 +25,7 @@ import java.util.Map;
  * @author raman
  *
  */
-public class AccountProfile {
+public class AccountProfile implements Serializable {
 
     private String authority;
     private String provider;

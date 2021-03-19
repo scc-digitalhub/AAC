@@ -20,24 +20,25 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.oauth.ClientPKCEAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 
 public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationProvider {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // TODO replace with the proper clientService, we don't need to mimic users
-    private final OAuth2ClientUserDetailsService clientUserDetailsService;
+    private final OAuth2ClientDetailsService clientDetailsService;
 
     // we need to peek at authCodes to load request and verify auth
     private final PeekableAuthorizationCodeServices authCodeServices;
 
     public OAuth2ClientPKCEAuthenticationProvider(
-            OAuth2ClientUserDetailsService clientUserDetailsService,
+            OAuth2ClientDetailsService clientDetailsService,
             PeekableAuthorizationCodeServices authCodeServices) {
         Assert.notNull(authCodeServices, "authCode services is required");
-        Assert.notNull(clientUserDetailsService, "client user details is required");
-        this.clientUserDetailsService = clientUserDetailsService;
+        Assert.notNull(clientDetailsService, "client details service is required");
+        this.clientDetailsService = clientDetailsService;
         this.authCodeServices = authCodeServices;
     }
 
@@ -90,7 +91,7 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
         }
 
         // client auth is valid for this request, load details
-        UserDetails client = clientUserDetailsService.loadUserByUsername(clientId);
+        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
         // result contains credentials, someone later on will need to call
         // eraseCredentials

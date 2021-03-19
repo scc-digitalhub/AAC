@@ -241,7 +241,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
     @Override
     public String getAuthenticationUrl() {
         // TODO build a realm-bound url, need updates on filters
-        return OIDCIdentityAuthority.AUTHORITY_URL + "authorize" + getProvider();
+        return OIDCIdentityAuthority.AUTHORITY_URL + "authorize/" + getProvider();
     }
 
     @Override

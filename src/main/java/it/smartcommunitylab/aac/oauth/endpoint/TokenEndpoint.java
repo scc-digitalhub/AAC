@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -29,7 +30,14 @@ public class TokenEndpoint {
     public ResponseEntity<OAuth2AccessToken> postAccessToken(
             Principal principal, @RequestParam Map<String, String> parameters)
             throws HttpRequestMethodNotSupportedException {
-        return tokenEndpoint.postAccessToken(principal, parameters);
+        ResponseEntity<OAuth2AccessToken> response = tokenEndpoint.postAccessToken(principal, parameters);
+
+        // invalidate session now
+        // this should be meaningless since we expect this endpoint to live under a
+        // sessionless context
+        SecurityContextHolder.getContext().setAuthentication(null);
+
+        return response;
     }
 
 }

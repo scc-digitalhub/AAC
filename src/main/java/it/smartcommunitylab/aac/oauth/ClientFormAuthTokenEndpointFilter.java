@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +19,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
+import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -25,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
+import it.smartcommunitylab.aac.core.auth.NoOpAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter.ClientCredentialsRequestMatcher;
 
@@ -36,12 +45,14 @@ import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter.ClientCr
  * @author raman
  *
  */
-public class ClientFormAuthTokenEndpointFilter extends
-        org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter {
+public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationProcessingFilter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String DEFAULT_FILTER_URI = "/oauth/token";
+
+    private AuthenticationSuccessHandler successHandler = new NoOpAuthenticationSuccessHandler();
+    private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
 
     public ClientFormAuthTokenEndpointFilter() {
         this(DEFAULT_FILTER_URI);
@@ -53,6 +64,10 @@ public class ClientFormAuthTokenEndpointFilter extends
         RequestMatcher requestMatcher = new ClientCredentialsRequestMatcher(
                 new AntPathRequestMatcher(filterProcessingUrl));
         setRequiresAuthenticationRequestMatcher(requestMatcher);
+
+        // configure custom filter behavior
+        setSessionStrategy();
+        setHandlers();
     }
 
     public ClientFormAuthTokenEndpointFilter(String... filterProcessingUrl) {
@@ -62,6 +77,10 @@ public class ClientFormAuthTokenEndpointFilter extends
                 .collect(Collectors.toList());
         RequestMatcher requestMatcher = new ClientCredentialsRequestMatcher(new OrRequestMatcher(antMatchers));
         setRequiresAuthenticationRequestMatcher(requestMatcher);
+
+        // configure custom filter behavior
+        setSessionStrategy();
+        setHandlers();
     }
 
     @Override
@@ -102,7 +121,7 @@ public class ClientFormAuthTokenEndpointFilter extends
                 String code = request.getParameter("code");
                 String verifier = request.getParameter("code_verifier");
                 // replace request
-                authRequest = new ClientPKCEAuthenticationToken(clientId, code,  verifier);
+                authRequest = new ClientPKCEAuthenticationToken(clientId, code, verifier);
             }
         }
 
@@ -113,6 +132,37 @@ public class ClientFormAuthTokenEndpointFilter extends
         // let authManager process request
         return this.getAuthenticationManager().authenticate(authRequest);
 
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+            FilterChain chain, Authentication authResult) throws IOException, ServletException {
+        super.successfulAuthentication(request, response, chain, authResult);
+        chain.doFilter(request, response);
+    }
+
+    private void setSessionStrategy() {
+        // enforce session id change, calls to tokenEndpoint should not leverage
+        // existing sessions. We will invalidate session after response.
+        setAllowSessionCreation(true);
+        setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
+    }
+
+    private void setHandlers() {
+        // override success handler to avoid redirect strategies, we just need auth in
+        // context
+        setAuthenticationSuccessHandler(successHandler);
+        // also set a custom failure handler to translate to oauth2 errors
+        setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
+            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+                    AuthenticationException exception) throws IOException, ServletException {
+                if (exception instanceof BadCredentialsException) {
+                    exception = new BadCredentialsException(exception.getMessage(),
+                            new BadClientCredentialsException());
+                }
+                authenticationEntryPoint.commence(request, response, exception);
+            }
+        });
     }
 
     protected static class ClientCredentialsRequestMatcher implements RequestMatcher {

@@ -1,10 +1,12 @@
 package it.smartcommunitylab.aac.oauth.service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
@@ -13,6 +15,7 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
@@ -41,7 +44,7 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
     }
 
     @Override
-    public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
+    public OAuth2ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
         ClientEntity client = clientService.findClient(clientId);
         OAuth2ClientEntity oauth = clientRepository.findByClientId(clientId);
         if (client == null || oauth == null) {
@@ -58,17 +61,23 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         clientDetails.setAuthorizedGrantTypes(StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes()));
         clientDetails.setRegisteredRedirectUri(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
 
+        // always grant role_client
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
         try {
             List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
-            Set<GrantedAuthority> authorities = clientRoles.stream()
+            Set<GrantedAuthority> clientAuthorities = clientRoles.stream()
                     .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
                     .collect(Collectors.toSet());
 
-            clientDetails.setAuthorities(authorities);
+            authorities.addAll(clientAuthorities);
 
         } catch (it.smartcommunitylab.aac.common.NoSuchClientException e) {
-            throw new NoSuchClientException("No client with requested id: " + clientId);
+//            throw new NoSuchClientException("No client with requested id: " + clientId);
         }
+
+        clientDetails.setAuthorities(authorities);
+
         return clientDetails;
     }
 

@@ -1,12 +1,13 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.model.UserResource;
 
-public abstract class AbstractBaseResource implements UserResource {
+public abstract class AbstractBaseResource implements UserResource, Serializable {
 
     private final String authority;
     private final String realm;
@@ -16,6 +17,16 @@ public abstract class AbstractBaseResource implements UserResource {
         this.authority = authority;
         this.realm = realm;
         this.provider = provider;
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     * 
+     * We need to implement this to enable deserialization of resources via reflection
+     */
+    @SuppressWarnings("unused")
+    private AbstractBaseResource() {
+        this((String) null, (String) null, (String) null);
     }
 
     public String getAuthority() {

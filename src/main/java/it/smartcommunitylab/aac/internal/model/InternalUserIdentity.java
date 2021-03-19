@@ -122,7 +122,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
      */
     public static InternalUserIdentity from(String provider, InternalUserAccount user, String realm) {
         InternalUserIdentity i = new InternalUserIdentity(SystemKeys.AUTHORITY_INTERNAL, provider, realm, user);
-        i.userId = i.exportInternalId(user.getUserId());
+        i.userId = user.getUserId();
 
         // we do not copy password by default
         // let service handle the retrieval
@@ -171,6 +171,11 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
     public Object getCredentials() {
         return this.account.getPassword();
+    }
+
+    @Override
+    public String toString() {
+        return "InternalUserIdentity [account=" + account + ", userId=" + userId + ", provider=" + provider + "]";
     }
 
 }

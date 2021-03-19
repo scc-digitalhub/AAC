@@ -23,6 +23,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationConverter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -30,6 +31,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.core.auth.NoOpAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 
 public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilter {
@@ -37,12 +39,17 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
 
     private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
     private BasicAuthenticationConverter authenticationConverter = new BasicAuthenticationConverter();
+    private AuthenticationSuccessHandler successHandler = new NoOpAuthenticationSuccessHandler();
 
     public ClientBasicAuthFilter(String filterProcessingUrl) {
         super(filterProcessingUrl);
         // override request matcher
         RequestMatcher requestMatcher = new BasicAuthRequestMatcher(new AntPathRequestMatcher(filterProcessingUrl));
         setRequiresAuthenticationRequestMatcher(requestMatcher);
+
+        // configure custom filter behavior
+        setSessionStrategy();
+        setHandlers();
     }
 
     public ClientBasicAuthFilter(String... filterProcessingUrl) {
@@ -52,6 +59,10 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
                 .collect(Collectors.toList());
         RequestMatcher requestMatcher = new BasicAuthRequestMatcher(new OrRequestMatcher(antMatchers));
         setRequiresAuthenticationRequestMatcher(requestMatcher);
+
+        // configure custom filter behavior
+        setSessionStrategy();
+        setHandlers();
     }
 
     /**
@@ -59,6 +70,30 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
      */
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
+    }
+
+    private void setSessionStrategy() {
+        // enforce session id change, calls to tokenEndpoint should not leverage
+        // existing sessions. We will invalidate session after response.
+        setAllowSessionCreation(true);
+        setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
+    }
+
+    private void setHandlers() {
+        // override success handler to avoid redirect strategies, we just need auth in
+        // context
+        setAuthenticationSuccessHandler(successHandler);
+        // also set a custom failure handler to translate to oauth2 errors
+        setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
+            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+                    AuthenticationException exception) throws IOException, ServletException {
+                if (exception instanceof BadCredentialsException) {
+                    exception = new BadCredentialsException(exception.getMessage(),
+                            new BadClientCredentialsException());
+                }
+                authenticationEntryPoint.commence(request, response, exception);
+            }
+        });
     }
 
     @Override
@@ -102,7 +137,7 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
         }
 
         // convert to our authRequest
-        UsernamePasswordAuthenticationToken authRequest = new ClientSecretAuthenticationToken(clientId,
+        ClientSecretAuthenticationToken authRequest = new ClientSecretAuthenticationToken(clientId,
                 clientSecret);
 
         // collect request details
