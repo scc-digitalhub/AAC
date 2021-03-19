@@ -1,69 +1,30 @@
 package it.smartcommunitylab.aac.core.auth;
 
-import java.util.Collection;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.util.Assert;
 
-import com.ibm.icu.util.Calendar;
-
-public class ProviderWrappedAuthenticationToken implements Authentication,
-        CredentialsContainer {
+public class ProviderWrappedAuthenticationToken extends WrappedAuthenticationToken {
 
     private static final long serialVersionUID = -1302725087208017064L;
 
     private final String authority;
     private final String provider;
 
-    private AbstractAuthenticationToken token;
+    public ProviderWrappedAuthenticationToken(
+            AbstractAuthenticationToken token,
+            String provider) {
+        this(token, provider, null);
+    }
 
-    // audit
-    private WebAuthenticationDetails authenticationDetails;
-
-    public ProviderWrappedAuthenticationToken(String authority, String provider,
-            AbstractAuthenticationToken token) {
-        this.token = token;
+    public ProviderWrappedAuthenticationToken(
+            AbstractAuthenticationToken token,
+            String provider, String authority) {
+        super(token);
+        Assert.hasText(provider, "provider can not be null or empty");
         this.authority = authority;
         this.provider = provider;
 
-    }
-
-    @Override
-    public boolean isAuthenticated() {
-        return token.isAuthenticated();
-    }
-
-    @Override
-    public Collection<GrantedAuthority> getAuthorities() {
-        return token.getAuthorities();
-    }
-
-    @Override
-    public Object getCredentials() {
-        // no credentials exposed, refer to embedded token
-        return null;
-    }
-
-    @Override
-    public String getName() {
-        return token.getName();
-    }
-
-    @Override
-    public Object getDetails() {
-        return token.getDetails();
-    }
-
-    @Override
-    public void eraseCredentials() {
-        token.eraseCredentials();
-    }
-
-    @Override
-    public Object getPrincipal() {
-        return token.getPrincipal();
     }
 
     public String getAuthority() {
@@ -81,14 +42,6 @@ public class ProviderWrappedAuthenticationToken implements Authentication,
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         throw new IllegalArgumentException("Cannot set this token to trusted");
-    }
-
-    public WebAuthenticationDetails getAuthenticationDetails() {
-        return authenticationDetails;
-    }
-
-    public void setAuthenticationDetails(WebAuthenticationDetails authenticationDetails) {
-        this.authenticationDetails = authenticationDetails;
     }
 
     @Override

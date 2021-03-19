@@ -35,7 +35,7 @@ public interface IdentityAuthority {
      * implementations should unregister+register, we want identities and sessions
      * to be invalidated if config changes
      */
-    public void registerIdentityProvider(ConfigurableProvider idp)
+    public IdentityProvider registerIdentityProvider(ConfigurableProvider idp)
             throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterIdentityProvider(String realm, String providerId) throws SystemException;

@@ -8,62 +8,28 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
-public class RealmWrappedAuthenticationToken implements Authentication, CredentialsContainer {
+public class RealmWrappedAuthenticationToken extends WrappedAuthenticationToken {
 
     private static final long serialVersionUID = -1302725087208017064L;
 
     private final String authority;
     private final String realm;
 
-    private AbstractAuthenticationToken token;
+    public RealmWrappedAuthenticationToken(
+            AbstractAuthenticationToken token,
+            String realm) {
+        this(token, realm, null);
+    }
 
-// audit
-    private WebAuthenticationDetails authenticationDetails;
-
-    public RealmWrappedAuthenticationToken(String realm, String authority,
-            AbstractAuthenticationToken token) {
+    public RealmWrappedAuthenticationToken(
+            AbstractAuthenticationToken token,
+            String realm, String authority) {
+        super(token);
         Assert.hasText(realm, "realm can not be null or empty");
-        Assert.notNull(token, "token can not be null");
         this.token = token;
         this.authority = authority;
         this.realm = realm;
 
-    }
-
-    @Override
-    public boolean isAuthenticated() {
-        return token.isAuthenticated();
-    }
-
-    @Override
-    public Collection<GrantedAuthority> getAuthorities() {
-        return token.getAuthorities();
-    }
-
-    @Override
-    public Object getCredentials() {
-        // no credentials exposed, refer to embedded token
-        return null;
-    }
-
-    @Override
-    public String getName() {
-        return token.getName();
-    }
-
-    @Override
-    public Object getDetails() {
-        return token.getDetails();
-    }
-
-    @Override
-    public void eraseCredentials() {
-        token.eraseCredentials();
-    }
-
-    @Override
-    public Object getPrincipal() {
-        return token.getPrincipal();
     }
 
     public String getAuthority() {
@@ -81,14 +47,6 @@ public class RealmWrappedAuthenticationToken implements Authentication, Credenti
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         throw new IllegalArgumentException("Cannot set this token to trusted");
-    }
-
-    public WebAuthenticationDetails getAuthenticationDetails() {
-        return authenticationDetails;
-    }
-
-    public void setAuthenticationDetails(WebAuthenticationDetails authenticationDetails) {
-        this.authenticationDetails = authenticationDetails;
     }
 
     @Override

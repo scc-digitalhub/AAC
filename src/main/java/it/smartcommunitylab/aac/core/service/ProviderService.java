@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
@@ -17,6 +18,22 @@ public class ProviderService {
     public ProviderService(ProviderEntityRepository providerRepository) {
         Assert.notNull(providerRepository, "provider repository is mandatory");
         this.providerRepository = providerRepository;
+    }
+
+    public List<ProviderEntity> listProviders() {
+        return providerRepository.findAll();
+    }
+
+    public List<ProviderEntity> listProvidersByAuthority(String authority) {
+        return providerRepository.findByAuthority(authority);
+    }
+
+    public List<ProviderEntity> listProvidersByRealm(String realm) {
+        return providerRepository.findByRealm(realm);
+    }
+
+    public List<ProviderEntity> listProvidersByRealmAndType(String realm, String type) {
+        return providerRepository.findByRealmAndType(realm, type);
     }
 
     public ProviderEntity fetchProvider(String providerId) {

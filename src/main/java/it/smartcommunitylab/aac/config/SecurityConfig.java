@@ -123,6 +123,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private AuthorityManager authorityManager;
 
     @Autowired
+    private it.smartcommunitylab.aac.core.ProviderManager providerManager;
+
+    @Autowired
     private OIDCClientRegistrationRepository clientRegistrationRepository;
 
     @Autowired
@@ -299,7 +302,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public ExtendedAuthenticationManager extendedAuthenticationManager() throws Exception {
-        return new ExtendedAuthenticationManager(authorityManager, userService);
+        return new ExtendedAuthenticationManager(providerManager, userService);
     }
 
     /*

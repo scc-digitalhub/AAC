@@ -57,7 +57,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         this.clientRegistrationRepository = clientRegistrationRepository;
 
-        //TODO evaluate adopting changeSessionStrategy to avoid fixation attacks
+        // TODO evaluate adopting changeSessionStrategy to avoid fixation attacks
 //        setAllowSessionCreation(true);
 //        setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
 
@@ -130,12 +130,13 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         // providerId is registrationId
         String providerId = registrationId;
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
-                SystemKeys.AUTHORITY_OIDC, providerId, authenticationRequest);
+                authenticationRequest,
+                providerId, SystemKeys.AUTHORITY_OIDC);
 
-        //also collect request details
+        // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
         wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);
-        
+
         // authenticate via extended authManager
         UserAuthenticationToken userAuthentication = (UserAuthenticationToken) getAuthenticationManager()
                 .authenticate(wrappedAuthRequest);

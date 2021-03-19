@@ -63,13 +63,13 @@ public class InternalIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public void registerIdentityProvider(ConfigurableProvider idp) {
+    public InternalIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
         // we support only identity provider as resource providers
-        if (idp != null
-                && getAuthorityId().equals(idp.getAuthority())
-                && SystemKeys.RESOURCE_IDENTITY.equals(idp.getType())) {
-            String providerId = idp.getProvider();
-            String realm = idp.getRealm();
+        if (cp != null
+                && getAuthorityId().equals(cp.getAuthority())
+                && SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
+            String providerId = cp.getProvider();
+            String realm = cp.getRealm();
 
             // check if id clashes with another provider from a different realm
             InternalIdentityProvider e = providers.get(providerId);
@@ -84,13 +84,15 @@ public class InternalIdentityAuthority implements IdentityAuthority {
             }
 
             // link to internal repos
-            InternalIdentityProvider internalIdp = new InternalIdentityProvider(
+            InternalIdentityProvider idp = new InternalIdentityProvider(
                     providerId,
                     accountRepository,
                     realm);
 
             // register
-            registerIdp(internalIdp);
+            registerIdp(idp);
+
+            return idp;
         } else {
             throw new IllegalArgumentException();
         }

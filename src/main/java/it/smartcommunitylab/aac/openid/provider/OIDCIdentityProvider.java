@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -13,6 +12,7 @@ import java.util.Set;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
@@ -235,6 +236,18 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
 
         return identities;
 
+    }
+
+    @Override
+    public String getAuthenticationUrl() {
+        // TODO build a realm-bound url, need updates on filters
+        return OIDCIdentityAuthority.AUTHORITY_URL + "authorize" + getProvider();
+    }
+
+    @Override
+    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+        // we don't have one
+        return null;
     }
 
     public static String[] JWT_ATTRIBUTES = {

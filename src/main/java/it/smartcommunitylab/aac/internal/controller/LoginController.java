@@ -207,7 +207,6 @@ public class LoginController {
         String loginPath = buildLoginAction(realm, providerId);
 
         try {
-            
 
             // validate
             IdentityProvider idp = internalAuthority.getIdentityProvider(providerId);
@@ -236,8 +235,8 @@ public class LoginController {
                     username, password);
 
             // get provider for realm and wrap
-            ProviderWrappedAuthenticationToken wrappedAuthRequest = authManager
-                    .wrapProviderAuthentication(SystemKeys.AUTHORITY_INTERNAL, providerId, authRequest);
+            ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(authRequest,
+                    providerId, SystemKeys.AUTHORITY_INTERNAL);
 
             // use authManager, we could leverage internal idp to access auth provider
             Authentication authResponse = authManager.authenticate(wrappedAuthRequest);

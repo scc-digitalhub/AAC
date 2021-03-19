@@ -16,11 +16,12 @@ public class HashMapConverter implements AttributeConverter<Map<String, String>,
     public String convertToDatabaseColumn(Map<String, String> map) {
 
         String json = null;
-        try {
-            json = objectMapper.writeValueAsString(map);
-        } catch (final JsonProcessingException e) {
+        if (map != null) {
+            try {
+                json = objectMapper.writeValueAsString(map);
+            } catch (final JsonProcessingException e) {
+            }
         }
-
         return json;
     }
 
@@ -29,11 +30,13 @@ public class HashMapConverter implements AttributeConverter<Map<String, String>,
     public Map<String, String> convertToEntityAttribute(String json) {
 
         Map<String, String> map = null;
-        try {
-            map = objectMapper.readValue(json, Map.class);
-        } catch (final IOException e) {
-        }
+        if (json != null) {
+            try {
+                map = objectMapper.readValue(json, Map.class);
+            } catch (final IOException e) {
+            }
 
+        }
         return map;
     }
 

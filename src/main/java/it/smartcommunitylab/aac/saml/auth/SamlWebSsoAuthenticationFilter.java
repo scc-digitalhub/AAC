@@ -82,7 +82,8 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         // providerId is registrationId
         String providerId = registrationId;
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
-                SystemKeys.AUTHORITY_SAML, providerId, authenticationRequest);
+                authenticationRequest,
+                providerId, SystemKeys.AUTHORITY_SAML);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

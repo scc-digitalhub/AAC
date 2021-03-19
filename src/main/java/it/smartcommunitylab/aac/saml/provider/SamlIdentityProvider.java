@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.saml.provider;
 import java.util.Collection;
 
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -17,6 +18,7 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlIdentityProvider extends AbstractProvider implements IdentityProvider {
@@ -115,6 +117,19 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
     @Override
     public Collection<UserIdentity> listIdentities(String subject) {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getAuthenticationUrl() {
+        // TODO build a realm-bound url, need updates on filters
+        return SamlIdentityAuthority.AUTHORITY_URL
+                + "authenticate/" + getProvider();
+    }
+
+    @Override
+    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+        // we don't have one
         return null;
     }
 }

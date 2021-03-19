@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
 
+import org.springframework.security.web.AuthenticationEntryPoint;
+
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
@@ -59,4 +61,15 @@ public interface IdentityProvider extends ResourceProvider {
 
     public Collection<UserIdentity> listIdentities(String subject);
 
+    /*
+     * Login
+     * 
+     * at least one between url and entryPoint is required to dispatch requests. Url
+     * is required to be presented in login forms, while authEntrypoint can handle
+     * different kind of requests.
+     */
+
+    public String getAuthenticationUrl();
+
+    public AuthenticationEntryPoint getAuthenticationEntryPoint();
 }

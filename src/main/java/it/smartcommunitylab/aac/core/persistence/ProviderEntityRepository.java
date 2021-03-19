@@ -13,7 +13,11 @@ public interface ProviderEntityRepository extends CustomJpaRepository<ProviderEn
 
     List<ProviderEntity> findByAuthority(String authority);
 
+    List<ProviderEntity> findByRealm(String realm);
+
     List<ProviderEntity> findByAuthorityAndType(String authority, String type);
+
+    List<ProviderEntity> findByRealmAndType(String realm, String type);
 
     List<ProviderEntity> findByAuthorityAndRealm(String authority, String realm);
 

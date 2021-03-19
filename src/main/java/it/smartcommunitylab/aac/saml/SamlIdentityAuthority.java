@@ -68,7 +68,7 @@ public class SamlIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public void registerIdentityProvider(ConfigurableProvider cp) {
+    public SamlIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -101,6 +101,7 @@ public class SamlIdentityAuthority implements IdentityAuthority {
                 // add rp registration to registry
                 relyingPartyRegistrationRepository.addRegistration(registration);
 
+                return idp;
             } catch (Exception ex) {
                 // cleanup
                 relyingPartyRegistrationRepository.removeRegistration(providerId);

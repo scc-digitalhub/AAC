@@ -96,7 +96,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public void registerIdentityProvider(ConfigurableProvider cp) {
+    public OIDCIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -130,6 +130,8 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
                 // add client registration to registry
                 clientRegistrationRepository.addRegistration(registration);
+
+                return idp;
             } catch (Exception ex) {
                 // cleanup
                 clientRegistrationRepository.removeRegistration(providerId);

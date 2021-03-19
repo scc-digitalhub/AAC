@@ -24,6 +24,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
@@ -90,9 +91,9 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
         // workaround to select internal provider for realm
         // TODO rewrite and extend to identity proper provider or provide a fallback via
         // authmanager
-        if (client instanceof OAuth2ClientDetails && authenticationManager instanceof ExtendedAuthenticationManager) {
+        if (client instanceof OAuth2ClientDetails) {
             String realm = ((OAuth2ClientDetails) client).getRealm();
-            userAuth = ((ExtendedAuthenticationManager) authenticationManager).wrapAuthentication(realm, passwordAuth);
+            userAuth = new RealmWrappedAuthenticationToken(passwordAuth, realm);
         }
 
         try {

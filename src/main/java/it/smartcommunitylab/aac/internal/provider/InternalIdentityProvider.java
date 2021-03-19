@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import java.util.Collection;
 
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -13,9 +14,11 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
+import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
 public class InternalIdentityProvider extends AbstractProvider implements IdentityProvider {
 
@@ -146,6 +149,19 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     @Override
     public Collection<UserIdentity> listIdentities(String subject) {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getAuthenticationUrl() {
+        // TODO build a realm-bound url, need updates on filters
+        return InternalIdentityAuthority.AUTHORITY_URL + "login" + getProvider();
+    }
+
+    @Override
+    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+        // we don't have one
+        // TODO add
         return null;
     }
 
