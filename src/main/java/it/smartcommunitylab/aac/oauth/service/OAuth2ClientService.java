@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.oauth.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -320,6 +321,7 @@ public class OAuth2ClientService implements ClientService {
             String name, String description,
             Collection<String> scopes,
             Collection<String> providers,
+            Map<String, String> hookFunctions,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
@@ -377,7 +379,7 @@ public class OAuth2ClientService implements ClientService {
             throw new NoSuchClientException();
         }
 
-        client = clientService.updateClient(clientId, name, description, scopes, providers);
+        client = clientService.updateClient(clientId, name, description, scopes, providers, hookFunctions);
 
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));

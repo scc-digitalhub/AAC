@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
-@JsonInclude(Include.NON_NULL) 
+@JsonInclude(Include.NON_NULL)
 public class ClientApp {
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
@@ -49,12 +49,14 @@ public class ClientApp {
     // TODO
 
     // hook
-    // TODO
+    // TODO map to fixed list or explode
+    private Map<String, String> hookFunctions;
 
     public ClientApp() {
         this.configuration = new HashMap<>();
         this.scopes = new ArrayList<>();
         this.providers = new ArrayList<>();
+        this.hookFunctions = new HashMap<>();
         this.name = "";
         this.description = "";
     }
@@ -121,6 +123,14 @@ public class ClientApp {
 
     public void setProviders(Collection<String> providers) {
         this.providers = providers;
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
     }
 
 }

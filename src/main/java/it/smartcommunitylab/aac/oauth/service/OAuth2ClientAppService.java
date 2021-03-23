@@ -137,6 +137,7 @@ public class OAuth2ClientAppService implements ClientAppService {
         client = clientService.updateClient(clientId,
                 clientApp.getName(), clientApp.getDescription(),
                 clientApp.getScopes(), clientApp.getProviders(),
+                clientApp.getHookFunctions(),
                 clientApp.getAuthorizedGrantTypes(), clientApp.getRedirectUris(),
                 clientApp.getTokenType(),
                 clientApp.getAccessTokenValidity(), clientApp.getRefreshTokenValidity(),
@@ -182,6 +183,7 @@ public class OAuth2ClientAppService implements ClientAppService {
 
         app.setScopes(client.getScopes());
         app.setProviders(client.getProviders());
+        app.setHookFunctions(client.getHookFunctions());
 
         // flatten configuration
         app.setConfiguration(client.getConfigurationMap());

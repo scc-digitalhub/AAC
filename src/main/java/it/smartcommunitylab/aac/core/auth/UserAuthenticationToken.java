@@ -25,6 +25,11 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
     // auth principal is the subject
     private final Subject principal;
+
+    // the token is bound to a single realm, since we can match identities only over
+    // same realm by design
+    private final String realm;
+
     // subject userDetails with multiple identities bound
     private UserDetails details;
     // we collect authentications for identities
@@ -42,7 +47,7 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     // TODO
 
     public UserAuthenticationToken(
-            Subject principal,
+            Subject principal, String realm,
             ExtendedAuthenticationToken auth,
             UserIdentity identity,
             Collection<UserAttributes> attributeSets,
@@ -55,9 +60,11 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
         Assert.notNull(principal, "principal is required");
         Assert.notNull(auth, "auth token for identity is required");
         Assert.notNull(identity, "identity is required");
+        Assert.notNull(realm, "realm is required");
 
         this.principal = principal;
-        this.details = new UserDetails(principal.getSubjectId(), identity, attributeSets, authorities);
+        this.realm = realm;
+        this.details = new UserDetails(principal.getSubjectId(), realm, identity, attributeSets, authorities);
 
         this.tokens = new HashSet<>();
         this.tokens.add(auth);
@@ -67,21 +74,24 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public UserAuthenticationToken(
-            Subject principal, Collection<? extends GrantedAuthority> authorities,
+            Subject principal, String realm,
+            Collection<? extends GrantedAuthority> authorities,
             UserAuthenticationToken... authenticationTokens) {
         super(authorities);
 
         Assert.notEmpty(authorities, "authorities can not be empty");
         Assert.notNull(principal, "principal is required");
         Assert.notEmpty(authenticationTokens, "at least one authentication token is required");
+        Assert.notNull(realm, "realm is required");
 
         this.principal = principal;
+        this.realm = realm;
         this.tokens = new HashSet<>();
 
         // use first token as base
         UserAuthenticationToken token = authenticationTokens[0];
         boolean isAuthenticated = token.isAuthenticated();
-        this.details = new UserDetails(principal.getSubjectId(), token.getUser().getIdentities(),
+        this.details = new UserDetails(principal.getSubjectId(), realm, token.getUser().getIdentities(),
                 token.getUser().getAttributeSets(), authorities);
 
         // add auth tokens
@@ -115,7 +125,7 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
      */
     @SuppressWarnings("unused")
     private UserAuthenticationToken() {
-        this(null, null, null, null, null);
+        this(null, null, null, null, null, null);
     }
 
     @Override
@@ -137,6 +147,10 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     @JsonIgnore
     public Subject getSubject() {
         return principal;
+    }
+
+    public String getRealm() {
+        return realm;
     }
 
     public String getSubjectId() {
@@ -169,19 +183,21 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     public void addAuthentication(ExtendedAuthenticationToken auth) {
         // TODO implement a proper lock
         synchronized (this) {
+            if (!realm.equals(auth.getRealm())) {
+                throw new IllegalArgumentException("realm does not match");
+            }
+
             this.tokens.add(auth);
         }
     }
 
     public ExtendedAuthenticationToken getAuthentication(
-            String realm,
             String authority,
             String provider,
             String userId) {
         ExtendedAuthenticationToken token = null;
         for (ExtendedAuthenticationToken t : tokens) {
-            if (t.getRealm().equals(realm)
-                    && t.getAuthority().equals(authority)
+            if (t.getAuthority().equals(authority)
                     && t.getProvider().equals(provider)
                     && t.getPrincipal().getUserId().equals(userId)) {
                 token = t;

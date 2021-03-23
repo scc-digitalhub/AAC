@@ -38,12 +38,15 @@ import org.springframework.web.bind.support.DefaultSessionAttributeStore;
 import org.springframework.web.bind.support.SessionAttributeStore;
 import org.springframework.web.filter.CompositeFilter;
 
+import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
+import it.smartcommunitylab.aac.oauth.ClaimsTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ExtRedirectResolver;
@@ -145,15 +148,12 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public OAuth2RequestFactory getOAuth2RequestFactory(
-            ClientDetailsService clientDetailsService,
+    public AACOAuth2RequestFactory getOAuth2RequestFactory(
+            OAuth2ClientDetailsService clientDetailsService,
             SecurityContextAccessor securityContextAccessor)
             throws PropertyVetoException {
 
-//      AACOAuth2RequestFactory<UserManager> result = new AACOAuth2RequestFactory<>();
-        DefaultOAuth2RequestFactory requestFactory = new DefaultOAuth2RequestFactory(clientDetailsService);
-        requestFactory.setCheckUserScopes(false);
-        requestFactory.setSecurityContextAccessor(securityContextAccessor);
+        AACOAuth2RequestFactory requestFactory = new AACOAuth2RequestFactory(clientDetailsService);
         return requestFactory;
     }
 
@@ -205,9 +205,17 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    public ClaimsTokenEnhancer claimsTokenEnhancer(ClaimsService claimsService,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService) {
+        return new ClaimsTokenEnhancer(claimsService, clientDetailsService);
+    }
+
+    @Bean
     public AuthorizationServerTokenServices getTokenServices(
             ClientDetailsService clientDetailsService,
-            TokenStore tokenStore) throws PropertyVetoException {
+            TokenStore tokenStore,
+            ClaimsTokenEnhancer claimsTokenEnhancer
+            ) throws PropertyVetoException {
         NonRemovingTokenServices tokenServices = new NonRemovingTokenServices();
         tokenServices.setAuthenticationManager(authManager);
         tokenServices.setClientDetailsService(clientDetailsService);
@@ -216,6 +224,7 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
         tokenServices.setReuseRefreshToken(true);
         tokenServices.setAccessTokenValiditySeconds(accessTokenValidity);
         tokenServices.setRefreshTokenValiditySeconds(refreshTokenValidity);
+        tokenServices.setTokenEnhancer(claimsTokenEnhancer);
 //        if (oauth2UseJwt) {
 //            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer, tokenConverter));
 //        } else {

@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
 public class InternalUserIdentity extends BaseIdentity implements CredentialsContainer {
 
@@ -154,11 +155,23 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     private static final String ATTRIBUTE_PREFIX = SystemKeys.AUTHORITY_INTERNAL + ".";
 
     @Override
-    public BasicProfile toProfile() {
+    public BasicProfile toBasicProfile() {
         BasicProfile profile = new BasicProfile();
         profile.setUsername(account.getUsername());
         profile.setName(account.getName());
         profile.setSurname(account.getSurname());
+        profile.setEmail(account.getEmail());
+
+        return profile;
+    }
+
+    @Override
+    public OpenIdProfile toOpenIdProfile() {
+        OpenIdProfile profile = new OpenIdProfile();
+        profile.setUsername(account.getUsername());
+        profile.setName(account.getName());
+        profile.setGivenName(account.getName());
+        profile.setFamilyName(account.getSurname());
         profile.setEmail(account.getEmail());
 
         return profile;

@@ -1,17 +1,22 @@
 package it.smartcommunitylab.aac.core.persistence;
 
 import java.util.Date;
+import java.util.Map;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "clients")
@@ -37,6 +42,11 @@ public class ClientEntity {
     private String scopes;
 
     private String providers;
+
+    @Lob
+    @Column(name = "hook_functions")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> hookFunctions;
 
     // audit
     @CreatedDate
@@ -134,6 +144,14 @@ public class ClientEntity {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
     }
 
 }

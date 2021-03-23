@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
 /*
  *  An identity, bounded to a realm, is:
@@ -30,6 +31,9 @@ public interface UserIdentity extends UserResource, Serializable {
     // expose method to clear private data
     public void eraseCredentials();
 
-    // mapper for basic profile
-    public BasicProfile toProfile();
+    // mapper for user profiles
+    // implementations need to provide this to be used for claim mapping
+    public BasicProfile toBasicProfile();
+
+    public OpenIdProfile toOpenIdProfile();
 }

@@ -240,8 +240,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
-                //whitelist api
-                //TODO fix
+                // whitelist api
+                // TODO fix
                 .antMatchers("/api/**").permitAll()
                 // anything else requires auth
                 .anyRequest().authenticated()
@@ -331,7 +331,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager) {
         InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter();
         loginFilter.setAuthenticationManager(authManager);
-        
+
         List<Filter> filters = new ArrayList<>();
         filters.add(loginFilter);
         CompositeFilter filter = new CompositeFilter();
@@ -399,6 +399,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private OAuth2RealmAwareAuthenticationEntryPoint oauth2AuthenticationEntryPoint(
             OAuth2ClientDetailsService clientDetailsService, String loginUrl) {
+        // TODO implement support for "common" realm, "global" realm shoud not be
+        // available here
+        // we need a way to discover ALL providers for a common login.. infeasible.
+        // Maybe let existing sessions work, or ask only for matching realm?
         return new OAuth2RealmAwareAuthenticationEntryPoint(clientDetailsService, loginUrl);
 
     }

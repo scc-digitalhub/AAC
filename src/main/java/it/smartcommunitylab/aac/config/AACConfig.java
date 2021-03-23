@@ -18,6 +18,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.claims.ClaimsService;
+import it.smartcommunitylab.aac.claims.DefaultClaimsService;
+import it.smartcommunitylab.aac.claims.ExecutionService;
+import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
@@ -80,6 +84,24 @@ public class AACConfig {
     @Bean
     public SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
         return new SamlRelyingPartyRegistrationRepository();
+    }
+
+    /*
+     * initialize the execution service here and then build claims service
+     */
+
+    @Bean
+    public LocalGraalExecutionService localGraalExecutionService() {
+        return new LocalGraalExecutionService();
+    }
+
+    @Bean
+    public ClaimsService claimsService(ExecutionService executionService) {
+        DefaultClaimsService service = new DefaultClaimsService();
+        service.setExecutionService(executionService);
+
+        return service;
+
     }
 
 //    @Autowired

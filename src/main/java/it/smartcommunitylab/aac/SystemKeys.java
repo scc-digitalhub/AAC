@@ -9,6 +9,9 @@ public class SystemKeys {
     public static final String AAC_SAML_SERIAL_VERSION = "";
 
     public static final String REALM_GLOBAL = "";
+    public static final String REALM_INTERNAL = "internal";
+    public static final String REALM_SYSTEM = "system";
+    public static final String REALM_COMMON = "common";
 
     public static final String AUTHORITY_INTERNAL = "internal";
     public static final String AUTHORITY_OIDC = "oidc";

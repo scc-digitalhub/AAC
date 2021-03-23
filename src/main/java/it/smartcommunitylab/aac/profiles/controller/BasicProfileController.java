@@ -51,22 +51,22 @@ import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 public class BasicProfileController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @ApiOperation(value = "Get basic profile of the current user")
-    @RequestMapping(method = RequestMethod.GET, value = "/basicprofile/me")
-    public @ResponseBody BasicProfile findProfile(Authentication auth, HttpServletResponse response)
-            throws IOException {
-
-        // authentication should be a user authentication
-        if (!(auth instanceof UserAuthenticationToken)) {
-            throw new InsufficientAuthenticationException("not a user authentication");
-        }
-
-        UserAuthenticationToken token = (UserAuthenticationToken) auth;
-
-        BasicProfile profile = token.getUser().getBasicProfile();
-        return profile;
-
-    }
+//    @ApiOperation(value = "Get basic profile of the current user")
+//    @RequestMapping(method = RequestMethod.GET, value = "/basicprofile/me")
+//    public @ResponseBody BasicProfile findProfile(Authentication auth, HttpServletResponse response)
+//            throws IOException {
+//
+//        // authentication should be a user authentication
+//        if (!(auth instanceof UserAuthenticationToken)) {
+//            throw new InsufficientAuthenticationException("not a user authentication");
+//        }
+//
+//        UserAuthenticationToken token = (UserAuthenticationToken) auth;
+//
+//        BasicProfile profile = token.getUser().getBasicProfile();
+//        return profile;
+//
+//    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/whoami")
     public @ResponseBody UserAuthenticationToken debug(Authentication auth, HttpServletResponse response)

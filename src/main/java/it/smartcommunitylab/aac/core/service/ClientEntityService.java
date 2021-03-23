@@ -99,7 +99,8 @@ public class ClientEntityService {
 
     public ClientEntity updateClient(String clientId,
             String name, String description,
-            Collection<String> scopes, Collection<String> providers) throws NoSuchClientException {
+            Collection<String> scopes, Collection<String> providers,
+            Map<String, String> hookFunctions) throws NoSuchClientException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c == null) {
             throw new NoSuchClientException();
@@ -110,6 +111,8 @@ public class ClientEntityService {
 
         c.setScopes(StringUtils.collectionToCommaDelimitedString(scopes));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
+        
+        c.setHookFunctions(hookFunctions);
 
         c = clientRepository.save(c);
 

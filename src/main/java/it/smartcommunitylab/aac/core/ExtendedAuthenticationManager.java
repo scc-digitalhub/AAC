@@ -303,6 +303,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         if (subjectId == null) {
             // account linking via attributes
             // TODO, disabled now due to security concerns
+            // should use linking attribute(s)
         }
 
         if (subjectId == null) {
@@ -323,15 +324,15 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             throw new AuthenticationServiceException("error processing request");
         }
 
-        // TODO evaluate enforce realm match on subject
-
         // check current authenticated session for match subject
         UserAuthenticationToken currentAuth = null;
         Authentication currentSession = SecurityContextHolder.getContext().getAuthentication();
         if (currentSession != null && currentSession instanceof UserAuthenticationToken) {
             currentAuth = (UserAuthenticationToken) currentSession;
-            if (!subjectId.equals(currentAuth.getSubject().getSubjectId())) {
-                // not the same subject, drop
+            // also enforce realm match on subject
+            if (!subjectId.equals(currentAuth.getSubject().getSubjectId()) ||
+                    !realm.equals((currentAuth.getRealm()))) {
+                // not the same subject or not same realm, drop
                 currentAuth = null;
             }
         }
@@ -411,7 +412,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             // we can build the user authentication
             UserAuthenticationToken userAuth = new UserAuthenticationToken(
-                    subject,
+                    subject, realm,
                     auth,
                     identity, attributeSets,
                     authorities);
@@ -421,14 +422,15 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             // merge userAuth from session here, filters won't have the context
             UserAuthenticationToken result = userAuth;
-            if (currentAuth != null) {
+            // merge only same realm authorities
+            if (currentAuth != null && realm.equals(currentAuth.getRealm())) {
                 // merge authorities
                 Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
                 grantedAuthorities.addAll(currentAuth.getAuthorities());
                 grantedAuthorities.addAll(userAuth.getAuthorities());
 
                 // current authentication is first, new extends
-                result = new UserAuthenticationToken(subject, grantedAuthorities, currentAuth, userAuth);
+                result = new UserAuthenticationToken(subject, realm, grantedAuthorities, currentAuth, userAuth);
 
             }
 

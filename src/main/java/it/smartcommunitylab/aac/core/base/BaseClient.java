@@ -6,15 +6,16 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-
 public abstract class BaseClient extends AbstractClient {
 
     private String name;
     private String description;
 
     private Set<String> providers;
-    
+
     private Set<String> scopes;
+
+    private Map<String, String> hookFunctions;
 
     public BaseClient(String realm, String clientId) {
         super(realm, clientId);
@@ -51,6 +52,14 @@ public abstract class BaseClient extends AbstractClient {
 
     public void setProviders(Set<String> providers) {
         this.providers = providers;
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
     }
 
     /*

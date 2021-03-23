@@ -38,9 +38,11 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     // base attributes
     private final String subjectId;
+    private final String realm;
 
     // this is mutable, we want to keep one "identity" mapped
-    // TODO evaluate removal from here, should be managed only ouside authentication
+    // TODO evaluate removal from here, use only attributes or drop and let
+    // claim/attribute services handle
     private BasicProfile profile;
 
     // identities are stored with addressable keys (userId)
@@ -49,7 +51,8 @@ public class UserDetails implements org.springframework.security.core.userdetail
     // we extract attributes from identities
     // sets are bound to realm, stored with addressable keys
     // plus we can have additional attributes from external providers
-    // TODO
+    // TODO rework, only same-realm
+    // TODO evaluate removal from this context or use as request cache
     private final Map<String, UserAttributes> attributes;
 
     // authorities are roles INSIDE aac (ie user/admin/dev etc)
@@ -62,15 +65,17 @@ public class UserDetails implements org.springframework.security.core.userdetail
     private final boolean enabled;
 
     public UserDetails(
-            String subjectId,
+            String subjectId, String realm,
             UserIdentity identity,
             Collection<UserAttributes> attributeSets,
             Collection<? extends GrantedAuthority> authorities) {
         Assert.notNull(subjectId, "subject can not be null");
+        Assert.notNull(realm, "realm can not be null");
         Assert.notNull(identity, "one identity is required");
 
         // subject is our id
         this.subjectId = subjectId;
+        this.realm = realm;
 
         // identity sets, at minimum we handle first login identity
         this.identities = new HashMap<>();
@@ -92,15 +97,17 @@ public class UserDetails implements org.springframework.security.core.userdetail
     }
 
     public UserDetails(
-            String subjectId,
+            String subjectId, String realm,
             Collection<UserIdentity> identities,
             Collection<UserAttributes> attributeSets,
             Collection<? extends GrantedAuthority> authorities) {
         Assert.notNull(subjectId, "subject can not be null");
+        Assert.notNull(realm, "realm can not be null");
         Assert.notEmpty(identities, "one identity is required");
 
         // subject is our id
         this.subjectId = subjectId;
+        this.realm = realm;
 
         // identity sets, at minimum we handle first login identity
         this.identities = new HashMap<>();
@@ -153,6 +160,10 @@ public class UserDetails implements org.springframework.security.core.userdetail
         return subjectId;
     }
 
+    public String getRealm() {
+        return realm;
+    }
+
     public String getFirstName() {
         return profile != null ? profile.getName() : "";
     }
@@ -180,15 +191,17 @@ public class UserDetails implements org.springframework.security.core.userdetail
         return profile != null ? profile.getEmail() : "";
     }
 
-    public BasicProfile getBasicProfile() {
-        // return a copy to avoid mangling
-        return new BasicProfile(profile);
-    }
+//    public BasicProfile getBasicProfile() {
+//        // return a copy to avoid mangling
+//        return new BasicProfile(profile);
+//    }
 
     /*
      * Identities we treat them as immutable: we need to ensure list is not
      * modifiable from outside. We expect identities to not be corrupted by
      * consumers
+     * 
+     * Identities should match this user realm
      */
 
     public UserIdentity getIdentity(String userId) {
@@ -199,37 +212,31 @@ public class UserDetails implements org.springframework.security.core.userdetail
         return Collections.unmodifiableCollection(identities.values());
     }
 
-    public List<UserIdentity> getIdentities(String realm) {
+    public List<UserIdentity> getIdentities(String authority) {
         return Collections.unmodifiableList(identities.values().stream()
-                .filter(u -> realm.equals(u.getRealm()))
+                .filter(u -> (authority.equals(u.getAuthority())))
                 .collect(Collectors.toList()));
     }
 
-    public List<UserIdentity> getIdentities(String realm, String authority) {
+    public List<UserIdentity> getIdentities(String authority, String provider) {
         return Collections.unmodifiableList(identities.values().stream()
-                .filter(u -> (realm.equals(u.getRealm()) && authority.equals(u.getAuthority())))
-                .collect(Collectors.toList()));
-    }
-
-    public List<UserIdentity> getIdentities(String realm, String authority, String provider) {
-        return Collections.unmodifiableList(identities.values().stream()
-                .filter(u -> (realm.equals(u.getRealm()) && authority.equals(u.getAuthority())
+                .filter(u -> (authority.equals(u.getAuthority())
                         && provider.equals(u.getProvider())))
                 .collect(Collectors.toList()));
     }
 
-    public boolean hasAnyIdentity(String realm) {
-        return identities.values().stream().anyMatch(u -> realm.equals(u.getRealm()));
-    }
-
     // add a new identity to current user
     public void addIdentity(UserIdentity identity) {
+        // realm should match
+        if (!realm.equals(identity.getRealm())) {
+            throw new IllegalArgumentException("realm does not match");
+        }
 
         // we add or replace
         identities.put(identity.getUserId(), identity);
 
         // we also check if profile is incomplete
-        updateProfile(identity.toProfile());
+        updateProfile(identity.toBasicProfile());
     }
 
     // remove an identity from user
@@ -267,6 +274,8 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     /*
      * Attributes
+     * 
+     * TODO rework with new design
      */
     public Collection<UserAttributes> getAttributeSets() {
         return Collections.unmodifiableCollection(attributes.values());
