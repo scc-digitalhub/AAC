@@ -91,8 +91,7 @@ import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.utils.Utils;
 
 @Configuration
-@Order(3)
-//@EnableOAuth2Client
+@Order(9)
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 

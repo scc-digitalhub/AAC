@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.client;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -15,6 +16,8 @@ public class OAuth2ClientInfo {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
+    // only string properties, otherwise change method signatures to accept
+    // serializable objects
     private String displayName;
 
     // TODO add extra configuration
@@ -22,7 +25,8 @@ public class OAuth2ClientInfo {
 //        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 //    }
 
-    public static Map<String, Object> read(String additionalInformation) {
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> read(String additionalInformation) {
         try {
             return mapper.readValue(additionalInformation, Map.class);
         } catch (JsonProcessingException e) {
@@ -30,7 +34,7 @@ public class OAuth2ClientInfo {
         }
     }
 
-    public static OAuth2ClientInfo convert(Map<String, Object> map) {
+    public static OAuth2ClientInfo convert(Map<String, String> map) {
         return mapper.convertValue(map, OAuth2ClientInfo.class);
     }
 
@@ -38,6 +42,16 @@ public class OAuth2ClientInfo {
         try {
             mapper.setSerializationInclusion(Include.NON_EMPTY);
             return mapper.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, String> toMap() throws IllegalArgumentException {
+        try {
+            mapper.setSerializationInclusion(Include.NON_EMPTY);
+            return mapper.convertValue(this, HashMap.class);
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage());
         }

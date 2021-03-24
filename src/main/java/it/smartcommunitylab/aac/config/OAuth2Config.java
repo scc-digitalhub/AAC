@@ -42,15 +42,20 @@ import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.AACOAuth2RequestValidator;
+import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClaimsTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.ExtRedirectResolver;
+import it.smartcommunitylab.aac.oauth.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.JwtTokenConverter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
+import it.smartcommunitylab.aac.oauth.OAuth2TokenServices;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientPKCEAuthenticationProvider;
@@ -62,13 +67,17 @@ import it.smartcommunitylab.aac.oauth.token.ImplicitTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
+import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 
 @Configuration
-@Order(2)
+@Order(5)
 public class OAuth2Config extends WebSecurityConfigurerAdapter {
 
     @Value("${application.url}")
     private String applicationURL;
+
+    @Value("${jwt.issuer}")
+    private String issuer;
 
     @Value("${oauth2.jwt}")
     private boolean oauth2UseJwt;
@@ -200,7 +209,7 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public TokenStore getJDBCTokenStore() throws PropertyVetoException {
+    public ExtTokenStore getJDBCTokenStore() throws PropertyVetoException {
         return new AutoJdbcTokenStore(dataSource);
     }
 
@@ -211,26 +220,65 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthorizationServerTokenServices getTokenServices(
-            ClientDetailsService clientDetailsService,
-            TokenStore tokenStore,
-            ClaimsTokenEnhancer claimsTokenEnhancer
-            ) throws PropertyVetoException {
-        NonRemovingTokenServices tokenServices = new NonRemovingTokenServices();
-        tokenServices.setAuthenticationManager(authManager);
+    public OIDCTokenEnhancer oidcTokenEnhancer(JWTService jwtService,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            OAuth2ClientDetailsService oauth2ClientDetailsService,
+            ClaimsService claimsService) {
+
+        return new OIDCTokenEnhancer(issuer, jwtService, clientDetailsService, oauth2ClientDetailsService,
+                claimsService);
+    }
+
+    @Bean
+    public JwtTokenConverter jwtTokenEnhancer(JWTService jwtService,
+            OAuth2ClientDetailsService oauth2ClientDetailsService) {
+
+        JwtTokenConverter converter = new JwtTokenConverter(issuer, jwtService, oauth2ClientDetailsService);
+        converter.setUseJwtByDefault(oauth2UseJwt);
+        return converter;
+    }
+
+    @Bean
+    public AACTokenEnhancer aacTokenEnhancer(ClaimsTokenEnhancer claimsEnhancer,
+            OIDCTokenEnhancer oidcEnhancer,
+            JwtTokenConverter tokenConverter) {
+        AACTokenEnhancer enhancer = new AACTokenEnhancer();
+        enhancer.setClaimsEnhancer(claimsEnhancer);
+        enhancer.setOidcEnhancer(oidcEnhancer);
+        enhancer.setTokenConverter(tokenConverter);
+
+        return enhancer;
+    }
+//
+//    @Bean
+//    public AuthorizationServerTokenServices getTokenServices(
+//            ClientDetailsService clientDetailsService,
+//            TokenStore tokenStore,
+//            AACTokenEnhancer tokenEnhancer) throws PropertyVetoException {
+//        NonRemovingTokenServices tokenServices = new NonRemovingTokenServices();
+//        tokenServices.setAuthenticationManager(authManager);
+//        tokenServices.setClientDetailsService(clientDetailsService);
+//        tokenServices.setTokenStore(tokenStore);
+//        tokenServices.setSupportRefreshToken(true);
+//        tokenServices.setReuseRefreshToken(true);
+//        tokenServices.setAccessTokenValiditySeconds(accessTokenValidity);
+//        tokenServices.setRefreshTokenValiditySeconds(refreshTokenValidity);
+//        tokenServices.setTokenEnhancer(tokenEnhancer);
+//
+//        return tokenServices;
+//    }
+
+    @Bean
+    public OAuth2TokenServices getTokenServices(
+            OAuth2ClientDetailsService clientDetailsService,
+            ExtTokenStore tokenStore,
+            AACTokenEnhancer tokenEnhancer) throws PropertyVetoException {
+        OAuth2TokenServices tokenServices = new OAuth2TokenServices(tokenStore);
         tokenServices.setClientDetailsService(clientDetailsService);
-        tokenServices.setTokenStore(tokenStore);
-        tokenServices.setSupportRefreshToken(true);
-        tokenServices.setReuseRefreshToken(true);
+        tokenServices.setTokenEnhancer(tokenEnhancer);
         tokenServices.setAccessTokenValiditySeconds(accessTokenValidity);
         tokenServices.setRefreshTokenValiditySeconds(refreshTokenValidity);
-        tokenServices.setTokenEnhancer(claimsTokenEnhancer);
-//        if (oauth2UseJwt) {
-//            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer, tokenConverter));
-//        } else {
-//            bean.setTokenEnhancer(new AACTokenEnhancer(tokenEnhancer));         
-//        }
-
+        tokenServices.setRemoveExpired(true);
         return tokenServices;
     }
 

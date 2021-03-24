@@ -309,7 +309,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setJwks(jwks);
         oauth.setJwksUri(jwksUri);
         if (additionalInfo != null) {
-            oauth.setAdditionalInformation(additionalInfo.toJson());
+            oauth.setAdditionalInformation(additionalInfo.toMap());
         }
         oauth = oauthClientRepository.save(oauth);
 
@@ -392,7 +392,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setJwks(jwks);
         oauth.setJwksUri(jwksUri);
         if (additionalInfo != null) {
-            oauth.setAdditionalInformation(additionalInfo.toJson());
+            oauth.setAdditionalInformation(additionalInfo.toMap());
         }
         oauth = oauthClientRepository.save(oauth);
 

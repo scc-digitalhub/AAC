@@ -43,6 +43,8 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         this.clientService = clientService;
     }
 
+    // TODO add a local cache, client definitions don't change frequently
+    // even short window (30s) could cover a whole request
     @Override
     public OAuth2ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
         ClientEntity client = clientService.findClient(clientId);
@@ -60,6 +62,23 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
 
         clientDetails.setAuthorizedGrantTypes(StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes()));
         clientDetails.setRegisteredRedirectUri(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
+
+        // token settings
+        clientDetails.setTokenType(oauth.getTokenType());
+        clientDetails.setAccessTokenValiditySeconds(oauth.getAccessTokenValidity());
+        clientDetails.setRefreshTokenValiditySeconds(oauth.getRefreshTokenValidity());
+
+        // JWT config
+        clientDetails.setJwks(oauth.getJwks());
+        clientDetails.setJwksUri(oauth.getJwksUri());
+        clientDetails.setJwtSignAlgorithm(oauth.getJwtSignAlgorithm());
+        clientDetails.setJwtEncMethod(oauth.getJwtEncMethod());
+        clientDetails.setJwtEncAlgorithm(oauth.getJwtEncAlgorithm());
+
+        // map additional info
+        if (oauth.getAdditionalInformation() != null) {
+            clientDetails.setAdditionalInformation(oauth.getAdditionalInformation());
+        }
 
         // always grant role_client
         Set<GrantedAuthority> authorities = new HashSet<>();

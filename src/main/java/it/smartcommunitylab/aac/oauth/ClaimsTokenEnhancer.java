@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
@@ -48,10 +50,10 @@ public class ClaimsTokenEnhancer implements TokenEnhancer {
         Set<String> scopes = request.getScope();
         Set<String> resourceIds = request.getResourceIds();
 
-        AACOAuth2AccessToken token = new AACOAuth2AccessToken(accessToken);
-        Map<String, Serializable> claims = null;
-
         try {
+            AACOAuth2AccessToken token = new AACOAuth2AccessToken(accessToken);
+            Map<String, Serializable> claims = null;
+
             ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
 
             // check if client or user
@@ -64,17 +66,20 @@ public class ClaimsTokenEnhancer implements TokenEnhancer {
                     claims = claimsService.getUserClaims(userDetails, clientDetails, scopes, resourceIds);
                 }
             }
+
+            if (claims != null) {
+                token.setClaims(claims);
+            }
+
+            return token;
+
         } catch (NoSuchClientException e) {
             logger.error("non existing client: " + e.getMessage());
+            throw new InvalidClientException("invalid client");
         } catch (SystemException | NoSuchResourceException | InvalidDefinitionException e) {
             logger.error("claims service error: " + e.getMessage());
+            throw new OAuth2Exception(e.getMessage());
         }
-
-        if (claims != null) {
-            token.setClaims(claims);
-        }
-
-        return token;
 
     }
 

@@ -10,11 +10,24 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nimbusds.jwt.JWT;
+
+import it.smartcommunitylab.aac.oauth.model.TokenType;
+
 public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     private static final long serialVersionUID = -5481174420095804102L;
 
-    private final String value;
+    // the result value, can be replaced to encode a JWT
+    private String value;
+
+    // keep a copy of the plain accessToken in case value is encoded
+    // we use this as jti
+    @JsonIgnore
+    private final String token;
+
+    private String responseType = TokenType.TOKEN_TYPE_OPAQUE.getValue();
 
     // TODO evaluate if needed
     private String realm;
@@ -35,12 +48,16 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     private Map<String, Serializable> claims;
 
+    private JWT idToken;
+
     /**
      * Create an access token from the value provided.
      */
     public AACOAuth2AccessToken(String value) {
         Assert.hasText(value, "token can not be empty or null");
         this.value = value;
+        this.token = value;
+        this.scope = Collections.emptySet();
 
         Date now = new Date();
         setIssuedAt(now);
@@ -78,6 +95,9 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
         // additional info
         setAdditionalInformation(accessToken.getAdditionalInformation());
 
+        // idToken
+        setIdToken(accessToken.getIdToken());
+
     }
 
     public AACOAuth2AccessToken(OAuth2AccessToken accessToken) {
@@ -96,14 +116,34 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
             // copy claims
             setClaims(token.getClaims());
+
+            // idToken
+            setIdToken(token.getIdToken());
         }
+
         // additional info
         setAdditionalInformation(accessToken.getAdditionalInformation());
 
     }
 
+    public void setValue(String value) {
+        this.value = value;
+    }
+
     public String getValue() {
         return value;
+    }
+
+    public String getResponseType() {
+        return responseType;
+    }
+
+    public void setResponseType(String responseType) {
+        this.responseType = responseType;
+    }
+
+    public String getToken() {
+        return token;
     }
 
     public int getExpiresIn() {
@@ -189,6 +229,14 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     public void setRealm(String realm) {
         this.realm = realm;
+    }
+
+    public JWT getIdToken() {
+        return idToken;
+    }
+
+    public void setIdToken(JWT idToken) {
+        this.idToken = idToken;
     }
 
     @Override

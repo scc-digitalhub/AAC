@@ -74,7 +74,7 @@ public class RealmOAuth2Request extends OAuth2Request {
     public RealmOAuth2Request narrowScope(Set<String> scope) {
         RealmOAuth2Request request = new RealmOAuth2Request(getRequestParameters(), getClientId(), getAuthorities(),
                 isApproved(),
-                getScope(), getResourceIds(),
+                scope, getResourceIds(),
                 getRedirectUri(), getResponseTypes(), getExtensions());
         request.refresh = this.refresh;
         request.realm = this.realm;

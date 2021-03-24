@@ -274,7 +274,7 @@ public class OAuth2Client extends BaseClient {
         c.jwks = oauth.getJwks();
         c.jwksUri = oauth.getJwksUri();
 
-        Map<String, Object> map = OAuth2ClientInfo.read(oauth.getAdditionalInformation());
+        Map<String, String> map = oauth.getAdditionalInformation();
         if (map != null) {
             c.additionalInformation = OAuth2ClientInfo.convert(map);
         }

@@ -27,10 +27,12 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
 /**
  * Token store with DB tables creation on startup.
+ * 
  * @see {@link JdbcTokenStore}
  * @author raman
  *
@@ -38,66 +40,75 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private JdbcTemplate jdbcTemplate;
-		
-	private static final String DEFAULT_CREATE_RT_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_refresh_token ( token_id VARCHAR(64) NOT NULL PRIMARY KEY, token BLOB NOT NULL, authentication BLOB NOT NULL);";
-	private static final String DEFAULT_CREATE_AT_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_access_token (token_id VARCHAR(256),  token BLOB, authentication_id VARCHAR(256), user_name VARCHAR(256), client_id VARCHAR(256), authentication BLOB, refresh_token VARCHAR(256));";
+    private JdbcTemplate jdbcTemplate;
 
-	private static final String DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN = "select token_id, token from oauth_access_token where refresh_token = ?";
-	
-	private String createRefreshTokenStatement = DEFAULT_CREATE_RT_TABLE_STATEMENT;
-	private String createAccessTokenStatement = DEFAULT_CREATE_AT_TABLE_STATEMENT;
+    private static final String DEFAULT_CREATE_RT_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_refresh_token ( token_id VARCHAR(64) NOT NULL PRIMARY KEY, token BLOB NOT NULL, authentication BLOB NOT NULL);";
+    private static final String DEFAULT_CREATE_AT_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_access_token (token_id VARCHAR(256),  token BLOB, authentication_id VARCHAR(256), user_name VARCHAR(256), client_id VARCHAR(256), authentication BLOB, refresh_token VARCHAR(256));";
 
-	private String selectAccessTokenFromRefreshTokenSql = DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN;
-	
-	/**
-	 * @param dataSource
-	 */
-	public AutoJdbcTokenStore(DataSource dataSource) {
-		super(dataSource);
-		initSchema(dataSource);
-	}
+    private static final String DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN = "select token_id, token from oauth_access_token where refresh_token = ?";
 
-	protected void initSchema(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-		jdbcTemplate.execute(createAccessTokenStatement);
-		jdbcTemplate.execute(createRefreshTokenStatement);
-	}
+    private String createRefreshTokenStatement = DEFAULT_CREATE_RT_TABLE_STATEMENT;
+    private String createAccessTokenStatement = DEFAULT_CREATE_AT_TABLE_STATEMENT;
 
-	/**
-	 * @param dataSource
-	 * @param createRefreshTokenStatement
-	 * @param createAccessTokenStatement
-	 */
-	public AutoJdbcTokenStore(DataSource dataSource, String createRefreshTokenStatement, String createAccessTokenStatement) {
-		super(dataSource);
-		this.createRefreshTokenStatement = createRefreshTokenStatement;
-		this.createAccessTokenStatement = createAccessTokenStatement;
-		initSchema(dataSource);
-	}
+    private String selectAccessTokenFromRefreshTokenSql = DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN;
 
-	public OAuth2AccessToken readAccessTokenForRefreshToken(String tokenValue) {
-		OAuth2AccessToken accessToken = null;
-		
-		String key = extractTokenKey(tokenValue);
-		
-		try {
-			accessToken = jdbcTemplate.queryForObject(selectAccessTokenFromRefreshTokenSql ,
-					new RowMapper<OAuth2AccessToken>() {
-						public OAuth2AccessToken mapRow(ResultSet rs, int rowNum) throws SQLException {
-							return deserializeAccessToken(rs.getBytes(2));
-						}
-					}, key);
-		}
-		catch (EmptyResultDataAccessException e) {
-			if (logger.isInfoEnabled()) {
-				logger.debug("Failed to find access token for refresh " + tokenValue);
-			}
-		}
-		catch (IllegalArgumentException e) {
-			logger.error("Could not extract access token for refresh " + tokenValue);
-		}
-		
-		return accessToken;
-	}
+    /**
+     * @param dataSource
+     */
+    public AutoJdbcTokenStore(DataSource dataSource) {
+        super(dataSource);
+        initSchema(dataSource);
+
+        // set a saner authkey generator, but we should really just drop it, we won't
+        // read back anyway
+        this.setAuthenticationKeyGenerator(new ExtendedAuthenticationKeyGenerator());
+    }
+
+    protected void initSchema(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.execute(createAccessTokenStatement);
+        jdbcTemplate.execute(createRefreshTokenStatement);
+    }
+
+//    /**
+//     * @param dataSource
+//     * @param createRefreshTokenStatement
+//     * @param createAccessTokenStatement
+//     */
+//    public AutoJdbcTokenStore(DataSource dataSource, String createRefreshTokenStatement,
+//            String createAccessTokenStatement) {
+//        super(dataSource);
+//        this.createRefreshTokenStatement = createRefreshTokenStatement;
+//        this.createAccessTokenStatement = createAccessTokenStatement;
+//        initSchema(dataSource);
+//    }
+
+    @Override
+    public OAuth2AccessToken getAccessToken(OAuth2Authentication authentication) {
+        // we don't want to read a token from an authentication, it's a bad design
+        return null;
+    }
+
+    public OAuth2AccessToken readAccessTokenForRefreshToken(String tokenValue) {
+        OAuth2AccessToken accessToken = null;
+
+        String key = extractTokenKey(tokenValue);
+
+        try {
+            accessToken = jdbcTemplate.queryForObject(selectAccessTokenFromRefreshTokenSql,
+                    new RowMapper<OAuth2AccessToken>() {
+                        public OAuth2AccessToken mapRow(ResultSet rs, int rowNum) throws SQLException {
+                            return deserializeAccessToken(rs.getBytes(2));
+                        }
+                    }, key);
+        } catch (EmptyResultDataAccessException e) {
+            if (logger.isInfoEnabled()) {
+                logger.debug("Failed to find access token for refresh " + tokenValue);
+            }
+        } catch (IllegalArgumentException e) {
+            logger.error("Could not extract access token for refresh " + tokenValue);
+        }
+
+        return accessToken;
+    }
 }

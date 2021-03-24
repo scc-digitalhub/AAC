@@ -1,13 +1,19 @@
 package it.smartcommunitylab.aac.oauth.persistence;
 
+import java.util.Map;
+
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "oauth2_clients")
@@ -37,8 +43,8 @@ public class OAuth2ClientEntity {
     // - contacts -> TODO (array of strings, e.g., emails)
     // - tos_uri -> TODO (string)
     // - policy_uri -> TODO (string)
-    // - jwks_uri -> TODO (string)
-    // - jwks -> TODO (document)
+    // - jwks_uri -> jwksUri
+    // - jwks -> jwks
     // - software_id -> TODO (string)
     // - software_version -> TODO (string)
     // - client_id_issued_at -> TODO (seconds)
@@ -84,8 +90,10 @@ public class OAuth2ClientEntity {
     @Column(name = "jwks_uri")
     private String jwksUri;
 
-    @Column(name = "additional_information", columnDefinition = "LONGTEXT")
-    private String additionalInformation;
+    @Lob
+    @Column(name = "configuration_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> additionalInformation;
 
     /*
      * first party clients won't require approval for in-realm resource consumption
@@ -93,6 +101,10 @@ public class OAuth2ClientEntity {
      */
     @Column(name = "first_party")
     private boolean firstParty;
+
+    // TODO evaluate registering resourceIds to be able to validate requests
+    @Column(name = "resource_ids")
+    private String resourceIds;
 
     public Long getId() {
         return id;
@@ -198,11 +210,11 @@ public class OAuth2ClientEntity {
         this.jwksUri = jwksUri;
     }
 
-    public String getAdditionalInformation() {
+    public Map<String, String> getAdditionalInformation() {
         return additionalInformation;
     }
 
-    public void setAdditionalInformation(String additionalInformation) {
+    public void setAdditionalInformation(Map<String, String> additionalInformation) {
         this.additionalInformation = additionalInformation;
     }
 
