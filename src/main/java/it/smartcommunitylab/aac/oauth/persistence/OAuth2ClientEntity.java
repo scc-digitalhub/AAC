@@ -33,7 +33,7 @@ public class OAuth2ClientEntity {
     // - client_id -> client_id
     // - client_secret -> client_secret
     // - redirect_uris -> redirectUri (array of strings)
-    // - token_endpoint_auth_method -> TODO (string)
+    // - token_endpoint_auth_method -> authenticationScheme (string/array)
     // - grant_types -> authorizedGrantTypes (array of strings)
     // - response_types -> TODO (array of strings)
     // - client_name -> name (string)
@@ -59,6 +59,9 @@ public class OAuth2ClientEntity {
 
     @Column(name = "redirect_uris", columnDefinition = "LONGTEXT")
     private String redirectUris;
+
+    @Column(name = "authentication_scheme")
+    private String authenticationScheme;
 
     /*
      * OAuth2 flows - related info
@@ -160,6 +163,22 @@ public class OAuth2ClientEntity {
 
     public void setRefreshTokenValidity(Integer refreshTokenValidity) {
         this.refreshTokenValidity = refreshTokenValidity;
+    }
+
+    public String getAuthenticationScheme() {
+        return authenticationScheme;
+    }
+
+    public void setAuthenticationScheme(String authenticationScheme) {
+        this.authenticationScheme = authenticationScheme;
+    }
+
+    public String getResourceIds() {
+        return resourceIds;
+    }
+
+    public void setResourceIds(String resourceIds) {
+        this.resourceIds = resourceIds;
     }
 
     public String getTokenType() {

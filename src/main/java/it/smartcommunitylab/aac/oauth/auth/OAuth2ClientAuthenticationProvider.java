@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth.client;
+package it.smartcommunitylab.aac.oauth.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +12,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
-import it.smartcommunitylab.aac.oauth.ClientPKCEAuthenticationToken;
-import it.smartcommunitylab.aac.oauth.ClientSecretAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
@@ -35,10 +34,10 @@ public class OAuth2ClientAuthenticationProvider implements AuthenticationProvide
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(ClientSecretAuthenticationToken.class, authentication,
+        Assert.isInstanceOf(OAuth2ClientSecretAuthenticationToken.class, authentication,
                 "Only ClientSecretAuthenticationToken is supported");
 
-        ClientSecretAuthenticationToken authRequest = (ClientSecretAuthenticationToken) authentication;
+        OAuth2ClientSecretAuthenticationToken authRequest = (OAuth2ClientSecretAuthenticationToken) authentication;
         String clientId = authRequest.getPrincipal();
         String clientSecret = authRequest.getCredentials();
 
@@ -53,6 +52,12 @@ public class OAuth2ClientAuthenticationProvider implements AuthenticationProvide
         // load details
         OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
+        // check if client can authenticate with this scheme
+        if (!client.getAuthenticationScheme().contains(AuthenticationScheme.BASIC.getValue())) {
+            this.logger.debug("Failed to authenticate since client can not use basic scheme");
+            throw new BadCredentialsException("invalid authentication");
+        }
+
         if (!this.passwordEncoder.matches(clientSecret, client.getClientSecret())) {
             this.logger.debug("Failed to authenticate since secret does not match stored value");
             throw new BadCredentialsException("invalid authentication");
@@ -60,14 +65,14 @@ public class OAuth2ClientAuthenticationProvider implements AuthenticationProvide
 
         // result contains credentials, someone later on will need to call
         // eraseCredentials
-        ClientSecretAuthenticationToken result = new ClientSecretAuthenticationToken(clientId, clientSecret,
+        OAuth2ClientSecretAuthenticationToken result = new OAuth2ClientSecretAuthenticationToken(clientId, clientSecret,
                 client.getAuthorities());
         return result;
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return (ClientSecretAuthenticationToken.class.isAssignableFrom(authentication));
+        return (OAuth2ClientSecretAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
 }

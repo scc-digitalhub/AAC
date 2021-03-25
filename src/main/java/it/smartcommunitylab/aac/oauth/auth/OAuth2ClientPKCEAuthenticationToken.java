@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.auth;
 
 import java.util.Collection;
 
@@ -10,7 +10,7 @@ import org.springframework.util.Assert;
  * A usernamePassword auth token to be used for clientId+verifier auth
  */
 
-public class ClientPKCEAuthenticationToken extends AbstractAuthenticationToken {
+public class OAuth2ClientPKCEAuthenticationToken extends AbstractAuthenticationToken {
 
     private final String principal;
 
@@ -18,7 +18,7 @@ public class ClientPKCEAuthenticationToken extends AbstractAuthenticationToken {
 
     private String code;
 
-    public ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier) {
+    public OAuth2ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier) {
         super(null);
         this.principal = clientId;
         this.codeVerifier = codeVerifier;
@@ -26,7 +26,7 @@ public class ClientPKCEAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
-    public ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier,
+    public OAuth2ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = clientId;

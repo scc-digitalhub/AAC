@@ -25,6 +25,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
@@ -40,6 +41,7 @@ public class OAuth2Client extends BaseClient {
     private Set<String> redirectUris;
 
     private TokenType tokenType;
+    private Set<AuthenticationScheme> authenticationScheme;
 
     private Integer accessTokenValidity;
     private Integer refreshTokenValidity;
@@ -57,6 +59,7 @@ public class OAuth2Client extends BaseClient {
         super(realm, clientId);
         authorizedGrantTypes = new HashSet<>();
         redirectUris = new HashSet<>();
+        authenticationScheme = new HashSet<>();
     }
 
     @Override
@@ -96,6 +99,14 @@ public class OAuth2Client extends BaseClient {
 
     public void setTokenType(TokenType tokenType) {
         this.tokenType = tokenType;
+    }
+
+    public Set<AuthenticationScheme> getAuthenticationScheme() {
+        return authenticationScheme;
+    }
+
+    public void setAuthenticationScheme(Set<AuthenticationScheme> authenticationScheme) {
+        this.authenticationScheme = authenticationScheme;
     }
 
     public Set<String> getRedirectUris() {
@@ -196,6 +207,12 @@ public class OAuth2Client extends BaseClient {
                 map.put("redirectUris", new String[0]);
             }
 
+            if (authenticationScheme != null) {
+                map.put("authenticationScheme", authenticationScheme.toArray(new String[0]));
+            } else {
+                map.put("authenticationScheme", new String[0]);
+            }
+
             map.put("tokenType", tokenType);
             map.put("accessTokenValidity", accessTokenValidity);
             map.put("refreshTokenValidity", refreshTokenValidity);
@@ -255,13 +272,22 @@ public class OAuth2Client extends BaseClient {
 
         // map attributes
         c.clientSecret = (oauth.getClientSecret() != null ? new ClientSecret(oauth.getClientSecret()) : null);
-        c.tokenType = (oauth.getTokenType() != null ? TokenType.valueOf(oauth.getTokenType()) : null);
+        c.tokenType = (oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : null);
 
         Set<String> authorizedGrantTypes = StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes());
         c.authorizedGrantTypes = authorizedGrantTypes.stream()
-                .map(a -> AuthorizationGrantType.parse(a)).collect(Collectors.toSet());
+                .map(a -> AuthorizationGrantType.parse(a))
+                .filter(a -> (a != null))
+                .collect(Collectors.toSet());
+
+        Set<String> authenticationSchemes = StringUtils.commaDelimitedListToSet(oauth.getAuthenticationScheme());
+        c.authenticationScheme = authenticationSchemes.stream()
+                .map(a -> AuthenticationScheme.parse(a))
+                .filter(a -> (a != null))
+                .collect(Collectors.toSet());
 
         c.redirectUris.addAll(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
+        c.setResourceIds(StringUtils.commaDelimitedListToSet(oauth.getResourceIds()));
 
         c.accessTokenValidity = oauth.getAccessTokenValidity();
         c.refreshTokenValidity = oauth.getRefreshTokenValidity();

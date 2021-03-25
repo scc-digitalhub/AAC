@@ -72,12 +72,12 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountReposito
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
-import it.smartcommunitylab.aac.oauth.ClientBasicAuthFilter;
-import it.smartcommunitylab.aac.oauth.ClientFormAuthTokenEndpointFilter;
-import it.smartcommunitylab.aac.oauth.OAuth2RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
-import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAuthenticationProvider;
-import it.smartcommunitylab.aac.oauth.client.OAuth2ClientPKCEAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
+import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;

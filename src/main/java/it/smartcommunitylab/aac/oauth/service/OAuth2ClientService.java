@@ -2,8 +2,11 @@ package it.smartcommunitylab.aac.oauth.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -23,6 +26,7 @@ import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.ClientService;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientInfo;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
@@ -37,6 +41,27 @@ import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 
 @Service
 public class OAuth2ClientService implements ClientService {
+
+    // keep a list of supported grant types, should match tokenGranters
+    private static final Set<AuthorizationGrantType> VALID_GRANT_TYPES;
+    // keep supported client auth schemes, match clientAuthFilters
+    private static final Set<AuthenticationScheme> VALID_AUTH_SCHEME;
+
+    static {
+        Set<AuthorizationGrantType> n = new HashSet<>();
+        n.add(AuthorizationGrantType.AUTHORIZATION_CODE);
+        n.add(AuthorizationGrantType.IMPLICIT);
+        n.add(AuthorizationGrantType.PASSWORD);
+        n.add(AuthorizationGrantType.CLIENT_CREDENTIALS);
+        n.add(AuthorizationGrantType.REFRESH_TOKEN);
+        VALID_GRANT_TYPES = Collections.unmodifiableSet(n);
+
+        Set<AuthenticationScheme> s = new HashSet<>();
+        s.add(AuthenticationScheme.BASIC);
+        s.add(AuthenticationScheme.FORM);
+        VALID_AUTH_SCHEME = Collections.unmodifiableSet(s);
+
+    }
 
     // we use service since we are outside core
     private final ClientEntityService clientService;
@@ -185,18 +210,19 @@ public class OAuth2ClientService implements ClientService {
     public OAuth2Client addClient(String realm, String clientId, String name) {
         return this.addClient(realm, clientId, name,
                 null, null, null, null, null, null, null, null, null, null, null,
-                null, null, null);
+                null, null, null, null, null);
     }
 
     public OAuth2Client addClient(
             String realm,
             String name, String description,
-            Collection<String> scopes,
+            Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
             String clientSecret,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
+            Collection<AuthenticationScheme> authenticationScheme,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
@@ -210,12 +236,12 @@ public class OAuth2ClientService implements ClientService {
         return addClient(
                 realm, clientId,
                 name, description,
-                scopes,
+                scopes, resourceIds,
                 providers,
                 clientSecret,
                 authorizedGrantTypes,
                 redirectUris,
-                tokenType,
+                tokenType, authenticationScheme,
                 accessTokenValidity, refreshTokenValidity,
                 jwtSignAlgorithm,
                 jwtEncMethod, jwtEncAlgorithm,
@@ -227,12 +253,13 @@ public class OAuth2ClientService implements ClientService {
     public OAuth2Client addClient(
             String realm, String clientId,
             String name, String description,
-            Collection<String> scopes,
+            Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
             String clientSecret,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
+            Collection<AuthenticationScheme> authenticationScheme,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
@@ -258,9 +285,11 @@ public class OAuth2ClientService implements ClientService {
         if (authorizedGrantTypes != null) {
             // check if valid grants
             if (authorizedGrantTypes.stream()
-                    .anyMatch(gt -> !ArrayUtils.contains(AuthorizationGrantType.values(), gt))) {
+                    .anyMatch(gt -> !VALID_GRANT_TYPES.contains(gt))) {
                 throw new IllegalArgumentException("Invalid grant type");
             }
+        } else {
+            authorizedGrantTypes = Collections.emptySet();
         }
 
         String tokenTypeValue = null;
@@ -273,6 +302,24 @@ public class OAuth2ClientService implements ClientService {
         } else {
             // default is null, will use system default
             tokenType = null;
+        }
+
+        if (authenticationScheme != null) {
+            // validate
+            if (authenticationScheme.stream().anyMatch(a -> !VALID_AUTH_SCHEME.contains(a))) {
+                throw new IllegalArgumentException("Invalid authentication scheme");
+            }
+        }
+
+        if (authenticationScheme == null || authenticationScheme.isEmpty()) {
+            // enable basic
+            authenticationScheme = new HashSet<>();
+            authenticationScheme.add(AuthenticationScheme.BASIC);
+
+            // if authGrant also enable form for PKCE
+            if (authorizedGrantTypes.contains(AuthorizationGrantType.AUTHORIZATION_CODE)) {
+                authenticationScheme.add(AuthenticationScheme.FORM);
+            }
         }
 
         String jwtSignAlgorithmName = null;
@@ -293,7 +340,8 @@ public class OAuth2ClientService implements ClientService {
         ClientEntity client = clientService.addClient(
                 clientId, realm, OAuth2Client.CLIENT_TYPE,
                 name, description,
-                scopes, providers);
+                scopes, resourceIds,
+                providers);
 
         OAuth2ClientEntity oauth = new OAuth2ClientEntity();
         oauth.setClientId(clientId);
@@ -301,6 +349,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
+        oauth.setAuthenticationScheme(StringUtils.collectionToCommaDelimitedString(authenticationScheme));
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
         oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);
@@ -319,12 +368,13 @@ public class OAuth2ClientService implements ClientService {
     public OAuth2Client updateClient(
             String clientId,
             String name, String description,
-            Collection<String> scopes,
+            Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
             Map<String, String> hookFunctions,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
+            Collection<AuthenticationScheme> authenticationScheme,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
@@ -340,8 +390,15 @@ public class OAuth2ClientService implements ClientService {
         if (authorizedGrantTypes != null) {
             // check if valid grants
             if (authorizedGrantTypes.stream()
-                    .anyMatch(gt -> !ArrayUtils.contains(AuthorizationGrantType.values(), gt))) {
+                    .anyMatch(gt -> !VALID_GRANT_TYPES.contains(gt))) {
                 throw new IllegalArgumentException("Invalid grant type");
+            }
+        }
+
+        if (authenticationScheme != null) {
+            // validate
+            if (authenticationScheme.stream().anyMatch(a -> !VALID_AUTH_SCHEME.contains(a))) {
+                throw new IllegalArgumentException("Invalid authentication scheme");
             }
         }
 
@@ -379,11 +436,12 @@ public class OAuth2ClientService implements ClientService {
             throw new NoSuchClientException();
         }
 
-        client = clientService.updateClient(clientId, name, description, scopes, providers, hookFunctions);
+        client = clientService.updateClient(clientId, name, description, scopes, resourceIds, providers, hookFunctions);
 
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
+        oauth.setAuthenticationScheme(StringUtils.collectionToCommaDelimitedString(authenticationScheme));
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
         oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);

@@ -75,12 +75,13 @@ public class OAuth2ClientAppService implements ClientAppService {
             OAuth2Client client = clientService.addClient(realm,
                     app.getClientId(),
                     app.getName(), app.getDescription(),
-                    app.getScopes(), app.getProviders(),
+                    app.getScopes(), app.getResourceIds(),
+                    app.getProviders(),
                     null,
                     null, null,
                     null,
                     null, null,
-                    null,
+                    null, null,
                     null, null,
                     null, null,
                     null);
@@ -102,10 +103,11 @@ public class OAuth2ClientAppService implements ClientAppService {
             OAuth2Client client = clientService.addClient(realm,
                     app.getClientId(),
                     app.getName(), app.getDescription(),
-                    app.getScopes(), app.getProviders(),
+                    app.getScopes(), app.getResourceIds(),
+                    app.getProviders(),
                     clientApp.getSecret(),
                     clientApp.getAuthorizedGrantTypes(), clientApp.getRedirectUris(),
-                    clientApp.getTokenType(),
+                    clientApp.getTokenType(), clientApp.getAuthenticationScheme(),
                     clientApp.getAccessTokenValidity(), clientApp.getRefreshTokenValidity(),
                     clientApp.getJwtSignAlgorithm(),
                     clientApp.getJwtEncMethod(), clientApp.getJwtEncAlgorithm(),
@@ -136,10 +138,11 @@ public class OAuth2ClientAppService implements ClientAppService {
         // update
         client = clientService.updateClient(clientId,
                 clientApp.getName(), clientApp.getDescription(),
-                clientApp.getScopes(), clientApp.getProviders(),
+                clientApp.getScopes(), clientApp.getResourceIds(),
+                clientApp.getProviders(),
                 clientApp.getHookFunctions(),
                 clientApp.getAuthorizedGrantTypes(), clientApp.getRedirectUris(),
-                clientApp.getTokenType(),
+                clientApp.getTokenType(), clientApp.getAuthenticationScheme(),
                 clientApp.getAccessTokenValidity(), clientApp.getRefreshTokenValidity(),
                 clientApp.getJwtSignAlgorithm(),
                 clientApp.getJwtEncMethod(), clientApp.getJwtEncAlgorithm(),
@@ -182,6 +185,7 @@ public class OAuth2ClientAppService implements ClientAppService {
         app.setRealm(client.getRealm());
 
         app.setScopes(client.getScopes());
+        app.setResourceIds(client.getResourceIds());
         app.setProviders(client.getProviders());
         app.setHookFunctions(client.getHookFunctions());
 

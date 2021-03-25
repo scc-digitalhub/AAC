@@ -39,6 +39,8 @@ public class ClientApp {
     // TODO evaluate a better mapping for services+attribute sets etc
     private Collection<String> scopes;
 
+    private Collection<String> resourceIds;
+
     // providers enabled
     private Collection<String> providers;
 
@@ -55,6 +57,7 @@ public class ClientApp {
     public ClientApp() {
         this.configuration = new HashMap<>();
         this.scopes = new ArrayList<>();
+        this.resourceIds = new ArrayList<>();
         this.providers = new ArrayList<>();
         this.hookFunctions = new HashMap<>();
         this.name = "";
@@ -115,6 +118,14 @@ public class ClientApp {
 
     public void setScopes(Collection<String> scopes) {
         this.scopes = scopes;
+    }
+
+    public Collection<String> getResourceIds() {
+        return resourceIds;
+    }
+
+    public void setResourceIds(Collection<String> resourceIds) {
+        this.resourceIds = resourceIds;
     }
 
     public Collection<String> getProviders() {

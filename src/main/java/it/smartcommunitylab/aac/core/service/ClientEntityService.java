@@ -48,7 +48,7 @@ public class ClientEntityService {
             String clientId, String realm,
             String type,
             String name, String description,
-            Collection<String> scopes,
+            Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers) throws IllegalArgumentException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c != null) {
@@ -62,6 +62,7 @@ public class ClientEntityService {
         c.setDescription(description);
 
         c.setScopes(StringUtils.collectionToCommaDelimitedString(scopes));
+        c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
 
         c = clientRepository.save(c);
@@ -82,24 +83,23 @@ public class ClientEntityService {
 
         return c;
     }
-    
+
     public Collection<ClientEntity> listClients() {
         return clientRepository.findAll();
     }
-    
+
     public Collection<ClientEntity> listClients(String realm) {
-        return clientRepository.findByRealm(realm);        
+        return clientRepository.findByRealm(realm);
     }
-    
+
     public Collection<ClientEntity> listClients(String realm, String type) {
-        return clientRepository.findByRealmAndType(realm, type);        
+        return clientRepository.findByRealmAndType(realm, type);
     }
-    
-    
 
     public ClientEntity updateClient(String clientId,
             String name, String description,
-            Collection<String> scopes, Collection<String> providers,
+            Collection<String> scopes, Collection<String> resourceIds,
+            Collection<String> providers,
             Map<String, String> hookFunctions) throws NoSuchClientException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c == null) {
@@ -110,8 +110,9 @@ public class ClientEntityService {
         c.setDescription(description);
 
         c.setScopes(StringUtils.collectionToCommaDelimitedString(scopes));
+        c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
-        
+
         c.setHookFunctions(hookFunctions);
 
         c = clientRepository.save(c);

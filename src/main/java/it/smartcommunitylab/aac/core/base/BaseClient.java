@@ -14,6 +14,7 @@ public abstract class BaseClient extends AbstractClient {
     private Set<String> providers;
 
     private Set<String> scopes;
+    private Set<String> resourceIds;
 
     private Map<String, String> hookFunctions;
 
@@ -44,6 +45,14 @@ public abstract class BaseClient extends AbstractClient {
 
     public void setScopes(Set<String> scopes) {
         this.scopes = scopes;
+    }
+
+    public Set<String> getResourceIds() {
+        return resourceIds;
+    }
+
+    public void setResourceIds(Set<String> resourceIds) {
+        this.resourceIds = resourceIds;
     }
 
     public Set<String> getProviders() {

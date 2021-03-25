@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.auth;
 
 import java.util.Collection;
 
@@ -10,24 +10,27 @@ import org.springframework.util.Assert;
  * A usernamePassword auth token to be used for clientId+secret auth
  */
 
-public class ClientSecretAuthenticationToken extends AbstractAuthenticationToken {
+public class OAuth2ClientSecretAuthenticationToken extends AbstractAuthenticationToken {
 
     private final String principal;
     private String credentials;
+    private final String authenticationScheme;
 
-    public ClientSecretAuthenticationToken(String clientId, String clientSecret) {
+    public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationScheme) {
         super(null);
         this.principal = clientId;
         this.credentials = clientSecret;
+        this.authenticationScheme = authenticationScheme;
         setAuthenticated(false);
 
     }
 
-    public ClientSecretAuthenticationToken(String clientId, String clientSecret,
+    public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationScheme,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = clientId;
         this.credentials = clientSecret;
+        this.authenticationScheme = authenticationScheme;
         super.setAuthenticated(true); // must use super, as we override
 
     }
@@ -48,6 +51,10 @@ public class ClientSecretAuthenticationToken extends AbstractAuthenticationToken
 
     public String getClientSecret() {
         return this.credentials;
+    }
+
+    public String getAuthenticationScheme() {
+        return authenticationScheme;
     }
 
     @Override

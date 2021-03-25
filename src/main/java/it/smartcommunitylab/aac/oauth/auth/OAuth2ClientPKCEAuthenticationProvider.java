@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth.client;
+package it.smartcommunitylab.aac.oauth.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -18,7 +18,6 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.oauth.ClientPKCEAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -44,10 +43,10 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Assert.isInstanceOf(ClientPKCEAuthenticationToken.class, authentication,
+        Assert.isInstanceOf(OAuth2ClientPKCEAuthenticationToken.class, authentication,
                 "Only ClientPKCEAuthenticationToken is supported");
 
-        ClientPKCEAuthenticationToken authRequest = (ClientPKCEAuthenticationToken) authentication;
+        OAuth2ClientPKCEAuthenticationToken authRequest = (OAuth2ClientPKCEAuthenticationToken) authentication;
         String clientId = authRequest.getPrincipal();
         String code = authRequest.getCode();
         String codeVerifier = authRequest.getCodeVerifier();
@@ -95,14 +94,14 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
 
         // result contains credentials, someone later on will need to call
         // eraseCredentials
-        ClientPKCEAuthenticationToken result = new ClientPKCEAuthenticationToken(clientId, code, codeVerifier,
+        OAuth2ClientPKCEAuthenticationToken result = new OAuth2ClientPKCEAuthenticationToken(clientId, code, codeVerifier,
                 client.getAuthorities());
         return result;
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return (ClientPKCEAuthenticationToken.class.isAssignableFrom(authentication));
+        return (OAuth2ClientPKCEAuthenticationToken.class.isAssignableFrom(authentication));
     }
 
     /**

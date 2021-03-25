@@ -41,6 +41,9 @@ public class ClientEntity {
 
     private String scopes;
 
+    @Column(name = "resource_ids")
+    private String resourceIds;
+
     private String providers;
 
     @Lob
@@ -152,6 +155,14 @@ public class ClientEntity {
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
+    }
+
+    public String getResourceIds() {
+        return resourceIds;
+    }
+
+    public void setResourceIds(String resourceIds) {
+        this.resourceIds = resourceIds;
     }
 
 }

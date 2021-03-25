@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.auth;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.auth.NoOpAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
 
 public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilter {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -137,8 +138,8 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
         }
 
         // convert to our authRequest
-        ClientSecretAuthenticationToken authRequest = new ClientSecretAuthenticationToken(clientId,
-                clientSecret);
+        OAuth2ClientSecretAuthenticationToken authRequest = new OAuth2ClientSecretAuthenticationToken(clientId,
+                clientSecret, AuthenticationScheme.BASIC.getValue());
 
         // collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
