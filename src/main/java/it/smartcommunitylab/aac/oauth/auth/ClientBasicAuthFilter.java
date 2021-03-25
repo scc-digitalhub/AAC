@@ -124,6 +124,8 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
         // use basic auth converter, will throw exception if header is malformed
         UsernamePasswordAuthenticationToken basicRequest = this.authenticationConverter.convert(request);
 
+        // TODO support PKCE with basic auth with only clientId
+        // out of spec but possible
         String clientId = (String) basicRequest.getPrincipal();
         String clientSecret = (String) basicRequest.getCredentials();
 

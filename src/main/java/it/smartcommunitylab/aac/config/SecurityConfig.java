@@ -75,7 +75,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;

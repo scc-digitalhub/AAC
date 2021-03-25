@@ -122,7 +122,8 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
                 String code = request.getParameter("code");
                 String verifier = request.getParameter("code_verifier");
                 // replace request
-                authRequest = new OAuth2ClientPKCEAuthenticationToken(clientId, code, verifier);
+                authRequest = new OAuth2ClientPKCEAuthenticationToken(clientId, code, verifier,
+                        AuthenticationScheme.FORM.getValue());
             }
         }
 

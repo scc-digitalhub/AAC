@@ -16,15 +16,15 @@ public abstract class OAuth2ClientAuthenticationToken extends AbstractAuthentica
     private final String principal;
 
     // keep realm separated to support clients authentication in different realms
-    private String realm;
+    protected String realm;
 
     // client details
-    private OAuth2ClientDetails details;
+    protected OAuth2ClientDetails details;
 
     // web authentication details
-    private WebAuthenticationDetails webAuthenticationDetails;
+    protected WebAuthenticationDetails webAuthenticationDetails;
 
-    private String authenticationScheme;
+    protected String authenticationScheme;
 
     public OAuth2ClientAuthenticationToken(String clientId) {
         super(null);

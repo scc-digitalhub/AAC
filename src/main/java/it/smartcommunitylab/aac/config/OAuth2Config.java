@@ -55,7 +55,7 @@ import it.smartcommunitylab.aac.oauth.OAuth2TokenServices;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestFactory;
@@ -384,7 +384,7 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
         // build auth providers for oauth2 clients
         OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
                 clientDetailsService, authCodeServices);
-        OAuth2ClientAuthenticationProvider secretAuthProvider = new OAuth2ClientAuthenticationProvider(
+        OAuth2ClientSecretAuthenticationProvider secretAuthProvider = new OAuth2ClientSecretAuthenticationProvider(
                 clientDetailsService);
         ProviderManager authManager = new ProviderManager(secretAuthProvider, pkceAuthProvider);
 

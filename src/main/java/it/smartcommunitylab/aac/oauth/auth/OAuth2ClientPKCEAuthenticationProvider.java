@@ -50,9 +50,19 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
         String clientId = authRequest.getPrincipal();
         String code = authRequest.getCode();
         String codeVerifier = authRequest.getCodeVerifier();
+        String authenticationScheme = authRequest.getAuthenticationScheme();
 
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(code) || !StringUtils.hasText(codeVerifier)) {
             throw new BadCredentialsException("missing required parameters in request");
+        }
+
+        // load details, we need to check request
+        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
+
+        // check if client can authenticate with this scheme
+        if (!client.getAuthenticationScheme().contains(authenticationScheme)) {
+            this.logger.debug("Failed to authenticate since client can not use basic scheme");
+            throw new BadCredentialsException("invalid authentication");
         }
 
         /*
@@ -89,13 +99,16 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
             throw new BadCredentialsException("invalid request");
         }
 
-        // client auth is valid for this request, load details
-        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
-
         // result contains credentials, someone later on will need to call
         // eraseCredentials
-        OAuth2ClientPKCEAuthenticationToken result = new OAuth2ClientPKCEAuthenticationToken(clientId, code, codeVerifier,
+        OAuth2ClientPKCEAuthenticationToken result = new OAuth2ClientPKCEAuthenticationToken(clientId, code,
+                codeVerifier, authenticationScheme,
                 client.getAuthorities());
+
+        // save details
+        result.setDetails(client);
+        result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
+
         return result;
     }
 

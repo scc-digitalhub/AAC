@@ -17,13 +17,13 @@ import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 
-public class OAuth2ClientAuthenticationProvider implements AuthenticationProvider {
+public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OAuth2ClientDetailsService clientDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    public OAuth2ClientAuthenticationProvider(OAuth2ClientDetailsService clientDetailsService) {
+    public OAuth2ClientSecretAuthenticationProvider(OAuth2ClientDetailsService clientDetailsService) {
         Assert.notNull(clientDetailsService, "client details service is required");
         this.clientDetailsService = clientDetailsService;
 
@@ -40,23 +40,24 @@ public class OAuth2ClientAuthenticationProvider implements AuthenticationProvide
         OAuth2ClientSecretAuthenticationToken authRequest = (OAuth2ClientSecretAuthenticationToken) authentication;
         String clientId = authRequest.getPrincipal();
         String clientSecret = authRequest.getCredentials();
+        String authenticationScheme = authRequest.getAuthenticationScheme();
 
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(clientSecret)) {
             throw new BadCredentialsException("missing required parameters in request");
         }
 
-        /*
-         * We authenticate by comparing clientSecret via plainText encoder
-         */
-
-        // load details
+        // load details, we need to check request
         OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
         // check if client can authenticate with this scheme
-        if (!client.getAuthenticationScheme().contains(AuthenticationScheme.BASIC.getValue())) {
+        if (!client.getAuthenticationScheme().contains(authenticationScheme)) {
             this.logger.debug("Failed to authenticate since client can not use basic scheme");
             throw new BadCredentialsException("invalid authentication");
         }
+
+        /*
+         * We authenticate by comparing clientSecret via plainText encoder
+         */
 
         if (!this.passwordEncoder.matches(clientSecret, client.getClientSecret())) {
             this.logger.debug("Failed to authenticate since secret does not match stored value");
@@ -65,8 +66,15 @@ public class OAuth2ClientAuthenticationProvider implements AuthenticationProvide
 
         // result contains credentials, someone later on will need to call
         // eraseCredentials
-        OAuth2ClientSecretAuthenticationToken result = new OAuth2ClientSecretAuthenticationToken(clientId, clientSecret,
+        OAuth2ClientSecretAuthenticationToken result = new OAuth2ClientSecretAuthenticationToken(
+                clientId, clientSecret,
+                authenticationScheme,
                 client.getAuthorities());
+
+        // save details
+        result.setDetails(client);
+        result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
+
         return result;
     }
 

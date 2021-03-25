@@ -10,15 +10,12 @@ import org.springframework.util.Assert;
  * A usernamePassword auth token to be used for clientId+secret auth
  */
 
-public class OAuth2ClientSecretAuthenticationToken extends AbstractAuthenticationToken {
+public class OAuth2ClientSecretAuthenticationToken extends OAuth2ClientAuthenticationToken {
 
-    private final String principal;
     private String credentials;
-    private final String authenticationScheme;
 
     public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationScheme) {
-        super(null);
-        this.principal = clientId;
+        super(clientId);
         this.credentials = clientSecret;
         this.authenticationScheme = authenticationScheme;
         setAuthenticated(false);
@@ -27,8 +24,7 @@ public class OAuth2ClientSecretAuthenticationToken extends AbstractAuthenticatio
 
     public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationScheme,
             Collection<? extends GrantedAuthority> authorities) {
-        super(authorities);
-        this.principal = clientId;
+        super(clientId, authorities);
         this.credentials = clientSecret;
         this.authenticationScheme = authenticationScheme;
         super.setAuthenticated(true); // must use super, as we override
@@ -40,28 +36,8 @@ public class OAuth2ClientSecretAuthenticationToken extends AbstractAuthenticatio
         return this.credentials;
     }
 
-    @Override
-    public String getPrincipal() {
-        return this.principal;
-    }
-
-    public String getClientId() {
-        return this.principal;
-    }
-
     public String getClientSecret() {
         return this.credentials;
-    }
-
-    public String getAuthenticationScheme() {
-        return authenticationScheme;
-    }
-
-    @Override
-    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-        Assert.isTrue(!isAuthenticated,
-                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
-        super.setAuthenticated(false);
     }
 
     @Override
