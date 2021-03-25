@@ -2,7 +2,9 @@ package it.smartcommunitylab.aac.config;
 
 import java.beans.PropertyVetoException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.Filter;
 import javax.sql.DataSource;
@@ -36,6 +38,9 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.support.DefaultSessionAttributeStore;
 import org.springframework.web.bind.support.SessionAttributeStore;
 import org.springframework.web.filter.CompositeFilter;
@@ -127,9 +132,8 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
      */
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        // match only TokenEndpoint
-        // TODO add requestMatcher to match also introspect etc
-        http.antMatcher("/oauth/token")
+        // match only token endpoints
+        http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
                         .anyRequest().hasAnyAuthority("ROLE_CLIENT"))
                 // disable request cache, we override redirects but still better enforce it
@@ -291,7 +295,7 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     @Bean
     public OAuth2TokenServices getTokenServices(
             OAuth2ClientDetailsService clientDetailsService,
-            ExtTokenStore tokenStore,   ApprovalStore approvalStore,
+            ExtTokenStore tokenStore, ApprovalStore approvalStore,
             AACTokenEnhancer tokenEnhancer) throws PropertyVetoException {
         OAuth2TokenServices tokenServices = new OAuth2TokenServices(tokenStore);
         tokenServices.setClientDetailsService(clientDetailsService);
@@ -398,7 +402,7 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
         return tokenEndpoint;
     }
 
-    public Filter getOAuth2ProviderFilters(
+    private Filter getOAuth2ProviderFilters(
             OAuth2ClientDetailsService clientDetailsService,
             PeekableAuthorizationCodeServices authCodeServices) {
 
@@ -414,17 +418,40 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
         ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
         formTokenEndpointFilter.setAuthenticationManager(authManager);
 
+        // TODO consolidate basicFilter for all endpoints
         ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
         basicTokenEndpointFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+
+        ClientBasicAuthFilter basicTokenIntrospectFilter = new ClientBasicAuthFilter("/oauth/introspect");
+        basicTokenIntrospectFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+
+        ClientBasicAuthFilter basicTokenRevokeFilter = new ClientBasicAuthFilter("/oauth/revoke");
+        basicTokenRevokeFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
 
         List<Filter> filters = new ArrayList<>();
         filters.add(basicTokenEndpointFilter);
         filters.add(formTokenEndpointFilter);
+        filters.add(basicTokenIntrospectFilter);
+        filters.add(basicTokenRevokeFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);
 
         return filter;
     }
+
+    public RequestMatcher getRequestMatcher() {
+        List<RequestMatcher> antMatchers = Arrays.stream(TOKEN_URLS).map(u -> new AntPathRequestMatcher(u))
+                .collect(Collectors.toList());
+
+        return new OrRequestMatcher(antMatchers);
+
+    }
+
+    public static final String[] TOKEN_URLS = {
+            "/oauth/token",
+            "/oauth/introspect",
+            "/oauth/revoke"
+    };
 
 }

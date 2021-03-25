@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.ClientService;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientInfo;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
@@ -45,7 +45,7 @@ public class OAuth2ClientService implements ClientService {
     // keep a list of supported grant types, should match tokenGranters
     private static final Set<AuthorizationGrantType> VALID_GRANT_TYPES;
     // keep supported client auth schemes, match clientAuthFilters
-    private static final Set<AuthenticationScheme> VALID_AUTH_SCHEME;
+    private static final Set<AuthenticationMethod> VALID_AUTH_METHODS;
 
     static {
         Set<AuthorizationGrantType> n = new HashSet<>();
@@ -56,10 +56,10 @@ public class OAuth2ClientService implements ClientService {
         n.add(AuthorizationGrantType.REFRESH_TOKEN);
         VALID_GRANT_TYPES = Collections.unmodifiableSet(n);
 
-        Set<AuthenticationScheme> s = new HashSet<>();
-        s.add(AuthenticationScheme.BASIC);
-        s.add(AuthenticationScheme.FORM);
-        VALID_AUTH_SCHEME = Collections.unmodifiableSet(s);
+        Set<AuthenticationMethod> s = new HashSet<>();
+        s.add(AuthenticationMethod.CLIENT_SECRET_BASIC);
+        s.add(AuthenticationMethod.CLIENT_SECRET_POST);
+        VALID_AUTH_METHODS = Collections.unmodifiableSet(s);
 
     }
 
@@ -222,7 +222,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
-            Collection<AuthenticationScheme> authenticationScheme,
+            Collection<AuthenticationMethod> authenticationMethods,
             Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
@@ -242,7 +242,7 @@ public class OAuth2ClientService implements ClientService {
                 clientSecret,
                 authorizedGrantTypes,
                 redirectUris,
-                tokenType, authenticationScheme,
+                tokenType, authenticationMethods,
                 firstParty, autoApproveScopes,
                 accessTokenValidity, refreshTokenValidity,
                 jwtSignAlgorithm,
@@ -261,7 +261,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
-            Collection<AuthenticationScheme> authenticationScheme,
+            Collection<AuthenticationMethod> authenticationMethods,
             Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
@@ -307,21 +307,21 @@ public class OAuth2ClientService implements ClientService {
             tokenType = null;
         }
 
-        if (authenticationScheme != null) {
+        if (authenticationMethods != null) {
             // validate
-            if (authenticationScheme.stream().anyMatch(a -> !VALID_AUTH_SCHEME.contains(a))) {
+            if (authenticationMethods.stream().anyMatch(a -> !VALID_AUTH_METHODS.contains(a))) {
                 throw new IllegalArgumentException("Invalid authentication scheme");
             }
         }
 
-        if (authenticationScheme == null || authenticationScheme.isEmpty()) {
+        if (authenticationMethods == null || authenticationMethods.isEmpty()) {
             // enable basic
-            authenticationScheme = new HashSet<>();
-            authenticationScheme.add(AuthenticationScheme.BASIC);
+            authenticationMethods = new HashSet<>();
+            authenticationMethods.add(AuthenticationMethod.CLIENT_SECRET_BASIC);
 
             // if authGrant also enable form for PKCE
             if (authorizedGrantTypes.contains(AuthorizationGrantType.AUTHORIZATION_CODE)) {
-                authenticationScheme.add(AuthenticationScheme.FORM);
+                authenticationMethods.add(AuthenticationMethod.CLIENT_SECRET_POST);
             }
         }
 
@@ -354,7 +354,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
-        oauth.setAuthenticationScheme(StringUtils.collectionToCommaDelimitedString(authenticationScheme));
+        oauth.setAuthenticationMethods(StringUtils.collectionToCommaDelimitedString(authenticationMethods));
         oauth.setFirstParty(isFirstParty);
         oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
         oauth.setAccessTokenValidity(accessTokenValidity);
@@ -381,7 +381,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
-            Collection<AuthenticationScheme> authenticationScheme,
+            Collection<AuthenticationMethod> authenticationMethods,
             Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
@@ -403,10 +403,10 @@ public class OAuth2ClientService implements ClientService {
             }
         }
 
-        if (authenticationScheme != null) {
+        if (authenticationMethods != null) {
             // validate
-            if (authenticationScheme.stream().anyMatch(a -> !VALID_AUTH_SCHEME.contains(a))) {
-                throw new IllegalArgumentException("Invalid authentication scheme");
+            if (authenticationMethods.stream().anyMatch(a -> !VALID_AUTH_METHODS.contains(a))) {
+                throw new IllegalArgumentException("Invalid authentication method");
             }
         }
 
@@ -451,7 +451,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
-        oauth.setAuthenticationScheme(StringUtils.collectionToCommaDelimitedString(authenticationScheme));
+        oauth.setAuthenticationMethods(StringUtils.collectionToCommaDelimitedString(authenticationMethods));
         oauth.setFirstParty(isFirstParty);
         oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
         oauth.setAccessTokenValidity(accessTokenValidity);

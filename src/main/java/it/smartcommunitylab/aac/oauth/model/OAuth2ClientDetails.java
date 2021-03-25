@@ -15,7 +15,7 @@ public class OAuth2ClientDetails extends BaseClientDetails {
 
     private String tokenType;
 
-    private Set<String> authenticationScheme = Collections.emptySet();
+    private Set<String> authenticationMethods = Collections.emptySet();
 
     private boolean firstParty = false;
 
@@ -53,12 +53,12 @@ public class OAuth2ClientDetails extends BaseClientDetails {
         this.tokenType = tokenType;
     }
 
-    public Set<String> getAuthenticationScheme() {
-        return authenticationScheme;
+    public Set<String> getAuthenticationMethods() {
+        return authenticationMethods;
     }
 
-    public void setAuthenticationScheme(Set<String> authenticationScheme) {
-        this.authenticationScheme = authenticationScheme;
+    public void setAuthenticationMethods(Set<String> authenticationMethods) {
+        this.authenticationMethods = authenticationMethods;
     }
 
     public String getJwks() {

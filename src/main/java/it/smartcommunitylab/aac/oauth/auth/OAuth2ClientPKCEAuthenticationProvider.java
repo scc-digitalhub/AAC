@@ -50,7 +50,7 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
         String clientId = authRequest.getPrincipal();
         String code = authRequest.getCode();
         String codeVerifier = authRequest.getCodeVerifier();
-        String authenticationScheme = authRequest.getAuthenticationScheme();
+        String authenticationMethod = authRequest.getAuthenticationMethod();
 
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(code) || !StringUtils.hasText(codeVerifier)) {
             throw new BadCredentialsException("missing required parameters in request");
@@ -60,8 +60,8 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
         OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
         // check if client can authenticate with this scheme
-        if (!client.getAuthenticationScheme().contains(authenticationScheme)) {
-            this.logger.debug("Failed to authenticate since client can not use basic scheme");
+        if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
+            this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
             throw new BadCredentialsException("invalid authentication");
         }
 
@@ -102,7 +102,7 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
         // result contains credentials, someone later on will need to call
         // eraseCredentials
         OAuth2ClientPKCEAuthenticationToken result = new OAuth2ClientPKCEAuthenticationToken(clientId, code,
-                codeVerifier, authenticationScheme,
+                codeVerifier, authenticationMethod,
                 client.getAuthorities());
 
         // save details

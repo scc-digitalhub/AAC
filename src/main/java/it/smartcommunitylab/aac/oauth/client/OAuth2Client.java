@@ -25,7 +25,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
@@ -41,7 +41,7 @@ public class OAuth2Client extends BaseClient {
     private Set<String> redirectUris;
 
     private TokenType tokenType;
-    private Set<AuthenticationScheme> authenticationScheme;
+    private Set<AuthenticationMethod> authenticationMethods;
 
     private Boolean firstParty;
     private Set<String> autoApproveScopes;
@@ -62,7 +62,7 @@ public class OAuth2Client extends BaseClient {
         super(realm, clientId);
         authorizedGrantTypes = new HashSet<>();
         redirectUris = new HashSet<>();
-        authenticationScheme = new HashSet<>();
+        authenticationMethods = new HashSet<>();
         autoApproveScopes = new HashSet<>();
     }
 
@@ -105,12 +105,12 @@ public class OAuth2Client extends BaseClient {
         this.tokenType = tokenType;
     }
 
-    public Set<AuthenticationScheme> getAuthenticationScheme() {
-        return authenticationScheme;
+    public Set<AuthenticationMethod> getAuthenticationMethods() {
+        return authenticationMethods;
     }
 
-    public void setAuthenticationScheme(Set<AuthenticationScheme> authenticationScheme) {
-        this.authenticationScheme = authenticationScheme;
+    public void setAuthenticationMethods(Set<AuthenticationMethod> authenticationMethods) {
+        this.authenticationMethods = authenticationMethods;
     }
 
     public Set<String> getRedirectUris() {
@@ -227,10 +227,10 @@ public class OAuth2Client extends BaseClient {
                 map.put("redirectUris", new String[0]);
             }
 
-            if (authenticationScheme != null) {
-                map.put("authenticationScheme", authenticationScheme.toArray(new AuthenticationScheme[0]));
+            if (authenticationMethods != null) {
+                map.put("authenticationMethods", authenticationMethods.toArray(new AuthenticationMethod[0]));
             } else {
-                map.put("authenticationScheme", new AuthenticationScheme[0]);
+                map.put("authenticationMethods", new AuthenticationMethod[0]);
             }
 
             map.put("tokenType", tokenType);
@@ -308,9 +308,9 @@ public class OAuth2Client extends BaseClient {
                 .filter(a -> (a != null))
                 .collect(Collectors.toSet());
 
-        Set<String> authenticationSchemes = StringUtils.commaDelimitedListToSet(oauth.getAuthenticationScheme());
-        c.authenticationScheme = authenticationSchemes.stream()
-                .map(a -> AuthenticationScheme.parse(a))
+        Set<String> authenticationMethods = StringUtils.commaDelimitedListToSet(oauth.getAuthenticationMethods());
+        c.authenticationMethods = authenticationMethods.stream()
+                .map(a -> AuthenticationMethod.parse(a))
                 .filter(a -> (a != null))
                 .collect(Collectors.toSet());
 

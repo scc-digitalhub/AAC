@@ -27,6 +27,8 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
     @JsonIgnore
     private final String token;
 
+    private String[] audience;
+
     private String responseType = TokenType.TOKEN_TYPE_OPAQUE.getValue();
 
     // TODO evaluate if needed
@@ -80,6 +82,7 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
     public AACOAuth2AccessToken(AACOAuth2AccessToken accessToken) {
         this(accessToken.getValue());
 
+        setAudience(accessToken.getAudience());
         setRefreshToken(accessToken.getRefreshToken());
         setExpiration(accessToken.getExpiration());
         setScope(accessToken.getScope());
@@ -110,6 +113,9 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
         if (accessToken instanceof AACOAuth2AccessToken) {
             AACOAuth2AccessToken token = (AACOAuth2AccessToken) accessToken;
+
+            setAudience(token.getAudience());
+
             // copy dates
             setIssuedAt(token.getIssuedAt());
             setNotBeforeTime(token.getNotBeforeTime());
@@ -132,6 +138,14 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     public String getValue() {
         return value;
+    }
+
+    public String[] getAudience() {
+        return audience;
+    }
+
+    public void setAudience(String[] audience) {
+        this.audience = audience;
     }
 
     public String getResponseType() {

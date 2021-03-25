@@ -387,6 +387,11 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         OAuth2Request request = authentication.getOAuth2Request();
         String clientId = request.getClientId();
         Set<String> scopes = request.getScope();
+        Set<String> resourceIds = request.getResourceIds();
+        // build audience from clientId + resolved resourceids
+        Set<String> audience = new HashSet<>();
+        audience.add(clientId);
+        audience.addAll(resourceIds);
 
         logger.trace("create access token for " + clientId + " with validity "
                 + String.valueOf(validitySeconds));
@@ -399,6 +404,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
 
         token.setExpiration(new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
         token.setScope(scopes);
+        token.setAudience(audience.toArray(new String[0]));
 
         logger.info("Created token " + token.getValue() + " expires at " + token.getExpiration());
         return token;

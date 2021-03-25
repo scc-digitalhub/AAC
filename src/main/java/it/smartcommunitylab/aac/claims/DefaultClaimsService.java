@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -32,13 +33,13 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
-
 public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     public static final String CLAIM_MAPPING_FUNCTION = "claimMapping";
 
     // claims that should not be overwritten
     private static final Set<String> REGISTERED_CLAIM_NAMES = JWTClaimsSet.getRegisteredNames();
+    private static final Set<String> STANDARD_CLAIM_NAMES = IDTokenClaimsSet.getStandardClaimNames();
     private static final Set<String> SYSTEM_CLAIM_NAMES;
 
     static {
@@ -182,6 +183,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Map<String, Serializable> allowedClaims = customClaims.entrySet().stream()
                     .filter(e -> (!reservedKeys.contains(e.getKey()) &&
                             !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
                             !SYSTEM_CLAIM_NAMES.contains(e.getKey())))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
             claims.putAll(allowedClaims);

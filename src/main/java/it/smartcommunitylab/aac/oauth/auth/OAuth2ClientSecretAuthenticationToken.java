@@ -14,19 +14,19 @@ public class OAuth2ClientSecretAuthenticationToken extends OAuth2ClientAuthentic
 
     private String credentials;
 
-    public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationScheme) {
+    public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationMethod) {
         super(clientId);
         this.credentials = clientSecret;
-        this.authenticationScheme = authenticationScheme;
+        this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
 
     }
 
-    public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationScheme,
+    public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationMethod,
             Collection<? extends GrantedAuthority> authorities) {
         super(clientId, authorities);
         this.credentials = clientSecret;
-        this.authenticationScheme = authenticationScheme;
+        this.authenticationMethod = authenticationMethod;
     }
 
     @Override

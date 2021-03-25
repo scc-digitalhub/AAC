@@ -36,7 +36,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import it.smartcommunitylab.aac.core.auth.NoOpAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter.ClientCredentialsRequestMatcher;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 
 /**
  * Filter for the client credential token acquisition. Extends the standard
@@ -113,7 +113,7 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
 
         clientId = clientId.trim();
         AbstractAuthenticationToken authRequest = new OAuth2ClientSecretAuthenticationToken(clientId,
-                clientSecret, AuthenticationScheme.FORM.getValue());
+                clientSecret, AuthenticationMethod.CLIENT_SECRET_POST.getValue());
 
         // PKCE requests can avoid secret, let's check
         if (!StringUtils.hasText(clientSecret)) {
@@ -123,7 +123,7 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
                 String verifier = request.getParameter("code_verifier");
                 // replace request
                 authRequest = new OAuth2ClientPKCEAuthenticationToken(clientId, code, verifier,
-                        AuthenticationScheme.FORM.getValue());
+                        AuthenticationMethod.CLIENT_SECRET_POST.getValue());
             }
         }
 

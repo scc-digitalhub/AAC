@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.auth.NoOpAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 
 public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilter {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -141,7 +141,7 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
 
         // convert to our authRequest
         OAuth2ClientSecretAuthenticationToken authRequest = new OAuth2ClientSecretAuthenticationToken(clientId,
-                clientSecret, AuthenticationScheme.BASIC.getValue());
+                clientSecret, AuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
 
         // collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

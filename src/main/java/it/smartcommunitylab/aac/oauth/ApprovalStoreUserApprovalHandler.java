@@ -357,7 +357,15 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     }
 
     private AuthorizationRequest updateScopeApprovals(AuthorizationRequest authorizationRequest,
-            Authentication userAuthentication) {
+            Authentication userAuth) {
+
+        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+            throw new InvalidRequestException("approval requires a valid user authentication");
+        }
+
+        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+        String subjectId = userDetails.getSubjectId();
+
         // Get the approved scopes
         Set<String> requestedScopes = authorizationRequest.getScope();
         Set<String> approvedScopes = new HashSet<String>();
@@ -393,7 +401,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         for (String requestedScope : requestedScopes) {
 
-            approvals.add(new Approval(userAuthentication.getName(), authorizationRequest.getClientId(),
+            approvals.add(new Approval(subjectId, authorizationRequest.getClientId(),
                     requestedScope, expiry, userApproved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED));
 
             if (userApproved) {

@@ -6,7 +6,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 
 /*
  * A usernamePassword auth token to be used for clientId+verifier auth
@@ -19,21 +19,21 @@ public class OAuth2ClientPKCEAuthenticationToken extends OAuth2ClientAuthenticat
     private String code;
 
     public OAuth2ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier,
-            String authenticationScheme) {
+            String authenticationMethod) {
         super(clientId);
         this.codeVerifier = codeVerifier;
         this.code = code;
-        this.authenticationScheme = authenticationScheme;
+        this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
     }
 
     public OAuth2ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier,
-            String authenticationScheme,
+            String authenticationMethod,
             Collection<? extends GrantedAuthority> authorities) {
         super(clientId, authorities);
         this.codeVerifier = codeVerifier;
         this.code = code;
-        this.authenticationScheme = authenticationScheme;
+        this.authenticationMethod = authenticationMethod;
 
     }
 

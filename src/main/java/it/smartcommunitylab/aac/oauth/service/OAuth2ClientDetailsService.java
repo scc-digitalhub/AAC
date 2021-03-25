@@ -64,7 +64,7 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
 
         clientDetails.setAuthorizedGrantTypes(StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes()));
         clientDetails.setRegisteredRedirectUri(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
-        clientDetails.setAuthenticationScheme(StringUtils.commaDelimitedListToSet(oauth.getAuthenticationScheme()));
+        clientDetails.setAuthenticationMethods(StringUtils.commaDelimitedListToSet(oauth.getAuthenticationMethods()));
 
         clientDetails.setFirstParty(oauth.isFirstParty());
         clientDetails.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));

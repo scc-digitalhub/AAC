@@ -24,7 +24,7 @@ public abstract class OAuth2ClientAuthenticationToken extends AbstractAuthentica
     // web authentication details
     protected WebAuthenticationDetails webAuthenticationDetails;
 
-    protected String authenticationScheme;
+    protected String authenticationMethod;
 
     public OAuth2ClientAuthenticationToken(String clientId) {
         super(null);
@@ -66,8 +66,8 @@ public abstract class OAuth2ClientAuthenticationToken extends AbstractAuthentica
         return realm;
     }
 
-    public String getAuthenticationScheme() {
-        return authenticationScheme;
+    public String getAuthenticationMethod() {
+        return authenticationMethod;
     }
 
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
@@ -100,8 +100,8 @@ public abstract class OAuth2ClientAuthenticationToken extends AbstractAuthentica
         this.details = details;
     }
 
-    public void setAuthenticationScheme(String authenticationScheme) {
-        this.authenticationScheme = authenticationScheme;
+    public void setAuthenticationMethod(String authenticationMethod) {
+        this.authenticationMethod = authenticationMethod;
     }
 
 }

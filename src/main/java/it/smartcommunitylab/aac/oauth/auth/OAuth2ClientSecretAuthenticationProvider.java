@@ -12,7 +12,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationScheme;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
@@ -40,7 +40,7 @@ public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationP
         OAuth2ClientSecretAuthenticationToken authRequest = (OAuth2ClientSecretAuthenticationToken) authentication;
         String clientId = authRequest.getPrincipal();
         String clientSecret = authRequest.getCredentials();
-        String authenticationScheme = authRequest.getAuthenticationScheme();
+        String authenticationMethod = authRequest.getAuthenticationMethod();
 
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(clientSecret)) {
             throw new BadCredentialsException("missing required parameters in request");
@@ -50,8 +50,8 @@ public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationP
         OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
         // check if client can authenticate with this scheme
-        if (!client.getAuthenticationScheme().contains(authenticationScheme)) {
-            this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationScheme);
+        if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
+            this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
             throw new BadCredentialsException("invalid authentication");
         }
 
@@ -68,7 +68,7 @@ public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationP
         // eraseCredentials
         OAuth2ClientSecretAuthenticationToken result = new OAuth2ClientSecretAuthenticationToken(
                 clientId, clientSecret,
-                authenticationScheme,
+                authenticationMethod,
                 client.getAuthorities());
 
         // save details
