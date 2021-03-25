@@ -216,7 +216,6 @@
 		</dependency>
 
 
-		<!-- MITRE OPENID DEPENDENCIES -->
 		<dependency>
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
