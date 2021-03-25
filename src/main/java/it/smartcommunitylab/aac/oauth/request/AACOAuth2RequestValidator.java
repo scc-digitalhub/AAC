@@ -18,15 +18,15 @@ package it.smartcommunitylab.aac.oauth.request;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.OAuth2RequestValidator;
 import org.springframework.security.oauth2.provider.TokenRequest;
-import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestValidator;
-
 import it.smartcommunitylab.aac.Config;
 
 /**
@@ -35,7 +35,7 @@ import it.smartcommunitylab.aac.Config;
  * @author raman
  *
  */
-public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
+public class AACOAuth2RequestValidator implements OAuth2RequestValidator {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public void validateScope(AuthorizationRequest authorizationRequest, ClientDetails client)
@@ -47,8 +47,7 @@ public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
         // check grant type and act accordingly
         String grantType = tokenRequest.getGrantType();
         // NOTE that TokenEndpoint will simply ignore requestFactory scopes for refresh
-        // grant
-        // and insert *after* this check the ones fetched from request WITHOUT
+        // grant and insert *after* this check the ones fetched from request WITHOUT
         // VALIDATION!
         if (Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
                 Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) ||
@@ -69,17 +68,28 @@ public class AACOAuth2RequestValidator extends DefaultOAuth2RequestValidator {
         logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
                 + " against client " + String.valueOf(clientScopes.toString()));
 
-        // handle default case
+        Set<String> validScopes = (clientScopes != null ? clientScopes : Collections.emptySet());
 
-        if (clientScopes != null && !clientScopes.isEmpty()) {
-            for (String scope : requestScopes) {
-                if (Config.SCOPE_OPERATION_CONFIRMED.equals(scope))
-                    continue;
-                if (!clientScopes.contains(scope)) {
-                    throw new InvalidScopeException("Invalid scope: " + scope, clientScopes);
-                }
-            }
+        // each scope has to be pre-authorized
+        Set<String> unauthorizedScopes = requestScopes.stream().filter(s -> !validScopes.contains(s))
+                .collect(Collectors.toSet());
+
+        if (!unauthorizedScopes.isEmpty()) {
+            String invalidScopes = String.join(" ", unauthorizedScopes);
+            throw new InvalidScopeException("Invalid scope: " + invalidScopes, validScopes);
         }
+
+//        // handle default case
+//
+//        if (clientScopes != null && !clientScopes.isEmpty()) {
+//            for (String scope : requestScopes) {
+//                if (Config.SCOPE_OPERATION_CONFIRMED.equals(scope))
+//                    continue;
+//                if (!clientScopes.contains(scope)) {
+//                    throw new InvalidScopeException("Invalid scope: " + scope, clientScopes);
+//                }
+//            }
+//        }
 
 //        if (requestScopes.isEmpty()) {
 //            logger.debug("empty scopes");

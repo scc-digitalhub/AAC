@@ -51,7 +51,7 @@ public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationP
 
         // check if client can authenticate with this scheme
         if (!client.getAuthenticationScheme().contains(authenticationScheme)) {
-            this.logger.debug("Failed to authenticate since client can not use basic scheme");
+            this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationScheme);
             throw new BadCredentialsException("invalid authentication");
         }
 

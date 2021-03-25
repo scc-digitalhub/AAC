@@ -43,6 +43,9 @@ public class OAuth2Client extends BaseClient {
     private TokenType tokenType;
     private Set<AuthenticationScheme> authenticationScheme;
 
+    private Boolean firstParty;
+    private Set<String> autoApproveScopes;
+
     private Integer accessTokenValidity;
     private Integer refreshTokenValidity;
 
@@ -60,6 +63,7 @@ public class OAuth2Client extends BaseClient {
         authorizedGrantTypes = new HashSet<>();
         redirectUris = new HashSet<>();
         authenticationScheme = new HashSet<>();
+        autoApproveScopes = new HashSet<>();
     }
 
     @Override
@@ -115,6 +119,22 @@ public class OAuth2Client extends BaseClient {
 
     public void setRedirectUris(Set<String> redirectUris) {
         this.redirectUris = redirectUris;
+    }
+
+    public Boolean getFirstParty() {
+        return firstParty;
+    }
+
+    public void setFirstParty(Boolean firstParty) {
+        this.firstParty = firstParty;
+    }
+
+    public Set<String> getAutoApproveScopes() {
+        return autoApproveScopes;
+    }
+
+    public void setAutoApproveScopes(Set<String> autoApproveScopes) {
+        this.autoApproveScopes = autoApproveScopes;
     }
 
     public Integer getAccessTokenValidity() {
@@ -208,12 +228,20 @@ public class OAuth2Client extends BaseClient {
             }
 
             if (authenticationScheme != null) {
-                map.put("authenticationScheme", authenticationScheme.toArray(new String[0]));
+                map.put("authenticationScheme", authenticationScheme.toArray(new AuthenticationScheme[0]));
             } else {
-                map.put("authenticationScheme", new String[0]);
+                map.put("authenticationScheme", new AuthenticationScheme[0]);
             }
 
             map.put("tokenType", tokenType);
+
+            map.put("firstParty", firstParty);
+            if (autoApproveScopes != null) {
+                map.put("autoApproveScopes", autoApproveScopes.toArray(new String[0]));
+            } else {
+                map.put("autoApproveScopes", new String[0]);
+            }
+
             map.put("accessTokenValidity", accessTokenValidity);
             map.put("refreshTokenValidity", refreshTokenValidity);
 
@@ -288,6 +316,9 @@ public class OAuth2Client extends BaseClient {
 
         c.redirectUris.addAll(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
         c.setResourceIds(StringUtils.commaDelimitedListToSet(oauth.getResourceIds()));
+
+        c.setFirstParty(oauth.isFirstParty());
+        c.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
 
         c.accessTokenValidity = oauth.getAccessTokenValidity();
         c.refreshTokenValidity = oauth.getRefreshTokenValidity();

@@ -58,7 +58,7 @@
 		
 		      <p th:utext="#{lbl_approval_authorize(${clientName})}">Text:</p>
 		      <ul class="permission">
-		        <li th:each="r : ${resources}" th:text="${r.name}"></li>
+		        <li th:each="r : ${resources}" th:text="${r.key}"></li>
 		      </ul>
 	      </div>
 	

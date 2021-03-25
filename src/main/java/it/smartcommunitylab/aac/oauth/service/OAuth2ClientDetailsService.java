@@ -56,12 +56,18 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         // build details
         OAuth2ClientDetails clientDetails = new OAuth2ClientDetails();
         clientDetails.setRealm(client.getRealm());
+        clientDetails.setName(client.getName());
         clientDetails.setClientId(clientId);
         clientDetails.setClientSecret(oauth.getClientSecret());
         clientDetails.setScope(StringUtils.commaDelimitedListToSet(client.getScopes()));
+        clientDetails.setResourceIds(StringUtils.commaDelimitedListToSet(client.getResourceIds()));
 
         clientDetails.setAuthorizedGrantTypes(StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes()));
         clientDetails.setRegisteredRedirectUri(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
+        clientDetails.setAuthenticationScheme(StringUtils.commaDelimitedListToSet(oauth.getAuthenticationScheme()));
+
+        clientDetails.setFirstParty(oauth.isFirstParty());
+        clientDetails.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
 
         // token settings
         clientDetails.setTokenType(oauth.getTokenType());

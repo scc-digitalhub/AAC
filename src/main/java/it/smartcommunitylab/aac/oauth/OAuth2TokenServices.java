@@ -1,7 +1,9 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -9,6 +11,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
 import org.springframework.security.crypto.keygen.KeyGenerators;
@@ -17,6 +20,7 @@ import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
@@ -24,6 +28,9 @@ import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
@@ -36,6 +43,8 @@ import com.nimbusds.oauth2.sdk.GrantType;
 import com.nimbusds.oauth2.sdk.ParseException;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
@@ -63,6 +72,8 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
 
     // services
     private final ExtTokenStore tokenStore;
+    private ApprovalStore approvalStore;
+
     private AACTokenEnhancer tokenEnhancer;
     private OAuth2ClientDetailsService clientDetailsService;
 
@@ -158,6 +169,12 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         // TODO build a new preauthented request and refresh identities
         OAuth2Authentication authentication = tokenStore.readAuthenticationForRefreshToken(refreshToken);
 
+        // check if userAuth is present
+        Authentication userAuth = authentication.getUserAuthentication();
+        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+            throw new InvalidRequestException("refresh requires a valid user authentication");
+        }
+
         // validate now if client is the same as the authorized one
         String clientId = authentication.getOAuth2Request().getClientId();
         if (clientId == null || !clientId.equals(tokenRequest.getClientId())) {
@@ -178,7 +195,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         // pick renewal to contain at least a number of access tokens
         int refreshRenewalSeconds = Math.max(refreshTokenRenewalWindowSeconds, accessValiditySeconds * 12);
 
-        // TODO evaluate refusing refresh with not-authorized tokens: now we simply
+        // TODO evaluate refusing refresh with not-authorized scopes: now we simply
         // avoid those and return only those authorized, we could return an error and
         // avoid removing other tokens
 
@@ -389,16 +406,33 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
 
     private OAuth2Authentication refreshAuthentication(OAuth2Authentication authentication, TokenRequest tokenRequest) {
 
+        String clientId = tokenRequest.getClientId();
+
         // check here if requested scopes are subset of granted
-        Set<String> scope = tokenRequest.getScope();
+        Set<String> scopes = tokenRequest.getScope();
         Set<String> authorizedScopes = authentication.getOAuth2Request().getScope();
+        // we should also refresh scopes from approvalStore and check that the
+        // client can still use the scopes previously authorized
+        Set<String> approvedScopes = authorizedScopes;
+        if (approvalStore != null) {
+            approvedScopes = getUserApproved(authentication.getUserAuthentication().getName(), clientId);
+        }
+
+        // only scopes still approved are allowed
+        Set<String> allowedScopes = new HashSet<>();
+        for (String scope : authorizedScopes) {
+            if (approvedScopes.contains(scope)) {
+                allowedScopes.add(scope);
+            }
+        }
+
         OAuth2Request request = authentication.getOAuth2Request().refresh(tokenRequest);
 
         // we narrow down if scopes are specified, otherwise we'll keep those authorized
-        if (scope != null && !scope.isEmpty()) {
+        if (scopes != null && !scopes.isEmpty()) {
             // narrow down authorized scopes to requested
             // we filter here since narrowScope on request really is a setScope..
-            Set<String> narrowedScope = scope.stream().filter(s -> authorizedScopes.contains(s))
+            Set<String> narrowedScope = scopes.stream().filter(s -> allowedScopes.contains(s))
                     .collect(Collectors.toSet());
             request = request.narrowScope(narrowedScope);
         }
@@ -435,6 +469,33 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
 
     }
 
+    private Set<String> getUserApproved(String subjectId, String clientId) {
+        Set<String> userApprovedScopes = new HashSet<>();
+
+        // fetch previously approved from store
+        Collection<Approval> userApprovals = approvalStore.getApprovals(subjectId, clientId);
+        Set<Approval> expiredApprovals = new HashSet<>();
+
+        // add those not expired to list and remove others
+        for (Approval approval : userApprovals) {
+            if (approval.isCurrentlyActive()) {
+                // check if approved or denied, we'll let user decide again on denied
+                if (approval.getStatus().equals(ApprovalStatus.APPROVED)) {
+                    userApprovedScopes.add(approval.getScope());
+                }
+            } else {
+                // inactive means expired, cleanup
+                expiredApprovals.add(approval);
+            }
+        }
+
+        // cleanup expired
+        if (!expiredApprovals.isEmpty()) {
+            approvalStore.revokeApprovals(expiredApprovals);
+        }
+        return userApprovedScopes;
+    }
+
     /*
      * Properties
      */
@@ -464,6 +525,10 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
 
     public void setRemoveExpired(boolean removeExpired) {
         this.removeExpired = removeExpired;
+    }
+
+    public void setApprovalStore(ApprovalStore approvalStore) {
+        this.approvalStore = approvalStore;
     }
 
 }

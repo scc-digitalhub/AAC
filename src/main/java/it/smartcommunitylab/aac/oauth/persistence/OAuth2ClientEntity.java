@@ -100,10 +100,13 @@ public class OAuth2ClientEntity {
 
     /*
      * first party clients won't require approval for in-realm resource consumption
-     * (realm idp, realm identity, realm service etc)
+     * (realm idp, realm identity, realm service etc) matching a list of scopes
      */
     @Column(name = "first_party")
     private boolean firstParty;
+
+    @Column(name = "autoapprove_scopes")
+    private String autoApproveScopes;
 
     // TODO evaluate registering resourceIds to be able to validate requests
     @Column(name = "resource_ids")
@@ -243,6 +246,14 @@ public class OAuth2ClientEntity {
 
     public void setFirstParty(boolean firstParty) {
         this.firstParty = firstParty;
+    }
+
+    public String getAutoApproveScopes() {
+        return autoApproveScopes;
+    }
+
+    public void setAutoApproveScopes(String autoApproveScopes) {
+        this.autoApproveScopes = autoApproveScopes;
     }
 
 }

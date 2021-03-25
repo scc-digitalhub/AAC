@@ -23,7 +23,9 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.OAuth2RequestValidator;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
 import org.springframework.security.oauth2.provider.TokenGranter;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler;
+import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint;
@@ -44,6 +46,8 @@ import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHe
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
+import it.smartcommunitylab.aac.oauth.ApprovalStoreUserApprovalHandler;
+import it.smartcommunitylab.aac.oauth.AutoJdbcApprovalStore;
 import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
 import it.smartcommunitylab.aac.oauth.ClaimsTokenEnhancer;
@@ -196,11 +200,11 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
 //        return new OAuth2ClientUserDetailsService(clientRepository);
 //    }
 
-    @Bean
-    public UserApprovalHandler getUserApprovalHandler() {
-        // TODO replace our handler
-        return new DefaultUserApprovalHandler();
-    }
+//    @Bean
+//    public UserApprovalHandler getUserApprovalHandler() {
+////        // TODO replace our handler
+//        return new DefaultUserApprovalHandler();
+//    }
 
     @Bean
     public SessionAttributeStore getLocalSessionAttributeStore() {
@@ -211,6 +215,22 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     @Bean
     public ExtTokenStore getJDBCTokenStore() throws PropertyVetoException {
         return new AutoJdbcTokenStore(dataSource);
+    }
+
+    @Bean
+    public JdbcApprovalStore getApprovalStore() throws PropertyVetoException {
+        return new AutoJdbcApprovalStore(dataSource);
+    }
+
+    @Bean
+    public ApprovalStoreUserApprovalHandler userApprovalHandler(
+            ApprovalStore approvalStore,
+            OAuth2ClientDetailsService clientDetailsService) {
+        ApprovalStoreUserApprovalHandler handler = new ApprovalStoreUserApprovalHandler();
+        handler.setApprovalStore(approvalStore);
+        handler.setClientDetailsService(clientDetailsService);
+
+        return handler;
     }
 
     @Bean
@@ -271,10 +291,11 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     @Bean
     public OAuth2TokenServices getTokenServices(
             OAuth2ClientDetailsService clientDetailsService,
-            ExtTokenStore tokenStore,
+            ExtTokenStore tokenStore,   ApprovalStore approvalStore,
             AACTokenEnhancer tokenEnhancer) throws PropertyVetoException {
         OAuth2TokenServices tokenServices = new OAuth2TokenServices(tokenStore);
         tokenServices.setClientDetailsService(clientDetailsService);
+        tokenServices.setApprovalStore(approvalStore);
         tokenServices.setTokenEnhancer(tokenEnhancer);
         tokenServices.setAccessTokenValiditySeconds(accessTokenValidity);
         tokenServices.setRefreshTokenValiditySeconds(refreshTokenValidity);

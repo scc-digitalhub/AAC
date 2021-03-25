@@ -27,8 +27,6 @@ public class OAuth2ClientSecretAuthenticationToken extends OAuth2ClientAuthentic
         super(clientId, authorities);
         this.credentials = clientSecret;
         this.authenticationScheme = authenticationScheme;
-        super.setAuthenticated(true); // must use super, as we override
-
     }
 
     @Override

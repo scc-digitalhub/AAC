@@ -210,7 +210,7 @@ public class OAuth2ClientService implements ClientService {
     public OAuth2Client addClient(String realm, String clientId, String name) {
         return this.addClient(realm, clientId, name,
                 null, null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, null, null);
     }
 
     public OAuth2Client addClient(
@@ -223,6 +223,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<String> redirectUris,
             TokenType tokenType,
             Collection<AuthenticationScheme> authenticationScheme,
+            Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
@@ -242,6 +243,7 @@ public class OAuth2ClientService implements ClientService {
                 authorizedGrantTypes,
                 redirectUris,
                 tokenType, authenticationScheme,
+                firstParty, autoApproveScopes,
                 accessTokenValidity, refreshTokenValidity,
                 jwtSignAlgorithm,
                 jwtEncMethod, jwtEncAlgorithm,
@@ -260,6 +262,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<String> redirectUris,
             TokenType tokenType,
             Collection<AuthenticationScheme> authenticationScheme,
+            Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
@@ -322,6 +325,8 @@ public class OAuth2ClientService implements ClientService {
             }
         }
 
+        boolean isFirstParty = firstParty != null ? firstParty.booleanValue() : false;
+
         String jwtSignAlgorithmName = null;
         if (jwtSignAlgorithm != null) {
             jwtSignAlgorithmName = jwtSignAlgorithm.getName();
@@ -350,6 +355,8 @@ public class OAuth2ClientService implements ClientService {
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
         oauth.setAuthenticationScheme(StringUtils.collectionToCommaDelimitedString(authenticationScheme));
+        oauth.setFirstParty(isFirstParty);
+        oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
         oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);
@@ -375,6 +382,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<String> redirectUris,
             TokenType tokenType,
             Collection<AuthenticationScheme> authenticationScheme,
+            Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
@@ -414,6 +422,8 @@ public class OAuth2ClientService implements ClientService {
             tokenType = null;
         }
 
+        boolean isFirstParty = firstParty != null ? firstParty.booleanValue() : false;
+
         String jwtSignAlgorithmName = null;
         if (jwtSignAlgorithm != null) {
             jwtSignAlgorithmName = jwtSignAlgorithm.getName();
@@ -442,6 +452,8 @@ public class OAuth2ClientService implements ClientService {
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
         oauth.setAuthenticationScheme(StringUtils.collectionToCommaDelimitedString(authenticationScheme));
+        oauth.setFirstParty(isFirstParty);
+        oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
         oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);

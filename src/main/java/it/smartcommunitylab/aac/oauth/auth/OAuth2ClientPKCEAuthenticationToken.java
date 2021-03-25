@@ -35,7 +35,6 @@ public class OAuth2ClientPKCEAuthenticationToken extends OAuth2ClientAuthenticat
         this.code = code;
         this.authenticationScheme = authenticationScheme;
 
-        super.setAuthenticated(true); // must use super, as we override
     }
 
     @Override

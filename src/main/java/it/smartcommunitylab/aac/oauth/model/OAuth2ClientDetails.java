@@ -11,9 +11,13 @@ public class OAuth2ClientDetails extends BaseClientDetails {
 
     private String realm;
 
+    private String name;
+
     private String tokenType;
 
     private Set<String> authenticationScheme = Collections.emptySet();
+
+    private boolean firstParty = false;
 
     private String jwks;
 
@@ -31,6 +35,14 @@ public class OAuth2ClientDetails extends BaseClientDetails {
 
     public void setRealm(String realm) {
         this.realm = realm;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getTokenType() {
@@ -87,6 +99,14 @@ public class OAuth2ClientDetails extends BaseClientDetails {
 
     public void setJwtEncMethod(String jwtEncMethod) {
         this.jwtEncMethod = jwtEncMethod;
+    }
+
+    public boolean isFirstParty() {
+        return firstParty;
+    }
+
+    public void setFirstParty(boolean firstParty) {
+        this.firstParty = firstParty;
     }
 
 }
