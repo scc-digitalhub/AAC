@@ -90,6 +90,10 @@ import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.utils.Utils;
 
+/*
+ * Security config for AAC UI
+ */
+
 @Configuration
 @Order(9)
 @EnableConfigurationProperties

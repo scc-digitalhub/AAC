@@ -1,0 +1,39 @@
+package it.smartcommunitylab.aac.profiles.model;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public abstract class AbstractProfile implements Serializable {
+
+    private static ObjectMapper mapper = new ObjectMapper();
+
+    static {
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+    }
+
+    /*
+     * Convert profile, subclasses can override
+     */
+
+    public String toJson() throws IllegalArgumentException {
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Serializable> toMap() throws IllegalArgumentException {
+        try {
+            return mapper.convertValue(this, HashMap.class);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+}

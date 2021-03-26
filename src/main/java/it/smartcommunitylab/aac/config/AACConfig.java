@@ -29,6 +29,9 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 
+/*
+ * AAC core config
+ */
 @Configuration
 @Order(1)
 public class AACConfig {

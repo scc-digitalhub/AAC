@@ -32,6 +32,12 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
+import it.smartcommunitylab.aac.profiles.service.AccountProfileClaimsExtractor;
+import it.smartcommunitylab.aac.profiles.service.BasicProfileClaimsExtractor;
+import it.smartcommunitylab.aac.profiles.service.OpenIdAddressProfileClaimsExtractor;
+import it.smartcommunitylab.aac.profiles.service.OpenIdDefaultProfileClaimsExtractor;
+import it.smartcommunitylab.aac.profiles.service.OpenIdEmailProfileClaimsExtractor;
+import it.smartcommunitylab.aac.profiles.service.OpenIdPhoneProfileClaimsExtractor;
 
 public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
@@ -57,15 +63,21 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         n.add("space");
         n.add("accounts");
         n.add("realm");
+        n.add("session");
 
         SYSTEM_CLAIM_NAMES = Collections.unmodifiableSet(n);
     }
 
     // TODO add spaceRole service
 
-    // TODO add servicesService
-
     private ExecutionService executionService;
+
+    // claimExtractors
+    // we keep a map for active extractors. Note that a single extractor can
+    // respond to multiple scopes by registering many times. Nevertheless we require
+    // a consistent response.
+    // TODO export to a service to support clustered env
+    private Map<String, List<ClaimsExtractor>> extractors = new HashMap<>();
 
     // object mapper
     private final ObjectMapper mapper = new ObjectMapper();
@@ -74,6 +86,17 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     public DefaultClaimsService() {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
+
+        // register internal claimsExtractors
+        registerExtractor(new BasicProfileClaimsExtractor());
+        registerExtractor(new AccountProfileClaimsExtractor());
+
+        // openid
+        registerExtractor(new OpenIdDefaultProfileClaimsExtractor());
+        registerExtractor(new OpenIdEmailProfileClaimsExtractor());
+        registerExtractor(new OpenIdAddressProfileClaimsExtractor());
+        registerExtractor(new OpenIdPhoneProfileClaimsExtractor());
+
     }
 
     public void setExecutionService(ExecutionService executionService) {
@@ -83,6 +106,51 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(executionService, "an execution service is required");
+
+    }
+
+    public void registerExtractor(ClaimsExtractor extractor) {
+        if (extractor != null && StringUtils.hasText(extractor.getScope())) {
+            String scope = extractor.getScope();
+            if (!extractors.containsKey(scope)) {
+                extractors.put(scope, new ArrayList<>());
+            }
+
+            extractors.get(scope).add(extractor);
+        }
+    }
+
+    public void unregisterExtractors(String resourceId) {
+        if (StringUtils.hasText(resourceId)) {
+            // aac extractors can not be unregistered at runtime
+            if (resourceId.startsWith("aac.")) {
+                return;
+            }
+
+            // unregister all extractors for the given resourceId
+            for (String scope : extractors.keySet()) {
+                List<ClaimsExtractor> exs = extractors.get(scope);
+                Set<ClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
+                        .collect(Collectors.toSet());
+                exs.removeAll(toRemove);
+            }
+        }
+
+    }
+
+    public void unregisterExtractor(String resourceId, String scope) {
+        // aac extractors can not be unregistered at runtime
+        if (resourceId.startsWith("aac.")) {
+            return;
+        }
+
+        // unregister all extractors for the given resourceId responding to scope
+        if (extractors.containsKey(scope)) {
+            List<ClaimsExtractor> exs = extractors.get(scope);
+            Set<ClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
+                    .collect(Collectors.toSet());
+            exs.removeAll(toRemove);
+        }
 
     }
 
@@ -114,60 +182,74 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             // sorted alphabetically
         }
 
-        // process basic scopes from userDetails
-        if (scopes.contains(Config.SCOPE_OPENID)) {
-            Map<String, Serializable> openIdClaims = this.getUserClaimsFromOpenIdProfile(user, scopes);
-            claims.putAll(openIdClaims);
-        }
-
-        if (scopes.contains(Config.SCOPE_BASIC_PROFILE)) {
-            Map<String, Serializable> profileClaims = this.getUserClaimsFromBasicProfile(user);
-            claims.putAll(profileClaims);
-        }
-
-        if (scopes.contains(Config.SCOPE_ACCOUNT_PROFILE)) {
-            ArrayList<Serializable> accountClaims = this.getUserClaimsFromAccountProfile(user);
-            claims.put("accounts", accountClaims);
-        }
-
-        // realm role claims
-        if (scopes.contains(Config.SCOPE_ROLE)) {
-            // TODO read realmRoles from service (need impl)
-        }
-
-        // space roles
-        // TODO
-
-        // group claims
-        // TODO, we need to define groups
-
-        // services can add claims
-        Map<String, Serializable> servicesClaims = new HashMap<>();
-        // TODO
-        Set<String> serviceIds = new HashSet<>();
-        serviceIds.addAll(resourceIds);
-        // resolve scopes to services to integrate list
-        // TODO
         for (String scope : scopes) {
-            // TODO resolve if matches a service scope, fetch serviceId
+            if (extractors.containsKey(scope)) {
+                List<ClaimsExtractor> exts = extractors.get(scope);
+                for (ClaimsExtractor ce : exts) {
+                    // each extractor can respond, we let only internal to produce reserved claims
+                    Map<String, Serializable> userClaims = extractClaims(ce.extractUserClaims(user, client, scopes));
+                    if (userClaims != null) {
+                        claims.putAll(userClaims);
+                    }
+                }
+
+            }
         }
+//
+//        // process basic scopes from userDetails
+//        if (scopes.contains(Config.SCOPE_OPENID)) {
+//            Map<String, Serializable> openIdClaims = this.getUserClaimsFromOpenIdProfile(user, scopes);
+//            claims.putAll(openIdClaims);
+//        }
+//
+//        if (scopes.contains(Config.SCOPE_BASIC_PROFILE)) {
+//            Map<String, Serializable> profileClaims = this.getUserClaimsFromBasicProfile(user);
+//            claims.putAll(profileClaims);
+//        }
+//
+//        if (scopes.contains(Config.SCOPE_ACCOUNT_PROFILE)) {
+//            ArrayList<Serializable> accountClaims = this.getUserClaimsFromAccountProfile(user);
+//            claims.put("accounts", accountClaims);
+//        }
+//
+//        // realm role claims
+//        if (scopes.contains(Config.SCOPE_ROLE)) {
+//            // TODO read realmRoles from service (need impl)
+//        }
+//
+//        // space roles
+//        // TODO
+//
+//        // group claims
+//        // TODO, we need to define groups
+//
+//        // services can add claims
+//        Map<String, Serializable> servicesClaims = new HashMap<>();
+//        // TODO
+//        Set<String> serviceIds = new HashSet<>();
+//        serviceIds.addAll(resourceIds);
+//        // resolve scopes to services to integrate list
+//        // TODO
+//        for (String scope : scopes) {
+//            // TODO resolve if matches a service scope, fetch serviceId
+//        }
+//
+//        for (String serviceId : serviceIds) {
+//            // narrow down userDetails + clientDetails to match service realm
+//            // TODO
+//            // call service and let it provide additional data
+//            // TODO
+//            HashMap<String, Serializable> serviceClaims = null;
+//            // enforce prefix via service namespace
+//            // TODO
+//            String namespace = serviceId;
+//            servicesClaims.put(namespace, serviceClaims);
+//        }
+//
+//        // integrate, no clash thanks to namespacing
+//        claims.putAll(servicesClaims);
 
-        for (String serviceId : serviceIds) {
-            // narrow down userDetails + clientDetails to match service realm
-            // TODO
-            // call service and let it provide additional data
-            // TODO
-            HashMap<String, Serializable> serviceClaims = null;
-            // enforce prefix via service namespace
-            // TODO
-            String namespace = serviceId;
-            servicesClaims.put(namespace, serviceClaims);
-        }
-
-        // integrate, no clash thanks to namespacing
-        claims.putAll(servicesClaims);
-
-        // freeze reserved claims by keeping keys, these won't be modifiable
+        // freeze claims by keeping keys, these won't be modifiable
         Set<String> reservedKeys = Collections.unmodifiableSet(claims.keySet());
 
         // custom mapping
@@ -198,6 +280,39 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             throws NoSuchResourceException, InvalidDefinitionException, SystemException {
         // TODO
         return Collections.emptyMap();
+    }
+
+    public Map<String, Serializable> extractClaims(ClaimsSet set) {
+        if (set != null) {
+            // check for namespace, if present we avoid collisions with reserved
+            // we don't care about namespace collisions here
+            if (StringUtils.hasText(set.getNamespace())) {
+                // build a singleton map to be merged via new map
+                HashMap<String, Serializable> map = new HashMap<>();
+                HashMap<String, Serializable> content = new HashMap<>();
+                content.putAll(set.getClaims());
+                map.put(set.getNamespace(), content);
+
+                return map;
+            } else if (set.getResourceId().startsWith("aac.")) {
+                // we let internal map to tld, no checks
+                return set.getClaims();
+            } else {
+                // we let map to tld only for not-reserved claims
+                HashMap<String, Serializable> map = new HashMap<>();
+                for (Map.Entry<String, Serializable> e : set.getClaims().entrySet()) {
+                    if (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
+                            !SYSTEM_CLAIM_NAMES.contains(e.getKey())) {
+                        map.put(e.getKey(), e.getValue());
+                    }
+                }
+
+                return map;
+            }
+        }
+
+        return null;
     }
 
     public Map<String, Serializable> getUserClaimsFromBasicProfile(UserDetails user) {

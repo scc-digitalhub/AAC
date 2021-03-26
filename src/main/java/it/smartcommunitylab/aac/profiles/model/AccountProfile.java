@@ -25,7 +25,7 @@ import java.util.Map;
  * @author raman
  *
  */
-public class AccountProfile implements Serializable {
+public class AccountProfile extends AbstractProfile {
 
     private String authority;
     private String provider;

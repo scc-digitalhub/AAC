@@ -89,7 +89,7 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         AACOAuth2AccessToken token = new AACOAuth2AccessToken(accessToken);
 
         // evaluate if request is for an idToken
-        if (!scopes.contains(Config.SCOPE_OPENID)) {
+        if (!scopes.contains(Config.SCOPE_OPENID) || !request.getResponseTypes().contains("id_token")) {
             // nothing to do
             return token;
         }

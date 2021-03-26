@@ -6,7 +6,7 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class OpenIdProfile implements Serializable {
+public class OpenIdProfile extends AbstractProfile {
 
     private String name;
 

@@ -120,8 +120,11 @@ public class Config {
     public static final String SCOPE_ADDRESS = "address";
 
     public static final String SCOPE_ACCOUNT_PROFILE = "profile.accountprofile.me";
-    public static final String SCOPE_ACCOUNT_PROFILE_ALL = "profile.accountprofile.all";
     public static final String SCOPE_BASIC_PROFILE = "profile.basicprofile.me";
+    public static final String SCOPE_SESSION_PROFILE = "profile.sessionprofile.me";
+
+    /* api scopes */
+    public static final String SCOPE_ACCOUNT_PROFILE_ALL = "profile.accountprofile.all";
     public static final String SCOPE_BASIC_PROFILE_ALL = "profile.basicprofile.all";
 
     /** Predefined scope for user creation and management */
