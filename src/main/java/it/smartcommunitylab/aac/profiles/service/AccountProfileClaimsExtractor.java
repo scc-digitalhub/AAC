@@ -7,8 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
+
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.claims.ClaimsExtractor;
+import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -19,7 +21,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 
-public class AccountProfileClaimsExtractor implements ClaimsExtractor {
+@Component
+public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
 
     public final static String NAMESPACE = "accounts";
 

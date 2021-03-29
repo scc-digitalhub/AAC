@@ -20,7 +20,7 @@ import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 
-public class LocalGraalExecutionService implements ExecutionService {
+public class LocalGraalExecutionService implements ScriptExecutionService {
 
     public static final int DEFAULT_MAX_CPU_TIME = 100;
     public static final int DEFAULT_MAX_MEMORY = 10485760;

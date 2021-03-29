@@ -13,6 +13,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -25,10 +26,12 @@ import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 @Service
 public class ClientManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    
     private static ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
@@ -41,6 +44,9 @@ public class ClientManager {
     // app services
     @Autowired
     private OAuth2ClientAppService oauthClientAppService;
+
+    @Autowired
+    private ScopeRegistry scopeRegistry;
 
     /*
      * ClientApp via appService
@@ -94,6 +100,12 @@ public class ClientManager {
     public ClientApp registerClientApp(String realm, ClientApp app) {
         String type = app.getType();
 
+        Set<String> invalidScopes = app.getScopes().stream().filter(s -> scopeRegistry.findScope(s) == null)
+                .collect(Collectors.toSet());
+        if (!invalidScopes.isEmpty()) {
+            throw new IllegalArgumentException("invalid scopes: " + invalidScopes.toString());
+        }
+
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
             app.setRealm(realm);
             return oauthClientAppService.registerClient(realm, app);
@@ -105,6 +117,12 @@ public class ClientManager {
 
     public ClientApp updateClientApp(String realm, String clientId, ClientApp app) throws NoSuchClientException {
         String type = app.getType();
+
+        Set<String> invalidScopes = app.getScopes().stream().filter(s -> scopeRegistry.findScope(s) == null)
+                .collect(Collectors.toSet());
+        if (!invalidScopes.isEmpty()) {
+            throw new IllegalArgumentException("invalid scopes: " + invalidScopes.toString());
+        }
 
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
             return oauthClientAppService.updateClient(realm, clientId, app);
@@ -257,9 +275,22 @@ public class ClientManager {
     }
 
     /*
+     * Configuration schemas
+     */
+
+    public JsonSchema getConfigurationSchema(String type) {
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            return oauthClientAppService.getConfigurationSchema();
+        }
+
+        throw new IllegalArgumentException("invalid client type");
+    }
+
+    /*
      * Base client
      */
     private ClientEntity findClient(String clientId) {
         return clientService.findClient(clientId);
     }
+
 }

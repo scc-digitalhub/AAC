@@ -6,7 +6,7 @@ import java.util.Map;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 
-public interface ExecutionService {
+public interface ScriptExecutionService {
 
     public Map<String, Serializable> executeFunction(String name, String function, Map<String, Serializable> input)
             throws InvalidDefinitionException, SystemException;

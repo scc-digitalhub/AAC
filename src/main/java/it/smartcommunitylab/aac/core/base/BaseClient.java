@@ -5,15 +5,19 @@ import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 public abstract class BaseClient extends AbstractClient {
 
     private String name;
+
     private String description;
 
     private Set<String> providers;
 
     private Set<String> scopes;
+
     private Set<String> resourceIds;
 
     private Map<String, String> hookFunctions;
@@ -23,6 +27,7 @@ public abstract class BaseClient extends AbstractClient {
 
     }
 
+    @JsonIgnore
     public String getName() {
         return name;
     }
@@ -31,6 +36,7 @@ public abstract class BaseClient extends AbstractClient {
         this.name = name;
     }
 
+    @JsonIgnore
     public String getDescription() {
         return description;
     }
@@ -39,6 +45,7 @@ public abstract class BaseClient extends AbstractClient {
         this.description = description;
     }
 
+    @JsonIgnore
     public Set<String> getScopes() {
         return scopes;
     }
@@ -47,6 +54,7 @@ public abstract class BaseClient extends AbstractClient {
         this.scopes = scopes;
     }
 
+    @JsonIgnore
     public Set<String> getResourceIds() {
         return resourceIds;
     }
@@ -55,6 +63,7 @@ public abstract class BaseClient extends AbstractClient {
         this.resourceIds = resourceIds;
     }
 
+    @JsonIgnore
     public Set<String> getProviders() {
         return providers;
     }
@@ -63,6 +72,7 @@ public abstract class BaseClient extends AbstractClient {
         this.providers = providers;
     }
 
+    @JsonIgnore
     public Map<String, String> getHookFunctions() {
         return hookFunctions;
     }
@@ -77,6 +87,7 @@ public abstract class BaseClient extends AbstractClient {
      *
      * This is used to import/export models + UI model
      */
+    @JsonIgnore
     public abstract Map<String, Serializable> getConfigurationMap();
 
 }

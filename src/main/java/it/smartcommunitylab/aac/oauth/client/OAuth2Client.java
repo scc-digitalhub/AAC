@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth.client;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,10 +18,12 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
@@ -28,11 +31,18 @@ import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
+import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
+import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
+import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 
 public class OAuth2Client extends BaseClient {
     public static final String CLIENT_TYPE = SystemKeys.CLIENT_TYPE_OAUTH2;
+
+    private static ObjectMapper mapper = new ObjectMapper();
+    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
+    };
 
     @JsonIgnore
     private ClientSecret clientSecret;
@@ -52,7 +62,7 @@ public class OAuth2Client extends BaseClient {
     private JWSAlgorithm jwtSignAlgorithm;
     private JWEAlgorithm jwtEncAlgorithm;
     private EncryptionMethod jwtEncMethod;
-    private String jwks;
+    private JWKSet jwks;
     private String jwksUri;
 
     @JsonUnwrapped
@@ -67,6 +77,7 @@ public class OAuth2Client extends BaseClient {
     }
 
     @Override
+    @JsonIgnore
     public String getType() {
         return SystemKeys.CLIENT_TYPE_OAUTH2;
     }
@@ -177,11 +188,11 @@ public class OAuth2Client extends BaseClient {
         this.jwtEncMethod = jwtEncMethod;
     }
 
-    public String getJwks() {
+    public JWKSet getJwks() {
         return jwks;
     }
 
-    public void setJwks(String jwks) {
+    public void setJwks(JWKSet jwks) {
         this.jwks = jwks;
     }
 
@@ -204,6 +215,17 @@ public class OAuth2Client extends BaseClient {
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfigurationMap() {
+        return getJacksonConfigurationMap();
+    }
+
+    @JsonIgnore
+    public Map<String, Serializable> getJacksonConfigurationMap() {
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        return mapper.convertValue(this, typeRef);
+    }
+
+    @JsonIgnore
+    public Map<String, Serializable> getStaticConfigurationMap() {
         // TODO fix naming to follow RFC standard and return TLD elements
         // will break converter
         try {
@@ -246,15 +268,15 @@ public class OAuth2Client extends BaseClient {
             map.put("refreshTokenValidity", refreshTokenValidity);
 
             if (jwtSignAlgorithm != null) {
-                map.put("jwtSignAlgorithm", jwtSignAlgorithm.getName());
+                map.put("jwtSignAlgorithm", jwtSignAlgorithm.getValue());
             }
 
             if (jwtEncMethod != null) {
-                map.put("jwtEncMethod", jwtEncMethod.getName());
+                map.put("jwtEncMethod", jwtEncMethod.getValue());
             }
 
             if (jwtEncAlgorithm != null) {
-                map.put("jwtEncAlgorithm", jwtEncAlgorithm.getName());
+                map.put("jwtEncAlgorithm", jwtEncAlgorithm.getValue());
             }
 
             map.put("jwks", jwks);
@@ -270,7 +292,11 @@ public class OAuth2Client extends BaseClient {
 
     }
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    @JsonIgnore
+    public static JsonSchema getConfigurationSchema() throws JsonMappingException {
+        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
+        return schemaGen.generateSchema(OAuth2Client.class);
+    }
 
     private String toJson() throws JsonProcessingException {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
@@ -328,7 +354,11 @@ public class OAuth2Client extends BaseClient {
         c.jwtEncAlgorithm = (oauth.getJwtEncAlgorithm() != null ? JWEAlgorithm.parse(oauth.getJwtEncAlgorithm())
                 : null);
         c.jwtEncMethod = (oauth.getJwtEncMethod() != null ? EncryptionMethod.parse(oauth.getJwtEncMethod()) : null);
-        c.jwks = oauth.getJwks();
+        try {
+            c.jwks = (StringUtils.hasText(oauth.getJwks()) ? JWKSet.parse(oauth.getJwks()) : null);
+        } catch (ParseException e) {
+            c.jwks = null;
+        }
         c.jwksUri = oauth.getJwksUri();
 
         Map<String, String> map = oauth.getAdditionalInformation();

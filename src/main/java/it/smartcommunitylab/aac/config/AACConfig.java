@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.config;
 
 import java.beans.PropertyVetoException;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -20,8 +21,9 @@ import com.google.common.collect.Maps;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
-import it.smartcommunitylab.aac.claims.ExecutionService;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
+import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
@@ -99,8 +101,9 @@ public class AACConfig {
     }
 
     @Bean
-    public ClaimsService claimsService(ExecutionService executionService) {
-        DefaultClaimsService service = new DefaultClaimsService();
+    public ClaimsService claimsService(Collection<ScopeClaimsExtractor> scopeExtractors,
+            ScriptExecutionService executionService) {
+        DefaultClaimsService service = new DefaultClaimsService(scopeExtractors);
         service.setExecutionService(executionService);
 
         return service;

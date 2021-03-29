@@ -77,6 +77,7 @@ import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 @Configuration
 @Order(5)
@@ -175,8 +176,9 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public OAuth2RequestValidator getOAuth2RequestValidator() {
+    public OAuth2RequestValidator getOAuth2RequestValidator(ScopeRegistry scopeRegistry) {
         AACOAuth2RequestValidator requestValidator = new AACOAuth2RequestValidator();
+        requestValidator.setScopeRegistry(scopeRegistry);
         return requestValidator;
     }
 

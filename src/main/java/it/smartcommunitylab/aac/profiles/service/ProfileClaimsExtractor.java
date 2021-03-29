@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.profiles.service;
 
 import java.util.Collection;
 
-import it.smartcommunitylab.aac.claims.ClaimsExtractor;
+import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 
-public abstract class ProfileClaimsExtractor implements ClaimsExtractor {
+public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
 
     @Override
     public String getResourceId() {

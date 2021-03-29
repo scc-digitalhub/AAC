@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.core.service;
 
 import java.util.Collection;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.model.ClientApp;
 
@@ -23,4 +25,10 @@ public interface ClientAppService {
     public ClientApp registerClient(String realm, ClientApp app);
 
     public void deleteClient(String realm, String clientId);
+
+    /*
+     * Configuration schema
+     */
+    public JsonSchema getConfigurationSchema();
+
 }

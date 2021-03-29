@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.core.model.Client;
 public abstract class AbstractClient implements Client, Serializable {
 
     private final String realm;
-    
+
     protected final String clientId;
 
     public AbstractClient(String realm, String clientId) {
@@ -21,11 +21,24 @@ public abstract class AbstractClient implements Client, Serializable {
         this.realm = realm;
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     * 
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private AbstractClient() {
+        this(null, null);
+    }
+
     @Override
+    @JsonIgnore
     public String getRealm() {
         return realm;
     }
 
+    @JsonIgnore
     public String getClientId() {
         return clientId;
     }

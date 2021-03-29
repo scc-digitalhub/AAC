@@ -14,9 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.base.BaseClient;
@@ -29,6 +27,9 @@ import it.smartcommunitylab.aac.oauth.client.OAuth2ClientInfo;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
+import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
+import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
+import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
@@ -227,7 +228,7 @@ public class OAuth2ClientService implements ClientService {
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
-            String jwks, String jwksUri,
+            JWKSet jwks, String jwksUri,
             OAuth2ClientInfo additionalInfo) throws IllegalArgumentException {
 
         // generate a clientId and then add
@@ -266,7 +267,7 @@ public class OAuth2ClientService implements ClientService {
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
-            String jwks, String jwksUri,
+            JWKSet jwks, String jwksUri,
             OAuth2ClientInfo additionalInfo) throws IllegalArgumentException {
 
         // TODO add custom validator for class
@@ -329,17 +330,22 @@ public class OAuth2ClientService implements ClientService {
 
         String jwtSignAlgorithmName = null;
         if (jwtSignAlgorithm != null) {
-            jwtSignAlgorithmName = jwtSignAlgorithm.getName();
+            jwtSignAlgorithmName = jwtSignAlgorithm.getValue();
         }
 
         String jwtEncMethodName = null;
         if (jwtEncMethod != null) {
-            jwtEncMethodName = jwtEncMethod.getName();
+            jwtEncMethodName = jwtEncMethod.getValue();
         }
 
         String jwtEncAlgorithmName = null;
         if (jwtEncAlgorithm != null) {
-            jwtEncAlgorithmName = jwtEncAlgorithm.getName();
+            jwtEncAlgorithmName = jwtEncAlgorithm.getValue();
+        }
+
+        String jwksSet = null;
+        if (jwks != null) {
+            jwksSet = jwks.toString();
         }
 
         ClientEntity client = clientService.addClient(
@@ -362,7 +368,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);
         oauth.setJwtEncMethod(jwtEncMethodName);
         oauth.setJwtEncAlgorithm(jwtEncAlgorithmName);
-        oauth.setJwks(jwks);
+        oauth.setJwks(jwksSet);
         oauth.setJwksUri(jwksUri);
         if (additionalInfo != null) {
             oauth.setAdditionalInformation(additionalInfo.toMap());
@@ -386,7 +392,7 @@ public class OAuth2ClientService implements ClientService {
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
             EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
-            String jwks, String jwksUri,
+            JWKSet jwks, String jwksUri,
             OAuth2ClientInfo additionalInfo) throws NoSuchClientException, IllegalArgumentException {
 
         // TODO add custom validator for class
@@ -426,17 +432,22 @@ public class OAuth2ClientService implements ClientService {
 
         String jwtSignAlgorithmName = null;
         if (jwtSignAlgorithm != null) {
-            jwtSignAlgorithmName = jwtSignAlgorithm.getName();
+            jwtSignAlgorithmName = jwtSignAlgorithm.getValue();
         }
 
         String jwtEncMethodName = null;
         if (jwtEncMethod != null) {
-            jwtEncMethodName = jwtEncMethod.getName();
+            jwtEncMethodName = jwtEncMethod.getValue();
         }
 
         String jwtEncAlgorithmName = null;
         if (jwtEncAlgorithm != null) {
-            jwtEncAlgorithmName = jwtEncAlgorithm.getName();
+            jwtEncAlgorithmName = jwtEncAlgorithm.getValue();
+        }
+
+        String jwksSet = null;
+        if (jwks != null) {
+            jwksSet = jwks.toString();
         }
 
         ClientEntity client = clientService.findClient(clientId);
@@ -459,7 +470,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);
         oauth.setJwtEncMethod(jwtEncMethodName);
         oauth.setJwtEncAlgorithm(jwtEncAlgorithmName);
-        oauth.setJwks(jwks);
+        oauth.setJwks(jwksSet);
         oauth.setJwksUri(jwksUri);
         if (additionalInfo != null) {
             oauth.setAdditionalInformation(additionalInfo.toMap());

@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.service.ClientAppService;
@@ -196,6 +199,16 @@ public class OAuth2ClientAppService implements ClientAppService {
         app.setConfiguration(client.getConfigurationMap());
 
         return app;
+    }
+
+    @Override
+    public JsonSchema getConfigurationSchema() {
+        try {
+            return OAuth2Client.getConfigurationSchema();
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }

@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2RequestValidator;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 /**
  * Exclude 'operation.confirmed' scope from the client scopes validation
@@ -37,6 +38,15 @@ import it.smartcommunitylab.aac.Config;
  */
 public class AACOAuth2RequestValidator implements OAuth2RequestValidator {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private ScopeRegistry scopeRegistry;
+
+    public AACOAuth2RequestValidator() {
+    }
+
+    public void setScopeRegistry(ScopeRegistry scopeRegistry) {
+        this.scopeRegistry = scopeRegistry;
+    }
 
     public void validateScope(AuthorizationRequest authorizationRequest, ClientDetails client)
             throws InvalidScopeException {
@@ -68,10 +78,17 @@ public class AACOAuth2RequestValidator implements OAuth2RequestValidator {
         logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
                 + " against client " + String.valueOf(clientScopes.toString()));
 
+        // check if scopes are valid via registry
+        Set<String> existingScopes = (scopeRegistry == null) ? requestScopes
+                : requestScopes.stream()
+                        .filter(s -> (scopeRegistry.findScope(s) != null))
+                        .collect(Collectors.toSet());
+
         Set<String> validScopes = (clientScopes != null ? clientScopes : Collections.emptySet());
 
         // each scope has to be pre-authorized
-        Set<String> unauthorizedScopes = requestScopes.stream().filter(s -> !validScopes.contains(s))
+        Set<String> unauthorizedScopes = requestScopes.stream().filter(
+                s -> (!validScopes.contains(s) || !existingScopes.contains(s)))
                 .collect(Collectors.toSet());
 
         if (!unauthorizedScopes.isEmpty()) {

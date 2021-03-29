@@ -70,36 +70,31 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     // TODO add spaceRole service
 
-    private ExecutionService executionService;
+    private ScriptExecutionService executionService;
 
     // claimExtractors
     // we keep a map for active extractors. Note that a single extractor can
     // respond to multiple scopes by registering many times. Nevertheless we require
     // a consistent response.
     // TODO export to a service to support clustered env
-    private Map<String, List<ClaimsExtractor>> extractors = new HashMap<>();
+    private Map<String, List<ScopeClaimsExtractor>> scopeExtractors = new HashMap<>();
+    private Map<String, List<ResourceClaimsExtractor>> resourceExtractors = new HashMap<>();
 
     // object mapper
     private final ObjectMapper mapper = new ObjectMapper();
     private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
     };
 
-    public DefaultClaimsService() {
+    public DefaultClaimsService(Collection<ScopeClaimsExtractor> scopeExtractors) {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
 
-        // register internal claimsExtractors
-        registerExtractor(new BasicProfileClaimsExtractor());
-        registerExtractor(new AccountProfileClaimsExtractor());
-
-        // openid
-        registerExtractor(new OpenIdDefaultProfileClaimsExtractor());
-        registerExtractor(new OpenIdEmailProfileClaimsExtractor());
-        registerExtractor(new OpenIdAddressProfileClaimsExtractor());
-        registerExtractor(new OpenIdPhoneProfileClaimsExtractor());
+        for (ScopeClaimsExtractor se : scopeExtractors) {
+            _registerExtractor(se);
+        }
 
     }
 
-    public void setExecutionService(ExecutionService executionService) {
+    public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
     }
 
@@ -109,14 +104,58 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     }
 
-    public void registerExtractor(ClaimsExtractor extractor) {
+    // TODO add locks when modifying extractor lists
+    private void _registerExtractor(ScopeClaimsExtractor extractor) {
+        String scope = extractor.getScope();
+        if (!scopeExtractors.containsKey(scope)) {
+            scopeExtractors.put(scope, new ArrayList<>());
+        }
+
+        scopeExtractors.get(scope).add(extractor);
+
+    }
+
+    private void _registerExtractor(ResourceClaimsExtractor extractor) {
+        String resourceId = extractor.getResourceId();
+        if (!resourceExtractors.containsKey(resourceId)) {
+            resourceExtractors.put(resourceId, new ArrayList<>());
+        }
+
+        resourceExtractors.get(resourceId).add(extractor);
+    }
+
+    public void registerExtractor(ScopeClaimsExtractor extractor) {
         if (extractor != null && StringUtils.hasText(extractor.getScope())) {
-            String scope = extractor.getScope();
-            if (!extractors.containsKey(scope)) {
-                extractors.put(scope, new ArrayList<>());
+            if (extractor.getResourceId() != null && extractor.getResourceId().startsWith("aac.")) {
+                throw new IllegalArgumentException("core resources can not be registered");
             }
 
-            extractors.get(scope).add(extractor);
+            _registerExtractor(extractor);
+        }
+    }
+
+    public void registerExtractor(ResourceClaimsExtractor extractor) {
+        if (extractor != null && StringUtils.hasText(extractor.getResourceId())) {
+            String resourceId = extractor.getResourceId();
+            if (resourceId.startsWith("aac.")) {
+                throw new IllegalArgumentException("core resources can not be registered");
+            }
+
+            _registerExtractor(extractor);
+        }
+    }
+
+    public void unregisterExtractor(ResourceClaimsExtractor extractor) {
+        String resourceId = extractor.getResourceId();
+        if (StringUtils.hasText(resourceId) && resourceExtractors.containsKey(resourceId)) {
+            resourceExtractors.get(resourceId).remove(extractor);
+        }
+    }
+
+    public void unregisterExtractor(ScopeClaimsExtractor extractor) {
+        String scope = extractor.getScope();
+        if (StringUtils.hasText(scope) && scopeExtractors.containsKey(scope)) {
+            scopeExtractors.get(scope).remove(extractor);
         }
     }
 
@@ -127,12 +166,17 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                 return;
             }
 
-            // unregister all extractors for the given resourceId
-            for (String scope : extractors.keySet()) {
-                List<ClaimsExtractor> exs = extractors.get(scope);
-                Set<ClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
+            // unregister all scope extractors for the given resourceId
+            for (String scope : scopeExtractors.keySet()) {
+                List<ScopeClaimsExtractor> exs = scopeExtractors.get(scope);
+                Set<ScopeClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
                         .collect(Collectors.toSet());
                 exs.removeAll(toRemove);
+            }
+
+            // unregister all resource extractors
+            if (resourceExtractors.containsKey(resourceId)) {
+                resourceExtractors.remove(resourceId);
             }
         }
 
@@ -145,9 +189,9 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         }
 
         // unregister all extractors for the given resourceId responding to scope
-        if (extractors.containsKey(scope)) {
-            List<ClaimsExtractor> exs = extractors.get(scope);
-            Set<ClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
+        if (scopeExtractors.containsKey(scope)) {
+            List<ScopeClaimsExtractor> exs = scopeExtractors.get(scope);
+            Set<ScopeClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
                     .collect(Collectors.toSet());
             exs.removeAll(toRemove);
         }
@@ -168,6 +212,14 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
         Map<String, Serializable> claims = new HashMap<>();
 
+        // reset null lists, we support a configuration where we get only clientMapping
+        if (scopes == null) {
+            scopes = Collections.emptyList();
+        }
+        if (resourceIds == null) {
+            resourceIds = Collections.emptyList();
+        }
+
         // base information, could be overwritten by converters
         claims.put("sub", user.getSubjectId());
 
@@ -182,19 +234,37 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             // sorted alphabetically
         }
 
+        // build scopeClaims
         for (String scope : scopes) {
-            if (extractors.containsKey(scope)) {
-                List<ClaimsExtractor> exts = extractors.get(scope);
-                for (ClaimsExtractor ce : exts) {
-                    // each extractor can respond, we let only internal to produce reserved claims
-                    Map<String, Serializable> userClaims = extractClaims(ce.extractUserClaims(user, client, scopes));
-                    if (userClaims != null) {
-                        claims.putAll(userClaims);
+            if (scopeExtractors.containsKey(scope)) {
+                List<ScopeClaimsExtractor> exts = scopeExtractors.get(scope);
+                for (ScopeClaimsExtractor ce : exts) {
+                    // each extractor can respond, we keep only userClaims
+                    ClaimsSet cs = ce.extractUserClaims(user, client, scopes);
+                    if (cs != null && cs.isUser()) {
+                        claims.putAll(extractClaims(cs));
                     }
                 }
 
             }
         }
+
+        // build resourceClaims
+        // serve a service with no scopes but included as audience
+        for (String resourceId : resourceIds) {
+            if (resourceExtractors.containsKey(resourceId)) {
+                List<ResourceClaimsExtractor> exts = resourceExtractors.get(resourceId);
+                for (ResourceClaimsExtractor ce : exts) {
+                    // each extractor can respond, we keep only userClaims
+                    ClaimsSet cs = ce.extractUserClaims(user, client, scopes);
+                    if (cs != null && cs.isUser()) {
+                        claims.putAll(extractClaims(cs));
+                    }
+                }
+
+            }
+        }
+
 //
 //        // process basic scopes from userDetails
 //        if (scopes.contains(Config.SCOPE_OPENID)) {
@@ -278,8 +348,76 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     public Map<String, Serializable> getClientClaims(ClientDetails client, Collection<String> scopes,
             Collection<String> resourceIds)
             throws NoSuchResourceException, InvalidDefinitionException, SystemException {
-        // TODO
-        return Collections.emptyMap();
+
+        Map<String, Serializable> claims = new HashMap<>();
+
+        // reset null lists, we support a configuration where we get only clientMapping
+        if (scopes == null) {
+            scopes = Collections.emptyList();
+        }
+        if (resourceIds == null) {
+            resourceIds = Collections.emptyList();
+        }
+
+        // base information, could be overwritten by converters
+        String clientId = client.getClientId();
+        claims.put("sub", clientId);
+        claims.put("cid", clientId);
+
+        // build scopeClaims
+        for (String scope : scopes) {
+            if (scopeExtractors.containsKey(scope)) {
+                List<ScopeClaimsExtractor> exts = scopeExtractors.get(scope);
+                for (ScopeClaimsExtractor ce : exts) {
+                    // each extractor can respond, we keep only userClaims
+                    ClaimsSet cs = ce.extractClientClaims(client, scopes);
+                    if (cs != null && cs.isClient()) {
+                        claims.putAll(extractClaims(cs));
+                    }
+                }
+
+            }
+        }
+
+        // build resourceClaims
+        // serve a service with no scopes but included as audience
+        for (String resourceId : resourceIds) {
+            if (resourceExtractors.containsKey(resourceId)) {
+                List<ResourceClaimsExtractor> exts = resourceExtractors.get(resourceId);
+                for (ResourceClaimsExtractor ce : exts) {
+                    // each extractor can respond, we keep only userClaims
+                    ClaimsSet cs = ce.extractClientClaims(client, scopes);
+                    if (cs != null && cs.isClient()) {
+                        claims.putAll(extractClaims(cs));
+                    }
+                }
+
+            }
+        }
+
+        // freeze claims by keeping keys, these won't be modifiable
+        Set<String> reservedKeys = Collections.unmodifiableSet(claims.keySet());
+
+        // custom mapping
+        String customMappingFunction = null;
+        if (client.getHookFunctions() != null) {
+            customMappingFunction = client.getHookFunctions().get(CLAIM_MAPPING_FUNCTION);
+        }
+
+        if (StringUtils.hasText(customMappingFunction)) {
+            // execute custom mapping function via executor
+            Map<String, Serializable> customClaims = this.executeClaimMapping(customMappingFunction, claims);
+            // add/replace only non-protected claims
+            Map<String, Serializable> allowedClaims = customClaims.entrySet().stream()
+                    .filter(e -> (!reservedKeys.contains(e.getKey()) &&
+                            !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
+                            !SYSTEM_CLAIM_NAMES.contains(e.getKey())))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            claims.putAll(allowedClaims);
+        }
+
+        return claims;
     }
 
     public Map<String, Serializable> extractClaims(ClaimsSet set) {
@@ -315,92 +453,92 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         return null;
     }
 
-    public Map<String, Serializable> getUserClaimsFromBasicProfile(UserDetails user) {
-        Map<String, Serializable> claims = new HashMap<>();
-
-        // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
-
-        if (!identities.isEmpty()) {
-            // TODO decide how to merge identities into a single profile
-            // for now get first identity, should be last logged in
-            BasicProfile profile = identities.iterator().next().toBasicProfile();
-
-            // convert via jackson mapper
-            claims.putAll(mapper.convertValue(profile, stringMapTypeRef));
-
-        }
-
-        return claims;
-    }
-
-    public Map<String, Serializable> getUserClaimsFromOpenIdProfile(UserDetails user, Collection<String> scopes) {
-        Map<String, Serializable> claims = new HashMap<>();
-
-        OpenIdProfile profile = null;
-
-        // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
-
-        if (!identities.isEmpty()) {
-            // TODO decide how to merge identities into a single profile
-            // for now get first identity, should be last logged in
-            profile = identities.iterator().next().toOpenIdProfile();
-
-        }
-
-        // build result according to scopes, via narrow down
-        if (scopes.contains(Config.SCOPE_PROFILE)) {
-            // narrow down and convert via jackson mapper
-            claims.putAll(mapper.convertValue(profile.toDefaultProfile(), stringMapTypeRef));
-        }
-        if (scopes.contains(Config.SCOPE_EMAIL)) {
-            // narrow down and convert via jackson mapper
-            claims.putAll(mapper.convertValue(profile.toEmailProfile(), stringMapTypeRef));
-        }
-        if (scopes.contains(Config.SCOPE_ADDRESS)) {
-            // narrow down and convert via jackson mapper
-            claims.putAll(mapper.convertValue(profile.toAddressProfile(), stringMapTypeRef));
-        }
-        if (scopes.contains(Config.SCOPE_PHONE)) {
-            // narrow down and convert via jackson mapper
-            claims.putAll(mapper.convertValue(profile.toPhoneProfile(), stringMapTypeRef));
-        }
-
-        return claims;
-    }
-
-    public ArrayList<Serializable> getUserClaimsFromAccountProfile(UserDetails user) {
-        ArrayList<Serializable> claims = new ArrayList<>();
-
-        // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
-
-        for (UserIdentity identity : identities) {
-            // get account and translate
-            AccountProfile profile = identity.getAccount().toProfile();
-
-            // convert via jackson mapper
-            HashMap<String, String> profileClaims = mapper.convertValue(profile, stringMapTypeRef);
-            if (profileClaims != null) {
-                claims.add(profileClaims);
-            }
-        }
-
-        return claims;
-    }
-
-    public Map<String, Serializable> getUserClaimsFromResource(UserDetails user, ClientDetails client,
-            Collection<String> scopes, String resourceId) throws NoSuchResourceException {
-        // TODO
-        return Collections.emptyMap();
-    }
-
-    public Map<String, Serializable> getClientClaimsFromResource(ClientDetails client, Collection<String> scopes,
-            String resourceId) throws NoSuchResourceException {
-        // TODO
-        return Collections.emptyMap();
-    }
+//    public Map<String, Serializable> getUserClaimsFromBasicProfile(UserDetails user) {
+//        Map<String, Serializable> claims = new HashMap<>();
+//
+//        // fetch identities
+//        Collection<UserIdentity> identities = user.getIdentities();
+//
+//        if (!identities.isEmpty()) {
+//            // TODO decide how to merge identities into a single profile
+//            // for now get first identity, should be last logged in
+//            BasicProfile profile = identities.iterator().next().toBasicProfile();
+//
+//            // convert via jackson mapper
+//            claims.putAll(mapper.convertValue(profile, stringMapTypeRef));
+//
+//        }
+//
+//        return claims;
+//    }
+//
+//    public Map<String, Serializable> getUserClaimsFromOpenIdProfile(UserDetails user, Collection<String> scopes) {
+//        Map<String, Serializable> claims = new HashMap<>();
+//
+//        OpenIdProfile profile = null;
+//
+//        // fetch identities
+//        Collection<UserIdentity> identities = user.getIdentities();
+//
+//        if (!identities.isEmpty()) {
+//            // TODO decide how to merge identities into a single profile
+//            // for now get first identity, should be last logged in
+//            profile = identities.iterator().next().toOpenIdProfile();
+//
+//        }
+//
+//        // build result according to scopes, via narrow down
+//        if (scopes.contains(Config.SCOPE_PROFILE)) {
+//            // narrow down and convert via jackson mapper
+//            claims.putAll(mapper.convertValue(profile.toDefaultProfile(), stringMapTypeRef));
+//        }
+//        if (scopes.contains(Config.SCOPE_EMAIL)) {
+//            // narrow down and convert via jackson mapper
+//            claims.putAll(mapper.convertValue(profile.toEmailProfile(), stringMapTypeRef));
+//        }
+//        if (scopes.contains(Config.SCOPE_ADDRESS)) {
+//            // narrow down and convert via jackson mapper
+//            claims.putAll(mapper.convertValue(profile.toAddressProfile(), stringMapTypeRef));
+//        }
+//        if (scopes.contains(Config.SCOPE_PHONE)) {
+//            // narrow down and convert via jackson mapper
+//            claims.putAll(mapper.convertValue(profile.toPhoneProfile(), stringMapTypeRef));
+//        }
+//
+//        return claims;
+//    }
+//
+//    public ArrayList<Serializable> getUserClaimsFromAccountProfile(UserDetails user) {
+//        ArrayList<Serializable> claims = new ArrayList<>();
+//
+//        // fetch identities
+//        Collection<UserIdentity> identities = user.getIdentities();
+//
+//        for (UserIdentity identity : identities) {
+//            // get account and translate
+//            AccountProfile profile = identity.getAccount().toProfile();
+//
+//            // convert via jackson mapper
+//            HashMap<String, String> profileClaims = mapper.convertValue(profile, stringMapTypeRef);
+//            if (profileClaims != null) {
+//                claims.add(profileClaims);
+//            }
+//        }
+//
+//        return claims;
+//    }
+//
+//    public Map<String, Serializable> getUserClaimsFromResource(UserDetails user, ClientDetails client,
+//            Collection<String> scopes, String resourceId) throws NoSuchResourceException {
+//        // TODO
+//        return Collections.emptyMap();
+//    }
+//
+//    public Map<String, Serializable> getClientClaimsFromResource(ClientDetails client, Collection<String> scopes,
+//            String resourceId) throws NoSuchResourceException {
+//        // TODO
+//        return Collections.emptyMap();
+//    }
 
     /*
      * Execute claim Mapping
