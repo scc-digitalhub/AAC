@@ -90,14 +90,23 @@ public class OAuth2Client extends BaseClient {
     @JsonProperty("clientSecret")
     public void setSecret(String secret) {
         this.clientSecret = new ClientSecret(secret);
+        this.clientSecret.setClientId(getClientId());
     }
 
     public ClientSecret getClientSecret() {
+        if (clientSecret != null) {
+            this.clientSecret.setClientId(getClientId());
+        }
         return clientSecret;
     }
 
     public void setClientSecret(ClientSecret clientSecret) {
-        this.clientSecret = clientSecret;
+        if (clientSecret == null) {
+            this.clientSecret = null;
+        } else {
+            this.clientSecret = new ClientSecret(clientSecret.getClientSecret());
+            this.clientSecret.setClientId(getClientId());
+        }
     }
 
     public Set<AuthorizationGrantType> getAuthorizedGrantTypes() {

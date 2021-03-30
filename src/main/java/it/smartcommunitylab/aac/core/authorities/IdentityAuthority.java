@@ -6,6 +6,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 
 public interface IdentityAuthority {
 
@@ -14,7 +15,11 @@ public interface IdentityAuthority {
      */
     public String getAuthorityId();
 
-    // identity
+    /*
+     * identity providers
+     * 
+     * Resolve identities via authentication or direct fetch
+     */
 
     public IdentityProvider getIdentityProvider(String providerId);
 
@@ -26,7 +31,7 @@ public interface IdentityAuthority {
      * 
      * also *providers should return the same id for the same user!
      */
-    public IdentityProvider getUserIdentityProvider(String userId);
+    public String getUserProvider(String userId);
 
     /*
      * Manage providers
@@ -39,5 +44,14 @@ public interface IdentityAuthority {
             throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterIdentityProvider(String realm, String providerId) throws SystemException;
+
+    /*
+     * Identity services
+     * 
+     * Manage identities read-write. Implementations may choose to return null when
+     * identities are not manageable, but at minimum they should return a service
+     * with delete. When not provided, identities will be immutable.
+     */
+    public IdentityService getIdentityService(String providerId);
 
 }

@@ -6,16 +6,7 @@ import java.util.Map;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
-public interface AccountProvider {
-
-    /*
-     * Identify this provider
-     */
-    public String getAuthority();
-
-    public String getProvider();
-
-    public String getRealm();
+public interface AccountProvider extends ResourceProvider {
 
     /*
      * Fetch accounts from this provider

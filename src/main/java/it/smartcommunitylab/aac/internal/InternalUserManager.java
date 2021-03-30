@@ -108,11 +108,13 @@ public class InternalUserManager {
             // check if user exists, recreate if needed
             user = userService.findUser(account.getSubject());
             if (user == null) {
-                user = userService.addUser(userService.createUser().getUuid(), adminUsername);
+                user = userService.addUser(userService.createUser(SystemKeys.REALM_GLOBAL).getUuid(),
+                        SystemKeys.REALM_GLOBAL, adminUsername);
             }
         } else {
             // register as new
-            user = userService.addUser(userService.createUser().getUuid(), adminUsername);
+            user = userService.addUser(userService.createUser(SystemKeys.REALM_GLOBAL).getUuid(),
+                    SystemKeys.REALM_GLOBAL, adminUsername);
             account = accountService.addAccount(user.getUuid(), SystemKeys.REALM_GLOBAL, adminUsername, null, null,
                     null, null);
         }
@@ -215,8 +217,8 @@ public class InternalUserManager {
         // TODO resolve subject via attributes
 
         if (user == null) {
-            subject = userService.createUser().getUuid();
-            user = userService.addUser(subject, userId);
+            subject = userService.createUser(realm).getUuid();
+            user = userService.addUser(subject, realm, userId);
         }
 
         // add internal account

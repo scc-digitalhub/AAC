@@ -308,9 +308,9 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
         if (subjectId == null) {
             // generate a new subject, always persisted
-            UserEntity u = userService.createUser();
+            UserEntity u = userService.createUser(realm);
             subjectId = u.getUuid();
-            u = userService.addUser(subjectId, null);
+            u = userService.addUser(subjectId, realm, null);
 
             logger.debug("created subject for identity to " + subjectId);
 

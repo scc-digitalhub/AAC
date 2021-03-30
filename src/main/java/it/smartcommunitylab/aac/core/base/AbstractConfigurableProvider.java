@@ -22,11 +22,11 @@ public abstract class AbstractConfigurableProvider extends AbstractProvider {
         this.configuration = configuration;
     }
 
-    public String getConfigurationProperty(String key) {
+    protected String getConfigurationProperty(String key) {
         return configuration.get(key);
     }
 
-    public void setConfigurationProperty(String key, String value) {
+    protected void setConfigurationProperty(String key, String value) {
         configuration.put(key, value);
     }
 }

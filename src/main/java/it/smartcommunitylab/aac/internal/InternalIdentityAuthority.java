@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -15,16 +16,45 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 @Service
 public class InternalIdentityAuthority implements IdentityAuthority {
+
+    @Value("${authorities.internal.confirmation.required}")
+    private boolean confirmationRequired;
+
+    @Value("${authorities.internal.confirmation.validity}")
+    private int confirmationValidity;
+
+    @Value("${authorities.internal.password.reset.enabled}")
+    private boolean passwordResetEnabled;
+
+    @Value("${authorities.internal.password.reset.validity}")
+    private int passwordResetValidity;
+
+    @Value("${authorities.internal.password.minLength}")
+    private int passwordMinLength;
+    @Value("${authorities.internal.password.maxLength}")
+    private int passwordMaxLength;
+    @Value("${authorities.internal.password.requireAlpha}")
+    private boolean passwordRequireAlpha;
+    @Value("${authorities.internal.password.requireNumber}")
+    private boolean passwordRequireNumber;
+    @Value("${authorities.internal.password.requireSpecial}")
+    private boolean passwordRequireSpecial;
+    @Value("${authorities.internal.password.supportWhitespace}")
+    private boolean passwordSupportWhitespace;
 
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/internal/";
 
     private final InternalUserAccountRepository accountRepository;
+
+    private final InternalIdentityProviderConfigMap defaultProviderConfig;
 
     // identity providers by id
     private Map<String, InternalIdentityProvider> providers = new HashMap<>();
@@ -33,6 +63,18 @@ public class InternalIdentityAuthority implements IdentityAuthority {
         Assert.notNull(accountRepository, "account repository is mandatory");
         this.accountRepository = accountRepository;
 
+        // build default config from props
+        defaultProviderConfig = new InternalIdentityProviderConfigMap();
+        defaultProviderConfig.setConfirmationRequired(confirmationRequired);
+        defaultProviderConfig.setConfirmationValidity(confirmationValidity);
+        defaultProviderConfig.setEnablePasswordReset(passwordResetEnabled);
+        defaultProviderConfig.setPasswordResetValidity(passwordResetValidity);
+        defaultProviderConfig.setPasswordMaxLength(passwordMaxLength);
+        defaultProviderConfig.setPasswordMinLength(passwordMinLength);
+        defaultProviderConfig.setPasswordRequireAlpha(passwordRequireAlpha);
+        defaultProviderConfig.setPasswordRequireNumber(passwordRequireNumber);
+        defaultProviderConfig.setPasswordRequireSpecial(passwordRequireSpecial);
+        defaultProviderConfig.setPasswordSupportWhitespace(passwordSupportWhitespace);
     }
 
     @Override
@@ -55,11 +97,16 @@ public class InternalIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public IdentityProvider getUserIdentityProvider(String userId) {
+    public String getUserProvider(String userId) {
         // unpack id
         String providerId = extractProviderId(userId);
-        // get
-        return getIdentityProvider(providerId);
+
+        // check if exists
+        if (providers.containsKey(providerId)) {
+            return providerId;
+        }
+
+        return null;
     }
 
     @Override
@@ -87,6 +134,7 @@ public class InternalIdentityAuthority implements IdentityAuthority {
             InternalIdentityProvider idp = new InternalIdentityProvider(
                     providerId,
                     accountRepository,
+                    cp, defaultProviderConfig,
                     realm);
 
             // register
@@ -124,6 +172,16 @@ public class InternalIdentityAuthority implements IdentityAuthority {
         }
 
     }
+
+    @Override
+    public IdentityService getIdentityService(String providerId) {
+        // internal idp is an identityService
+        return providers.get(providerId);
+    }
+
+    /*
+     * Helpers
+     */
 
     private String extractProviderId(String userId) throws IllegalArgumentException {
         if (!StringUtils.hasText(userId)) {

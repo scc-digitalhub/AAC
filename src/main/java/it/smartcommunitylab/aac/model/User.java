@@ -2,15 +2,17 @@ package it.smartcommunitylab.aac.model;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 public class User {
 
     // base attributes
     private String subject;
+    private String realm;
+
     // basic profile
     private String name;
     private String surname;
@@ -22,7 +24,7 @@ public class User {
     // or complete: for example the only identity provided could be the one
     // selected for the authentication request, or those managed by a given
     // authority etc
-    private Collection<UserIdentity> identities;
+    private Set<UserIdentity> identities;
 
     // roles are OUTSIDE aac (ie not grantedAuthorities)
     // roles are associated to USER(=subjectId) not single identities/realms
@@ -31,13 +33,15 @@ public class User {
     // locking
     private Set<SpaceRole> roles;
 
-    // additional attributes as flatMap
-    private Map<String, String> attributes;
+    // additional attributes as UserAttributes collection
+    private Set<UserAttributes> attributes;
 
-    public User(String subject, String username) {
+    public User(String subject, String realm) {
         super();
         this.subject = subject;
-        this.username = username;
+        this.realm = realm;
+        this.identities = new HashSet<>();
+        this.attributes = new HashSet<>();
     }
 
     public String getSubject() {
@@ -46,6 +50,14 @@ public class User {
 
     public void setSubject(String subject) {
         this.subject = subject;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public String getName() {
@@ -80,13 +92,30 @@ public class User {
         this.email = email;
     }
 
-    public Collection<UserIdentity> getIdentities() {
+    public Set<UserIdentity> getIdentities() {
         return identities;
     }
 
-    public void setIdentities(Collection<UserIdentity> identities) {
+    public void setIdentities(Set<UserIdentity> identities) {
         this.identities = identities;
     }
+
+    public void addIdentity(UserIdentity identity) {
+        identities.add(identity);
+    }
+
+    public Set<UserAttributes> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Set<UserAttributes> attributes) {
+        this.attributes = attributes;
+    }
+
+    public void addAttributes(UserAttributes attributes) {
+        this.attributes.add(attributes);
+    }
+
     /*
      * Roles are mutable and comparable
      */
@@ -114,14 +143,6 @@ public class User {
 
     public void removeRole(SpaceRole r) {
         this.roles.remove(r);
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
-        this.attributes = attributes;
     }
 
 }

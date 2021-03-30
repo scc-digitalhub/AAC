@@ -35,36 +35,37 @@ public class UserEntityService {
         this.userRoleRepository = userRoleRepository;
     }
 
-    public UserEntity createUser() {
+    public UserEntity createUser(String realm) {
 
         // generate random
         // TODO ensure unique on multi node deploy
         // (given that UUID is derived from timestamp we consider this safe enough)
         String uuid = UUID.randomUUID().toString();
-        UserEntity u = new UserEntity(uuid);
+        UserEntity u = new UserEntity(uuid, realm);
 
         return u;
     }
 
-    public UserEntity addUser(String uuid, String username) throws IllegalArgumentException {
+    public UserEntity addUser(String uuid, String realm, String username) throws IllegalArgumentException {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
             throw new IllegalArgumentException("user already exists");
         }
 
-        u = new UserEntity(uuid);
+        u = new UserEntity(uuid, realm);
         u.setUsername(username);
         u = userRepository.save(u);
         return u;
     }
 
-    public UserEntity addUser(String uuid, String username, List<String> roles) throws IllegalArgumentException {
+    public UserEntity addUser(String uuid, String realm, String username, List<String> roles)
+            throws IllegalArgumentException {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
             throw new IllegalArgumentException("user already exists");
         }
 
-        u = new UserEntity(uuid);
+        u = new UserEntity(uuid, realm);
         u.setUsername(username);
         u = userRepository.save(u);
         for (String role : roles) {
@@ -87,6 +88,10 @@ public class UserEntityService {
         }
 
         return u;
+    }
+
+    public List<UserEntity> getUsers(String realm) {
+        return userRepository.findByRealm(realm);
     }
 
     public List<UserRoleEntity> getRoles(String uuid) throws NoSuchUserException {

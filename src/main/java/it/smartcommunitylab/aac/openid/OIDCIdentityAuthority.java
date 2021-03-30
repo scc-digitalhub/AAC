@@ -20,6 +20,8 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.UserCredentialsStore;
+import it.smartcommunitylab.aac.core.provider.UserService;
 import it.smartcommunitylab.aac.core.service.AttributeEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
@@ -88,11 +90,16 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public IdentityProvider getUserIdentityProvider(String userId) {
+    public String getUserProvider(String userId) {
         // unpack id
         String providerId = extractProviderId(userId);
-        // get
-        return getIdentityProvider(providerId);
+
+        // check if exists
+        if (providers.containsKey(providerId)) {
+            return providerId;
+        }
+
+        return null;
     }
 
     @Override
@@ -166,6 +173,18 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
         }
 
+    }
+
+    @Override
+    public UserService getUserService(String providerId) {
+        // TODO add read-only userService
+        return null;
+    }
+
+    @Override
+    public UserCredentialsStore getUserCredentialsStore(String providerId) {
+        // not supported
+        return null;
     }
 
     /*

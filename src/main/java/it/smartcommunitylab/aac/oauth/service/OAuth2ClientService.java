@@ -141,7 +141,7 @@ public class OAuth2ClientService implements ClientService {
             throw new NoSuchClientException();
         }
 
-        return (oauth.getClientSecret() == null ? null : new ClientSecret(oauth.getClientSecret()));
+        return (oauth.getClientSecret() == null ? null : new ClientSecret(clientId, oauth.getClientSecret()));
     }
 
     /*
@@ -160,7 +160,7 @@ public class OAuth2ClientService implements ClientService {
 
         oauth = oauthClientRepository.save(oauth);
 
-        return new ClientSecret(oauth.getClientSecret());
+        return new ClientSecret(clientId, oauth.getClientSecret());
 
     }
 
@@ -194,7 +194,7 @@ public class OAuth2ClientService implements ClientService {
 
         oauth = oauthClientRepository.save(oauth);
 
-        return new ClientSecret(oauth.getClientSecret());
+        return new ClientSecret(clientId, oauth.getClientSecret());
 
     }
 

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core.model;
 
-public interface ClientCredentials {
+public interface ClientCredentials extends Credentials {
 
-    public Object getCredentials();
+    public String getClientId();
+
 }

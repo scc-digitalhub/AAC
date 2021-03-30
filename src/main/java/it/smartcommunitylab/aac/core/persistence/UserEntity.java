@@ -30,6 +30,9 @@ public class UserEntity {
 
     private String username;
 
+    @NotNull
+    private String realm;
+
     // audit
     @CreatedDate
     @Column(name = "created_date")
@@ -51,9 +54,10 @@ public class UserEntity {
     protected UserEntity() {
     }
 
-    public UserEntity(@NotNull String uuid) {
+    public UserEntity(@NotNull String uuid, @NotNull String realm) {
         super();
         this.uuid = uuid;
+        this.realm = realm;
     }
 
     public Long getId() {
@@ -78,6 +82,14 @@ public class UserEntity {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public Date getCreateDate() {

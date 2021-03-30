@@ -27,6 +27,7 @@ public class SystemKeys {
     public static final String RESOURCE_IDENTITY = "identity";
     public static final String RESOURCE_AUTHENTICATION = "authenticationToken";
     public static final String RESOURCE_SUBJECT = "subject";
+    public static final String RESOURCE_CREDENTIALS = "credentials";
 
     public static final String PATH_SEPARATOR = "/-/";
 
