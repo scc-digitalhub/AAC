@@ -20,10 +20,8 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.UserCredentialsStore;
-import it.smartcommunitylab.aac.core.provider.UserService;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeEntityService;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
@@ -176,15 +174,15 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public UserService getUserService(String providerId) {
-        // TODO add read-only userService
-        return null;
+    public OIDCIdentityProvider getIdentityService(String providerId) {
+        // idp are ids
+        return providers.get(providerId);
     }
 
     @Override
-    public UserCredentialsStore getUserCredentialsStore(String providerId) {
-        // not supported
-        return null;
+    public List<IdentityService> getIdentityServices(String realm) {
+        // idp are ids
+        return providers.values().stream().filter(idp -> idp.getRealm().equals(realm)).collect(Collectors.toList());
     }
 
     /*

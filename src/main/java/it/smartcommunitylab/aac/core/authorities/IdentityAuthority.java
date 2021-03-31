@@ -54,4 +54,6 @@ public interface IdentityAuthority {
      */
     public IdentityService getIdentityService(String providerId);
 
+    public List<IdentityService> getIdentityServices(String realm);
+
 }

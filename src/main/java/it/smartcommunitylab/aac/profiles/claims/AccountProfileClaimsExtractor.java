@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.service;
+package it.smartcommunitylab.aac.profiles.claims;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 
@@ -37,7 +38,7 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractUserClaims(UserDetails user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
 
         // we handle multiple profiles, one per identity

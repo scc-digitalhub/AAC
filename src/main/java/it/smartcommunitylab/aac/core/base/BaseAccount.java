@@ -8,8 +8,18 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
  */
 public abstract class BaseAccount extends AbstractAccount {
 
+    protected String userId;
+
     protected BaseAccount(String authority, String provider, String realm) {
         super(authority, provider, realm);
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public AccountProfile toProfile() {

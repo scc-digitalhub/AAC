@@ -48,13 +48,8 @@ public class OAuth2ClientAppService implements ClientAppService {
     }
 
     @Override
-    public ClientApp getClient(String realm, String clientId) throws NoSuchClientException {
+    public ClientApp getClient(String clientId) throws NoSuchClientException {
         OAuth2Client client = clientService.getClient(clientId);
-
-        // check realm match
-        if (!client.getRealm().equals(realm)) {
-            throw new AccessDeniedException("realm mismatch");
-        }
 
         return toApp(client);
     }
@@ -124,17 +119,11 @@ public class OAuth2ClientAppService implements ClientAppService {
     }
 
     @Override
-    public ClientApp updateClient(String realm, String clientId, ClientApp app) throws NoSuchClientException {
+    public ClientApp updateClient(String clientId, ClientApp app) throws NoSuchClientException {
         OAuth2Client client = clientService.getClient(clientId);
-
-        // check realm match
-        if (!client.getRealm().equals(realm)) {
-            throw new AccessDeniedException("realm mismatch");
-        }
 
         // unpack
         Map<String, Serializable> configMap = app.getConfiguration();
-        configMap.put("realm", realm);
         // we set a placeholder for clientId to use the converter
         // TODO fix properly
         configMap.put("clientId", "<clientId>");
@@ -160,14 +149,9 @@ public class OAuth2ClientAppService implements ClientAppService {
     }
 
     @Override
-    public void deleteClient(String realm, String clientId) {
+    public void deleteClient(String clientId) {
         OAuth2Client client = clientService.findClient(clientId);
         if (client != null) {
-            // check realm match
-            if (!client.getRealm().equals(realm)) {
-                throw new AccessDeniedException("realm mismatch");
-            }
-
             clientService.deleteClient(clientId);
         }
 

@@ -9,13 +9,17 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.model.User;
 
 public interface ClaimsService {
 
     /*
      * Complete mapping
      */
-    public Map<String, Serializable> getUserClaims(UserDetails user, ClientDetails client, Collection<String> scopes,
+    public Map<String, Serializable> getUserClaims(UserDetails user, String realm, ClientDetails client, Collection<String> scopes,
+            Collection<String> resourceIds) throws NoSuchResourceException, InvalidDefinitionException, SystemException;
+
+    public Map<String, Serializable> getUserClaims(User user, ClientDetails client, Collection<String> scopes,
             Collection<String> resourceIds) throws NoSuchResourceException, InvalidDefinitionException, SystemException;
 
     public Map<String, Serializable> getClientClaims(ClientDetails client, Collection<String> scopes,

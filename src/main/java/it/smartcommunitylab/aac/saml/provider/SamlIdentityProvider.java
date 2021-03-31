@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import java.util.Collection;
+import java.util.Map.Entry;
 
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -9,19 +10,23 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
-public class SamlIdentityProvider extends AbstractProvider implements IdentityProvider {
+public class SamlIdentityProvider extends AbstractProvider implements IdentityService {
     // services
     private final SamlUserAccountRepository accountRepository;
     private final AttributeStore attributeStore;
@@ -130,6 +135,57 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
     @Override
     public AuthenticationEntryPoint getAuthenticationEntryPoint() {
         // we don't have one
+        return null;
+    }
+
+    @Override
+    public boolean canRegister() {
+        return false;
+    }
+
+    @Override
+    public boolean canUpdate() {
+        return false;
+    }
+
+    @Override
+    public boolean canDelete() {
+        return true;
+    }
+
+    @Override
+    public AccountService getAccountService() {
+        // TODO implement a delete-only accountService
+        return null;
+    }
+
+    @Override
+    public CredentialsService getCredentialsService() {
+        // nothing to handle
+        return null;
+    }
+
+    @Override
+    public UserIdentity registerIdentity(String subject, Collection<Entry<String, String>> attributes)
+            throws NoSuchUserException, RegistrationException {
+        throw new RegistrationException("registration not supported");
+    }
+
+    @Override
+    public UserIdentity updateIdentity(String subject, String userId, Collection<Entry<String, String>> attributes)
+            throws NoSuchUserException, RegistrationException {
+        throw new RegistrationException("update not supported");
+
+    }
+
+    @Override
+    public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
+        // TODO delete via service
+
+    }
+
+    @Override
+    public String getRegistrationUrl() {
         return null;
     }
 }

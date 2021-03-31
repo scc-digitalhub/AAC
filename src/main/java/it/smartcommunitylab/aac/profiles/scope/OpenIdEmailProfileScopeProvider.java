@@ -1,24 +1,24 @@
-package it.smartcommunitylab.aac.profiles.service;
+package it.smartcommunitylab.aac.profiles.scope;
 
 import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.Config;
 
 @Component
-public class OpenIdAddressProfileScopeProvider extends ProfileScopeProvider {
+public class OpenIdEmailProfileScopeProvider extends ProfileScopeProvider {
 
     @Override
     protected String getScope() {
-        return Config.SCOPE_ADDRESS;
+        return Config.SCOPE_EMAIL;
     }
 
     // TODO replace with keys for i18n
     public String getName() {
-        return "Read user's address";
+        return "Read user's email";
     }
 
     public String getDescription() {
-        return "Basic user's address.";
+        return "Basic user's email";
     }
 
 }

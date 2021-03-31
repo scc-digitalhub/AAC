@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.model.Subject;
 
 @Service
-public class SessionManager implements AuthenticationHelper {
+public class SessionManager {
 
     public void setSession(UserAuthenticationToken auth) {
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -70,12 +70,10 @@ public class SessionManager implements AuthenticationHelper {
      * Authentication
      */
 
-    @Override
     public Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
-    @Override
     public UserAuthenticationToken getUserAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof UserAuthenticationToken) {
@@ -86,7 +84,6 @@ public class SessionManager implements AuthenticationHelper {
 
     }
 
-    @Override
     public UserDetails getUserDetails() {
         UserAuthenticationToken auth = getUserAuthentication();
         if (auth == null) {

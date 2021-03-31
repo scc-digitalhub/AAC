@@ -142,7 +142,9 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         // TODO evaluate splitting claims from accessToken or dropping extended claims
         // on idToken. Besides we already have claims here, why do again if we get the
         // same result
-        Map<String, Serializable> userClaims = claimsService.getUserClaims(userDetails, clientDetails, scopes,
+        Map<String, Serializable> userClaims = claimsService.getUserClaims(
+                userDetails, clientDetails.getRealm(),
+                clientDetails, scopes,
                 resourceIds);
 
         // set via builder

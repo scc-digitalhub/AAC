@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
@@ -26,8 +27,11 @@ import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.OIDCUserIdentity;
@@ -35,7 +39,7 @@ import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
-public class OIDCIdentityProvider extends AbstractProvider implements IdentityProvider {
+public class OIDCIdentityProvider extends AbstractProvider implements IdentityService {
 
     // services
 
@@ -247,6 +251,57 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
     @Override
     public AuthenticationEntryPoint getAuthenticationEntryPoint() {
         // we don't have one
+        return null;
+    }
+
+    @Override
+    public boolean canRegister() {
+        return false;
+    }
+
+    @Override
+    public boolean canUpdate() {
+        return false;
+    }
+
+    @Override
+    public boolean canDelete() {
+        return true;
+    }
+
+    @Override
+    public AccountService getAccountService() {
+        // TODO implement a delete-only accountService
+        return null;
+    }
+
+    @Override
+    public CredentialsService getCredentialsService() {
+        // nothing to handle
+        return null;
+    }
+
+    @Override
+    public UserIdentity registerIdentity(String subject, Collection<Entry<String, String>> attributes)
+            throws NoSuchUserException, RegistrationException {
+        throw new RegistrationException("registration not supported");
+    }
+
+    @Override
+    public UserIdentity updateIdentity(String subject, String userId, Collection<Entry<String, String>> attributes)
+            throws NoSuchUserException, RegistrationException {
+        throw new RegistrationException("update not supported");
+
+    }
+
+    @Override
+    public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
+        // TODO delete via service
+
+    }
+
+    @Override
+    public String getRegistrationUrl() {
         return null;
     }
 

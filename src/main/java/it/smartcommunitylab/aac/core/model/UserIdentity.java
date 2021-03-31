@@ -25,7 +25,7 @@ public interface UserIdentity extends UserResource, Serializable {
     // the login account
     public UserAccount getAccount();
 
-    // attributes are mapped into nultiple sets
+    // attributes are mapped into multiple sets
     public Collection<UserAttributes> getAttributes();
 
     // expose method to clear private data

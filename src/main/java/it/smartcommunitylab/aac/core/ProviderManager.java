@@ -478,6 +478,10 @@ public class ProviderManager {
         idp.setType(pe.getType());
         idp.setConfiguration(pe.getConfigurationMap());
 
+        if(idp.getConfiguration() == null) {
+            //we want a valid map in config
+            idp.setConfiguration(new HashMap<>());
+        }
         return idp;
 
     }

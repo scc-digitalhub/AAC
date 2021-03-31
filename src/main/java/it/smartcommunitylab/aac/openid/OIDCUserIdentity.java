@@ -55,11 +55,7 @@ public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializabl
         return username;
     }
 
-    @Override
-    public Collection<UserAttributes> getAttributes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+
 
     /*
      * Builder

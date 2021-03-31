@@ -4,26 +4,21 @@ import java.util.Collection;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
-public class BasicProfileClaimsExtractor extends ProfileClaimsExtractor {
+public class BasicProfileExtractor extends UserProfileExtractor {
 
     @Override
-    public String getScope() {
-        return Config.SCOPE_BASIC_PROFILE;
-    }
-
-    @Override
-    protected AbstractProfile buildUserProfile(UserDetails user, Collection<String> scopes)
+    public BasicProfile extractUserProfile(User user)
             throws InvalidDefinitionException {
+
         // fetch identities
         Collection<UserIdentity> identities = user.getIdentities();
 
         if (identities.isEmpty()) {
-            throw new InvalidDefinitionException("no identities found");
+            return null;
         }
 
         // TODO decide how to merge identities into a single profile

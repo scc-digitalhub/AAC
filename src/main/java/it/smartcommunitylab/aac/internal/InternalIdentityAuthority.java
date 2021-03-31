@@ -17,6 +17,7 @@ import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
@@ -52,6 +53,8 @@ public class InternalIdentityAuthority implements IdentityAuthority {
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/internal/";
 
+    private final UserEntityService userEntityService;
+
     private final InternalUserAccountRepository accountRepository;
 
     private final InternalIdentityProviderConfigMap defaultProviderConfig;
@@ -59,9 +62,13 @@ public class InternalIdentityAuthority implements IdentityAuthority {
     // identity providers by id
     private Map<String, InternalIdentityProvider> providers = new HashMap<>();
 
-    public InternalIdentityAuthority(InternalUserAccountRepository accountRepository) {
+    public InternalIdentityAuthority(InternalUserAccountRepository accountRepository,
+            UserEntityService userEntityService) {
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(userEntityService, "user service is mandatory");
+
         this.accountRepository = accountRepository;
+        this.userEntityService = userEntityService;
 
         // build default config from props
         defaultProviderConfig = new InternalIdentityProviderConfigMap();
@@ -133,7 +140,7 @@ public class InternalIdentityAuthority implements IdentityAuthority {
             // link to internal repos
             InternalIdentityProvider idp = new InternalIdentityProvider(
                     providerId,
-                    accountRepository,
+                    accountRepository, userEntityService,
                     cp, defaultProviderConfig,
                     realm);
 
@@ -174,9 +181,15 @@ public class InternalIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public IdentityService getIdentityService(String providerId) {
+    public InternalIdentityProvider getIdentityService(String providerId) {
         // internal idp is an identityService
         return providers.get(providerId);
+    }
+
+    @Override
+    public List<IdentityService> getIdentityServices(String realm) {
+        // internal idps are identityService
+        return providers.values().stream().filter(idp -> idp.getRealm().equals(realm)).collect(Collectors.toList());
     }
 
     /*

@@ -156,11 +156,6 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationHelper authenticationHelper() {
-        return new DefaultSecurityContextAuthenticationHelper();
-    }
-
-    @Bean
     public SecurityContextAccessor securityContextAccessor() {
         return new DefaultSecurityContextAuthenticationHelper();
     }
@@ -224,7 +219,7 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public JdbcApprovalStore getApprovalStore() throws PropertyVetoException {
+    public AutoJdbcApprovalStore getApprovalStore() throws PropertyVetoException {
         return new AutoJdbcApprovalStore(dataSource);
     }
 

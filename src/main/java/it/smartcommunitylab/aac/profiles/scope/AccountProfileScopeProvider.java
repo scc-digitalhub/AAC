@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.service;
+package it.smartcommunitylab.aac.profiles.scope;
 
 import org.springframework.stereotype.Component;
 

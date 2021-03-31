@@ -16,18 +16,20 @@ public interface ClientAppService {
      */
     public Collection<ClientApp> listClients(String realm);
 
-    public ClientApp getClient(String realm, String clientId) throws NoSuchClientException;
+    public ClientApp getClient(String clientId) throws NoSuchClientException;
 
-    public ClientApp updateClient(String realm, String clientId, ClientApp app) throws NoSuchClientException;
+    public ClientApp updateClient(String clientId, ClientApp app) throws NoSuchClientException;
 
     public ClientApp registerClient(String realm, String name);
 
     public ClientApp registerClient(String realm, ClientApp app);
 
-    public void deleteClient(String realm, String clientId);
+    public void deleteClient(String clientId);
 
     /*
      * Configuration schema
+     * 
+     * TODO move to configurableProperties, which contains a schema
      */
     public JsonSchema getConfigurationSchema();
 

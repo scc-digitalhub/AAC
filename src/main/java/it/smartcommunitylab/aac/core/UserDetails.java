@@ -27,6 +27,11 @@ import it.smartcommunitylab.aac.profiles.model.BasicProfile;
  * User details container
  * Wraps identities (account + attributes) along with roles 
  * we also collect authorities, but they are effectively handled in authToken
+ * 
+ * This model should be used to describe and manage the real user, in relation to the realm
+ * which "owns" the registrations. Its usage is relevant for the auth/securityContext.
+ * 
+ * Services and controllers should adopt the User model.
  */
 
 //TODO evaluate remove spring Userdetails compatibility, we don't need it 

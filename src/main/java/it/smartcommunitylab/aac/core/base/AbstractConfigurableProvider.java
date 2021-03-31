@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.Convert;
@@ -12,7 +13,7 @@ public abstract class AbstractConfigurableProvider extends AbstractProvider {
         super(authority, provider, realm);
     }
 
-    protected Map<String, String> configuration;
+    protected Map<String, String> configuration = new HashMap<>();
 
     public Map<String, String> getConfiguration() {
         return configuration;

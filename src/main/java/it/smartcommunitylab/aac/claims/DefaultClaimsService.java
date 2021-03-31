@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -28,16 +27,8 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.profiles.model.AccountProfile;
-import it.smartcommunitylab.aac.profiles.model.BasicProfile;
-import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
-import it.smartcommunitylab.aac.profiles.service.AccountProfileClaimsExtractor;
-import it.smartcommunitylab.aac.profiles.service.BasicProfileClaimsExtractor;
-import it.smartcommunitylab.aac.profiles.service.OpenIdAddressProfileClaimsExtractor;
-import it.smartcommunitylab.aac.profiles.service.OpenIdDefaultProfileClaimsExtractor;
-import it.smartcommunitylab.aac.profiles.service.OpenIdEmailProfileClaimsExtractor;
-import it.smartcommunitylab.aac.profiles.service.OpenIdPhoneProfileClaimsExtractor;
+import it.smartcommunitylab.aac.core.UserTranslatorService;
+import it.smartcommunitylab.aac.model.User;
 
 public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
@@ -71,6 +62,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     // TODO add spaceRole service
 
     private ScriptExecutionService executionService;
+    private UserTranslatorService userTranslatorService;
 
     // claimExtractors
     // we keep a map for active extractors. Note that a single extractor can
@@ -98,10 +90,14 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         this.executionService = executionService;
     }
 
+    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
+        this.userTranslatorService = userTranslatorService;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(executionService, "an execution service is required");
-
+        Assert.notNull(executionService, "a user translator service is required");
     }
 
     // TODO add locks when modifying extractor lists
@@ -206,7 +202,17 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
      * elsewhere
      */
     @Override
-    public Map<String, Serializable> getUserClaims(UserDetails user, ClientDetails client, Collection<String> scopes,
+    public Map<String, Serializable> getUserClaims(UserDetails userDetails, String realm, ClientDetails client,
+            Collection<String> scopes,
+            Collection<String> resourceIds)
+            throws NoSuchResourceException, InvalidDefinitionException, SystemException {
+        // we need to translate userDetails to destination realm
+        User user = userTranslatorService.translate(userDetails, realm);
+        return getUserClaims(user, client, scopes, resourceIds);
+    }
+
+    @Override
+    public Map<String, Serializable> getUserClaims(User user, ClientDetails client, Collection<String> scopes,
             Collection<String> resourceIds)
             throws NoSuchResourceException, InvalidDefinitionException, SystemException {
 

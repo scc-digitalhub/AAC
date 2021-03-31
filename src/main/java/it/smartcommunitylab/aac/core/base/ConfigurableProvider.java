@@ -54,4 +54,11 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
         }
     }
 
+    public String getConfigurationProperty(String key) {
+        return configuration.get(key);
+    }
+
+    public void setConfigurationProperty(String key, String value) {
+        configuration.put(key, value);
+    }
 }

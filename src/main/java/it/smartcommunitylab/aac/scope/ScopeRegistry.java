@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+
 /*
  * In-memory scope registry
  */
@@ -79,6 +81,15 @@ public class ScopeRegistry {
 
     public Scope findScope(String scope) {
         return scopeRegistry.get(scope);
+    }
+
+    public Scope getScope(String scope) throws NoSuchScopeException {
+        Scope s = scopeRegistry.get(scope);
+        if (s == null) {
+            throw new NoSuchScopeException();
+        }
+
+        return s;
     }
 
     public Collection<Scope> listScopes() {

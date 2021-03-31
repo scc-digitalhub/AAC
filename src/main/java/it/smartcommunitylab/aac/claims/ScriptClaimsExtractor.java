@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.model.User;
 
 public class ScriptClaimsExtractor implements ResourceClaimsExtractor {
 
@@ -42,7 +43,7 @@ public class ScriptClaimsExtractor implements ResourceClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractUserClaims(UserDetails user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
         // execute custom mapping function via executor
 //        Map<String, Serializable> customClaims = executionService.executeFunction(name, function, input);

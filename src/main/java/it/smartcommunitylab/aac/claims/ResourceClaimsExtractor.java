@@ -6,6 +6,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.model.User;
 
 /*
  * Claim extractor is the interface service need to expose to be able to produce claims.
@@ -23,7 +24,7 @@ public interface ResourceClaimsExtractor {
 
     public String getResourceId();
 
-    public ClaimsSet extractUserClaims(UserDetails user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException;
 
     public ClaimsSet extractClientClaims(ClientDetails client, Collection<String> scopes)

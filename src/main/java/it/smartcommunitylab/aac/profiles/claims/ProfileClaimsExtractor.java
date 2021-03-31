@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.service;
+package it.smartcommunitylab.aac.profiles.claims;
 
 import java.util.Collection;
 
@@ -8,6 +8,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 
@@ -22,7 +23,7 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     public abstract String getScope();
 
     @Override
-    public ClaimsSet extractUserClaims(UserDetails user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
 
         AbstractProfile profile = buildUserProfile(user, scopes);
@@ -35,7 +36,7 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     // subclasses need to provide the profile
-    protected abstract AbstractProfile buildUserProfile(UserDetails user, Collection<String> scopes)
+    protected abstract AbstractProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException;
 
     protected ClaimsSet buildClaimsSet(AbstractProfile profile, boolean isUser) {

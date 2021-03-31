@@ -104,8 +104,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         }
 
         // direct reset credentials to a new password, single use
-        String password = RandomStringUtils.random(config.getPasswordMinLength(), true,
-                config.isPasswordRequireNumber());
+        String password = generatePassword();
 
         InternalUserAccount account = setPassword(userId, password, true);
 
@@ -169,7 +168,12 @@ public class InternalPasswordService extends AbstractProvider implements Credent
 
     }
 
-    private void validatePassword(String password) throws InvalidPasswordException {
+    public String generatePassword() {
+        return RandomStringUtils.random(config.getPasswordMinLength(), true,
+                config.isPasswordRequireNumber());
+    }
+
+    public void validatePassword(String password) throws InvalidPasswordException {
 
         if (!StringUtils.hasText(password)) {
             throw new InvalidPasswordException("empty");

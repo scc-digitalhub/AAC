@@ -24,9 +24,13 @@ import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
+import it.smartcommunitylab.aac.core.provider.UserTranslator;
+import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
@@ -77,6 +81,11 @@ public class AACConfig {
         return new ExtendedAuthenticationManager(providerManager, userService);
     }
 
+    @Bean
+    public AuthenticationHelper authenticationHelper() {
+        return new DefaultSecurityContextAuthenticationHelper();
+    }
+
     /*
      * we need all beans covering authorities here, otherwise we won't be able to
      * build the authmanager (it depends on providerManager -> authorityManager)
@@ -108,6 +117,14 @@ public class AACConfig {
 
         return service;
 
+    }
+
+    /*
+     * Cross realm user translator
+     */
+    @Bean
+    public UserTranslator userTranslator() {
+        return new CoreUserTranslator();
     }
 
 //    @Autowired
