@@ -15,13 +15,17 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -67,6 +71,12 @@ public class UserManager {
     @Autowired
     private ScopeRegistry scopeRegistry;
 
+    @Autowired
+    private SessionManager sessionManager;
+
+    @Autowired
+    private RealmService realmService;
+
     /*
      * Current user, from context
      */
@@ -87,7 +97,9 @@ public class UserManager {
      * For same-realm scenarios the model will be complete, while on cross-realm
      * some fields should be removed or empty.
      */
-    public User curUser(String realm) {
+    public User curUser(String realm) throws NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         UserDetails details = curUserDetails();
         String subjectId = details.getSubjectId();
         String source = details.getRealm();
@@ -161,26 +173,60 @@ public class UserManager {
     /*
      * User describes user in terms of identities as attributes
      */
-    public User getUser(String subjectId, String realm) throws NoSuchUserException {
+    // source realm view, complete
+    public User getUser(String subjectId) throws NoSuchUserException {
+        return userService.getUser(subjectId);
+    }
+
+    // per-realm view, partial and translated
+    public User getUser(String subjectId, String realm) throws NoSuchUserException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         return userService.getUser(subjectId, realm);
     }
 
-    public List<User> listUsers(String realm) {
+    // per realm view, lists both owned and proxied
+    public List<User> listUsers(String realm) throws NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         return userService.listUsers(realm);
     }
 
-    public void removeUser(String subjectId, String realm) throws NoSuchUserException {
+    public void removeUser(String subjectId, String realm) throws NoSuchUserException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         // get user source realm
         String source = userService.getUserRealm(subjectId);
         if (source.equals(realm)) {
-            // full delete, need to remove all associated content
-            // TODO approvals
-            // TODO tokens
-            // TODO proxy for different realms
+            // full delete
+            deleteUser(subjectId);
+        } else {
+            // let userService handle account, registrations etc
+            userService.removeUser(subjectId, realm);
+        }
+    }
+
+    public void deleteUser(String subjectId) throws NoSuchUserException {
+
+        User user = userService.getUser(subjectId);
+
+        // full delete, need to remove all associated content
+
+        // kill sessions
+        sessionManager.destroyUserSessions(subjectId);
+
+        // approvals
+        try {
+            Collection<Approval> approvals = approvalStore.findUserApprovals(subjectId);
+            approvalStore.revokeApprovals(approvals);
+        } catch (Exception e) {
         }
 
+        // TODO tokens
+        // TODO proxy for different realms?
+
         // let userService handle account, registrations etc
-        userService.removeUser(subjectId, realm);
+        userService.deleteUser(subjectId);
     }
 
 //    /*

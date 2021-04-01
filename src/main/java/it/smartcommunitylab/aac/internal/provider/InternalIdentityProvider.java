@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
@@ -429,6 +430,23 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
         if (!config.isEnableDelete()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
+        }
+
+        accountService.deleteAccount(subjectId, userId);
+    }
+
+    @Override
+    public void deleteIdentities(String subjectId) {
+        if (!config.isEnableDelete()) {
+            throw new IllegalArgumentException("delete is disabled for this provider");
+        }
+
+        Collection<UserAccount> accounts = accountProvider.listAccounts(subjectId);
+        for (UserAccount account : accounts) {
+            try {
+                accountService.deleteAccount(subjectId, account.getUserId());
+            } catch (NoSuchUserException e) {
+            }
         }
     }
 

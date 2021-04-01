@@ -39,29 +39,6 @@ public interface IdentityProvider extends ResourceProvider {
             throws NoSuchUserException;
 
     /*
-     * fetch identities from this provider
-     * 
-     * implementations are not required to support this
-     */
-
-    // userId is provider-specific
-    public UserIdentity getIdentity(String userId) throws NoSuchUserException;
-
-    public UserIdentity getIdentity(String userId, boolean fetchAttributes) throws NoSuchUserException;
-
-    /*
-     * fetch for subject
-     * 
-     * opt-in, loads identities outside login for persisted accounts linked to the
-     * subject
-     * 
-     * providers implementing this will enable the managers to fetch identities
-     * outside the login flow!
-     */
-
-    public Collection<UserIdentity> listIdentities(String subject);
-
-    /*
      * Login
      * 
      * at least one between url and entryPoint is required to dispatch requests. Url

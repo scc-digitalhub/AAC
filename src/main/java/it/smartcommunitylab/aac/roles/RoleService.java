@@ -128,6 +128,13 @@ public class RoleService {
 
     }
 
+    public void deleteRoles(String subject) {
+        List<SpaceRoleEntity> roles = roleRepository.findBySubject(subject);
+        if (!roles.isEmpty()) {
+            roleRepository.deleteAll(roles);
+        }
+    }
+
     /*
      * Helpers
      */

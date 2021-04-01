@@ -43,6 +43,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.model.Subject;
@@ -435,10 +436,10 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             }
 
             // load additional identities from same realm providers
-            // fast load
-            Collection<IdentityProvider> idps = providerManager.fetchIdentityProviders(realm);
+            // fast load, get only idp with persistence
+            Collection<IdentityService> idps = providerManager.fetchIdentityServices(realm);
             // ask all providers except the one already used
-            for (IdentityProvider ip : idps) {
+            for (IdentityService ip : idps) {
                 if (!providerId.equals(ip.getProvider())) {
                     Collection<UserIdentity> identities = ip.listIdentities(subjectId);
                     if (identities == null) {

@@ -47,6 +47,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 //@Controller
 //@RequestMapping
+@Deprecated
 public class InternalLoginController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -244,8 +245,8 @@ public class InternalLoginController {
             // we got a userAuthToken
             UserAuthenticationToken authentication = (UserAuthenticationToken) authResponse;
 
-//            // replace in session
-            sessionManager.setSession(authentication);
+////            // replace in session
+//            sessionManager.setSession(authentication);
 
             // merge session
 //            sessionManager.mergeSession(authentication);

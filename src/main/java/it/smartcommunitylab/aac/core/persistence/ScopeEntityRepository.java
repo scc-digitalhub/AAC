@@ -8,7 +8,7 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 
 @Repository
 public interface ScopeEntityRepository
-        extends CustomJpaRepository<ScopeEntity, Long> {
+        extends CustomJpaRepository<ScopeEntity, String> {
 
     ScopeEntity findByScope(String scope);
 

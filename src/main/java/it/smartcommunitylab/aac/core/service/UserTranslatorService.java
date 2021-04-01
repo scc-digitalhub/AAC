@@ -1,8 +1,9 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.core.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.scope;
+package it.smartcommunitylab.aac.core.service;
 
 import java.util.Collection;
 import java.util.List;
@@ -11,6 +11,8 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.persistence.ScopeEntity;
 import it.smartcommunitylab.aac.core.persistence.ScopeEntityRepository;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeProvider;
 
 @Service
 public class ScopeService implements ScopeProvider {

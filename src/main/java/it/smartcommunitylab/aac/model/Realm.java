@@ -1,9 +1,18 @@
 package it.smartcommunitylab.aac.model;
 
-public abstract class Realm {
+public class Realm {
 
     private String name;
     private String slug;
+
+    public Realm() {
+
+    }
+
+    public Realm(String slug, String name) {
+        this.name = name;
+        this.slug = slug;
+    }
 
     public String getName() {
         return name;
@@ -20,7 +29,5 @@ public abstract class Realm {
     public void setSlug(String slug) {
         this.slug = slug;
     }
-
-    public abstract String getId();
 
 }

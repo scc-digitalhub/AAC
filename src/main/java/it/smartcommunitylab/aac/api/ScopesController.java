@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.api;
 
 import java.util.Collection;
 

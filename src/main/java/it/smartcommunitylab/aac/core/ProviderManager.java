@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ProviderService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 
@@ -43,6 +44,7 @@ public class ProviderManager {
     // keep a local map for global providers since these are not in db
     // key is providerId
     private Map<String, IdentityProvider> globalIdps;
+    private Map<String, IdentityService> globalIdss;
     private Map<String, AttributeProvider> globalAttrps;
 
     public ProviderManager(
@@ -59,6 +61,7 @@ public class ProviderManager {
         this.providerService = providerService;
 
         this.globalIdps = new HashMap<>();
+        this.globalIdss = new HashMap<>();
         this.globalAttrps = new HashMap<>();
 
         // create global idps
@@ -75,6 +78,11 @@ public class ProviderManager {
         logger.debug("register internal idp in global realm");
         IdentityProvider internalIdp = internal.registerIdentityProvider(internalIdpConfig);
         globalIdps.put(internalIdp.getProvider(), internalIdp);
+        // global idp is an iss
+        IdentityService internalIss = internal.getIdentityService(internalIdp.getProvider());
+        if (internalIss != null) {
+            globalIdss.put(internalIss.getProvider(), internalIss);
+        }
 
         // process additional from config
         if (providers != null) {
@@ -112,8 +120,16 @@ public class ProviderManager {
                         provider.setPersistence(persistenceLevel);
 
                         // register
-                        IdentityProvider idp = registerIdentityProvider(provider);
+                        IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
+                        IdentityProvider idp = ia.registerIdentityProvider(provider);
                         globalIdps.put(idp.getProvider(), idp);
+
+                        // check if we get an iss from this idp
+                        IdentityService iss = ia.getIdentityService(idp.getProvider());
+                        if (iss != null) {
+                            globalIdss.put(iss.getProvider(), iss);
+                        }
+
                     }
                 } catch (SystemException | IllegalArgumentException ex) {
                     logger.error("error registering provider :" + ex.getMessage(), ex);
@@ -200,7 +216,7 @@ public class ProviderManager {
             String providerId = provider.getProvider();
 
             // terminate sessions
-            sessionManager.destroySessions(providerId);
+            sessionManager.destroyProviderSessions(providerId);
             a.unregisterIdentityProvider(provider.getRealm(), providerId);
         } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
             // TODO attribute providers
@@ -234,6 +250,10 @@ public class ProviderManager {
 
     private Collection<IdentityProvider> listGlobalIdentityProviders() {
         return globalIdps.values();
+    }
+
+    private Collection<IdentityService> listGlobalIdentityServices() {
+        return globalIdss.values();
     }
 
     /*
@@ -470,6 +490,112 @@ public class ProviderManager {
     }
 
     /*
+     * Identity services
+     * 
+     * idp with persistence can expose an identity service for operations on stored
+     * users, such as search,update,delete etc
+     */
+
+    public IdentityService findIdentityService(String providerId) {
+
+        // lookup in global map first
+        if (globalIdss.containsKey(providerId)) {
+            return globalIdss.get(providerId);
+        }
+        try {
+            ConfigurableProvider provider = getProvider(providerId);
+
+            if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
+                return null;
+            }
+
+            // lookup in authority
+            IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
+            return ia.getIdentityService(providerId);
+        } catch (NoSuchProviderException e) {
+            return null;
+        }
+    }
+
+    public IdentityService getIdentityService(String providerId) throws NoSuchProviderException {
+        IdentityService idp = findIdentityService(providerId);
+        if (idp == null) {
+            // provider is not active or not existing
+            // TODO add dedicated exception?
+            throw new NoSuchProviderException("provider not found");
+        }
+
+        return idp;
+    }
+
+    // fast load, skips db lookup, returns null if missing
+    public IdentityService fetchIdentityService(String authority, String providerId) {
+        // lookup in global map first
+        if (globalIdss.containsKey(providerId)) {
+            return globalIdss.get(providerId);
+        }
+
+        // lookup in authority
+        IdentityAuthority ia = authorityManager.getIdentityAuthority(authority);
+        if (ia == null) {
+            return null;
+        }
+        return ia.getIdentityService(providerId);
+    }
+
+    public Collection<IdentityService> getIdentityServices(String realm) {
+        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
+            return listGlobalIdentityServices();
+        }
+
+        Collection<ConfigurableProvider> providers = listProviders(realm, SystemKeys.RESOURCE_IDENTITY);
+
+        // fetch each active provider from authority
+        List<IdentityService> idps = new ArrayList<>();
+        for (ConfigurableProvider provider : providers) {
+            // lookup in authority
+            IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
+            IdentityService idp = ia.getIdentityService(provider.getProvider());
+            if (idp != null) {
+                idps.add(idp);
+            }
+        }
+
+        return idps;
+    }
+
+    // fast load, skips db lookup
+    public Collection<IdentityService> fetchIdentityServices(String realm) {
+        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
+            return listGlobalIdentityServices();
+        }
+
+        List<IdentityService> providers = new ArrayList<>();
+        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+            providers.addAll(ia.getIdentityServices(realm));
+        }
+
+        return providers;
+
+    }
+
+    // fast load, skips db lookup
+    public Collection<IdentityService> fetchIdentityServices(String authority, String realm) {
+        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
+            return listGlobalIdentityServices().stream()
+                    .filter(i -> i.getAuthority().equals(authority))
+                    .collect(Collectors.toList());
+        }
+
+        IdentityAuthority ia = authorityManager.getIdentityAuthority(authority);
+        if (ia != null) {
+            return ia.getIdentityServices(realm);
+        }
+
+        return null;
+    }
+
+    /*
      * Helpers
      */
 
@@ -478,8 +604,8 @@ public class ProviderManager {
         idp.setType(pe.getType());
         idp.setConfiguration(pe.getConfigurationMap());
 
-        if(idp.getConfiguration() == null) {
-            //we want a valid map in config
+        if (idp.getConfiguration() == null) {
+            // we want a valid map in config
             idp.setConfiguration(new HashMap<>());
         }
         return idp;

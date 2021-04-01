@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntityRepository;
@@ -46,10 +47,10 @@ public class UserEntityService {
         return u;
     }
 
-    public UserEntity addUser(String uuid, String realm, String username) throws IllegalArgumentException {
+    public UserEntity addUser(String uuid, String realm, String username) throws AlreadyRegisteredException {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
-            throw new IllegalArgumentException("user already exists");
+            throw new AlreadyRegisteredException("user already exists");
         }
 
         u = new UserEntity(uuid, realm);
@@ -59,10 +60,10 @@ public class UserEntityService {
     }
 
     public UserEntity addUser(String uuid, String realm, String username, List<String> roles)
-            throws IllegalArgumentException {
+            throws AlreadyRegisteredException {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
-            throw new IllegalArgumentException("user already exists");
+            throw new AlreadyRegisteredException("user already exists");
         }
 
         u = new UserEntity(uuid, realm);

@@ -185,7 +185,14 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    public void deleteIdentities(String subjectId) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
     public String getRegistrationUrl() {
         return null;
     }
+
 }

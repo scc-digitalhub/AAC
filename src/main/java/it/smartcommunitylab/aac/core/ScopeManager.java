@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.core.service.ScopeService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
-import it.smartcommunitylab.aac.scope.ScopeService;
 
 @Service
 public class ScopeManager {

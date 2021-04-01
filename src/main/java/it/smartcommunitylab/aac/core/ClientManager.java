@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +18,15 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
@@ -49,20 +53,33 @@ public class ClientManager {
     @Autowired
     private ScopeRegistry scopeRegistry;
 
+    @Autowired
+    private SessionManager sessionManager;
+
+    @Autowired
+    private RealmService realmService;
+
     /*
      * ClientApp via appService
      * 
      * TODO add permission checkers
      */
 
-    public Collection<ClientApp> listClientApps(String realm) {
+    public Collection<ClientApp> listClientApps(String realm) throws NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
+        List<ClientApp> apps = new ArrayList<>();
 
         // we support only oauth for now
-        return listClientApps(realm, SystemKeys.CLIENT_TYPE_OAUTH2);
+        apps.addAll(listClientApps(realm, SystemKeys.CLIENT_TYPE_OAUTH2));
+
+        return apps;
 
     }
 
-    public Collection<ClientApp> listClientApps(String realm, String type) {
+    public Collection<ClientApp> listClientApps(String realm, String type) throws NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
             return oauthClientAppService.listClients(realm);
         }
@@ -70,7 +87,8 @@ public class ClientManager {
         throw new IllegalArgumentException("invalid client type");
     }
 
-    public ClientApp getClientApp(String realm, String clientId) throws NoSuchClientException {
+    public ClientApp getClientApp(String realm, String clientId) throws NoSuchClientException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
 
         // get type by loading base client
         // TODO optimize to avoid db fetch
@@ -107,7 +125,9 @@ public class ClientManager {
 //
 //    }
 
-    public ClientApp registerClientApp(String realm, ClientApp app) {
+    public ClientApp registerClientApp(String realm, ClientApp app) throws NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         String type = app.getType();
 
         Set<String> invalidScopes = app.getScopes().stream().filter(s -> scopeRegistry.findScope(s) == null)
@@ -125,7 +145,10 @@ public class ClientManager {
 
     }
 
-    public ClientApp updateClientApp(String realm, String clientId, ClientApp app) throws NoSuchClientException {
+    public ClientApp updateClientApp(String realm, String clientId, ClientApp app)
+            throws NoSuchClientException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         String type = app.getType();
         ClientApp clientApp = null;
 
@@ -151,7 +174,9 @@ public class ClientManager {
         return clientApp;
     }
 
-    public void deleteClient(String realm, String clientId) throws NoSuchClientException {
+    public void deleteClientApp(String realm, String clientId) throws NoSuchClientException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         ClientEntity entity = findClient(clientId);
         if (entity == null) {
             throw new NoSuchClientException();
@@ -175,12 +200,8 @@ public class ClientManager {
             throw new AccessDeniedException("realm mismatch");
         }
 
-        // delete
-        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            oauthClientAppService.deleteClient(clientId);
-        } else {
-            throw new IllegalArgumentException("invalid client type");
-        }
+        // delete via service to destroy related resources
+        deleteClient(clientId);
 
     }
 
@@ -211,11 +232,57 @@ public class ClientManager {
 
     }
 
+    public List<Client> listClients(String realm) throws NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
+        List<Client> apps = new ArrayList<>();
+
+        // we support only oauth for now
+        apps.addAll(oauthClientService.listClients(realm));
+
+        return apps;
+    }
+
+    public void deleteClient(String clientId) throws NoSuchClientException {
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        String type = entity.getType();
+
+        Client client = null;
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            client = oauthClientService.getClient(clientId);
+        }
+
+        if (client == null) {
+            throw new IllegalArgumentException("invalid client type");
+        }
+
+        // session invalidation
+        sessionManager.destroyClientSessions(clientId);
+
+        // TODO token revoke, cleanups etc
+        // most things should be handled by the downstream service
+
+        // delete
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            oauthClientService.deleteClient(clientId);
+        } else {
+            throw new IllegalArgumentException("invalid client type");
+        }
+
+    }
+
     /*
      * Client Credentials via service
      */
 
-    public ClientCredentials getClientCredentials(String realm, String clientId) throws NoSuchClientException {
+    public ClientCredentials getClientCredentials(String realm, String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         // get type by loading base client
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
@@ -237,7 +304,10 @@ public class ClientManager {
         throw new IllegalArgumentException("invalid client type");
     }
 
-    public ClientCredentials resetClientCredentials(String realm, String clientId) throws NoSuchClientException {
+    public ClientCredentials resetClientCredentials(String realm, String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         // get type by loading base client
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
@@ -260,7 +330,9 @@ public class ClientManager {
     }
 
     public ClientCredentials setClientCredentials(String realm, String clientId, Map<String, Object> credentials)
-            throws NoSuchClientException {
+            throws NoSuchClientException, NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+
         // get type by loading base client
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
@@ -288,7 +360,10 @@ public class ClientManager {
      * Client roles
      */
 
-    public Collection<RealmRole> getRoles(String realm, String clientId) throws NoSuchClientException {
+    public Collection<RealmRole> getRoles(String realm, String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
+        Realm rlm = realmService.getRealm(realm);
+
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
         if (entity == null) {
@@ -305,7 +380,9 @@ public class ClientManager {
     }
 
     public Collection<RealmRole> updateRoles(String clientId, String realm, Collection<String> roles)
-            throws NoSuchClientException {
+            throws NoSuchClientException, NoSuchRealmException {
+        Realm rlm = realmService.getRealm(realm);
+
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
         if (entity == null) {

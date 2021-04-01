@@ -97,7 +97,7 @@ public class TokenIntrospectionEndpoint {
 
         // clientAuth should be available
         OAuth2ClientAuthenticationToken introspectClientAuth = (OAuth2ClientAuthenticationToken) authentication;
-        OAuth2ClientDetails introspectClientDetails = introspectClientAuth.getClient();
+        OAuth2ClientDetails introspectClientDetails = introspectClientAuth.getOAuth2ClientDetails();
         String introspectClientId = introspectClientDetails.getClientId();
 
         if (!StringUtils.hasText(tokenValue)) {

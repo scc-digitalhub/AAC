@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.controller;
+package it.smartcommunitylab.aac.api;
 
 import java.util.Collection;
 import java.util.Map;
@@ -22,6 +22,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.model.ClientApp;
@@ -49,7 +50,7 @@ public class ClientAppController {
 
     @GetMapping("{realm}")
     public Collection<ClientApp> listApp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
 
         return clientManager.listClientApps(realm);
 
@@ -59,7 +60,7 @@ public class ClientAppController {
     public ClientApp getApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchClientException {
+            throws NoSuchClientException, NoSuchRealmException {
 
         return clientManager.getClientApp(realm, clientId);
 
@@ -71,7 +72,7 @@ public class ClientAppController {
     @PostMapping("{realm}")
     public ClientApp registerApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid ClientApp app) {
+            @RequestBody @Valid ClientApp app) throws NoSuchRealmException {
         app.setRealm(realm);
         return clientManager.registerClientApp(realm, app);
     }
@@ -80,7 +81,7 @@ public class ClientAppController {
     public ClientApp updateApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody @Valid ClientApp app) throws NoSuchClientException {
+            @RequestBody @Valid ClientApp app) throws NoSuchClientException, NoSuchRealmException {
         app.setRealm(realm);
         return clientManager.updateClientApp(realm, clientId, app);
     }
@@ -89,9 +90,9 @@ public class ClientAppController {
     public void deleteApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchClientException {
+            throws NoSuchClientException, NoSuchRealmException {
 
-        clientManager.deleteClient(realm, clientId);
+        clientManager.deleteClientApp(realm, clientId);
 
     }
 
@@ -103,7 +104,7 @@ public class ClientAppController {
     public ClientCredentials getAppCredentials(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchClientException {
+            throws NoSuchClientException, NoSuchRealmException {
 
         return clientManager.getClientCredentials(realm, clientId);
 
@@ -114,7 +115,7 @@ public class ClientAppController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @RequestBody Map<String, Object> credentials)
-            throws NoSuchClientException {
+            throws NoSuchClientException, NoSuchRealmException {
 
         return clientManager.setClientCredentials(realm, clientId, credentials);
 
@@ -124,7 +125,7 @@ public class ClientAppController {
     public ClientCredentials resetAppCredentials(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
-            throws NoSuchClientException {
+            throws NoSuchClientException, NoSuchRealmException {
 
         return clientManager.resetClientCredentials(realm, clientId);
 

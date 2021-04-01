@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
-import it.smartcommunitylab.aac.core.UserTranslatorService;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -19,6 +18,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.RoleService;
@@ -53,6 +53,51 @@ public class UserService {
         return u.getRealm();
     }
 
+    public User getUser(String subjectId) throws NoSuchUserException {
+        // resolve subject
+        UserEntity u = userService.getUser(subjectId);
+        String realm = u.getRealm();
+        Set<UserIdentity> identities = new HashSet<>();
+        Set<UserAttributes> attributes = Collections.emptySet();
+
+        // same realm, fetch all idps
+        // TODO we need an order criteria
+        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+            List<IdentityService> idps = ia.getIdentityServices(realm);
+            for (IdentityService idp : idps) {
+                identities.addAll(idp.listIdentities(subjectId));
+            }
+        }
+
+        // TODO
+        attributes = Collections.emptySet();
+
+        User user = new User(subjectId, u.getRealm());
+        for (UserIdentity identity : identities) {
+            user.addIdentity(identity);
+        }
+        for (UserAttributes attr : attributes) {
+            user.addAttributes(attr);
+        }
+
+        // fetch all authoritites
+        Set<RealmGrantedAuthority> authorities = new HashSet<>();
+        List<UserRoleEntity> userRoles = userService.getRoles(subjectId);
+
+        for (UserRoleEntity ur : userRoles) {
+            authorities.add(new RealmGrantedAuthority(ur.getRealm(), ur.getRole()));
+        }
+
+        // fetch space roles, always available
+        Set<SpaceRole> roles = roleService.getRoles(subjectId);
+
+        user.setAuthorities(authorities);
+        user.setRoles(roles);
+
+        return user;
+
+    }
+
     /*
      * Returns a model describing the given user as accessible for the given realm.
      * 
@@ -69,8 +114,8 @@ public class UserService {
             // same realm, fetch all
             // TODO we need an order criteria
             for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-                List<IdentityProvider> idps = ia.getIdentityProviders(realm);
-                for (IdentityProvider idp : idps) {
+                List<IdentityService> idps = ia.getIdentityServices(realm);
+                for (IdentityService idp : idps) {
                     identities.addAll(idp.listIdentities(subjectId));
                 }
             }
@@ -162,6 +207,31 @@ public class UserService {
             // fetch accessible
             // TODO decide policy + implement
         }
+
+    }
+
+    public void deleteUser(String subjectId) throws NoSuchUserException {
+        UserEntity user = userService.getUser(subjectId);
+        String realm = user.getRealm();
+
+        // delete identities via providers
+        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+            List<IdentityService> idps = ia.getIdentityServices(realm);
+            for (IdentityService idp : idps) {
+                if (idp.canDelete()) {
+                    // remove all identities
+                    idp.deleteIdentities(subjectId);
+                }
+            }
+        }
+
+        // TODO attributes
+
+        // roles
+        roleService.deleteRoles(subjectId);
+
+        // delete user
+        userService.deleteUser(subjectId);
 
     }
 

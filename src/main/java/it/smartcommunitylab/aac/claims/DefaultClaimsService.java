@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.UserTranslatorService;
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.User;
 
 public class DefaultClaimsService implements ClaimsService, InitializingBean {

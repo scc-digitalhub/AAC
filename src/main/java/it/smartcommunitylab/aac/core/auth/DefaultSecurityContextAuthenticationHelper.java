@@ -10,12 +10,28 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
 
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 
 public class DefaultSecurityContextAuthenticationHelper implements AuthenticationHelper, SecurityContextAccessor {
+
+    @Override
+    public boolean isAuthenticated() {
+        return (getAuthentication() != null);
+    }
+
     @Override
     public Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    /*
+     * Authentication: user
+     */
+
+    @Override
+    public boolean isUserAuthentication() {
+        return (getUserAuthentication() != null);
     }
 
     @Override
@@ -45,6 +61,41 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
         return auth != null;
     }
 
+    /*
+     * Authentication: client
+     */
+
+    @Override
+    public boolean isClientAuthentication() {
+        return (getUserAuthentication() != null);
+
+    }
+
+    @Override
+    public ClientAuthenticationToken getClientAuthentication() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof ClientAuthenticationToken) {
+            return (ClientAuthenticationToken) auth;
+        } else {
+            return null;
+        }
+
+    }
+
+    @Override
+    public ClientDetails getClientDetails() {
+        ClientAuthenticationToken auth = getClientAuthentication();
+        if (auth == null) {
+            return null;
+        }
+
+        return auth.getClient();
+    }
+
+    /*
+     * Authorities
+     */
+
     @Override
     public Set<GrantedAuthority> getAuthorities() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -53,4 +104,5 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
         }
         return Collections.unmodifiableSet(new HashSet<GrantedAuthority>(authentication.getAuthorities()));
     }
+
 }
