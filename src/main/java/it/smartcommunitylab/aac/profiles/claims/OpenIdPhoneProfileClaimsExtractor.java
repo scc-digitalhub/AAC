@@ -28,6 +28,11 @@ public class OpenIdPhoneProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
+    public String getKey() {
+        return "phone";
+    }
+
+    @Override
     protected AbstractProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException {
 

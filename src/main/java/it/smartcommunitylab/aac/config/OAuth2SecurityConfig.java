@@ -1,0 +1,125 @@
+package it.smartcommunitylab.aac.config;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.servlet.Filter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.filter.CompositeFilter;
+
+import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
+import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+
+/*
+ * Security context for oauth2 endpoints
+ * 
+ * Builds a stateless context with oauth2 Client Auth
+ */
+
+@Configuration
+@Order(11)
+public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private OAuth2ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private PeekableAuthorizationCodeServices authCodeServices;
+
+    /*
+     * Configure a separated security context for oauth2 tokenEndpoints
+     */
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        // match only token endpoints
+        http.requestMatcher(getRequestMatcher())
+                .authorizeRequests((authorizeRequests) -> authorizeRequests
+                        .anyRequest().hasAnyAuthority("ROLE_CLIENT"))
+                // disable request cache, we override redirects but still better enforce it
+                .requestCache((requestCache) -> requestCache.disable())
+                .exceptionHandling()
+                // use 403 for tokenEndpoint
+                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .accessDeniedPage("/accesserror")
+                .and()
+                .csrf()
+                .disable()
+                .addFilterBefore(
+                        getOAuth2ProviderFilters(clientDetailsService, authCodeServices),
+                        BasicAuthenticationFilter.class);
+
+        // we don't want a session for these endpoints, each request should be evaluated
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    private Filter getOAuth2ProviderFilters(
+            OAuth2ClientDetailsService clientDetailsService,
+            PeekableAuthorizationCodeServices authCodeServices) {
+
+        // build auth providers for oauth2 clients
+        OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
+                clientDetailsService, authCodeServices);
+        OAuth2ClientSecretAuthenticationProvider secretAuthProvider = new OAuth2ClientSecretAuthenticationProvider(
+                clientDetailsService);
+        ProviderManager authManager = new ProviderManager(secretAuthProvider, pkceAuthProvider);
+
+        // build auth filters for TokenEndpoint
+        // TODO add realm style endpoints
+        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
+        formTokenEndpointFilter.setAuthenticationManager(authManager);
+
+        // TODO consolidate basicFilter for all endpoints
+        ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
+        basicTokenEndpointFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+
+        ClientBasicAuthFilter basicTokenIntrospectFilter = new ClientBasicAuthFilter("/oauth/introspect");
+        basicTokenIntrospectFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+
+        ClientBasicAuthFilter basicTokenRevokeFilter = new ClientBasicAuthFilter("/oauth/revoke");
+        basicTokenRevokeFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(basicTokenEndpointFilter);
+        filters.add(formTokenEndpointFilter);
+        filters.add(basicTokenIntrospectFilter);
+        filters.add(basicTokenRevokeFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    public RequestMatcher getRequestMatcher() {
+        List<RequestMatcher> antMatchers = Arrays.stream(TOKEN_URLS).map(u -> new AntPathRequestMatcher(u))
+                .collect(Collectors.toList());
+
+        return new OrRequestMatcher(antMatchers);
+
+    }
+
+    public static final String[] TOKEN_URLS = {
+            "/oauth/token",
+            "/oauth/introspect",
+            "/oauth/revoke"
+    };
+
+}

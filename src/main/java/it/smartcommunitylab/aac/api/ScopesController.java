@@ -27,6 +27,9 @@ public class ScopesController {
     @Autowired
     private ScopeManager scopeManager;
 
+    // TODO evaluate restrict api to {realm} context, enforcing namespace
+    // how do we handle permissions??
+
     @GetMapping("")
     public Collection<Scope> listScopes() {
         return scopeManager.listScopes();
@@ -55,7 +58,6 @@ public class ScopesController {
     public void deleteScope(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) {
         scopeManager.deleteScope(scope);
-        ;
     }
 
 }

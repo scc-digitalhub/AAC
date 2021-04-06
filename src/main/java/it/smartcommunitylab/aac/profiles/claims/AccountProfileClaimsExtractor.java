@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
+import it.smartcommunitylab.aac.claims.model.SerializableClaim;
+import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -53,14 +55,13 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
             profiles.add(profile);
         }
 
-        // convert to a serializable list
-        ArrayList<Map<String, Serializable>> claims = new ArrayList<>();
+        // convert to a claims list
+        List<Claim> claims = new ArrayList<>();
         for (AccountProfile profile : profiles) {
-            claims.add(profile.toMap());
+            SerializableClaim claim = new SerializableClaim("accounts");
+            claim.setValue(profile.toMap());
+            claims.add(claim);
         }
-
-        // convert to map
-        Map<String, Serializable> claimsMap = Collections.singletonMap(NAMESPACE, claims);
 
         // build a claimsSet
         DefaultClaimsSet claimsSet = new DefaultClaimsSet();
@@ -69,7 +70,7 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
         // we merge our map with namespace to tld
         claimsSet.setNamespace(null);
         claimsSet.setUser(true);
-        claimsSet.setClaims(claimsMap);
+        claimsSet.setClaims(claims);
 
         return claimsSet;
 
@@ -78,7 +79,7 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
     @Override
     public ClaimsSet extractClientClaims(ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
-        // not supported 
+        // not supported
         return null;
     }
 

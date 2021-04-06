@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHe
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 
@@ -39,10 +40,10 @@ import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository
  * AAC core config
  */
 @Configuration
-@Order(1)
+@Order(5)
 public class AACConfig {
     /*
-     * Core aac should be bootstrapped at @1
+     * Core aac should be bootstrapped before services, security etc
      */
 
     @Autowired
@@ -89,6 +90,8 @@ public class AACConfig {
     /*
      * we need all beans covering authorities here, otherwise we won't be able to
      * build the authmanager (it depends on providerManager -> authorityManager)
+     * 
+     * TODO fix configuration, expose setter on authManager
      */
     @Bean
     public OIDCClientRegistrationRepository clientRegistrationRepository() {
@@ -111,10 +114,11 @@ public class AACConfig {
 
     @Bean
     public ClaimsService claimsService(Collection<ScopeClaimsExtractor> scopeExtractors,
-            ScriptExecutionService executionService) {
+            ScriptExecutionService executionService,
+            UserTranslatorService translatorService) {
         DefaultClaimsService service = new DefaultClaimsService(scopeExtractors);
         service.setExecutionService(executionService);
-
+        service.setUserTranslatorService(translatorService);
         return service;
 
     }

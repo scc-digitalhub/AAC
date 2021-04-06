@@ -1,8 +1,7 @@
 package it.smartcommunitylab.aac.claims;
 
-import java.io.Serializable;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 public class DefaultClaimsSet implements ClaimsSet {
 
@@ -13,7 +12,7 @@ public class DefaultClaimsSet implements ClaimsSet {
     private boolean isUser = false;
     private boolean isClient = false;
 
-    private Map<String, Serializable> claims = Collections.emptyMap();
+    private List<Claim> claims = Collections.emptyList();
 
     public String getResourceId() {
         return resourceId;
@@ -55,11 +54,11 @@ public class DefaultClaimsSet implements ClaimsSet {
         this.isClient = isClient;
     }
 
-    public Map<String, Serializable> getClaims() {
+    public List<Claim> getClaims() {
         return claims;
     }
 
-    public void setClaims(Map<String, Serializable> claims) {
+    public void setClaims(List<Claim> claims) {
         this.claims = claims;
     }
 

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -38,10 +39,13 @@ import com.zaxxer.hikari.HikariDataSource;
 import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 
 /**
+ * Database config is @1, we need dataSources to bootstrap
+ * 
  * @author raman
  *
  */
 @Configuration
+@Order(1)
 @EnableTransactionManagement
 @EntityScan(basePackages = {
         "it.smartcommunitylab.aac.core.persistence",

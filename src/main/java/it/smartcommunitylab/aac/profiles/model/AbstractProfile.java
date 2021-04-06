@@ -28,7 +28,7 @@ public abstract class AbstractProfile implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Serializable> toMap() throws IllegalArgumentException {
+    public HashMap<String, String> toMap() throws IllegalArgumentException {
         try {
             return mapper.convertValue(this, HashMap.class);
         } catch (Exception e) {

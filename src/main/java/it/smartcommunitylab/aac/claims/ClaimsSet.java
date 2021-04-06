@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.claims;
 
-import java.io.Serializable;
-import java.util.Map;
+import java.util.Collection;
 
 /*
  * A claims set describing an entity
@@ -22,7 +21,9 @@ public interface ClaimsSet {
     // a claim set can be namespaced. When empty claims will be merged top level
     public String getNamespace();
 
-    // the claim set
-    public Map<String, Serializable> getClaims();
+    // the claim set.
+    // each claim should be translated to a single value.
+    // Multiple claims under the same key will be merged into a collection
+    public Collection<Claim> getClaims();
 
 }

@@ -14,6 +14,10 @@ import com.nimbusds.jose.jwk.JWKSet;
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.JWKUtils;
 
+/*
+ * Keystore is @2, we need this to build security services and config
+ */
+
 @Configuration
 @Order(2)
 public class KeyStoreConfig {

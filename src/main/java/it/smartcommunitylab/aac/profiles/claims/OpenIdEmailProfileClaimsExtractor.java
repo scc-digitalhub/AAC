@@ -28,6 +28,12 @@ public class OpenIdEmailProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
+    public String getKey() {
+        // no key for email, we merge to TLD
+        return null;
+    }
+
+    @Override
     protected AbstractProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException {
 

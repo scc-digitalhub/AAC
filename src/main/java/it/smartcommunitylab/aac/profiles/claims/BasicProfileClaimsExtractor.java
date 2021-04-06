@@ -25,6 +25,12 @@ public class BasicProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
+    public String getKey() {
+        // no key for basic, we merge to TLD
+        return null;
+    }
+
+    @Override
     protected AbstractProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException {
 

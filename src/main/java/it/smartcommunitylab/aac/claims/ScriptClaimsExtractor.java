@@ -22,6 +22,7 @@ public class ScriptClaimsExtractor implements ResourceClaimsExtractor {
 
     public ScriptClaimsExtractor(String resourceId, String userClaimsFunction, String clientClaimsFunction,
             ScriptExecutionService executionService) {
+        Assert.hasText(resourceId, "resourceId can not be null or blank");
         Assert.notNull(executionService, "an execution service is needed");
         Assert.isTrue(validateScript(userClaimsFunction), "user script function is invalid");
         Assert.isTrue(validateScript(clientClaimsFunction), "user script function is invalid");
@@ -57,4 +58,7 @@ public class ScriptClaimsExtractor implements ResourceClaimsExtractor {
         return null;
     }
 
+    private ClaimsSet buildClaimsSet(Map<String, Serializable> map) {
+        return null;
+    }
 }

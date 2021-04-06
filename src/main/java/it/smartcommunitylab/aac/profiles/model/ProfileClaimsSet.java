@@ -1,16 +1,17 @@
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
-
+import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
+import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 
 public class ProfileClaimsSet implements ClaimsSet {
 
     public static final String RESOURCE_ID = "aac.profile";
 
     private String scope;
+    private String key;
     private String namespace;
     private boolean isUser;
 
@@ -26,6 +27,14 @@ public class ProfileClaimsSet implements ClaimsSet {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public void setNamespace(String namespace) {
@@ -56,18 +65,30 @@ public class ProfileClaimsSet implements ClaimsSet {
         return namespace;
     }
 
-    @Override
-    public Map<String, Serializable> getClaims() {
-        if (profile == null) {
-            return Collections.emptyMap();
-        }
-
-        return profile.toMap();
-    }
+//    @Override
+//    public Map<String, Serializable> getClaims() {
+//        if (profile == null) {
+//            return Collections.emptyMap();
+//        }
+//
+//        return profile.toMap();
+//    }
 
     @Override
     public String getResourceId() {
         return RESOURCE_ID;
+    }
+
+    @Override
+    public Collection<Claim> getClaims() {
+        if (profile == null) {
+            return Collections.emptyList();
+        }
+
+        SerializableClaim claim = new SerializableClaim(key);
+        claim.setValue(profile.toMap());
+
+        return Collections.singleton(claim);
     }
 
 }

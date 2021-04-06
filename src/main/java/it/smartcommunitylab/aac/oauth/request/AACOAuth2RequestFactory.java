@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
 import it.smartcommunitylab.aac.oauth.RealmTokenRequest;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -35,6 +38,8 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
     private static final String NONCE = "nonce";
 
     private final OAuth2ClientDetailsService clientDetailsService;
+
+    private ScopeRegistry scopeRegistry;
 
     private AuthenticationHelper authenticationHelper = new DefaultSecurityContextAuthenticationHelper();
 
@@ -45,6 +50,10 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 
     public void setAuthenticationHelper(AuthenticationHelper authenticationHelper) {
         this.authenticationHelper = authenticationHelper;
+    }
+
+    public void setScopeRegistry(ScopeRegistry scopeRegistry) {
+        this.scopeRegistry = scopeRegistry;
     }
 
     /*
@@ -66,7 +75,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         Set<String> scopes = extractScopes(
                 OAuth2Utils.parseParameterList(
                         decodeParameters(authorizationParameters.get(OAuth2Utils.SCOPE))),
-                clientId);
+                clientId, false);
 
         String realm = authorizationParameters.get("realm");
 
@@ -184,7 +193,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
                 Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
             scopes = extractScopes(OAuth2Utils.parseParameterList(
                     decodeParameters(requestParameters.get(OAuth2Utils.SCOPE))),
-                    clientId);
+                    clientId, isClientRequest(grantType));
         }
 
         String realm = requestParameters.get("realm");
@@ -256,9 +265,10 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
     }
 
     // TODO cleanup requestParameters and rework checkUserScopes
-    private Set<String> extractScopes(Set<String> scopes, String clientId) {
+    private Set<String> extractScopes(Set<String> scopes, String clientId, boolean isClient) {
         logger.trace("scopes from parameters " + scopes.toString());
         ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
+        String type = isClient ? "client" : "user";
 
         if ((scopes == null || scopes.isEmpty())) {
             // If no scopes are specified in the incoming data, use the default values
@@ -285,7 +295,26 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 //            }
 //        }
 
-        return scopes;
+        Set<String> allowedScopes = scopes;
+
+        if (scopeRegistry != null) {
+            // keep only those matching request type
+            Set<Scope> scs = scopes.stream().map(s -> {
+                return scopeRegistry.findScope(s);
+            })
+                    .filter(s -> s != null)
+                    .filter(s -> type.equals(s.getType()))
+                    .collect(Collectors.toSet());
+
+            allowedScopes = scs.stream().map(s -> s.getScope()).collect(Collectors.toSet());
+
+        }
+
+        return allowedScopes;
+    }
+
+    private boolean isClientRequest(String grantType) {
+        return Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType);
     }
 
 }

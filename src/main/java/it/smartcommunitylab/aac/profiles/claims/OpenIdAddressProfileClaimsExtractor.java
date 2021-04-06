@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.profiles.service.OpenIdProfileExtractor;
 
 @Component
 public class OpenIdAddressProfileClaimsExtractor extends ProfileClaimsExtractor {
-    
+
     private final OpenIdProfileExtractor extractor;
 
     public OpenIdAddressProfileClaimsExtractor() {
@@ -23,6 +23,11 @@ public class OpenIdAddressProfileClaimsExtractor extends ProfileClaimsExtractor 
     @Override
     public String getScope() {
         return Config.SCOPE_ADDRESS;
+    }
+
+    @Override
+    public String getKey() {
+        return "address";
     }
 
     @Override

@@ -22,6 +22,8 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     @Override
     public abstract String getScope();
 
+    public abstract String getKey();
+
     @Override
     public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
@@ -29,7 +31,7 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
         AbstractProfile profile = buildUserProfile(user, scopes);
 
         // build a claimsSet
-        ClaimsSet claimsSet = buildClaimsSet(profile, true);
+        ClaimsSet claimsSet = buildClaimsSet(getKey(), profile, true);
 
         return claimsSet;
 
@@ -39,9 +41,10 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     protected abstract AbstractProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException;
 
-    protected ClaimsSet buildClaimsSet(AbstractProfile profile, boolean isUser) {
+    protected ClaimsSet buildClaimsSet(String key, AbstractProfile profile, boolean isUser) {
         ProfileClaimsSet claimsSet = new ProfileClaimsSet();
         claimsSet.setScope(getScope());
+        claimsSet.setKey(key);
 
         // by default profile claims are top level
         claimsSet.setNamespace(null);

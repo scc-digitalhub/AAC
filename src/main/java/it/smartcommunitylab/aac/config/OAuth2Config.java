@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.ApprovalStoreUserApprovalHandler;
@@ -64,6 +65,7 @@ import it.smartcommunitylab.aac.oauth.OAuth2TokenServices;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
@@ -79,9 +81,12 @@ import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
+/*
+ * OAuth2 services configuration
+ */
 @Configuration
-@Order(5)
-public class OAuth2Config extends WebSecurityConfigurerAdapter {
+@Order(6)
+public class OAuth2Config {
 
     @Value("${application.url}")
     private String applicationURL;
@@ -122,39 +127,6 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthenticationManager authManager;
 
-    @Autowired
-    private OAuth2ClientDetailsService clientDetailsService;
-
-    @Autowired
-    private PeekableAuthorizationCodeServices authCodeServices;
-
-    /*
-     * Configure a separated security context for oauth2 tokenEndpoints
-     */
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
-        // match only token endpoints
-        http.requestMatcher(getRequestMatcher())
-                .authorizeRequests((authorizeRequests) -> authorizeRequests
-                        .anyRequest().hasAnyAuthority("ROLE_CLIENT"))
-                // disable request cache, we override redirects but still better enforce it
-                .requestCache((requestCache) -> requestCache.disable())
-                .exceptionHandling()
-                // use 403 for tokenEndpoint
-                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
-                .accessDeniedPage("/accesserror")
-                .and()
-                .csrf()
-                .disable()
-                .addFilterBefore(
-                        getOAuth2ProviderFilters(clientDetailsService, authCodeServices),
-                        BasicAuthenticationFilter.class);
-
-        // we don't want a session for these endpoints, each request should be evaluated
-        http.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    }
-
     @Bean
     public SecurityContextAccessor securityContextAccessor() {
         return new DefaultSecurityContextAuthenticationHelper();
@@ -163,10 +135,13 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
     @Bean
     public AACOAuth2RequestFactory getOAuth2RequestFactory(
             OAuth2ClientDetailsService clientDetailsService,
-            SecurityContextAccessor securityContextAccessor)
+            ScopeRegistry scopeRegistry,
+            AuthenticationHelper authenticationHelper)
             throws PropertyVetoException {
 
         AACOAuth2RequestFactory requestFactory = new AACOAuth2RequestFactory(clientDetailsService);
+        requestFactory.setScopeRegistry(scopeRegistry);
+        requestFactory.setAuthenticationHelper(authenticationHelper);
         return requestFactory;
     }
 
@@ -399,56 +374,14 @@ public class OAuth2Config extends WebSecurityConfigurerAdapter {
         return tokenEndpoint;
     }
 
-    private Filter getOAuth2ProviderFilters(
-            OAuth2ClientDetailsService clientDetailsService,
-            PeekableAuthorizationCodeServices authCodeServices) {
+    @Bean
+    public InternalOpaqueTokenIntrospector tokenIntrospector(ExtTokenStore tokenStore,
+            UserEntityService userService, ClientEntityService clientService) {
+        InternalOpaqueTokenIntrospector introspector = new InternalOpaqueTokenIntrospector(tokenStore);
+        introspector.setUserService(userService);
+        introspector.setClientService(clientService);
 
-        // build auth providers for oauth2 clients
-        OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
-                clientDetailsService, authCodeServices);
-        OAuth2ClientSecretAuthenticationProvider secretAuthProvider = new OAuth2ClientSecretAuthenticationProvider(
-                clientDetailsService);
-        ProviderManager authManager = new ProviderManager(secretAuthProvider, pkceAuthProvider);
-
-        // build auth filters for TokenEndpoint
-        // TODO add realm style endpoints
-        ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
-        formTokenEndpointFilter.setAuthenticationManager(authManager);
-
-        // TODO consolidate basicFilter for all endpoints
-        ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
-        basicTokenEndpointFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
-
-        ClientBasicAuthFilter basicTokenIntrospectFilter = new ClientBasicAuthFilter("/oauth/introspect");
-        basicTokenIntrospectFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
-
-        ClientBasicAuthFilter basicTokenRevokeFilter = new ClientBasicAuthFilter("/oauth/revoke");
-        basicTokenRevokeFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
-
-        List<Filter> filters = new ArrayList<>();
-        filters.add(basicTokenEndpointFilter);
-        filters.add(formTokenEndpointFilter);
-        filters.add(basicTokenIntrospectFilter);
-        filters.add(basicTokenRevokeFilter);
-
-        CompositeFilter filter = new CompositeFilter();
-        filter.setFilters(filters);
-
-        return filter;
+        return introspector;
     }
-
-    public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays.stream(TOKEN_URLS).map(u -> new AntPathRequestMatcher(u))
-                .collect(Collectors.toList());
-
-        return new OrRequestMatcher(antMatchers);
-
-    }
-
-    public static final String[] TOKEN_URLS = {
-            "/oauth/token",
-            "/oauth/introspect",
-            "/oauth/revoke"
-    };
 
 }

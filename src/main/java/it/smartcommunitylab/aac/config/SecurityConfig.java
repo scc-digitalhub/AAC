@@ -92,10 +92,12 @@ import it.smartcommunitylab.aac.utils.Utils;
 
 /*
  * Security config for AAC UI
+ * 
+ * Should be after all api/endpoint config to works as catch-all for remaining requests
  */
 
 @Configuration
-@Order(9)
+@Order(15)
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -243,9 +245,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
-                // whitelist api
-                // TODO fix
-                .antMatchers("/api/**").permitAll()
                 // anything else requires auth
                 .anyRequest().authenticated()
                 .and()

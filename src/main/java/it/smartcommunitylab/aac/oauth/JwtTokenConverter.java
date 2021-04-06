@@ -76,13 +76,12 @@ public class JwtTokenConverter implements TokenEnhancer {
                 return token;
             }
 
+            UserDetails userDetails = null;
             logger.debug("fetch user via authentication");
             Authentication userAuth = authentication.getUserAuthentication();
-            if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
-                throw new InvalidRequestException("id_token requires a valid user authentication");
+            if (userAuth != null && (userAuth instanceof UserAuthenticationToken)) {
+                userDetails = ((UserAuthenticationToken) userAuth).getUser();
             }
-
-            UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
 
             JWT jwt = buildJWT(request, token, userDetails, clientDetails);
 
@@ -115,7 +114,12 @@ public class JwtTokenConverter implements TokenEnhancer {
         logger.trace("access token used for oidc is " + accessToken);
 
         String clientId = clientDetails.getClientId();
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = clientId;
+        if (userDetails != null) {
+            // this is a user token, use subjectId
+            subjectId = userDetails.getSubjectId();
+        }
+
         Set<String> scopes = request.getScope();
         Set<String> resourceIds = request.getResourceIds();
 

@@ -22,12 +22,14 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 
 public class DefaultClaimsService implements ClaimsService, InitializingBean {
@@ -76,6 +78,8 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     private final ObjectMapper mapper = new ObjectMapper();
     private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
     };
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
+    };
 
     public DefaultClaimsService(Collection<ScopeClaimsExtractor> scopeExtractors) {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
@@ -97,7 +101,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(executionService, "an execution service is required");
-        Assert.notNull(executionService, "a user translator service is required");
+        Assert.notNull(userTranslatorService, "a user translator service is required");
     }
 
     // TODO add locks when modifying extractor lists
@@ -428,35 +432,125 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     public Map<String, Serializable> extractClaims(ClaimsSet set) {
         if (set != null) {
+
             // check for namespace, if present we avoid collisions with reserved
             // we don't care about namespace collisions here
             if (StringUtils.hasText(set.getNamespace())) {
-                // build a singleton map to be merged via new map
-                HashMap<String, Serializable> map = new HashMap<>();
-                HashMap<String, Serializable> content = new HashMap<>();
-                content.putAll(set.getClaims());
-                map.put(set.getNamespace(), content);
 
-                return map;
+                return Collections.singletonMap(set.getNamespace(), claimsToMap(set.getClaims()));
             } else if (set.getResourceId().startsWith("aac.")) {
                 // we let internal map to tld, no checks
-                return set.getClaims();
+                return claimsToMap(set.getClaims());
             } else {
                 // we let map to tld only for not-reserved claims
-                HashMap<String, Serializable> map = new HashMap<>();
-                for (Map.Entry<String, Serializable> e : set.getClaims().entrySet()) {
-                    if (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
-                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
-                            !SYSTEM_CLAIM_NAMES.contains(e.getKey())) {
-                        map.put(e.getKey(), e.getValue());
-                    }
-                }
+                HashMap<String, Serializable> map = claimsToMap(set.getClaims());
 
-                return map;
+                return map.entrySet().stream().filter(
+                        e -> (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                                !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
+                                !SYSTEM_CLAIM_NAMES.contains(e.getKey())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
             }
+
         }
 
         return null;
+    }
+
+    // custom converter from claims list to values map
+    // TODO rework
+    private HashMap<String, Serializable> claimsToMap(Collection<Claim> claims) {
+        // we build a tree where
+        // namespace -> collection of claims via key
+        // with multiple claims with the same key grouped under a collection
+        // do note that claim namespace is DIFFERENT from claimsSet namespace.
+        HashMap<String, List<Claim>> map = new HashMap<>();
+        map.put("_", new ArrayList<>());
+        // put under namespaces
+        for (Claim c : claims) {
+            String namespace = c.getNamespace();
+            if (!StringUtils.hasText(namespace)) {
+                namespace = "_";
+            }
+            if (!map.containsKey(namespace)) {
+                map.put(c.getNamespace(), new ArrayList<>());
+            }
+            map.get(namespace).add(c);
+        }
+
+        // flatten as result
+        HashMap<String, Serializable> result = new HashMap<>();
+        for (String namespace : map.keySet()) {
+            List<Claim> cs = map.get(namespace);
+            // map to values as collections
+            Map<String, ArrayList<Serializable>> contents = new HashMap<>();
+            for (Claim c : cs) {
+                // handle raw types here
+                if (!AttributeType.OBJECT.equals(c.getType())) {
+                    addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));                  
+                } else {
+                    // object type can be without key
+                    if (c.getKey() == null && c instanceof SerializableClaim) {
+                        // we unwrap the object and merge
+                        Map<String, Serializable> unwrapped = unwrap((SerializableClaim) c);
+                        for(String k : unwrapped.keySet()) {
+                            addContent(contents, k, unwrapped.get(k));
+                        }
+                    } else {
+                        //add as exported
+                        addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));  
+                    }
+                }
+            }
+
+            // flatten single value collections + TLD
+            HashMap<String, Serializable> content = new HashMap<>();
+            for (String key : contents.keySet()) {
+                ArrayList<Serializable> list = contents.get(key);
+
+                if (list.size() > 1) {
+                    content.put(key, list);
+                } else {
+                    content.put(key, list.get(0));
+                }
+            }
+
+            if ("_".equals(namespace)) {
+                // append to root
+                result.putAll(content);
+            } else {
+                // append as namespace
+                result.put(namespace, content);
+            }
+
+        }
+
+        return result;
+    }
+
+    // export claim value
+    // TODO implement export per-type
+    private Serializable getClaimValue(AttributeType type, Serializable value) {
+        return value;
+    }
+
+    private Map<String, Serializable> unwrap(SerializableClaim claim) {
+        if (AttributeType.OBJECT.equals(claim.getType())) {
+            return mapper.convertValue(claim.getValue(), serMapTypeRef);
+        }
+
+        return null;
+    }
+
+    private void addContent(Map<String, ArrayList<Serializable>> contents, String key, Serializable value) {
+
+        if (!contents.containsKey(key)) {
+            contents.put(key, new ArrayList<>());
+        }
+
+        // add
+        contents.get(key).add(value);
     }
 
 //    public Map<String, Serializable> getUserClaimsFromBasicProfile(UserDetails user) {

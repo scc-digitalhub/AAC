@@ -140,6 +140,11 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
+    public String getName() {
+        return principal.getSubjectId();
+    }
+    
+    @Override
     public Object getDetails() {
         return details;
     }

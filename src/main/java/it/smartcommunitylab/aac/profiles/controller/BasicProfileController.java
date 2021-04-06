@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.profiles.controller;
 
 import java.io.IOException;
+
+import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -68,6 +70,7 @@ public class BasicProfileController {
 //
 //    }
 
+    @RolesAllowed("ROLE_USER")
     @RequestMapping(method = RequestMethod.GET, value = "/whoami")
     public @ResponseBody UserAuthenticationToken debug(Authentication auth, HttpServletResponse response)
             throws IOException {
@@ -80,6 +83,15 @@ public class BasicProfileController {
         UserAuthenticationToken token = (UserAuthenticationToken) auth;
 
         return token;
+
+    }
+
+    @RolesAllowed({ "ROLE_USER", "ROLE_CLIENT" })
+    @RequestMapping(method = RequestMethod.GET, value = "/api/whoami")
+    public @ResponseBody Authentication debugApi(Authentication auth, HttpServletResponse response)
+            throws IOException {
+
+        return auth;
 
     }
 

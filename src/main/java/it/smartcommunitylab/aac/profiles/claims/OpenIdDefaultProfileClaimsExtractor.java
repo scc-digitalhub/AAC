@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.profiles.service.OpenIdProfileExtractor;
 
 @Component
 public class OpenIdDefaultProfileClaimsExtractor extends ProfileClaimsExtractor {
-  
+
     private final OpenIdProfileExtractor extractor;
 
     public OpenIdDefaultProfileClaimsExtractor() {
@@ -25,6 +25,12 @@ public class OpenIdDefaultProfileClaimsExtractor extends ProfileClaimsExtractor 
     @Override
     public String getScope() {
         return Config.SCOPE_PROFILE;
+    }
+
+    @Override
+    public String getKey() {
+        // no key for default, we merge to TLD
+        return null;
     }
 
     @Override
