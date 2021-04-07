@@ -1,5 +1,6 @@
-package it.smartcommunitylab.aac.attributes;
+package it.smartcommunitylab.aac.attributes.store;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,23 +15,23 @@ public interface AttributeStore extends AttributeService {
      * crud
      */
     public void setAttributes(
-            String userId,
-            Set<Map.Entry<String, String>> attributesSet);
+            String entityId,
+            Set<Map.Entry<String, Serializable>> attributesSet);
 
     public void addAttribute(
-            String userId,
-            String key, String value);
+            String entityId,
+            String key, Serializable value);
 //
 //    public void addOrUpdateAttribute(
 //            String userId,
 //            String key, String value);
 
     public void updateAttribute(
-            String userId,
-            String key, String value);
+            String entityId,
+            String key, Serializable value);
 
     public void deleteAttribute(
-            String userId,
+            String entityId,
             String key);
 
 }

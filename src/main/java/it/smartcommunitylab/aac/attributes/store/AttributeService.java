@@ -1,5 +1,6 @@
-package it.smartcommunitylab.aac.attributes;
+package it.smartcommunitylab.aac.attributes.store;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /*
@@ -8,9 +9,9 @@ import java.util.Map;
  * could be used for implementing persistent or in memory services
  */
 public interface AttributeService {
-    public String getAttribute(
-            String userId,
+    public Serializable getAttribute(
+            String entityId,
             String key);
 
-    public Map<String, String> findAttributes(String userId);
+    public Map<String, Serializable> findAttributes(String entityId);
 }

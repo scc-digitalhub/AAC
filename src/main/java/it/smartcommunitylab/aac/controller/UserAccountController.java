@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
@@ -42,6 +44,7 @@ import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 /**
  * Application controller for user UI: account
  * 
+ * Should handle only "current" user operations
  * 
  * @author raman
  *
@@ -111,23 +114,24 @@ public class UserAccountController {
 //        return ResponseEntity.ok(profileManager.getBasicProfileById(user.toString()));
 //    }
 
+    @GetMapping("/account/attributes")
+    public ResponseEntity<Collection<UserAttributes>> readAttributes() {
+        Collection<UserAttributes> result = userManager.getMyAttributes();
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/account/connections")
-    public ResponseEntity<List<ConnectedAppProfile>> readConnectedApps() {
-        List<ConnectedAppProfile> result = userManager.getMyConnectedApps();
+    public ResponseEntity<Collection<ConnectedAppProfile>> readConnectedApps() {
+        Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/account/connections/{clientId}")
-    public ResponseEntity<List<ConnectedAppProfile>> deleteConnectedApp(@PathVariable String clientId) {
-        UserAuthenticationToken userAuth = authHelper.getUserAuthentication();
-        if (userAuth == null) {
-            throw new InsufficientAuthenticationException("invalid or missing user authentication");
-        }
+    public ResponseEntity<Collection<ConnectedAppProfile>> deleteConnectedApp(@PathVariable String clientId) {
 
-        String subjectId = userAuth.getSubjectId();
-        userManager.deleteConnectedApp(subjectId, clientId);
+        userManager.deleteMyConnectedApp(clientId);
 
-        List<ConnectedAppProfile> result = userManager.getMyConnectedApps();
+        Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
 }

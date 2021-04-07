@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -15,6 +16,7 @@ import org.springframework.security.core.CredentialsContainer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -98,7 +100,7 @@ public class DefaultIdentityImpl extends BaseIdentity implements CredentialsCont
         } catch (ParseException e) {
             profile.setBirthdate(null);
         }
-        
+
         return profile;
     }
 
@@ -109,12 +111,15 @@ public class DefaultIdentityImpl extends BaseIdentity implements CredentialsCont
 
     // lookup an attribute in multiple sets, return first match
     private String getAttribute(String key, String... identifier) {
-        Optional<String> attr = attributes.stream()
+        Set<UserAttributes> sets = attributes.stream()
                 .filter(a -> ArrayUtils.contains(identifier, a.getIdentifier()))
-                .filter(a -> a.getAttributes().containsKey(key))
-                .findFirst().map(a -> a.getAttributes().get(key));
-        if (attr.isPresent()) {
-            return attr.get();
+                .collect(Collectors.toSet());
+
+        for (UserAttributes uattr : sets) {
+            Optional<Attribute> attr = uattr.getAttributes().stream().filter(a -> a.getKey().equals(key)).findFirst();
+            if (attr.isPresent()) {
+                return attr.get().getValue().toString();
+            }
         }
 
         return null;

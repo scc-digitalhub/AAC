@@ -280,43 +280,43 @@ public class UserDetails implements org.springframework.security.core.userdetail
     /*
      * Attributes
      * 
-     * TODO rework with new design
      */
+    public UserAttributes getAttributeSet(String setId) {
+        return attributes.get(setId);
+    }
+
     public Collection<UserAttributes> getAttributeSets() {
         return Collections.unmodifiableCollection(attributes.values());
     }
 
-    public Collection<UserAttributes> getAttributeSets(String realm) {
-        String baseKey = realm + "|";
-        Set<String> keys = attributes.keySet().stream().filter(k -> k.startsWith(baseKey)).collect(Collectors.toSet());
-        return Collections.unmodifiableSet(attributes.entrySet().stream()
-                .filter(e -> keys.contains(e.getKey()))
-                .map(e -> e.getValue())
-                .collect(Collectors.toSet()));
-
+    public Collection<UserAttributes> getAttributeSets(String authority) {
+        return Collections.unmodifiableList(attributes.values().stream()
+                .filter(u -> (authority.equals(u.getAuthority())))
+                .collect(Collectors.toList()));
     }
 
-    // we enforce a single set per realm+authority+provider+identifier
-    public UserAttributes getAttributeSet(String realm, String authority, String provider, String identifier) {
-        String key = realm + "|" + authority + "|" + provider + "|" + identifier;
-        return attributes.get(key);
+    public Collection<UserAttributes> getAttributeSets(String authority, String provider) {
+        return Collections.unmodifiableList(attributes.values().stream()
+                .filter(u -> (authority.equals(u.getAuthority())
+                        && provider.equals(u.getProvider())))
+                .collect(Collectors.toList()));
     }
 
     // add a new set to current user
     public void addAttributeSet(UserAttributes attributeSet) {
-        String key = attributeSet.getRealm() + "|" + attributeSet.getAuthority() + "|" + attributeSet.getProvider()
-                + "|" + attributeSet.getIdentifier();
+        // realm should match
+        if (!realm.equals(attributeSet.getRealm())) {
+            throw new IllegalArgumentException("realm does not match");
+        }
 
         // we add or replace
-        attributes.put(key, attributeSet);
+        attributes.put(attributeSet.getAttributesId(), attributeSet);
 
     }
 
     // remove a set from user
-    public void eraseAttributeSet(UserAttributes attributeSet) {
-        String key = attributeSet.getRealm() + "|" + attributeSet.getAuthority() + "|" + attributeSet.getProvider()
-                + "|" + attributeSet.getIdentifier();
-        attributes.remove(key);
+    public void removeAttributeSet(UserAttributes attributeSet) {
+        attributes.remove(attributeSet.getAttributesId());
     }
 
     /*

@@ -1,8 +1,11 @@
 package it.smartcommunitylab.aac.openid.provider;
 
+import java.io.Serializable;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,7 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.AttributeStore;
+import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -30,7 +33,6 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
@@ -193,7 +195,13 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
                 .filter(e -> !ArrayUtils.contains(JWT_ATTRIBUTES, e.getKey()))
                 .collect(Collectors.toSet());
 
-        attributeStore.setAttributes(userId, principalAttributes);
+        Set<Entry<String, Serializable>> storeAttributes = new HashSet<>();
+        for (Entry<String, String> e : principalAttributes) {
+            Entry<String, Serializable> es = new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue());
+            storeAttributes.add(es);
+        }
+
+        attributeStore.setAttributes(userId, storeAttributes);
 
         // build identity
         // detach account

@@ -2,8 +2,13 @@ package it.smartcommunitylab.aac.core.base;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 
 /*
@@ -13,11 +18,17 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 public class DefaultUserAttributesImpl extends BaseAttributes {
 
     private String internalUserId;
-    private Map<String, String> attributes;
+    private Set<Attribute> attributes;
 
-    public DefaultUserAttributesImpl(String authority, String provider, String realm) {
-        super(authority, provider, realm);
-        this.attributes = new HashMap<>();
+    public DefaultUserAttributesImpl(String authority, String provider, String realm, String identifier) {
+        super(authority, provider, realm, identifier);
+        this.attributes = new HashSet<>();
+    }
+
+    @Override
+    public String getAttributesId() {
+        // leverage the default mapper to translate id
+        return exportInternalId(identifier);
     }
 
     public String getInternalUserId() {
@@ -34,45 +45,37 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
         return exportInternalId(internalUserId);
     }
 
-    public Map<String, String> getAttributes() {
+    public Collection<Attribute> getAttributes() {
         return attributes;
     }
 
-    public void addAttributes(Collection<Map.Entry<String, String>> attributes) {
-        // we pack attribute list in map, overlapping keys will contain last value
-        for (Map.Entry<String, String> attr : attributes) {
-            this.attributes.put(attr.getKey(), attr.getValue());
-        }
+    public void addAttributes(Collection<Attribute> attributes) {
+        this.attributes.addAll(attributes);
     }
 
-    public void setAttributes(Collection<Map.Entry<String, String>> attributes) {
-        // we pack attribute list in map, overlapping keys will contain last value
-        this.attributes = new HashMap<>();
-        addAttributes(attributes);
-    }
-
-    public void addAttribute(String key, String value) {
-        if (value == null) {
-            // set empty
-            value = "";
-        }
-        this.attributes.put(key, value);
+    public void addAttribute(Attribute attr) {
+        this.attributes.add(attr);
     }
 
     public void deleteAttribute(String key) {
-        this.attributes.remove(key);
+        Set<Attribute> toRemove = attributes.stream().filter(a -> a.getKey().equals(key)).collect(Collectors.toSet());
+        if (!toRemove.isEmpty()) {
+            attributes.removeAll(toRemove);
+        }
     }
 
     public boolean hasAttribute(String key) {
-        return attributes.containsKey(key);
+        Set<Attribute> match = attributes.stream().filter(a -> a.getKey().equals(key)).collect(Collectors.toSet());
+        return !match.isEmpty();
     }
 
-    public String getAttribute(String key) {
-        if (attributes.containsKey(key)) {
-            return attributes.get(key);
-        } else {
-            return null;
-        }
+    public Collection<Attribute> getAttribute(String key) {
+        return attributes.stream().filter(a -> a.getKey().equals(key)).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Collection<String> getKeys() {
+        return attributes.stream().map(a -> a.getKey()).collect(Collectors.toSet());
     }
 
 }

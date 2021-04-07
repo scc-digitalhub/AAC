@@ -1,5 +1,6 @@
-package it.smartcommunitylab.aac.attributes;
+package it.smartcommunitylab.aac.attributes.store;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -18,20 +19,20 @@ public class NullAttributeStore implements AttributeStore {
     }
 
     @Override
-    public Map<String, String> findAttributes(String userId) {
+    public Map<String, Serializable> findAttributes(String userId) {
         return null;
     }
 
     @Override
-    public void setAttributes(String userId, Set<Entry<String, String>> attributesSet) {
+    public void setAttributes(String userId, Set<Entry<String, Serializable>> attributesSet) {
     }
 
     @Override
-    public void addAttribute(String userId, String key, String value) {
+    public void addAttribute(String userId, String key, Serializable value) {
     }
 
     @Override
-    public void updateAttribute(String userId, String key, String value) {
+    public void updateAttribute(String userId, String key, Serializable value) {
     }
 
     @Override

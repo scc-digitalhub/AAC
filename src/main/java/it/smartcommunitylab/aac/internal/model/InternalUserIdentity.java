@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.core.base.BaseIdentity;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.UserAccount;
@@ -62,24 +63,24 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
         List<UserAttributes> attributes = new ArrayList<>();
         // TODO rework and move to attributeProvider, here we should simly store them
         String internalUserId = this.parseResourceId(userId);
-        DefaultUserAttributesImpl profile = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm());
+        DefaultUserAttributesImpl profile = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
+                "profile");
         profile.setInternalUserId(internalUserId);
-        profile.setIdentifier("internal.profile");
-        profile.addAttribute("name", account.getName());
-        profile.addAttribute("surname", account.getSurname());
-        profile.addAttribute("email", account.getEmail());
+        profile.addAttribute(new StringAttribute("name", account.getName()));
+        profile.addAttribute(new StringAttribute("surname", account.getSurname()));
+        profile.addAttribute(new StringAttribute("email", account.getEmail()));
         attributes.add(profile);
 
-        DefaultUserAttributesImpl email = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm());
-        email.setIdentifier("internal.email");
+        DefaultUserAttributesImpl email = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
+                "email");
         email.setInternalUserId(internalUserId);
-        email.addAttribute("email", account.getEmail());
+        email.addAttribute(new StringAttribute("email", account.getEmail()));
         attributes.add(email);
 
-        DefaultUserAttributesImpl username = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm());
-        username.setIdentifier("internal.username");
+        DefaultUserAttributesImpl username = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
+                "username");
         username.setInternalUserId(internalUserId);
-        username.addAttribute("username", account.getUsername());
+        username.addAttribute(new StringAttribute("username", account.getUsername()));
         attributes.add(username);
 
         return attributes;

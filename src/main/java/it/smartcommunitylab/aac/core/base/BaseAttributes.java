@@ -1,6 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.Collection;
+import org.springframework.util.Assert;
 
 /*
  * Base class which extracts identifiers from keys
@@ -10,23 +10,16 @@ import java.util.Collection;
 
 public abstract class BaseAttributes extends AbstractAttributes {
 
-    private String identifier;
+    protected final String identifier;
 
-    protected BaseAttributes(String authority, String provider, String realm) {
+    protected BaseAttributes(String authority, String provider, String realm, String identifier) {
         super(authority, provider, realm);
+        Assert.hasText(identifier, "set identifier can not be null");
+        this.identifier = identifier;
     }
 
     public String getIdentifier() {
         return identifier;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
-    @Override
-    public Collection<String> getKeys() {
-        return getAttributes().keySet();
     }
 
 }

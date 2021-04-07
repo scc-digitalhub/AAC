@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -399,7 +400,8 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // we don't fetch roles from different realms, user has to authenticate again to
             // gain those. Only matching realm and global roles are valid
             List<UserRoleEntity> userRoles = userService.getRoles(subjectId, SystemKeys.REALM_GLOBAL);
-            List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, auth.getRealm());
+            List<UserRoleEntity> realmRoles = auth.getRealm().equals(SystemKeys.REALM_GLOBAL) ? Collections.emptyList()
+                    : userService.getRoles(subjectId, auth.getRealm());
 
             Collection<GrantedAuthority> authorities = convertUserRoles(userRoles, realmRoles);
             logger.debug("authenticated user granted authorities are " + authorities.toString());

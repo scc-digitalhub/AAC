@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -38,6 +40,9 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
  * Operates on store, so not persisted identities won't be available
  * 
  * Additionally handles operations on the currently logged user, accessed via securityAccessor.
+ * 
+ * Exposed methods should include realm, to identify the invocation: 
+ * users are a representation of a subject as visible from a realm.
  */
 
 @Service
@@ -173,15 +178,16 @@ public class UserManager {
     /*
      * User describes user in terms of identities as attributes
      */
-    // source realm view, complete
-    public User getUser(String subjectId) throws NoSuchUserException {
-        return userService.getUser(subjectId);
-    }
+//    // source realm view, complete
+//    public User getUser(String subjectId) throws NoSuchUserException {
+//        return userService.getUser(subjectId);
+//    }
 
     // per-realm view, partial and translated
-    public User getUser(String subjectId, String realm) throws NoSuchUserException, NoSuchRealmException {
+    public User getUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
-
+        // TODO evaluate if every user is globally accessible via translation or if we
+        // require a pre-registration
         return userService.getUser(subjectId, realm);
     }
 
@@ -192,7 +198,7 @@ public class UserManager {
         return userService.listUsers(realm);
     }
 
-    public void removeUser(String subjectId, String realm) throws NoSuchUserException, NoSuchRealmException {
+    public void removeUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
         // get user source realm
@@ -206,7 +212,7 @@ public class UserManager {
         }
     }
 
-    public void deleteUser(String subjectId) throws NoSuchUserException {
+    private void deleteUser(String subjectId) throws NoSuchUserException {
 
         User user = userService.getUser(subjectId);
 
@@ -261,23 +267,104 @@ public class UserManager {
      */
 
     /*
-     * Attributes (outside accounts)
+     * Attributes (inside + outside accounts)
      * 
      * TODO
      */
 
-    /*
-     * Connected apps
-     */
-
-    public List<ConnectedAppProfile> getMyConnectedApps() {
+    public Collection<UserAttributes> getMyAttributes() {
         UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
+        Set<UserAttributes> attributes = new HashSet<>();
 
-        return getConnectedApps(subjectId);
+        // add all attributes from context
+        attributes.addAll(details.getAttributeSets());
+
+        // refresh attributes from additional providers
+        // TODO
+
+        return attributes;
     }
 
-    public List<ConnectedAppProfile> getConnectedApps(String subjectId) {
+//    public Collection<UserAttributes> getUserAttributes(String realm, String subjectId) throws NoSuchUserException {
+//        // TODO should invoke attributeManager
+//        return null;
+//    }
+
+    /*
+     * Connected apps: current user
+     */
+
+    public Collection<ConnectedAppProfile> getMyConnectedApps() {
+        UserDetails details = curUserDetails();
+        return getConnectedApps(details.getSubjectId());
+    }
+
+    public void deleteMyConnectedApp(String clientId) {
+        UserDetails details = curUserDetails();
+        deleteConnectedApp(details.getSubjectId(), clientId);
+    }
+
+    /*
+     * Connected apps: subjects
+     */
+
+    public Collection<ConnectedAppProfile> getConnectedApps(String realm, String subjectId) {
+
+        // we return only clients which belong to the given realm
+        List<ConnectedAppProfile> apps = getConnectedApps(subjectId).stream()
+                .filter(a -> a.getRealm().equals(realm))
+                .collect(Collectors.toList());
+
+        return apps;
+    }
+
+    public void deleteConnectedApp(String realm, String subjectId, String clientId)
+            throws NoSuchUserException, NoSuchClientException {
+
+        // get registrations, we need to match realm to client
+        ConnectedAppProfile app = getConnectedApp(subjectId, clientId);
+        if (app != null && app.getRealm().equals(realm)) {
+            // valid registration in approval store, remove
+            deleteConnectedApp(subjectId, clientId);
+        }
+    }
+
+    /*
+     * Connected apps: service
+     * 
+     * TODO evaluate move to dedicated service
+     */
+    private ConnectedAppProfile getConnectedApp(String subjectId, String clientId)
+            throws NoSuchUserException, NoSuchClientException {
+
+        Client client = clientManager.getClient(clientId);
+        Collection<Approval> approvals = approvalStore.getApprovals(subjectId, clientId);
+        if (approvals.isEmpty()) {
+            return null;
+        }
+
+        List<Scope> scopes = new ArrayList<>();
+
+        for (Approval appr : approvals) {
+            try {
+
+                Scope scope = scopeRegistry.getScope(appr.getScope());
+                scopes.add(scope);
+
+            } catch (NoSuchScopeException e) {
+                // scope does not exists
+                // we should remove the approval
+                approvalStore.revokeApprovals(Collections.singleton(appr));
+            }
+        }
+
+        ConnectedAppProfile app = new ConnectedAppProfile(clientId, client.getName(), client.getRealm(),
+                scopes);
+
+        return app;
+    }
+
+    private List<ConnectedAppProfile> getConnectedApps(String subjectId) {
 
         Collection<Approval> approvals = approvalStore.findUserApprovals(subjectId);
         Map<Client, List<Scope>> map = new HashMap<>();
@@ -302,18 +389,14 @@ public class UserManager {
         }
 
         List<ConnectedAppProfile> apps = map.entrySet().stream()
-                .map(e -> new ConnectedAppProfile(e.getKey().getClientId(), e.getKey().getName(), e.getValue()))
+                .map(e -> new ConnectedAppProfile(e.getKey().getClientId(), e.getKey().getName(), e.getKey().getRealm(),
+                        e.getValue()))
                 .collect(Collectors.toList());
 
         return apps;
     }
 
-    /**
-     * @param user
-     * @param clientId
-     * @return
-     */
-    public void deleteConnectedApp(String subjectId, String clientId) {
+    private void deleteConnectedApp(String subjectId, String clientId) {
 
         // TODO revoke tokens
 

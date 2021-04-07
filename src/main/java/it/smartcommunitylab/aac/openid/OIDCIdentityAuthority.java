@@ -12,10 +12,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.AttributeStore;
-import it.smartcommunitylab.aac.attributes.InMemoryAttributeStore;
-import it.smartcommunitylab.aac.attributes.NullAttributeStore;
-import it.smartcommunitylab.aac.attributes.PersistentAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.AttributeStore;
+import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
+import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
@@ -35,8 +36,8 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     // private account repository
     private final OIDCUserAccountRepository accountRepository;
 
-    // system attributes repository
-    private final AttributeEntityService attributeEntityService;
+    // system attributes store
+    private final AutoJdbcAttributeStore jdbcAttributeStore;
 
     // identity providers by id
     private final Map<String, OIDCIdentityProvider> providers = new HashMap<>();
@@ -46,15 +47,15 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
-            AttributeEntityService attributeEntityService,
+            AutoJdbcAttributeStore jdbcAttributeStore,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
 
         Assert.notNull(accountRepository, "account repository is mandatory");
-        Assert.notNull(attributeEntityService, "attributeEntity service is mandatory");
+        Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountRepository = accountRepository;
-        this.attributeEntityService = attributeEntityService;
+        this.jdbcAttributeStore = jdbcAttributeStore;
         this.clientRegistrationRepository = clientRegistrationRepository;
 //
 //        // global client registration repository to be used by global filters
@@ -193,9 +194,9 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
         // we generate a new store for each provider
         AttributeStore store = new NullAttributeStore();
         if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
-            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId, attributeEntityService);
+            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId, jdbcAttributeStore);
         } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
-            store = new InMemoryAttributeStore();
+            store = new InMemoryAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId);
         }
 
         return store;

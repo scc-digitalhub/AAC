@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.validation.constraints.NotBlank;
+
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
@@ -24,6 +26,7 @@ public class User {
 
     // base attributes
     // always set
+    @NotBlank
     private final String subjectId;
     
     // describes the realm responsible for this user

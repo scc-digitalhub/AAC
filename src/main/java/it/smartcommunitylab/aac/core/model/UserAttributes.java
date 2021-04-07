@@ -11,4 +11,7 @@ public interface UserAttributes extends AttributeSet, UserResource, Serializable
     // mapper to attributeSet
     // TODO?
 
+    // a globally unique identifier for this set for this user
+    public String getAttributesId();
+
 }

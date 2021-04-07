@@ -114,11 +114,10 @@ public class RealmManager {
                 try {
                     String subjectId = user.getSubjectId();
 
-                    // check ownership
-                    if (user.getSource().equals(slug)) {
-                        // remove, will kill active sessions and cleanup
-                        userManager.deleteUser(subjectId);
-                    }
+                    // remove, will kill active sessions and cleanup
+                    // will also delete if this realm is owner
+                    userManager.removeUser(slug, subjectId);
+
                 } catch (NoSuchUserException e) {
                     // skip
                 }

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import it.smartcommunitylab.aac.scope.Scope;
 
 /**
@@ -28,7 +30,12 @@ import it.smartcommunitylab.aac.scope.Scope;
  */
 public class ConnectedAppProfile {
 
+    @NotBlank
     private String clientId;
+
+    @NotBlank
+    private String realm;
+    
     private String appName;
     private List<Scope> scopes;
 
@@ -36,8 +43,9 @@ public class ConnectedAppProfile {
 
     }
 
-    public ConnectedAppProfile(String clientId, String name, Collection<Scope> scopes) {
+    public ConnectedAppProfile(String clientId, String realm, String name, Collection<Scope> scopes) {
         this.clientId = clientId;
+        this.realm = realm;
         this.appName = name;
         this.scopes = new ArrayList<>();
         this.scopes.addAll(scopes);
@@ -49,6 +57,14 @@ public class ConnectedAppProfile {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public String getAppName() {

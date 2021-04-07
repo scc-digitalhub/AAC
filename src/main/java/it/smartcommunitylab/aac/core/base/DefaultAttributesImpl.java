@@ -5,9 +5,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 /*
@@ -23,9 +26,9 @@ public class DefaultAttributesImpl implements AttributeSet {
 
     private final String identifier;
 
-    private Collection<String> keys;
+    private Set<String> keys;
 
-    private Map<String, String> attributes;
+    private Set<Attribute> attributes;
 
     private boolean isMutable;
 
@@ -33,7 +36,7 @@ public class DefaultAttributesImpl implements AttributeSet {
         Assert.hasText(identifier, "a valid identifier is required");
         this.identifier = identifier;
         this.keys = new HashSet<>();
-        this.attributes = Collections.emptyMap();
+        this.attributes = new HashSet<>();
         this.isMutable = true;
     }
 
@@ -42,7 +45,7 @@ public class DefaultAttributesImpl implements AttributeSet {
         this.identifier = identifier;
         this.keys = new HashSet<>();
         this.keys.addAll(Arrays.asList(keys));
-        this.attributes = Collections.emptyMap();
+        this.attributes = new HashSet<>();
         this.isMutable = true;
 
     }
@@ -61,21 +64,42 @@ public class DefaultAttributesImpl implements AttributeSet {
             throw new IllegalArgumentException("this definition is not mutable");
         }
 
-        this.keys = keys;
-
+        this.keys = new HashSet<>();
+        this.keys.addAll(keys);
     }
 
-    public Map<String, String> getAttributes() {
+    public Set<Attribute> getAttributes() {
         // we protect our representation from modifications
-        return Collections.unmodifiableMap(attributes);
+        return Collections.unmodifiableSet(attributes);
     }
 
-    public void setAttributes(Map<String, String> attributes) {
+    public void setAttributes(Collection<Attribute> attributes) {
         if (!isMutable) {
             throw new IllegalArgumentException("this definition is not mutable");
         }
 
-        this.attributes = attributes;
+        this.attributes = new HashSet<>();
+        this.attributes.addAll(attributes);
+        this.keys = new HashSet<>();
+        this.keys.addAll(attributes.stream().map(a -> a.getKey()).collect(Collectors.toSet()));
+    }
+
+    public void addAttributes(Collection<Attribute> attributes) {
+        if (!isMutable) {
+            throw new IllegalArgumentException("this definition is not mutable");
+        }
+
+        this.attributes.addAll(attributes);
+        this.keys.addAll(attributes.stream().map(a -> a.getKey()).collect(Collectors.toSet()));
+    }
+
+    public void addAttribute(Attribute attr) {
+        if (!isMutable) {
+            throw new IllegalArgumentException("this definition is not mutable");
+        }
+
+        this.attributes.add(attr);
+        this.keys.add(attr.getKey());
     }
 
 }
