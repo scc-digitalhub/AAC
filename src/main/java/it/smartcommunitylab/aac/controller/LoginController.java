@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,15 @@ public class LoginController {
             a.realm = idp.getRealm();
             a.loginUrl = idp.getAuthenticationUrl();
 //            a.name = idp.getName();
-            a.name = idp.getProvider();
+            a.name = idp.getName();
+            String key = a.name.trim()
+                    .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+            a.cssClass = "provider-" + key;
+            a.icon = "key";
+
+            if (ArrayUtils.contains(icons, key)) {
+                a.icon = key;
+            }
 
             if (SystemKeys.AUTHORITY_INTERNAL.equals(a.authority)) {
                 internal = a;
@@ -89,6 +98,8 @@ public class LoginController {
                 }
             }
         }
+
+        Collections.sort(authorities);
 
         if (internal != null) {
             model.addAttribute("internalAuthority", internal);
@@ -109,12 +120,27 @@ public class LoginController {
         return "login";
     }
 
-    private class LoginAuthorityBean {
+    private String[] icons = {
+            "twitter", "facebook", "github"
+    };
+
+    private class LoginAuthorityBean implements Comparable {
         public String provider;
         public String authority;
         public String realm;
         public String loginUrl;
+        public String icon;
         public String name;
+        public String cssClass;
+
+        @Override
+        public int compareTo(Object o) {
+            if (o instanceof LoginAuthorityBean) {
+                return name.compareTo(((LoginAuthorityBean) o).name);
+            } else {
+                return 0;
+            }
+        }
 
     }
 

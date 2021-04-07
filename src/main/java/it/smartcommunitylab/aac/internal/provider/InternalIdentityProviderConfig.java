@@ -19,6 +19,8 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     private final static TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {
     };
 
+    private String name;
+
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
 
@@ -30,6 +32,14 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     @Override
     public String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setConfigMap(InternalIdentityProviderConfigMap configMap) {
@@ -53,6 +63,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     public static ConfigurableProvider toConfigurableProvider(InternalIdentityProviderConfig ip) {
         ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_INTERNAL, ip.getProvider(),
                 ip.getRealm());
+        cp.setName(ip.getName());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setConfiguration(ip.getConfiguration());
 
@@ -62,7 +73,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
         InternalIdentityProviderConfig op = new InternalIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         op.configMap = mapper.convertValue(cp.getConfiguration(), InternalIdentityProviderConfigMap.class);
-
+        op.name = cp.getName();
         return op;
 
     }
@@ -79,7 +90,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
         config.putAll(cpMap);
 
         op.configMap = mapper.convertValue(config, InternalIdentityProviderConfigMap.class);
-
+        op.name = cp.getName();
         return op;
 
     }

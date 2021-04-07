@@ -27,8 +27,18 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     public static final String DEFAULT_CONSUMER_URL = "{baseUrl}" + SamlIdentityAuthority.AUTHORITY_URL
             + "sso/{registrationId}";
 
+    private String name;
+
     protected SamlIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -161,14 +171,14 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_SAML, op.getProvider(), op.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setConfiguration(op.getConfiguration());
-
+        cp.setName(op.name);
         return cp;
     }
 
     public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
         SamlIdentityProviderConfig op = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         op.setConfiguration(cp.getConfiguration());
-
+        op.setName(cp.getName());
         return op;
 
     }

@@ -319,6 +319,11 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         return null;
     }
 
+    @Override
+    public String getName() {
+        return providerConfig.getName();
+    }
+
     public static String[] JWT_ATTRIBUTES = {
             IdTokenClaimNames.ACR,
             IdTokenClaimNames.AMR,

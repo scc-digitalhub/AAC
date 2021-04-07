@@ -11,6 +11,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 public interface IdentityProvider extends ResourceProvider {
 
+    public String getName();
+
     /*
      * auth provider
      */

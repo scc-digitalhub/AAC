@@ -43,7 +43,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     private final UserEntityService userEntityService;
 
     // provider configuration
-    private final InternalIdentityProviderConfigMap config;
+    private final InternalIdentityProviderConfig config;
 
     // providers
     private final InternalAccountProvider accountProvider;
@@ -79,21 +79,21 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             InternalIdentityProviderConfig providerConfig = InternalIdentityProviderConfig.fromConfigurableProvider(
                     configurableProvider,
                     defaultConfigMap);
-            config = providerConfig.getConfigMap();
+            config = providerConfig;
         } else {
             // keep default
             InternalIdentityProviderConfig providerConfig = new InternalIdentityProviderConfig(providerId, realm);
             providerConfig.setConfigMap(defaultConfigMap);
-            config = providerConfig.getConfigMap();
+            config = providerConfig;
 
         }
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new InternalAccountProvider(providerId, accountRepository, realm);
         this.accountService = new InternalAccountService(providerId, accountRepository, realm,
-                config);
+                config.getConfigMap());
         this.passwordService = new InternalPasswordService(providerId, accountRepository, realm,
-                config);
+                config.getConfigMap());
 
         // TODO attributeService to feed attribute provider
         this.attributeProvider = new InternalAttributeProvider(providerId, accountRepository, null, realm);
@@ -292,18 +292,18 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     @Override
     public boolean canRegister() {
-        return config.isEnableRegistration();
+        return config.getConfigMap().isEnableRegistration();
     }
 
     @Override
     public boolean canUpdate() {
-        return config.isEnableUpdate();
+        return config.getConfigMap().isEnableUpdate();
 
     }
 
     @Override
     public boolean canDelete() {
-        return config.isEnableDelete();
+        return config.getConfigMap().isEnableDelete();
     }
 
     @Override
@@ -319,7 +319,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     @Override
     public UserIdentity registerIdentity(String subject, Collection<Entry<String, String>> attributes)
             throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableRegistration()) {
+        if (!config.getConfigMap().isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
 
@@ -377,7 +377,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     @Override
     public UserIdentity updateIdentity(String subject, String userId, Collection<Entry<String, String>> attributes)
             throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableUpdate()) {
+        if (!config.getConfigMap().isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
@@ -428,7 +428,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     @Override
     public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
-        if (!config.isEnableDelete()) {
+        if (!config.getConfigMap().isEnableDelete()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
@@ -437,7 +437,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     @Override
     public void deleteIdentities(String subjectId) {
-        if (!config.isEnableDelete()) {
+        if (!config.getConfigMap().isEnableDelete()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
@@ -455,6 +455,11 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         // TODO filter
         // TODO build a realm-bound url, need updates on filters
         return InternalIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
+    }
+
+    @Override
+    public String getName() {
+        return config.getName();
     }
 
 }

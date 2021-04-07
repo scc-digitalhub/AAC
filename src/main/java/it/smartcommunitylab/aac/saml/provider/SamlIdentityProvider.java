@@ -195,4 +195,8 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         return null;
     }
 
+    @Override
+    public String getName() {
+        return providerConfig.getName();
+    }
 }

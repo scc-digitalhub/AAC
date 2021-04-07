@@ -21,6 +21,8 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
 
+    private String name;
+
     protected OIDCIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_OIDC, provider, realm);
     }
@@ -28,6 +30,14 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     @Override
     public String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     // TODO map attributes? we could simply use clientRegistation
@@ -147,6 +157,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(), op.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setConfiguration(op.getConfiguration());
+        cp.setName(op.getName());
 
         return cp;
     }
@@ -154,7 +165,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
         OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         op.setConfiguration(cp.getConfiguration());
-
+        op.setName(cp.getName());
         return op;
 
     }
