@@ -117,19 +117,19 @@ input.form-control-sm  {
 	}
 }
 
-.alert {
-  position: fixed;
-  bottom: 4rem;
-  width: 100%;
-  background-color: #fff;
-  margin-left: 1rem;
-  margin-right: 1rem;
-  box-shadow: 0 0 1rem rgba(0,0,0,.15);
-  border-radius: 4px;
-  border-right: 0!important;
-  border-top: 0!important;
-  border-bottom: 0!important;
-}
+/* .alert { */
+/*   position: fixed; */
+/*   bottom: 4rem; */
+/*   width: 100%; */
+/*   background-color: #fff; */
+/*   margin-left: 1rem; */
+/*   margin-right: 1rem; */
+/*   box-shadow: 0 0 1rem rgba(0,0,0,.15); */
+/*   border-radius: 4px; */
+/*   border-right: 0!important; */
+/*   border-top: 0!important; */
+/*   border-bottom: 0!important; */
+/* } */
 
 
 .ace_editor {

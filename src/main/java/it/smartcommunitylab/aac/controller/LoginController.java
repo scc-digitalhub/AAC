@@ -26,7 +26,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.model.Realm;
 
 @Controller
 @RequestMapping
@@ -35,6 +37,9 @@ public class LoginController {
 
     @Autowired
     private ProviderManager providerManager;
+
+    @Autowired
+    private RealmManager realmManager;
 
     @RequestMapping(value = {
             "/login",
@@ -57,6 +62,14 @@ public class LoginController {
         if (providerKey.isPresent()) {
             providerId = providerKey.get();
         }
+
+        String displayName = null;
+        if (!realm.equals(SystemKeys.REALM_GLOBAL)) {
+            Realm re = realmManager.getRealm(realm);
+            displayName = re.getName();
+        }
+
+        model.addAttribute("displayName", displayName);
 
         // fetch providers for given realm
         Collection<IdentityProvider> providers = providerManager.getIdentityProviders(realm);
@@ -101,22 +114,14 @@ public class LoginController {
 
         Collections.sort(authorities);
 
+        model.addAttribute("realm", realm);
+
         if (internal != null) {
             model.addAttribute("internalAuthority", internal);
         }
 
         model.addAttribute("externalAuthorities", authorities);
 
-//
-//        Map<String, Object> model = new HashMap<String, Object>();
-//        model.put("realm", realm);
-//        model.put("provider", providerId);
-//        model.put("loginPath", loginPath);
-//        model.put("loginText", loginPath);
-
-        model.addAttribute("loginText", model.getAttribute("loginAction"));
-
-//        return new ModelAndView("login", model);
         return "login";
     }
 

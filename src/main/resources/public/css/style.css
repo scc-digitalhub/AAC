@@ -129,11 +129,11 @@ input.form-control-sm  {
 	}
 }
 
-.alert {
-  position: fixed;
-  top: 100px;
-  width: 100%;
-}
+/* .alert { */
+/*   position: fixed; */
+/*   top: 100px; */
+/*   width: 100%; */
+/* } */
 
 
 .ace_editor {
