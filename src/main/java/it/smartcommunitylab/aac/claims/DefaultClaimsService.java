@@ -70,7 +70,8 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     // we keep a map for active extractors. Note that a single extractor can
     // respond to multiple scopes by registering many times. Nevertheless we require
     // a consistent response.
-    // TODO export to a service to support clustered env
+    // TODO export to a service to support clustered env, also use a load cache and
+    // db store
     private Map<String, List<ScopeClaimsExtractor>> scopeExtractors = new HashMap<>();
     private Map<String, List<ResourceClaimsExtractor>> resourceExtractors = new HashMap<>();
 
@@ -488,18 +489,18 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             for (Claim c : cs) {
                 // handle raw types here
                 if (!AttributeType.OBJECT.equals(c.getType())) {
-                    addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));                  
+                    addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));
                 } else {
                     // object type can be without key
                     if (c.getKey() == null && c instanceof SerializableClaim) {
                         // we unwrap the object and merge
                         Map<String, Serializable> unwrapped = unwrap((SerializableClaim) c);
-                        for(String k : unwrapped.keySet()) {
+                        for (String k : unwrapped.keySet()) {
                             addContent(contents, k, unwrapped.get(k));
                         }
                     } else {
-                        //add as exported
-                        addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));  
+                        // add as exported
+                        addContent(contents, c.getKey(), getClaimValue(c.getType(), c.getValue()));
                     }
                 }
             }

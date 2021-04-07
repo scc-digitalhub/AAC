@@ -16,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -121,6 +122,12 @@ public class LoginController {
         }
 
         model.addAttribute("externalAuthorities", authorities);
+
+        // check errors
+        AuthenticationException error = (AuthenticationException) req.getAttribute("authException");
+        if (error != null) {
+            model.addAttribute("error", error.getMessage());
+        }
 
         return "login";
     }

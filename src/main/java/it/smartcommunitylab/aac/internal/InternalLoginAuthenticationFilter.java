@@ -5,6 +5,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.bouncycastle.asn1.ocsp.ResponderID;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -85,7 +86,10 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
             public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                     AuthenticationException exception) throws IOException, ServletException {
-                // TODO build login model to pass error message
+                // pass error message as attribute - does not work with redirect..
+                // TODO either switch to controller or use session
+                // alternatively fall back to an error page instead of calling entrypoint
+                request.setAttribute("authException", exception);
                 getAuthenticationEntryPoint().commence(request, response, exception);
             }
         });
