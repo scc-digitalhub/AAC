@@ -22,6 +22,12 @@ public class SerializableClaim extends AbstractClaim {
         this.type = AttributeType.OBJECT;
     }
 
+    public SerializableClaim(String key, Serializable value) {
+        this.key = key;
+        this.value = value;
+        this.type = AttributeType.OBJECT;
+    }
+
     public AttributeType getType() {
         return type;
     }

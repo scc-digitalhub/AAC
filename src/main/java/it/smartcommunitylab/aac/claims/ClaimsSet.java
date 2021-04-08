@@ -11,6 +11,7 @@ public interface ClaimsSet {
     public String getResourceId();
 
     // a claim set is generated in response to a scope
+    // can be null or empty
     public String getScope();
 
     // the set can describe the client or the user, or none

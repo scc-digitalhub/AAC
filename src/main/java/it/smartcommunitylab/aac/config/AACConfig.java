@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
+import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
@@ -113,10 +114,10 @@ public class AACConfig {
     }
 
     @Bean
-    public ClaimsService claimsService(Collection<ScopeClaimsExtractor> scopeExtractors,
+    public ClaimsService claimsService(ExtractorsRegistry extractorsRegistry,
             ScriptExecutionService executionService,
             UserTranslatorService translatorService) {
-        DefaultClaimsService service = new DefaultClaimsService(scopeExtractors);
+        DefaultClaimsService service = new DefaultClaimsService(extractorsRegistry);
         service.setExecutionService(executionService);
         service.setUserTranslatorService(translatorService);
         return service;

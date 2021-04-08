@@ -40,6 +40,9 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
     // identity providers by id
+    // TODO move to a registry with cache/db etc
+    // this class should fetch only configuration from registry, parsed, and handle
+    // a loading cache to instantiate providers as needed
     private final Map<String, OIDCIdentityProvider> providers = new HashMap<>();
 
     // oauth shared services

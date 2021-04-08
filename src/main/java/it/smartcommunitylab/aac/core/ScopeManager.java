@@ -60,8 +60,13 @@ public class ScopeManager {
         // TODO validate
         validateScope(s);
 
+        Scope sc = scopeRegistry.findScope(scope);
+        if (sc == null) {
+            throw new NoSuchScopeException();
+        }
+
         // unregister
-        scopeRegistry.unregisterScope(scope);
+        scopeRegistry.unregisterScope(sc);
 
         // persist
         s = scopeService.updateScope(scope, s.getName(),
@@ -74,9 +79,14 @@ public class ScopeManager {
 
     }
 
-    public void deleteScope(String scope) {
+    public void deleteScope(String scope) throws NoSuchScopeException {
+        Scope sc = scopeRegistry.findScope(scope);
+        if (sc == null) {
+            throw new NoSuchScopeException();
+        }
+
         // unregister
-        scopeRegistry.unregisterScope(scope);
+        scopeRegistry.unregisterScope(sc);
 
         // remove approvals for this scope
         try {

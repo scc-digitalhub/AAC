@@ -11,6 +11,8 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.persistence.ScopeEntity;
 import it.smartcommunitylab.aac.core.persistence.ScopeEntityRepository;
+import it.smartcommunitylab.aac.model.AttributeType;
+import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 
@@ -59,7 +61,7 @@ public class ScopeService implements ScopeProvider {
     public Scope addScope(
             String scope, String resourceId,
             String name, String description,
-            String type) {
+            ScopeType type) {
 
         if (!StringUtils.hasText(scope)) {
             throw new IllegalArgumentException("invalid scope");
@@ -70,7 +72,7 @@ public class ScopeService implements ScopeProvider {
         se.setResourceId(resourceId);
         se.setName(name);
         se.setDescription(description);
-        se.setType(type);
+        se.setType(type.getValue());
 
         se = scopeRepository.save(se);
 
@@ -81,7 +83,7 @@ public class ScopeService implements ScopeProvider {
     public Scope updateScope(
             String scope,
             String name, String description,
-            String type) throws NoSuchScopeException {
+            ScopeType type) throws NoSuchScopeException {
 
         if (!StringUtils.hasText(scope)) {
             throw new IllegalArgumentException("invalid scope");
@@ -94,7 +96,7 @@ public class ScopeService implements ScopeProvider {
 
         se.setName(name);
         se.setDescription(description);
-        se.setType(type);
+        se.setType(type.getValue());
 
         se = scopeRepository.save(se);
 
@@ -118,7 +120,7 @@ public class ScopeService implements ScopeProvider {
         s.setResourceId(se.getResourceId());
         s.setName(se.getName());
         s.setDescription(se.getDescription());
-        s.setType(se.getType());
+        s.setType(ScopeType.parse(se.getType()));
 
         return s;
     }

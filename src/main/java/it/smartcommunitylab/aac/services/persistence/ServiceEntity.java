@@ -16,11 +16,17 @@
 
 package it.smartcommunitylab.aac.services.persistence;
 
+import java.util.Map;
+
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+
+import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 /**
  * @author raman
@@ -31,6 +37,7 @@ import javax.validation.constraints.NotNull;
 public class ServiceEntity {
 
     @Id
+    @Column(name = "service_id")
     private String serviceId;
 
     @NotNull
@@ -43,8 +50,10 @@ public class ServiceEntity {
     @Column(unique = true)
     private String namespace;
 
-    @Column(columnDefinition = "LONGTEXT")
-    private String claimMapping;
+    @Lob
+    @Column(name = "claim_mapping")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> claimMappings;
 
     public String getServiceId() {
         return serviceId;
@@ -86,12 +95,12 @@ public class ServiceEntity {
         this.namespace = namespace;
     }
 
-    public String getClaimMapping() {
-        return claimMapping;
+    public Map<String, String> getClaimMappings() {
+        return claimMappings;
     }
 
-    public void setClaimMapping(String claimMapping) {
-        this.claimMapping = claimMapping;
+    public void setClaimMappings(Map<String, String> claimMappings) {
+        this.claimMappings = claimMappings;
     }
 
 }

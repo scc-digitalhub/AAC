@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.springframework.stereotype.Component;
 
@@ -20,8 +21,8 @@ public class BasicProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
-    public String getScope() {
-        return Config.SCOPE_BASIC_PROFILE;
+    public Collection<String> getScopes() {
+        return Collections.singleton(Config.SCOPE_BASIC_PROFILE);
     }
 
     @Override

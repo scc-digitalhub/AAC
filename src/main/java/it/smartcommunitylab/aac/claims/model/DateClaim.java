@@ -12,6 +12,11 @@ public class DateClaim extends AbstractClaim {
         this.key = key;
     }
 
+    public DateClaim(String key, Date value) {
+        this.key = key;
+        this.value = value;
+    }
+
     @Override
     public AttributeType getType() {
         return AttributeType.DATE;

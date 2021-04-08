@@ -35,12 +35,12 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public String getScope() {
-        return Config.SCOPE_ACCOUNT_PROFILE;
+    public Collection<String> getScopes() {
+        return Collections.singleton(Config.SCOPE_ACCOUNT_PROFILE);
     }
 
     @Override
-    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
 
         // we handle multiple profiles, one per identity
@@ -66,7 +66,7 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
         // build a claimsSet
         DefaultClaimsSet claimsSet = new DefaultClaimsSet();
         claimsSet.setResourceId(getResourceId());
-        claimsSet.setScope(getScope());
+        claimsSet.setScope(Config.SCOPE_ACCOUNT_PROFILE);
         // we merge our map with namespace to tld
         claimsSet.setNamespace(null);
         claimsSet.setUser(true);
@@ -77,7 +77,7 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractClientClaims(ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
         // not supported
         return null;

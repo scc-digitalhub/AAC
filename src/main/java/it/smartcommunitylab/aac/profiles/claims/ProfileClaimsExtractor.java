@@ -19,19 +19,16 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
         return ProfileClaimsSet.RESOURCE_ID;
     }
 
-    @Override
-    public abstract String getScope();
-
     public abstract String getKey();
 
     @Override
-    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
 
         AbstractProfile profile = buildUserProfile(user, scopes);
 
         // build a claimsSet
-        ClaimsSet claimsSet = buildClaimsSet(getKey(), profile, true);
+        ClaimsSet claimsSet = buildClaimsSet(scope, getKey(), profile, true);
 
         return claimsSet;
 
@@ -41,9 +38,9 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     protected abstract AbstractProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException;
 
-    protected ClaimsSet buildClaimsSet(String key, AbstractProfile profile, boolean isUser) {
+    protected ClaimsSet buildClaimsSet(String scope, String key, AbstractProfile profile, boolean isUser) {
         ProfileClaimsSet claimsSet = new ProfileClaimsSet();
-        claimsSet.setScope(getScope());
+        claimsSet.setScope(scope);
         claimsSet.setKey(key);
 
         // by default profile claims are top level
@@ -57,7 +54,7 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractClientClaims(ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
         // not supported now but subclasses can override
         return null;

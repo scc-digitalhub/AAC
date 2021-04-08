@@ -6,21 +6,19 @@ import javax.validation.constraints.Pattern;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.ScopeType;
 
 @Valid
 public class Scope {
 
-    public static String TYPE_CLIENT = "client";
-    public static String TYPE_USER = "user";
-
     @Pattern(regexp = SystemKeys.SCOPE_PATTERN)
-    private String scope;
+    protected String scope;
 
-    private String name;
-    private String description;
-    private String resourceId;
+    protected String name;
+    protected String description;
+    protected String resourceId;
 
-    private String type;
+    protected ScopeType type;
 
     public Scope() {
 
@@ -63,11 +61,11 @@ public class Scope {
         this.resourceId = resourceId;
     }
 
-    public String getType() {
+    public ScopeType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(ScopeType type) {
         this.type = type;
     }
 

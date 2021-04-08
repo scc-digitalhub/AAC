@@ -80,9 +80,12 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         String realm = authorizationParameters.get("realm");
 
         // we collect serviceIds as resourceIds to mark these as audience
-        Set<String> resourceIds = OAuth2Utils.parseParameterList(
-                decodeParameters(authorizationParameters.get("resource_id")));
+        Set<String> resourceIds = new HashSet<>();
+        resourceIds.addAll(OAuth2Utils.parseParameterList(
+                decodeParameters(authorizationParameters.get("resource_id"))));
 
+        // also load resources derived from requested scope
+        resourceIds.addAll(extractResourceIds(scopes));
         // workaround to support "id_token" requests
         // TODO fix with proper support in AuthorizationEndpoint
         if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
@@ -199,8 +202,12 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         String realm = requestParameters.get("realm");
 
         // we collect serviceIds as resourceIds to mark these as audience
-        Set<String> resourceIds = OAuth2Utils.parseParameterList(
-                decodeParameters(requestParameters.get("resource_id")));
+        Set<String> resourceIds = new HashSet<>();
+        resourceIds.addAll(OAuth2Utils.parseParameterList(
+                decodeParameters(requestParameters.get("resource_id"))));
+
+        // also load resources derived from requested scope
+        resourceIds.addAll(extractResourceIds(scopes));
 
         logger.trace("create token request for " + clientId + " realm " + String.valueOf(realm)
                 + " grantType " + grantType
@@ -217,7 +224,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         // store client authorities to be used consistently during request
         request.setAuthorities(clientDetails.getAuthorities());
 
-        // load resourceIds from params, fallback if missing
+        // load resourceIds from params, fallback if missing to default
         if (resourceIds.isEmpty()) {
             request.setResourceIds(clientDetails.getResourceIds());
         }
@@ -311,6 +318,20 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         }
 
         return allowedScopes;
+    }
+
+    private Set<String> extractResourceIds(Set<String> scopes) {
+        if (scopeRegistry != null) {
+            Set<String> scs = scopes.stream().map(s -> {
+                return scopeRegistry.findScope(s);
+            })
+                    .filter(s -> s != null)
+                    .map(s -> s.getResourceId())
+                    .collect(Collectors.toSet());
+        }
+
+        return Collections.emptySet();
+
     }
 
     private boolean isClientRequest(String grantType) {

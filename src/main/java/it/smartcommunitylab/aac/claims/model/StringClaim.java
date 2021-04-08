@@ -10,6 +10,11 @@ public class StringClaim extends AbstractClaim {
         this.key = key;
     }
 
+    public StringClaim(String key, String value) {
+        this.key = key;
+        this.value = value;
+    }
+
     @Override
     public AttributeType getType() {
         return AttributeType.STRING;

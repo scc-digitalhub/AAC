@@ -56,7 +56,7 @@ public class ScopesController {
 
     @DeleteMapping("{scope}")
     public void deleteScope(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) {
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) throws NoSuchScopeException {
         scopeManager.deleteScope(scope);
     }
 

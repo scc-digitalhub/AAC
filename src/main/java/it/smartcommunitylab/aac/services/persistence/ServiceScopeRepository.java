@@ -17,7 +17,6 @@ package it.smartcommunitylab.aac.services.persistence;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
@@ -28,17 +27,14 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
  *
  */
 @Repository
-public interface ServiceEntityRepository extends CustomJpaRepository<ServiceEntity, String> {
+public interface ServiceScopeRepository extends CustomJpaRepository<ServiceScopeEntity, String> {
 
-    List<ServiceEntity> findByNameContainingIgnoreCase(String name);
+    ServiceScopeEntity findByScope(String scope);
 
-    List<ServiceEntity> findByRealm(String realm);
+    ServiceScopeEntity findByServiceIdAndScope(String serviceId, String scope);
 
-    ServiceEntity findByNamespace(String namespace);
+    List<ServiceScopeEntity> findByServiceId(String serviceId);
 
-    @Query("select service_id from #{#entityName}")
-    List<String> listAllIds();
+    List<ServiceScopeEntity> findByServiceIdAndType(String serviceId, String type);
 
-    @Query("select namespace from #{#entityName}")
-    List<String> listAllNamespaces();
 }

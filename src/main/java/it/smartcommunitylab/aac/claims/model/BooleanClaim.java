@@ -10,6 +10,11 @@ public class BooleanClaim extends AbstractClaim {
         this.key = key;
     }
 
+    public BooleanClaim(String key, Boolean value) {
+        this.key = key;
+        this.value = value;
+    }
+
     @Override
     public AttributeType getType() {
         return AttributeType.BOOLEAN;

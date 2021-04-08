@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.springframework.stereotype.Component;
 
@@ -23,8 +24,8 @@ public class OpenIdEmailProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
-    public String getScope() {
-        return Config.SCOPE_EMAIL;
+    public Collection<String> getScopes() {
+        return Collections.singleton(Config.SCOPE_EMAIL);
     }
 
     @Override

@@ -62,18 +62,9 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     }
 
     // TODO add spaceRole service
-
+    private final ExtractorsRegistry extractorsRegistry;
     private ScriptExecutionService executionService;
     private UserTranslatorService userTranslatorService;
-
-    // claimExtractors
-    // we keep a map for active extractors. Note that a single extractor can
-    // respond to multiple scopes by registering many times. Nevertheless we require
-    // a consistent response.
-    // TODO export to a service to support clustered env, also use a load cache and
-    // db store
-    private Map<String, List<ScopeClaimsExtractor>> scopeExtractors = new HashMap<>();
-    private Map<String, List<ResourceClaimsExtractor>> resourceExtractors = new HashMap<>();
 
     // object mapper
     private final ObjectMapper mapper = new ObjectMapper();
@@ -82,12 +73,10 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
-    public DefaultClaimsService(Collection<ScopeClaimsExtractor> scopeExtractors) {
+    public DefaultClaimsService(ExtractorsRegistry extractorsRegistry) {
+        Assert.notNull(extractorsRegistry, "extractos registry is mandatory");
+        this.extractorsRegistry = extractorsRegistry;
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-
-        for (ScopeClaimsExtractor se : scopeExtractors) {
-            _registerExtractor(se);
-        }
 
     }
 
@@ -103,100 +92,6 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(executionService, "an execution service is required");
         Assert.notNull(userTranslatorService, "a user translator service is required");
-    }
-
-    // TODO add locks when modifying extractor lists
-    private void _registerExtractor(ScopeClaimsExtractor extractor) {
-        String scope = extractor.getScope();
-        if (!scopeExtractors.containsKey(scope)) {
-            scopeExtractors.put(scope, new ArrayList<>());
-        }
-
-        scopeExtractors.get(scope).add(extractor);
-
-    }
-
-    private void _registerExtractor(ResourceClaimsExtractor extractor) {
-        String resourceId = extractor.getResourceId();
-        if (!resourceExtractors.containsKey(resourceId)) {
-            resourceExtractors.put(resourceId, new ArrayList<>());
-        }
-
-        resourceExtractors.get(resourceId).add(extractor);
-    }
-
-    public void registerExtractor(ScopeClaimsExtractor extractor) {
-        if (extractor != null && StringUtils.hasText(extractor.getScope())) {
-            if (extractor.getResourceId() != null && extractor.getResourceId().startsWith("aac.")) {
-                throw new IllegalArgumentException("core resources can not be registered");
-            }
-
-            _registerExtractor(extractor);
-        }
-    }
-
-    public void registerExtractor(ResourceClaimsExtractor extractor) {
-        if (extractor != null && StringUtils.hasText(extractor.getResourceId())) {
-            String resourceId = extractor.getResourceId();
-            if (resourceId.startsWith("aac.")) {
-                throw new IllegalArgumentException("core resources can not be registered");
-            }
-
-            _registerExtractor(extractor);
-        }
-    }
-
-    public void unregisterExtractor(ResourceClaimsExtractor extractor) {
-        String resourceId = extractor.getResourceId();
-        if (StringUtils.hasText(resourceId) && resourceExtractors.containsKey(resourceId)) {
-            resourceExtractors.get(resourceId).remove(extractor);
-        }
-    }
-
-    public void unregisterExtractor(ScopeClaimsExtractor extractor) {
-        String scope = extractor.getScope();
-        if (StringUtils.hasText(scope) && scopeExtractors.containsKey(scope)) {
-            scopeExtractors.get(scope).remove(extractor);
-        }
-    }
-
-    public void unregisterExtractors(String resourceId) {
-        if (StringUtils.hasText(resourceId)) {
-            // aac extractors can not be unregistered at runtime
-            if (resourceId.startsWith("aac.")) {
-                return;
-            }
-
-            // unregister all scope extractors for the given resourceId
-            for (String scope : scopeExtractors.keySet()) {
-                List<ScopeClaimsExtractor> exs = scopeExtractors.get(scope);
-                Set<ScopeClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
-                        .collect(Collectors.toSet());
-                exs.removeAll(toRemove);
-            }
-
-            // unregister all resource extractors
-            if (resourceExtractors.containsKey(resourceId)) {
-                resourceExtractors.remove(resourceId);
-            }
-        }
-
-    }
-
-    public void unregisterExtractor(String resourceId, String scope) {
-        // aac extractors can not be unregistered at runtime
-        if (resourceId.startsWith("aac.")) {
-            return;
-        }
-
-        // unregister all extractors for the given resourceId responding to scope
-        if (scopeExtractors.containsKey(scope)) {
-            List<ScopeClaimsExtractor> exs = scopeExtractors.get(scope);
-            Set<ScopeClaimsExtractor> toRemove = exs.stream().filter(e -> resourceId.equals(e.getResourceId()))
-                    .collect(Collectors.toSet());
-            exs.removeAll(toRemove);
-        }
-
     }
 
     /*
@@ -247,33 +142,29 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
         // build scopeClaims
         for (String scope : scopes) {
-            if (scopeExtractors.containsKey(scope)) {
-                List<ScopeClaimsExtractor> exts = scopeExtractors.get(scope);
-                for (ScopeClaimsExtractor ce : exts) {
-                    // each extractor can respond, we keep only userClaims
-                    ClaimsSet cs = ce.extractUserClaims(user, client, scopes);
-                    if (cs != null && cs.isUser()) {
-                        claims.putAll(extractClaims(cs));
-                    }
+            List<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
+            for (ScopeClaimsExtractor ce : exts) {
+                // each extractor can respond, we keep only userClaims
+                ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes);
+                if (cs != null && cs.isUser()) {
+                    claims.putAll(extractClaims(cs));
                 }
-
             }
+
         }
 
         // build resourceClaims
         // serve a service with no scopes but included as audience
         for (String resourceId : resourceIds) {
-            if (resourceExtractors.containsKey(resourceId)) {
-                List<ResourceClaimsExtractor> exts = resourceExtractors.get(resourceId);
-                for (ResourceClaimsExtractor ce : exts) {
-                    // each extractor can respond, we keep only userClaims
-                    ClaimsSet cs = ce.extractUserClaims(user, client, scopes);
-                    if (cs != null && cs.isUser()) {
-                        claims.putAll(extractClaims(cs));
-                    }
+            List<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
+            for (ResourceClaimsExtractor ce : exts) {
+                // each extractor can respond, we keep only userClaims
+                ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes);
+                if (cs != null && cs.isUser()) {
+                    claims.putAll(extractClaims(cs));
                 }
-
             }
+
         }
 
 //
@@ -377,33 +268,29 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
         // build scopeClaims
         for (String scope : scopes) {
-            if (scopeExtractors.containsKey(scope)) {
-                List<ScopeClaimsExtractor> exts = scopeExtractors.get(scope);
-                for (ScopeClaimsExtractor ce : exts) {
-                    // each extractor can respond, we keep only userClaims
-                    ClaimsSet cs = ce.extractClientClaims(client, scopes);
-                    if (cs != null && cs.isClient()) {
-                        claims.putAll(extractClaims(cs));
-                    }
+            List<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
+            for (ScopeClaimsExtractor ce : exts) {
+                // each extractor can respond, we keep only userClaims
+                ClaimsSet cs = ce.extractClientClaims(scope, client, scopes);
+                if (cs != null && cs.isClient()) {
+                    claims.putAll(extractClaims(cs));
                 }
-
             }
+
         }
 
         // build resourceClaims
         // serve a service with no scopes but included as audience
         for (String resourceId : resourceIds) {
-            if (resourceExtractors.containsKey(resourceId)) {
-                List<ResourceClaimsExtractor> exts = resourceExtractors.get(resourceId);
-                for (ResourceClaimsExtractor ce : exts) {
-                    // each extractor can respond, we keep only userClaims
-                    ClaimsSet cs = ce.extractClientClaims(client, scopes);
-                    if (cs != null && cs.isClient()) {
-                        claims.putAll(extractClaims(cs));
-                    }
+            List<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
+            for (ResourceClaimsExtractor ce : exts) {
+                // each extractor can respond, we keep only userClaims
+                ClaimsSet cs = ce.extractClientClaims(resourceId, client, scopes);
+                if (cs != null && cs.isClient()) {
+                    claims.putAll(extractClaims(cs));
                 }
-
             }
+
         }
 
         // freeze claims by keeping keys, these won't be modifiable

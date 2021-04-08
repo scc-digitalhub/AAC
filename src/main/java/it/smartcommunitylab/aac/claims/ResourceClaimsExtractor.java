@@ -22,12 +22,13 @@ import it.smartcommunitylab.aac.model.User;
 
 public interface ResourceClaimsExtractor {
 
-    public String getResourceId();
+    // a list of resources this extractor will answer to
+    public Collection<String> getResourceIds();
 
-    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException;
 
-    public ClaimsSet extractClientClaims(ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String resourceId, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException;
 
 }

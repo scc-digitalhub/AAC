@@ -23,12 +23,13 @@ public interface ScopeClaimsExtractor {
 
     public String getResourceId();
 
-    public String getScope();
+    // a list of scopes (for the declared resource) this extractor will answer to
+    public Collection<String> getScopes();
 
-    public ClaimsSet extractUserClaims(User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException;
 
-    public ClaimsSet extractClientClaims(ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException;
 
 }

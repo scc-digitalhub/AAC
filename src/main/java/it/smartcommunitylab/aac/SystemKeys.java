@@ -42,5 +42,6 @@ public class SystemKeys {
 
     public static final String SLUG_PATTERN = "^[a-zA-Z0-9_-]+$";
     public static final String SCOPE_PATTERN = "^[a-zA-Z.-]+$";
+    public static final String NAMESPACE_PATTERN = "^[a-zA-Z0-9._:/-]+$";
 
 }

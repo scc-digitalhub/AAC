@@ -14,9 +14,10 @@ import it.smartcommunitylab.aac.model.User;
 public interface ClaimsService {
 
     /*
-     * Complete mapping
+     * Complete mapping TODO move to dedicated interface claimMapper
      */
-    public Map<String, Serializable> getUserClaims(UserDetails user, String realm, ClientDetails client, Collection<String> scopes,
+    public Map<String, Serializable> getUserClaims(UserDetails user, String realm, ClientDetails client,
+            Collection<String> scopes,
             Collection<String> resourceIds) throws NoSuchResourceException, InvalidDefinitionException, SystemException;
 
     public Map<String, Serializable> getUserClaims(User user, ClientDetails client, Collection<String> scopes,

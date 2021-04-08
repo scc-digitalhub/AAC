@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
@@ -33,8 +34,8 @@ public abstract class ProfileScopeProvider implements ScopeProvider {
         return s;
     }
 
-    protected String getType() {
-        return Scope.TYPE_USER;
+    protected ScopeType getType() {
+        return ScopeType.USER;
     }
 
     protected String getDescription() {
