@@ -15,6 +15,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
  * In-memory scope registry
  */
 
+
 public class InMemoryScopeRegistry implements ScopeRegistry {
 
     // scope map

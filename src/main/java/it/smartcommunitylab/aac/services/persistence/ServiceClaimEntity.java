@@ -45,15 +45,17 @@ import it.smartcommunitylab.aac.model.AttributeType;
  *
  */
 @Entity
-@Table(name = "service_claim", uniqueConstraints = @UniqueConstraint(columnNames = { "service_id", "key" }))
+@Table(name = "service_claim", uniqueConstraints = @UniqueConstraint(columnNames = { "service_id", "claim_key" }))
 public class ServiceClaimEntity {
 
 //    private static ObjectMapper mapper = new ObjectMapper();
 
     @Id
     @GeneratedValue
+    @Column(name = "claim_id")
     private Long claimId;
 
+    @Column(name = "claim_key")
     private String key;
 
     /**
@@ -76,6 +78,7 @@ public class ServiceClaimEntity {
     /**
      * If claim type is multiple
      */
+    @Column(name = "claim_multiple")
     private boolean multiple;
 
 //    @Enumerated(EnumType.STRING)

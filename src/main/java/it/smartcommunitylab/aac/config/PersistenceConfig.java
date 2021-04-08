@@ -1,13 +1,12 @@
 package it.smartcommunitylab.aac.config;
 
 import java.util.Collection;
-import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
@@ -17,7 +16,6 @@ import it.smartcommunitylab.aac.claims.ResourceClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
-import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 @Configuration
 @Order(4)
@@ -35,13 +33,13 @@ public class PersistenceConfig {
         return new AutoJdbcAttributeStore(dataSource);
     }
 
-    @Bean
-    public ScopeRegistry scopeRegistry(Collection<ScopeProvider> scopeProviders) {
+    @Bean(name = "scopeRegistry")
+    public InMemoryScopeRegistry scopeRegistry(Collection<ScopeProvider> scopeProviders) {
         return new InMemoryScopeRegistry(scopeProviders);
     }
 
-    @Bean
-    public ExtractorsRegistry scopeRegistry(Collection<ScopeClaimsExtractor> scopeExtractors,
+    @Bean(name = "extractorsRegistry")
+    public ExtractorsRegistry extractorsRegistry(Collection<ScopeClaimsExtractor> scopeExtractors,
             Collection<ResourceClaimsExtractor> resourceExtractors) {
         return new InMemoryExtractorsRegistry(scopeExtractors, resourceExtractors);
     }

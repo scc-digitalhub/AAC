@@ -36,9 +36,6 @@ public interface ServiceEntityRepository extends CustomJpaRepository<ServiceEnti
 
     ServiceEntity findByNamespace(String namespace);
 
-    @Query("select service_id from #{#entityName}")
-    List<String> listAllIds();
-
     @Query("select namespace from #{#entityName}")
     List<String> listAllNamespaces();
 }
