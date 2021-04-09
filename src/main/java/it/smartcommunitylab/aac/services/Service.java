@@ -9,6 +9,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -18,12 +22,12 @@ import it.smartcommunitylab.aac.scope.Scope;
  */
 
 @Valid
+@JsonInclude(Include.NON_NULL)
 public class Service {
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private String serviceId;
 
-    @NotBlank
     private String realm;
 
     private String name;
@@ -102,6 +106,7 @@ public class Service {
         this.claims = claims;
     }
 
+    @JsonIgnore
     public String getUserClaimMapping() {
         if (claimMapping != null && claimMapping.containsKey("user")) {
             return claimMapping.get("user");
@@ -110,6 +115,7 @@ public class Service {
         return null;
     }
 
+    @JsonIgnore
     public String getClientClaimMapping() {
         if (claimMapping != null && claimMapping.containsKey("client")) {
             return claimMapping.get("client");
@@ -118,6 +124,7 @@ public class Service {
         return null;
     }
 
+    @JsonIgnore
     public String getScopeClaimMapping(String scope) {
         if (claimMapping != null && claimMapping.containsKey(scope)) {
             return claimMapping.get(scope);
@@ -126,6 +133,7 @@ public class Service {
         return null;
     }
 
+    @JsonIgnore
     public String getUserClaimMapping(String scope) {
         if (claimMapping != null && claimMapping.containsKey("user:" + scope)) {
             return claimMapping.get("user:" + scope);
@@ -134,6 +142,7 @@ public class Service {
         return null;
     }
 
+    @JsonIgnore
     public String getClientClaimMapping(String scope) {
         if (claimMapping != null && claimMapping.containsKey("client:" + scope)) {
             return claimMapping.get("client:" + scope);

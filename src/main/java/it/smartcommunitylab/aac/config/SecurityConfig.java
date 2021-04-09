@@ -237,6 +237,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
+                //whitelist error
+                .antMatchers("/error").permitAll()
                 // whitelist login pages
                 .antMatchers("/login").permitAll()
                 .antMatchers("/-/{realm}/login").permitAll()

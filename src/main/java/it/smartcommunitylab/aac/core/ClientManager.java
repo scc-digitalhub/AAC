@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +29,7 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
@@ -58,6 +60,9 @@ public class ClientManager {
 
     @Autowired
     private RealmService realmService;
+
+    @Autowired
+    private SearchableApprovalStore approvalStore;
 
     /*
      * ClientApp via appService
@@ -265,6 +270,13 @@ public class ClientManager {
 
         // TODO token revoke, cleanups etc
         // most things should be handled by the downstream service
+
+        // remove approvals
+        try {
+            Collection<Approval> approvals = approvalStore.findClientApprovals(clientId);
+            approvalStore.revokeApprovals(approvals);
+        } catch (Exception e) {
+        }
 
         // delete
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {

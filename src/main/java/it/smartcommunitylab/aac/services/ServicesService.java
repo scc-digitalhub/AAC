@@ -16,6 +16,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.AttributeType;
+import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
@@ -71,8 +72,8 @@ public class ServicesService implements ScopeProvider {
 
         String serviceId = s.getServiceId();
 
-        List<ServiceScope> scopes = findScopes(serviceId);
-        List<ServiceClaim> claims = findClaims(serviceId);
+        List<ServiceScope> scopes = listScopes(serviceId);
+        List<ServiceClaim> claims = listClaims(serviceId);
 
         return toService(s, scopes, claims);
     }
@@ -87,8 +88,8 @@ public class ServicesService implements ScopeProvider {
             throw new NoSuchServiceException();
         }
 
-        List<ServiceScope> scopes = findScopes(serviceId);
-        List<ServiceClaim> claims = findClaims(serviceId);
+        List<ServiceScope> scopes = listScopes(serviceId);
+        List<ServiceClaim> claims = listClaims(serviceId);
 
         return toService(s, scopes, claims);
     }
@@ -159,14 +160,14 @@ public class ServicesService implements ScopeProvider {
 
     public void deleteService(String serviceId) throws NoSuchServiceException {
         // delete related
-        List<ServiceScope> scopes = findScopes(serviceId);
+        List<ServiceScope> scopes = listScopes(serviceId);
         if (!scopes.isEmpty()) {
             for (ServiceScope ss : scopes) {
                 deleteScope(serviceId, ss.getScope());
             }
         }
 
-        List<ServiceClaim> claims = findClaims(serviceId);
+        List<ServiceClaim> claims = listClaims(serviceId);
         if (!claims.isEmpty()) {
             for (ServiceClaim sc : claims) {
                 deleteClaim(serviceId, sc.getKey());
@@ -231,7 +232,7 @@ public class ServicesService implements ScopeProvider {
         return ServiceScope.from(s, se.getNamespace());
     }
 
-    public List<ServiceScope> findScopes(String serviceId) throws NoSuchServiceException {
+    public List<ServiceScope> listScopes(String serviceId) throws NoSuchServiceException {
         ServiceEntity se = serviceRepository.findOne(serviceId);
         if (se == null) {
             throw new NoSuchServiceException();
@@ -241,7 +242,7 @@ public class ServicesService implements ScopeProvider {
         return list.stream().map(s -> ServiceScope.from(s, se.getNamespace())).collect(Collectors.toList());
     }
 
-    public List<ServiceScope> findScopes(String serviceId, String type) throws NoSuchServiceException {
+    public List<ServiceScope> listScopes(String serviceId, String type) throws NoSuchServiceException {
         ServiceEntity se = serviceRepository.findOne(serviceId);
         if (se == null) {
             throw new NoSuchServiceException();
@@ -254,7 +255,7 @@ public class ServicesService implements ScopeProvider {
     public ServiceScope addScope(
             String serviceId, String scope,
             String name, String description,
-            AttributeType type,
+            ScopeType type,
             Collection<String> claims, Collection<String> roles,
             boolean approvalRequired) throws NoSuchServiceException, RegistrationException {
 
@@ -263,7 +264,7 @@ public class ServicesService implements ScopeProvider {
         }
 
         if (type == null) {
-            type = AttributeType.STRING;
+            type = ScopeType.GENERIC;
         }
 
         ServiceEntity service = serviceRepository.findOne(serviceId);
@@ -299,12 +300,12 @@ public class ServicesService implements ScopeProvider {
     public ServiceScope updateScope(
             String serviceId, String scope,
             String name, String description,
-            AttributeType type,
+            ScopeType type,
             Collection<String> claims, Collection<String> roles,
             boolean approvalRequired) throws NoSuchServiceException, NoSuchScopeException {
 
         if (type == null) {
-            type = AttributeType.STRING;
+            type = ScopeType.GENERIC;
         }
 
         ServiceScopeEntity se = scopeRepository.findByServiceIdAndScope(serviceId, scope);
@@ -344,7 +345,12 @@ public class ServicesService implements ScopeProvider {
     /*
      * Service claims
      */
-    public ServiceClaim getClaim(String serviceId, String key) throws NoSuchClaimException {
+    public ServiceClaim getClaim(String serviceId, String key) throws NoSuchClaimException, NoSuchServiceException {
+        ServiceEntity service = serviceRepository.findOne(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
         ServiceClaimEntity s = claimRepository.findByServiceIdAndKey(serviceId, key);
         if (s == null) {
             throw new NoSuchClaimException();
@@ -367,11 +373,20 @@ public class ServicesService implements ScopeProvider {
         return list.stream().map(se -> ServiceClaim.from(se)).collect(Collectors.toList());
     }
 
+    public List<ServiceClaim> listClaims(String serviceId) throws NoSuchServiceException {
+        ServiceEntity service = serviceRepository.findOne(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        List<ServiceClaimEntity> list = claimRepository.findByServiceId(serviceId);
+        return list.stream().map(se -> ServiceClaim.from(se)).collect(Collectors.toList());
+    }
+
     public ServiceClaim addClaim(
             String serviceId, String key,
             String name, String description,
             AttributeType type,
-            Collection<String> claims, Collection<String> roles,
             boolean multiple) throws NoSuchServiceException, RegistrationException {
 
         if (!StringUtils.hasText(key)) {
@@ -412,7 +427,6 @@ public class ServicesService implements ScopeProvider {
             String serviceId, String key,
             String name, String description,
             AttributeType type,
-            Collection<String> claims, Collection<String> roles,
             boolean multiple) throws NoSuchServiceException, NoSuchClaimException {
 
         if (type == null) {

@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.scope;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.springframework.util.Assert;
@@ -12,6 +14,7 @@ import it.smartcommunitylab.aac.model.ScopeType;
 public class Scope {
 
     @Pattern(regexp = SystemKeys.SCOPE_PATTERN)
+    @NotBlank
     protected String scope;
 
     protected String name;

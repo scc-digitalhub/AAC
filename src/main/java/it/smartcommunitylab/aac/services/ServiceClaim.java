@@ -6,19 +6,25 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.claims.model.AbstractClaim;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
 
+@Valid
 public class ServiceClaim extends AbstractClaim {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
     private String serviceId;
+
+    @NotNull
     private AttributeType type;
-    private boolean multiple;
+    private boolean multiple = false;
 
     public String getServiceId() {
         return serviceId;
