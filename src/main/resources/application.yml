@@ -9,6 +9,8 @@ server:
       remote_ip_header: ${SERVER_TOMCAT_REMOTE_IP_HEADER:x-forwarded-for}
       protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
    max-http-header-size: 32000     
+   error:
+      include-stacktrace: ON_TRACE_PARAM   
 
 # APPLICATION EXTERNAL URL
 application:
