@@ -237,7 +237,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                //whitelist error
+                // whitelist error
                 .antMatchers("/error").permitAll()
                 // whitelist login pages
                 .antMatchers("/login").permitAll()
@@ -247,6 +247,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
+                // whitelist swagger
+                .antMatchers("/v2/api-docs",
+                        "/configuration/ui",
+                        "/swagger-resources/**",
+                        "/configuration/**",
+                        "/swagger-ui.html",
+                        "/webjars/**")
+                .permitAll()
                 // anything else requires auth
                 .anyRequest().authenticated()
                 .and()

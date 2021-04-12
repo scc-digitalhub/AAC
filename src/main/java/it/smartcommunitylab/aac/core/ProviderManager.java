@@ -168,8 +168,15 @@ public class ProviderManager {
                     continue;
                 }
 
-                // register
-                ia.registerIdentityProvider(provider);
+                // try register
+                if (provider.isEnabled()) {
+                    try {
+                        ia.registerIdentityProvider(provider);
+                    } catch (Exception e) {
+                        logger.error("error registering provider " + provider.getProvider() + " for realm "
+                                + provider.getRealm() + ": " + e.getMessage());
+                    }
+                }
             }
         }
 
@@ -190,7 +197,9 @@ public class ProviderManager {
 
         Realm re = realmService.getRealm(realm);
         List<ProviderEntity> providers = providerService.listProvidersByRealm(re.getSlug());
-        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
+        return providers.stream()
+                .map(p -> fromEntity(p, isProviderRegistered(p.getType(), p.getAuthority(), p.getProviderId())))
+                .collect(Collectors.toList());
     }
 
     public Collection<ConfigurableProvider> listProviders(String realm, String type) throws NoSuchRealmException {
@@ -201,7 +210,9 @@ public class ProviderManager {
 
         Realm re = realmService.getRealm(realm);
         List<ProviderEntity> providers = providerService.listProvidersByRealmAndType(re.getSlug(), type);
-        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
+        return providers.stream()
+                .map(p -> fromEntity(p, isProviderRegistered(p.getType(), p.getAuthority(), p.getProviderId())))
+                .collect(Collectors.toList());
     }
 
     public ConfigurableProvider getProvider(String realm, String providerId)
@@ -213,7 +224,9 @@ public class ProviderManager {
             throw new IllegalArgumentException("realm does not match provider");
         }
 
-        return fromEntity(pe);
+        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
+
+        return fromEntity(pe, isActive);
 
     }
 
@@ -230,7 +243,9 @@ public class ProviderManager {
             throw new IllegalArgumentException("type does not match provider");
         }
 
-        return fromEntity(pe);
+        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
+
+        return fromEntity(pe, isActive);
 
     }
 
@@ -247,7 +262,7 @@ public class ProviderManager {
         String providerId = generateId();
         ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(), type, configuration);
 
-        return fromEntity(pe);
+        return fromEntity(pe, false);
 
     }
 
@@ -292,11 +307,7 @@ public class ProviderManager {
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = false;
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-            isActive = isProviderRegistered(providerId);
-        }
+        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be updated");
@@ -309,7 +320,7 @@ public class ProviderManager {
         // update: even when enabled this provider won't be active until registration
         pe = providerService.updateProvider(providerId, enabled, configuration);
 
-        return fromEntity(pe);
+        return fromEntity(pe, isActive);
     }
 
     public void deleteProvider(String realm, String providerId)
@@ -321,12 +332,8 @@ public class ProviderManager {
             throw new IllegalArgumentException("realm does not match provider");
         }
 
-        // check if registered, we don't support delete for active providers
-        boolean isActive = false;
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-            isActive = isProviderRegistered(providerId);
-        }
+        // check if active, we don't support update for active providers
+        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be deleted");
@@ -349,11 +356,7 @@ public class ProviderManager {
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = false;
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-            isActive = isProviderRegistered(providerId);
-        }
+        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be registered again");
@@ -369,12 +372,14 @@ public class ProviderManager {
         // we support only idp now
         if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
             registerIdentityProvider(provider);
+            isActive = true;
         } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
             // TODO attribute providers
         } else {
             throw new SystemException("unsupported provider type");
         }
 
+        provider.setRegistered(isActive);
         return provider;
 
     }
@@ -398,17 +403,14 @@ public class ProviderManager {
         ConfigurableProvider provider = fromEntity(pe);
 
         // check if active
-        boolean isActive = false;
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-            isActive = isProviderRegistered(providerId);
-        }
+        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
 
         if (isActive) {
 
             // we support only idp now
             if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
                 unregisterIdentityProvider(provider);
+                isActive = false;
             } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
                 // TODO attribute providers
             } else {
@@ -416,6 +418,7 @@ public class ProviderManager {
             }
         }
 
+        provider.setRegistered(isActive);
         return provider;
     }
 
@@ -431,9 +434,13 @@ public class ProviderManager {
      */
 
     private IdentityProvider registerIdentityProvider(ConfigurableProvider provider) throws SystemException {
+        if (!provider.isEnabled()) {
+            throw new IllegalArgumentException("provider is disabled");
+        }
+
         // we support only idp now
         if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            throw new SystemException("unsupported provider type");
+            throw new IllegalArgumentException("unsupported provider type");
         }
 
         IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
@@ -444,7 +451,7 @@ public class ProviderManager {
     private void unregisterIdentityProvider(ConfigurableProvider provider) throws SystemException {
         // we support only idp now
         if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            throw new SystemException("unsupported provider type");
+            throw new IllegalArgumentException("unsupported provider type");
         }
 
         IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
@@ -462,18 +469,21 @@ public class ProviderManager {
     }
 
     private boolean isProviderRegistered(ConfigurableProvider provider) throws SystemException {
+        return isProviderRegistered(provider.getType(), provider.getAuthority(), provider.getProvider());
+    }
+
+    private boolean isProviderRegistered(String type, String authority, String providerId) throws SystemException {
         // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
-            String providerId = provider.getProvider();
+        if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
+            IdentityAuthority a = authorityManager.getIdentityAuthority(authority);
 
             IdentityProvider idp = a.getIdentityProvider(providerId);
             return !(idp == null);
-        } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
+        } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(type)) {
             // TODO attribute providers
-            throw new SystemException("unsupported provider type");
+            throw new IllegalArgumentException("unsupported provider type");
         } else {
-            throw new SystemException("unsupported provider type");
+            throw new IllegalArgumentException("unsupported provider type");
         }
 
     }
@@ -725,15 +735,27 @@ public class ProviderManager {
      */
 
     private ConfigurableProvider fromEntity(ProviderEntity pe) {
-        ConfigurableProvider idp = new ConfigurableProvider(pe.getAuthority(), pe.getProviderId(), pe.getRealm());
-        idp.setType(pe.getType());
-        idp.setConfiguration(pe.getConfigurationMap());
+        ConfigurableProvider cp = new ConfigurableProvider(pe.getAuthority(), pe.getProviderId(), pe.getRealm());
+        cp.setType(pe.getType());
+        cp.setConfiguration(pe.getConfigurationMap());
+        cp.setEnabled(pe.isEnabled());
+        cp.setRegistered(null);
 
-        if (idp.getConfiguration() == null) {
+//        cp.setPersistence(pe.get);
+
+        if (cp.getConfiguration() == null) {
             // we want a valid map in config
-            idp.setConfiguration(new HashMap<>());
+            cp.setConfiguration(new HashMap<>());
         }
-        return idp;
+        return cp;
+
+    }
+
+    private ConfigurableProvider fromEntity(ProviderEntity pe, boolean active) {
+        ConfigurableProvider cp = fromEntity(pe);
+        cp.setRegistered(active);
+
+        return cp;
 
     }
 

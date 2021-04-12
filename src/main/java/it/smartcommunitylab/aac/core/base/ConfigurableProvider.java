@@ -7,9 +7,13 @@ import javax.validation.constraints.NotBlank;
 
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import it.smartcommunitylab.aac.SystemKeys;
 
 @Valid
+@JsonInclude(Include.NON_NULL)
 public class ConfigurableProvider extends AbstractConfigurableProvider {
 
     @NotBlank
@@ -17,6 +21,8 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
     private boolean enabled;
     private String persistence;
     private String name;
+
+    private Boolean registered;
 
     public ConfigurableProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -50,6 +56,14 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isRegistered() {
+        return registered;
+    }
+
+    public void setRegistered(Boolean registered) {
+        this.registered = registered;
     }
 
     public String getPersistence() {

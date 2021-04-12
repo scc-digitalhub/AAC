@@ -43,6 +43,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, null, headers, status, request);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public final ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request)
+            throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return handleExceptionInternal(ex, null, headers, status, request);
+    }
+
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
             Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {

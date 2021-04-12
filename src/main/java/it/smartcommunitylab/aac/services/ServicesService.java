@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.services;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -190,7 +191,7 @@ public class ServicesService implements ScopeProvider {
         service.setNamespace(s.getNamespace());
         service.setName(s.getName());
         service.setDescription(s.getDescription());
-        service.setClaimMapping(s.getClaimMappings());
+        service.setClaimMapping(s.getClaimMappings() != null ? s.getClaimMappings() : Collections.emptyMap());
 
         return service;
     }
