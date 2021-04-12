@@ -28,6 +28,7 @@ import com.ibm.icu.util.Calendar;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
@@ -149,8 +150,8 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                 throw new ProviderNotFoundException("provider not found");
             }
 
-            // since we don't have a realm we ask all idps to process, and keep the first
-            // result
+            // since we don't have an authority we ask all idps to process, and keep the
+            // first not null result
             List<IdentityProvider> providers = new ArrayList<>();
 
             if (StringUtils.hasText(authorityId)) {
@@ -158,7 +159,11 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                 providers.addAll(providerManager.fetchIdentityProviders(authorityId, realm));
             } else {
                 // from db
-                providers.addAll(providerManager.getIdentityProviders(realm));
+                try {
+                    providers.addAll(providerManager.getIdentityProviders(realm));
+                } catch (NoSuchRealmException re) {
+                    providers = Collections.emptyList();
+                }
             }
 
             UserAuthenticationToken result = null;

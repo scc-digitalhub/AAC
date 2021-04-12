@@ -27,7 +27,7 @@ import javax.validation.constraints.Size;
  * @author raman
  *
  */
-public class RegistrationBean implements Serializable {
+public class UserRegistrationBean implements Serializable {
 	
 	private static final long serialVersionUID = 5151437264220742574L;
 
@@ -44,10 +44,10 @@ public class RegistrationBean implements Serializable {
 	
 	private String lang;
 	
-	public RegistrationBean() {
+	public UserRegistrationBean() {
 		super();
 	}
-	public RegistrationBean(String email, String name, String surname) {
+	public UserRegistrationBean(String email, String name, String surname) {
 		super();
 		this.email = email;
 		this.name = name;

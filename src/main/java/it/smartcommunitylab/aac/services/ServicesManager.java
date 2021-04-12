@@ -100,7 +100,7 @@ public class ServicesManager implements InitializingBean {
         String description = service.getDescription();
 
         // add
-        Service s = serviceService.addService(realm, namespace, name, description);
+        Service s = serviceService.addService(re.getSlug(), namespace, name, description);
         String serviceId = s.getServiceId();
 
         try {

@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
@@ -29,7 +30,9 @@ import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ProviderService;
+import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
+import it.smartcommunitylab.aac.model.Realm;
 
 @Service
 public class ProviderManager {
@@ -41,6 +44,8 @@ public class ProviderManager {
 
     private AuthorityManager authorityManager;
 
+    private RealmService realmService;
+
     // keep a local map for global providers since these are not in db
     // key is providerId
     private Map<String, IdentityProvider> globalIdps;
@@ -50,15 +55,17 @@ public class ProviderManager {
     public ProviderManager(
             AuthorityManager authorityManager,
             SessionManager sessionManager,
-            ProviderService providerService,
+            ProviderService providerService, RealmService realmService,
             ProvidersProperties providers) {
         Assert.notNull(authorityManager, "authority manager is mandatory");
         Assert.notNull(sessionManager, "session manager is mandatory");
         Assert.notNull(providerService, "provider service is mandatory");
+        Assert.notNull(realmService, "realm service is mandatory");
 
         this.authorityManager = authorityManager;
         this.sessionManager = sessionManager;
         this.providerService = providerService;
+        this.realmService = realmService;
 
         this.globalIdps = new HashMap<>();
         this.globalIdss = new HashMap<>();
@@ -169,8 +176,260 @@ public class ProviderManager {
     }
 
     /*
+     * Public API: realm providers only.
+     * 
+     * For global providers we enable only a subset of features (RO)
+     * 
+     * TODO add permissions
+     */
+    public Collection<ConfigurableProvider> listProviders(String realm) throws NoSuchRealmException {
+        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
+            // we do not persist in db global providers
+            throw new SystemException("global providers are immutable");
+        }
+
+        Realm re = realmService.getRealm(realm);
+        List<ProviderEntity> providers = providerService.listProvidersByRealm(re.getSlug());
+        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
+    }
+
+    public Collection<ConfigurableProvider> listProviders(String realm, String type) throws NoSuchRealmException {
+        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
+            // we do not persist in db global providers
+            throw new SystemException("global providers are immutable");
+        }
+
+        Realm re = realmService.getRealm(realm);
+        List<ProviderEntity> providers = providerService.listProvidersByRealmAndType(re.getSlug(), type);
+        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
+    }
+
+    public ConfigurableProvider getProvider(String realm, String providerId)
+            throws NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        ProviderEntity pe = providerService.getProvider(providerId);
+
+        if (!re.getSlug().equals(pe.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        return fromEntity(pe);
+
+    }
+
+    public ConfigurableProvider getProvider(String realm, String type, String providerId)
+            throws NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        ProviderEntity pe = providerService.getProvider(providerId);
+
+        if (!re.getSlug().equals(pe.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        if (!type.equals(pe.getType())) {
+            throw new IllegalArgumentException("type does not match provider");
+        }
+
+        return fromEntity(pe);
+
+    }
+
+    public ConfigurableProvider addProvider(String realm, String authority, String type,
+            Map<String, String> configuration) throws SystemException, NoSuchRealmException {
+
+        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
+            // we do not persist in db global providers
+            throw new SystemException("global providers are immutable");
+        }
+
+        Realm re = realmService.getRealm(realm);
+
+        String providerId = generateId();
+        ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(), type, configuration);
+
+        return fromEntity(pe);
+
+    }
+
+//    public ConfigurableProvider updateProvider(String realm, String providerId, boolean enabled)
+//            throws NoSuchProviderException, NoSuchRealmException {
+//        Realm re = realmService.getRealm(realm);
+//        ProviderEntity pe = providerService.getProvider(providerId);
+//
+//        if (!re.getSlug().equals(pe.getRealm())) {
+//            throw new IllegalArgumentException("realm does not match provider");
+//        }
+//
+//        // check if active, we don't support update for active providers
+//        boolean isActive = false;
+//        // we support only idp now
+//        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
+//            isActive = isProviderRegistered(providerId);
+//        }
+//
+//        if (isActive) {
+//            throw new IllegalArgumentException("active providers can not be updated");
+//        }
+//
+//        // check previous status
+//        if (enabled != pe.isEnabled()) {
+//            // sync
+//            pe = providerService.updateProvider(providerId, enabled, pe.getConfigurationMap());
+//        }
+//
+//        return fromEntity(pe);
+//
+//    }
+
+    public ConfigurableProvider updateProvider(String realm,
+            String providerId, ConfigurableProvider provider)
+            throws NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        ProviderEntity pe = providerService.getProvider(providerId);
+
+        if (!re.getSlug().equals(pe.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // check if active, we don't support update for active providers
+        boolean isActive = false;
+        // we support only idp now
+        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
+            isActive = isProviderRegistered(providerId);
+        }
+
+        if (isActive) {
+            throw new IllegalArgumentException("active providers can not be updated");
+        }
+
+        // we update only configuration
+        Map<String, String> configuration = provider.getConfiguration();
+        boolean enabled = provider.isEnabled();
+
+        // update: even when enabled this provider won't be active until registration
+        pe = providerService.updateProvider(providerId, enabled, configuration);
+
+        return fromEntity(pe);
+    }
+
+    public void deleteProvider(String realm, String providerId)
+            throws SystemException, NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+
+        ProviderEntity pe = providerService.getProvider(providerId);
+        if (!re.getSlug().equals(pe.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // check if registered, we don't support delete for active providers
+        boolean isActive = false;
+        // we support only idp now
+        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
+            isActive = isProviderRegistered(providerId);
+        }
+
+        if (isActive) {
+            throw new IllegalArgumentException("active providers can not be deleted");
+        }
+
+        providerService.deleteProvider(providerId);
+
+    }
+
+    //
+    public ConfigurableProvider registerProvider(
+            String realm,
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+
+        Realm re = realmService.getRealm(realm);
+        // fetch, only persisted configurations can be registered
+        ProviderEntity pe = providerService.getProvider(providerId);
+        if (!re.getSlug().equals(pe.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // check if active, we don't support update for active providers
+        boolean isActive = false;
+        // we support only idp now
+        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
+            isActive = isProviderRegistered(providerId);
+        }
+
+        if (isActive) {
+            throw new IllegalArgumentException("active providers can not be registered again");
+        }
+
+        // check if already enabled in config, or update
+        if (!pe.isEnabled()) {
+            pe = providerService.updateProvider(providerId, true, pe.getConfigurationMap());
+        }
+
+        ConfigurableProvider provider = fromEntity(pe);
+
+        // we support only idp now
+        if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
+            registerIdentityProvider(provider);
+        } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
+            // TODO attribute providers
+        } else {
+            throw new SystemException("unsupported provider type");
+        }
+
+        return provider;
+
+    }
+
+    public ConfigurableProvider unregisterProvider(
+            String realm,
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+
+        Realm re = realmService.getRealm(realm);
+        // fetch, only persisted configurations can be registered
+        ProviderEntity pe = providerService.getProvider(providerId);
+        if (!re.getSlug().equals(pe.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // check if already disabled in config, or update
+        if (pe.isEnabled()) {
+            pe = providerService.updateProvider(providerId, false, pe.getConfigurationMap());
+        }
+
+        ConfigurableProvider provider = fromEntity(pe);
+
+        // check if active
+        boolean isActive = false;
+        // we support only idp now
+        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
+            isActive = isProviderRegistered(providerId);
+        }
+
+        if (isActive) {
+
+            // we support only idp now
+            if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
+                unregisterIdentityProvider(provider);
+            } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
+                // TODO attribute providers
+            } else {
+                throw new SystemException("unsupported provider type");
+            }
+        }
+
+        return provider;
+    }
+
+    /*
+     * Internal API
+     * 
+     * methods for handling providers either private or exposed for internal (core)
+     * usage
+     */
+
+    /*
      * Enable/disable providers with authorities
      */
+
     private IdentityProvider registerIdentityProvider(ConfigurableProvider provider) throws SystemException {
         // we support only idp now
         if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
@@ -182,56 +441,27 @@ public class ProviderManager {
 
     }
 
-    public void registerProvider(
-            String providerId) throws NoSuchProviderException, SystemException {
-        ConfigurableProvider p = getProvider(providerId);
-        registerProvider(p);
-    }
-
-    public void registerProvider(
-            ConfigurableProvider provider) throws SystemException {
+    private void unregisterIdentityProvider(ConfigurableProvider provider) throws SystemException {
         // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
-            a.registerIdentityProvider(provider);
-        } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
-            // TODO attribute providers
-        } else {
+        if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
             throw new SystemException("unsupported provider type");
         }
 
-    }
+        IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
+        String providerId = provider.getProvider();
 
-    public void unregisterProvider(
-            String providerId) throws NoSuchProviderException, SystemException {
-        ConfigurableProvider p = getProvider(providerId);
-        unregisterProvider(p);
-    }
-
-    public void unregisterProvider(
-            ConfigurableProvider provider) throws SystemException {
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
-            String providerId = provider.getProvider();
-
-            // terminate sessions
-            sessionManager.destroyProviderSessions(providerId);
-            a.unregisterIdentityProvider(provider.getRealm(), providerId);
-        } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
-            // TODO attribute providers
-        } else {
-            throw new SystemException("unsupported provider type");
-        }
+        // terminate sessions
+        sessionManager.destroyProviderSessions(providerId);
+        a.unregisterIdentityProvider(provider.getRealm(), providerId);
 
     }
 
-    public boolean isProviderRegistered(String providerId) throws SystemException, NoSuchProviderException {
+    private boolean isProviderRegistered(String providerId) throws SystemException, NoSuchProviderException {
         ConfigurableProvider p = getProvider(providerId);
         return isProviderRegistered(p);
     }
 
-    public boolean isProviderRegistered(ConfigurableProvider provider) throws SystemException {
+    private boolean isProviderRegistered(ConfigurableProvider provider) throws SystemException {
         // we support only idp now
         if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
             IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
@@ -268,116 +498,11 @@ public class ProviderManager {
         return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
     }
 
-    public Collection<ConfigurableProvider> listProviders(String realm) {
-        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
-            // we do not persist in db global providers
-            throw new SystemException("global providers are immutable");
-        }
-
-        List<ProviderEntity> providers = providerService.listProvidersByRealm(realm);
-        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
-
-    }
-
-    public Collection<ConfigurableProvider> listProviders(String realm, String type) {
-        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
-            // we do not persist in db global providers
-            throw new SystemException("global providers are immutable");
-        }
-
-        List<ProviderEntity> providers = providerService.listProvidersByRealmAndType(realm, type);
-        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
-
-    }
-
-    public ConfigurableProvider addProvider(String authority, String realm, String type,
-            Map<String, String> configuration) throws SystemException {
-
-        if (SystemKeys.REALM_GLOBAL.equals(realm)) {
-            // we do not persist in db global providers
-            throw new SystemException("global providers are immutable");
-        }
-
-        String providerId = generateId();
-        ProviderEntity pe = providerService.addProvider(authority, providerId, realm, type, configuration);
-
-        return fromEntity(pe);
-
-    }
-
-    public ConfigurableProvider updateProvider(String providerId, Map<String, String> configuration)
-            throws NoSuchProviderException {
-        ProviderEntity pe = providerService.getProvider(providerId);
-        // check if active, we don't support update for active providers
-        boolean isActive = false;
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-            isActive = isProviderRegistered(providerId);
-        }
-
-        if (isActive) {
-            throw new SystemException("can't update, provider is active");
-        }
-
-        // disable provider, after update users will be able to enable and activate
-        pe = providerService.updateProvider(providerId, false, configuration);
-
-        return fromEntity(pe);
-    }
-
-    public ConfigurableProvider updateProvider(String providerId, boolean enabled)
-            throws NoSuchProviderException {
-        ProviderEntity pe = providerService.getProvider(providerId);
-
-        // check if active, we don't support update for active providers
-        boolean isActive = false;
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-            isActive = isProviderRegistered(providerId);
-        }
-
-        // check previous status
-        boolean isEnabled = pe.isEnabled();
-
-        // always sync
-        pe = providerService.updateProvider(providerId, enabled, pe.getConfigurationMap());
-
-        if (enabled && !isActive) {
-            // start
-            registerProvider(providerId);
-        } else if (!enabled && isActive) {
-            // stop
-            unregisterProvider(providerId);
-        }
-
-        return fromEntity(pe);
-
-    }
-
-    public ConfigurableProvider getProvider(String providerId) throws NoSuchProviderException {
+    private ConfigurableProvider getProvider(String providerId) throws NoSuchProviderException {
         ProviderEntity pe = providerService.getProvider(providerId);
 
         return fromEntity(pe);
 
-    }
-
-    public void deleteProvider(String providerId) throws SystemException, NoSuchProviderException {
-        ProviderEntity pe = providerService.fetchProvider(providerId);
-
-        if (pe != null) {
-            // check if registered, we don't support delete for active providers
-            boolean isActive = false;
-            // we support only idp now
-            if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-                isActive = isProviderRegistered(providerId);
-            }
-
-            if (isActive) {
-                throw new SystemException("can't delete, provider is active");
-            }
-
-            providerService.deleteProvider(providerId);
-        }
     }
 
     /*
@@ -437,7 +562,7 @@ public class ProviderManager {
         return ia.getIdentityProvider(providerId);
     }
 
-    public Collection<IdentityProvider> getIdentityProviders(String realm) {
+    public Collection<IdentityProvider> getIdentityProviders(String realm) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(realm)) {
             return listGlobalIdentityProviders();
         }
@@ -543,7 +668,7 @@ public class ProviderManager {
         return ia.getIdentityService(providerId);
     }
 
-    public Collection<IdentityService> getIdentityServices(String realm) {
+    public Collection<IdentityService> getIdentityServices(String realm) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(realm)) {
             return listGlobalIdentityServices();
         }

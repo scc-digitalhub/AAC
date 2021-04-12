@@ -2,12 +2,17 @@ package it.smartcommunitylab.aac.core.base;
 
 import java.util.HashMap;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
+@Valid
 public class ConfigurableProvider extends AbstractConfigurableProvider {
 
+    @NotBlank
     private String type;
     private boolean enabled;
     private String persistence;
@@ -18,6 +23,17 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
         this.configuration = new HashMap<>();
         this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
         this.name = provider;
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     * 
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private ConfigurableProvider() {
+        this((String) null, (String) null, (String) null);
     }
 
     public String getType() {
@@ -61,4 +77,8 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
     public void setConfigurationProperty(String key, String value) {
         configuration.put(key, value);
     }
+
+    public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;
+
+    public static final String TYPE_ATTRIBUTES = SystemKeys.RESOURCE_ATTRIBUTES;
 }

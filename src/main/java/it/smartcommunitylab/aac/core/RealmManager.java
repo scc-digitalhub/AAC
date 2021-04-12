@@ -12,12 +12,15 @@ import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.services.ServicesManager;
 
 @Service
 public class RealmManager {
@@ -34,6 +37,9 @@ public class RealmManager {
 
     @Autowired
     private ProviderManager providerManager;
+
+    @Autowired
+    private ServicesManager servicesManager;
 
 //    @Autowired
 //    private SessionManager sessionManager;
@@ -70,20 +76,20 @@ public class RealmManager {
         Realm realm = realmService.getRealm(slug);
 
         if (cleanup) {
-            // remove identity providers, will also invalidate sessions
-            Collection<IdentityProvider> idps = providerManager.getIdentityProviders(slug);
-            for (IdentityProvider idp : idps) {
+            // remove all providers, will also invalidate sessions for idps
+            Collection<ConfigurableProvider> providers = providerManager.listProviders(slug);
+            for (ConfigurableProvider provider : providers) {
                 try {
-                    String providerId = idp.getProvider();
+                    String providerId = provider.getProvider();
 
                     // check ownership
-                    if (idp.getRealm().equals(slug)) {
+                    if (provider.getRealm().equals(slug)) {
 
                         // stop provider, will terminate sessions
-                        providerManager.unregisterProvider(providerId);
+                        providerManager.unregisterProvider(slug, providerId);
 
                         // remove provider
-                        providerManager.deleteProvider(providerId);
+                        providerManager.deleteProvider(slug, providerId);
                     }
                 } catch (NoSuchProviderException e) {
                     // skip
@@ -123,7 +129,19 @@ public class RealmManager {
                 }
             }
 
-            // TODO services
+            // remove services
+            List<it.smartcommunitylab.aac.services.Service> services = servicesManager.listServices(slug);
+            for (it.smartcommunitylab.aac.services.Service service : services) {
+                try {
+                    String serviceId = service.getServiceId();
+
+                    // remove, will cleanup
+                    servicesManager.deleteService(slug, serviceId);
+
+                } catch (NoSuchServiceException e) {
+                    // skip
+                }
+            }
 
             // TODO attributes
         }

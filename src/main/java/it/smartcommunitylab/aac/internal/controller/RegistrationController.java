@@ -49,7 +49,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
-import it.smartcommunitylab.aac.dto.RegistrationBean;
+import it.smartcommunitylab.aac.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -96,7 +96,7 @@ public class RegistrationController {
     @RequestMapping("/internal/register")
     public String regPage(Model model,
             HttpServletRequest req) {
-        model.addAttribute("reg", new RegistrationBean());
+        model.addAttribute("reg", new UserRegistrationBean());
 
 //        // check if we have a clientId
 //        String clientId = (String) req.getSession().getAttribute(OAuth2Utils.CLIENT_ID);
@@ -120,7 +120,7 @@ public class RegistrationController {
     @ApiIgnore
     @RequestMapping(value = "/internal/register", method = RequestMethod.POST)
     public String register(Model model,
-            @ModelAttribute("reg") @Valid RegistrationBean reg,
+            @ModelAttribute("reg") @Valid UserRegistrationBean reg,
             BindingResult result,
             HttpServletRequest req) {
         if (result.hasErrors()) {
@@ -180,11 +180,11 @@ public class RegistrationController {
      * @return
      */
     @RequestMapping(value = "/internal/register/rest", method = RequestMethod.POST)
-    public @ResponseBody void registerREST(@RequestBody RegistrationBean reg,
+    public @ResponseBody void registerREST(@RequestBody UserRegistrationBean reg,
             HttpServletResponse res) {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
-        Set<ConstraintViolation<RegistrationBean>> errors = validator.validate(reg);
+        Set<ConstraintViolation<UserRegistrationBean>> errors = validator.validate(reg);
 
         if (errors.size() > 0) {
             res.setStatus(HttpStatus.BAD_REQUEST.value());
