@@ -1,18 +1,31 @@
 package it.smartcommunitylab.aac.claims;
 
-import java.util.List;
+import java.util.Collection;
 
+/*
+ * A registry for claims extractors.
+ * 
+ * We don't expect providers to be immutable:
+ * the registry implementations are supposed to retrieve extractors from providers at each request
+ */
 public interface ExtractorsRegistry {
-    public void registerExtractor(ScopeClaimsExtractor extractor);
+    /*
+     * Providers
+     */
+    public void registerExtractorProvider(ScopeClaimsExtractorProvider provider);
 
-    public void registerExtractor(ResourceClaimsExtractor extractor);
+    public void registerExtractorProvider(ResourceClaimsExtractorProvider provider);
 
-    public void unregisterExtractor(ScopeClaimsExtractor extractor);
+    public void unregisterExtractorProvider(ScopeClaimsExtractorProvider provider);
 
-    public void unregisterExtractor(ResourceClaimsExtractor extractor);
+    public void unregisterExtractorProvider(ResourceClaimsExtractorProvider provider);
 
-    public List<ResourceClaimsExtractor> getResourceExtractors(String resourceId);
+    /*
+     * Extractors
+     */
 
-    public List<ScopeClaimsExtractor> getScopeExtractors(String scope);
+    public Collection<ResourceClaimsExtractor> getResourceExtractors(String resourceId);
+
+    public Collection<ScopeClaimsExtractor> getScopeExtractors(String scope);
 
 }

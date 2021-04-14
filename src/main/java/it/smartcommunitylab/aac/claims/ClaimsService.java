@@ -20,6 +20,8 @@ public interface ClaimsService {
             Collection<String> scopes,
             Collection<String> resourceIds) throws NoSuchResourceException, InvalidDefinitionException, SystemException;
 
+    // TODO remove, we need *details to be able to translate models for cross realm
+    // services, clients etc
     public Map<String, Serializable> getUserClaims(User user, ClientDetails client, Collection<String> scopes,
             Collection<String> resourceIds) throws NoSuchResourceException, InvalidDefinitionException, SystemException;
 

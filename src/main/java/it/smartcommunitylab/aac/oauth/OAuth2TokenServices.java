@@ -393,6 +393,15 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         audience.add(clientId);
         audience.addAll(resourceIds);
 
+        // check if userAuth is present
+        String subjectId = null;
+        Authentication userAuth = authentication.getUserAuthentication();
+        if (userAuth != null) {
+            subjectId = userAuth.getName();
+        } else {
+            subjectId = clientId;
+        }
+
         logger.trace("create access token for " + clientId + " with validity "
                 + String.valueOf(validitySeconds));
 
@@ -401,7 +410,8 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         // 160bit = a buffer of 20 random bytes
         String value = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
         AACOAuth2AccessToken token = new AACOAuth2AccessToken(value);
-
+        token.setSubject(subjectId);
+        token.setAuthorizedParty(clientId);
         token.setExpiration(new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
         token.setScope(scopes);
         token.setAudience(audience.toArray(new String[0]));

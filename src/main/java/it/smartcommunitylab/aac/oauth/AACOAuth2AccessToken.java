@@ -25,7 +25,10 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
     // keep a copy of the plain accessToken in case value is encoded
     // we use this as jti
     @JsonIgnore
-    private final String token;
+    private String token;
+
+    private String subject;
+    private String authorizedParty;
 
     private String[] audience;
 
@@ -66,6 +69,18 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
         setNotBeforeTime(now);
     }
 
+    public AACOAuth2AccessToken(String value, String token) {
+        Assert.hasText(value, "value can not be empty or null");
+        Assert.hasText(token, "token can not be empty or null");
+        this.value = value;
+        this.token = token;
+        this.scope = Collections.emptySet();
+
+        Date now = new Date();
+        setIssuedAt(now);
+        setNotBeforeTime(now);
+    }
+
     /**
      * Private constructor for JPA and other serialization tools.
      */
@@ -80,8 +95,10 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
      * @param accessToken
      */
     public AACOAuth2AccessToken(AACOAuth2AccessToken accessToken) {
-        this(accessToken.getValue());
+        this(accessToken.getValue(), accessToken.getToken());
 
+        setSubject(accessToken.getSubject());
+        setAuthorizedParty(accessToken.getAuthorizedParty());
         setAudience(accessToken.getAudience());
         setRefreshToken(accessToken.getRefreshToken());
         setExpiration(accessToken.getExpiration());
@@ -113,7 +130,9 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
         if (accessToken instanceof AACOAuth2AccessToken) {
             AACOAuth2AccessToken token = (AACOAuth2AccessToken) accessToken;
-
+            setToken(token.getToken());
+            setSubject(token.getSubject());
+            setAuthorizedParty(token.getAuthorizedParty());
             setAudience(token.getAudience());
 
             // copy dates
@@ -148,6 +167,22 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
         this.audience = audience;
     }
 
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getAuthorizedParty() {
+        return authorizedParty;
+    }
+
+    public void setAuthorizedParty(String authorizedParty) {
+        this.authorizedParty = authorizedParty;
+    }
+
     public String getResponseType() {
         return responseType;
     }
@@ -158,6 +193,10 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     public String getToken() {
         return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public int getExpiresIn() {

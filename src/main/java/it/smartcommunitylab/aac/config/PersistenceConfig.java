@@ -13,7 +13,9 @@ import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractor;
+import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
+import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 
@@ -39,8 +41,8 @@ public class PersistenceConfig {
     }
 
     @Bean(name = "extractorsRegistry")
-    public ExtractorsRegistry extractorsRegistry(Collection<ScopeClaimsExtractor> scopeExtractors,
-            Collection<ResourceClaimsExtractor> resourceExtractors) {
-        return new InMemoryExtractorsRegistry(scopeExtractors, resourceExtractors);
+    public ExtractorsRegistry extractorsRegistry(Collection<ScopeClaimsExtractorProvider> scopeExtractorsProviders,
+            Collection<ResourceClaimsExtractorProvider> resourceExtractorsProviders) {
+        return new InMemoryExtractorsRegistry(scopeExtractorsProviders, resourceExtractorsProviders);
     }
 }

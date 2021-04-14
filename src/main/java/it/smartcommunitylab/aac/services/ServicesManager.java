@@ -44,11 +44,11 @@ public class ServicesManager implements InitializingBean {
     @Autowired
     private RealmService realmService;
 
-    @Autowired
-    private ScopeRegistry scopeRegistry;
-
-    @Autowired
-    private ExtractorsRegistry extractorsRegistry;
+//    @Autowired
+//    private ScopeRegistry scopeRegistry;
+//
+//    @Autowired
+//    private ExtractorsRegistry extractorsRegistry;
 
     @Autowired
     private SearchableApprovalStore approvalStore;
@@ -62,7 +62,7 @@ public class ServicesManager implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         // build and register the claims extractor
         scriptClaimExtractor = new ScriptServiceClaimExtractor(serviceService);
-        extractorsRegistry.registerExtractor(scriptClaimExtractor);
+//        extractorsRegistry.registerExtractor(scriptClaimExtractor);
     }
 
     /*
@@ -279,7 +279,7 @@ public class ServicesManager implements InitializingBean {
             // cleanup scopes
             for (ServiceScope sc : service.getScopes()) {
                 // unregister
-                scopeRegistry.unregisterScope(sc);
+//                scopeRegistry.unregisterScope(sc);
 
                 // TODO invalidate tokens with this scope?
 
@@ -357,7 +357,7 @@ public class ServicesManager implements InitializingBean {
                 approvalRequired);
 
         // register
-        scopeRegistry.registerScope(s);
+//        scopeRegistry.registerScope(s);
 
         return s;
     }
@@ -397,7 +397,7 @@ public class ServicesManager implements InitializingBean {
                 approvalRequired);
 
         // register, will override previous registration if present
-        scopeRegistry.registerScope(s);
+//        scopeRegistry.registerScope(s);
 
         return s;
     }
@@ -418,7 +418,7 @@ public class ServicesManager implements InitializingBean {
         ServiceScope sc = serviceService.getScope(serviceId, scope);
         if (sc != null) {
             // unregister
-            scopeRegistry.unregisterScope(sc);
+//            scopeRegistry.unregisterScope(sc);
 
             // TODO invalidate tokens with this scope?
 

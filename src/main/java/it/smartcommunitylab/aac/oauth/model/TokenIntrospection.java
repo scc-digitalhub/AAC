@@ -55,6 +55,7 @@ public class TokenIntrospection {
         n.add("sub");
         n.add("iss");
         n.add("aud");
+        n.add("azp");
 
         RESERVED_CLAIM_NAMES = Collections.unmodifiableSet(n);
     }
@@ -89,6 +90,9 @@ public class TokenIntrospection {
 
     @JsonProperty("aud")
     private String[] audience;
+
+    @JsonProperty("azp")
+    private String authorizedParty;
 
     @JsonUnwrapped
     Map<String, Serializable> claims;
@@ -184,6 +188,14 @@ public class TokenIntrospection {
 
     public void setAudience(String[] audience) {
         this.audience = audience;
+    }
+
+    public String getAuthorizedParty() {
+        return authorizedParty;
+    }
+
+    public void setAuthorizedParty(String authorizedParty) {
+        this.authorizedParty = authorizedParty;
     }
 
     public boolean isActive() {

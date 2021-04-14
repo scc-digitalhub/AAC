@@ -142,7 +142,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
         // build scopeClaims
         for (String scope : scopes) {
-            List<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
+            Collection<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes);
@@ -156,7 +156,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         // build resourceClaims
         // serve a service with no scopes but included as audience
         for (String resourceId : resourceIds) {
-            List<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
+            Collection<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes);
@@ -268,7 +268,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
         // build scopeClaims
         for (String scope : scopes) {
-            List<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
+            Collection<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 ClaimsSet cs = ce.extractClientClaims(scope, client, scopes);
@@ -282,7 +282,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         // build resourceClaims
         // serve a service with no scopes but included as audience
         for (String resourceId : resourceIds) {
-            List<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
+            Collection<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 ClaimsSet cs = ce.extractClientClaims(resourceId, client, scopes);

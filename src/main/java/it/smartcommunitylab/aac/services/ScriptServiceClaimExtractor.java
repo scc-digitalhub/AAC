@@ -32,7 +32,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 
-public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
+public class ScriptServiceClaimExtractor {
     public static final String CLAIM_MAPPING_FUNCTION = "claimMapping";
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -54,13 +54,11 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         this.executionService = executionService;
     }
 
-    @Override
     public Collection<String> getResourceIds() {
         // service namespace is resourceId
         return servicesService.listNamespaces();
     }
 
-    @Override
     public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
 
@@ -110,7 +108,6 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         }
     }
 
-    @Override
     public ClaimsSet extractClientClaims(String resourceId, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
         if (executionService == null) {

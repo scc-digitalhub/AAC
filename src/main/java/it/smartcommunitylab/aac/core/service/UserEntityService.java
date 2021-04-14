@@ -42,7 +42,11 @@ public class UserEntityService {
         // TODO ensure unique on multi node deploy
         // (given that UUID is derived from timestamp we consider this safe enough)
         String uuid = UUID.randomUUID().toString();
-        UserEntity u = new UserEntity(uuid, realm);
+
+        // we prepend a fixed prefix to enable discovery of entity type from uuid
+        String id = UserEntity.ID_PREFIX + uuid;
+        
+        UserEntity u = new UserEntity(id, realm);
 
         return u;
     }

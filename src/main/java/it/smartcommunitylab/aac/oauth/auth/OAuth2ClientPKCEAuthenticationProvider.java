@@ -18,12 +18,14 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 
-public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationProvider {
+public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthenticationProvider {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -42,7 +44,7 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public ClientAuthenticationToken authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(OAuth2ClientPKCEAuthenticationToken.class, authentication,
                 "Only ClientPKCEAuthenticationToken is supported");
 
@@ -106,7 +108,8 @@ public class OAuth2ClientPKCEAuthenticationProvider implements AuthenticationPro
                 client.getAuthorities());
 
         // save details
-        result.setDetails(client);
+        // TODO add ClientDetails in addition to oauth2ClientDetails
+        result.setOAuth2ClientDetails(client);
         result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
 
         return result;

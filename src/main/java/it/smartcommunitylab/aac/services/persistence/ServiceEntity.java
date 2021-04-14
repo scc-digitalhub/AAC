@@ -36,6 +36,8 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
 @Table(name = "service_model")
 public class ServiceEntity {
 
+    public static final String ID_PREFIX = "s_";
+
     @Id
     @Column(name = "service_id")
     private String serviceId;

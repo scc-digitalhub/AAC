@@ -183,24 +183,13 @@ public class TokenIntrospectionEndpoint {
 
                     if (accessToken instanceof AACOAuth2AccessToken) {
                         AACOAuth2AccessToken token = (AACOAuth2AccessToken) accessToken;
-                        Authentication userAuth = auth.getUserAuthentication();
+                        result.setSubject(token.getSubject());
+                        result.setAuthorizedParty(token.getAuthorizedParty());
 
                         iat = (int) (token.getIssuedAt().getTime() / 1000);
                         nbf = (int) (token.getNotBeforeTime().getTime() / 1000);
                         result.setIssuedAt(iat);
                         result.setNotBeforeTime(nbf);
-
-                        // build response depending grant type
-                        String grantType = auth.getOAuth2Request().getGrantType();
-                        if (AuthorizationGrantType.CLIENT_CREDENTIALS.getValue().equals(grantType)) {
-                            // client
-                            result.setSubject(clientId);
-                        } else {
-                            // user
-                            if (userAuth != null) {
-                                result.setSubject(userAuth.getName());
-                            }
-                        }
 
                         // add claims only if requesting client is in audience
                         String[] audience = token.getAudience();

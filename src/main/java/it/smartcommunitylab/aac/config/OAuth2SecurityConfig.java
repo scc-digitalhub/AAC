@@ -20,6 +20,8 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
 
+import it.smartcommunitylab.aac.core.ClientAuthenticationManager;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
@@ -36,6 +38,9 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 @Configuration
 @Order(11)
 public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private ClientDetailsService clientService;
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
@@ -62,7 +67,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
                 .addFilterBefore(
-                        getOAuth2ProviderFilters(clientDetailsService, authCodeServices),
+                        getOAuth2ProviderFilters(clientService, clientDetailsService, authCodeServices),
                         BasicAuthenticationFilter.class);
 
         // we don't want a session for these endpoints, each request should be evaluated
@@ -71,6 +76,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private Filter getOAuth2ProviderFilters(
+            ClientDetailsService clientService,
             OAuth2ClientDetailsService clientDetailsService,
             PeekableAuthorizationCodeServices authCodeServices) {
 
@@ -79,22 +85,28 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 clientDetailsService, authCodeServices);
         OAuth2ClientSecretAuthenticationProvider secretAuthProvider = new OAuth2ClientSecretAuthenticationProvider(
                 clientDetailsService);
-        ProviderManager authManager = new ProviderManager(secretAuthProvider, pkceAuthProvider);
+
+        ClientAuthenticationManager authManager = new ClientAuthenticationManager(secretAuthProvider);
+        authManager.setClientService(clientService);
+
+        ClientAuthenticationManager pkceAuthManager = new ClientAuthenticationManager(secretAuthProvider,
+                pkceAuthProvider);
+        pkceAuthManager.setClientService(clientService);
 
         // build auth filters for TokenEndpoint
         // TODO add realm style endpoints
         ClientFormAuthTokenEndpointFilter formTokenEndpointFilter = new ClientFormAuthTokenEndpointFilter();
-        formTokenEndpointFilter.setAuthenticationManager(authManager);
+        formTokenEndpointFilter.setAuthenticationManager(pkceAuthManager);
 
         // TODO consolidate basicFilter for all endpoints
         ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
-        basicTokenEndpointFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+        basicTokenEndpointFilter.setAuthenticationManager(authManager);
 
         ClientBasicAuthFilter basicTokenIntrospectFilter = new ClientBasicAuthFilter("/oauth/introspect");
-        basicTokenIntrospectFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+        basicTokenIntrospectFilter.setAuthenticationManager(authManager);
 
         ClientBasicAuthFilter basicTokenRevokeFilter = new ClientBasicAuthFilter("/oauth/revoke");
-        basicTokenRevokeFilter.setAuthenticationManager(new ProviderManager(secretAuthProvider));
+        basicTokenRevokeFilter.setAuthenticationManager(authManager);
 
         List<Filter> filters = new ArrayList<>();
         filters.add(basicTokenEndpointFilter);

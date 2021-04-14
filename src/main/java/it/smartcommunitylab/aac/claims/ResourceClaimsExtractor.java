@@ -22,8 +22,8 @@ import it.smartcommunitylab.aac.model.User;
 
 public interface ResourceClaimsExtractor {
 
-    // a list of resources this extractor will answer to
-    public Collection<String> getResourceIds();
+    // id of resource this extractor will answer to
+    public String getResourceId();
 
     public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException;

@@ -11,13 +11,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 
-public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationProvider {
+public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OAuth2ClientDetailsService clientDetailsService;
@@ -33,7 +35,7 @@ public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationP
     }
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public ClientAuthenticationToken authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(OAuth2ClientSecretAuthenticationToken.class, authentication,
                 "Only ClientSecretAuthenticationToken is supported");
 
@@ -72,7 +74,8 @@ public class OAuth2ClientSecretAuthenticationProvider implements AuthenticationP
                 client.getAuthorities());
 
         // save details
-        result.setDetails(client);
+        // TODO add ClientDetails in addition to oauth2ClientDetails
+        result.setOAuth2ClientDetails(client);
         result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
 
         return result;

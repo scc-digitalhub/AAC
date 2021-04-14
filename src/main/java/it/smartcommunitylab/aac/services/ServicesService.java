@@ -16,6 +16,7 @@ import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -28,7 +29,7 @@ import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeRepository;
 
 @Service
-public class ServicesService implements ScopeProvider {
+public class ServicesService {
 
     private final ServiceEntityRepository serviceRepository;
     private final ServiceScopeRepository scopeRepository;
@@ -129,8 +130,11 @@ public class ServicesService implements ScopeProvider {
         // generate unique serviceId
         String uuid = UUID.randomUUID().toString();
 
+        // we prepend a fixed prefix to enable discovery of entity type from uuid
+        String id = ServiceEntity.ID_PREFIX + uuid;
+
         se = new ServiceEntity();
-        se.setServiceId(uuid);
+        se.setServiceId(id);
         se.setNamespace(namespace);
         se.setRealm(realm);
 
@@ -459,29 +463,29 @@ public class ServicesService implements ScopeProvider {
 
     }
 
-    /*
-     * Scope provider, used at bootstrap to feed registry
-     * 
-     * TODO reevaluate, providers should be one per service and registered
-     */
-
-    @Override
-    public String getResourceId() {
-        return null;
-    }
-
-    @Override
-    public Collection<Scope> getScopes() {
-        List<Scope> scopes = new ArrayList<>();
-
-        // fetch all services and related scopes
-        List<ServiceEntity> services = serviceRepository.findAll();
-        for (ServiceEntity se : services) {
-            List<ServiceScopeEntity> list = scopeRepository.findByServiceId(se.getServiceId());
-            scopes.addAll(list.stream().map(s -> ServiceScope.from(s, se.getNamespace())).collect(Collectors.toList()));
-        }
-
-        return scopes;
-
-    }
+//    /*
+//     * Scope provider, used at bootstrap to feed registry
+//     * 
+//     * TODO reevaluate, providers should be one per service and registered
+//     */
+//
+//    @Override
+//    public String getResourceId() {
+//        return null;
+//    }
+//
+//    @Override
+//    public Collection<Scope> getScopes() {
+//        List<Scope> scopes = new ArrayList<>();
+//
+//        // fetch all services and related scopes
+//        List<ServiceEntity> services = serviceRepository.findAll();
+//        for (ServiceEntity se : services) {
+//            List<ServiceScopeEntity> list = scopeRepository.findByServiceId(se.getServiceId());
+//            scopes.addAll(list.stream().map(s -> ServiceScope.from(s, se.getNamespace())).collect(Collectors.toList()));
+//        }
+//
+//        return scopes;
+//
+//    }
 }

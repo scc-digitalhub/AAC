@@ -41,23 +41,4 @@ public class ScopesController {
         return scopeManager.getScope(scope);
     }
 
-    @PostMapping()
-    public Scope addScope(
-            @RequestBody @Valid Scope s) {
-        return scopeManager.addScope(s);
-    }
-
-    @PutMapping("{scope}")
-    public Scope updateScope(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
-            @RequestBody @Valid Scope s) throws NoSuchScopeException {
-        return scopeManager.updateScope(scope, s);
-    }
-
-    @DeleteMapping("{scope}")
-    public void deleteScope(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) throws NoSuchScopeException {
-        scopeManager.deleteScope(scope);
-    }
-
 }

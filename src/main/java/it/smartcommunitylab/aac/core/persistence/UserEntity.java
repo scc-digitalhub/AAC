@@ -19,6 +19,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
 
+    public static final String ID_PREFIX = "u_";
+
     // TODO remove numeric id, we should have UUID to avoid locking on create
     @Id
     @GeneratedValue

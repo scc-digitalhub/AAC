@@ -22,6 +22,9 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
 @Table(name = "clients")
 @EntityListeners(AuditingEntityListener.class)
 public class ClientEntity {
+
+    public static final String ID_PREFIX = "c_";
+
     @Id
     @GeneratedValue
     private Long id;

@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
 import it.smartcommunitylab.aac.oauth.RealmTokenRequest;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -98,12 +99,6 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 
         }
 
-        logger.trace("create authorization request for " + clientId + " realm " + String.valueOf(realm)
-                + " response " + responseTypes.toString()
-                + " scope " + String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
-                + " extracted scope " + scopes.toString()
-                + " redirect " + redirectUri);
-
         // workaround to support "id_token" requests
         // TODO fix with proper support in AuthorizationEndpoint
         if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
@@ -120,6 +115,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
                 + " response " + responseTypes.toString()
                 + " scope " + String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
                 + " extracted scope " + scopes.toString()
+                + " resource ids " + resourceIds.toString()
                 + " redirect " + redirectUri);
 
         RealmAuthorizationRequest request = new RealmAuthorizationRequest(
@@ -212,7 +208,8 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         logger.trace("create token request for " + clientId + " realm " + String.valueOf(realm)
                 + " grantType " + grantType
                 + " scope " + String.valueOf(requestParameters.get(OAuth2Utils.SCOPE))
-                + " extracted scope " + scopes.toString());
+                + " extracted scope " + scopes.toString()
+                + " resource ids " + resourceIds.toString());
 
         RealmTokenRequest request = new RealmTokenRequest(requestParameters,
                 clientId, realm,
@@ -275,7 +272,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
     private Set<String> extractScopes(Set<String> scopes, String clientId, boolean isClient) {
         logger.trace("scopes from parameters " + scopes.toString());
         ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
-        String type = isClient ? "client" : "user";
+        ScopeType type = isClient ? ScopeType.CLIENT : ScopeType.USER;
 
         if ((scopes == null || scopes.isEmpty())) {
             // If no scopes are specified in the incoming data, use the default values
@@ -310,7 +307,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
                 return scopeRegistry.findScope(s);
             })
                     .filter(s -> s != null)
-                    .filter(s -> type.equals(s.getType()))
+                    .filter(s -> (s.getType() == ScopeType.GENERIC || s.getType() == type))
                     .collect(Collectors.toSet());
 
             allowedScopes = scs.stream().map(s -> s.getScope()).collect(Collectors.toSet());
@@ -322,7 +319,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 
     private Set<String> extractResourceIds(Set<String> scopes) {
         if (scopeRegistry != null) {
-            Set<String> scs = scopes.stream().map(s -> {
+            return scopes.stream().map(s -> {
                 return scopeRegistry.findScope(s);
             })
                     .filter(s -> s != null)

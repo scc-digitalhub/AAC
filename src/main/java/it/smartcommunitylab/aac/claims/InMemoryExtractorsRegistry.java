@@ -14,61 +14,94 @@ public class InMemoryExtractorsRegistry implements ExtractorsRegistry {
     // respond to multiple scopes or resources
     // TODO export to a service to support clustered env, also use a load cache and
     // db store
-    private Set<ScopeClaimsExtractor> scopeExtractors = new HashSet<>();
-    private Set<ResourceClaimsExtractor> resourceExtractors = new HashSet<>();
+    private Set<ScopeClaimsExtractorProvider> scopeExtractorsProviders = new HashSet<>();
+    private Set<ResourceClaimsExtractorProvider> resourceExtractorsProviders = new HashSet<>();
 
-    public InMemoryExtractorsRegistry(Collection<ScopeClaimsExtractor> scopeExtractors,
-            Collection<ResourceClaimsExtractor> resourceExtractors) {
-        for (ScopeClaimsExtractor se : scopeExtractors) {
-            _registerExtractor(se);
+    public InMemoryExtractorsRegistry(Collection<ScopeClaimsExtractorProvider> scopeExtractorsProviders,
+            Collection<ResourceClaimsExtractorProvider> resourceExtractorsProviders) {
+        for (ScopeClaimsExtractorProvider se : scopeExtractorsProviders) {
+            _registerProvider(se);
         }
-        for (ResourceClaimsExtractor re : resourceExtractors) {
-            _registerExtractor(re);
+        for (ResourceClaimsExtractorProvider re : resourceExtractorsProviders) {
+            _registerProvider(re);
         }
     }
 
     // TODO add locks when modifying extractor lists
-    private void _registerExtractor(ScopeClaimsExtractor extractor) {
-        scopeExtractors.add(extractor);
+    private void _registerProvider(ScopeClaimsExtractorProvider extractor) {
+        scopeExtractorsProviders.add(extractor);
     }
 
-    private void _registerExtractor(ResourceClaimsExtractor extractor) {
-        resourceExtractors.add(extractor);
+    private void _registerProvider(ResourceClaimsExtractorProvider extractor) {
+        resourceExtractorsProviders.add(extractor);
     }
 
-    public void registerExtractor(ScopeClaimsExtractor extractor) {
-        if (extractor != null && !CollectionUtils.isEmpty(extractor.getScopes())) {
-            if (extractor.getResourceId() != null && extractor.getResourceId().startsWith("aac.")) {
+    /*
+     * Providers
+     */
+    @Override
+    public void registerExtractorProvider(ScopeClaimsExtractorProvider provider) {
+        if (provider != null) {
+
+            if (provider.getResourceId() == null || provider.getResourceId().startsWith("aac.")) {
                 throw new IllegalArgumentException("core resources can not be registered");
             }
 
-            _registerExtractor(extractor);
+            _registerProvider(provider);
         }
     }
 
-    public void registerExtractor(ResourceClaimsExtractor extractor) {
-        if (extractor != null && !CollectionUtils.isEmpty(extractor.getResourceIds())) {
-            _registerExtractor(extractor);
+    @Override
+    public void registerExtractorProvider(ResourceClaimsExtractorProvider provider) {
+        if (provider != null) {
+
+            if (provider.getResourceId() == null || provider.getResourceId().startsWith("aac.")) {
+                throw new IllegalArgumentException("core resources can not be registered");
+            }
+
+            _registerProvider(provider);
         }
     }
 
-    public void unregisterExtractor(ResourceClaimsExtractor extractor) {
-        resourceExtractors.remove(extractor);
-    }
-
-    public void unregisterExtractor(ScopeClaimsExtractor extractor) {
-        scopeExtractors.remove(extractor);
+    @Override
+    public void unregisterExtractorProvider(ResourceClaimsExtractorProvider extractor) {
+        resourceExtractorsProviders.remove(extractor);
     }
 
     @Override
-    public List<ResourceClaimsExtractor> getResourceExtractors(String resourceId) {
-        return resourceExtractors.stream().filter(e -> e.getResourceIds().contains(resourceId))
-                .collect(Collectors.toList());
+    public void unregisterExtractorProvider(ScopeClaimsExtractorProvider extractor) {
+        scopeExtractorsProviders.remove(extractor);
+    }
+
+    /*
+     * Extractors
+     */
+
+    @Override
+    public Set<ResourceClaimsExtractor> getResourceExtractors(String resourceId) {
+        Set<ResourceClaimsExtractor> extractors = new HashSet<>();
+        resourceExtractorsProviders.stream()
+                .forEach(p -> {
+                    if (p.getResourceId().equals(resourceId)) {
+                        extractors.add(p.getExtractor());
+                    }
+                });
+
+        return extractors;
+
     }
 
     @Override
-    public List<ScopeClaimsExtractor> getScopeExtractors(String scope) {
-        return scopeExtractors.stream().filter(e -> e.getScopes().contains(scope)).collect(Collectors.toList());
+    public Set<ScopeClaimsExtractor> getScopeExtractors(String scope) {
+        Set<ScopeClaimsExtractor> extractors = new HashSet<>();
+        scopeExtractorsProviders.stream()
+                .forEach(p -> {
+                    if (p.getScopes().contains(scope)) {
+                        extractors.add(p.getExtractor(scope));
+                    }
+                });
+
+        return extractors;
 
     }
 }
