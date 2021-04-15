@@ -23,6 +23,9 @@ import it.smartcommunitylab.aac.model.User;
  */
 
 public interface ScopeApprover {
+
+    public String getRealm();
+
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException;
 

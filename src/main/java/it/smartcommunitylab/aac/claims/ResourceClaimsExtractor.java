@@ -22,6 +22,8 @@ import it.smartcommunitylab.aac.model.User;
 
 public interface ResourceClaimsExtractor {
 
+    public String getRealm();
+
     // id of resource this extractor will answer to
     public String getResourceId();
 

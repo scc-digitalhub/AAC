@@ -60,4 +60,9 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
         return null;
     }
 
+    @Override
+    public String getRealm() {
+        return null;
+    }
+
 }

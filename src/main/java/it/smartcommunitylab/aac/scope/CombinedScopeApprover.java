@@ -25,19 +25,22 @@ import it.smartcommunitylab.aac.model.User;
 public class CombinedScopeApprover implements ScopeApprover {
     public static final int DEFAULT_DURATION_MS = 3600000; // 1h
 
+    private final String realm;
     private final String resourceId;
     private final String scope;
 
     private List<ScopeApprover> approvers;
 
-    public CombinedScopeApprover(String resourceId, String scope, ScopeApprover... approvers) {
-        this(resourceId, scope, Arrays.asList(approvers));
+    public CombinedScopeApprover(String realm, String resourceId, String scope, ScopeApprover... approvers) {
+        this(realm, resourceId, scope, Arrays.asList(approvers));
     }
 
-    public CombinedScopeApprover(String resourceId, String scope, List<ScopeApprover> approvers) {
+    public CombinedScopeApprover(String realm, String resourceId, String scope, List<ScopeApprover> approvers) {
         Assert.notNull(approvers, "approvers can not be null");
+        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
+        this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
         setApprovers(approvers);
@@ -121,5 +124,10 @@ public class CombinedScopeApprover implements ScopeApprover {
         }
 
         return appr;
+    }
+
+    @Override
+    public String getRealm() {
+        return realm;
     }
 }

@@ -44,7 +44,7 @@ public class UserTranslatorService {
 //        user.setAuthorities();
 //        user.setRoles(roles);
 
-        if (details.getRealm().equals(realm)) {
+        if (realm == null || details.getRealm().equals(realm)) {
             return user;
         } else {
             return translator.translate(user, realm);

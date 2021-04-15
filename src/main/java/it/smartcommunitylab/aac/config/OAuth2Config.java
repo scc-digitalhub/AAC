@@ -50,6 +50,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.ApprovalStoreUserApprovalHandler;
@@ -72,6 +73,7 @@ import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestValidator;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.token.AbstractTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.AuthorizationCodeTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ClientCredentialsTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ImplicitTokenGranter;
@@ -284,10 +286,13 @@ public class OAuth2Config {
             AuthorizationServerTokenServices tokenServices,
             ClientDetailsService clientDetailsService,
             AuthorizationCodeServices authorizationCodeServices,
-            OAuth2RequestFactory oAuth2RequestFactory) {
+            OAuth2RequestFactory oAuth2RequestFactory,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientService,
+            ScopeRegistry scopeRegistry,
+            UserTranslatorService userTranslatorService) {
 
         // build our own list of granters
-        List<TokenGranter> granters = new ArrayList<TokenGranter>();
+        List<AbstractTokenGranter> granters = new ArrayList<>();
         // insert PKCE auth code granter as the first one to supersede basic authcode
         PKCEAwareTokenGranter pkceTokenGranter = new PKCEAwareTokenGranter(tokenServices,
                 authorizationCodeServices,
@@ -330,7 +335,14 @@ public class OAuth2Config {
             granters.add(passwordTokenGranter);
         }
 
-        return new CompositeTokenGranter(granters);
+        // set common services
+        granters.forEach(gt -> {
+            gt.setClientService(clientService);
+            gt.setScopeRegistry(scopeRegistry);
+            gt.setUserTranslatorService(userTranslatorService);
+        });
+
+        return new CompositeTokenGranter(new ArrayList<>(granters));
     }
 
     @Bean

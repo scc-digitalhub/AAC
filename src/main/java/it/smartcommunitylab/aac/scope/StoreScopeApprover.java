@@ -18,20 +18,17 @@ public class StoreScopeApprover implements ScopeApprover {
 
     private SearchableApprovalStore approvalStore;
 
+    private final String realm;
     private final String resourceId;
     private final String scope;
-    private int duration;
 
-    public StoreScopeApprover(String resourceId, String scope) {
+    public StoreScopeApprover(String realm, String resourceId, String scope) {
+        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
+        this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
-        this.duration = DEFAULT_DURATION_MS;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
     }
 
     public void setApprovalStore(SearchableApprovalStore approvalStore) {
@@ -44,7 +41,11 @@ public class StoreScopeApprover implements ScopeApprover {
         if (approvalStore == null) {
             return null;
         }
-
+        
+        if (!this.scope.equals(scope)) {
+            return null;
+        }
+        
         Approval approval = approvalStore.findApproval(resourceId, user.getSubjectId(), scope);
         if (approval == null) {
             return null;
@@ -67,7 +68,11 @@ public class StoreScopeApprover implements ScopeApprover {
         if (approvalStore == null) {
             return null;
         }
-
+        
+        if (!this.scope.equals(scope)) {
+            return null;
+        }
+        
         Approval approval = approvalStore.findApproval(resourceId, client.getClientId(), scope);
         if (approval == null) {
             return null;
@@ -84,4 +89,8 @@ public class StoreScopeApprover implements ScopeApprover {
 
     }
 
+    @Override
+    public String getRealm() {
+        return realm;
+    }
 }

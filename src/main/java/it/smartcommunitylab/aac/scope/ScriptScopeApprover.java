@@ -30,6 +30,7 @@ public class ScriptScopeApprover implements ScopeApprover {
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
+    private final String realm;
     private final String resourceId;
     private final String scope;
     private int duration;
@@ -38,9 +39,11 @@ public class ScriptScopeApprover implements ScopeApprover {
     private String functionCode;
     private ScriptExecutionService executionService;
 
-    public ScriptScopeApprover(String resourceId, String scope) {
+    public ScriptScopeApprover(String realm, String resourceId, String scope) {
+        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
+        this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
         this.duration = DEFAULT_DURATION_MS;
@@ -153,6 +156,10 @@ public class ScriptScopeApprover implements ScopeApprover {
         }
     }
 
+    @Override
+    public String getRealm() {
+        return realm;
+    }
     /*
      * Function result model
      */

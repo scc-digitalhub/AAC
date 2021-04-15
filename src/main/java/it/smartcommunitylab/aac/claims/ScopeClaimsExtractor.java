@@ -20,6 +20,8 @@ import it.smartcommunitylab.aac.model.User;
  */
 
 public interface ScopeClaimsExtractor {
+    
+    public String getRealm();
 
     public String getResourceId();
 

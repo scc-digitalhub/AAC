@@ -21,19 +21,22 @@ import it.smartcommunitylab.aac.model.User;
 
 public class DelegateScopeApprover implements ScopeApprover {
 
+    private final String realm;
     private final String resourceId;
     private final String scope;
 
     private List<ScopeApprover> approvers;
 
-    public DelegateScopeApprover(String resourceId, String scope, ScopeApprover... approvers) {
-        this(resourceId, scope, Arrays.asList(approvers));
+    public DelegateScopeApprover(String realm, String resourceId, String scope, ScopeApprover... approvers) {
+        this(realm, resourceId, scope, Arrays.asList(approvers));
     }
 
-    public DelegateScopeApprover(String resourceId, String scope, List<ScopeApprover> approvers) {
+    public DelegateScopeApprover(String realm, String resourceId, String scope, List<ScopeApprover> approvers) {
         Assert.notNull(approvers, "approvers can not be null");
+        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
+        this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
         setApprovers(approvers);
@@ -81,5 +84,10 @@ public class DelegateScopeApprover implements ScopeApprover {
         }
 
         return appr;
+    }
+    
+    @Override
+    public String getRealm() {
+        return realm;
     }
 }

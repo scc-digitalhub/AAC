@@ -19,15 +19,18 @@ public class RoleScopeApprover implements ScopeApprover {
 
     public static final int DEFAULT_DURATION_MS = 3600000; // 1h
 
+    private final String realm;
     private final String resourceId;
     private final String scope;
     private int duration;
     private Set<String> roles;
     private boolean requireAll = false;
 
-    public RoleScopeApprover(String resourceId, String scope) {
+    public RoleScopeApprover(String realm, String resourceId, String scope) {
+        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
+        this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
         this.roles = Collections.emptySet();
@@ -92,4 +95,8 @@ public class RoleScopeApprover implements ScopeApprover {
         return new Approval(resourceId, client.getClientId(), scope, duration, approvalStatus);
     }
 
+    @Override
+    public String getRealm() {
+        return realm;
+    }
 };

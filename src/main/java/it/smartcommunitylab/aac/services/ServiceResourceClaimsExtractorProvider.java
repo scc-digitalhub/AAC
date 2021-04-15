@@ -13,12 +13,13 @@ import it.smartcommunitylab.aac.claims.ResourceClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
-
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 
 public class ServiceResourceClaimsExtractorProvider implements ResourceClaimsExtractorProvider {
 
     private final ServicesService servicesService;
     private ScriptExecutionService executionService;
+    private UserTranslatorService userTranslatorService;
 
     public ServiceResourceClaimsExtractorProvider(ServicesService servicesService) {
         Assert.notNull(servicesService, "services service is required");
@@ -27,6 +28,10 @@ public class ServiceResourceClaimsExtractorProvider implements ResourceClaimsExt
 
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
+    }
+
+    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
+        this.userTranslatorService = userTranslatorService;
     }
 
     @Override
@@ -68,6 +73,7 @@ public class ServiceResourceClaimsExtractorProvider implements ResourceClaimsExt
                 || StringUtils.hasText(service.getClientClaimMapping())) {
             ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
             e.setExecutionService(executionService);
+            e.setUserTranslatorService(userTranslatorService);
 
             return e;
         }

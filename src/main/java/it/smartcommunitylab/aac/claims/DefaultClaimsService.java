@@ -106,15 +106,6 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Collection<String> scopes,
             Collection<String> resourceIds)
             throws NoSuchResourceException, InvalidDefinitionException, SystemException {
-        // we need to translate userDetails to destination realm
-        User user = userTranslatorService.translate(userDetails, realm);
-        return getUserClaims(user, client, scopes, resourceIds);
-    }
-
-    @Override
-    public Map<String, Serializable> getUserClaims(User user, ClientDetails client, Collection<String> scopes,
-            Collection<String> resourceIds)
-            throws NoSuchResourceException, InvalidDefinitionException, SystemException {
 
         Map<String, Serializable> claims = new HashMap<>();
 
@@ -127,12 +118,12 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         }
 
         // base information, could be overwritten by converters
-        claims.put("sub", user.getSubjectId());
+        claims.put("sub", userDetails.getSubjectId());
 
         if (scopes.contains(Config.SCOPE_PROFILE)) {
             // realm should stay behind scope "profile", if client doesn't match the realm
             // it should ask for this info and be approved
-            claims.put("realm", user.getRealm());
+            claims.put("realm", userDetails.getRealm());
 
             // TODO evaluate an additional ID to mark this specific userDetails (ie subject
             // + the identities loaded) so clients will be able to distinguish identities
@@ -145,6 +136,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Collection<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
+                User user = userTranslatorService.translate(userDetails, ce.getRealm());
                 ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));
@@ -159,6 +151,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Collection<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
+                User user = userTranslatorService.translate(userDetails, ce.getRealm());
                 ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));

@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
@@ -31,6 +32,7 @@ import it.smartcommunitylab.aac.oauth.RealmTokenRequest;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 public class AACOAuth2RequestFactory implements OAuth2RequestFactory {

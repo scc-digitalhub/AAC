@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.claims.model.StringClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.User;
 
 public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
@@ -41,6 +42,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     };
     private final Service service;
     private ScriptExecutionService executionService;
+    private UserTranslatorService userTranslatorService;
 
     // TODO add a loadingcache for scripts
 
@@ -53,9 +55,19 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         this.executionService = executionService;
     }
 
+    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
+        this.userTranslatorService = userTranslatorService;
+    }
+
     public String getResourceId() {
         // service namespace is resourceId
         return service.getNamespace();
+    }
+
+    @Override
+    public String getRealm() {
+        // we return null to avoid user translation, we do it ourselves
+        return null;
     }
 
     public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes)
@@ -69,6 +81,11 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
             throw new IllegalArgumentException("resource id mismatch");
         }
 
+        User u = user;
+        if (userTranslatorService != null && !service.getRealm().equals(user.getRealm())) {
+            u = userTranslatorService.translate(user, service.getRealm());
+        }
+
         // fetch claimMapping
         String claimMapping = service.getUserClaimMapping();
         if (!StringUtils.hasText(claimMapping)) {
@@ -78,7 +95,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         // translate user, client and scopes to a map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
-        map.put("user", mapper.convertValue(user, serMapTypeRef));
+        map.put("user", mapper.convertValue(u, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script

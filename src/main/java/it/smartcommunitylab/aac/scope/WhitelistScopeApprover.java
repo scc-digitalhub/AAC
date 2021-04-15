@@ -15,13 +15,16 @@ public class WhitelistScopeApprover implements ScopeApprover {
 
     public static final int DEFAULT_DURATION_MS = 3600000; // 1h
 
+    private final String realm;
     private final String resourceId;
     private final String scope;
     private int duration;
 
-    public WhitelistScopeApprover(String resourceId, String scope) {
+    public WhitelistScopeApprover(String realm, String resourceId, String scope) {
+        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
+        this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
     }
@@ -48,6 +51,11 @@ public class WhitelistScopeApprover implements ScopeApprover {
         }
 
         return new Approval(resourceId, client.getClientId(), scope, duration, ApprovalStatus.APPROVED);
+    }
+
+    @Override
+    public String getRealm() {
+        return realm;
     }
 
 };
