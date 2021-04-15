@@ -8,7 +8,9 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
  * A registry for scopes
  * 
  * We don't expect providers to be immutable:
- * the registry implementations are supposed to retrieve scopes from providers at each request
+ * the registry implementations are supposed to retrieve scopes from providers at each request.
+ * 
+ * We expect implementations to enforce the existence of a single provider for a given resourceId
  */
 
 public interface ScopeRegistry {
@@ -19,7 +21,9 @@ public interface ScopeRegistry {
 
     public void unregisterScopeProvider(ScopeProvider sp);
 
-    public ScopeProvider getScopeProvider(String scope) throws NoSuchScopeException;
+    public ScopeProvider findScopeProvider(String resourceId);
+
+    public ScopeProvider getScopeProviderFromScope(String scope) throws NoSuchScopeException;
 
     public Collection<ScopeProvider> listScopeProviders();
 

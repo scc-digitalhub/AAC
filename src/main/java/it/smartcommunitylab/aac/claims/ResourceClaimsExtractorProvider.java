@@ -1,9 +1,14 @@
 package it.smartcommunitylab.aac.claims;
 
+import java.util.Collection;
+
 public interface ResourceClaimsExtractorProvider {
 
-    public String getResourceId();
+    public Collection<String> getResourceIds();
 
-    public ResourceClaimsExtractor getExtractor();
+    @Deprecated
+    public Collection<ResourceClaimsExtractor> getExtractors();
+
+    public ResourceClaimsExtractor getExtractor(String resourceId);
 
 }

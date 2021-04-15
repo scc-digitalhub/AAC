@@ -105,6 +105,11 @@ public class ServicesService {
         return toService(s);
     }
 
+    public List<it.smartcommunitylab.aac.services.Service> listServices() {
+        List<ServiceEntity> services = serviceRepository.findAll();
+        return services.stream().map(s -> toService(s)).collect(Collectors.toList());
+    }
+
     public List<it.smartcommunitylab.aac.services.Service> listServices(String realm) {
         List<ServiceEntity> services = serviceRepository.findByRealm(realm);
         return services.stream().map(s -> toService(s)).collect(Collectors.toList());
@@ -261,8 +266,10 @@ public class ServicesService {
             String serviceId, String scope,
             String name, String description,
             ScopeType type,
-            Collection<String> claims, Collection<String> roles,
-            boolean approvalRequired) throws NoSuchServiceException, RegistrationException {
+            Collection<String> claims,
+            Collection<String> roles, Collection<String> spaceRoles,
+            String approvalFunction,
+            boolean approvalRequired, boolean approvalAny) throws NoSuchServiceException, RegistrationException {
 
         if (!StringUtils.hasText(scope)) {
             throw new IllegalArgumentException("invalid scope");
@@ -292,8 +299,11 @@ public class ServicesService {
         se.setType(type.getValue());
 
         se.setClaims(StringUtils.collectionToCommaDelimitedString(claims));
-        se.setRoles(StringUtils.collectionToCommaDelimitedString(roles));
+        se.setApprovalRoles(StringUtils.collectionToCommaDelimitedString(roles));
+        se.setApprovalSpaceRoles(StringUtils.collectionToCommaDelimitedString(spaceRoles));
+        se.setApprovalFunction(approvalFunction);
 
+        se.setApprovalAny(approvalAny);
         se.setApprovalRequired(approvalRequired);
 
         se = scopeRepository.save(se);
@@ -306,8 +316,10 @@ public class ServicesService {
             String serviceId, String scope,
             String name, String description,
             ScopeType type,
-            Collection<String> claims, Collection<String> roles,
-            boolean approvalRequired) throws NoSuchServiceException, NoSuchScopeException {
+            Collection<String> claims,
+            Collection<String> roles, Collection<String> spaceRoles,
+            String approvalFunction,
+            boolean approvalRequired, boolean approvalAny) throws NoSuchServiceException, NoSuchScopeException {
 
         if (type == null) {
             type = ScopeType.GENERIC;
@@ -329,8 +341,11 @@ public class ServicesService {
         se.setType(type.getValue());
 
         se.setClaims(StringUtils.collectionToCommaDelimitedString(claims));
-        se.setRoles(StringUtils.collectionToCommaDelimitedString(roles));
+        se.setApprovalRoles(StringUtils.collectionToCommaDelimitedString(roles));
+        se.setApprovalSpaceRoles(StringUtils.collectionToCommaDelimitedString(spaceRoles));
+        se.setApprovalFunction(approvalFunction);
 
+        se.setApprovalAny(approvalAny);
         se.setApprovalRequired(approvalRequired);
 
         se = scopeRepository.save(se);

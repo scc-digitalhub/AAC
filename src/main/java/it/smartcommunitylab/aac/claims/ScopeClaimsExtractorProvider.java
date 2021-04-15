@@ -8,6 +8,7 @@ public interface ScopeClaimsExtractorProvider {
 
     public Collection<String> getScopes();
 
+    @Deprecated
     public Collection<ScopeClaimsExtractor> getExtractors();
 
     public ScopeClaimsExtractor getExtractor(String scope);

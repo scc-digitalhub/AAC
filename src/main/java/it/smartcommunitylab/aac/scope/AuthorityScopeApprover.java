@@ -23,7 +23,7 @@ public class AuthorityScopeApprover implements ScopeApprover {
     private final String scope;
     private int duration;
     private Set<String> authorities;
-    private boolean requireAll;
+    private boolean requireAll = false;
 
     public AuthorityScopeApprover(String resourceId, String scope) {
         Assert.hasText(resourceId, "resourceId can not be blank or null");
@@ -31,6 +31,7 @@ public class AuthorityScopeApprover implements ScopeApprover {
         this.resourceId = resourceId;
         this.scope = scope;
         this.authorities = Collections.emptySet();
+        this.duration = DEFAULT_DURATION_MS;
     }
 
     public void setDuration(int duration) {

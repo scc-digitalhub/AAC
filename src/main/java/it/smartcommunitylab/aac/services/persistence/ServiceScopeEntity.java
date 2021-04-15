@@ -59,6 +59,9 @@ public class ServiceScopeEntity {
      */
     private String description;
 
+    @Column(name = "scope_type")
+    private String type;
+
     /**
      * Claims exposed with the scopes (comma-separated list)
      */
@@ -68,8 +71,14 @@ public class ServiceScopeEntity {
     /**
      * Roles required to access the scope
      */
-    @Column(columnDefinition = "LONGTEXT")
-    private String roles;
+    @Column(name = "approval_roles", columnDefinition = "LONGTEXT")
+    private String approvalRoles;
+
+    /**
+     * Space Roles required to access the scope
+     */
+    @Column(name = "approval_space_roles", columnDefinition = "LONGTEXT")
+    private String approvalSpaceRoles;
 
 //    /**
 //     * Authority that can access this resource
@@ -77,13 +86,20 @@ public class ServiceScopeEntity {
 //    @Enumerated(EnumType.STRING)
 //    private AUTHORITY authority;
 
-    @Column(name = "scope_type")
-    private String type;
-
     /**
      * Whether explicit manual approval required
      */
+    @Column(name = "approval_manual")
     private boolean approvalRequired = false;
+
+    @Column(name = "approval_function", columnDefinition = "LONGTEXT")
+    private String approvalFunction;
+
+    /*
+     * Whether any approval suffices, or we need consensus from all
+     */
+    @Column(name = "approval_any")
+    private boolean approvalAny = true;
 
     public String getScope() {
         return scope;
@@ -133,12 +149,28 @@ public class ServiceScopeEntity {
         this.claims = claims;
     }
 
-    public String getRoles() {
-        return roles;
+    public String getApprovalRoles() {
+        return approvalRoles;
     }
 
-    public void setRoles(String roles) {
-        this.roles = roles;
+    public void setApprovalRoles(String approvalRoles) {
+        this.approvalRoles = approvalRoles;
+    }
+
+    public String getApprovalSpaceRoles() {
+        return approvalSpaceRoles;
+    }
+
+    public void setApprovalSpaceRoles(String approvalSpaceRoles) {
+        this.approvalSpaceRoles = approvalSpaceRoles;
+    }
+
+    public String getApprovalFunction() {
+        return approvalFunction;
+    }
+
+    public void setApprovalFunction(String approvalFunction) {
+        this.approvalFunction = approvalFunction;
     }
 
     public boolean isApprovalRequired() {
@@ -147,6 +179,14 @@ public class ServiceScopeEntity {
 
     public void setApprovalRequired(boolean approvalRequired) {
         this.approvalRequired = approvalRequired;
+    }
+
+    public boolean isApprovalAny() {
+        return approvalAny;
+    }
+
+    public void setApprovalAny(boolean approvalAny) {
+        this.approvalAny = approvalAny;
     }
 
     public String getType() {

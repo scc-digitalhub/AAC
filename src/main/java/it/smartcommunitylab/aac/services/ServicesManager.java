@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.services;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
@@ -27,7 +29,15 @@ import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
+import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
+import it.smartcommunitylab.aac.scope.CombinedScopeApprover;
+import it.smartcommunitylab.aac.scope.DelegateScopeApprover;
+import it.smartcommunitylab.aac.scope.RoleScopeApprover;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.ScriptScopeApprover;
+import it.smartcommunitylab.aac.scope.StoreScopeApprover;
 
 /*
  * Manage services and their integration.
@@ -44,16 +54,19 @@ public class ServicesManager implements InitializingBean {
     @Autowired
     private RealmService realmService;
 
-//    @Autowired
-//    private ScopeRegistry scopeRegistry;
-//
-//    @Autowired
-//    private ExtractorsRegistry extractorsRegistry;
+    @Autowired
+    private ScopeRegistry scopeRegistry;
+
+    @Autowired
+    private ExtractorsRegistry extractorsRegistry;
 
     @Autowired
     private SearchableApprovalStore approvalStore;
 
-    private ScriptServiceClaimExtractor scriptClaimExtractor;
+    @Autowired
+    private ScriptExecutionService executionService;
+
+    private ServiceResourceClaimsExtractorProvider resourceClaimsExtractorProvider;
 
     public ServicesManager() {
     }
@@ -61,8 +74,32 @@ public class ServicesManager implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         // build and register the claims extractor
-        scriptClaimExtractor = new ScriptServiceClaimExtractor(serviceService);
-//        extractorsRegistry.registerExtractor(scriptClaimExtractor);
+        resourceClaimsExtractorProvider = new ServiceResourceClaimsExtractorProvider(serviceService);
+        extractorsRegistry.registerExtractorProvider(resourceClaimsExtractorProvider);
+
+        // export all scope providers to registry
+        List<Service> services = serviceService.listServices();
+        for (Service service : services) {
+            String serviceId = service.getServiceId();
+            List<ServiceScope> scopes = serviceService.listScopes(serviceId);
+            service.setScopes(scopes);
+
+            // build provider
+            ServiceScopeProvider sp = new ServiceScopeProvider(service);
+
+            // add approvers where needed
+            for (ServiceScope sc : scopes) {
+                ScopeApprover approver = buildScopeApprover(sc);
+                if (approver != null) {
+                    sp.addApprover(sc.getScope(), approver);
+                }
+            }
+
+            // register
+            scopeRegistry.registerScopeProvider(sp);
+
+        }
+
     }
 
     /*
@@ -136,6 +173,22 @@ public class ServicesManager implements InitializingBean {
             }
             s.setClaims(serviceClaims);
 
+            // build provider
+            if (!serviceScopes.isEmpty()) {
+                ServiceScopeProvider sp = new ServiceScopeProvider(s);
+
+                // add approvers where needed
+                for (ServiceScope sc : serviceScopes) {
+                    ScopeApprover approver = buildScopeApprover(sc);
+                    if (approver != null) {
+                        sp.addApprover(sc.getScope(), approver);
+                    }
+                }
+
+                // register
+                scopeRegistry.registerScopeProvider(sp);
+            }
+
         } catch (NoSuchServiceException e) {
             // something broken
             throw new SystemException();
@@ -173,6 +226,12 @@ public class ServicesManager implements InitializingBean {
         result.setClaims(ss.getClaims());
 
         try {
+
+            // unregister provider if present
+            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
+            if (spr != null && spr instanceof ServiceScopeProvider) {
+                scopeRegistry.unregisterScopeProvider(spr);
+            }
 
             // related
             Collection<ServiceScope> scopes = service.getScopes();
@@ -259,6 +318,22 @@ public class ServicesManager implements InitializingBean {
 
             result.setClaims(serviceClaims);
 
+            // build provider
+            if (!serviceScopes.isEmpty()) {
+                ServiceScopeProvider sp = new ServiceScopeProvider(result);
+
+                // add approvers where needed
+                for (ServiceScope sc : serviceScopes) {
+                    ScopeApprover approver = buildScopeApprover(sc);
+                    if (approver != null) {
+                        sp.addApprover(sc.getScope(), approver);
+                    }
+                }
+
+                // register
+                scopeRegistry.registerScopeProvider(sp);
+            }
+
         } catch (NoSuchServiceException e) {
             // something broken
             throw new SystemException();
@@ -276,10 +351,15 @@ public class ServicesManager implements InitializingBean {
 
             // TODO remove tokens with this audience?
 
+            // unregister provider if present
+            String namespace = service.getNamespace();
+            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
+            if (spr != null && spr instanceof ServiceScopeProvider) {
+                scopeRegistry.unregisterScopeProvider(spr);
+            }
+
             // cleanup scopes
             for (ServiceScope sc : service.getScopes()) {
-                // unregister
-//                scopeRegistry.unregisterScope(sc);
 
                 // TODO invalidate tokens with this scope?
 
@@ -348,16 +428,46 @@ public class ServicesManager implements InitializingBean {
         String description = sc.getDescription();
         ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
         Set<String> claims = sc.getClaims();
-        Set<String> roles = sc.getRoles();
+        Set<String> roles = sc.getApprovalRoles();
+        Set<String> spaceRoles = sc.getApprovalSpaceRoles();
+        String approvalFunction = sc.getApprovalFunction();
+
+        boolean approvalAny = sc.isApprovalAny();
         boolean approvalRequired = sc.isApprovalRequired();
 
         ServiceScope s = serviceService.addScope(serviceId, scope,
                 name, description, type,
-                claims, roles,
-                approvalRequired);
+                claims,
+                roles, spaceRoles,
+                approvalFunction,
+                approvalRequired, approvalAny);
 
-        // register
-//        scopeRegistry.registerScope(s);
+        // refresh service
+        String namespace = service.getNamespace();
+        List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
+        service.setScopes(serviceScopes);
+
+        // unregister provider if present
+        ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
+        if (spr != null && spr instanceof ServiceScopeProvider) {
+            scopeRegistry.unregisterScopeProvider(spr);
+        }
+
+        // build provider
+        if (!serviceScopes.isEmpty()) {
+            ServiceScopeProvider sp = new ServiceScopeProvider(service);
+
+            // add approvers where needed
+            for (ServiceScope scs : serviceScopes) {
+                ScopeApprover approver = buildScopeApprover(scs);
+                if (approver != null) {
+                    sp.addApprover(sc.getScope(), approver);
+                }
+            }
+
+            // register
+            scopeRegistry.registerScopeProvider(sp);
+        }
 
         return s;
     }
@@ -388,16 +498,46 @@ public class ServicesManager implements InitializingBean {
         String description = sc.getDescription();
         ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
         Set<String> claims = sc.getClaims();
-        Set<String> roles = sc.getRoles();
+        Set<String> roles = sc.getApprovalRoles();
+        Set<String> spaceRoles = sc.getApprovalSpaceRoles();
+        String approvalFunction = sc.getApprovalFunction();
+
+        boolean approvalAny = sc.isApprovalAny();
         boolean approvalRequired = sc.isApprovalRequired();
 
         ServiceScope s = serviceService.updateScope(serviceId, scope,
                 name, description, type,
-                claims, roles,
-                approvalRequired);
+                claims,
+                roles, spaceRoles,
+                approvalFunction,
+                approvalRequired, approvalAny);
 
-        // register, will override previous registration if present
-//        scopeRegistry.registerScope(s);
+        // refresh service
+        String namespace = service.getNamespace();
+        List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
+        service.setScopes(serviceScopes);
+
+        // unregister provider if present
+        ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
+        if (spr != null && spr instanceof ServiceScopeProvider) {
+            scopeRegistry.unregisterScopeProvider(spr);
+        }
+
+        // build provider
+        if (!serviceScopes.isEmpty()) {
+            ServiceScopeProvider sp = new ServiceScopeProvider(service);
+
+            // add approvers where needed
+            for (ServiceScope scs : serviceScopes) {
+                ScopeApprover approver = buildScopeApprover(scs);
+                if (approver != null) {
+                    sp.addApprover(sc.getScope(), approver);
+                }
+            }
+
+            // register
+            scopeRegistry.registerScopeProvider(sp);
+        }
 
         return s;
     }
@@ -417,8 +557,13 @@ public class ServicesManager implements InitializingBean {
 
         ServiceScope sc = serviceService.getScope(serviceId, scope);
         if (sc != null) {
-            // unregister
-//            scopeRegistry.unregisterScope(sc);
+            String namespace = service.getNamespace();
+
+            // unregister provider if present
+            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
+            if (spr != null && spr instanceof ServiceScopeProvider) {
+                scopeRegistry.unregisterScopeProvider(spr);
+            }
 
             // TODO invalidate tokens with this scope?
 
@@ -431,6 +576,26 @@ public class ServicesManager implements InitializingBean {
 
             // remove
             serviceService.deleteScope(serviceId, scope);
+
+            // refresh service
+            List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
+            service.setScopes(serviceScopes);
+
+            // build provider
+            if (!serviceScopes.isEmpty()) {
+                ServiceScopeProvider sp = new ServiceScopeProvider(service);
+
+                // add approvers where needed
+                for (ServiceScope scs : serviceScopes) {
+                    ScopeApprover approver = buildScopeApprover(scs);
+                    if (approver != null) {
+                        sp.addApprover(sc.getScope(), approver);
+                    }
+                }
+
+                // register
+                scopeRegistry.registerScopeProvider(sp);
+            }
 
         }
     }
@@ -548,6 +713,49 @@ public class ServicesManager implements InitializingBean {
             // remove only entity
             serviceService.deleteClaim(serviceId, key);
         }
+    }
+
+    private ScopeApprover buildScopeApprover(ServiceScope sc) {
+        List<ScopeApprover> approvers = new ArrayList<>();
+        if (StringUtils.hasText(sc.getApprovalFunction())) {
+            ScriptScopeApprover sa = new ScriptScopeApprover(sc.getResourceId(), sc.getScope());
+            sa.setExecutionService(executionService);
+            sa.setFunctionCode(sc.getApprovalFunction());
+            approvers.add(sa);
+        }
+
+        if (sc.getApprovalRoles() != null && !sc.getApprovalRoles().isEmpty()) {
+            AuthorityScopeApprover sa = new AuthorityScopeApprover(sc.getResourceId(), sc.getScope());
+            sa.setAuthorities(sc.getApprovalRoles());
+            approvers.add(sa);
+        }
+
+        if (sc.getApprovalSpaceRoles() != null && !sc.getApprovalSpaceRoles().isEmpty()) {
+            RoleScopeApprover sa = new RoleScopeApprover(sc.getResourceId(), sc.getScope());
+            sa.setRoles(sc.getApprovalSpaceRoles());
+            approvers.add(sa);
+        }
+
+        if (sc.isApprovalRequired()) {
+            StoreScopeApprover sa = new StoreScopeApprover(sc.getResourceId(), sc.getScope());
+            sa.setApprovalStore(approvalStore);
+            approvers.add(sa);
+        }
+
+        if (approvers.isEmpty()) {
+            return null;
+        }
+
+        if (approvers.size() == 1) {
+            return approvers.get(0);
+        }
+
+        if (sc.isApprovalAny()) {
+            return new DelegateScopeApprover(sc.getResourceId(), sc.getScope(), approvers);
+        } else {
+            return new CombinedScopeApprover(sc.getResourceId(), sc.getScope(), approvers);
+        }
+
     }
 
 }

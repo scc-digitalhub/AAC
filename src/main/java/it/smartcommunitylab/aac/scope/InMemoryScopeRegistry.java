@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.scope;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,11 +17,8 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 
 public class InMemoryScopeRegistry implements ScopeRegistry {
 
-//    // scope map, with providers for reverse lookup
-//    private final Map<String, Map.Entry<Scope, ScopeProvider>> scopeRegistry = new HashMap<>();
-
     // provider registry is a map with keys matching resourceIds
-    private final Map<String, Set<ScopeProvider>> providers = new HashMap<>();
+    private final Map<String, ScopeProvider> providers = new HashMap<>();
 
     // create the register and populate will all providers
     public InMemoryScopeRegistry(Collection<ScopeProvider> scopeProviders) {
@@ -55,14 +53,13 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
         }
 
         if (providers.containsKey(resourceId)) {
-            if (providers.get(resourceId).contains(sp)) {
-                providers.get(resourceId).remove(sp);
-            }
+            // remove if matches registration
+            providers.remove(resourceId, sp);
         }
     }
 
     @Override
-    public ScopeProvider getScopeProvider(String scope) throws NoSuchScopeException {
+    public ScopeProvider getScopeProviderFromScope(String scope) throws NoSuchScopeException {
         // get the first exporting the scope
         ScopeProvider provider = _getProvider(scope);
         if (provider == null) {
@@ -73,12 +70,13 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     }
 
     @Override
-    public Collection<ScopeProvider> listScopeProviders() {
-        Set<ScopeProvider> result = new HashSet<>();
-        providers.values().stream()
-                .forEach(l -> result.addAll(l));
+    public ScopeProvider findScopeProvider(String resourceId) {
+        return providers.get(resourceId);
+    }
 
-        return result;
+    @Override
+    public Collection<ScopeProvider> listScopeProviders() {
+        return providers.values();
     }
 
     @Override
@@ -106,19 +104,18 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     public Collection<Scope> listScopes() {
         Set<Scope> result = new HashSet<>();
         providers.values().stream()
-                .forEach(l -> l.stream().forEach(sp -> result.addAll(sp.getScopes())));
+                .forEach(sp -> result.addAll(sp.getScopes()));
 
         return result;
     }
 
     @Override
     public Collection<Scope> listScopes(String resourceId) {
-        Set<Scope> result = new HashSet<>();
         if (providers.containsKey(resourceId)) {
-            providers.get(resourceId).stream().forEach(sp -> result.addAll(sp.getScopes()));
+            providers.get(resourceId).getScopes();
         }
 
-        return result;
+        return Collections.emptyList();
     }
 
     /*
@@ -126,13 +123,13 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
      */
 
     private ScopeProvider _getProvider(String scope) {
-        Optional<Set<ScopeProvider>> provider = providers.values().stream()
-                .filter(l -> l.stream().anyMatch(sp -> sp.getScopes()
-                        .stream().anyMatch(s -> s.getScope().equals(scope))))
+        Optional<ScopeProvider> provider = providers.values().stream()
+                .filter(sp -> sp.getScopes()
+                        .stream().anyMatch(s -> s.getScope().equals(scope)))
                 .findFirst();
 
         if (provider.isPresent()) {
-            return provider.get().iterator().next();
+            return provider.get();
         }
 
         return null;
@@ -153,11 +150,8 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
         }
 
         String resourceId = sp.getResourceId();
-        if (!providers.containsKey(resourceId)) {
-            providers.put(resourceId, new HashSet<>());
-        }
 
-        providers.get(resourceId).add(sp);
+        providers.put(resourceId, sp);
 
     }
 

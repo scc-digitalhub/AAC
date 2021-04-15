@@ -27,12 +27,11 @@ import it.smartcommunitylab.aac.claims.model.NumberClaim;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 import it.smartcommunitylab.aac.claims.model.StringClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 
-public class ScriptServiceClaimExtractor {
+public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     public static final String CLAIM_MAPPING_FUNCTION = "claimMapping";
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -40,23 +39,23 @@ public class ScriptServiceClaimExtractor {
     };
     private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<ArrayList<Serializable>>() {
     };
-    private final ServicesService servicesService;
+    private final Service service;
     private ScriptExecutionService executionService;
 
     // TODO add a loadingcache for scripts
 
-    public ScriptServiceClaimExtractor(ServicesService servicesService) {
-        Assert.notNull(servicesService, "services service is required");
-        this.servicesService = servicesService;
+    public ScriptServiceClaimExtractor(Service service) {
+        Assert.notNull(service, "services is required");
+        this.service = service;
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
     }
 
-    public Collection<String> getResourceIds() {
+    public String getResourceId() {
         // service namespace is resourceId
-        return servicesService.listNamespaces();
+        return service.getNamespace();
     }
 
     public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes)
@@ -66,93 +65,82 @@ public class ScriptServiceClaimExtractor {
             return null;
         }
 
-        try {
-            // fetch service
-            Service se = servicesService.getServiceByNamespace(resourceId);
-            if (se == null) {
-                return null;
-            }
+        if (!service.getNamespace().equals(resourceId)) {
+            throw new IllegalArgumentException("resource id mismatch");
+        }
 
-            // fetch claimMapping
-            String claimMapping = se.getUserClaimMapping();
-            if (!StringUtils.hasText(claimMapping)) {
-                return null;
-            }
-
-            // translate user, client and scopes to a map
-            Map<String, Serializable> map = new HashMap<>();
-            map.put("scopes", new ArrayList<>(scopes));
-            map.put("user", mapper.convertValue(user, serMapTypeRef));
-            map.put("client", mapper.convertValue(client, serMapTypeRef));
-
-            // execute script
-            Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
-                    claimMapping,
-                    map);
-
-            // map to defined claims and build claimsSet
-            List<Claim> claims = processClaims(se.getClaims(), customClaims);
-
-            // build a claimsSet
-            DefaultClaimsSet claimsSet = new DefaultClaimsSet();
-            claimsSet.setResourceId(resourceId);
-            claimsSet.setScope(null);
-            claimsSet.setNamespace(resourceId);
-            claimsSet.setUser(true);
-            claimsSet.setClaims(claims);
-
-            return claimsSet;
-
-        } catch (NoSuchServiceException e) {
+        // fetch claimMapping
+        String claimMapping = service.getUserClaimMapping();
+        if (!StringUtils.hasText(claimMapping)) {
             return null;
         }
+
+        // translate user, client and scopes to a map
+        Map<String, Serializable> map = new HashMap<>();
+        map.put("scopes", new ArrayList<>(scopes));
+        map.put("user", mapper.convertValue(user, serMapTypeRef));
+        map.put("client", mapper.convertValue(client, serMapTypeRef));
+
+        // execute script
+        Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
+                claimMapping,
+                map);
+
+        // map to defined claims and build claimsSet
+        List<Claim> claims = processClaims(service.getClaims(), customClaims);
+
+        // build a claimsSet
+        DefaultClaimsSet claimsSet = new DefaultClaimsSet();
+        claimsSet.setResourceId(resourceId);
+        claimsSet.setScope(null);
+        claimsSet.setNamespace(resourceId);
+        claimsSet.setUser(true);
+        claimsSet.setClaims(claims);
+
+        return claimsSet;
+
     }
 
     public ClaimsSet extractClientClaims(String resourceId, ClientDetails client, Collection<String> scopes)
             throws InvalidDefinitionException, SystemException {
+
         if (executionService == null) {
             return null;
         }
 
-        try {
-            // fetch service
-            Service se = servicesService.getServiceByNamespace(resourceId);
-            if (se == null) {
-                return null;
-            }
+        if (!service.getNamespace().equals(resourceId)) {
+            throw new IllegalArgumentException("resource id mismatch");
+        }
 
-            // fetch claimMapping
-            String claimMapping = se.getClientClaimMapping();
-            if (!StringUtils.hasText(claimMapping)) {
-                return null;
-            }
-
-            // translate user, client and scopes to a map
-            Map<String, Serializable> map = new HashMap<>();
-            map.put("scopes", new ArrayList<>(scopes));
-            map.put("client", mapper.convertValue(client, serMapTypeRef));
-
-            // execute script
-            Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
-                    claimMapping,
-                    map);
-
-            // map to defined claims and build claimsSet
-            List<Claim> claims = processClaims(se.getClaims(), customClaims);
-
-            // build a claimsSet
-            DefaultClaimsSet claimsSet = new DefaultClaimsSet();
-            claimsSet.setResourceId(resourceId);
-            claimsSet.setScope(null);
-            claimsSet.setNamespace(resourceId);
-            claimsSet.setUser(true);
-            claimsSet.setClaims(claims);
-
-            return claimsSet;
-
-        } catch (NoSuchServiceException e) {
+        // fetch claimMapping
+        String claimMapping = service.getClientClaimMapping();
+        if (!StringUtils.hasText(claimMapping)) {
             return null;
         }
+
+        // translate user, client and scopes to a map
+        Map<String, Serializable> map = new HashMap<>();
+        map.put("scopes", new ArrayList<>(scopes));
+        map.put("client", mapper.convertValue(client, serMapTypeRef));
+
+        // execute script
+        Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
+                claimMapping,
+                map);
+
+        // map to defined claims and build claimsSet
+        List<Claim> claims = processClaims(service.getClaims(), customClaims);
+
+        // build a claimsSet
+        DefaultClaimsSet claimsSet = new DefaultClaimsSet();
+        claimsSet.setResourceId(resourceId);
+        claimsSet.setScope(null);
+        claimsSet.setNamespace(resourceId);
+        claimsSet.setUser(true);
+        claimsSet.setClaims(claims);
+
+        return claimsSet;
+
     }
 
     private List<Claim> processClaims(Collection<ServiceClaim> serviceClaimsList,

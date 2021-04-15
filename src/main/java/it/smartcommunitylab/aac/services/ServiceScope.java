@@ -13,8 +13,12 @@ public class ServiceScope extends Scope {
     private String serviceId;
 
     private Set<String> claims;
-    private Set<String> roles;
+    private Set<String> approvalRoles;
+    private Set<String> approvalSpaceRoles;
+    private String approvalFunction;
+
     private boolean approvalRequired = false;
+    private boolean approvalAny = true;
 
     public String getServiceId() {
         return serviceId;
@@ -32,12 +36,28 @@ public class ServiceScope extends Scope {
         this.claims = claims;
     }
 
-    public Set<String> getRoles() {
-        return roles;
+    public Set<String> getApprovalRoles() {
+        return approvalRoles;
     }
 
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
+    public void setApprovalRoles(Set<String> approvalRoles) {
+        this.approvalRoles = approvalRoles;
+    }
+
+    public Set<String> getApprovalSpaceRoles() {
+        return approvalSpaceRoles;
+    }
+
+    public void setApprovalSpaceRoles(Set<String> approvalSpaceRoles) {
+        this.approvalSpaceRoles = approvalSpaceRoles;
+    }
+
+    public String getApprovalFunction() {
+        return approvalFunction;
+    }
+
+    public void setApprovalFunction(String approvalFunction) {
+        this.approvalFunction = approvalFunction;
     }
 
     public boolean isApprovalRequired() {
@@ -46,6 +66,14 @@ public class ServiceScope extends Scope {
 
     public void setApprovalRequired(boolean approvalRequired) {
         this.approvalRequired = approvalRequired;
+    }
+
+    public boolean isApprovalAny() {
+        return approvalAny;
+    }
+
+    public void setApprovalAny(boolean approvalAny) {
+        this.approvalAny = approvalAny;
     }
 
     /*
@@ -60,8 +88,11 @@ public class ServiceScope extends Scope {
         scope.description = entity.getDescription();
         scope.type = entity.getType() != null ? ScopeType.parse(entity.getType()) : ScopeType.GENERIC;
         scope.claims = StringUtils.commaDelimitedListToSet(entity.getClaims());
-        scope.roles = StringUtils.commaDelimitedListToSet(entity.getRoles());
+        scope.approvalRoles = StringUtils.commaDelimitedListToSet(entity.getApprovalRoles());
+        scope.approvalSpaceRoles = StringUtils.commaDelimitedListToSet(entity.getApprovalSpaceRoles());
+        scope.approvalFunction = entity.getApprovalFunction();
         scope.approvalRequired = entity.isApprovalRequired();
+        scope.approvalAny = entity.isApprovalAny();
 
         return scope;
     }

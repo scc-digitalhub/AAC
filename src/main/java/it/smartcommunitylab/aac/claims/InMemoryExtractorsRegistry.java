@@ -55,7 +55,8 @@ public class InMemoryExtractorsRegistry implements ExtractorsRegistry {
     public void registerExtractorProvider(ResourceClaimsExtractorProvider provider) {
         if (provider != null) {
 
-            if (provider.getResourceId() == null || provider.getResourceId().startsWith("aac.")) {
+            if (provider.getResourceIds() == null
+                    || provider.getResourceIds().stream().anyMatch(r -> r.startsWith("aac."))) {
                 throw new IllegalArgumentException("core resources can not be registered");
             }
 
@@ -82,8 +83,8 @@ public class InMemoryExtractorsRegistry implements ExtractorsRegistry {
         Set<ResourceClaimsExtractor> extractors = new HashSet<>();
         resourceExtractorsProviders.stream()
                 .forEach(p -> {
-                    if (p.getResourceId().equals(resourceId)) {
-                        extractors.add(p.getExtractor());
+                    if (p.getResourceIds().contains(resourceId)) {
+                        extractors.add(p.getExtractor(resourceId));
                     }
                 });
 

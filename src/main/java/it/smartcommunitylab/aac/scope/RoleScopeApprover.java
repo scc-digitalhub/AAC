@@ -23,7 +23,7 @@ public class RoleScopeApprover implements ScopeApprover {
     private final String scope;
     private int duration;
     private Set<String> roles;
-    private boolean requireAll;
+    private boolean requireAll = false;
 
     public RoleScopeApprover(String resourceId, String scope) {
         Assert.hasText(resourceId, "resourceId can not be blank or null");

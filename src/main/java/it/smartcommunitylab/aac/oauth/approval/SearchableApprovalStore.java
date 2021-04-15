@@ -7,11 +7,12 @@ import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 
 public interface SearchableApprovalStore extends ApprovalStore {
 
+    public Approval findApproval(String userId, String clientId, String scope);
+
     public Collection<Approval> findUserApprovals(String userId);
 
     public Collection<Approval> findClientApprovals(String clientId);
 
     public Collection<Approval> findScopeApprovals(String scope);
 
-    
 }
