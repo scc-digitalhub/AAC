@@ -17,13 +17,13 @@
 package it.smartcommunitylab.aac.controller;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,13 +32,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.dto.UserProfile;
+import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
 /**
@@ -53,10 +57,10 @@ import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 public class UserAccountController {
 
     @Autowired
-    private AuthenticationHelper authHelper;
+    private UserManager userManager;
 
     @Autowired
-    private UserManager userManager;
+    private InternalUserManager internalUserManager;
 
     @Autowired
     private ProfileManager profileManager;
@@ -64,55 +68,48 @@ public class UserAccountController {
     // TODO MANAGE accounts: add/merge, delete
 
     @GetMapping("/account/profile")
-    public ResponseEntity<BasicProfile> myProfile() throws InvalidDefinitionException {
-        BasicProfile profile = profileManager.curBasicProfile();
-        if (profile == null) {
-            return ResponseEntity.notFound().build();
-
+    public ResponseEntity<UserDetails> myProfile() throws InvalidDefinitionException {
+        UserDetails user = userManager.curUserDetails();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-        return ResponseEntity.ok(profile);
+        return ResponseEntity.ok(user);
 
     }
 
-//    @GetMapping("/account/accounts")
-//    public ResponseEntity<AccountProfile> getAccounts() {
-//        Long user = userManager.getUserId();
-//        if (user == null) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-//        return ResponseEntity.ok(profileManager.getAccountProfileById(user.toString()));
-//    }
-//
-//    @GetMapping("/account/providers")
-//    public ResponseEntity<List<String>> getProviders() {
-//        return ResponseEntity
-//                .ok(providers.getProviders().stream().map(ClientResources::getProvider).collect(Collectors.toList()));
-//    }
-//
-//    @DeleteMapping("/account/profile")
-//    public ResponseEntity<Void> deleteProfile() {
-//        Long user = userManager.getUserId();
-//        if (user == null) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-//        userManager.deleteUser(user);
-//        return ResponseEntity.ok().build();
-//    }
+    @GetMapping("/account/accounts")
+    public ResponseEntity<List<AccountProfile>> getAccounts() {
+        UserDetails user = userManager.curUserDetails();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Collection<UserIdentity> identities = user.getIdentities();
+        return ResponseEntity.ok(identities.stream().map(i -> i.getAccount().toProfile()).collect(Collectors.toList()));
+    }
 
-//    @PostMapping("/account/profile")
-//    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile) {
-//        Long user = userManager.getUserId();
-//        if (user == null) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-//        try {
-//            userManager.updateProfile(user, profile);
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//        return ResponseEntity.ok(profileManager.getBasicProfileById(user.toString()));
-//    }
+    @DeleteMapping("/account/profile")
+    public ResponseEntity<Void> deleteProfile() throws NoSuchUserException, NoSuchRealmException {
+        UserDetails cur = userManager.curUserDetails();
+        if (cur == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        userManager.removeUser(cur.getRealm(), cur.getSubjectId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/account/profile")
+    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile) throws InvalidDefinitionException {
+        UserDetails cur = userManager.curUserDetails();
+        if (cur == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        try {
+            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(profileManager.curBasicProfile());
+    }
 
     @GetMapping("/account/attributes")
     public ResponseEntity<Collection<UserAttributes>> readAttributes() {

@@ -3,24 +3,27 @@ package it.smartcommunitylab.aac.internal;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.mail.MessagingException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +44,7 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserService;
-import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
 public class InternalUserManager {
@@ -72,12 +75,18 @@ public class InternalUserManager {
     @Value("${authorities.internal.password.supportWhitespace}")
     private boolean passwordSupportWhitespace;
 
+    @Resource(name = "messageSource")
+    private MessageSource messageSource;
+    
     @Autowired
     private InternalUserService accountService;
 
     @Autowired
     private UserEntityService userService;
 
+    @Autowired
+    private MailService mailService; 
+    
 //    @Autowired
 //    private AttributeEntityService attributeService;
 
@@ -88,6 +97,9 @@ public class InternalUserManager {
      * User store init
      */
 
+    @Value("${application.url}")
+    private String applicationURL;
+    
     @Value("${admin.username}")
     private String adminUsername;
 
@@ -164,7 +176,7 @@ public class InternalUserManager {
     public InternalUserAccount registerAccount(
             String subject,
             String realm,
-            String userId,
+            String username,
             String password,
             String email,
             String name,
@@ -173,20 +185,12 @@ public class InternalUserManager {
             Set<Map.Entry<String, String>> attributesMap) throws RegistrationException {
 
         // remediate missing username
-        if (!StringUtils.hasText(userId)) {
-            if (StringUtils.hasText(email)) {
-                int idx = email.indexOf('@');
-                if (idx > 0) {
-                    userId = email.substring(0, idx);
-                }
-            } else if (StringUtils.hasText(name)) {
-                userId = StringUtils.trimAllWhitespace(name);
-            }
-
+        if (!StringUtils.hasText(username)) {
+        	username = email;
         }
 
         // validate
-        if (!StringUtils.hasText(userId)) {
+        if (!StringUtils.hasText(username)) {
             throw new RegistrationException("missing-username");
         }
 
@@ -194,6 +198,8 @@ public class InternalUserManager {
             throw new RegistrationException("missing-email");
 
         }
+        email = email.trim().toLowerCase();
+        username = username.trim().toLowerCase();
 
         boolean changeOnFirstAccess = false;
         if (!StringUtils.hasText(password)) {
@@ -203,7 +209,7 @@ public class InternalUserManager {
             validatePassword(password);
         }
 
-        InternalUserAccount account = accountService.findAccount(realm, userId);
+        InternalUserAccount account = accountService.findAccount(realm, username);
         if (account != null) {
             throw new AlreadyRegisteredException("duplicate-registration");
         }
@@ -218,13 +224,13 @@ public class InternalUserManager {
 
         if (user == null) {
             subject = userService.createUser(realm).getUuid();
-            user = userService.addUser(subject, realm, userId);
+            user = userService.addUser(subject, realm, username);
         }
 
         // add internal account
         account = accountService.addAccount(
                 subject,
-                realm, userId,
+                realm, username,
                 email, name, surname, lang);
 
         try {
@@ -235,7 +241,7 @@ public class InternalUserManager {
                 // TODO
             }
 
-            setPassword(subject, realm, userId, password, changeOnFirstAccess);
+            setPassword(subject, realm, username, password, changeOnFirstAccess);
 
             // TODO move to caller
 //            // check confirmation
@@ -276,14 +282,20 @@ public class InternalUserManager {
     public InternalUserAccount updateAccount(
             String subject,
             String realm,
-            String userId,
+            String username,
             String email,
             String name,
             String surname,
             String lang,
             Set<Map.Entry<String, String>> attributesMap) throws NoSuchUserException {
 
-        InternalUserAccount account = accountService.getAccount(realm, userId);
+    	if (!StringUtils.hasText(username)) {
+    		username = email;
+    	}
+        email = email.trim().toLowerCase();
+        username = username.trim().toLowerCase();
+
+        InternalUserAccount account = accountService.getAccount(realm, username);
         account.setSubject(subject);
         account.setEmail(email);
         account.setName(name);
@@ -306,13 +318,44 @@ public class InternalUserManager {
         // TODO evaluate detach
         return account;
     }
+    
+    public InternalUserAccount updateOrCreateAccount(
+            String subject,
+            String realm,
+            String username,
+            String password,
+            String email,
+            String name,
+            String surname,
+            String lang,
+            Set<Map.Entry<String, String>> attributesMap
+	) {
+		try {
+	    	if (!StringUtils.hasText(username)) {
+	    		username = email;
+	    	}
+	        username = username.trim().toLowerCase();
+
+	        InternalUserAccount existing = accountService.getAccount(realm, username);
+	    	if (existing == null) {
+	    		return registerAccount(subject, realm, username, password, email, name, surname, lang, attributesMap);	    		
+	    	}
+    		InternalUserAccount updated = updateAccount(subject, realm, username, email, name, surname, lang, attributesMap);
+    		if (StringUtils.hasText(password)) {
+    			updatePassword(subject, realm, updated.getUserId(), password);
+    		}
+    		return updated;
+		} catch (NoSuchUserException e) {
+    		return registerAccount(subject, realm, username, password, email, name, surname, lang, attributesMap);
+		}
+    }
 
     public void deleteAccount(
             String subject,
             String realm,
-            String userId) throws NoSuchUserException {
+            String username) throws NoSuchUserException {
 
-        accountService.deleteAccount(subject, realm, userId);
+        accountService.deleteAccount(subject, realm, username);
 
     }
 
@@ -364,19 +407,19 @@ public class InternalUserManager {
     public void updatePassword(
             String subject,
             String realm,
-            String userId,
+            String username,
             String password) throws NoSuchUserException, InvalidPasswordException {
 
         // validate password
         validatePassword(password);
 
-        setPassword(subject, realm, userId, password, false);
+        setPassword(subject, realm, username, password, false);
     }
 
-    public void setPassword(
+    public InternalUserAccount setPassword(
             String subject,
             String realm,
-            String userId,
+            String username,
             String password,
             boolean changeOnFirstAccess) throws NoSuchUserException {
 
@@ -384,9 +427,9 @@ public class InternalUserManager {
             // encode password
             String hash = PasswordHash.createHash(password);
 
-            InternalUserAccount account = accountService.updatePassword(subject, realm, userId, hash,
+            InternalUserAccount account = accountService.updatePassword(subject, realm, username, hash,
                     changeOnFirstAccess);
-
+            return account;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new SystemException(e.getMessage());
         }
@@ -396,10 +439,10 @@ public class InternalUserManager {
     public void resetPassword(
             String subject,
             String realm,
-            String userId,
+            String username,
             boolean sendMail) throws NoSuchUserException {
 
-        InternalUserAccount account = accountService.getAccount(realm, userId);
+        InternalUserAccount account = accountService.getAccount(realm, username);
 
         try {
 
@@ -414,9 +457,9 @@ public class InternalUserManager {
             account.setResetDeadline(calendar.getTime());
             account = accountService.updateAccount(account);
 
-            // TODO send mail
+            sendResetMail(account, resetKey);
 
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | MessagingException e) {
             throw new SystemException(e.getMessage());
         }
     }
@@ -541,12 +584,12 @@ public class InternalUserManager {
     public void updateConfirmation(
             String subject,
             String realm,
-            String userId,
+            String username,
             boolean confirmed,
             Date confirmationDeadline,
             String confirmationKey) throws NoSuchUserException {
 
-        InternalUserAccount account = accountService.getAccount(realm, userId);
+        InternalUserAccount account = accountService.getAccount(realm, username);
         account.setConfirmed(confirmed);
         account.setConfirmationDeadline(confirmationDeadline);
         account.setConfirmationKey(confirmationKey);
@@ -558,9 +601,9 @@ public class InternalUserManager {
     public void approveConfirmation(
             String subject,
             String realm,
-            String userId) throws NoSuchUserException {
+            String username) throws NoSuchUserException {
 
-        InternalUserAccount account = accountService.getAccount(realm, userId);
+        InternalUserAccount account = accountService.getAccount(realm, username);
         account.setConfirmed(true);
 
         account = accountService.updateAccount(account);
@@ -569,10 +612,10 @@ public class InternalUserManager {
     public void resetConfirmation(
             String subject,
             String realm,
-            String userId,
+            String username,
             boolean sendMail) throws NoSuchUserException {
 
-        InternalUserAccount account = accountService.getAccount(realm, userId);
+        InternalUserAccount account = accountService.getAccount(realm, username);
 
         try {
             // set status to false
@@ -589,17 +632,41 @@ public class InternalUserManager {
             account.setConfirmationDeadline(calendar.getTime());
             account = accountService.updateAccount(account);
 
-            // TODO send mail
+            sendConfirmationMail(account, confirmationKey);
 
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | MessagingException e) {
             throw new SystemException(e.getMessage());
         }
     }
 
-    /*
-     * TODO Mail
+    /**
+     * @param reg
+     * @param key
+     * @throws RegistrationException
      */
+    private void sendConfirmationMail(InternalUserAccount account, String key) throws MessagingException {
+        String lang = account.getLang();
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("user", account);
+        vars.put("url", applicationURL + "/internal/confirm?confirmationCode=" + key);
+        String subject = messageSource.getMessage("confirmation.subject", null, Locale.forLanguageTag(lang));
+        mailService.sendEmail(account.getEmail(), "mail/confirmation_" + lang, subject, vars);
+    }
 
+    /**
+     * @param existing
+     * @param key
+     * @throws RegistrationException
+     */
+    private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
+        String lang = account.getLang();
+        Map<String, Object> vars = new HashMap<String, Object>();
+        vars.put("user", account);
+        vars.put("url", applicationURL + "/internal/confirm?reset=true&confirmationCode=" + key);
+        String subject = messageSource.getMessage("reset.subject", null, Locale.forLanguageTag(lang));
+        mailService.sendEmail(account.getEmail(), "mail/reset_" + lang, subject, vars);
+    }
+    
     /*
      * Keys
      */
@@ -608,5 +675,14 @@ public class InternalUserManager {
         String rnd = UUID.randomUUID().toString();
         return rnd;
     }
+
+	/**
+	 * @param key
+	 * @return
+	 * @throws NoSuchUserException 
+	 */
+	public InternalUserAccount getAccountByConfirmationKey(String key) throws NoSuchUserException {
+		return accountService.getAccountByConfirmationKey(key);
+	}
 
 }

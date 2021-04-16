@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
 import java.util.Date;
+import java.util.HashMap;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -266,6 +267,12 @@ public class InternalUserAccount implements UserAccount {
         profile.setUsername(getUsername());
         profile.setUserId(getUserId());
 
+        profile.setAttributes(new HashMap<>());
+        profile.getAttributes().put("username", getUsername());
+        profile.getAttributes().put("email", getEmail());
+        profile.getAttributes().put("given_name", getName());
+        profile.getAttributes().put("family_name", getSurname());
+        
         return profile;
     }
 

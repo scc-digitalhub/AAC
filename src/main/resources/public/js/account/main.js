@@ -18,8 +18,10 @@ angular.module('aac.controllers.main', [])
 	};
 	
 	Data.getProfile().then(function(data) {
-		data.fullname = data.name + ' ' + data.surname;
 		$rootScope.user = data;
+		$rootScope.isDev = data.authorities.findIndex(function(a) {
+		   return a.authority === 'ROLE_DEVELOPER' || a.authority === 'ROLE_ADMIN'; 
+		})>= 0;
 	}).catch(function(err) {
 		Utils.showError(err);
 	});
@@ -29,28 +31,14 @@ angular.module('aac.controllers.main', [])
 })
 .controller('AccountsController', function($scope, $rootScope, $location, Data, Utils) {
 	Data.getAccounts().then(function(data) {
-		Data.getProviders().then(function(providers) {
-			providers.sort(function(a,b) {
-				if (data.accounts[a] && !data.accounts[b]) return -1;
-				if (data.accounts[b] && !data.accounts[a]) return 1;
-				return a.localeCompare(b);
-			});
-			$scope.providers = providers;
-			var accounts = {};
-			for (var p in data.accounts) {
-				var amap = {};
-				for (var k in data.accounts[p]) {
-					if (k === 'it.smartcommunitylab.aac.surname') amap['surname'] = data.accounts[p][k];
-					else if (k === 'it.smartcommunitylab.aac.givenname') amap['givenname'] = data.accounts[p][k];
-					else if (k === 'it.smartcommunitylab.aac.username') amap['username'] = data.accounts[p][k];
-					else amap[k] = data.accounts[p][k];
-				}
-				accounts[p] = amap;
-			}
-			$scope.accounts = accounts;
-		}).catch(function(err) {
-			Utils.showError(err);
-		});
+	  var providers = [];
+    var accounts = {};
+    data.forEach(function(a) {
+      if (a.provider !== 'internal') providers.push(a.provider);
+      accounts[a.provider] = a.attributes;      
+    });
+    $scope.providers = providers;
+    $scope.accounts = accounts;
 	}).catch(function(err) {
 		Utils.showError(err);
 	});
@@ -95,9 +83,11 @@ angular.module('aac.controllers.main', [])
 .controller('ProfileController', function($scope, $rootScope, $location, Data, Utils) {
 	$scope.profile = Object.assign($rootScope.user);
 	Data.getAccounts().then(function(data) {
-		if (!data.accounts.internal) {
-			$scope.password_required = true;
-		}
+	   for (var i = 0; i < data.length; i++) {
+	     if (data[i].provider === 'internal') {
+         $scope.password_required = true;
+	     }
+	   }
 	}).catch(function(err) {
 		Utils.showError(err);
 	});

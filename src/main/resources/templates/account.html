@@ -81,10 +81,10 @@
         </ul>
         
         <ul class="nav navbar-nav ml-auto">
-          <li class="nav-link navbar"><a class="navbar-text" href="./dev">{{'menu_dev' | translate}}</a></li>
+          <li ng-if="isDev" class="nav-link navbar"><a class="navbar-text" href="./dev">{{'menu_dev' | translate}}</a></li>
 		      <li class="nav-item dropdown">
 		        <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		          <span >{{user.fullname}}</span>
+		          <span >{{user.fullName || user.username}}</span>
 		        </a>
 		        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
               <a class="dropdown-item" role="menuitem" data-ng-click="signOut()">{{'menu_signout' | translate}}</a>

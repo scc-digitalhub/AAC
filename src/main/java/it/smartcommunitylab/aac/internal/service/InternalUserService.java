@@ -135,11 +135,11 @@ public class InternalUserService {
     public InternalUserAccount updatePassword(
             String subject,
             String realm,
-            String userId,
+            String username,
             String password,
             boolean changeOnFirstAccess) throws NoSuchUserException {
 
-        InternalUserAccount account = getAccount(realm, userId);
+        InternalUserAccount account = getAccount(realm, username);
         // we expect password already hashed
         account.setPassword(password);
         account.setChangeOnFirstAccess(changeOnFirstAccess);
