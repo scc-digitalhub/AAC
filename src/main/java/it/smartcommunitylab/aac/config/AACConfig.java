@@ -30,6 +30,8 @@ import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -43,6 +45,10 @@ import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository
 @Configuration
 @Order(5)
 public class AACConfig {
+
+    @Value("${application.url}")
+    private String applicationUrl;
+
     /*
      * Core aac should be bootstrapped before services, security etc
      */
@@ -130,6 +136,14 @@ public class AACConfig {
     @Bean
     public UserTranslator userTranslator() {
         return new CoreUserTranslator();
+    }
+
+    /*
+     * Entrypoint
+     */
+    @Bean
+    public RealmAwarePathUriBuilder realmUriBuilder() {
+        return new RealmAwarePathUriBuilder(applicationUrl);
     }
 
 //    @Autowired

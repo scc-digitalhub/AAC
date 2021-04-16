@@ -27,12 +27,12 @@ public class RoleScopeApprover implements ScopeApprover {
     private boolean requireAll = false;
 
     public RoleScopeApprover(String realm, String resourceId, String scope) {
-        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
         this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
+        this.duration = DEFAULT_DURATION_MS;
         this.roles = Collections.emptySet();
     }
 

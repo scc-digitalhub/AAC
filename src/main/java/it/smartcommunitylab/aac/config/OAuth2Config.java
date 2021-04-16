@@ -52,6 +52,7 @@ import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.jwt.JWTService;
+import it.smartcommunitylab.aac.oauth.AACApprovalHandler;
 import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.ApprovalStoreUserApprovalHandler;
 import it.smartcommunitylab.aac.oauth.AutoJdbcApprovalStore;
@@ -64,6 +65,7 @@ import it.smartcommunitylab.aac.oauth.JwtTokenConverter;
 import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2TokenServices;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.ScopeApprovalHandler;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
@@ -200,13 +202,38 @@ public class OAuth2Config {
         return new AutoJdbcApprovalStore(dataSource);
     }
 
-    @Bean
     public ApprovalStoreUserApprovalHandler userApprovalHandler(
             ApprovalStore approvalStore,
             OAuth2ClientDetailsService clientDetailsService) {
         ApprovalStoreUserApprovalHandler handler = new ApprovalStoreUserApprovalHandler();
         handler.setApprovalStore(approvalStore);
         handler.setClientDetailsService(clientDetailsService);
+
+        return handler;
+    }
+
+    public ScopeApprovalHandler scopeApprovalHandler(
+            ScopeRegistry scopeRegistry,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            UserTranslatorService userTranslatorService) {
+        ScopeApprovalHandler handler = new ScopeApprovalHandler(scopeRegistry, clientDetailsService);
+        handler.setUserTranslatorService(userTranslatorService);
+
+        return handler;
+    }
+
+    @Bean
+    public AACApprovalHandler aacApprovalHandler(
+            ApprovalStore approvalStore,
+            OAuth2ClientDetailsService oauthClientDetailsService,
+            ScopeRegistry scopeRegistry,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            UserTranslatorService userTranslatorService) {
+        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService);
+        ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService,
+                userTranslatorService);
+        AACApprovalHandler handler = new AACApprovalHandler(userHandler);
+        handler.setScopeApprovalHandler(scopeHandler);
 
         return handler;
     }
@@ -334,13 +361,6 @@ public class OAuth2Config {
             }
             granters.add(passwordTokenGranter);
         }
-
-        // set common services
-        granters.forEach(gt -> {
-            gt.setClientService(clientService);
-            gt.setScopeRegistry(scopeRegistry);
-            gt.setUserTranslatorService(userTranslatorService);
-        });
 
         return new CompositeTokenGranter(new ArrayList<>(granters));
     }

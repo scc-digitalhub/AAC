@@ -149,9 +149,24 @@ public class TokenIntrospectionEndpoint {
             logger.trace("token clientId " + clientId);
             logger.trace("client auth requesting introspection  " + introspectClientId);
 
+            Date now = new Date();
+            if (accessToken != null) {
+                if (accessToken.isExpired()) {
+                    throw new InvalidTokenException("token expired");
+                }
+            }
+
+            if (refreshToken != null) {
+                if (refreshToken instanceof ExpiringOAuth2RefreshToken
+                        && ((ExpiringOAuth2RefreshToken) refreshToken).getExpiration().after(now)) {
+                    throw new InvalidTokenException("token expired");
+                }
+            }
+
             if (permitAll || clientId.equals(introspectClientId)) {
 
-                // if token exists is valid since revoked ones are not returned from tokenStore
+                // if token exists here is valid since revoked ones are not returned from
+                // tokenStore
                 result = new TokenIntrospection(true);
 
                 // add base response
@@ -209,7 +224,7 @@ public class TokenIntrospectionEndpoint {
             }
 
         } catch (Exception e) {
-            // we catch every error to avoid discosing info on token existence
+            // we catch every error to avoid disclosing info on token existence
             logger.error("Error getting info for token: " + e.getMessage());
             result = new TokenIntrospection(false);
         }

@@ -27,7 +27,6 @@ public class AuthorityScopeApprover implements ScopeApprover {
     private boolean requireAll = false;
 
     public AuthorityScopeApprover(String realm, String resourceId, String scope) {
-        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
         this.realm = realm;

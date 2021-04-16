@@ -4,11 +4,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotBlank;
 
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -28,7 +30,7 @@ public class User {
     // always set
     @NotBlank
     private final String subjectId;
-    
+
     // describes the realm responsible for this user
     private final String source;
 
@@ -79,6 +81,27 @@ public class User {
         this.identities = new HashSet<>();
         this.attributes = new HashSet<>();
         this.roles = new HashSet<>();
+    }
+
+    public User(UserDetails details) {
+        Assert.notNull(details, "user details can not be null");
+        this.subjectId = details.getSubjectId();
+        this.source = details.getRealm();
+        // set consuming realm to source
+        this.realm = source;
+        this.authorities = details.getAuthorities().stream()
+                .filter(a -> (a instanceof RealmGrantedAuthority))
+                .map(a -> (RealmGrantedAuthority) a)
+                .collect(Collectors.toSet());
+        this.identities = new HashSet<>(details.getIdentities());
+        this.attributes = new HashSet<>(details.getAttributeSets());
+        this.roles = new HashSet<>();
+
+        this.username = details.getUsername();
+        this.name = details.getFirstName();
+        this.surname = details.getLastName();
+        this.email = details.getEmailAddress();
+
     }
 
     public String getSubjectId() {

@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScriptScopeApprover;
 import it.smartcommunitylab.aac.scope.StoreScopeApprover;
+import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 
 /*
  * Manage services and their integration.
@@ -700,34 +701,36 @@ public class ServicesManager implements InitializingBean {
     }
 
     private ScopeApprover buildScopeApprover(String realm, String namespace, ServiceScope sc) {
+        String scope = sc.getScope();
         List<ScopeApprover> approvers = new ArrayList<>();
         if (StringUtils.hasText(sc.getApprovalFunction())) {
-            ScriptScopeApprover sa = new ScriptScopeApprover(realm, namespace, sc.getScope());
+            ScriptScopeApprover sa = new ScriptScopeApprover(realm, namespace, scope);
             sa.setExecutionService(executionService);
             sa.setFunctionCode(sc.getApprovalFunction());
             approvers.add(sa);
         }
 
         if (sc.getApprovalRoles() != null && !sc.getApprovalRoles().isEmpty()) {
-            AuthorityScopeApprover sa = new AuthorityScopeApprover(realm, namespace, sc.getScope());
+            AuthorityScopeApprover sa = new AuthorityScopeApprover(realm, namespace, scope);
             sa.setAuthorities(sc.getApprovalRoles());
             approvers.add(sa);
         }
 
         if (sc.getApprovalSpaceRoles() != null && !sc.getApprovalSpaceRoles().isEmpty()) {
-            RoleScopeApprover sa = new RoleScopeApprover(realm, namespace, sc.getScope());
+            RoleScopeApprover sa = new RoleScopeApprover(realm, namespace, scope);
             sa.setRoles(sc.getApprovalSpaceRoles());
             approvers.add(sa);
         }
 
         if (sc.isApprovalRequired()) {
-            StoreScopeApprover sa = new StoreScopeApprover(realm, namespace, sc.getScope());
+            StoreScopeApprover sa = new StoreScopeApprover(realm, namespace, scope);
             sa.setApprovalStore(approvalStore);
             approvers.add(sa);
         }
 
         if (approvers.isEmpty()) {
-            return null;
+            //use whitelist, scope is autoapproved
+            return new WhitelistScopeApprover(realm, namespace, scope);
         }
 
         if (approvers.size() == 1) {
@@ -735,9 +738,9 @@ public class ServicesManager implements InitializingBean {
         }
 
         if (sc.isApprovalAny()) {
-            return new DelegateScopeApprover(realm, namespace, sc.getScope(), approvers);
+            return new DelegateScopeApprover(realm, namespace, scope, approvers);
         } else {
-            return new CombinedScopeApprover(realm, namespace, sc.getScope(), approvers);
+            return new CombinedScopeApprover(realm, namespace, scope, approvers);
         }
 
     }

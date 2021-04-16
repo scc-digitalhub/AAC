@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.services;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -14,8 +13,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.claims.Claim;
-import it.smartcommunitylab.aac.scope.Scope;
 
 /*
  * A service defines an api composed of a namespace (used as audience)
@@ -39,8 +36,8 @@ public class Service {
 
     private Map<String, String> claimMapping = new HashMap<>();
 
-    private Collection<ServiceScope> scopes;
-    private Collection<ServiceClaim> claims;
+    private Collection<ServiceScope> scopes = Collections.emptyList();
+    private Collection<ServiceClaim> claims = Collections.emptyList();
 
     public String getServiceId() {
         return serviceId;

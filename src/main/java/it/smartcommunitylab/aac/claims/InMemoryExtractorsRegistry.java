@@ -84,7 +84,10 @@ public class InMemoryExtractorsRegistry implements ExtractorsRegistry {
         resourceExtractorsProviders.stream()
                 .forEach(p -> {
                     if (p.getResourceIds().contains(resourceId)) {
-                        extractors.add(p.getExtractor(resourceId));
+                        ResourceClaimsExtractor r = p.getExtractor(resourceId);
+                        if (r != null) {
+                            extractors.add(r);
+                        }
                     }
                 });
 
@@ -98,7 +101,10 @@ public class InMemoryExtractorsRegistry implements ExtractorsRegistry {
         scopeExtractorsProviders.stream()
                 .forEach(p -> {
                     if (p.getScopes().contains(scope)) {
-                        extractors.add(p.getExtractor(scope));
+                        ScopeClaimsExtractor s = p.getExtractor(scope);
+                        if (s != null) {
+                            extractors.add(s);
+                        }
                     }
                 });
 

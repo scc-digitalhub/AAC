@@ -33,7 +33,6 @@ public class DelegateScopeApprover implements ScopeApprover {
 
     public DelegateScopeApprover(String realm, String resourceId, String scope, List<ScopeApprover> approvers) {
         Assert.notNull(approvers, "approvers can not be null");
-        Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
         Assert.hasText(scope, "scope can not be blank or null");
         this.realm = realm;

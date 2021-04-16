@@ -29,16 +29,7 @@ public class UserTranslatorService {
     }
 
     public User translate(UserDetails details, String realm) {
-        String subjectId = details.getSubjectId();
-        String source = details.getRealm();
-
-        User user = new User(subjectId, source);
-        for (UserIdentity identity : details.getIdentities()) {
-            user.addIdentity(identity);
-        }
-        for (UserAttributes attr : details.getAttributeSets()) {
-            user.addAttributes(attr);
-        }
+        User user = new User(details);
 
         // TODO
 //        user.setAuthorities();

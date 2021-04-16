@@ -59,6 +59,10 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
             throw new BadOpaqueTokenException("Provided token isn't active");
         }
 
+        if (token.isExpired()) {
+            throw new BadOpaqueTokenException("Provided token isn't active");
+        }
+
         OAuth2Authentication auth = tokenStore.readAuthentication(tokenValue);
         if (auth == null) {
             throw new BadOpaqueTokenException("Provided token isn't active");

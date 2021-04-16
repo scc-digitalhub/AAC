@@ -17,23 +17,31 @@
 package it.smartcommunitylab.aac.oauth.flow;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 
 /**
- * OAuth 2.0 Flow extensions manager. Handles specific Flow phases, in particular
- * AfterApproval - immediately after the user has approved the requested scopes and before the code/token is emitted.
- *  
+ * OAuth 2.0 Flow extensions manager. Handles specific Flow phases, in
+ * particular AfterApproval - immediately after the user has approved the
+ * requested scopes and before the code/token is emitted.
+ * 
  * @author raman
  *
  */
 public interface OAuthFlowExtensions {
 
-	/**
-	 * Event triggered immediately after the user has approved the requested scopes and before the code/token is emitted.
-	 * @param authorizadtionRequest
-	 * @param userAuthentication
-	 * @throws FlowExecutionException
-	 */
-	public void onAfterApproval(AuthorizationRequest authorizadtionRequest, Authentication userAuthentication) throws FlowExecutionException;
-	
+    /**
+     * Event triggered immediately after the user has approved the requested scopes
+     * and before the code/token is emitted.
+     * 
+     * @param authorizadtionRequest
+     * @param userAuthentication
+     * @throws FlowExecutionException
+     */
+    public void onAfterApproval(AuthorizationRequest authorizadtionRequest, Authentication userAuthentication)
+            throws FlowExecutionException;
+
+    public void onAfterTokenGrant(AuthorizationRequest authorizadtionRequest, OAuth2AccessToken accessToken)
+            throws FlowExecutionException;
+
 }

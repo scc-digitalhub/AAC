@@ -86,7 +86,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     private int approvalExpirySeconds = DEFAULT_APPROVAL_VALIDITY;
 
     private ApprovalStore approvalStore;
-    private OAuthFlowExtensions flowExtensions;
+//    private OAuthFlowExtensions flowExtensions;
     private OAuth2ClientDetailsService clientDetailsService;
 
     public void afterPropertiesSet() {
@@ -168,9 +168,9 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         // result is approved, moving towards completion, doing extensions
         // TODO rework extension flows
-        if (flowExtensions != null && isApproved(request, userAuth)) {
-            flowExtensions.onAfterApproval(request, userAuth);
-        }
+//        if (flowExtensions != null && isApproved(request, userAuth)) {
+//            flowExtensions.onAfterApproval(request, userAuth);
+//        }
         return request;
     }
 
@@ -294,12 +294,12 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 //
 //        }
 
-        // result is approved, moving towards completion, doing extensions
-        // TODO rework flow extensions, these should really not be here but after token
-        // granters
-        if (flowExtensions != null && isApproved(request, userAuth)) {
-            flowExtensions.onAfterApproval(request, userAuth);
-        }
+//        // result is approved, moving towards completion, doing extensions
+//        // TODO rework flow extensions, these should really not be here but after token
+//        // granters
+//        if (flowExtensions != null && isApproved(request, userAuth)) {
+//            flowExtensions.onAfterApproval(request, userAuth);
+//        }
 
         return result;
     }
@@ -485,9 +485,9 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         this.clientDetailsService = clientDetailsService;
     }
 
-    public void setFlowExtensions(OAuthFlowExtensions extensions) {
-        this.flowExtensions = extensions;
-    }
+//    public void setFlowExtensions(OAuthFlowExtensions extensions) {
+//        this.flowExtensions = extensions;
+//    }
 
     private Date computeExpiry() {
         Calendar expiresAt = Calendar.getInstance();

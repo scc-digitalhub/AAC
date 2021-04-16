@@ -63,6 +63,8 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
@@ -130,6 +132,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ExtendedAuthenticationManager authManager;
+
+    @Autowired
+    private RealmAwarePathUriBuilder realmUriBuilder;
 
 //    @Autowired
 //    private UserRepository userRepository;
@@ -265,7 +270,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         oauth2AuthenticationEntryPoint(clientDetailsService, "/login"),
                         new AntPathRequestMatcher("/oauth/**"))
                 .defaultAuthenticationEntryPointFor(
-                        new RealmAwareAuthenticationEntryPoint("/login"),
+                        realmAuthEntryPoint("/login", realmUriBuilder),
                         new AntPathRequestMatcher("/**"))
                 .accessDeniedPage("/accesserror")
                 .and()
@@ -334,6 +339,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManagerBean() throws Exception {
 //        return extendedAuthenticationManager();
         return authManager;
+    }
+
+    private RealmAwareAuthenticationEntryPoint realmAuthEntryPoint(String loginPath,
+            RealmAwarePathUriBuilder uriBuilder) {
+        RealmAwareAuthenticationEntryPoint entryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+        entryPoint.setUseForward(false);
+        entryPoint.setRealmUriBuilder(uriBuilder);
+
+        return entryPoint;
+
     }
 
     /*

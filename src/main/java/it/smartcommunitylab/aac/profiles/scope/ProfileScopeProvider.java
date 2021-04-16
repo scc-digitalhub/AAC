@@ -14,9 +14,4 @@ public abstract class ProfileScopeProvider implements ScopeProvider {
         return ProfileClaimsSet.RESOURCE_ID;
     }
 
-    @Override
-    public ScopeApprover getApprover(String scope) {
-        // profiles scopes by default are always approved by service
-        return null;
-    }
 }

@@ -7,6 +7,7 @@ import java.util.Date;
 
 import javax.sql.DataSource;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.oauth2.provider.approval.Approval;
@@ -28,13 +29,13 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
             "  `status` varchar(255) DEFAULT NULL," +
             "  `userId` varchar(255) DEFAULT NULL) ";
 
-    private static final String DEFAULT_FIND_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE userId=? AND clientId=? AND scope=?";
+    private static final String DEFAULT_FIND_SINGLE_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE userId=? AND clientId=? AND scope=?";
     private static final String DEFAULT_GET_USER_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE userId=?";
     private static final String DEFAULT_GET_CLIENT_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE clientId=?";
     private static final String DEFAULT_GET_SCOPE_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE scope=?";
 
     private String createTableStatement = DEFAULT_CREATE_TABLE_STATEMENT;
-    private String findApprovalStatement = DEFAULT_FIND_APPROVAL_SQL;
+    private String findSingleApprovalStatement = DEFAULT_FIND_SINGLE_APPROVAL_SQL;
     private String findUserApprovalStatement = DEFAULT_GET_USER_APPROVAL_SQL;
     private String findClientApprovalStatement = DEFAULT_GET_CLIENT_APPROVAL_SQL;
     private String findScopeApprovalStatement = DEFAULT_GET_SCOPE_APPROVAL_SQL;
@@ -67,7 +68,11 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
 
     @Override
     public Approval findApproval(String userId, String clientId, String scope) {
-        return jdbcTemplate.queryForObject(findApprovalStatement, rowMapper, userId, clientId, scope);
+        try {
+            return jdbcTemplate.queryForObject(findSingleApprovalStatement, rowMapper, userId, clientId, scope);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     private static class AuthorizationRowMapper implements RowMapper<Approval> {
