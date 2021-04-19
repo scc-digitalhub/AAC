@@ -14,5 +14,8 @@ public interface SearchableApprovalStore extends ApprovalStore {
     public Collection<Approval> findClientApprovals(String clientId);
 
     public Collection<Approval> findScopeApprovals(String scope);
+    
+    public Collection<Approval> findUserScopeApprovals(String userId, String scope);
+
 
 }

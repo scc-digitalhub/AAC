@@ -39,11 +39,14 @@ public class AACApprovalHandler implements UserApprovalHandler {
     @Override
     public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest,
             Authentication userAuthentication) {
-        AuthorizationRequest request = userApprovalHandler.checkForPreApproval(authorizationRequest,
-                userAuthentication);
+        AuthorizationRequest request = authorizationRequest;
         if (scopeApprovalHandler != null) {
+            // first call scopeApprover to let it modify request *before* user approval
             request = scopeApprovalHandler.checkForPreApproval(request, userAuthentication);
         }
+
+        request = userApprovalHandler.checkForPreApproval(authorizationRequest,
+                userAuthentication);
 
         return request;
     }
@@ -54,6 +57,8 @@ public class AACApprovalHandler implements UserApprovalHandler {
         AuthorizationRequest request = userApprovalHandler.updateAfterApproval(authorizationRequest,
                 userAuthentication);
         if (scopeApprovalHandler != null) {
+            // call scopeApprover after user approver to let it "unauthorize" an approved
+            // request
             request = scopeApprovalHandler.updateAfterApproval(request, userAuthentication);
         }
 

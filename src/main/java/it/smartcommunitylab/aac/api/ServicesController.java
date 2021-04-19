@@ -6,6 +6,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -175,6 +177,40 @@ public class ServicesController {
         serviceManager.deleteServiceClaim(realm, serviceId, key);
     }
 
+    /*
+     * Service scope approvals
+     */
+
+    @GetMapping("{realm}/{serviceId}/scopes/{scope}/approvals")
+    public Collection<Approval> getServiceScopeApprovals(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+            throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
+        return serviceManager.getServiceScopeApprovals(realm, serviceId, scope);
+    }
+
+    @PostMapping("{realm}/{serviceId}/scopes/{scope}/approvals")
+    public Approval addServiceScopeApproval(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
+            @RequestParam String clientId,
+            @RequestParam(required = false, defaultValue = "true") boolean approved)
+            throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
+        int duration = SystemKeys.DEFAULT_APPROVAL_VALIDITY;
+        return serviceManager.addServiceScopeApproval(realm, serviceId, scope, clientId, duration, approved);
+    }
+
+    @DeleteMapping("{realm}/{serviceId}/scopes/{scope}/approvals")
+    public void deleteServiceScopeApproval(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope,
+            @RequestParam String clientId)
+            throws NoSuchRealmException, NoSuchScopeException, NoSuchServiceException {
+        serviceManager.revokeServiceScopeApproval(realm, serviceId, scope, clientId);
+    }
 //    /*
 //     * Exceptions
 //     */

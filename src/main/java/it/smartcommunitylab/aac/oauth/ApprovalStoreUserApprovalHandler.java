@@ -76,7 +76,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String SCOPE_PREFIX = OAuth2Utils.SCOPE_PREFIX;
+    private static final String SCOPE_PREFIX = "";
     private static final String SPACE_SELECTION_APPROVAL_REQUIRED = "spaceSelectionApproval_required";
     private static final String SPACE_SELECTION_APPROVAL_DONE = "spaceSelectionApproval_done";
     private static final String SPACE_SELECTION_APPROVAL_MAP = "spaceSelectionApproval_map";

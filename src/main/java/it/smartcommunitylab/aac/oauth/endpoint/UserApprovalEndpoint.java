@@ -19,8 +19,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import springfox.documentation.annotations.ApiIgnore;
 
 @ApiIgnore
@@ -33,6 +40,12 @@ public class UserApprovalEndpoint {
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private ScopeRegistry scopeRegistry;
+
+    @Autowired
+    private AuthenticationHelper authHelper;
 
     @RequestMapping("/oauth/confirm_access")
     public ModelAndView getAccessConfirmation(Map<String, Object> model, HttpServletRequest request) throws Exception {
@@ -48,6 +61,22 @@ public class UserApprovalEndpoint {
             throw new InvalidRequestException("invalid client");
         }
 
+        UserAuthenticationToken userAuth = authHelper.getUserAuthentication();
+        if (userAuth == null) {
+            throw new InvalidRequestException("invalid user");
+        }
+
+        UserDetails userDetails = userAuth.getUser();
+
+        // add client info
+        String clientName = StringUtils.hasText(clientDetails.getName()) ? clientDetails.getName() : clientId;
+        model.put("clientName", clientName);
+
+        // add user info
+        String userName = StringUtils.hasText(userDetails.getUsername()) ? userDetails.getUsername()
+                : userDetails.getSubjectId();
+        model.put("userName", userName);
+
         // we have a list of scopes in model or request
         @SuppressWarnings("unchecked")
         Map<String, String> scopes = (Map<String, String>) (model.containsKey("scopes") ? model.get("scopes")
@@ -57,21 +86,25 @@ public class UserApprovalEndpoint {
             // nothing to show?
         }
 
-        // TODO resolve scopes to user resources
-        List<Map.Entry<String, String>> resources = new ArrayList<>();
+        // resolve scopes to user resources via registry
+        List<Scope> resources = new ArrayList<>();
         for (String scope : scopes.keySet()) {
-            AbstractMap.SimpleEntry<String, String> entry = new AbstractMap.SimpleEntry<>(scope, scope);
-            resources.add(entry);
+            Scope s = scopeRegistry.findScope(scope);
+            if (s == null) {
+                // build empty model
+                s = new Scope(scope);
+                s.setName("scope.name." + scope);
+                s.setDescription("scope.description." + scope);
+                s.setType(ScopeType.GENERIC);
+            }
+
+            resources.add(s);
         }
 
         model.put("resources", resources);
 
         // re-add to model
         model.put("scopes", scopes);
-
-        // add client info
-        String clientName = StringUtils.hasText(clientDetails.getName()) ? clientDetails.getName() : clientId;
-        model.put("clientName", clientName);
 
         // TODO add spaces
 //        model.put("spaces", spaces == null ? Collections.emptyMap() : spaces);

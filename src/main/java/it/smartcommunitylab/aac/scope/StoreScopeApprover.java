@@ -22,6 +22,8 @@ public class StoreScopeApprover implements ScopeApprover {
     private final String resourceId;
     private final String scope;
 
+    private String userId;
+
     public StoreScopeApprover(String realm, String resourceId, String scope) {
         Assert.notNull(realm, "realm can not be null");
         Assert.hasText(resourceId, "resourceId can not be blank or null");
@@ -29,10 +31,16 @@ public class StoreScopeApprover implements ScopeApprover {
         this.realm = realm;
         this.resourceId = resourceId;
         this.scope = scope;
+        // userId is used for store lookups
+        this.userId = resourceId;
     }
 
     public void setApprovalStore(SearchableApprovalStore approvalStore) {
         this.approvalStore = approvalStore;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     @Override
@@ -41,12 +49,12 @@ public class StoreScopeApprover implements ScopeApprover {
         if (approvalStore == null) {
             return null;
         }
-        
+
         if (!this.scope.equals(scope)) {
             return null;
         }
-        
-        Approval approval = approvalStore.findApproval(resourceId, user.getSubjectId(), scope);
+
+        Approval approval = approvalStore.findApproval(userId, user.getSubjectId(), scope);
         if (approval == null) {
             return null;
         }
@@ -68,12 +76,12 @@ public class StoreScopeApprover implements ScopeApprover {
         if (approvalStore == null) {
             return null;
         }
-        
+
         if (!this.scope.equals(scope)) {
             return null;
         }
-        
-        Approval approval = approvalStore.findApproval(resourceId, client.getClientId(), scope);
+
+        Approval approval = approvalStore.findApproval(userId, client.getClientId(), scope);
         if (approval == null) {
             return null;
         }

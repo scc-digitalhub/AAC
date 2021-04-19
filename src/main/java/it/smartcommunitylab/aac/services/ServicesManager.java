@@ -1,7 +1,10 @@
 package it.smartcommunitylab.aac.services;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -700,6 +704,86 @@ public class ServicesManager implements InitializingBean {
         }
     }
 
+    /*
+     * Scope Approvals
+     */
+
+    public Collection<Approval> getServiceScopeApprovals(String realm, String serviceId, String scope)
+            throws NoSuchServiceException, NoSuchScopeException {
+        // use finder to avoid loading all related
+        Service service = serviceService.findService(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        if (!realm.equals(service.getRealm())) {
+            throw new IllegalArgumentException("service does not match realm");
+        }
+
+        ServiceScope sc = serviceService.getScope(serviceId, scope);
+
+        // we use serviceId as id
+        String resourceId = serviceId;
+
+        // fetch approvals from store, serviceId is stored in userId
+        return approvalStore.findUserScopeApprovals(resourceId, sc.getScope());
+
+    }
+
+    public Approval addServiceScopeApproval(String realm, String serviceId, String scope, String clientId,
+            int duration, boolean approved)
+            throws NoSuchServiceException, NoSuchScopeException {
+        // use finder to avoid loading all related
+        Service service = serviceService.findService(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        if (!realm.equals(service.getRealm())) {
+            throw new IllegalArgumentException("service does not match realm");
+        }
+
+        ServiceScope sc = serviceService.getScope(serviceId, scope);
+
+        // add approval to store, will refresh if present
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, duration);
+        Date expiresAt = calendar.getTime();
+        ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
+
+        // we use serviceId as id
+        String resourceId = serviceId;
+
+        Approval approval = new Approval(resourceId, clientId, sc.getScope(), expiresAt, approvalStatus);
+        approvalStore.addApprovals(Collections.singleton(approval));
+
+        return approvalStore.findApproval(serviceId, clientId, scope);
+
+    }
+
+    public void revokeServiceScopeApproval(String realm, String serviceId, String scope, String clientId)
+            throws NoSuchServiceException, NoSuchScopeException {
+        // use finder to avoid loading all related
+        Service service = serviceService.findService(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        if (!realm.equals(service.getRealm())) {
+            throw new IllegalArgumentException("service does not match realm");
+        }
+
+        ServiceScope sc = serviceService.getScope(serviceId, scope);
+
+        // we use serviceId as id
+        String resourceId = serviceId;
+
+        Approval approval = approvalStore.findApproval(resourceId, clientId, sc.getScope());
+        if (approval != null) {
+            approvalStore.revokeApprovals(Collections.singleton(approval));
+        }
+    }
+
     private ScopeApprover buildScopeApprover(String realm, String namespace, ServiceScope sc) {
         String scope = sc.getScope();
         List<ScopeApprover> approvers = new ArrayList<>();
@@ -725,11 +809,13 @@ public class ServicesManager implements InitializingBean {
         if (sc.isApprovalRequired()) {
             StoreScopeApprover sa = new StoreScopeApprover(realm, namespace, scope);
             sa.setApprovalStore(approvalStore);
+            // we use serviceId as the authorizer authority
+            sa.setUserId(sc.getServiceId());
             approvers.add(sa);
         }
 
         if (approvers.isEmpty()) {
-            //use whitelist, scope is autoapproved
+            // use whitelist, scope is autoapproved
             return new WhitelistScopeApprover(realm, namespace, scope);
         }
 

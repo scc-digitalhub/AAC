@@ -33,12 +33,14 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
     private static final String DEFAULT_GET_USER_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE userId=?";
     private static final String DEFAULT_GET_CLIENT_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE clientId=?";
     private static final String DEFAULT_GET_SCOPE_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE scope=?";
+    private static final String DEFAULT_GET_USER_SCOPE_APPROVAL_SQL = "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM `oauth_approvals` WHERE userId=? and scope=?";
 
     private String createTableStatement = DEFAULT_CREATE_TABLE_STATEMENT;
     private String findSingleApprovalStatement = DEFAULT_FIND_SINGLE_APPROVAL_SQL;
     private String findUserApprovalStatement = DEFAULT_GET_USER_APPROVAL_SQL;
     private String findClientApprovalStatement = DEFAULT_GET_CLIENT_APPROVAL_SQL;
     private String findScopeApprovalStatement = DEFAULT_GET_SCOPE_APPROVAL_SQL;
+    private String findUserScopeApprovalStatement = DEFAULT_GET_USER_SCOPE_APPROVAL_SQL;
 
     public AutoJdbcApprovalStore(DataSource dataSource) {
         super(dataSource);
@@ -74,6 +76,12 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
             return null;
         }
     }
+    
+    @Override
+    public Collection<Approval> findUserScopeApprovals(String userName, String scope) {
+        return jdbcTemplate.query(findUserScopeApprovalStatement, rowMapper, userName, scope);
+    }
+
 
     private static class AuthorizationRowMapper implements RowMapper<Approval> {
 

@@ -24,27 +24,27 @@ public class TokenEndpoint {
     @Autowired
     private org.springframework.security.oauth2.provider.endpoint.TokenEndpoint tokenEndpoint;
 
-//    @RequestMapping(value = {
-//            "/oauth/token",
-//            "/-/{realm}/oauth/token" }, method = RequestMethod.GET)
-//    public ResponseEntity<OAuth2AccessToken> getAccessToken(
-//            @RequestParam Map<String, String> parameters,
-//            @PathVariable("realm") Optional<String> realmKey,
-//            Principal principal)
-//            throws HttpRequestMethodNotSupportedException {
-//
-//        String realm = SystemKeys.REALM_COMMON;
-//        if (realmKey.isPresent()) {
-//            realm = realmKey.get();
-//        }
-//
-//        // build a new map with realm parameter
-//        Map<String, String> params = new HashMap<>();
-//        params.putAll(parameters);
-//        params.put("realm", realm);
-//
-//        return tokenEndpoint.getAccessToken(principal, params);
-//    }
+    @RequestMapping(value = {
+            "/oauth/token",
+            "/-/{realm}/oauth/token" }, method = RequestMethod.GET)
+    public ResponseEntity<OAuth2AccessToken> getAccessToken(
+            @RequestParam Map<String, String> parameters,
+            @PathVariable("realm") Optional<String> realmKey,
+            Principal principal)
+            throws HttpRequestMethodNotSupportedException {
+
+        String realm = SystemKeys.REALM_COMMON;
+        if (realmKey.isPresent()) {
+            realm = realmKey.get();
+        }
+
+        // build a new map with realm parameter
+        Map<String, String> params = new HashMap<>();
+        params.putAll(parameters);
+        params.put("realm", realm);
+
+        return tokenEndpoint.getAccessToken(principal, params);
+    }
 
     @RequestMapping(value = {
             "/oauth/token",

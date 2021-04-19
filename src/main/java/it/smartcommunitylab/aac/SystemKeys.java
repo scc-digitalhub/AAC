@@ -45,4 +45,6 @@ public class SystemKeys {
     public static final String NAMESPACE_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public static final String KEY_PATTERN = "^[a-zA-Z0-9._]+$";
 
+    public static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30;// 30 days
+
 }
