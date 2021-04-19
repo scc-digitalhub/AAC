@@ -39,6 +39,9 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof UserAuthenticationToken) {
             return (UserAuthenticationToken) auth;
+        }
+        if (auth instanceof ComposedAuthenticationToken) {
+            return ((ComposedAuthenticationToken) auth).getUserAuthentication();
         } else {
             return null;
         }
@@ -76,6 +79,8 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof ClientAuthenticationToken) {
             return (ClientAuthenticationToken) auth;
+        } else if (auth instanceof ComposedAuthenticationToken) {
+            return ((ComposedAuthenticationToken) auth).getClientAuthentication();
         } else {
             return null;
         }

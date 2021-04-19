@@ -327,6 +327,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      * @return
      */
     private LogoutSuccessHandler logoutSuccessHandler() {
+        //TODO write dedicated, leverage OidcClientInitiatedLogoutSuccessHandler 
         SimpleUrlLogoutSuccessHandler handler = new SimpleUrlLogoutSuccessHandler();
         handler.setDefaultTargetUrl("/");
         handler.setTargetUrlParameter("target");

@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
@@ -18,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.ExtTokenStore;
 
 /**
@@ -36,6 +36,9 @@ public class TokenRevocationEndpoint {
     @Autowired
     private ExtTokenStore tokenStore;
 
+    @Autowired
+    private AuthenticationHelper authHelper;
+
     /**
      * Revoke the access token and the associated refresh token.
      * 
@@ -48,6 +51,15 @@ public class TokenRevocationEndpoint {
             @RequestParam(required = false, defaultValue = "access_token") String token_type_hint) {
         try {
             logger.debug("request revoke of token " + token + " hint " + String.valueOf(token_type_hint));
+
+            // get auth for client
+            ClientAuthenticationToken clientAuth = authHelper.getClientAuthentication();
+            if (clientAuth == null) {
+                // this endpoint is accessible only to authenticated clients
+                throw new UnauthorizedClientException("client authentication missing or invalid");
+            }
+
+            // load token from store
 
             OAuth2Authentication auth = null;
             OAuth2RefreshToken refreshToken = null;
@@ -88,10 +100,9 @@ public class TokenRevocationEndpoint {
             logger.trace("token clientId " + clientId);
 
             // load auth from context (basic auth or post if supported)
-            Authentication cauth = SecurityContextHolder.getContext().getAuthentication();
-            logger.trace("client auth requesting revoke  " + String.valueOf(cauth.getName()));
+            logger.trace("client auth requesting revoke  " + String.valueOf(clientAuth.getClientId()));
 
-            if (clientId.equals(cauth.getName())) {
+            if (clientId.equals(clientAuth.getClientId())) {
 
                 // remove all
                 if (refreshToken != null) {

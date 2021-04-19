@@ -9,11 +9,13 @@ import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -60,8 +62,9 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 // disable request cache, we override redirects but still better enforce it
                 .requestCache((requestCache) -> requestCache.disable())
                 .exceptionHandling()
-                // use 403 for tokenEndpoint
-                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                // use 401
+//                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .accessDeniedPage("/accesserror")
                 .and()
                 .csrf()
@@ -121,14 +124,14 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays.stream(TOKEN_URLS).map(u -> new AntPathRequestMatcher(u))
+        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_URLS).map(u -> new AntPathRequestMatcher(u))
                 .collect(Collectors.toList());
 
         return new OrRequestMatcher(antMatchers);
 
     }
 
-    public static final String[] TOKEN_URLS = {
+    public static final String[] OAUTH2_URLS = {
             "/oauth/token",
             "/oauth/introspect",
             "/oauth/revoke"

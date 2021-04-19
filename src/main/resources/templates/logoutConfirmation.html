@@ -16,46 +16,76 @@
 
 -->
 
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" >
-  <head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta name="description" content=""/>
-    <meta name="author" content=""/>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="-1" />
-    <!-- Design Italia -->
-    <link rel="stylesheet" href="italia/css/bootstrap-italia.min.css"/>   
-    <script>window.__PUBLIC_PATH__ = 'italia/fonts'</script>    
-    <link href="italia/style.css" rel="stylesheet" />
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="-1" />
+  <!-- Design Italia -->
+  <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+  <script th:inline="javascript">
+    const contextpath = /*[[@{/}]]*/ "/";
+    window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+  </script>
+
+  <link th:href="@{/italia/style.css}" rel="stylesheet" />
+
+  <title th:text="#{lbl_logout_title}">AAC Logout</title>
 </head>
+
 <body>
+  <div class="container">
 
- <div class="container main">
+    <div th:if="${headerText == null}">
+      <img class="logo d-none d-md-block" src="../img/ls_logo.png" alt="SmartCommunity" />
+      <div class="clear"></div>
+    </div>
 
-  <div class="well" style="text-align: center">
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${headerText != null}"
+      th:utext="${headerText}"></div>
 
-    <h2 th:text="#{lbl_logout_title}">Logout confirmation</h2>
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${accessConfirmationText != null}"
+      th:utext="${accessConfirmationText}"></div>
 
-    <form th:attr="action=${ issuer + (issuer.endsWith('/') ? '' : '/') + 'endsession' }" method="POST">
+    <div class="row mt-md-0 mt-5 justify-content-center">
+      <div class="confirmation-content container-fluid">
+        <div class="row justify-content-center">
+          <div class="col-md-offset-2 col-md-8">
+            <h2 th:text="#{lbl_logout_title}">Logout confirmation</h2>
 
-      <div class="row-fluid">
-            <div th:if="${ client != null }">
-              <div th:utext="#{lbl_logout_from(${client.displayName})}">Logout from application</div>
-            </div>
-          <br/><br/>
-          <input name="approve" th:attr="value=#{lbl_confirm_btn}" type="submit" class="btn btn-primary btn-large" /> 
-          &nbsp; 
-          <input name="deny" th:attr="value=#{lbl_cancel}" type="submit" class="btn btn-large" />
+            <form id="logoutForm" name="logoutForm" th:action="${formAction}" method="post">
+
+              <div class="row-fluid">
+                <div th:if="${ client != null }">
+                  <div th:utext="#{lbl_logout_from(${client.displayName})}">Logout from application</div>
+                </div>
+                <br /><br />
+                <input name="approve" th:attr="value=#{lbl_confirm_btn}" type="submit"
+                  class="btn btn-primary btn-large" />
+                &nbsp;
+                <input name="deny" th:attr="value=#{lbl_cancel}" type="submit" class="btn btn-large" />
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
       </div>
-
-    </form>
+    </div>
+    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${footerText != null}"
+      th:utext="${footerText}"></div>
 
   </div>
-</div>
+  <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
 
 </body>
+
 </html>

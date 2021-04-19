@@ -115,6 +115,10 @@ public class UserApprovalEndpoint {
             model.put("_csrf", request.getAttribute("_csrf"));
         }
 
+        // add form action
+        // TODO handle per realm
+        model.put("formAction", "/oauth/authorize");
+
         logger.trace("call view with model " + model);
         return new ModelAndView("access_confirmation", model);
     }

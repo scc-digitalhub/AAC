@@ -55,6 +55,11 @@ public abstract class ClientAuthenticationToken extends AbstractAuthenticationTo
         return details;
     }
 
+    @Override
+    public String getName() {
+        return principal;
+    }
+
     public ClientDetails getClient() {
         return details;
     }
