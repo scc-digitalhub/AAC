@@ -54,6 +54,11 @@ public class ClientEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, String> hookFunctions;
 
+    @Lob
+    @Column(name = "hook_weburls")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> hookWebUrls;
+
     // audit
     @CreatedDate
     @Column(name = "created_date")
@@ -158,6 +163,14 @@ public class ClientEntity {
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
+    }
+
+    public Map<String, String> getHookWebUrls() {
+        return hookWebUrls;
+    }
+
+    public void setHookWebUrls(Map<String, String> hookWebUrls) {
+        this.hookWebUrls = hookWebUrls;
     }
 
     public String getResourceIds() {

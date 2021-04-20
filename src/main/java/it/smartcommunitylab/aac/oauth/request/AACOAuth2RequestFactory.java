@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.request;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,17 +23,19 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
 import it.smartcommunitylab.aac.oauth.RealmTokenRequest;
-import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
+import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
@@ -40,13 +43,14 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 
     private static final String NONCE = "nonce";
 
-    private final OAuth2ClientDetailsService clientDetailsService;
-
+    private final ClientDetailsService clientDetailsService;
+    private FlowExtensionsService flowExtensionsService;
+    private UserTranslatorService userTranslatorService;
     private ScopeRegistry scopeRegistry;
 
     private AuthenticationHelper authenticationHelper = new DefaultSecurityContextAuthenticationHelper();
 
-    public AACOAuth2RequestFactory(OAuth2ClientDetailsService clientDetailsService) {
+    public AACOAuth2RequestFactory(ClientDetailsService clientDetailsService) {
         Assert.notNull(clientDetailsService, "client details service is mandatory");
         this.clientDetailsService = clientDetailsService;
     }
@@ -59,6 +63,14 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         this.scopeRegistry = scopeRegistry;
     }
 
+    public void setFlowExtensionsService(FlowExtensionsService flowExtensionsService) {
+        this.flowExtensionsService = flowExtensionsService;
+    }
+
+    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
+        this.userTranslatorService = userTranslatorService;
+    }
+
     /*
      * Create a realm authorization request
      * 
@@ -69,100 +81,131 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 
     public RealmAuthorizationRequest createAuthorizationRequest(Map<String, String> authorizationParameters) {
         logger.trace(authorizationParameters.toString());
+
+        // fetch base params
         String clientId = authorizationParameters.get(OAuth2Utils.CLIENT_ID);
         String state = authorizationParameters.get(OAuth2Utils.STATE);
-        String redirectUri = authorizationParameters.get(OAuth2Utils.REDIRECT_URI);
         Set<String> responseTypes = OAuth2Utils.parseParameterList(
                 decodeParameters(authorizationParameters.get(OAuth2Utils.RESPONSE_TYPE)));
-
-        Set<String> scopes = extractScopes(
-                OAuth2Utils.parseParameterList(
-                        decodeParameters(authorizationParameters.get(OAuth2Utils.SCOPE))),
-                clientId, false);
-
         String realm = authorizationParameters.get("realm");
 
-        // we collect serviceIds as resourceIds to mark these as audience
-        Set<String> resourceIds = new HashSet<>();
-        resourceIds.addAll(OAuth2Utils.parseParameterList(
-                decodeParameters(authorizationParameters.get("resource_id"))));
+        try {
+            it.smartcommunitylab.aac.core.ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
 
-        // also load resources derived from requested scope
-        resourceIds.addAll(extractResourceIds(scopes));
-        // workaround to support "id_token" requests
-        // TODO fix with proper support in AuthorizationEndpoint
-        if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
-            // ensure one of code or token is requested
-            if (!responseTypes.contains(Config.RESPONSE_TYPE_CODE)
-                    && !responseTypes.contains(Config.RESPONSE_TYPE_TOKEN)) {
-                // treat it like an implicit flow call
-                responseTypes.add(Config.RESPONSE_TYPE_TOKEN);
+            // also validate that user has an identity in the asked realm
+            UserAuthenticationToken userAuth = authenticationHelper.getUserAuthentication();
+            if (userAuth == null) {
+                // this should not happen
+                throw new UnauthorizedUserException("missing user auth");
             }
 
-        }
+            // check extensions and integrate modifications
+            if (flowExtensionsService != null) {
+                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
+                if (ext != null) {
+                    User user = new User(userAuth.getUser());
+                    if (userTranslatorService != null) {
+                        user = userTranslatorService.translate(userAuth.getUser(), clientDetails.getRealm());
+                    }
 
-        // workaround to support "id_token" requests
-        // TODO fix with proper support in AuthorizationEndpoint
-        if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
-            // ensure one of code or token is requested
-            if (!responseTypes.contains(Config.RESPONSE_TYPE_CODE)
-                    && !responseTypes.contains(Config.RESPONSE_TYPE_TOKEN)) {
-                // treat it like an implicit flow call
-                responseTypes.add(Config.RESPONSE_TYPE_TOKEN);
+                    Map<String, String> parameters = ext.onBeforeUserApproval(authorizationParameters, user,
+                            clientDetails);
+                    if (parameters != null) {
+                        // merge parameters into request params
+                        authorizationParameters.putAll(parameters);
+                        // enforce base params consistency
+                        // TODO rewrite with proper merge with exclusion list
+                        authorizationParameters.put(OAuth2Utils.CLIENT_ID, clientId);
+                        authorizationParameters.put(OAuth2Utils.STATE, state);
+                        authorizationParameters.put(OAuth2Utils.RESPONSE_TYPE,
+                                OAuth2Utils.formatParameterList(responseTypes));
+                        authorizationParameters.put("realm", realm);
+                    }
+                }
             }
 
+            String redirectUri = authorizationParameters.get(OAuth2Utils.REDIRECT_URI);
+            Set<String> scopes = extractScopes(
+                    OAuth2Utils.parseParameterList(
+                            decodeParameters(authorizationParameters.get(OAuth2Utils.SCOPE))),
+                    clientDetails.getScopes(), false);
+
+            // we collect serviceIds as resourceIds to mark these as audience
+            Set<String> resourceIds = new HashSet<>();
+            resourceIds.addAll(OAuth2Utils.parseParameterList(
+                    decodeParameters(authorizationParameters.get("resource_id"))));
+
+            // also load resources derived from requested scope
+            resourceIds.addAll(extractResourceIds(scopes));
+            // workaround to support "id_token" requests
+            // TODO fix with proper support in AuthorizationEndpoint
+            if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
+                // ensure one of code or token is requested
+                if (!responseTypes.contains(Config.RESPONSE_TYPE_CODE)
+                        && !responseTypes.contains(Config.RESPONSE_TYPE_TOKEN)) {
+                    // treat it like an implicit flow call
+                    responseTypes.add(Config.RESPONSE_TYPE_TOKEN);
+                }
+
+            }
+
+            // workaround to support "id_token" requests
+            // TODO fix with proper support in AuthorizationEndpoint
+            if (responseTypes.contains(Config.RESPONSE_TYPE_ID_TOKEN)) {
+                // ensure one of code or token is requested
+                if (!responseTypes.contains(Config.RESPONSE_TYPE_CODE)
+                        && !responseTypes.contains(Config.RESPONSE_TYPE_TOKEN)) {
+                    // treat it like an implicit flow call
+                    responseTypes.add(Config.RESPONSE_TYPE_TOKEN);
+                }
+
+            }
+
+            logger.trace("create authorization request for " + clientId + " realm " + String.valueOf(realm)
+                    + " response " + responseTypes.toString()
+                    + " scope " + String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
+                    + " extracted scope " + scopes.toString()
+                    + " resource ids " + resourceIds.toString()
+                    + " redirect " + redirectUri);
+
+            RealmAuthorizationRequest request = new RealmAuthorizationRequest(
+                    authorizationParameters, Collections.<String, String>emptyMap(),
+                    clientId, realm,
+                    scopes, resourceIds, null, false,
+                    state, redirectUri,
+                    responseTypes);
+
+            if (authorizationParameters.containsKey(NONCE)) {
+                request.getExtensions().put(NONCE, authorizationParameters.get(NONCE));
+            }
+
+            // store client authorities to be used consistently during request
+            request.setAuthorities(clientDetails.getAuthorities());
+
+            // load resourceIds from params, fallback if missing
+            if (resourceIds.isEmpty()) {
+                request.setResourceIds(new HashSet<>(clientDetails.getResourceIds()));
+            }
+
+            // validate request for realm matching
+            // TODO move to requestValidator, but authEndpoint calls only checkScopes for
+            // now..
+            if (!SystemKeys.REALM_COMMON.equals(realm) && !clientDetails.getRealm().equals(realm)) {
+                throw new OAuth2AccessDeniedException();
+            }
+
+            if (!SystemKeys.REALM_COMMON.equals(realm) && !userAuth.getRealm().equals(realm)) {
+                // throw an error, we should really ask user to re-authenticate with the given
+                // realm
+                // by delegating to the authenticationEntryPoint
+                // TODO
+                throw new OAuth2AccessDeniedException();
+            }
+
+            return request;
+        } catch (NoSuchClientException e) {
+            throw new InvalidClientException("invalid client");
         }
-
-        logger.trace("create authorization request for " + clientId + " realm " + String.valueOf(realm)
-                + " response " + responseTypes.toString()
-                + " scope " + String.valueOf(authorizationParameters.get(OAuth2Utils.SCOPE))
-                + " extracted scope " + scopes.toString()
-                + " resource ids " + resourceIds.toString()
-                + " redirect " + redirectUri);
-
-        RealmAuthorizationRequest request = new RealmAuthorizationRequest(
-                authorizationParameters, Collections.<String, String>emptyMap(),
-                clientId, realm,
-                scopes, resourceIds, null, false,
-                state, redirectUri,
-                responseTypes);
-
-        if (authorizationParameters.containsKey(NONCE)) {
-            request.getExtensions().put(NONCE, authorizationParameters.get(NONCE));
-        }
-
-        OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
-        // store client authorities to be used consistently during request
-        request.setAuthorities(clientDetails.getAuthorities());
-
-        // load resourceIds from params, fallback if missing
-        if (resourceIds.isEmpty()) {
-            request.setResourceIds(clientDetails.getResourceIds());
-        }
-
-        // validate request for realm matching
-        // TODO move to requestValidator, but authEndpoint calls only checkScopes for
-        // now..
-        if (!SystemKeys.REALM_COMMON.equals(realm) && !clientDetails.getRealm().equals(realm)) {
-            throw new OAuth2AccessDeniedException();
-        }
-
-        // also validate that user has an identity in the asked realm
-        UserAuthenticationToken userAuth = authenticationHelper.getUserAuthentication();
-        if (userAuth == null) {
-            // this should not happen
-            throw new UnauthorizedUserException("missing user auth");
-        }
-
-        if (!SystemKeys.REALM_COMMON.equals(realm) && !userAuth.getRealm().equals(realm)) {
-            // throw an error, we should really ask user to re-authenticate with the given
-            // realm
-            // by delegating to the authenticationEntryPoint
-            // TODO
-            throw new OAuth2AccessDeniedException();
-        }
-
-        return request;
 
     }
 
@@ -186,56 +229,78 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         }
 
         String grantType = requestParameters.get(OAuth2Utils.GRANT_TYPE);
-
-        Set<String> scopes = new HashSet<>();
-        // check grantType and act accordingly to parse scopes
-        if (Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
-                Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) ||
-                Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
-            scopes = extractScopes(OAuth2Utils.parseParameterList(
-                    decodeParameters(requestParameters.get(OAuth2Utils.SCOPE))),
-                    clientId, isClientRequest(grantType));
-        }
-
         String realm = requestParameters.get("realm");
 
-        // we collect serviceIds as resourceIds to mark these as audience
-        Set<String> resourceIds = new HashSet<>();
-        resourceIds.addAll(OAuth2Utils.parseParameterList(
-                decodeParameters(requestParameters.get("resource_id"))));
+        try {
+            it.smartcommunitylab.aac.core.ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
 
-        // also load resources derived from requested scope
-        resourceIds.addAll(extractResourceIds(scopes));
+            // check extensions and integrate modifications
+            if (flowExtensionsService != null) {
+                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
+                if (ext != null) {
 
-        logger.trace("create token request for " + clientId + " realm " + String.valueOf(realm)
-                + " grantType " + grantType
-                + " scope " + String.valueOf(requestParameters.get(OAuth2Utils.SCOPE))
-                + " extracted scope " + scopes.toString()
-                + " resource ids " + resourceIds.toString());
+                    Map<String, String> parameters = ext.onBeforeTokenGrant(requestParameters, clientDetails);
+                    if (parameters != null) {
+                        // merge parameters into request params
+                        requestParameters.putAll(parameters);
+                        // enforce base params consistency
+                        // TODO rewrite with proper merge with exclusion list
+                        requestParameters.put(OAuth2Utils.CLIENT_ID, clientId);
+                        requestParameters.put(OAuth2Utils.GRANT_TYPE, grantType);
+                        requestParameters.put("realm", realm);
+                    }
+                }
+            }
 
-        RealmTokenRequest request = new RealmTokenRequest(requestParameters,
-                clientId, realm,
-                scopes, resourceIds,
-                null,
-                grantType);
+            Set<String> scopes = new HashSet<>();
+            // check grantType and act accordingly to parse scopes
+            if (Config.GRANT_TYPE_PASSWORD.equals(grantType) ||
+                    Config.GRANT_TYPE_CLIENT_CREDENTIALS.equals(grantType) ||
+                    Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
+                scopes = extractScopes(OAuth2Utils.parseParameterList(
+                        decodeParameters(requestParameters.get(OAuth2Utils.SCOPE))),
+                        clientDetails.getScopes(), isClientRequest(grantType));
+            }
 
-        OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
-        // store client authorities to be used consistently during request
-        request.setAuthorities(clientDetails.getAuthorities());
+            // we collect serviceIds as resourceIds to mark these as audience
+            Set<String> resourceIds = new HashSet<>();
+            resourceIds.addAll(OAuth2Utils.parseParameterList(
+                    decodeParameters(requestParameters.get("resource_id"))));
 
-        // load resourceIds from params, fallback if missing to default
-        if (resourceIds.isEmpty()) {
-            request.setResourceIds(clientDetails.getResourceIds());
+            // also load resources derived from requested scope
+            resourceIds.addAll(extractResourceIds(scopes));
+
+            logger.trace("create token request for " + clientId + " realm " + String.valueOf(realm)
+                    + " grantType " + grantType
+                    + " scope " + String.valueOf(requestParameters.get(OAuth2Utils.SCOPE))
+                    + " extracted scope " + scopes.toString()
+                    + " resource ids " + resourceIds.toString());
+
+            RealmTokenRequest request = new RealmTokenRequest(requestParameters,
+                    clientId, realm,
+                    scopes, resourceIds,
+                    null,
+                    grantType);
+
+            // store client authorities to be used consistently during request
+            request.setAuthorities(clientDetails.getAuthorities());
+
+            // load resourceIds from params, fallback if missing to default
+            if (resourceIds.isEmpty()) {
+                request.setResourceIds(new HashSet<>(clientDetails.getResourceIds()));
+            }
+
+            // validate request for realm matching
+            // TODO move to requestValidator, but tokenEndpoint calls only checkScopes for
+            // now..
+            if (!SystemKeys.REALM_COMMON.equals(realm) && !clientDetails.getRealm().equals(realm)) {
+                throw new OAuth2AccessDeniedException();
+            }
+
+            return request;
+        } catch (NoSuchClientException e) {
+            throw new InvalidClientException("invalid client");
         }
-
-        // validate request for realm matching
-        // TODO move to requestValidator, but tokenEndpoint calls only checkScopes for
-        // now..
-        if (!SystemKeys.REALM_COMMON.equals(realm) && !clientDetails.getRealm().equals(realm)) {
-            throw new OAuth2AccessDeniedException();
-        }
-
-        return request;
     }
 
     public TokenRequest createTokenRequest(AuthorizationRequest authorizationRequest, String grantType) {
@@ -271,9 +336,8 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
     }
 
     // TODO cleanup requestParameters and rework checkUserScopes
-    private Set<String> extractScopes(Set<String> scopes, String clientId, boolean isClient) {
+    private Set<String> extractScopes(Set<String> scopes, Collection<String> clientScopes, boolean isClient) {
         logger.trace("scopes from parameters " + scopes.toString());
-        ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
         ScopeType type = isClient ? ScopeType.CLIENT : ScopeType.USER;
 
         if ((scopes == null || scopes.isEmpty())) {
@@ -282,7 +346,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
             // (the spec allows us to choose between this option and rejecting the request
             // completely, so we'll take the
             // least obnoxious choice as a default).
-            scopes = clientDetails.getScope();
+            scopes = new HashSet<>(clientScopes);
         }
 
         // TODO rework 2FA

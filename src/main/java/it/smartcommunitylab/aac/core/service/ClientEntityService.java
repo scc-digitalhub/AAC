@@ -104,7 +104,8 @@ public class ClientEntityService {
             String name, String description,
             Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
-            Map<String, String> hookFunctions) throws NoSuchClientException {
+            Map<String, String> hookFunctions,
+            Map<String, String> hookWebUrls) throws NoSuchClientException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c == null) {
             throw new NoSuchClientException();
@@ -118,6 +119,7 @@ public class ClientEntityService {
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
 
         c.setHookFunctions(hookFunctions);
+        c.setHookWebUrls(hookWebUrls);
 
         c = clientRepository.save(c);
 

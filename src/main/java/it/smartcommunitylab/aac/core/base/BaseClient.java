@@ -21,6 +21,7 @@ public abstract class BaseClient extends AbstractClient {
     private Set<String> resourceIds;
 
     private Map<String, String> hookFunctions;
+    private Map<String, String> hookWebUrls;
 
     public BaseClient(String realm, String clientId) {
         super(realm, clientId);
@@ -79,6 +80,15 @@ public abstract class BaseClient extends AbstractClient {
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
+    }
+
+    @JsonIgnore
+    public Map<String, String> getHookWebUrls() {
+        return hookWebUrls;
+    }
+
+    public void setHookWebUrls(Map<String, String> hookWebUrls) {
+        this.hookWebUrls = hookWebUrls;
     }
 
     /*

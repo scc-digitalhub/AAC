@@ -53,6 +53,7 @@ public class ClientApp {
     // hook
     // TODO map to fixed list or explode
     private Map<String, String> hookFunctions;
+    private Map<String, String> hookWebUrls;
 
     public ClientApp() {
         this.configuration = new HashMap<>();
@@ -60,6 +61,7 @@ public class ClientApp {
         this.resourceIds = new ArrayList<>();
         this.providers = new ArrayList<>();
         this.hookFunctions = new HashMap<>();
+        this.hookWebUrls = new HashMap<>();
         this.name = "";
         this.description = "";
     }
@@ -142,6 +144,14 @@ public class ClientApp {
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
+    }
+
+    public Map<String, String> getHookWebUrls() {
+        return hookWebUrls;
+    }
+
+    public void setHookWebUrls(Map<String, String> hookWebUrls) {
+        this.hookWebUrls = hookWebUrls;
     }
 
 }

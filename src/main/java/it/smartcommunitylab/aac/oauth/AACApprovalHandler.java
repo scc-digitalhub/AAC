@@ -8,12 +8,13 @@ import org.springframework.security.oauth2.provider.approval.UserApprovalHandler
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
 
 public class AACApprovalHandler implements UserApprovalHandler {
 
     private final UserApprovalHandler userApprovalHandler;
     private UserApprovalHandler scopeApprovalHandler;
-    private OAuthFlowExtensions flowExtensions;
+    private OAuthFlowExtensionsHandler flowExtensionsHandler;
 
     public AACApprovalHandler(UserApprovalHandler userApprovalHandler) {
         Assert.notNull(userApprovalHandler, "a user approval handler is required");
@@ -24,14 +25,19 @@ public class AACApprovalHandler implements UserApprovalHandler {
         this.scopeApprovalHandler = scopeApprovalHandler;
     }
 
-    public void setFlowExtensions(OAuthFlowExtensions flowExtensions) {
-        this.flowExtensions = flowExtensions;
+    public void setFlowExtensionsHandler(OAuthFlowExtensionsHandler flowExtensionsHandler) {
+        this.flowExtensionsHandler = flowExtensionsHandler;
     }
 
     @Override
     public boolean isApproved(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
         boolean result = userApprovalHandler.isApproved(authorizationRequest, userAuthentication);
         // TODO add space selection here
+
+        // check flow extensions
+        if (flowExtensionsHandler != null) {
+            result = flowExtensionsHandler.isApproved(authorizationRequest, userAuthentication);
+        }
 
         return result;
     }
@@ -60,10 +66,6 @@ public class AACApprovalHandler implements UserApprovalHandler {
             // call scopeApprover after user approver to let it "unauthorize" an approved
             // request
             request = scopeApprovalHandler.updateAfterApproval(request, userAuthentication);
-        }
-
-        if (flowExtensions != null && isApproved(request, userAuthentication)) {
-            flowExtensions.onAfterApproval(request, userAuthentication);
         }
 
         return request;

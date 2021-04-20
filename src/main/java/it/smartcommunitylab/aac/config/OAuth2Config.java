@@ -70,6 +70,8 @@ import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
+import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestFactory;
@@ -138,12 +140,16 @@ public class OAuth2Config {
 
     @Bean
     public AACOAuth2RequestFactory getOAuth2RequestFactory(
-            OAuth2ClientDetailsService clientDetailsService,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            UserTranslatorService userTranslatorService,
+            FlowExtensionsService flowExtensionsService,
             ScopeRegistry scopeRegistry,
             AuthenticationHelper authenticationHelper)
             throws PropertyVetoException {
 
         AACOAuth2RequestFactory requestFactory = new AACOAuth2RequestFactory(clientDetailsService);
+        requestFactory.setFlowExtensionsService(flowExtensionsService);
+        requestFactory.setUserTranslatorService(userTranslatorService);
         requestFactory.setScopeRegistry(scopeRegistry);
         requestFactory.setAuthenticationHelper(authenticationHelper);
         return requestFactory;
@@ -228,13 +234,18 @@ public class OAuth2Config {
             OAuth2ClientDetailsService oauthClientDetailsService,
             ScopeRegistry scopeRegistry,
             it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
-            UserTranslatorService userTranslatorService) {
+            UserTranslatorService userTranslatorService,
+            FlowExtensionsService flowExtensionsService) {
         ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService);
         ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService,
                 userTranslatorService);
+        OAuthFlowExtensionsHandler flowExtensionsHandler = new OAuthFlowExtensionsHandler(flowExtensionsService,
+                clientDetailsService);
+        flowExtensionsHandler.setUserTranslatorService(userTranslatorService);
+
         AACApprovalHandler handler = new AACApprovalHandler(userHandler);
         handler.setScopeApprovalHandler(scopeHandler);
-
+        handler.setFlowExtensionsHandler(flowExtensionsHandler);
         return handler;
     }
 

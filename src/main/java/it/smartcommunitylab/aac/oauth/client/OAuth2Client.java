@@ -332,6 +332,7 @@ public class OAuth2Client extends BaseClient {
         c.setScopes(StringUtils.commaDelimitedListToSet(client.getScopes()));
         c.setProviders(StringUtils.commaDelimitedListToSet(client.getProviders()));
         c.setHookFunctions(client.getHookFunctions());
+        c.setHookWebUrls(client.getHookWebUrls());
 
         // map attributes
         c.clientSecret = (oauth.getClientSecret() != null ? new ClientSecret(oauth.getClientSecret()) : null);

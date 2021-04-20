@@ -16,9 +16,12 @@
 
 package it.smartcommunitylab.aac.oauth.flow;
 
-import org.springframework.security.core.Authentication;
+import java.util.Collection;
+import java.util.Map;
+
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.model.User;
 
 /**
  * OAuth 2.0 Flow extensions manager. Handles specific Flow phases, in
@@ -30,18 +33,46 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
  */
 public interface OAuthFlowExtensions {
 
+    public static final String BEFORE_USER_APPROVAL = "beforeUserApproval";
+    public static final String AFTER_USER_APPROVAL = "afterUserApproval";
+
+    public static final String BEFORE_TOKEN_GRANT = "beforeTokenGrant";
+    public static final String AFTER_TOKEN_GRANT = "afterTokenGrant";
+
+    /**
+     * Event triggered immediately before the user approves the requested scopes and
+     * before the code/token is emitted.
+     * 
+     * The returned parameters can be modified to alter the process
+     */
+    public Map<String, String> onBeforeUserApproval(Map<String, String> requestParameters, User user,
+            ClientDetails client)
+            throws FlowExecutionException;
+
     /**
      * Event triggered immediately after the user has approved the requested scopes
      * and before the code/token is emitted.
      * 
-     * @param authorizadtionRequest
-     * @param userAuthentication
-     * @throws FlowExecutionException
+     * The returned request can have the authorized status changed from true to
+     * false, any other modifications will be discarded
      */
-    public void onAfterApproval(AuthorizationRequest authorizadtionRequest, Authentication userAuthentication)
+    public Boolean onAfterUserApproval(Collection<String> scopes, User user,
+            ClientDetails client)
             throws FlowExecutionException;
 
-    public void onAfterTokenGrant(AuthorizationRequest authorizadtionRequest, OAuth2AccessToken accessToken)
+    /**
+     * Event triggered immediately before the token generation
+     * 
+     * The returned parameters can be modified to alter the process
+     */
+    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, ClientDetails client)
+            throws FlowExecutionException;
+
+    /*
+     * Event triggered immediately after the token generation
+     */
+
+    public void onAfterTokenGrant(OAuth2AccessToken accessToken, ClientDetails client)
             throws FlowExecutionException;
 
 }

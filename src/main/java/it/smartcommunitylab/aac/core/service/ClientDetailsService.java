@@ -50,8 +50,12 @@ public class ClientDetailsService {
                 authorities);
 
         details.setName(client.getName());
+        details.setDescription(client.getDescription());
         details.setProviders(StringUtils.commaDelimitedListToSet(client.getProviders()));
+        details.setScopes(StringUtils.commaDelimitedListToSet(client.getScopes()));
+        details.setResourceIds(StringUtils.commaDelimitedListToSet(client.getResourceIds()));
         details.setHookFunctions(client.getHookFunctions());
+        details.setHookWebUrls(client.getHookWebUrls());
 
         // TODO client attributes from attr providers
 

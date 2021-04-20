@@ -16,12 +16,18 @@ public class ClientDetails {
     private final String type;
 
     private String name;
+    private String description;
 
     // providers enabled
     private Collection<String> providers;
 
+    // scopes enabled
+    private Collection<String> scopes;
+    private Collection<String> resourceIds;
+
     // hook functions
     private Map<String, String> hookFunctions;
+    private Map<String, String> hookWebUrls;
 
     // attributes related to client
     // sets are bound to realm, stored with addressable keys
@@ -63,12 +69,36 @@ public class ClientDetails {
         this.providers = providers;
     }
 
+    public Collection<String> getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(Collection<String> scopes) {
+        this.scopes = scopes;
+    }
+
+    public Collection<String> getResourceIds() {
+        return resourceIds;
+    }
+
+    public void setResourceIds(Collection<String> resourceIds) {
+        this.resourceIds = resourceIds;
+    }
+
     public Map<String, String> getHookFunctions() {
         return hookFunctions;
     }
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
+    }
+
+    public Map<String, String> getHookWebUrls() {
+        return hookWebUrls;
+    }
+
+    public void setHookWebUrls(Map<String, String> hookWebUrls) {
+        this.hookWebUrls = hookWebUrls;
     }
 
     public Map<String, ClientAttributes> getAttributes() {
@@ -105,6 +135,14 @@ public class ClientDetails {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }
