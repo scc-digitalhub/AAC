@@ -80,7 +80,7 @@ public class UserService {
     public User getUser(UserDetails userDetails, String realm) {
         String subjectId = userDetails.getSubjectId();
 
-        if (userDetails.getRealm().equals(realm)) {
+        if (realm == null || userDetails.getRealm().equals(realm)) {
             // no translation needed, just refresh
             return getUser(userDetails);
         }
@@ -109,7 +109,7 @@ public class UserService {
     public User getUser(User user, String realm) {
         String subjectId = user.getSubjectId();
 
-        if (user.getRealm().equals(realm)) {
+        if (realm == null || user.getRealm().equals(realm)) {
             // no translation needed
             // TODO evaluate refresh
             return user;

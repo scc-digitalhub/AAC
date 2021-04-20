@@ -24,7 +24,10 @@ public class SpaceRoleEntity {
 
     // role definition
     private String context;
+    
+    @NotNull
     private String space;
+    
     @NotNull
     private String role;
 
