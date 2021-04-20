@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +17,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -277,6 +278,14 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     }
 
+    public boolean hasAuthority(String auth) {
+    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(auth));
+    }
+    public boolean hasAnyAuthority(String ... auth) {
+    	Set<String> set = Sets.newHashSet(auth); 
+    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a ->set.contains(a.getAuthority()));
+    }
+    
     /*
      * Attributes
      * 

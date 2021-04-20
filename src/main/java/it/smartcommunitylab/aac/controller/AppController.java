@@ -21,11 +21,15 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.UserManager;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -39,6 +43,9 @@ import springfox.documentation.annotations.ApiIgnore;
 public class AppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Autowired
+    private UserManager userManager;
+    
     /**
      * Retrieve the with the user data: currently on the username is added.
      * 
@@ -49,26 +56,30 @@ public class AppController {
         return new ModelAndView("redirect:/account");
     }
 
-//    /**
-//     * Retrieve the with the user data: currently on the username is added.
-//     * 
-//     * @return
-//     */
-//    @RequestMapping("/dev")
-//    public ModelAndView developer() {
-//        Map<String, Object> model = new HashMap<String, Object>();
-//
-//        String username = userManager.getUserFullName();
-//        model.put("username", username);
-//        Set<String> userRoles = userManager.getUserRoles();
-//        model.put("roles", userRoles);
-//        model.put("contexts",
-//                userManager.getUser().getRoles().stream().filter(r -> r.getRole().equals(Config.R_PROVIDER))
-//                        .map(Role::canonicalSpace).collect(Collectors.toSet()));
-//        String check = ":" + Config.R_PROVIDER;
-//        model.put("apiProvider", userRoles.stream().anyMatch(s -> s.endsWith(check)));
-//        return new ModelAndView("index", model);
-//    }
+    /**
+     * Retrieve the with the user data: currently on the username is added.
+     * 
+     * @return
+     */
+    @RequestMapping("/dev")
+    public ModelAndView developer() {
+        UserDetails user = userManager.curUserDetails();
+        if (user == null || !user.hasAnyAuthority(Config.R_ADMIN, Config.R_DEVELOPER)) {
+        	throw new SecurityException();
+        }
+        Map<String, Object> model = new HashMap<String, Object>();
+//      Set<String> userRoles = userManager.getUserRoles();
+//      model.put("roles", userRoles);
+//      model.put("contexts",
+//              userManager.getUser().getRoles().stream().filter(r -> r.getRole().equals(Config.R_PROVIDER))
+//                      .map(Role::canonicalSpace).collect(Collectors.toSet()));
+//      String check = ":" + Config.R_PROVIDER;
+//      model.put("apiProvider", userRoles.stream().anyMatch(s -> s.endsWith(check)));
+
+
+//        model.put("user", user);
+        return new ModelAndView("index", model);
+    }
 
     /**
      * Retrieve the with the user data: currently on the username is added.

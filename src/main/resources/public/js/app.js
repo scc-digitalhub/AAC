@@ -37,12 +37,7 @@ app.run(function($rootScope){
 		if (next.$$route.originalPath.indexOf('/tenantowners') == 0)  $rootScope.currentView = 'tenantowners';
 		if (next.$$route.originalPath.indexOf('/services') == 0)  $rootScope.currentView = 'services';
 		if (next.$$route.originalPath.indexOf('/admin') == 0)  $rootScope.currentView = 'admin';
-	});	
-	
-	$rootScope.roles = ROLES;
-	$rootScope.providerContexts = !!CONTEXTS && CONTEXTS.length > 0 ? CONTEXTS:null;
-	$rootScope.isAPIProvider = API_PROVIDER;
-	
+	});		
 })
 
 app.config(function($routeProvider) {

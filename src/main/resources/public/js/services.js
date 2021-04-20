@@ -5,6 +5,20 @@ angular.module('aac.services', [])
  */
 .service('Data', function($q, $http) {
 	var dataService = {};
+	
+	
+	/**
+   * Read the user profile
+   */
+  dataService.getProfile = function() {
+    var deferred = $q.defer();
+    $http.get('account/profile').then(function(data){
+      deferred.resolve(data.data);
+    }, function(err) {
+      deferred.reject(err);
+    });
+    return deferred.promise;
+  }
 		
 	/**
 	 * Read a specific page of the  user apps matching the specified query 
@@ -260,6 +274,40 @@ angular.module('aac.services', [])
 
 	return dataService;
 })
+
+/**
+ * Admin Data Services
+ */ 
+.service('AdminData', function($q, $http, $httpParamSerializer) {
+  var aService = {};
+  
+  aService.getRealms = function(params) {
+    var q = Object.assign({}, params);
+    if (q.sort) q.sort = Object.keys(q.sort).map(function(k) { return k + ',' + (q.sort[k] > 0 ? 'asc': 'desc'); });
+    var queryString = $httpParamSerializer(q);
+    return $http.get('console/admin/realms?' + queryString).then(function(data) {
+      return data.data;
+    });
+  }
+  
+  aService.addRealm = function(r) {
+    return $http.post('console/admin/realms', r).then(function(data) {
+      return data.data;
+    });
+  }
+  aService.updateRealm = function(r) {
+    return $http.put('console/admin/realms/' + r.slug, r).then(function(data) {
+      return data.data;
+    });
+  }
+  aService.removeRealm = function(slug) {
+    return $http.delete('console/admin/realms/' + slug).then(function(data) {
+      return data.data;
+    });
+  }
+  
+  return aService;
+ })
 /**
  * Utility functions
  */

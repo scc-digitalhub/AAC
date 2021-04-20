@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -90,6 +94,13 @@ public class RealmService {
         realms.addAll(realmRepository.findByNameContainingIgnoreCase(keywords));
 
         return realms.stream().map(r -> toRealm(r)).collect(Collectors.toList());
+    }
+    public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
+    	Page<RealmEntity> page = StringUtils.hasText(keywords) ? realmRepository.findByKeywords(keywords, pageRequest) : realmRepository.findAll(pageRequest);
+    	return PageableExecutionUtils.getPage(
+    			page.getContent().stream().map(r -> toRealm(r)).collect(Collectors.toList()),
+    			pageRequest,
+    			() -> page.getTotalElements());
     }
 
     /*

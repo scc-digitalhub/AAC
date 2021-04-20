@@ -3,67 +3,74 @@ angular.module('aac.controllers.admin', [])
  * Main layout controller
  * @param $scope
  */
-.controller('AdminController', function ($scope, $resource, Utils) {
-	// title
-	$scope.title = 'App Approvals';
-	
-	$scope.adminView = 'approvals';
+.controller('AdminController', function ($scope, AdminData, Utils) {	
+	$scope.adminView = 'realms';
+  $scope.query = {
+    page: 0,
+    size: 10,
+    sort: {slug: -1},
+    q: ''
+  }
 
-	// resource reference for the approval API
-	var ClientApprovals = $resource('admin/approvals/:clientId', {}, {
-		query : { method : 'GET' },
-		approve : {method : 'POST'}
-	});
-
-	// resource reference for the IdP API
-	var IdPApprovals = $resource('admin/idps/:clientId', {}, {
-		query : { method : 'GET' },
-		approve : {method : 'POST'}
-	});
+  $scope.load = function() {
+    AdminData.getRealms($scope.query).then(function(data) {
+        $scope.realms = data;   
+    }).catch(function(err) {
+        Utils.showError('Failed to load realms: '+err.data.message);
+    });
+  }
 
 	/**
 	 * Initialize the app: load list of the developer's apps and reset views
 	 */
 	var init = function() {
-		ClientApprovals.query(function(response){
-			if (response.responseCode == 'OK') {
-				$scope.approvals = response.data;
-			} else {
-				Utils.showError('Failed to load approval requests: '+response.errorMessage);
-			}	
-		});
-		IdPApprovals.query(function(response){
-			if (response.responseCode == 'OK') {
-				$scope.idps = response.data;
-			} else {
-				Utils.showError('Failed to load IdP requests: '+response.errorMessage);
-			}	
-		});
+	  $scope.load();
 	};
+	
+	$scope.addRealm = function() {
+	   $scope.newRealm = true;
+	   $scope.realm = {};
+	   $('#realmModal').modal({backdrop: 'static', focus: true})
+	}
+  $scope.editRealm = function(realm) {
+     $scope.newRealm = false;
+     $scope.realm = Object.assign({}, realm);
+     $('#realmModal').modal({backdrop: 'static', focus: true})
+  }
+	$scope.save = function() {
+	  $('#realmModal').modal('hide');
+	  var op = $scope.newRealm ? AdminData.addRealm :  AdminData.updateRealm;
+	  op($scope.realm).then(function(data) {
+	    console.log('saved', data);
+      $scope.load();
+    }).catch(function(err) {
+        Utils.showError('Failed to save realm: '+err.data.message);
+    });
+	}
+	
+	$scope.removeRealm = function(realm) {
+	  $scope.realm = realm;
+    $('#deleteConfirm').modal({keyboard: false});
+  }
+  
+  $scope.deleteRealm = function() {
+    $('#deleteConfirm').modal('hide');
+    AdminData.removeRealm($scope.realm.slug).then(function() {
+      $scope.load();
+    }).catch(function(err) {
+      Utils.showError(err.data.message);
+    });
+  }
+	
+	$scope.dismiss = function(){
+    $('#realmModal').modal('hide');
+  }
+	
+	$scope.setPage = function(page) {
+	 $scope.query.page = page;
+	 $scope.load();
+	}
+	
 	init();
-	
-	$scope.approve = function(clientId) {
-		var newClient = new ClientApprovals();
-		newClient.$approve({clientId:clientId},function(response){
-			if (response.responseCode == 'OK') {
-				$scope.approvals = response.data;
-				Utils.showSuccess();
-			} else {
-				Utils.showError('Failed to approve scope access: '+response.errorMessage);
-			}	
-		});
-	};
-	
-	$scope.approveIdP = function(clientId) {
-		var newClient = new IdPApprovals();
-		newClient.$approve({clientId:clientId},function(response){
-			if (response.responseCode == 'OK') {
-				$scope.idps = response.data;
-				Utils.showSuccess();
-			} else {
-				Utils.showError('Failed to approve IdP: '+response.errorMessage);
-			}	
-		});
-	};
 })
 

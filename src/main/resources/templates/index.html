@@ -42,17 +42,11 @@
     <title>AAC Developer Dashboard</title>
     <style type="text/css">
       body {
-        padding-top: 100px;
+        padding-top: 48px;
         padding-bottom: 60px;
+        height: 100vh;
       }
     </style>
-    <script th:inline="javascript">
-	  /*<![CDATA[*/
-	    ROLES = [[${roles}]];
-	    CONTEXTS = [[${contexts}]];
-	    API_PROVIDER = [[${apiProvider}]];
-	    /*]]>*/
-	  </script> 
     
     <script src="lib/angular/angular.min.js"></script>
     <script src="lib/angular/angular-resource.min.js"></script>
@@ -88,17 +82,18 @@
 
 		  <div class="collapse navbar-collapse" id="navbarSupportedContent">
 		    <ul class="navbar-nav mr-auto">
-          <li class="nav-link"  data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
+<!--           <li class="nav-link"  data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
           <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantusers'}"><a data-ng-click="go('tenantusers')">User Roles</a></li>
-          <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantowners'}"><a data-ng-click="go('tenantowners')">Space Owners</a></li>
-          <li class="nav-link" data-ng-class="{'active': currentView == 'services'}"><a data-ng-click="go('services')">Services</a></li>
-          <li class="nav-link"  ng-if="roles.indexOf('ROLE_ADMIN') >= 0" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
+ -->          
+          <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantowners'}"><a data-ng-click="go('tenantowners')">Role Spaces</a></li>
+<!--           <li class="nav-link" data-ng-class="{'active': currentView == 'services'}"><a data-ng-click="go('services')">Services</a></li>
+ -->          <li class="nav-link"  ng-if="isAdmin" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
         </ul>
         
         <ul class="nav navbar-nav ml-auto">
 		      <li class="nav-item dropdown">
 		        <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		          <span th:text="${username}">User</span>
+		          <span>{{user.fullName || user.username}}</span>
 		        </a>
 		        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
               <a class="dropdown-item" role="menuitem" href="./account">Account</a>
@@ -110,15 +105,16 @@
 		  </div>
 		</nav>
 
-    <div class="container">
-	    <div class="container ng-view" ></div>
-	
-	    <div class="alert alert-success" style="z-index: 10000" role="alert" data-ng-if="showSuccess">Operation completed successfully</div>
-	    <div class="alert alert-danger" style="z-index: 10000" role="alert" data-ng-if="showError">{{errorMsg}}</div>
+    <div class="alert-container" data-ng-if="showSuccess || errorMsg">
+      <div class="offset-md-2 p-3">
+	     <div class="alert alert-success" style="z-index: 10000" role="alert" data-ng-if="showSuccess">Operation completed successfully</div>
+	     <div class="alert alert-danger" style="z-index: 10000" role="alert"  data-ng-if="errorMsg">{{errorMsg}}</div>
+	    </div> 
     </div>
+    <div class="ng-view px-4 pb-5" ></div>
 	  
 	  <div class="fixed-bottom p-3 border-top it-footer-main">
-	     &copy; Smart Community Lab 2015 - 2021
+	     &copy; Digital Society Lab 2015 - 2021
 	   </div>	   
       <!-- Design Italia -->
      <script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
