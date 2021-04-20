@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
@@ -64,7 +65,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     // TODO add spaceRole service
     private final ExtractorsRegistry extractorsRegistry;
     private ScriptExecutionService executionService;
-    private UserTranslatorService userTranslatorService;
+    private UserService userService;
 
     // object mapper
     private final ObjectMapper mapper = new ObjectMapper();
@@ -84,14 +85,14 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         this.executionService = executionService;
     }
 
-    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
-        this.userTranslatorService = userTranslatorService;
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(executionService, "an execution service is required");
-        Assert.notNull(userTranslatorService, "a user translator service is required");
+        Assert.notNull(userService, "a user  service is required");
     }
 
     /*
@@ -136,7 +137,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Collection<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
-                User user = userTranslatorService.translate(userDetails, ce.getRealm());
+                User user = userService.getUser(userDetails, ce.getRealm());
                 ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));
@@ -151,7 +152,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Collection<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
-                User user = userTranslatorService.translate(userDetails, ce.getRealm());
+                User user = userService.getUser(userDetails, ce.getRealm());
                 ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));

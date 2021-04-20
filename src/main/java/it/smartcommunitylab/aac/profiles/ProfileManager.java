@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.profiles;
 
+import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,12 +9,14 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.profiles.service.ProfileService;
@@ -25,9 +29,6 @@ public class ProfileManager {
     private ProfileService profileService;
 
     @Autowired
-    private UserTranslatorService translator;
-
-    @Autowired
     private AuthenticationHelper authHelper;
 
     /*
@@ -35,40 +36,50 @@ public class ProfileManager {
      */
 
     public BasicProfile curBasicProfile() throws InvalidDefinitionException {
-        User user = curUser();
-        return profileService.getBasicProfile(user);
+        return profileService.getBasicProfile(curUserDetails());
     }
 
     public OpenIdProfile curOpenIdProfile() throws InvalidDefinitionException {
-        User user = curUser();
-        return profileService.getOpenIdProfile(user);
+        return profileService.getOpenIdProfile(curUserDetails());
+    }
+
+    public Collection<AccountProfile> curAccountProfiles() throws InvalidDefinitionException {
+        return profileService.getAccountProfiles(curUserDetails());
+    }
+
+    /*
+     * Users from db
+     * 
+     * TODO add authorization
+     */
+
+    public BasicProfile getBasicProfile(String realm, String subjectId)
+            throws NoSuchUserException, InvalidDefinitionException {
+        return profileService.getBasicProfile(realm, subjectId);
+    }
+
+    public OpenIdProfile getOpenIdProfile(String realm, String subjectId)
+            throws NoSuchUserException, InvalidDefinitionException {
+        return profileService.getOpenIdProfile(realm, subjectId);
+
+    }
+
+    public Collection<AccountProfile> getAccountProfiles(String realm, String subjectId)
+            throws NoSuchUserException, InvalidDefinitionException {
+        return profileService.getAccountProfiles(realm, subjectId);
+
     }
 
     /*
      * Helpers
      */
 
-    private User curUser() {
+    private UserDetails curUserDetails() {
         UserDetails details = authHelper.getUserDetails();
         if (details == null) {
             throw new InsufficientAuthenticationException("invalid or missing user authentication");
         }
 
-        String subjectId = details.getSubjectId();
-        String source = details.getRealm();
-
-        User user = new User(subjectId, details.getRealm());
-        for (UserIdentity identity : details.getIdentities()) {
-            user.addIdentity(identity);
-        }
-        for (UserAttributes attr : details.getAttributeSets()) {
-            user.addAttributes(attr);
-        }
-
-        // TODO
-//        user.setAuthorities();
-//        user.setRoles(roles);
-
-        return user;
+        return details;
     }
 }

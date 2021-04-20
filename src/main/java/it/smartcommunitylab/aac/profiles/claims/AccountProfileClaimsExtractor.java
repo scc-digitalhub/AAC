@@ -13,14 +13,20 @@ import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
+import it.smartcommunitylab.aac.profiles.service.AccountProfileExtractor;
 
 public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
 
     public final static String NAMESPACE = "accounts";
+
+    private final AccountProfileExtractor extractor;
+
+    public AccountProfileClaimsExtractor() {
+        this.extractor = new AccountProfileExtractor();
+    }
 
     @Override
     public String getResourceId() {
@@ -37,16 +43,7 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
             throws InvalidDefinitionException, SystemException {
 
         // we handle multiple profiles, one per identity
-        List<AccountProfile> profiles = new ArrayList<>();
-
-        // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
-
-        for (UserIdentity identity : identities) {
-            // get account and translate
-            AccountProfile profile = identity.getAccount().toProfile();
-            profiles.add(profile);
-        }
+        Collection<AccountProfile> profiles = extractor.extractUserProfiles(user);
 
         // convert to a claims list
         List<Claim> claims = new ArrayList<>();

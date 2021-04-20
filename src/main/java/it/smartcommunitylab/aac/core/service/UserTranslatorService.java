@@ -13,7 +13,9 @@ import it.smartcommunitylab.aac.model.User;
  * This service translates a full user representations, as usable inside the source realm, 
  * into one suitable for consumption under the requested realm.
  * Identities and attributes will be filtered according to a suitable policy,
- * while realm-specific content will be added (realm authorities, custom attributes etc).
+ * while realm-specific content will be added (realm authorities, custom attributes etc) by another service.
+ * 
+ * This should be consumed from a suitable user service, able to integrate the translation with additional content.
  */
 
 @Service

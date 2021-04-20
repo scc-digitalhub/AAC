@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@JsonInclude(Include.NON_EMPTY)
 public abstract class AbstractProfile implements Serializable {
 
     private static ObjectMapper mapper = new ObjectMapper();

@@ -17,61 +17,89 @@
 package it.smartcommunitylab.aac.profiles.controller;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.Response;
+import it.smartcommunitylab.aac.profiles.ProfileManager;
+import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
 /**
  * @author raman
  *
  */
-@Controller
+@RestController
 @Api(tags = { "AAC User profile" })
-public class BasicProfileController {
+public class ProfileController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-//    @ApiOperation(value = "Get basic profile of the current user")
-//    @RequestMapping(method = RequestMethod.GET, value = "/basicprofile/me")
-//    public @ResponseBody BasicProfile findProfile(Authentication auth, HttpServletResponse response)
-//            throws IOException {
-//
-//        // authentication should be a user authentication
-//        if (!(auth instanceof UserAuthenticationToken)) {
-//            throw new InsufficientAuthenticationException("not a user authentication");
-//        }
-//
-//        UserAuthenticationToken token = (UserAuthenticationToken) auth;
-//
-//        BasicProfile profile = token.getUser().getBasicProfile();
-//        return profile;
-//
-//    }
+    @Autowired
+    private ProfileManager profileManager;
+
+    @Autowired
+    private AuthenticationHelper authHelper;
+
+    /*
+     * Current user operations TODO evaluate move/copy to MVC controller and keep
+     * this API only, with bearer token
+     */
+
+    @ApiOperation(value = "Get basic profile of the current user")
+    @GetMapping(value = "/basicprofile/me")
+    public @ResponseBody BasicProfile myBasicProfile() throws InvalidDefinitionException {
+        return profileManager.curBasicProfile();
+    }
+
+    @ApiOperation(value = "Get openid profile of the current user")
+    @GetMapping(value = "/openidprofile/me")
+    public @ResponseBody OpenIdProfile myOpenIdProfile() throws InvalidDefinitionException {
+        return profileManager.curOpenIdProfile();
+    }
+
+    @ApiOperation(value = "Get account profiles of the current user")
+    @GetMapping(value = "/accountprofile/me")
+    public @ResponseBody Collection<AccountProfile> myAccountProfiles() throws InvalidDefinitionException {
+        return profileManager.curAccountProfiles();
+    }
+
+    /*
+     * Debug
+     */
 
     @RolesAllowed("ROLE_USER")
-    @RequestMapping(method = RequestMethod.GET, value = "/whoami")
+    @GetMapping(value = "/whoami")
     public @ResponseBody UserAuthenticationToken debug(Authentication auth, HttpServletResponse response)
             throws IOException {
 
@@ -87,7 +115,7 @@ public class BasicProfileController {
     }
 
     @RolesAllowed({ "ROLE_USER", "ROLE_CLIENT" })
-    @RequestMapping(method = RequestMethod.GET, value = "/api/whoami")
+    @GetMapping(value = "/api/whoami")
     public @ResponseBody Authentication debugApi(Authentication auth, HttpServletResponse response)
             throws IOException {
 
@@ -95,6 +123,39 @@ public class BasicProfileController {
 
     }
 
+    /*
+     * Api operations
+     */
+    @ApiOperation(value = "Get basic profile of a user")
+    @GetMapping(value = "/api/profiles/{realm}/basicprofile/{userId}")
+    public @ResponseBody BasicProfile getBasicProfile(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
+        return profileManager.getBasicProfile(realm, userId);
+    }
+
+    @ApiOperation(value = "Get openid profile of a user")
+    @GetMapping(value = "/api/profiles/{realm}/openidprofile/{userId}")
+    public @ResponseBody OpenIdProfile getOpenIdProfile(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
+        return profileManager.getOpenIdProfile(realm, userId);
+    }
+
+    @ApiOperation(value = "Get account profiles of a user")
+    @GetMapping(value = "/api/profiles/{realm}/accountprofile/{userId}")
+    public @ResponseBody Collection<AccountProfile> getAccountProfiles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
+        return profileManager.getAccountProfiles(realm, userId);
+    }
+
+    /*
+     * Exceptions
+     */
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ResponseBody

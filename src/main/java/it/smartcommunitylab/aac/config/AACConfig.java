@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
@@ -122,10 +123,10 @@ public class AACConfig {
     @Bean
     public ClaimsService claimsService(ExtractorsRegistry extractorsRegistry,
             ScriptExecutionService executionService,
-            UserTranslatorService translatorService) {
+            UserService userService) {
         DefaultClaimsService service = new DefaultClaimsService(extractorsRegistry);
         service.setExecutionService(executionService);
-        service.setUserTranslatorService(translatorService);
+        service.setUserService(userService);
         return service;
 
     }

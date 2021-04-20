@@ -52,9 +52,6 @@ public class UserManager {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private UserTranslatorService translator;
-
 //    @Autowired
 //    private RoleService roleService;
 
@@ -104,28 +101,7 @@ public class UserManager {
      */
     public User curUser(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
-
-        UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
-        String source = details.getRealm();
-
-        User user = new User(subjectId, details.getRealm());
-        for (UserIdentity identity : details.getIdentities()) {
-            user.addIdentity(identity);
-        }
-        for (UserAttributes attr : details.getAttributeSets()) {
-            user.addAttributes(attr);
-        }
-
-        // TODO
-//        user.setAuthorities();
-//        user.setRoles(roles);
-
-        if (details.getRealm().equals(realm)) {
-            return user;
-        } else {
-            return translator.translate(user, realm);
-        }
+        return userService.getUser(curUserDetails(), r.getSlug());
     }
 
     /*

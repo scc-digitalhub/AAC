@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.profiles.service;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -28,6 +30,27 @@ public class OpenIdProfileExtractor extends UserProfileExtractor {
         OpenIdProfile profile = identities.iterator().next().toOpenIdProfile();
 
         return profile;
+    }
+
+    @Override
+    public OpenIdProfile extractUserProfile(UserIdentity identity) throws InvalidDefinitionException {
+        if (identity == null) {
+            return null;
+        }
+
+        return identity.toOpenIdProfile();
+    }
+
+    @Override
+    public Collection<OpenIdProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
+        // fetch identities
+        Collection<UserIdentity> identities = user.getIdentities();
+
+        if (identities.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return identities.stream().map(i -> i.toOpenIdProfile()).collect(Collectors.toList());
     }
 
 }
