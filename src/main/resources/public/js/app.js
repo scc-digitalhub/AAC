@@ -1,6 +1,7 @@
 var app = angular.module('dev', [
 	'pascalprecht.translate',
-	'ngRoute',
+	//'ngRoute',
+	'ui.router',
 	'ngResource',
 	'angularSpinner',
 	'ngTagsInput',
@@ -10,7 +11,8 @@ var app = angular.module('dev', [
 	'aac.controllers.customservices', 
 	'aac.controllers.apis', 
 	'aac.controllers.admin',
-	'ui.ace'
+	'aac.controllers.realm',
+  'ui.ace',
 	]);
 
 app.config(function ($httpProvider, $translateProvider) {
@@ -28,6 +30,26 @@ app.config(function ($httpProvider, $translateProvider) {
 		$translateProvider.preferredLanguage(lang);
 	})
 
+app.config(function($stateProvider) {
+ $stateProvider
+    .state('admin', {
+        url: '/admin',
+        templateUrl: 'html/admin.html',
+        controller: 'AdminController',
+    })
+    .state('realm', {
+        url: '/realm/:realmId',
+        templateUrl: 'html/realm.html',
+        controller: 'RealmController',
+    })
+    .state('realm.users', {
+        url: '/users',
+        templateUrl: 'html/realm.users.html',
+        controller: 'RealmUsersController',
+    })
+});
+
+/*
 app.run(function($rootScope){
 	$rootScope.$on("$routeChangeStart", function (event, next, current) {
 		if (!next.$$route || !next.$$route.originalPath) return;
@@ -78,8 +100,17 @@ app.config(function($routeProvider) {
     	controller  : 'ServiceController', 
         templateUrl : "html/service-form.html"
     })
-    .otherwise("/apps");
+    .when("/realms/:realmId", {
+      controller  : 'RealmController', 
+        templateUrl : "html/realm.html"
+    })
+    .when("/realms", {
+      controller  : 'RealmController', 
+        templateUrl : "html/realm.html"
+    })
+    .otherwise("/realms");
 })
+*/
 
 /**
  * Interceptor adds loading spinner for REST calls

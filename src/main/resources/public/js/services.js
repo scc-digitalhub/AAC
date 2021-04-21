@@ -1,4 +1,12 @@
+function buildQuery(params, serializer) {
+    var q = Object.assign({}, params);
+    if (q.sort) q.sort = Object.keys(q.sort).map(function(k) { return k + ',' + (q.sort[k] > 0 ? 'asc': 'desc'); });
+    var queryString = serializer(q);
+    return queryString;
+}
+
 angular.module('aac.services', [])
+
 
 /**
  * REST API service
@@ -282,10 +290,7 @@ angular.module('aac.services', [])
   var aService = {};
   
   aService.getRealms = function(params) {
-    var q = Object.assign({}, params);
-    if (q.sort) q.sort = Object.keys(q.sort).map(function(k) { return k + ',' + (q.sort[k] > 0 ? 'asc': 'desc'); });
-    var queryString = $httpParamSerializer(q);
-    return $http.get('console/admin/realms?' + queryString).then(function(data) {
+    return $http.get('console/admin/realms?' + buildQuery(params, $httpParamSerializer)).then(function(data) {
       return data.data;
     });
   }
@@ -308,6 +313,32 @@ angular.module('aac.services', [])
   
   return aService;
  })
+ 
+ /**
+  * Realm Data Services
+  */
+.service('RealmData', function($q, $http, $httpParamSerializer) {
+  var rService = {};
+  
+  rService.getRealm = function(slug) {
+    return $http.get('console/dev/realms/' + slug).then(function(data) {
+      return data.data;
+    });
+  }
+  rService.getMyRealms = function() {
+    return $http.get('console/dev/realms').then(function(data) {
+      return data.data;
+    });
+  }
+  rService.getRealmUsers = function(slug, params) {
+    return $http.get('console/dev/realms/' + slug +'?' + buildQuery(params, $httpParamSerializer)).then(function(data) {
+      return data.data;
+    });
+  }
+  
+  return rService;
+
+})
 /**
  * Utility functions
  */
@@ -339,6 +370,23 @@ angular.module('aac.services', [])
 		setTimeout(function() {
 			$.getScript('./italia/js/bootstrap-italia.bundle.min.js');
 		});
+	}
+	
+	utils.refreshFormBS = function() {
+	 var inputSelector =
+      'input[type="text"],' +
+      'input[type="password"],' +
+      'input[type="email"],' +
+      'input[type="email"],' +
+      'input[type="url"],' +
+      'input[type="tel"],' +
+      'input[type="number"],' +
+      'input[type="search"],' +
+      'textarea';
+    setTimeout(function() {      
+      $(inputSelector).trigger('change');
+      $('select').selectpicker('refresh');
+    });  
 	}
 	
 	return utils;

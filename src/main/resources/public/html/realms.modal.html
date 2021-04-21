@@ -1,0 +1,25 @@
+<div class="modal fade bs-modal-lg" id="realmModal" tabindex="-1" role="dialog" aria-labelledby="realmModal" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+			  <h3 class="modal-title" id="modal-title">Add / Edit Realm</h3>
+			</div>
+			<form  class="needs-validation was-validated" novalidate name="realmForm">
+			<div class="modal-body" id="modal-body">
+			   <div class="form-group">
+			     <label for="slug">Realm Slug*</label>
+			     <input type="text" pattern="[\w-]+" class="form-control form-control-sm" id="slug" ng-model="realm.slug" required ng-disabled="!newRealm">
+			   </div>
+				 <div class="form-group">
+           <label for="name">Realm Name*</label>
+    		   <input type="text" class="form-control form-control-sm" id="name" ng-model="realm.name" required>
+				 </div>
+			</div>
+			<div class="modal-footer">
+        <button class="btn btn-default" type="button" ng-click="dismiss()">Cancel</button>
+			  <button class="btn btn-primary" type="button" ng-click="save()" ng-disabled="realmForm.$invalid">Save</button>
+			</div>
+			</form>
+    </div>
+  </div>  			
+</div>  

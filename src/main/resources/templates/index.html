@@ -50,7 +50,8 @@
     
     <script src="lib/angular/angular.min.js"></script>
     <script src="lib/angular/angular-resource.min.js"></script>
-    <script src="lib/angular/angular-route.min.js"></script>
+    <!-- script src="lib/angular/angular-route.min.js"></script -->
+    <script src="lib/angular/angular-ui-router.js"></script>
     
     <script src="lib/angular/angular-spinner.min.js"></script>
     <script src="lib/ng-tags-input.min.js"></script>
@@ -69,6 +70,7 @@
      <script src="js/clients.js"></script>
     <script src="js/customservices.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/realm.js"></script>
     <script src="js/apis.js"></script>
  </head>
 
@@ -82,12 +84,14 @@
 
 		  <div class="collapse navbar-collapse" id="navbarSupportedContent">
 		    <ul class="navbar-nav mr-auto">
+          <li class="nav-link" ui-sref-active="active"><a data-ui-sref="realm({realmId:''})">Realms</a></li>
 <!--           <li class="nav-link"  data-ng-class="{'active': currentView == 'apps'}"><a data-ng-click="go('apps')">Client Apps</a></li>
           <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantusers'}"><a data-ng-click="go('tenantusers')">User Roles</a></li>
  -->          
-          <li class="nav-link" ng-if="providerContexts" data-ng-class="{'active': currentView == 'tenantowners'}"><a data-ng-click="go('tenantowners')">Role Spaces</a></li>
+          <li class="nav-link" ng-if="providerContexts" ui-sref-active="active"><a data-ui-sref="tenantowners">Role Spaces</a></li>
 <!--           <li class="nav-link" data-ng-class="{'active': currentView == 'services'}"><a data-ng-click="go('services')">Services</a></li>
- -->          <li class="nav-link"  ng-if="isAdmin" data-ng-class="{'active': currentView == 'admin'}"><a data-ng-click="go('admin')">Admin</a></li>
+ -->
+          <li class="nav-link"  ng-if="isAdmin" ui-sref-active="active"><a data-ui-sref="admin">Admin</a></li>
         </ul>
         
         <ul class="nav navbar-nav ml-auto">
@@ -111,7 +115,9 @@
 	     <div class="alert alert-danger" style="z-index: 10000" role="alert"  data-ng-if="errorMsg">{{errorMsg}}</div>
 	    </div> 
     </div>
-    <div class="ng-view px-4 pb-5" ></div>
+    <div class="ng-view px-4 pb-5" >
+      <ui-view></ui-view>
+    </div>
 	  
 	  <div class="fixed-bottom p-3 border-top it-footer-main">
 	     &copy; Digital Society Lab 2015 - 2021

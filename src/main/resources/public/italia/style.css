@@ -26,6 +26,10 @@ body {
   min-height: calc(100vh - 57px - 48px);
 }
 
+.nav-link a {
+  color: inherit !important;
+}
+
 .confirmation-content {
 	padding: 10px;
 	text-align: left;

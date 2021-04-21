@@ -1,0 +1,19 @@
+<div class="row">
+  <div class="col-md-2">
+    <div class="sidebar-wrapper it-line-right-side">
+      <div class="sidebar-linklist-wrapper">
+        <div class="link-list-wrapper">
+          <ul class="link-list">
+            <li><h3>{{realm.name}}</h3></li>
+            <li>
+            <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.users">Users</a>
+            </li>
+        </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-10">
+    <ui-view></ui-view>
+  </div>
+</div>
