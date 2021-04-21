@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -129,9 +130,13 @@ public class LoginController {
         model.addAttribute("externalAuthorities", authorities);
 
         // check errors
-        AuthenticationException error = (AuthenticationException) req.getAttribute("authException");
+        AuthenticationException error = (AuthenticationException) req.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         if (error != null) {
             model.addAttribute("error", error.getMessage());
+            
+            //also remove from session
+            req.getSession().removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         }
 
         return "login";
