@@ -4,6 +4,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.bouncycastle.asn1.ocsp.ResponderID;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
@@ -86,10 +88,17 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
             public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                     AuthenticationException exception) throws IOException, ServletException {
-                // pass error message as attribute - does not work with redirect..
-                // TODO either switch to controller or use session
-                // alternatively fall back to an error page instead of calling entrypoint
-                request.setAttribute("authException", exception);
+//                // pass error message as attribute - does not work with redirect..
+//                // TODO either switch to controller or use session
+//                // alternatively fall back to an error page instead of calling entrypoint
+//                request.setAttribute("authException", exception);
+
+                // from SimpleUrlAuthenticationFailureHandler, save exception as session
+                HttpSession session = request.getSession(true);
+                if (session != null) {
+                    request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+                }
+
                 getAuthenticationEntryPoint().commence(request, response, exception);
             }
         });

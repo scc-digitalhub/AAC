@@ -1,6 +1,9 @@
 package it.smartcommunitylab.aac.openid.endpoint;
 
+import java.io.IOException;
 import java.text.ParseException;
+
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -11,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.stereotype.Controller;
@@ -29,6 +34,7 @@ import com.nimbusds.jwt.JWTParser;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -61,7 +67,10 @@ public class EndSessionEndpoint {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private SecurityContextLogoutHandler logoutHandler;
+    private LogoutHandler logoutHandler;
+
+    @Autowired
+    private LogoutSuccessHandler logoutSuccessHandler;
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
@@ -74,7 +83,7 @@ public class EndSessionEndpoint {
             HttpServletRequest request,
             HttpServletResponse response,
             HttpSession session,
-            Authentication auth, Model model) {
+            Authentication auth, Model model) throws IOException, ServletException {
 
         // get userAuth
         UserAuthenticationToken userAuth = authHelper.getUserAuthentication();
@@ -141,7 +150,8 @@ public class EndSessionEndpoint {
         // are we logged in or not?
         if (userAuth == null) {
             // we're not logged in anyway, process the final redirect bits if needed
-            return processLogout(null, request, response, session, auth, model);
+            processLogout(null, request, response, session, auth, model);
+            return null;
         } else {
             // we are logged in, need to prompt the user before we log out
             // display the log out confirmation page
@@ -155,11 +165,11 @@ public class EndSessionEndpoint {
 
     @ApiIgnore
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
-    public String processLogout(@RequestParam(value = "approve", required = false) String approved,
+    public void processLogout(@RequestParam(value = "approve", required = false) String approved,
             HttpServletRequest request,
             HttpServletResponse response,
             HttpSession session, Authentication auth,
-            Model model) {
+            Model model) throws IOException, ServletException {
 
         String redirectUri = (String) session.getAttribute(REDIRECT_URI_KEY);
         String state = (String) session.getAttribute(STATE_KEY);
@@ -203,12 +213,14 @@ public class EndSessionEndpoint {
                 // add state param from session
                 UriComponents uri = UriComponentsBuilder.fromUriString(redirectUri).queryParam("state", state).build();
 
-                return "redirect:" + uri;
+//                return "redirect:" + uri;
+                request.setAttribute(ExtendedLogoutSuccessHandler.REDIRECT_ATTRIBUTE, uri.toUriString());
             }
         }
 
-        // otherwise, return to a nice post-logout landing page
-        return "redirect:/";
+        // let logoutSuccess process request
+        logoutSuccessHandler.onLogoutSuccess(request, response, auth);
+
     }
 
 }

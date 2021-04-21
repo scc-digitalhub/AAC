@@ -40,6 +40,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
@@ -49,12 +50,20 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
+import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfLogoutHandler;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
 import org.yaml.snakeyaml.Yaml;
@@ -62,6 +71,7 @@ import org.yaml.snakeyaml.Yaml;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
@@ -114,6 +124,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${security.rememberme.key}")
     private String remembermeKey;
+
+    private String loginPath = "/login";
+    private String logoutPath = "/logout";
 
 //    @Autowired
 //    OAuth2ClientContext oauth2ClientContext;
@@ -245,8 +258,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // whitelist error
                 .antMatchers("/error").permitAll()
                 // whitelist login pages
-                .antMatchers("/login").permitAll()
-                .antMatchers("/-/{realm}/login").permitAll()
+                .antMatchers(loginPath, logoutPath).permitAll()
+                .antMatchers("/-/{realm}/" + loginPath).permitAll()
+                .antMatchers("/endsession").permitAll()
                 // whitelist assets
                 // TODO change path to /assets (and build)
                 .antMatchers("/css/**").permitAll()
@@ -267,22 +281,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // use a realm aware entryPoint
 //                .authenticationEntryPoint(new RealmAwareAuthenticationEntryPoint("/login"))
                 .defaultAuthenticationEntryPointFor(
-                        oauth2AuthenticationEntryPoint(clientDetailsService, "/login"),
+                        oauth2AuthenticationEntryPoint(clientDetailsService, loginPath),
                         new AntPathRequestMatcher("/oauth/**"))
                 .defaultAuthenticationEntryPointFor(
-                        realmAuthEntryPoint("/login", realmUriBuilder),
+                        realmAuthEntryPoint(loginPath, realmUriBuilder),
                         new AntPathRequestMatcher("/**"))
-                .accessDeniedPage("/accesserror")
+//                .accessDeniedPage("/accesserror")
                 .and()
-                .logout()
-                .logoutSuccessHandler(logoutSuccessHandler()).permitAll()
+                .logout(logout -> logout
+                        .logoutUrl(logoutPath)
+                        .logoutRequestMatcher(new AntPathRequestMatcher(logoutPath))
+                        .logoutSuccessHandler(logoutSuccessHandler(realmUriBuilder)).permitAll())
+
 //                .and()
 //                .rememberMe()
 //                .key(remembermeKey)
 //                .rememberMeServices(rememberMeServices())
-                .and()
+//                .and()
                 .csrf()
-                .disable()
+                .ignoringAntMatchers("/logout")
+                .and()
+//                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
                 .addFilterBefore(getInternalAuthorityFilters(authManager),
                         BasicAuthenticationFilter.class)
@@ -290,6 +309,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(getOIDCAuthorityFilters(authManager, clientRegistrationRepository),
                         BasicAuthenticationFilter.class);
+
+        // we always want a session here
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
 
 //        http
 ////		.anonymous().disable()
@@ -323,12 +346,38 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    /**
-     * @return
-     */
-    private LogoutSuccessHandler logoutSuccessHandler() {
-        //TODO write dedicated, leverage OidcClientInitiatedLogoutSuccessHandler 
-        SimpleUrlLogoutSuccessHandler handler = new SimpleUrlLogoutSuccessHandler();
+    @Bean
+    public CompositeLogoutHandler logoutHandler() {
+        List<LogoutHandler> handlers = new ArrayList<>();
+        SecurityContextLogoutHandler contextLogoutHandler = new SecurityContextLogoutHandler();
+        contextLogoutHandler.setClearAuthentication(true);
+        contextLogoutHandler.setInvalidateHttpSession(true);
+        handlers.add(contextLogoutHandler);
+
+        // cookie clearing
+        String[] cookieNames = { "JSESSIONID", "csrftoken" };
+        CookieClearingLogoutHandler cookieLogoutHandler = new CookieClearingLogoutHandler(cookieNames);
+        handlers.add(cookieLogoutHandler);
+
+        // TODO define tokenRepository as bean and use for csrf
+//        CsrfLogoutHandler csrfLogoutHandler = new CsrfLogoutHandler(csrfTokenRepository);
+//        handlers.add(csrfLogoutHandler);
+        // TODO add remember me
+        // localStorage clear - TODO add to httpSecurity handlers above
+        LogoutHandler clearSiteLogoutHandler = new HeaderWriterLogoutHandler(
+                new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.STORAGE));
+
+        handlers.add(clearSiteLogoutHandler);
+        return new CompositeLogoutHandler(handlers);
+
+    }
+
+    @Bean
+    public LogoutSuccessHandler logoutSuccessHandler(
+            RealmAwarePathUriBuilder uriBuilder) {
+        // TODO update dedicated, leverage OidcClientInitiatedLogoutSuccessHandler
+        ExtendedLogoutSuccessHandler handler = new ExtendedLogoutSuccessHandler(loginPath);
+        handler.setRealmUriBuilder(uriBuilder);
         handler.setDefaultTargetUrl("/");
         handler.setTargetUrlParameter("target");
         return handler;
@@ -344,7 +393,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private RealmAwareAuthenticationEntryPoint realmAuthEntryPoint(String loginPath,
             RealmAwarePathUriBuilder uriBuilder) {
-        RealmAwareAuthenticationEntryPoint entryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+        RealmAwareAuthenticationEntryPoint entryPoint = new RealmAwareAuthenticationEntryPoint(loginPath);
         entryPoint.setUseForward(false);
         entryPoint.setRealmUriBuilder(uriBuilder);
 
