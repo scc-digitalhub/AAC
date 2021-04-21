@@ -87,10 +87,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         // remediate missing username
         if (!StringUtils.hasText(username)) {
             if (StringUtils.hasText(email)) {
-                int idx = email.indexOf('@');
-                if (idx > 0) {
-                    username = email.substring(0, idx);
-                }
+                username = email;
             } else if (StringUtils.hasText(name)) {
                 username = StringUtils.trimAllWhitespace(name);
             }
@@ -155,7 +152,8 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public InternalUserAccount updateAccount(String subjectId, String userId, Collection<Entry<String, String>> attributes)
+    public InternalUserAccount updateAccount(String subjectId, String userId,
+            Collection<Entry<String, String>> attributes)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("delete is disabled for this provider");

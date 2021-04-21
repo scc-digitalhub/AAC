@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Controller
@@ -69,6 +70,8 @@ public class LoginController {
         if (!StringUtils.hasText(realm)) {
             throw new IllegalArgumentException("no suitable realm for login");
         }
+
+        model.addAttribute("realm", realm);
 
         String displayName = null;
         if (!realm.equals(SystemKeys.REALM_COMMON)) {
@@ -111,6 +114,21 @@ public class LoginController {
 
             if (SystemKeys.AUTHORITY_INTERNAL.equals(a.authority)) {
                 internal = a;
+                // also lookup internal service for registration/reset links
+                IdentityService ids = providerManager.fetchIdentityService(idp.getRealm(), idp.getProvider());
+                if (ids != null) {
+                    if (ids.canRegister() && StringUtils.hasText(ids.getRegistrationUrl())) {
+                        a.registrationUrl = ids.getRegistrationUrl();
+                    }
+
+                    if (ids.getCredentialsService() != null
+                            && ids.getCredentialsService().canReset()
+                            && StringUtils.hasText(ids.getCredentialsService().getResetUrl())) {
+                        a.resetUrl = ids.getCredentialsService().getResetUrl();
+                    }
+
+                }
+
             } else {
 
                 if (StringUtils.hasText(a.loginUrl)) {
@@ -120,8 +138,6 @@ public class LoginController {
         }
 
         Collections.sort(authorities);
-
-        model.addAttribute("realm", realm);
 
         if (internal != null) {
             model.addAttribute("internalAuthority", internal);
@@ -134,8 +150,8 @@ public class LoginController {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         if (error != null) {
             model.addAttribute("error", error.getMessage());
-            
-            //also remove from session
+
+            // also remove from session
             req.getSession().removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         }
 
@@ -151,6 +167,8 @@ public class LoginController {
         public String authority;
         public String realm;
         public String loginUrl;
+        public String registrationUrl;
+        public String resetUrl;
         public String icon;
         public String name;
         public String cssClass;

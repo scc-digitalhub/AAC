@@ -17,102 +17,139 @@
 package it.smartcommunitylab.aac.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * @author raman
  *
  */
 public class UserRegistrationBean implements Serializable {
-	
-	private static final long serialVersionUID = 5151437264220742574L;
 
-	@NotEmpty
-	@Email(message = "{validation.email}")
-	private String email;
-	@NotEmpty
-	private String name;
-	@NotEmpty
-	private String surname;
-	@NotEmpty
-	@Size(min = 6, message = "{validation.pwdlength}")
-	private String password;
-	
-	private String lang;
-	
-	public UserRegistrationBean() {
-		super();
-	}
-	public UserRegistrationBean(String email, String name, String surname) {
-		super();
-		this.email = email;
-		this.name = name;
-		this.surname = surname;
-	}
-	/**
-	 * @return the email
-	 */
-	public String getEmail() {
-		return email;
-	}
-	/**
-	 * @param email the email to set
-	 */
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-	/**
-	 * @return the surname
-	 */
-	public String getSurname() {
-		return surname;
-	}
-	/**
-	 * @param surname the surname to set
-	 */
-	public void setSurname(String surname) {
-		this.surname = surname;
-	}
-	/**
-	 * @return the password
-	 */
-	public String getPassword() {
-		return password;
-	}
-	/**
-	 * @param password the password to set
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	/**
-	 * @return the lang
-	 */
-	public String getLang() {
-		return lang;
-	}
-	/**
-	 * @param lang the lang to set
-	 */
-	public void setLang(String lang) {
-		this.lang = lang;
-	}	
+    private static final long serialVersionUID = 5151437264220742574L;
 
-	
+    @NotEmpty
+    @Email(message = "{validation.email}")
+    private String email;
+    @NotEmpty
+    private String name;
+    @NotEmpty
+    private String surname;
+    @NotEmpty
+    @Size(min = 6, message = "{validation.pwdlength}")
+    private String password;
+
+    private String lang;
+
+    public UserRegistrationBean() {
+        super();
+    }
+
+    public UserRegistrationBean(String email, String name, String surname) {
+        super();
+        this.email = email;
+        this.name = name;
+        this.surname = surname;
+    }
+
+    /**
+     * @return the email
+     */
+    public String getEmail() {
+        return email;
+    }
+
+    /**
+     * @param email the email to set
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the surname
+     */
+    public String getSurname() {
+        return surname;
+    }
+
+    /**
+     * @param surname the surname to set
+     */
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * @param password the password to set
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    /**
+     * @return the lang
+     */
+    public String getLang() {
+        return lang;
+    }
+
+    /**
+     * @param lang the lang to set
+     */
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
+
+    /*
+     * Convert to attributes for registration via service TODO rewrite with proper
+     * model handling
+     */
+    @JsonIgnore
+    public Collection<Entry<String, String>> toAttributes() {
+        List<Entry<String, String>> attributes = new ArrayList<>();
+
+        // add required
+        attributes.add(new AbstractMap.SimpleEntry<>("email", email));
+        attributes.add(new AbstractMap.SimpleEntry<>("password", password));
+        attributes.add(new AbstractMap.SimpleEntry<>("surname", surname));
+        attributes.add(new AbstractMap.SimpleEntry<>("name", name));
+
+        if (lang != null) {
+            attributes.add(new AbstractMap.SimpleEntry<>("lang", lang));
+        }
+
+        return attributes;
+    }
 }

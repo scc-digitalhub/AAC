@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -23,7 +24,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 
 @Service
-public class InternalIdentityAuthority implements IdentityAuthority {
+public class InternalIdentityAuthority implements IdentityAuthority, InitializingBean {
 
     @Value("${authorities.internal.confirmation.required}")
     private boolean confirmationRequired;
@@ -57,7 +58,7 @@ public class InternalIdentityAuthority implements IdentityAuthority {
 
     private final InternalUserAccountRepository accountRepository;
 
-    private final InternalIdentityProviderConfigMap defaultProviderConfig;
+    private InternalIdentityProviderConfigMap defaultProviderConfig;
 
     // identity providers by id
     private Map<String, InternalIdentityProvider> providers = new HashMap<>();
@@ -70,6 +71,14 @@ public class InternalIdentityAuthority implements IdentityAuthority {
         this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
 
+    }
+
+    public void setDefaultProviderConfig(InternalIdentityProviderConfigMap defaultProviderConfig) {
+        this.defaultProviderConfig = defaultProviderConfig;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
         // build default config from props
         defaultProviderConfig = new InternalIdentityProviderConfigMap();
         defaultProviderConfig.setConfirmationRequired(confirmationRequired);
@@ -82,6 +91,7 @@ public class InternalIdentityAuthority implements IdentityAuthority {
         defaultProviderConfig.setPasswordRequireNumber(passwordRequireNumber);
         defaultProviderConfig.setPasswordRequireSpecial(passwordRequireSpecial);
         defaultProviderConfig.setPasswordSupportWhitespace(passwordSupportWhitespace);
+
     }
 
     @Override

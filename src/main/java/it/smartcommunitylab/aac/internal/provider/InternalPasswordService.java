@@ -120,7 +120,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
     }
 
     @Override
-    public String getResetUrl(String userId) throws NoSuchUserException {
+    public String getResetUrl() throws NoSuchUserException {
         // return link for resetting credentials
         // TODO filter, will ask users for confirmation and then build a resetKey to be
         // sent via mail
