@@ -14,13 +14,16 @@
   <div  ng-if="users && users.content.length > 0">
 	  <table class="table table-hover border-bottom">
 	      <thead>
-	      <tr><th>Last Name</th><th>First Name</th><th>Provider</th><th>Username</th><th></th></tr>
+	      <tr><th>Name</th><th>Provider</th><th>Username</th><th>Realm Roles</th><th></th></tr>
 	      </thead>
 	    <tr ng-repeat="item in users.content">
-        <td class="align-middle">{{item.lastName}}</td>
-        <td class="align-middle">{{item.firstName}}</td>
+        <td class="align-middle">{{item.lastName}} {{item.firstName}} <span class="small">{{item.subjectId}}</span></td>
+        <td class="align-middle">
+          <span ng-if="item.source != realm.slug">Proxy ({{item.source}})</span>
+          <div ng-if="item.source == realm.slug"><div ng-repeat="p in item._providers">{{p}}</div></div>
+        </td>
         <td class="align-middle">{{item.username}}</td>
-        <td class="align-middle"></td>        
+        <td class="align-middle small"><div ng-repeat="a in item._authorities">{{a}}</div></td>        
   	    <td class="text-right">
          <button class="btn btn-success btn-sm"  ng-click="editRoles(item)">Roles</button>
   	     <button class="btn btn-danger btn-sm"  ng-click="deleteUserDlg(item)">Delete</button>
@@ -60,7 +63,7 @@
 
 
 
-<div ng-include="'./html/users.modal.html'"></div>
+<div ng-include="'./html/realm.users.roles.modal.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
     <div class="modal-dialog" role="document">

@@ -13,19 +13,20 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
+
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
@@ -173,6 +174,21 @@ public class UserManager {
 
         return userService.listUsers(realm);
     }
+    
+    public Page<User> searchUsers(String realm, String keywords, Pageable pageRequest) {
+        return userService.searchUsers(realm, keywords, pageRequest);
+    }
+
+
+	/**
+	 * @param slug
+	 * @param subjectId
+	 * @param roles
+	 * @throws NoSuchUserException 
+	 */
+	public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
+		userService.updateRealmAuthorities(slug, subjectId, roles);
+	}
 
     public void removeUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
@@ -395,5 +411,6 @@ public class UserManager {
         }
 
     }
+
 
 }

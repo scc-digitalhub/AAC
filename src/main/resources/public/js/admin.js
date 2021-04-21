@@ -7,7 +7,7 @@ angular.module('aac.controllers.admin', [])
 	$scope.adminView = 'realms';
   $scope.query = {
     page: 0,
-    size: 10,
+    size: 20,
     sort: {slug: 1},
     q: ''
   }

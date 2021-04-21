@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -107,6 +109,11 @@ public class UserEntityService {
 
     public List<UserEntity> getUsers(String realm) {
         return userRepository.findByRealm(realm);
+    }
+    public Page<UserEntity> searchUsers(String realm, String q, Pageable pageRequest) {
+        Page<UserEntity> page = StringUtils.hasText(q) ? userRepository.findByRealm(realm.toLowerCase(), q, pageRequest)
+                : userRepository.findByRealm(realm.toLowerCase(), pageRequest);
+        return page;
     }
 
     public List<UserRoleEntity> getRoles(String uuid) throws NoSuchUserException {

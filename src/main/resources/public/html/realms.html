@@ -14,15 +14,16 @@
   <div  ng-if="realms && realms.content.length > 0">
 	  <table class="table table-hover border-bottom">
 	      <thead>
-	      <tr><th>Slug</th><th>Name</th><th></th></tr>
+	      <tr><th>Slug</th><th>Name</th><th>Public</th><th></th></tr>
 	      </thead>
 	    <tr ng-repeat="item in realms.content">
 	      <td class="align-middle">{{item.slug}}</td>
 	      <td class="align-middle">{{item.name}}</td>
+        <td class="align-middle"><svg ng-if="item.public" class="icon icon-sm icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-check"></use></svg></td>
   	    <td class="text-right">
          <button class="btn btn-primary btn-sm" ui-sref="realm({realmId:item.slug})">Manage</button>
-         <button class="btn btn-success btn-sm"  ng-click="editRealm(item)">Edit</button>
-  	     <button class="btn btn-danger btn-sm"  ng-click="removeRealm(item)">Delete</button>
+         <button class="btn btn-success btn-sm"  ng-click="editRealm(item)" ng-disabled="!item.editable">Edit</button>
+  	     <button class="btn btn-danger btn-sm"  ng-click="removeRealm(item)" ng-disabled="!item.editable">Delete</button>
   	    </td>
 	    </tr>
 	  </table>

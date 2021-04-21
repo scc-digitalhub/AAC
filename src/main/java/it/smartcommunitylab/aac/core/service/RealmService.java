@@ -17,7 +17,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.persistence.RealmEntity;
 import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
 import it.smartcommunitylab.aac.model.Realm;
@@ -49,6 +48,14 @@ public class RealmService implements InitializingBean {
         systemRealm = new Realm(SystemKeys.REALM_SYSTEM, SystemKeys.REALM_SYSTEM);
         systemRealm.setEditable(false);
         systemRealm.setPublic(false);
+        if (realmRepository.findBySlug(SystemKeys.REALM_SYSTEM) == null) {
+        	RealmEntity re = new RealmEntity();
+        	re.setSlug(systemRealm.getSlug());
+        	re.setName(systemRealm.getName());
+        	re.setEditable(false);
+        	re.setPublic(false);
+        	realmRepository.save(re);
+        }
 
     }
 
@@ -57,7 +64,7 @@ public class RealmService implements InitializingBean {
         Assert.notNull(systemRealm, "system realm can not be null");
     }
 
-    public Realm addRealm(String slug, String name) throws AlreadyRegisteredException {
+    public Realm addRealm(String slug, String name, boolean isEditable, boolean isPublic) throws AlreadyRegisteredException {
         if (!StringUtils.hasText(slug)) {
             throw new RegistrationException("a valid slug is required");
         }
@@ -82,6 +89,8 @@ public class RealmService implements InitializingBean {
         r = new RealmEntity();
         r.setSlug(slug);
         r.setName(name);
+        r.setEditable(isEditable);
+        r.setPublic(isPublic);
 
         r = realmRepository.save(r);
 
@@ -174,6 +183,8 @@ public class RealmService implements InitializingBean {
      */
     private Realm toRealm(RealmEntity re) {
         Realm r = new Realm(re.getSlug(), re.getName());
+        r.setEditable(re.isEditable());
+        r.setPublic(re.isPublic());
         return r;
     }
 }

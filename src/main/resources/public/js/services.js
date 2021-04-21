@@ -331,10 +331,21 @@ angular.module('aac.services', [])
     });
   }
   rService.getRealmUsers = function(slug, params) {
-    return $http.get('console/dev/realms/' + slug +'?' + buildQuery(params, $httpParamSerializer)).then(function(data) {
+    return $http.get('console/dev/realms/' + slug +'/users?' + buildQuery(params, $httpParamSerializer)).then(function(data) {
       return data.data;
     });
   }
+  
+  rService.removeUser = function(slug, user) {
+    return $http.delete('console/dev/realms/' + slug +'/users/' + user.subjectId).then(function(data) {
+      return data.data;
+    });
+  } 
+  rService.updateRealmRoles = function(slug, user, roles) {
+    return $http.put('console/dev/realms/' + slug +'/users/' + user.subjectId+ '/roles', {roles: roles}).then(function(data) {
+      return data.data;
+    });
+  } 
   
   return rService;
 
