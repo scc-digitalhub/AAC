@@ -65,7 +65,7 @@ public class UserDetails implements org.springframework.security.core.userdetail
     // we do not want authorities modified inside session
     // note permission checks are performed on authToken authorities, not here
     // TODO remove, should be left in token, we keep for interface compatibiilty
-    private final Set<GrantedAuthority> authorities;
+    private final Set<? extends GrantedAuthority> authorities;
 
     // we don't support account enabled/disabled
     private final boolean enabled;

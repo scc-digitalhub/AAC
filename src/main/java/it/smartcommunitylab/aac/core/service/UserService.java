@@ -8,8 +8,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
@@ -327,13 +331,26 @@ public class UserService {
         return Collections.emptyList();
     }
 
-    private Collection<RealmGrantedAuthority> fetchUserRealmAuthorities(String subjectId, String realm)
+    private Collection<GrantedAuthority> fetchUserRealmAuthorities(String subjectId, String realm)
             throws NoSuchUserException {
-        // fetch all authoritites
-        List<UserRoleEntity> userRoles = userService.getRoles(subjectId, realm);
-        return userRoles.stream()
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(new SimpleGrantedAuthority(Config.R_USER));
+
+        // fetch all authoritites for realm
+        List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, realm);
+        List<RealmGrantedAuthority> realmAuthorities = realmRoles.stream()
                 .map(ur -> new RealmGrantedAuthority(ur.getRealm(), ur.getRole()))
                 .collect(Collectors.toList());
+        authorities.addAll(realmAuthorities);
+
+        // also add global authorities
+        List<UserRoleEntity> globalRoles = userService.getRoles(subjectId, SystemKeys.REALM_GLOBAL);
+        List<SimpleGrantedAuthority> globalAuthorities = globalRoles.stream()
+                .map(ur -> new SimpleGrantedAuthority(ur.getRole()))
+                .collect(Collectors.toList());
+        authorities.addAll(globalAuthorities);
+
+        return authorities;
 
     }
 

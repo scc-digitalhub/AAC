@@ -10,10 +10,12 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
@@ -45,13 +47,17 @@ public class UserEntityService {
 
         // we prepend a fixed prefix to enable discovery of entity type from uuid
         String id = UserEntity.ID_PREFIX + uuid;
-        
+
         UserEntity u = new UserEntity(id, realm);
 
         return u;
     }
 
     public UserEntity addUser(String uuid, String realm, String username) throws AlreadyRegisteredException {
+        if (!StringUtils.hasText(realm)) {
+            throw new RegistrationException("realm is invalid");
+        }
+
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
             throw new AlreadyRegisteredException("user already exists");
@@ -65,6 +71,10 @@ public class UserEntityService {
 
     public UserEntity addUser(String uuid, String realm, String username, List<String> roles)
             throws AlreadyRegisteredException {
+        if (!StringUtils.hasText(realm)) {
+            throw new RegistrationException("realm is invalid");
+        }
+
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
             throw new AlreadyRegisteredException("user already exists");

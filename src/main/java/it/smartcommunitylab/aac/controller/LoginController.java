@@ -53,7 +53,8 @@ public class LoginController {
             Model model,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
 
-        String realm = SystemKeys.REALM_GLOBAL;
+        // TODO handle /login as COMMON login, ie any realm is valid
+        String realm = SystemKeys.REALM_SYSTEM;
         String providerId = "";
 
         // fetch realm+provider
@@ -64,8 +65,12 @@ public class LoginController {
             providerId = providerKey.get();
         }
 
+        if (!StringUtils.hasText(realm)) {
+            throw new IllegalArgumentException("no suitable realm for login");
+        }
+
         String displayName = null;
-        if (!realm.equals(SystemKeys.REALM_GLOBAL)) {
+        if (!realm.equals(SystemKeys.REALM_COMMON)) {
             Realm re = realmManager.getRealm(realm);
             displayName = re.getName();
         }

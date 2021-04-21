@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.UserDetails;
@@ -55,7 +56,7 @@ public class User {
     // realm roles (ie authorities in AAC)
     // these can be managed inside realms
     // do note that the set should describe only the roles for the current context
-    private Set<RealmGrantedAuthority> authorities;
+    private Set<GrantedAuthority> authorities;
 
     // roles are OUTSIDE aac (ie not grantedAuthorities)
     // roles are associated to USER(=subjectId) not single identities/realms
@@ -112,11 +113,11 @@ public class User {
         return source;
     }
 
-    public Set<RealmGrantedAuthority> getAuthorities() {
+    public Set<GrantedAuthority> getAuthorities() {
         return authorities;
     }
 
-    public void setAuthorities(Collection<RealmGrantedAuthority> authorities) {
+    public void setAuthorities(Collection<GrantedAuthority> authorities) {
         this.authorities = new HashSet<>();
         this.authorities.addAll(authorities);
     }
