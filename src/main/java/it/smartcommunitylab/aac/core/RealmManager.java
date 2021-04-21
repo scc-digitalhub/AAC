@@ -64,7 +64,7 @@ public class RealmManager {
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
         slug = slug.trim().toLowerCase();
         r.setSlug(slug);
-        return realmService.updateRealm(slug, r.getName());
+        return realmService.updateRealm(slug, r.getName(), r.isEditable(), r.isPublic());
     }
 
     public Realm getRealm(String slug) throws NoSuchRealmException {

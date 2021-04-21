@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.model.Realm;
 
 @Service
 public class RealmService implements InitializingBean {
-    
+
     public static final Set<String> RESERVED_SLUG;
 
     static {
@@ -40,17 +40,16 @@ public class RealmService implements InitializingBean {
 
     // static immutable systemRealm
     private final Realm systemRealm;
-    
 
     public RealmService(RealmEntityRepository realmRepository) {
         Assert.notNull(realmRepository, "realm repository is mandatory");
         this.realmRepository = realmRepository;
-        
-        //build system realm
+
+        // build system realm
         systemRealm = new Realm(SystemKeys.REALM_SYSTEM, SystemKeys.REALM_SYSTEM);
         systemRealm.setEditable(false);
         systemRealm.setPublic(false);
-        
+
     }
 
     @Override
@@ -59,22 +58,22 @@ public class RealmService implements InitializingBean {
     }
 
     public Realm addRealm(String slug, String name) throws AlreadyRegisteredException {
-        if(!StringUtils.hasText(slug)) {
+        if (!StringUtils.hasText(slug)) {
             throw new RegistrationException("a valid slug is required");
         }
-        
+
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
         }
-        
-        if(RESERVED_SLUG.contains(slug)) {
+
+        if (RESERVED_SLUG.contains(slug)) {
             throw new RegistrationException("slug is reserved");
         }
-            
-        if(!StringUtils.hasText(name)) {
+
+        if (!StringUtils.hasText(name)) {
             name = slug;
         }
-        
+
         RealmEntity r = realmRepository.findBySlug(slug);
         if (r != null) {
             throw new AlreadyRegisteredException("slug already exists");
@@ -91,14 +90,14 @@ public class RealmService implements InitializingBean {
     }
 
     public Realm findRealm(String slug) {
-        if(!StringUtils.hasText(slug)) {
+        if (!StringUtils.hasText(slug)) {
             return null;
         }
-        
+
         if (SystemKeys.REALM_SYSTEM.equals(slug)) {
-           return systemRealm;
+            return systemRealm;
         }
-        
+
         RealmEntity r = realmRepository.findBySlug(slug);
         if (r == null) {
             return null;
@@ -108,7 +107,7 @@ public class RealmService implements InitializingBean {
     }
 
     public Realm getRealm(String slug) throws NoSuchRealmException {
-       Realm realm = findRealm(slug);
+        Realm realm = findRealm(slug);
         if (realm == null) {
             throw new NoSuchRealmException();
         }
@@ -116,11 +115,12 @@ public class RealmService implements InitializingBean {
         return realm;
     }
 
-    public Realm updateRealm(String slug, String name, boolean isEditable, boolean isPublic) throws NoSuchRealmException {
+    public Realm updateRealm(String slug, String name, boolean isEditable, boolean isPublic)
+            throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
         }
-        
+
         RealmEntity r = realmRepository.findBySlug(slug);
         if (r == null) {
             throw new NoSuchRealmException();
@@ -140,14 +140,13 @@ public class RealmService implements InitializingBean {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
         }
-        
+
         RealmEntity r = realmRepository.findBySlug(slug);
         if (r != null) {
             realmRepository.delete(r);
         }
     }
 
-    
     public List<Realm> listRealms() {
         List<RealmEntity> realms = realmRepository.findAll();
         return realms.stream().map(r -> toRealm(r)).collect(Collectors.toList());
@@ -177,4 +176,4 @@ public class RealmService implements InitializingBean {
         Realm r = new Realm(re.getSlug(), re.getName());
         return r;
     }
-}}
+}

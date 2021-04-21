@@ -41,7 +41,9 @@ public class RolesClaimsExtractor implements ScopeClaimsExtractor {
 
         // we also include realm authorities, since we don't have a separate scope for
         // these
-        Set<RealmGrantedAuthority> authorities = user.getAuthorities();
+        Set<RealmGrantedAuthority> authorities = user.getAuthorities().stream()
+                .filter(r -> r instanceof RealmGrantedAuthority).map(r -> (RealmGrantedAuthority) r)
+                .collect(Collectors.toSet());
 
         // convert to a claims list flattening roles
         List<Claim> claims = new ArrayList<>();
