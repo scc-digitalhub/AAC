@@ -165,7 +165,7 @@ public class InternalIdentityAuthority implements IdentityAuthority {
                 }
 
                 // can't unregister default provider, check
-                if (SystemKeys.REALM_GLOBAL.equals(idp.getRealm())) {
+                if (SystemKeys.REALM_SYSTEM.equals(idp.getRealm())) {
                     return;
                 }
 

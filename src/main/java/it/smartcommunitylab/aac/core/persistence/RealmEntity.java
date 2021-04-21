@@ -35,6 +35,13 @@ public class RealmEntity {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Date modifiedDate;
+    
+    //configuration
+    @Column(name="is_editable")
+    private boolean editable;
+    
+    @Column(name="is_public")
+    private boolean isPublic;
 
     public String getName() {
         return name;
@@ -66,6 +73,22 @@ public class RealmEntity {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
 }

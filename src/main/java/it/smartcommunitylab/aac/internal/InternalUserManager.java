@@ -77,7 +77,7 @@ public class InternalUserManager {
 
     @Resource(name = "messageSource")
     private MessageSource messageSource;
-    
+
     @Autowired
     private InternalUserService accountService;
 
@@ -85,8 +85,8 @@ public class InternalUserManager {
     private UserEntityService userService;
 
     @Autowired
-    private MailService mailService; 
-    
+    private MailService mailService;
+
 //    @Autowired
 //    private AttributeEntityService attributeService;
 
@@ -99,7 +99,7 @@ public class InternalUserManager {
 
     @Value("${application.url}")
     private String applicationURL;
-    
+
     @Value("${admin.username}")
     private String adminUsername;
 
@@ -115,35 +115,38 @@ public class InternalUserManager {
         // create admin as superuser
         logger.debug("create internal admin user " + adminUsername);
         UserEntity user = null;
-        InternalUserAccount account = accountService.findAccount(SystemKeys.REALM_GLOBAL, adminUsername);
+        InternalUserAccount account = accountService.findAccount(SystemKeys.REALM_SYSTEM, adminUsername);
         if (account != null) {
             // check if user exists, recreate if needed
             user = userService.findUser(account.getSubject());
             if (user == null) {
-                user = userService.addUser(userService.createUser(SystemKeys.REALM_GLOBAL).getUuid(),
-                        SystemKeys.REALM_GLOBAL, adminUsername);
+                user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
+                        SystemKeys.REALM_SYSTEM, adminUsername);
             }
         } else {
             // register as new
-            user = userService.addUser(userService.createUser(SystemKeys.REALM_GLOBAL).getUuid(),
-                    SystemKeys.REALM_GLOBAL, adminUsername);
-            account = accountService.addAccount(user.getUuid(), SystemKeys.REALM_GLOBAL, adminUsername, null, null,
+            user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
+                    SystemKeys.REALM_SYSTEM, adminUsername);
+            account = accountService.addAccount(user.getUuid(), SystemKeys.REALM_SYSTEM, adminUsername, null, null,
                     null, null);
         }
 
         String subjectId = account.getSubject();
 
         // re-set password
-        setPassword(subjectId, SystemKeys.REALM_GLOBAL, adminUsername, adminPassword, false);
+        setPassword(subjectId, SystemKeys.REALM_SYSTEM, adminUsername, adminPassword, false);
 
         // ensure account is unlocked
-        this.approveConfirmation(subjectId, SystemKeys.REALM_GLOBAL, adminUsername);
+        this.approveConfirmation(subjectId, SystemKeys.REALM_SYSTEM, adminUsername);
 
         // assign authorities as roles
-        // at minimum we set ADMIN+DEV
+        // at minimum we set ADMIN+DEV global, and ADMIN+DEV in SYSTEM realm
         Set<Map.Entry<String, String>> roles = new HashSet<>();
         roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_ADMIN));
         roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_DEVELOPER));
+        roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_SYSTEM, Config.R_ADMIN));
+        roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_SYSTEM, Config.R_DEVELOPER));
+        // admin roles are global,ie they are valid for any realm
         for (String role : adminRoles) {
             roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, role));
 
@@ -186,7 +189,7 @@ public class InternalUserManager {
 
         // remediate missing username
         if (!StringUtils.hasText(username)) {
-        	username = email;
+            username = email;
         }
 
         // validate
@@ -289,9 +292,9 @@ public class InternalUserManager {
             String lang,
             Set<Map.Entry<String, String>> attributesMap) throws NoSuchUserException {
 
-    	if (!StringUtils.hasText(username)) {
-    		username = email;
-    	}
+        if (!StringUtils.hasText(username)) {
+            username = email;
+        }
         email = email.trim().toLowerCase();
         username = username.trim().toLowerCase();
 
@@ -318,7 +321,7 @@ public class InternalUserManager {
         // TODO evaluate detach
         return account;
     }
-    
+
     public InternalUserAccount updateOrCreateAccount(
             String subject,
             String realm,
@@ -328,26 +331,26 @@ public class InternalUserManager {
             String name,
             String surname,
             String lang,
-            Set<Map.Entry<String, String>> attributesMap
-	) {
-		try {
-	    	if (!StringUtils.hasText(username)) {
-	    		username = email;
-	    	}
-	        username = username.trim().toLowerCase();
+            Set<Map.Entry<String, String>> attributesMap) {
+        try {
+            if (!StringUtils.hasText(username)) {
+                username = email;
+            }
+            username = username.trim().toLowerCase();
 
-	        InternalUserAccount existing = accountService.getAccount(realm, username);
-	    	if (existing == null) {
-	    		return registerAccount(subject, realm, username, password, email, name, surname, lang, attributesMap);	    		
-	    	}
-    		InternalUserAccount updated = updateAccount(subject, realm, username, email, name, surname, lang, attributesMap);
-    		if (StringUtils.hasText(password)) {
-    			updatePassword(subject, realm, updated.getUserId(), password);
-    		}
-    		return updated;
-		} catch (NoSuchUserException e) {
-    		return registerAccount(subject, realm, username, password, email, name, surname, lang, attributesMap);
-		}
+            InternalUserAccount existing = accountService.getAccount(realm, username);
+            if (existing == null) {
+                return registerAccount(subject, realm, username, password, email, name, surname, lang, attributesMap);
+            }
+            InternalUserAccount updated = updateAccount(subject, realm, username, email, name, surname, lang,
+                    attributesMap);
+            if (StringUtils.hasText(password)) {
+                updatePassword(subject, realm, updated.getUserId(), password);
+            }
+            return updated;
+        } catch (NoSuchUserException e) {
+            return registerAccount(subject, realm, username, password, email, name, surname, lang, attributesMap);
+        }
     }
 
     public void deleteAccount(
@@ -666,7 +669,7 @@ public class InternalUserManager {
         String subject = messageSource.getMessage("reset.subject", null, Locale.forLanguageTag(lang));
         mailService.sendEmail(account.getEmail(), "mail/reset_" + lang, subject, vars);
     }
-    
+
     /*
      * Keys
      */
@@ -676,13 +679,13 @@ public class InternalUserManager {
         return rnd;
     }
 
-	/**
-	 * @param key
-	 * @return
-	 * @throws NoSuchUserException 
-	 */
-	public InternalUserAccount getAccountByConfirmationKey(String key) throws NoSuchUserException {
-		return accountService.getAccountByConfirmationKey(key);
-	}
+    /**
+     * @param key
+     * @return
+     * @throws NoSuchUserException
+     */
+    public InternalUserAccount getAccountByConfirmationKey(String key) throws NoSuchUserException {
+        return accountService.getAccountByConfirmationKey(key);
+    }
 
 }

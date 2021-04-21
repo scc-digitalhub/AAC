@@ -153,14 +153,16 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
             wrappedAuthRequest = new ProviderWrappedAuthenticationToken(authenticationRequest,
                     providerId, SystemKeys.AUTHORITY_INTERNAL);
         } else {
-            // wrap as realm
-            if (!StringUtils.hasText(realm)) {
-                // global realm
-                realm = SystemKeys.REALM_GLOBAL;
-            }
-
-            wrappedAuthRequest = new RealmWrappedAuthenticationToken(authenticationRequest,
-                    realm, SystemKeys.AUTHORITY_INTERNAL);
+            // TODO handle COMMON realm via discovery or additinal params
+            throw new ProviderNotFoundException("no provider or realm found for this request");
+//            // wrap as realm
+//            if (!StringUtils.hasText(realm)) {
+//                // global realm
+//                realm = SystemKeys.REALM_GLOBAL;
+//            }
+//
+//            wrappedAuthRequest = new RealmWrappedAuthenticationToken(authenticationRequest,
+//                    realm, SystemKeys.AUTHORITY_INTERNAL);
         }
 
         // set details

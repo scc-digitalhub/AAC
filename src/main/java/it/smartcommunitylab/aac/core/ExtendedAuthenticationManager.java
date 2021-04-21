@@ -402,13 +402,20 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             Subject subject = new Subject(subjectId, user.getUsername());
 
             // fetch global and realm authorities for subject
-            // we don't fetch roles from different realms, user has to authenticate again to
-            // gain those. Only matching realm and global roles are valid
-            List<UserRoleEntity> userRoles = userService.getRoles(subjectId, SystemKeys.REALM_GLOBAL);
-            List<UserRoleEntity> realmRoles = auth.getRealm().equals(SystemKeys.REALM_GLOBAL) ? Collections.emptyList()
-                    : userService.getRoles(subjectId, auth.getRealm());
+            List<UserRoleEntity> userRoles = userService.getRoles(subjectId);
 
-            Collection<GrantedAuthority> authorities = convertUserRoles(userRoles, realmRoles);
+            Set<GrantedAuthority> authorities = new HashSet<>();
+            // always grant user role
+            authorities.add(new SimpleGrantedAuthority(Config.R_USER));
+
+            for (UserRoleEntity role : userRoles) {
+                if (SystemKeys.REALM_GLOBAL.equals(role.getRealm())) {
+                    authorities.add(new SimpleGrantedAuthority(role.getRole()));
+                } else {
+                    authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
+                }
+            }
+
             logger.debug("authenticated user granted authorities are " + authorities.toString());
 
             // clear credentials from token, we don't use them anymore

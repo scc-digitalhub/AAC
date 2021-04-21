@@ -1,7 +1,9 @@
 package it.smartcommunitylab.aac.core;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -54,13 +57,13 @@ public class RealmManager {
      */
 
     public Realm addRealm(Realm r) throws AlreadyRegisteredException {
-    	r.setSlug(r.getSlug().toLowerCase());
+        r.setSlug(r.getSlug().toLowerCase());
         return realmService.addRealm(r.getSlug(), r.getName());
     }
 
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
-    	slug = slug.trim().toLowerCase();
-    	r.setSlug(slug);
+        slug = slug.trim().toLowerCase();
+        r.setSlug(slug);
         return realmService.updateRealm(slug, r.getName());
     }
 
@@ -71,14 +74,14 @@ public class RealmManager {
     public Collection<Realm> listRealms() {
         return realmService.listRealms();
     }
-    
+
     public Collection<Realm> searchRealms(String keywords) {
         return realmService.searchRealms(keywords);
     }
-	public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
-		return realmService.searchRealms(keywords, pageRequest);
-	}
 
+    public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
+        return realmService.searchRealms(keywords, pageRequest);
+    }
 
     public void deleteRealm(String slug, boolean cleanup) throws NoSuchRealmException {
         Realm realm = realmService.getRealm(slug);
