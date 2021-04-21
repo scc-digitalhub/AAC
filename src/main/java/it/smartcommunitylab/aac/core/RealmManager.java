@@ -58,7 +58,7 @@ public class RealmManager {
 
     public Realm addRealm(Realm r) throws AlreadyRegisteredException {
         r.setSlug(r.getSlug().toLowerCase());
-        return realmService.addRealm(r.getSlug(), r.getName());
+        return realmService.addRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic());
     }
 
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {

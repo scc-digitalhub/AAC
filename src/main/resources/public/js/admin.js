@@ -3,12 +3,12 @@ angular.module('aac.controllers.admin', [])
  * Main layout controller
  * @param $scope
  */
-.controller('AdminController', function ($scope, AdminData, Utils) {	
+.controller('AdminController', function ($scope, $location, AdminData, Utils) {	
 	$scope.adminView = 'realms';
   $scope.query = {
     page: 0,
-    size: 10,
-    sort: {slug: -1},
+    size: 20,
+    sort: {slug: 1},
     q: ''
   }
 
@@ -36,6 +36,7 @@ angular.module('aac.controllers.admin', [])
      $scope.newRealm = false;
      $scope.realm = Object.assign({}, realm);
      $('#realmModal').modal({backdrop: 'static', focus: true})
+     Utils.refreshFormBS();
   }
 	$scope.save = function() {
 	  $('#realmModal').modal('hide');
@@ -60,6 +61,10 @@ angular.module('aac.controllers.admin', [])
     }).catch(function(err) {
       Utils.showError(err.data.message);
     });
+  }
+  
+  $scope.manageRealm = function(item) {
+    $location.path('realms/' + item.slug);
   }
 	
 	$scope.dismiss = function(){

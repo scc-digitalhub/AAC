@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -23,7 +26,6 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
@@ -195,6 +197,7 @@ public class UserService {
         String source = u.getRealm();
 
         User user = new User(subjectId, u.getRealm());
+        user.setUsername(u.getUsername());
         Set<UserIdentity> identities = new HashSet<>();
 
         // fetch all identities from source realm
@@ -250,7 +253,12 @@ public class UserService {
     public List<User> listUsers(String realm) {
         // owned by realm
         List<UserEntity> users = userService.getUsers(realm);
-        List<User> realmUsers = users.stream()
+        return convertUsers(realm, users);
+
+    }
+
+	protected List<User> convertUsers(String realm, List<UserEntity> users) {
+		List<User> realmUsers = users.stream()
                 .map(u -> {
                     try {
                         return getUser(u.getUuid(), realm);
@@ -266,10 +274,21 @@ public class UserService {
 
         // TODO translate resulting users
         return realmUsers;
+	}
 
-    }
 
-    /*
+	/**
+	 * Update realm roles for the specified user
+	 * @param slug
+	 * @param subjectId
+	 * @param roles
+	 * @throws NoSuchUserException 
+	 */
+	public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
+		userService.updateRoles(subjectId, slug, roles);
+	}
+	
+    /**
      * Remove a user from the given realm
      *
      * if realm matches source realm user will be deleted, otherwise only the proxy
@@ -358,4 +377,19 @@ public class UserService {
         // we don't filter space roles per realm, so read all
         return roleService.getRoles(subjectId);
     }
+
+	/**
+	 * @param realm
+	 * @param keywords
+	 * @param pageRequest
+	 * @return
+	 */
+	public Page<User> searchUsers(String realm, String q, Pageable pageRequest) {
+		Page<UserEntity> page = userService.searchUsers(realm, q, pageRequest);
+        return PageableExecutionUtils.getPage(
+        		convertUsers(realm, page.getContent()),
+                pageRequest,
+                () -> page.getTotalElements());
+	}
+
 }

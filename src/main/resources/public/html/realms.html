@@ -14,14 +14,16 @@
   <div  ng-if="realms && realms.content.length > 0">
 	  <table class="table table-hover border-bottom">
 	      <thead>
-	      <tr><th>Slug</th><th>Name</th><th></th></tr>
+	      <tr><th>Slug</th><th>Name</th><th>Public</th><th></th></tr>
 	      </thead>
 	    <tr ng-repeat="item in realms.content">
 	      <td class="align-middle">{{item.slug}}</td>
 	      <td class="align-middle">{{item.name}}</td>
+        <td class="align-middle"><svg ng-if="item.public" class="icon icon-sm icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-check"></use></svg></td>
   	    <td class="text-right">
-         <button class="btn btn-success btn-sm"  ng-click="editRealm(item)">Edit</button>
-  	     <button class="btn btn-danger btn-sm"  ng-click="removeRealm(item)">Delete</button>
+         <button class="btn btn-primary btn-sm" ui-sref="realm({realmId:item.slug})">Manage</button>
+         <button class="btn btn-success btn-sm"  ng-click="editRealm(item)" ng-disabled="!item.editable">Edit</button>
+  	     <button class="btn btn-danger btn-sm"  ng-click="removeRealm(item)" ng-disabled="!item.editable">Delete</button>
   	    </td>
 	    </tr>
 	  </table>
@@ -30,7 +32,7 @@
         <li class="page-item"  ng-class="{'disabled':realms.first}">
           <a class="page-link" ng-click="setPage(query.page - 1)">
             <svg class="icon icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use></svg>
-            <span class="sr-only">Pagina precedente</span>
+            <span class="sr-only">Previous page</span>
           </a>
         </li>
         <li class="page-item" ng-if="realms.pageable.pageNumber - 1 > 0"><a class="page-link"  ng-click="setPage(realms.pageable.pageNumber - 2)">{{realms.pageable.pageNumber - 1}}</a></li>
@@ -42,7 +44,7 @@
         <li class="page-item" ng-if="realms.pageable.pageNumber + 2 < realms.totalPages"><a class="page-link"  ng-click="setPage(realms.pageable.pageNumber + 2)">{{realms.pageable.pageNumber + 3}}</a></li>
         <li class="page-item"  ng-class="{'disabled':realms.last}">
           <a class="page-link" ng-click="setPage(query.page + 1)">
-            <span class="sr-only">Pagina successiva</span>
+            <span class="sr-only">Next page</span>
             <svg class="icon icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use></svg>
           </a>
         </li>
@@ -58,7 +60,7 @@
 
 
 
-<div ng-include="'./html/realm.modal.html'"></div>
+<div ng-include="'./html/realms.modal.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
     <div class="modal-dialog" role="document">

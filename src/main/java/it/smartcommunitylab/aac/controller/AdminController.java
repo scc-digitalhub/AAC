@@ -31,7 +31,11 @@ public class AdminController {
     @PreAuthorize("hasAuthority(\"" + Config.R_ADMIN + "\")")
 	public ResponseEntity<Page<Realm>> getRealms(@RequestParam(required=false) String q, Pageable pageRequest) {
 		return ResponseEntity.ok(realmManager.searchRealms(q, pageRequest));
-		
+	}
+	@GetMapping("/console/admin/realms/{slug:.*}")
+    @PreAuthorize("hasAuthority(\"" + Config.R_ADMIN + "\")")
+	public ResponseEntity<Realm> getRealm(@PathVariable String slug) throws NoSuchRealmException {
+		return ResponseEntity.ok(realmManager.getRealm(slug));
 	}
 	@PostMapping("/console/admin/realms")
     @PreAuthorize("hasAuthority(\"" + Config.R_ADMIN + "\")")

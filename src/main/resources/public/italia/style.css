@@ -26,6 +26,10 @@ body {
   min-height: calc(100vh - 57px - 48px);
 }
 
+.nav-link a {
+  color: inherit !important;
+}
+
 .confirmation-content {
 	padding: 10px;
 	text-align: left;
@@ -124,9 +128,13 @@ input.form-control-sm  {
 .alert-container {
   position: fixed;
   bottom: 60px;
-  background-color: white;
   width: 100%;
+  z-index: 100;
 } 
+
+.alert-container .alert {
+  background-color: white !important;
+}
 
 .page-item {
   cursor: pointer !important;
