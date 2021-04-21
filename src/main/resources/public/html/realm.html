@@ -5,7 +5,7 @@
         <div class="link-list-wrapper">
           <ul class="link-list">
             <li><h3>{{realm.name}}</h3></li>
-            <li>
+            <li ng-if="realmAdmin">
             <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.users">Users</a>
             </li>
         </ul>

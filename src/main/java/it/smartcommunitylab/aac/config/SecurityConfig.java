@@ -299,7 +299,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .rememberMeServices(rememberMeServices())
 //                .and()
                 .csrf()
-                .ignoringAntMatchers("/logout")
+                .ignoringAntMatchers("/logout", "/console/**")
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls

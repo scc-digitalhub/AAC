@@ -3,9 +3,14 @@ angular.module('aac.controllers.realm', [])
 /**
  * Main realm layout controller
  */
-.controller('RealmController', function ($scope, $state, $stateParams, RealmData, Utils) {
+.controller('RealmController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
   var slug = $stateParams.realmId;
+  
   if (slug) {
+    // global admin or realm admin
+    $scope.realmAdmin = $rootScope.user.authorities.findIndex(function(a) { return a.relam == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN'}) >= 0;
+    // realm admin or developer
+    $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function(a) { return a.relam == slug && a.role == 'ROLE_DEVELOPER'}) >= 0 || $scope.realmAdmin;
     RealmData.getRealm(slug)
     .then(function(data){
       $scope.realm = data;

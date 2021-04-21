@@ -57,13 +57,13 @@ public class DevController {
 	}
 	
 	@GetMapping("/console/dev/realms/{slug:.*}/users")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority('{slug}:REALM_ADMIN') or hasAuthority('{slug}:REALM_DEVELOPER')")
+    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority('{slug}:REALM_ADMIN')")
 	public ResponseEntity<Page<User>> getRealmUsers(@PathVariable String slug, @RequestParam(required=false) String q, Pageable pageRequest) throws NoSuchRealmException {
 		return ResponseEntity.ok(userManager.searchUsers(slug, q, pageRequest));
 	}
 	
 	@DeleteMapping("/console/dev/realms/{slug}/users/{subjectId:.*}")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority('{slug}:REALM_ADMIN') or hasAuthority('{slug}:REALM_DEVELOPER')")
+    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority('{slug}:REALM_ADMIN')")
 	public ResponseEntity<Void> deleteRealmUser(@PathVariable String slug, @PathVariable String subjectId) throws NoSuchRealmException, NoSuchUserException {
 		User curUser = userManager.curUser(slug);
 		if (curUser.getSubjectId().equals(subjectId)) {
@@ -74,7 +74,7 @@ public class DevController {
 	}
 	
 	@PutMapping("/console/dev/realms/{slug}/users/{subjectId:.*}/roles")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority('{slug}:REALM_ADMIN') or hasAuthority('{slug}:REALM_DEVELOPER')")
+    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority('{slug}:REALM_ADMIN')")
 	public ResponseEntity<User> updateRealmRoles(@PathVariable String slug, @PathVariable String subjectId, @RequestBody RolesBean bean) throws NoSuchRealmException, NoSuchUserException {
 		userManager.updateRealmAuthorities(slug, subjectId, bean.getRoles());
 		return ResponseEntity.ok(userManager.getUser(slug, subjectId));
