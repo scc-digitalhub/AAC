@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NotRegisteredException;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
@@ -117,7 +118,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         String password = request.getParameter("password");
 
         if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
-            throw new BadCredentialsException("missing username or password");
+            throw new NotRegisteredException();
         }
 
         // build a request

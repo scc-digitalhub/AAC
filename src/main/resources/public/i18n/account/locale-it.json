@@ -13,7 +13,7 @@
   "btn_cancel": "Annulla",
   "btn_confirm": "Conferma",
   "home": {
-    "welcome" : "Benvenuto, {{fullname}}!",
+    "welcome" : "Benvenuto, {{fullName || username}}!",
     "account_card_title": "Informazioni dell'account",
     "account_card_text": "Vedi le informazioni del tuo account,, gestisici e connetti account social, ecc.",
     "account_card_more": "Gestisci account",

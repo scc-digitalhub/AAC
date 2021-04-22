@@ -24,7 +24,7 @@ public class InvalidPasswordException extends RegistrationException {
     private static final long serialVersionUID = 3481701175901182216L;
 
     public InvalidPasswordException() {
-        super();
+        super(InvalidPasswordException.class.getSimpleName());
     }
 
     public InvalidPasswordException(String message) {
@@ -32,7 +32,7 @@ public class InvalidPasswordException extends RegistrationException {
     }
 
     public InvalidPasswordException(Throwable cause) {
-        super(cause);
+        super(InvalidPasswordException.class.getSimpleName(), cause);
     }
 
     public InvalidPasswordException(String message, Throwable cause) {

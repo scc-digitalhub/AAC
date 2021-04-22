@@ -23,4 +23,9 @@ package it.smartcommunitylab.aac.common;
 public class NotConfirmedException extends RegistrationException {
 	private static final long serialVersionUID = 3481701175901182216L;
 
+	public NotConfirmedException() {
+		super(NotConfirmedException.class.getSimpleName());
+	}
+
+	
 }

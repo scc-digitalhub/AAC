@@ -228,7 +228,7 @@ public class InternalLoginController {
                 }
                 target = URLEncoder.encode(target, "UTF8");
             } catch (UnsupportedEncodingException e) {
-                throw new RegistrationException(e);
+                throw new RegistrationException(RegistrationException.class.getSimpleName(), e);
             }
 
             // build auth token for validation

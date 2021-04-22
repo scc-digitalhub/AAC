@@ -13,7 +13,7 @@
   "btn_cancel": "Cancel",
   "btn_confirm": "Confirm",
   "home": {
-    "welcome" : "Welcome, {{fullname}}!",
+    "welcome" : "Welcome, {{fullName || username}}!",
     "account_card_title": "Account Info",
     "account_card_text": "View associated account information, merge and connect social accounts, etc.",
     "account_card_more": "Manage Accounts",

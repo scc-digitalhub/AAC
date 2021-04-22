@@ -22,5 +22,11 @@ package it.smartcommunitylab.aac.common;
  */
 public class InvalidDataException extends RegistrationException {
 	private static final long serialVersionUID = 3481701175901182216L;
+	/**
+	 * @param message
+	 */
+	public InvalidDataException() {
+		super(InvalidDataException.class.getName());
+	}
 
 }

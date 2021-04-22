@@ -5,9 +5,9 @@ angular.module('aac.controllers.main', [])
  * @param $scope
  */
 .controller('MainCtrl', function($scope, $rootScope, $location, Data, Utils) {
-    $scope.go = function(v) {
-    	$location.path(v);
-    }
+  $scope.go = function(v) {
+  	$location.path(v);
+  }
 
 	
 	$scope.activeView = function(view) {
@@ -20,11 +20,13 @@ angular.module('aac.controllers.main', [])
 	Data.getProfile().then(function(data) {
 		$rootScope.user = data;
 		$rootScope.isDev = data.authorities.findIndex(function(a) {
-		   return a.authority === 'ROLE_DEVELOPER' || a.authority === 'ROLE_ADMIN'; 
+		   return a.role === 'ROLE_DEVELOPER' || a.role === 'ROLE_ADMIN'; 
 		})>= 0;
 	}).catch(function(err) {
 		Utils.showError(err);
 	});
+	
+	//Utils.initUI();
 })
 
 .controller('HomeController', function($scope, $rootScope, $location) {
@@ -81,16 +83,7 @@ angular.module('aac.controllers.main', [])
 	
 })
 .controller('ProfileController', function($scope, $rootScope, $location, Data, Utils) {
-	$scope.profile = Object.assign($rootScope.user);
-	Data.getAccounts().then(function(data) {
-	   for (var i = 0; i < data.length; i++) {
-	     if (data[i].provider === 'internal') {
-         $scope.password_required = true;
-	     }
-	   }
-	}).catch(function(err) {
-		Utils.showError(err);
-	});
+	$scope.profile = {name: $rootScope.user.firstName, surname: $rootScope.user.lastName, username: $rootScope.user.username, email: $rootScope.user.emailAddress};
 	
 	$scope.cancel = function() {
 		window.history.back();
@@ -105,10 +98,8 @@ angular.module('aac.controllers.main', [])
 			return;
 		}
 		Data.saveAccount($scope.profile).then(function(data) {
-			data.fullname = data.name + ' ' + data.surname;
 			$rootScope.user = data;
 			$scope.profile = Object.assign($rootScope.user);
-			$scope.password_required = false;
 			Utils.showSuccess();
 		}).catch(function(err) {
 			Utils.showError(err);
