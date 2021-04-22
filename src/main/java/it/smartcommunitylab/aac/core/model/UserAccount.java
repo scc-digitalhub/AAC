@@ -14,6 +14,8 @@ public interface UserAccount extends UserResource, Serializable {
     // we should make no assumptions on the content
     public String getUsername();
 
+    // TODO remove mappers, we have extractors for profiles
+    // we should implement as Converter<? UserAccount> <? Profile>
     // mapper to account profile
     public AccountProfile toProfile();
 

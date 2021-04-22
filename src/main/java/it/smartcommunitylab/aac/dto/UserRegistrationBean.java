@@ -132,24 +132,4 @@ public class UserRegistrationBean implements Serializable {
         this.lang = lang;
     }
 
-    /*
-     * Convert to attributes for registration via service TODO rewrite with proper
-     * model handling
-     */
-    @JsonIgnore
-    public Collection<Entry<String, String>> toAttributes() {
-        List<Entry<String, String>> attributes = new ArrayList<>();
-
-        // add required
-        attributes.add(new AbstractMap.SimpleEntry<>("email", email));
-        attributes.add(new AbstractMap.SimpleEntry<>("password", password));
-        attributes.add(new AbstractMap.SimpleEntry<>("surname", surname));
-        attributes.add(new AbstractMap.SimpleEntry<>("name", name));
-
-        if (lang != null) {
-            attributes.add(new AbstractMap.SimpleEntry<>("lang", lang));
-        }
-
-        return attributes;
-    }
 }

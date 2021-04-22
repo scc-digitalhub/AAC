@@ -455,7 +455,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // ask all providers except the one already used
             for (IdentityService ip : idps) {
                 if (!providerId.equals(ip.getProvider())) {
-                    Collection<UserIdentity> identities = ip.listIdentities(subjectId);
+                    Collection<? extends UserIdentity> identities = ip.listIdentities(subjectId);
                     if (identities == null) {
                         // this idp does not support linking
                         continue;

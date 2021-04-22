@@ -12,8 +12,8 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface InternalUserAccountRepository
         extends CustomJpaRepository<InternalUserAccount, Long>, DetachableJpaRepository<InternalUserAccount> {
 
-    @Query("select u from InternalUserAccount u where u.id=?1")
-    InternalUserAccount findByUserId(Long userId);
+//    @Query("select u from InternalUserAccount u where u.id=?1")
+//    InternalUserAccount findByUserId(Long userId);
 
     InternalUserAccount findByRealmAndUsername(String realm, String username);
 

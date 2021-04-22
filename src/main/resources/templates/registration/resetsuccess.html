@@ -16,44 +16,70 @@
 
 -->
 
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" >
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="-1" />        
-        <title th:text="#{lbl_login_title}"></title>
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
 
-    <!-- Design Italia -->
-    <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css"/>   
-    <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>    
-    <link href="../italia/style.css" rel="stylesheet" />
-    <script src="../italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
-  
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="-1" />
+  <!-- Design Italia -->
+  <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+  <script th:inline="javascript">
+    const contextpath = /*[[@{/}]]*/ "/";
+    window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+  </script>
 
-    </head>
-    <body>
-      <div class="container">
-	      <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
-	      <div class="clear"></div>
-        <div class="row justify-content-center">
-          <div class="col-md-offset-4 col-md-4">
-            <div class="panel panel-default">
-            <h4 style="text-align:center" th:text="#{lbl_resetsuccess_title}"></h4>
-            <div>&nbsp;</div>
-            <p th:text="#{lbl_resetsuccess_text}" ></p>
-            <div class="col-md-12 form-group text-center">
-              <a class="btn" href="../login" th:text="#{lbl_login}" ></a>
-            </div>            
-            <div>&nbsp;</div>
+  <link th:href="@{/italia/style.css}" rel="stylesheet" />
+
+  <title th:text="#{lbl_resetpwd_title}">AAC Reset Account</title>
+</head>
+
+<body>
+  <div class="container">
+
+    <div th:if="${headerText == null}">
+      <img class="logo d-none d-md-block" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
+      <div class="clear"></div>
+    </div>
+
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${headerText != null}"
+      th:utext="${headerText}"></div>
+
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${registrationText != null}"
+      th:utext="${registrationText}"></div>
+
+
+    <div class="row justify-content-center">
+      <div class="col-md-offset-4 col-md-4">
+        <div class="panel panel-default">
+
+          <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_resetsuccess_title}">AAC</h4>
+          <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
+
+          <h5 th:text="#{lbl_resetsuccess_title}">Reset success</h5>
+          <p th:text="#{lbl_resetsuccess_text}"></p>
+
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <a class="btn btn-block" th:href="${loginUrl}" th:text="#{lbl_login}"></a>
             </div>
           </div>
+
         </div>
-      </div>  
-    </body>
+      </div>
+    </div>
+
+    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${footerText != null}"
+      th:utext="${footerText}"></div>
+
+  </div>
+  <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
+</body>
+
 </html>

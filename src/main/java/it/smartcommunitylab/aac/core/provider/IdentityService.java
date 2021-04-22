@@ -5,6 +5,8 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
@@ -38,9 +40,9 @@ public interface IdentityService extends IdentityProvider {
      */
 
     // userId is provider-specific
-    public UserIdentity getIdentity(String userId) throws NoSuchUserException;
+    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException;
 
-    public UserIdentity getIdentity(String userId, boolean fetchAttributes) throws NoSuchUserException;
+    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException;
 
     /*
      * fetch for subject
@@ -52,7 +54,7 @@ public interface IdentityService extends IdentityProvider {
      * outside the login flow!
      */
 
-    public Collection<UserIdentity> listIdentities(String subject);
+    public Collection<? extends UserIdentity> listIdentities(String subject);
 
     /*
      * Manage identities from this provider
@@ -61,13 +63,13 @@ public interface IdentityService extends IdentityProvider {
      */
 
     public UserIdentity registerIdentity(
-            String subject,
-            Collection<Map.Entry<String, String>> attributes) throws NoSuchUserException, RegistrationException;
+            String subject, UserAccount account,
+            Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
 
     public UserIdentity updateIdentity(
             String subject,
-            String userId,
-            Collection<Map.Entry<String, String>> attributes) throws NoSuchUserException, RegistrationException;
+            String userId, UserAccount account,
+            Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
 
     public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException;
 

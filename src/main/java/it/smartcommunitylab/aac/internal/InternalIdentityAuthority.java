@@ -16,16 +16,19 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.utils.MailService;
 
 @Service
 public class InternalIdentityAuthority implements IdentityAuthority, InitializingBean {
 
+    // TODO replace with proper configuration bean read from props
     @Value("${authorities.internal.confirmation.required}")
     private boolean confirmationRequired;
 
@@ -56,21 +59,33 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     private final UserEntityService userEntityService;
 
-    private final InternalUserAccountRepository accountRepository;
+    private final InternalUserAccountService userAccountService;
 
     private InternalIdentityProviderConfigMap defaultProviderConfig;
+
+    // services
+    private MailService mailService;
+    private RealmAwareUriBuilder uriBuilder;
 
     // identity providers by id
     private Map<String, InternalIdentityProvider> providers = new HashMap<>();
 
-    public InternalIdentityAuthority(InternalUserAccountRepository accountRepository,
+    public InternalIdentityAuthority(InternalUserAccountService userAccountService,
             UserEntityService userEntityService) {
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
 
-        this.accountRepository = accountRepository;
+        this.userAccountService = userAccountService;
         this.userEntityService = userEntityService;
 
+    }
+
+    public void setMailService(MailService mailService) {
+        this.mailService = mailService;
+    }
+
+    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
+        this.uriBuilder = uriBuilder;
     }
 
     public void setDefaultProviderConfig(InternalIdentityProviderConfigMap defaultProviderConfig) {
@@ -150,9 +165,13 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
             // link to internal repos
             InternalIdentityProvider idp = new InternalIdentityProvider(
                     providerId,
-                    accountRepository, userEntityService,
+                    userAccountService, userEntityService,
                     cp, defaultProviderConfig,
                     realm);
+
+            // set services
+            idp.setMailService(mailService);
+            idp.setUriBuilder(uriBuilder);
 
             // register
             registerIdp(idp);

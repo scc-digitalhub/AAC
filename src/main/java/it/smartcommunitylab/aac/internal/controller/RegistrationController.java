@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.internal.controller;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -40,6 +42,7 @@ import org.springframework.http.HttpStatus;
 //import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,13 +61,17 @@ import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.dto.UserRegistrationBean;
+import it.smartcommunitylab.aac.dto.UserResetBean;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -77,48 +84,23 @@ import springfox.documentation.annotations.ApiIgnore;
 public class RegistrationController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Value("${authorities.internal.confirmation.required}")
-    private boolean confirmationRequired;
-
-    @Value("${authorities.internal.password.reset.enabled}")
-    private boolean passwordResetEnabled;
-
-    @Value("${authorities.internal.linking}")
-    private boolean accountLinking;
-
     @Autowired
     private ProviderManager providerManager;
 
     @Autowired
     private AuthenticationHelper authHelper;
 
-//    @Autowired
-//    private RegistrationService regService;
-//
-//    @Autowired
-//    private AttributesAdapter attributesAdapter;
-
-    @Autowired
-    private InternalUserManager userManager;
-
     @Autowired
     private RealmManager realmManager;
 
     /**
      * Redirect to registration page
-     * 
-     * @param model
-     * @param req
-     * @return
-     * @throws NoSuchProviderException
-     * @throws NoSuchRealmException
      */
     @ApiIgnore
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(
             @PathVariable("providerId") String providerId,
-            Model model,
-            HttpServletRequest req) throws NoSuchProviderException, NoSuchRealmException {
+            Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
         IdentityService ids = providerManager.getIdentityService(providerId);
@@ -160,12 +142,6 @@ public class RegistrationController {
 
     /**
      * Register the user and redirect to the 'registersuccess' page
-     * 
-     * @param model
-     * @param reg
-     * @param result
-     * @param req
-     * @return
      */
     @ApiIgnore
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
@@ -190,15 +166,30 @@ public class RegistrationController {
 
             String realm = ids.getRealm();
 
-            // convert registration model to attributes for registration
-            Collection<Entry<String, String>> attributes = reg.toAttributes();
+            String username = reg.getEmail();
+            String password = reg.getPassword();
+            String email = reg.getEmail();
+            String name = reg.getName();
+            String surname = reg.getSurname();
+            String lang = reg.getLang();
+
+            // convert registration model to internal model
+            InternalUserAccount account = new InternalUserAccount();
+            account.setUsername(username);
+            account.setPassword(password);
+            account.setEmail(email);
+            account.setName(name);
+            account.setSurname(surname);
+            account.setLang(lang);
+
+            // TODO handle additional attributes from registration
 
             // TODO handle subject resolution to link with existing accounts
             // either via current session or via providers from same realm
             String subjectId = null;
 
             // register
-            UserIdentity identity = ids.registerIdentity(subjectId, attributes);
+            UserIdentity identity = ids.registerIdentity(subjectId, account, Collections.emptyList());
 
             // build model for result
             model.addAttribute("providerId", providerId);
@@ -230,68 +221,64 @@ public class RegistrationController {
     /**
      * Register with the REST call
      * 
-     * @param model
-     * @param reg
-     * @param result
-     * @param req
-     * @return
+     * TODO move to a proper API controller, supporting all providers
      */
-    @RequestMapping(value = "/internal/register/rest", method = RequestMethod.POST)
-    public @ResponseBody void registerREST(@RequestBody UserRegistrationBean reg,
-            HttpServletResponse res) {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        Set<ConstraintViolation<UserRegistrationBean>> errors = validator.validate(reg);
+//    @RequestMapping(value = "/internal/register/rest", method = RequestMethod.POST)
+//    public @ResponseBody void registerREST(@RequestBody UserRegistrationBean reg,
+//            HttpServletResponse res) {
+//        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+//        Validator validator = factory.getValidator();
+//        Set<ConstraintViolation<UserRegistrationBean>> errors = validator.validate(reg);
+//
+//        if (errors.size() > 0) {
+//            res.setStatus(HttpStatus.BAD_REQUEST.value());
+//            return;
+//        }
+//        try {
+//            // register internal identity
+//            // TODO map realm
+//            // TODO fetch existing subject for account linking
+//            // for now generate subject here
+//            String subject = UUID.randomUUID().toString();
+//            String realm = "";
+//
+//            InternalUserAccount user = userManager.registerAccount(subject, realm, null, reg.getPassword(),
+//                    reg.getEmail(), reg.getName(),
+//                    reg.getSurname(), reg.getLang(), null);
+//
+//            String userId = user.getUserId();
+//
+//            // check confirmation
+//            if (confirmationRequired) {
+//                // generate confirmation keys and send mail
+//                userManager.resetConfirmation(subject, realm, userId, true);
+//            } else {
+//                // auto approve
+//                userManager.approveConfirmation(subject, realm, userId);
+//            }
+//        } catch (AlreadyRegisteredException e) {
+//            res.setStatus(HttpStatus.CONFLICT.value());
+//        } catch (RegistrationException e) {
+//            logger.error(e.getMessage(), e);
+//            res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        } catch (Exception e) {
+//            logger.error(e.getMessage(), e);
+//            res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        }
+//    }
 
-        if (errors.size() > 0) {
-            res.setStatus(HttpStatus.BAD_REQUEST.value());
-            return;
-        }
-        try {
-            // register internal identity
-            // TODO map realm
-            // TODO fetch existing subject for account linking
-            // for now generate subject here
-            String subject = UUID.randomUUID().toString();
-            String realm = "";
-
-            InternalUserAccount user = userManager.registerAccount(subject, realm, null, reg.getPassword(),
-                    reg.getEmail(), reg.getName(),
-                    reg.getSurname(), reg.getLang(), null);
-
-            String userId = user.getUserId();
-
-            // check confirmation
-            if (confirmationRequired) {
-                // generate confirmation keys and send mail
-                userManager.resetConfirmation(subject, realm, userId, true);
-            } else {
-                // auto approve
-                userManager.approveConfirmation(subject, realm, userId);
-            }
-        } catch (AlreadyRegisteredException e) {
-            res.setStatus(HttpStatus.CONFLICT.value());
-        } catch (RegistrationException e) {
-            logger.error(e.getMessage(), e);
-            res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            res.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        }
-    }
-
-    /**
-     * Redirect to the resend page to ask for the email
-     * 
-     * @param model
-     * @param username
-     * @return
-     */
-    @ApiIgnore
-    @RequestMapping(value = "/internal/resend")
-    public String resendPage() {
-        return "registration/resend";
-    }
+//    /**
+//     * Redirect to the resend page to ask for the email
+//     * 
+//     * @param model
+//     * @param username
+//     * @return
+//     */
+//    @ApiIgnore
+//    @RequestMapping(value = "/internal/resend")
+//    public String resendPage() {
+//        return "registration/resend";
+//    }
 
 //    /**
 //     * Resend the confirmation link to the registered user.
@@ -356,9 +343,114 @@ public class RegistrationController {
 //    }
 
     @ApiIgnore
-    @RequestMapping(value = "/internal/reset", method = RequestMethod.GET)
-    public String resetPage() {
+    @RequestMapping(value = "/auth/internal/reset/{providerId}", method = RequestMethod.GET)
+    public String resetPage(
+            @PathVariable("providerId") String providerId,
+            Model model) throws NoSuchProviderException, NoSuchRealmException {
+
+        // resolve provider
+        IdentityService ids = providerManager.getIdentityService(providerId);
+
+        if (!ids.getCredentialsService().canReset()) {
+            throw new RegistrationException("reset is disabled");
+        }
+
+        model.addAttribute("providerId", providerId);
+
+        String realm = ids.getRealm();
+        model.addAttribute("realm", realm);
+
+        String displayName = null;
+        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+            Realm re = realmManager.getRealm(realm);
+            displayName = re.getName();
+        }
+        model.addAttribute("displayName", displayName);
+
+        // build model
+        model.addAttribute("reg", new UserResetBean());
+
+        // build url
+        // TODO handle via urlBuilder or entryPoint
+        model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
+        model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
         return "registration/resetpwd";
+    }
+
+    @ApiIgnore
+    @RequestMapping(value = "/auth/internal/reset/{providerId}", method = RequestMethod.POST)
+    public String reset(Model model,
+            @PathVariable("providerId") String providerId,
+            @ModelAttribute("reg") @Valid UserResetBean reg,
+            BindingResult result,
+            HttpServletRequest req) {
+
+        if (result.hasErrors()) {
+            return "registration/resetpwd";
+        }
+
+        try {
+
+            // resolve provider
+            IdentityService ids = providerManager.getIdentityService(providerId);
+
+            // shortcut, we use only internal provider in this path
+            if (!(ids instanceof InternalIdentityProvider)) {
+                throw new RegistrationException("reset is not supported");
+            }
+
+            InternalIdentityProvider ip = (InternalIdentityProvider) ids;
+
+            String realm = ids.getRealm();
+
+            // build model for result
+            model.addAttribute("providerId", providerId);
+            model.addAttribute("realm", realm);
+            model.addAttribute("resetUrl", "/auth/internal/reset/" + providerId);
+            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
+            String displayName = null;
+            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+                Realm re = realmManager.getRealm(realm);
+                displayName = re.getName();
+            }
+            model.addAttribute("displayName", displayName);
+
+            String username = reg.getUsername();
+            String email = reg.getEmail();
+
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put("realm", realm);
+            attributes.put("provider", providerId);
+
+            if (StringUtils.hasText(username)) {
+                attributes.put("username", username);
+            }
+            if (StringUtils.hasText(email)) {
+                attributes.put("email", email);
+            }
+
+            // resolve user
+            UserAccount account = ip.getAccountProvider().getByIdentifyingAttributes(attributes);
+            String userId = account.getUserId();
+
+            // direct call to reset
+            InternalPasswordService passwordService = (InternalPasswordService) ip.getCredentialsService();
+            account = passwordService.resetPassword(userId);
+
+            model.addAttribute("account", account);
+
+            // WRONG, should send redirect to success page to avoid double POST
+            return "registration/resetsuccess";
+        } catch (RegistrationException e) {
+            model.addAttribute("error", e.getMessage());
+            return "registration/resetpwd";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            model.addAttribute("error", RegistrationException.class.getSimpleName());
+            return "registration/resetpwd";
+        }
     }
 
 //    @ApiIgnore

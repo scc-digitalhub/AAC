@@ -15,6 +15,8 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountService;
@@ -108,13 +110,13 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
-    public UserIdentity getIdentity(String userId) throws NoSuchUserException {
+    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public UserIdentity getIdentity(String userId, boolean fetchAttributes) throws NoSuchUserException {
+    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException {
         // TODO Auto-generated method stub
         return null;
     }
@@ -166,13 +168,17 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
-    public UserIdentity registerIdentity(String subject, Collection<Entry<String, String>> attributes)
+    public UserIdentity registerIdentity(
+            String subject, UserAccount account,
+            Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
         throw new RegistrationException("registration not supported");
     }
 
     @Override
-    public UserIdentity updateIdentity(String subject, String userId, Collection<Entry<String, String>> attributes)
+    public UserIdentity updateIdentity(String subject,
+            String userId, UserAccount account,
+            Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
         throw new RegistrationException("update not supported");
 

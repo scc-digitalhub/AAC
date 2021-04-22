@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
 /*
  * Internal implementation reads from account repository and attribute store
@@ -34,17 +35,17 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountReposito
  */
 public class InternalAttributeProvider extends AbstractProvider implements AttributeProvider {
 
-    private final InternalUserAccountRepository accountRepository;
+    private final InternalUserAccountService userAccountService;
     private final AttributeService attributeService;
 
-    public InternalAttributeProvider(String providerId, InternalUserAccountRepository accountRepository,
+    public InternalAttributeProvider(String providerId, InternalUserAccountService userAccountService,
             AttributeService attributeService, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
 
-        Assert.notNull(accountRepository, "accountRepository is mandatory");
+        Assert.notNull(userAccountService, "userAccountService is mandatory");
 //        Assert.notNull(attributeService, "attribute service is mandatory");
 
-        this.accountRepository = accountRepository;
+        this.userAccountService = userAccountService;
         this.attributeService = attributeService;
     }
 

@@ -18,10 +18,9 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.DefaultAccountImpl;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
 
 public class InternalSubjectResolver extends AbstractProvider implements SubjectResolver {
@@ -29,12 +28,12 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
 
     private InternalAccountProvider accountProvider;
 
-    public InternalSubjectResolver(String providerId, InternalUserAccountRepository accountRepository, String realm) {
+    public InternalSubjectResolver(String providerId, InternalUserAccountService userAccountService, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(userAccountService, "user account service is mandatory");
 
         // build an internal provider bound to repository
-        this.accountProvider = new InternalAccountProvider(providerId, accountRepository, realm);
+        this.accountProvider = new InternalAccountProvider(providerId, userAccountService, realm);
     }
 
     @Override
@@ -46,7 +45,7 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
     public Subject resolveByUserId(String userId) {
         logger.debug("resolve by user id " + userId);
         try {
-            InternalUserAccount account = accountProvider.getInternalAccount(userId);
+            InternalUserAccount account = accountProvider.getAccount(userId);
 
             // build subject with username
             return new Subject(account.getSubject(), account.getUsername());
@@ -59,14 +58,10 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
     public Subject resolveByIdentifyingAttributes(Map<String, String> attributes) {
         try {
             // let provider resolve to an account
-            DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(attributes);
-
-            // we need to fetch the internal object
-            // provider has exported the internalId
-            InternalUserAccount iaccount = accountProvider.getInternalAccount(account.getInternalUserId());
+            InternalUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
             // build subject with username
-            return new Subject(iaccount.getSubject(), iaccount.getUsername());
+            return new Subject(account.getSubject(), account.getUsername());
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -104,14 +99,10 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
             idAttrs.put("email", attributes.get("email"));
             // let provider resolve to an account
             try {
-                DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(idAttrs);
-
-                // we need to fetch the internal object
-                // provider has exported the internalId
-                InternalUserAccount iaccount = accountProvider.getInternalAccount(account.getInternalUserId());
+                InternalUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
                 // build subject with username
-                return new Subject(iaccount.getSubject(), iaccount.getUsername());
+                return new Subject(account.getSubject(), account.getUsername());
             } catch (NoSuchUserException nex) {
                 return null;
             }

@@ -79,10 +79,13 @@ import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
+import it.smartcommunitylab.aac.internal.InternalConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.InternalLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.InternalResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
@@ -139,6 +142,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private InternalUserAccountService internalUserAccountService;
 
 //    @Autowired
 //    private OAuth2ClientUserDetailsService clientUserDetailsService;
@@ -305,7 +311,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
-                .addFilterBefore(getInternalAuthorityFilters(authManager),
+                .addFilterBefore(getInternalAuthorityFilters(authManager, internalUserAccountService),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(getSamlAuthorityFilters(authManager, relyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
@@ -407,12 +413,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      * Internal auth
      */
 
-    public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager) {
-        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter();
-        loginFilter.setAuthenticationManager(authManager);
+    public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
+            InternalUserAccountService userAccountService) {
 
         List<Filter> filters = new ArrayList<>();
+
+        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter();
+        loginFilter.setAuthenticationManager(authManager);
         filters.add(loginFilter);
+
+        InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
+                userAccountService);
+        confirmKeyFilter.setAuthenticationManager(authManager);
+        filters.add(confirmKeyFilter);
+
+        InternalResetKeyAuthenticationFilter resetKeyFilter = new InternalResetKeyAuthenticationFilter(
+                userAccountService);
+        resetKeyFilter.setAuthenticationManager(authManager);
+        filters.add(resetKeyFilter);
+
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);
 

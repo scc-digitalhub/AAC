@@ -60,23 +60,22 @@ public class UserController {
     /*
      * User management
      * 
-     * TODO evaluate, we probably need a base account model
      */
-//    @PostMapping("{realm}")
-//    public User registerUser(
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @RequestBody @Valid UserAccount account) throws NoSuchRealmException {
-//        return null;
-//    }
-//
-//    // TODO evaluate, are UserAccounts editable?
-//    @PutMapping("{realm}/{userId}")
-//    public User updateUser(
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-//            @RequestBody @Valid UserAccount account) throws NoSuchClientException, NoSuchRealmException {
-//        return null;
-//    }
+    @PostMapping("{realm}")
+    public User registerUser(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid UserAccount account) throws NoSuchRealmException {
+        return null;
+    }
+
+    // TODO evaluate, are UserAccounts editable?
+    @PutMapping("{realm}/{userId}")
+    public User updateUser(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+            @RequestBody @Valid UserAccount account) throws NoSuchClientException, NoSuchRealmException {
+        return null;
+    }
 
     /*
      * User Attributes management

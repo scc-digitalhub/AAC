@@ -18,5 +18,5 @@ public interface AccountProvider extends ResourceProvider {
 
     public UserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException;
 
-    public Collection<UserAccount> listAccounts(String subject);
+    public Collection<? extends UserAccount> listAccounts(String subject);
 }

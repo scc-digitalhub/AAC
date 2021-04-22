@@ -14,18 +14,17 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 
 public class InternalUserDetailsService implements UserDetailsService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String realm;
 
-    private final InternalUserAccountRepository userRepository;
+    private final InternalUserAccountService userAccountService;
 
-    public InternalUserDetailsService(InternalUserAccountRepository userRepository, String realm) {
-        Assert.notNull(userRepository, "user repository is mandatory");
-        this.userRepository = userRepository;
+    public InternalUserDetailsService(InternalUserAccountService userAccountService, String realm) {
+        Assert.notNull(userAccountService, "user account service is mandatory");
+        this.userAccountService = userAccountService;
         this.realm = realm;
     }
 
@@ -36,7 +35,7 @@ public class InternalUserDetailsService implements UserDetailsService {
         // expected that the user name is already unwrapped ready for repository
         String username = userId;
 
-        InternalUserAccount account = userRepository.findByRealmAndUsername(realm, username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
         if (account == null) {
             throw new UsernameNotFoundException(
                     "Internal user with username " + username + " does not exist for realm " + realm);

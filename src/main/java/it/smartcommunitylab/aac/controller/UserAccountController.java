@@ -59,8 +59,8 @@ public class UserAccountController {
     @Autowired
     private UserManager userManager;
 
-    @Autowired
-    private InternalUserManager internalUserManager;
+//    @Autowired
+//    private InternalUserManager internalUserManager;
 
     @Autowired
     private ProfileManager profileManager;
@@ -98,13 +98,16 @@ public class UserAccountController {
     }
 
     @PostMapping("/account/profile")
-    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile) throws InvalidDefinitionException {
+    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile)
+            throws InvalidDefinitionException {
         UserDetails cur = userManager.curUserDetails();
         if (cur == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         try {
-            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
+            // TODO use update, the current user must exists
+            // TODO implement update in userManager
+//            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

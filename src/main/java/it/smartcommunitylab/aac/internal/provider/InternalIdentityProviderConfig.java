@@ -86,8 +86,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         Map<String, String> defaultMap = mapper.convertValue(defaultConfigMap, typeRef);
         config.putAll(defaultMap);
-        Map<String, String> cpMap = mapper.convertValue(cp.getConfiguration(), typeRef);
-        config.putAll(cpMap);
+        config.putAll(cp.getConfiguration());
 
         op.configMap = mapper.convertValue(config, InternalIdentityProviderConfigMap.class);
         op.name = cp.getName();

@@ -19,7 +19,9 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
@@ -33,13 +35,15 @@ import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalIdentityProvider extends AbstractProvider implements IdentityService {
 
     // services
     // TODO replace with internalUserService to abstract repo + remove core user
     // service, we don't want access to core here
-    private final InternalUserAccountRepository accountRepository;
+//    private final InternalUserAccountRepository accountRepository;
     private final UserEntityService userEntityService;
 
     // provider configuration
@@ -53,18 +57,21 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     private final InternalAccountService accountService;
     private final InternalPasswordService passwordService;
 
+    // services
+    private RealmAwareUriBuilder uriBuilder;
+
     public InternalIdentityProvider(
             String providerId,
-            InternalUserAccountRepository accountRepository, UserEntityService userEntityService,
+            InternalUserAccountService userAccountService, UserEntityService userEntityService,
             ConfigurableProvider configurableProvider, InternalIdentityProviderConfigMap defaultConfigMap,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
 
         // internal data repositories
         // TODO replace with service to support external repo
-        this.accountRepository = accountRepository;
+//        this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
 
         // translate configuration
@@ -89,17 +96,32 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         }
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new InternalAccountProvider(providerId, accountRepository, realm);
-        this.accountService = new InternalAccountService(providerId, accountRepository, realm,
+        this.accountProvider = new InternalAccountProvider(providerId, userAccountService, realm);
+        this.accountService = new InternalAccountService(providerId, userAccountService, realm,
                 config.getConfigMap());
-        this.passwordService = new InternalPasswordService(providerId, accountRepository, realm,
+        this.passwordService = new InternalPasswordService(providerId, userAccountService, realm,
                 config.getConfigMap());
 
         // TODO attributeService to feed attribute provider
-        this.attributeProvider = new InternalAttributeProvider(providerId, accountRepository, null, realm);
-        this.authenticationProvider = new InternalAuthenticationProvider(providerId, accountRepository, realm);
-        this.subjectResolver = new InternalSubjectResolver(providerId, accountRepository, realm);
+        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
+        this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
+                passwordService, realm);
+        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, realm);
 
+    }
+
+    public void setMailService(MailService mailService) {
+        // assign to services
+        this.accountService.setMailService(mailService);
+        this.passwordService.setMailService(mailService);
+    }
+
+    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
+        this.uriBuilder = uriBuilder;
+
+        // also assign to services
+        this.accountService.setUriBuilder(uriBuilder);
+        this.passwordService.setUriBuilder(uriBuilder);
     }
 
     @Override
@@ -128,7 +150,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
             throws NoSuchUserException {
         // extract account and attributes in raw format from authenticated principal
         String userId = principal.getUserId();
@@ -146,7 +168,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         }
 
         // get the internal account entity
-        InternalUserAccount account = accountRepository.findByRealmAndUsername(getRealm(), username);
+        InternalUserAccount account = accountProvider.getAccount(userId);
 
         if (account == null) {
             // error, user should already exists for authentication
@@ -157,20 +179,13 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         String curSubjectId = account.getSubject();
 
         if (!curSubjectId.equals(subjectId)) {
-            // force link
-            // TODO re-evaluate
-            account.setSubject(subjectId);
-            account = accountRepository.save(account);
+//            // force link
+//            // TODO re-evaluate
+//            account.setSubject(subjectId);
+//            account = accountRepository.save(account);
+            throw new IllegalArgumentException("subject mismatch");
+
         }
-
-        // detach account
-        account = accountRepository.detach(account);
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
 
         // store and update attributes
         // TODO, we shouldn't have additional attributes for internal
@@ -187,32 +202,29 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
-    public UserIdentity getIdentity(String userId) throws NoSuchUserException {
+    public InternalUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
 
-        String username = parseResourceId(userId);
+        return getIdentity(subject, userId, false);
+    }
+
+    @Override
+    public InternalUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
+            throws NoSuchUserException {
+
         // check if we are the providers
         if (!getProvider().equals(parseProviderId(userId))) {
             throw new IllegalArgumentException("invalid provider key in userId");
         }
 
         // lookup a matching account
-        InternalUserAccount account = accountRepository.findByRealmAndUsername(getRealm(), username);
+        InternalUserAccount account = accountProvider.getAccount(userId);
 
-        if (account == null) {
-            // error, user should already exists for authentication
-            throw new NoSuchUserException();
+        // check subject
+        if (!account.getSubject().equals(subject)) {
+            throw new IllegalArgumentException("subject mismatch");
         }
 
-        // detach account
-        account = accountRepository.detach(account);
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
-
-        // store and update attributes
+        // fetch attributes
         // TODO, we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
@@ -224,38 +236,21 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         identity.eraseCredentials();
 
         return identity;
-
     }
 
     @Override
-    public UserIdentity getIdentity(String userId, boolean fetchAttributes) throws NoSuchUserException {
-        // no attributes for now
-        return getIdentity(userId);
-    }
-
-    @Override
-    public Collection<UserIdentity> listIdentities(String subject) {
+    public Collection<InternalUserIdentity> listIdentities(String subject) {
         // lookup for matching accounts
-        List<InternalUserAccount> accounts = accountRepository.findBySubjectAndRealm(subject, getRealm());
+        List<InternalUserAccount> accounts = accountProvider.listAccounts(subject);
         if (accounts.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<UserIdentity> identities = new ArrayList<>();
+        List<InternalUserIdentity> identities = new ArrayList<>();
 
         for (InternalUserAccount account : accounts) {
-            String username = account.getUsername();
 
-            // detach account
-            account = accountRepository.detach(account);
-
-            // set providerId since all internal accounts have the same
-            account.setProvider(getProvider());
-
-            // rewrite internal userId
-            account.setUserId(exportInternalId(username));
-
-            // store and update attributes
+            // fetch attributes
             // TODO, we shouldn't have additional attributes for internal
 
             // use builder to properly map attributes
@@ -274,7 +269,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     @Override
     public String getAuthenticationUrl() {
-        // TODO build a realm-bound url, need updates on filters
+        // we use an address bound to provider, no reason to expose realm
         return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
     }
 
@@ -317,65 +312,80 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
-    public UserIdentity registerIdentity(String subject, Collection<Entry<String, String>> attributes)
+    public InternalUserIdentity registerIdentity(
+            String subject, UserAccount reg,
+            Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
         if (!config.getConfigMap().isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
 
-        // validate only mandatory attributes
-        Map<String, String> map = new HashMap<>();
-        attributes.forEach(e -> map.put(e.getKey(), e.getValue()));
+        if (reg == null) {
+            throw new RegistrationException("empty or incomplete registration");
+        }
 
-        accountService.validateAttributes(map);
-
-        String username = map.get("username");
-        String email = map.get("email");
-        String name = map.get("name");
         String realm = getRealm();
 
-        // remediate missing username, we need to build subject
+        // validate base param, nothing to do when missing
+        String username = reg.getUsername();
         if (!StringUtils.hasText(username)) {
-            if (StringUtils.hasText(email)) {
-                username = email;
-            } else if (StringUtils.hasText(name)) {
-                username = StringUtils.trimAllWhitespace(name);
-            }
+            throw new RegistrationException("missing-username");
         }
 
         // we expect subject to be valid, or null if we need to create
+        UserEntity user = null;
         if (!StringUtils.hasText(subject)) {
-
             subject = userEntityService.createUser(realm).getUuid();
-            UserEntity user = userEntityService.addUser(subject, realm, username);
+            user = userEntityService.addUser(subject, realm, username);
+            subject = user.getUuid();
+        } else {
+            // check if exists
+            userEntityService.getUser(subject);
         }
 
-        // create account
-        InternalUserAccount account = accountService.registerAccount(subject, attributes);
+        try {
+            // create internal account
+            InternalUserAccount account = accountService.registerAccount(subject, reg);
 
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
+            // set providerId since all internal accounts have the same
+            account.setProvider(getProvider());
 
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
+            // rewrite internal userId
+            account.setUserId(exportInternalId(username));
 
-        // store and update attributes
-        // TODO, we shouldn't have additional attributes for internal
+            // store and update attributes
+            // TODO, we shouldn't have additional attributes for internal
 
-        // use builder to properly map attributes
-        // TODO consolidate *all* attribute sets logic in attributeProvider
-        InternalUserIdentity identity = InternalUserIdentity.from(getProvider(), account, getRealm());
+            // use builder to properly map attributes
+            // TODO consolidate *all* attribute sets logic in attributeProvider
+            InternalUserIdentity identity = InternalUserIdentity.from(getProvider(), account, getRealm());
 
-        // this identity has credentials
-        return identity;
+            // this identity has credentials
+            return identity;
+
+        } catch (RegistrationException | IllegalArgumentException e) {
+            // cleanup subject if we created it
+            if (user != null) {
+                userEntityService.deleteUser(subject);
+            }
+
+            throw e;
+        }
 
     }
 
     @Override
-    public UserIdentity updateIdentity(String subject, String userId, Collection<Entry<String, String>> attributes)
+    public InternalUserIdentity updateIdentity(
+            String subject,
+            String userId, UserAccount reg,
+            Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
         if (!config.getConfigMap().isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
+        }
+
+        if (reg == null) {
+            throw new RegistrationException("empty or incomplete registration");
         }
 
         // we expect subject to be valid
@@ -383,32 +393,17 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             throw new IllegalArgumentException("invalid subjectId");
         }
 
-        String username = parseResourceId(userId);
-        String realm = getRealm();
         UserEntity user = userEntityService.getUser(subject);
 
         // get the internal account entity
-        InternalUserAccount account = accountRepository.findByRealmAndUsername(getRealm(), username);
+        InternalUserAccount account = accountProvider.getAccount(userId);
 
-        if (account == null) {
-            // error, user should already exists for authentication
-            throw new NoSuchUserException();
-        }
-
-        // subjectId is always present, is derived from the same account table
-        String curSubjectId = account.getSubject();
-
-        if (!curSubjectId.equals(subject)) {
+        // check subject
+        if (!account.getSubject().equals(subject)) {
             throw new IllegalArgumentException("subject mismatch");
         }
 
-        account = accountService.updateAccount(subject, userId, attributes);
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
+        account = accountService.updateAccount(subject, reg);
 
         // store and update attributes
         // TODO, we shouldn't have additional attributes for internal
@@ -424,12 +419,20 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
-    public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
+    public void deleteIdentity(String subject, String userId) throws NoSuchUserException {
         if (!config.getConfigMap().isEnableDelete()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
-        accountService.deleteAccount(subjectId, userId);
+        // get the internal account entity
+        InternalUserAccount account = accountProvider.getAccount(userId);
+
+        // check subject
+        if (!account.getSubject().equals(subject)) {
+            throw new IllegalArgumentException("subject mismatch");
+        }
+
+        accountService.deleteAccount(userId);
     }
 
     @Override
@@ -438,10 +441,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
-        Collection<UserAccount> accounts = accountProvider.listAccounts(subjectId);
+        List<InternalUserAccount> accounts = accountProvider.listAccounts(subjectId);
         for (UserAccount account : accounts) {
             try {
-                accountService.deleteAccount(subjectId, account.getUserId());
+                accountService.deleteAccount(account.getUserId());
             } catch (NoSuchUserException e) {
             }
         }

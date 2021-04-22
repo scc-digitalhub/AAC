@@ -1,14 +1,11 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.util.Collection;
-import java.util.Map;
-
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
-public interface AccountService extends ResourceProvider {
-    
+public interface AccountService extends AccountProvider {
+
     /*
      * Capabilities
      */
@@ -18,21 +15,22 @@ public interface AccountService extends ResourceProvider {
     public boolean canUpdate();
 
     public boolean canDelete();
-    
+
     /*
      * Manage accounts from this provider
      * 
      * userId is globally addressable
      */
 
+    // TODO rewrite with generics, needs userAccount as abstract class or
+    // workarounds
     public UserAccount registerAccount(
             String subject,
-            Collection<Map.Entry<String, String>> attributes) throws NoSuchUserException, RegistrationException;
+            UserAccount account) throws NoSuchUserException, RegistrationException;
 
     public UserAccount updateAccount(
-            String subject,
             String userId,
-            Collection<Map.Entry<String, String>> attributes) throws NoSuchUserException, RegistrationException;
+            UserAccount account) throws NoSuchUserException, RegistrationException;
 
-    public void deleteAccount(String subjectId, String userId) throws NoSuchUserException;
+    public void deleteAccount(String userId) throws NoSuchUserException;
 }
