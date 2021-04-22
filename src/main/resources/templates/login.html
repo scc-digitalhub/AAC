@@ -91,11 +91,14 @@
                 </span>
               </div>
 
-              <div class="col-md-12 mt-2"><a class="" href="internal/reset" th:text="#{lbl_pwd_reset}">Reset
-                  password</a></div>
+              <div class="col-md-12 mt-2" th:if="${internalAuthority.resetUrl != null}">
+                <a class="" th:href="${internalAuthority.resetUrl}" th:text="#{lbl_pwd_reset}">Reset
+                  password</a>
+              </div>
 
               <div class="row px-2 mt-4 align-items-center">
-                <div class="col-md-8"><a class="" href="internal/register" th:text="#{lbl_register}">Register</a>
+                <div class="col-md-8" th:if="${internalAuthority.registrationUrl != null}">
+                  <a class="" th:href="${internalAuthority.registrationUrl}" th:text="#{lbl_register}">Register</a>
                 </div>
                 <div class="col-md-4 text-right"><button class="btn btn-primary" th:text="#{lbl_login}">Login</button>
                 </div>

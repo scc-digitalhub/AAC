@@ -261,6 +261,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(loginPath, logoutPath).permitAll()
                 .antMatchers("/-/{realm}/" + loginPath).permitAll()
                 .antMatchers("/endsession").permitAll()
+                // whitelist auth providers pages (login,registration etc)
+                .antMatchers("/auth/**").permitAll()
                 // whitelist assets
                 // TODO change path to /assets (and build)
                 .antMatchers("/css/**").permitAll()

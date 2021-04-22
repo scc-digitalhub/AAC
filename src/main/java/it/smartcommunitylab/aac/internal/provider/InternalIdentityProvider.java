@@ -337,10 +337,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         // remediate missing username, we need to build subject
         if (!StringUtils.hasText(username)) {
             if (StringUtils.hasText(email)) {
-                int idx = email.indexOf('@');
-                if (idx > 0) {
-                    username = email.substring(0, idx);
-                }
+                username = email;
             } else if (StringUtils.hasText(name)) {
                 username = StringUtils.trimAllWhitespace(name);
             }

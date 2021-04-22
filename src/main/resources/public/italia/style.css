@@ -212,3 +212,7 @@ tags-input {
 .customization-block {
 	margin-bottom: 5px;
 }
+
+form .invalid-feedback {
+  display: initial;
+} 

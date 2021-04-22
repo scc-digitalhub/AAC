@@ -16,9 +16,12 @@
 
 package it.smartcommunitylab.aac.internal.controller;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,20 +42,30 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.model.Realm;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
@@ -74,7 +87,10 @@ public class RegistrationController {
     private boolean accountLinking;
 
     @Autowired
-    private AuthenticationHelper sessionManager;
+    private ProviderManager providerManager;
+
+    @Autowired
+    private AuthenticationHelper authHelper;
 
 //    @Autowired
 //    private RegistrationService regService;
@@ -85,17 +101,45 @@ public class RegistrationController {
     @Autowired
     private InternalUserManager userManager;
 
+    @Autowired
+    private RealmManager realmManager;
+
     /**
      * Redirect to registration page
      * 
      * @param model
      * @param req
      * @return
+     * @throws NoSuchProviderException
+     * @throws NoSuchRealmException
      */
     @ApiIgnore
-    @RequestMapping("/internal/register")
-    public String regPage(Model model,
-            HttpServletRequest req) {
+    @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.GET)
+    public String registrationPage(
+            @PathVariable("providerId") String providerId,
+            Model model,
+            HttpServletRequest req) throws NoSuchProviderException, NoSuchRealmException {
+
+        // resolve provider
+        IdentityService ids = providerManager.getIdentityService(providerId);
+
+        if (!ids.canRegister()) {
+            throw new RegistrationException("registration is disabled");
+        }
+
+        model.addAttribute("providerId", providerId);
+
+        String realm = ids.getRealm();
+        model.addAttribute("realm", realm);
+
+        String displayName = null;
+        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+            Realm re = realmManager.getRealm(realm);
+            displayName = re.getName();
+        }
+        model.addAttribute("displayName", displayName);
+
+        // build model
         model.addAttribute("reg", new UserRegistrationBean());
 
 //        // check if we have a clientId
@@ -105,6 +149,12 @@ public class RegistrationController {
 //            Map<String, String> customizations = clientDetailsAdapter.getClientCustomizations(clientId);
 //            model.addAllAttributes(customizations);
 //        }
+
+        // build url
+        // TODO handle via urlBuilder or entryPoint
+        model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
+        model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
         return "registration/register";
     }
 
@@ -118,50 +168,57 @@ public class RegistrationController {
      * @return
      */
     @ApiIgnore
-    @RequestMapping(value = "/internal/register", method = RequestMethod.POST)
+    @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
     public String register(Model model,
+            @PathVariable("providerId") String providerId,
             @ModelAttribute("reg") @Valid UserRegistrationBean reg,
             BindingResult result,
             HttpServletRequest req) {
+
         if (result.hasErrors()) {
-            HttpSession ss = req.getSession();
             return "registration/register";
         }
+
         try {
 
-            // register internal identity
-            // TODO map realm
-            // generate subject here
-            String subject = UUID.randomUUID().toString();
-            if (accountLinking) {
-                // fetch existing subject for account linking
-                UserAuthenticationToken auth = sessionManager.getUserAuthentication();
-                if (auth != null) {
-                    // TODO check if already logged via internal, can't bind internal accounts
-                    // link to session
-                    subject = auth.getSubject().getSubjectId();
-                }
-            }
-            String realm = "";
+            // resolve provider
+            IdentityService ids = providerManager.getIdentityService(providerId);
 
-            InternalUserAccount user = userManager.registerAccount(subject, realm, null, reg.getPassword(),
-                    reg.getEmail(), reg.getName(),
-                    reg.getSurname(), reg.getLang(), null);
-
-            String userId = user.getUserId();
-
-            // check confirmation
-            if (confirmationRequired) {
-                // generate confirmation keys and send mail
-                userManager.resetConfirmation(subject, realm, userId, true);
-            } else {
-                // auto approve
-                userManager.approveConfirmation(subject, realm, userId);
+            if (!ids.canRegister()) {
+                throw new RegistrationException("registration is disabled");
             }
 
+            String realm = ids.getRealm();
+
+            // convert registration model to attributes for registration
+            Collection<Entry<String, String>> attributes = reg.toAttributes();
+
+            // TODO handle subject resolution to link with existing accounts
+            // either via current session or via providers from same realm
+            String subjectId = null;
+
+            // register
+            UserIdentity identity = ids.registerIdentity(subjectId, attributes);
+
+            // build model for result
+            model.addAttribute("providerId", providerId);
+            model.addAttribute("realm", realm);
+            model.addAttribute("identity", identity);
+
+            String displayName = null;
+            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+                Realm re = realmManager.getRealm(realm);
+                displayName = re.getName();
+            }
+            model.addAttribute("displayName", displayName);
+
+            model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
+            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
+            // WRONG, should send redirect to success page to avoid double POST
             return "registration/regsuccess";
         } catch (RegistrationException e) {
-            model.addAttribute("error", e.getClass().getSimpleName());
+            model.addAttribute("error", e.getMessage());
             return "registration/register";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
