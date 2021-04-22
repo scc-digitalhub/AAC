@@ -146,10 +146,10 @@ public class LoginController {
         model.addAttribute("externalAuthorities", authorities);
 
         // check errors
-        AuthenticationException error = (AuthenticationException) req.getSession()
+        Exception error = (Exception) req.getSession()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         if (error != null) {
-            model.addAttribute("error", error.getMessage());
+            model.addAttribute("error", error.getClass().getSimpleName());
 
             // also remove from session
             req.getSession().removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);

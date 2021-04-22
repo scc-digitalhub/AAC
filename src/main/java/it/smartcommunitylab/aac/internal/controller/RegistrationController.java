@@ -209,7 +209,7 @@ public class RegistrationController {
             // WRONG, should send redirect to success page to avoid double POST
             return "registration/regsuccess";
         } catch (RegistrationException e) {
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", e.getClass().getSimpleName());
             return "registration/register";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

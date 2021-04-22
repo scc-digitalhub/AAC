@@ -68,13 +68,13 @@ angular.module('aac.controllers.realm', [])
   };
   
   $scope.deleteUserDlg = function(user) {
-    $scope.user = user;
+    $scope.modUser = user;
     $('#deleteConfirm').modal({keyboard: false});
   }
   
   $scope.deleteUser = function() {
     $('#deleteConfirm').modal('hide');
-    RealmData.removeUser($scope.realm.slug, $scope.user).then(function() {
+    RealmData.removeUser($scope.realm.slug, $scope.modUser).then(function() {
       $scope.load();
     }).catch(function(err) {
       Utils.showError(err.data.message);
@@ -89,6 +89,7 @@ angular.module('aac.controllers.realm', [])
   init();
   
   $scope.editRoles = function(user) {
+    $scope.modUser = user;
      var systemRoles = ['ROLE_ADMIN', 'ROLE_DEVELOPER'];
      $scope.roles = {
         system_map: {}, map: {}, custom: ''
@@ -115,7 +116,7 @@ angular.module('aac.controllers.realm', [])
     for (var k in $scope.roles.map) if ($scope.roles.map[k]) roles.push(k);
      
     $('#rolesModal').modal('hide');
-    RealmData.updateRealmRoles($scope.realm.slug, $scope.user, roles)
+    RealmData.updateRealmRoles($scope.realm.slug, $scope.modUser, roles)
     .then(function() {
       $scope.load();
       Utils.showSuccess();

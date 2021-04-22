@@ -108,6 +108,7 @@ public class UserAccountController {
             // TODO use update, the current user must exists
             // TODO implement update in userManager
 //            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
+
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
