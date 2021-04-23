@@ -14,6 +14,7 @@ angular.module('aac.controllers.realm', [])
     RealmData.getRealm(slug)
     .then(function(data){
       $scope.realm = data;
+      $scope.realmImmutable = data.slug == 'system' || data.slug == '';
     })
     .catch(function(err) {
        Utils.showError('Failed to load realm: '+err.data.message);
@@ -61,7 +62,7 @@ angular.module('aac.controllers.realm', [])
   }  
   
   /**
-   * Initialize the app: load list of the developer's apps and reset views
+   * Initialize the app: load list of the users
    */
   var init = function() {
     $scope.load();
@@ -139,3 +140,83 @@ angular.module('aac.controllers.realm', [])
   }
 
 })
+/**
+ * Realm users controller
+ */
+.controller('RealmProvidersController', function ($scope, $stateParams, RealmData, Utils) {  
+  var slug = $stateParams.realmId;
+  
+    $scope.load = function() {
+    RealmData.getRealmProviders(slug)
+    .then(function(data) {
+      $scope.providers = data;
+    })
+    .catch(function(err) {
+       Utils.showError('Failed to load realm providers: '+err.data.message);
+    });
+  }  
+  
+  /**
+   * Initialize the app: load list of the providers
+   */
+  var init = function() {
+    $scope.load();
+  };
+  
+  $scope.deleteProviderDlg = function(provider) {
+    $scope.modProvider = provider;
+    $('#deleteConfirm').modal({keyboard: false});
+  }
+  
+  $scope.deleteProvider = function() {
+    $('#deleteConfirm').modal('hide');
+    RealmData.removeProvider($scope.realm.slug, $scope.modProvider.provider).then(function() {
+      $scope.load();
+    }).catch(function(err) {
+      Utils.showError(err.data.message);
+    });
+  }
+
+  $scope.editProviderDlg = function(provider) {
+    if (provider.authority == 'internal') {
+      $scope.internalProviderDlg(provider);
+    }
+  }
+
+  $scope.internalProviderDlg = function(provider) {
+    $scope.providerId = provider ? provider.provider : null;
+    $scope.providerAuthority = 'internal';
+    $scope.provider = provider ? provider.configuration : 
+    {enableUpdate: true, enableDelete: true, enableRegistration: true, enablePasswordReset: true, enablePasswordSet: true, confirmationRequired: true, passwordMinLength: 8};
+    $('#internalModal').modal({backdrop: 'static', focus: true})
+    Utils.refreshFormBS();
+    
+  }
+
+  $scope.saveProvider = function() {
+    $('#'+$scope.providerAuthority+'Modal').modal('hide');
+    var data = {realm: $scope.realm.slug, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', providerId: $scope.providerId};
+    RealmData.saveProvider($scope.realm.slug, data)
+    .then(function() {
+      $scope.load();  
+      Utils.showSuccess();    
+    })
+    .catch(function(err) {
+      Utils.showError(err.data.message);
+    });
+  }
+  
+  $scope.toggleProviderState = function(item) {
+    RealmData.changeProviderState($scope.realm.slug, item.provider, item.enabled)
+    .then(function() {
+      Utils.showSuccess();    
+    })
+    .catch(function(err) {
+      Utils.showError(err.data.message);
+    });
+  
+  }
+
+  init();
+})
+;

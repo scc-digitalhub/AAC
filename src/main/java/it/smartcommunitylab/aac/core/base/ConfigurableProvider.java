@@ -84,7 +84,7 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
         }
     }
 
-    public String getConfigurationProperty(String key) {
+    public Object getConfigurationProperty(String key) {
         return configuration.get(key);
     }
 

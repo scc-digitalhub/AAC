@@ -11,7 +11,7 @@ angular.module('aac.services', [])
 /**
  * REST API service
  */
-.service('Data', function($q, $http) {
+.service('Data', function($q, $http, $rootScope) {
 	var dataService = {};
 	
 	
@@ -21,6 +21,10 @@ angular.module('aac.services', [])
   dataService.getProfile = function() {
     var deferred = $q.defer();
     $http.get('account/profile').then(function(data){
+      $rootScope.user = data.data;
+      $rootScope.isAdmin = data.data.authorities.findIndex(function(a) {
+          return a.authority === 'ROLE_ADMIN';
+      }) >= 0;
       deferred.resolve(data.data);
     }, function(err) {
       deferred.reject(err);
@@ -346,7 +350,35 @@ angular.module('aac.services', [])
       return data.data;
     });
   } 
+
+  rService.getRealmProviders = function(slug) {
+    return $http.get('console/dev/realms/' + slug +'/providers').then(function(data) {
+      return data.data;
+    });
+  }
   
+  rService.removeProvider = function(slug, providerId) {
+    return $http.delete('console/dev/realms/' + slug +'/providers/' + providerId).then(function(data) {
+      return data.data;
+    });
+  } 
+  
+  rService.saveProvider = function(slug, provider) {
+    if (provider.providerId) {
+      return $http.put('console/dev/realms/' + slug +'/providers/' + provider.providerId, provider).then(function(data) {
+        return data.data;
+      });    
+    } else {
+      return $http.post('console/dev/realms/' + slug +'/providers', provider).then(function(data) {
+        return data.data;
+      });    
+    }
+  }
+  rService.changeProviderState = function(slug, providerId, state) {
+    return $http.put('console/dev/realms/' + slug +'/providers/' + providerId + '/state', {enabled: state}).then(function(data) {
+      return data.data;
+    });    
+  }
   return rService;
 
 })

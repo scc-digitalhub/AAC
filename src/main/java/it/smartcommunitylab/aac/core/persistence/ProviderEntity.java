@@ -44,7 +44,7 @@ public class ProviderEntity {
     @Lob
     @Column(name = "configuration_map")
     @Convert(converter = HashMapConverter.class)
-    private Map<String, String> configurationMap;
+    private Map<String, Object> configurationMap;
 
     public Long getId() {
         return id;
@@ -94,11 +94,11 @@ public class ProviderEntity {
         this.enabled = enabled;
     }
 
-    public Map<String, String> getConfigurationMap() {
+    public Map<String, Object> getConfigurationMap() {
         return configurationMap;
     }
 
-    public void setConfigurationMap(Map<String, String> configurationMap) {
+    public void setConfigurationMap(Map<String, Object> configurationMap) {
         this.configurationMap = configurationMap;
     }
 

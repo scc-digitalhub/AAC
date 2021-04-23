@@ -64,21 +64,10 @@ public class AppController {
     @RequestMapping("/dev")
     public ModelAndView developer() {
         UserDetails user = userManager.curUserDetails();
-        if (user == null || !user.hasAnyAuthority(Config.R_ADMIN, Config.R_DEVELOPER)) {
+        if (user == null || !user.isRealmDeveloper()) {
         	throw new SecurityException();
         }
-        Map<String, Object> model = new HashMap<String, Object>();
-//      Set<String> userRoles = userManager.getUserRoles();
-//      model.put("roles", userRoles);
-//      model.put("contexts",
-//              userManager.getUser().getRoles().stream().filter(r -> r.getRole().equals(Config.R_PROVIDER))
-//                      .map(Role::canonicalSpace).collect(Collectors.toSet()));
-//      String check = ":" + Config.R_PROVIDER;
-//      model.put("apiProvider", userRoles.stream().anyMatch(s -> s.endsWith(check)));
-
-
-//        model.put("user", user);
-        return new ModelAndView("index", model);
+        return new ModelAndView("index");
     }
 
     /**

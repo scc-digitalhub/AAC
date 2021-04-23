@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 public class InternalIdentityProviderConfig extends AbstractConfigurableProvider {
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {
+    private final static TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
     };
 
     private String name;
@@ -51,7 +51,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     }
 
     @Override
-    public Map<String, String> getConfiguration() {
+    public Map<String, Object> getConfiguration() {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         return mapper.convertValue(configMap, typeRef);
@@ -82,9 +82,9 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
             InternalIdentityProviderConfigMap defaultConfigMap) {
         InternalIdentityProviderConfig op = new InternalIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         // double conversion via map to merge default props
-        Map<String, String> config = new HashMap<>();
+        Map<String, Object> config = new HashMap<>();
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        Map<String, String> defaultMap = mapper.convertValue(defaultConfigMap, typeRef);
+        Map<String, Object> defaultMap = mapper.convertValue(defaultConfigMap, typeRef);
         config.putAll(defaultMap);
         config.putAll(cp.getConfiguration());
 

@@ -54,7 +54,7 @@ public class ProviderService {
             String providerId,
             String realm,
             String type,
-            Map<String, String> configurationMap) {
+            Map<String, Object> configurationMap) {
 
         ProviderEntity p = new ProviderEntity();
         p.setAuthority(authority);
@@ -73,7 +73,7 @@ public class ProviderService {
     public ProviderEntity updateProvider(
             String providerId,
             boolean enabled,
-            Map<String, String> configurationMap) throws NoSuchProviderException {
+            Map<String, Object> configurationMap) throws NoSuchProviderException {
 
         ProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
@@ -91,7 +91,7 @@ public class ProviderService {
 
     public void deleteProvider(String providerId) {
         ProviderEntity p = providerRepository.findByProviderId(providerId);
-        if (p == null) {
+        if (p != null) {
             providerRepository.delete(p);
         }
     }

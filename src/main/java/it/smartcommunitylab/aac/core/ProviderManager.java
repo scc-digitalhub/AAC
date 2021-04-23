@@ -7,12 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -31,7 +28,6 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Service
@@ -250,7 +246,7 @@ public class ProviderManager {
     }
 
     public ConfigurableProvider addProvider(String realm, String authority, String type,
-            Map<String, String> configuration) throws SystemException, NoSuchRealmException {
+            Map<String, Object> configuration) throws SystemException, NoSuchRealmException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -314,7 +310,7 @@ public class ProviderManager {
         }
 
         // we update only configuration
-        Map<String, String> configuration = provider.getConfiguration();
+        Map<String, Object> configuration = provider.getConfiguration();
         boolean enabled = provider.isEnabled();
 
         // update: even when enabled this provider won't be active until registration

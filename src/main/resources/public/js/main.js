@@ -5,14 +5,7 @@ angular.module('aac.controllers.main', [])
  * @param $scope
  */
 .controller('MainCtrl', function($scope, $rootScope, $location, Data, Utils) {
-  Data.getProfile().then(function(data) {
-    $rootScope.user = data;
-    
-    $rootScope.isAdmin = data.authorities.findIndex(function(a) {
-        return a.authority === 'ROLE_ADMIN';
-    }) >= 0;
-    if ($rootScope.isAdmin) $scope.go('admin');
-    
+  Data.getProfile().then(function() {
   }).catch(function(err) {
     Utils.showError(err);
   });
@@ -27,4 +20,17 @@ angular.module('aac.controllers.main', [])
 	$scope.signOut = function() {
 	    window.document.location = "./logout";
 	};
+})
+.controller('HomeController', function($scope, $rootScope, $location, Data, Utils) {
+  if (!$rootScope.user) {
+    Data.getProfile().then(function() {
+      if ($rootScope.isAdmin) $scope.go('admin');
+      else $scope.go('realm/');
+    }).catch(function(err) {
+      Utils.showError(err);
+    });
+  } else {
+    if ($rootScope.isAdmin) $scope.go('admin');
+    else $scope.go('realm/');
+  }
 });

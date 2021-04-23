@@ -13,21 +13,21 @@ public abstract class AbstractConfigurableProvider extends AbstractProvider {
         super(authority, provider, realm);
     }
 
-    protected Map<String, String> configuration = new HashMap<>();
+    protected Map<String, Object> configuration = new HashMap<>();
 
-    public Map<String, String> getConfiguration() {
+    public Map<String, Object> getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(Map<String, String> configuration) {
+    public void setConfiguration(Map<String, Object> configuration) {
         this.configuration = configuration;
     }
 
-    protected String getConfigurationProperty(String key) {
+    protected Object getConfigurationProperty(String key) {
         return configuration.get(key);
     }
 
-    protected void setConfigurationProperty(String key, String value) {
+    protected void setConfigurationProperty(String key, Object value) {
         configuration.put(key, value);
     }
 }

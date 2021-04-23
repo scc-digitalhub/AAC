@@ -54,19 +54,19 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
         // read rp parameters from map
         // note: only RSA keys supported
-        String signingKey = getConfigurationProperty("signingKey");
-        String signingCertificate = getConfigurationProperty("signingCertificate");
-        String cryptKey = getConfigurationProperty("cryptKey");
-        String cryptCertificate = getConfigurationProperty("cryptCertificate");
+        String signingKey = (String)getConfigurationProperty("signingKey");
+        String signingCertificate = (String)getConfigurationProperty("signingCertificate");
+        String cryptKey = (String)getConfigurationProperty("cryptKey");
+        String cryptCertificate = (String)getConfigurationProperty("cryptCertificate");
 
         // ap autoconfiguration
-        String idpMetadataLocation = getConfigurationProperty("idpMetadataUrl");
+        String idpMetadataLocation = (String)getConfigurationProperty("idpMetadataUrl");
         // ap manual configuration (only if not metadata)
-        String assertingPartyEntityId = getConfigurationProperty("idpEntityId");
-        String ssoLoginServiceLocation = getConfigurationProperty("webSsoUrl");
-        String ssoLogoutServiceLocation = getConfigurationProperty("webLogoutUrl");
+        String assertingPartyEntityId = (String)getConfigurationProperty("idpEntityId");
+        String ssoLoginServiceLocation = (String)getConfigurationProperty("webSsoUrl");
+        String ssoLogoutServiceLocation = (String)getConfigurationProperty("webLogoutUrl");
         boolean signAuthNRequest = Boolean.parseBoolean(getProperty("signAuthNRequest", "true"));
-        String verificationCertificate = getConfigurationProperty("verificationCertificate");
+        String verificationCertificate = (String)getConfigurationProperty("verificationCertificate");
         Saml2MessageBinding ssoServiceBinding = getServiceBinding(getProperty("ssoServiceBinding", "HTTP-POST"));
 
         // via builder
@@ -157,8 +157,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     }
 
     private String getProperty(String key, String defaultValue) {
-        if (StringUtils.hasText(getConfigurationProperty(key))) {
-            return getConfigurationProperty(key);
+        if (StringUtils.hasText((String)getConfigurationProperty(key))) {
+            return (String)getConfigurationProperty(key);
         }
 
         return defaultValue;

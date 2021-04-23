@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
@@ -284,6 +285,18 @@ public class UserDetails implements org.springframework.security.core.userdetail
     public boolean hasAnyAuthority(String ... auth) {
     	Set<String> set = Sets.newHashSet(auth); 
     	return getAuthorities() != null && getAuthorities().stream().anyMatch(a ->set.contains(a.getAuthority()));
+    }
+    public boolean isRealmDeveloper() {
+        // TODO check if can do better at the level of user
+    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN) || isRealmRole(a.getAuthority(), Config.R_DEVELOPER));
+    }
+    public boolean isRealmAdmin() {
+        // TODO check if can do better at the level of user
+    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN));
+    }
+    
+    private boolean isRealmRole(String authority, String role) {
+    	return authority.endsWith(':'+role);
     }
     
     /*

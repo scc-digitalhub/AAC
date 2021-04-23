@@ -45,9 +45,9 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public ClientRegistration toClientRegistration() {
         // read base params from configMap
-        String clientId = getConfigurationProperty("clientId");
-        String clientSecret = getConfigurationProperty("clientSecret");
-        String clientName = getConfigurationProperty("clientName");
+        String clientId = (String)getConfigurationProperty("clientId");
+        String clientSecret = (String)getConfigurationProperty("clientSecret");
+        String clientName = (String)getConfigurationProperty("clientName");
 
         // read default params from configMap
         String clientAuthenticationMethod = getProperty("clientAuthenticationMethod",
@@ -59,13 +59,13 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
         // read provider params
         // explicit config
-        String authorizationUri = getConfigurationProperty("authorizationUri");
-        String tokenUri = getConfigurationProperty("tokenUri");
-        String jwkSetUri = getConfigurationProperty("jwkSetUri");
-        String userInfoUri = getConfigurationProperty("userInfoUri");
+        String authorizationUri = (String)getConfigurationProperty("authorizationUri");
+        String tokenUri = (String)getConfigurationProperty("tokenUri");
+        String jwkSetUri = (String)getConfigurationProperty("jwkSetUri");
+        String userInfoUri = (String)getConfigurationProperty("userInfoUri");
 
         // autoconfiguration support from well-known
-        String issuerUri = getConfigurationProperty("issuerUri");
+        String issuerUri = (String)getConfigurationProperty("issuerUri");
 
         // via builder,
         // providerId is unique, use as registrationId
@@ -143,8 +143,8 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     }
 
     private String getProperty(String key, String defaultValue) {
-        if (StringUtils.hasText(getConfigurationProperty(key))) {
-            return getConfigurationProperty(key);
+        if (StringUtils.hasText((String)getConfigurationProperty(key))) {
+            return (String)getConfigurationProperty(key);
         }
 
         return defaultValue;

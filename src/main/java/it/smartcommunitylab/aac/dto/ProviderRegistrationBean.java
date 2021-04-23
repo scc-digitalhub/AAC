@@ -18,7 +18,7 @@ public class ProviderRegistrationBean {
     @NotBlank
     private String type;
     private boolean enabled = false;
-    private Map<String, String> configuration = new HashMap<>();
+    private Map<String, Object> configuration = new HashMap<>();
 
     public String getAuthority() {
         return authority;
@@ -60,11 +60,11 @@ public class ProviderRegistrationBean {
         this.type = type;
     }
 
-    public Map<String, String> getConfiguration() {
+    public Map<String, Object> getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(Map<String, String> configuration) {
+    public void setConfiguration(Map<String, Object> configuration) {
         this.configuration = configuration;
     }
 

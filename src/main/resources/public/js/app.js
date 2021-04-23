@@ -30,7 +30,7 @@ app.config(function ($httpProvider, $translateProvider) {
 		$translateProvider.preferredLanguage(lang);
 	})
 
-app.config(function($stateProvider) {
+app.config(function($stateProvider, $urlRouterProvider) {
  $stateProvider
     .state('admin', {
         url: '/admin',
@@ -38,7 +38,7 @@ app.config(function($stateProvider) {
         controller: 'AdminController',
     })
     .state('realm', {
-        url: '/realm/:realmId',
+        url: '/realm?realmId',
         templateUrl: 'html/realm.html',
         controller: 'RealmController',
     })
@@ -47,6 +47,15 @@ app.config(function($stateProvider) {
         templateUrl: 'html/realm.users.html',
         controller: 'RealmUsersController',
     })
+    .state('realm.providers', {
+        url: '/providers',
+        templateUrl: 'html/realm.providers.html',
+        controller: 'RealmProvidersController',
+    })
+    .state('home', {
+        url: '',
+        controller: 'HomeController',
+    });
 });
 
 /*
