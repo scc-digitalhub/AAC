@@ -39,6 +39,8 @@ public class ProviderEntity {
     @Column(name = "enabled")
     private boolean enabled;
 
+    private String name;
+
     // key-based configuration for persistence
     // converts to json via custom converter
     @Lob
@@ -92,6 +94,14 @@ public class ProviderEntity {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Map<String, Object> getConfigurationMap() {

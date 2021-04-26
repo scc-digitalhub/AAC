@@ -246,7 +246,7 @@ public class ProviderManager {
     }
 
     public ConfigurableProvider addProvider(String realm, String authority, String type,
-            Map<String, Object> configuration) throws SystemException, NoSuchRealmException {
+            String name, Map<String, Object> configuration) throws SystemException, NoSuchRealmException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -256,7 +256,7 @@ public class ProviderManager {
         Realm re = realmService.getRealm(realm);
 
         String providerId = generateId();
-        ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(), type, configuration);
+        ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(), type, name, configuration);
 
         return fromEntity(pe, false);
 
@@ -310,11 +310,12 @@ public class ProviderManager {
         }
 
         // we update only configuration
+        String name = provider.getName();
         Map<String, Object> configuration = provider.getConfiguration();
         boolean enabled = provider.isEnabled();
 
         // update: even when enabled this provider won't be active until registration
-        pe = providerService.updateProvider(providerId, enabled, configuration);
+        pe = providerService.updateProvider(providerId, enabled, name, configuration);
 
         return fromEntity(pe, isActive);
     }
@@ -360,7 +361,7 @@ public class ProviderManager {
 
         // check if already enabled in config, or update
         if (!pe.isEnabled()) {
-            pe = providerService.updateProvider(providerId, true, pe.getConfigurationMap());
+            pe = providerService.updateProvider(providerId, true, pe.getName(), pe.getConfigurationMap());
         }
 
         ConfigurableProvider provider = fromEntity(pe);
@@ -393,7 +394,7 @@ public class ProviderManager {
 
         // check if already disabled in config, or update
         if (pe.isEnabled()) {
-            pe = providerService.updateProvider(providerId, false, pe.getConfigurationMap());
+            pe = providerService.updateProvider(providerId, false, pe.getName(), pe.getConfigurationMap());
         }
 
         ConfigurableProvider provider = fromEntity(pe);
@@ -738,6 +739,10 @@ public class ProviderManager {
         cp.setRegistered(null);
 
 //        cp.setPersistence(pe.get);
+
+        if (StringUtils.hasText(pe.getName())) {
+            cp.setName(pe.getName());
+        }
 
         if (cp.getConfiguration() == null) {
             // we want a valid map in config

@@ -64,9 +64,10 @@ public class ProviderController {
 
         String authority = registration.getAuthority();
         String type = registration.getType();
+        String name = registration.getName();
         Map<String, Object> configuration = registration.getConfiguration();
 
-        ConfigurableProvider provider = providerManager.addProvider(realm, authority, type, configuration);
+        ConfigurableProvider provider = providerManager.addProvider(realm, authority, type, name, configuration);
         return provider;
     }
 
@@ -80,8 +81,11 @@ public class ProviderController {
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
 
         // we update only configuration
+        String name = registration.getName();
         Map<String, Object> configuration = registration.getConfiguration();
         boolean enabled = registration.isEnabled();
+
+        provider.setName(name);
         provider.setConfiguration(configuration);
         provider.setEnabled(enabled);
 

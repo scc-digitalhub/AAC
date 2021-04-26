@@ -111,9 +111,10 @@ public class DevController {
 	public ResponseEntity<ConfigurableProvider> createRealmProvider(@PathVariable String realm, @Valid @RequestBody ProviderRegistrationBean registration) throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
         String authority = registration.getAuthority();
         String type = registration.getType();
+        String name = registration.getName();
         Map<String, Object> configuration = registration.getConfiguration();
 
-        ConfigurableProvider provider = providerManager.addProvider(realm, authority, type, configuration);
+        ConfigurableProvider provider = providerManager.addProvider(realm, authority, type, name, configuration);
         return ResponseEntity.ok(provider);
 	}
 	@PutMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
@@ -123,10 +124,14 @@ public class DevController {
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
 
         // we update only configuration
+        String name = registration.getName();
         Map<String, Object> configuration = registration.getConfiguration();
         boolean enabled = registration.isEnabled();
+        
+        provider.setName(name);
         provider.setConfiguration(configuration);
         provider.setEnabled(enabled);
+        
         return ResponseEntity.ok(providerManager.updateProvider(realm, providerId, provider));
 	}
 	@PutMapping("/console/dev/realms/{realm}/providers/{providerId}/state")

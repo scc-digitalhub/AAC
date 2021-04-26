@@ -54,6 +54,7 @@ public class ProviderService {
             String providerId,
             String realm,
             String type,
+            String name,
             Map<String, Object> configurationMap) {
 
         ProviderEntity p = new ProviderEntity();
@@ -63,6 +64,7 @@ public class ProviderService {
         p.setType(type);
         // disabled by default, need to be explicitely enabled
         p.setEnabled(false);
+        p.setName(name);
         p.setConfigurationMap(configurationMap);
 
         p = providerRepository.save(p);
@@ -72,7 +74,7 @@ public class ProviderService {
 
     public ProviderEntity updateProvider(
             String providerId,
-            boolean enabled,
+            boolean enabled, String name,
             Map<String, Object> configurationMap) throws NoSuchProviderException {
 
         ProviderEntity p = providerRepository.findByProviderId(providerId);
@@ -82,6 +84,7 @@ public class ProviderService {
 
         // we update both status and configuration at the same time
         p.setEnabled(enabled);
+        p.setName(name);
         p.setConfigurationMap(configurationMap);
         p = providerRepository.save(p);
 
