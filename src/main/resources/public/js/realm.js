@@ -8,9 +8,9 @@ angular.module('aac.controllers.realm', [])
   
   if (slug) {
     // global admin or realm admin
-    $scope.realmAdmin = $rootScope.user.authorities.findIndex(function(a) { return a.relam == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN'}) >= 0;
+    $scope.realmAdmin = $rootScope.user.authorities.findIndex(function(a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN'}) >= 0;
     // realm admin or developer
-    $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function(a) { return a.relam == slug && a.role == 'ROLE_DEVELOPER'}) >= 0 || $scope.realmAdmin;
+    $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function(a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER'}) >= 0 || $scope.realmAdmin;
     RealmData.getRealm(slug)
     .then(function(data){
       $scope.realm = data;
@@ -49,7 +49,7 @@ angular.module('aac.controllers.realm', [])
       $scope.users = data;
       $scope.users.content.forEach(function(u) {
         u._providers = u.identities.map(function(i) {
-          return i.provider;
+          return $scope.providers[i.provider] ? $scope.providers[i.provider].name : i.provider;
         });
         u._authorities = u.authorities
         .filter(function(a) { return a.realm === $scope.realm.slug })
@@ -65,7 +65,16 @@ angular.module('aac.controllers.realm', [])
    * Initialize the app: load list of the users
    */
   var init = function() {
-    $scope.load();
+    RealmData.getRealmProviders(slug)
+    .then(function(providers) {
+      var pMap = {};
+      providers.forEach(function(p) { pMap[p.provider] = p});
+      $scope.providers = pMap;
+      $scope.load();     
+    })
+    .catch(function(err) {
+       Utils.showError('Failed to load realm users: '+err.data.message);
+    });
   };
   
   $scope.deleteUserDlg = function(user) {
@@ -196,6 +205,8 @@ angular.module('aac.controllers.realm', [])
     $scope.providerAuthority = 'oidc';
     $scope.provider = provider ? Object.assign({}, provider.configuration) : 
     {clientAuthenticationMethod: 'basic', scope: 'openid,profile,email', userNameAttributeName: 'sub'};
+    $scope.provider.name = provider ? provider.name : null;
+    $scope.provider.clientName = $scope.provider.clientName || '';
     $scope.provider.scope = toChips($scope.provider.scope);
     $('#oidcModal').modal({backdrop: 'static', focus: true})
     Utils.refreshFormBS();
@@ -205,17 +216,31 @@ angular.module('aac.controllers.realm', [])
     $scope.providerAuthority = 'internal';
     $scope.provider = provider ? Object.assign({}, provider.configuration) : 
     {enableUpdate: true, enableDelete: true, enableRegistration: true, enablePasswordReset: true, enablePasswordSet: true, confirmationRequired: true, passwordMinLength: 8};
+    $scope.provider.name = provider ? provider.name : null;
     $('#internalModal').modal({backdrop: 'static', focus: true})
     Utils.refreshFormBS();
   }
 
+  $scope.samlProviderDlg = function(provider) {
+    $scope.providerId = provider ? provider.provider : null;
+    $scope.providerAuthority = 'saml';
+    $scope.provider = provider ? Object.assign({}, provider.configuration) : 
+    {signAuthNRequest: 'true', ssoServiceBinding: 'HTTP-POST'};
+    $scope.provider.name = provider ? provider.name : null;
+    $('#samlModal').modal({backdrop: 'static', focus: true})
+    Utils.refreshFormBS();
+  }
+  
   $scope.saveProvider = function() {
     $('#'+$scope.providerAuthority+'Modal').modal('hide');
+    
+    // HOOK: OIDC contains scopes to be converted to string 
     if ($scope.providerAuthority === 'oidc' && $scope.provider.scope) {
       $scope.provider.scope = $scope.provider.scope.map(function(s) { return s.text }).join(',');
     }
-    
-    var data = {realm: $scope.realm.slug, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', providerId: $scope.providerId};
+    var name = $scope.provider.name;
+    delete $scope.provider.name;
+    var data = {realm: $scope.realm.slug,name: name, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', providerId: $scope.providerId};
     RealmData.saveProvider($scope.realm.slug, data)
     .then(function() {
       $scope.load();  
@@ -235,6 +260,10 @@ angular.module('aac.controllers.realm', [])
       Utils.showError(err.data.message);
     });
   
+  }
+  
+  $scope.updateProviderType = function()  {
+    Utils.refreshFormBS();
   }
 
   init();

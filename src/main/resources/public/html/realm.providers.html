@@ -33,8 +33,8 @@
         <td class="align-middle"><div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}" type="checkbox" ng-checked="item.enabled" ng-model="item.enabled" ng-change="toggleProviderState(item)"><label ng-attr-for="{{item.provider}}"></label>
     </div></td>
   	    <td class="text-right">
-         <button class="btn btn-success btn-sm"  ng-click="editProviderDlg(item)">Edit</button>
-  	     <button class="btn btn-danger btn-sm"  ng-click="deleteProviderDlg(item)">Delete</button>
+         <button class="btn btn-success btn-sm" ng-disabled="item.enabled" ng-click="editProviderDlg(item)">Edit</button>
+  	     <button class="btn btn-danger btn-sm"  ng-disabled="item.enabled" ng-click="deleteProviderDlg(item)">Delete</button>
   	    </td>
 	    </tr>
 	  </table>
@@ -50,6 +50,7 @@
 
 <div ng-include="'./html/realm.providers.internal.modal.html'"></div>
 <div ng-include="'./html/realm.providers.oidc.modal.html'"></div>
+<div ng-include="'./html/realm.providers.saml.modal.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
     <div class="modal-dialog" role="document">
