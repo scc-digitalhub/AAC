@@ -122,6 +122,9 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 //            builder.issuerUri(issuerUri);
 //        }
 
+        //re-set registrationId since autoconfiguration sets values provided from issuer
+        builder.registrationId(getProvider());
+        
         return builder.build();
 
     }
