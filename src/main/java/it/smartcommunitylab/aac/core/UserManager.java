@@ -25,6 +25,8 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
@@ -69,7 +71,7 @@ public class UserManager {
     private SearchableApprovalStore approvalStore;
 
     @Autowired
-    private ClientManager clientManager;
+    private ClientEntityService clientService;
 
     @Autowired
     private ScopeRegistry scopeRegistry;
@@ -329,7 +331,7 @@ public class UserManager {
     private ConnectedAppProfile getConnectedApp(String subjectId, String clientId)
             throws NoSuchUserException, NoSuchClientException {
 
-        Client client = clientManager.getClient(clientId);
+        ClientEntity client = clientService.getClient(clientId);
         Collection<Approval> approvals = approvalStore.getApprovals(subjectId, clientId);
         if (approvals.isEmpty()) {
             return null;
@@ -359,12 +361,12 @@ public class UserManager {
     private List<ConnectedAppProfile> getConnectedApps(String subjectId) {
 
         Collection<Approval> approvals = approvalStore.findUserApprovals(subjectId);
-        Map<Client, List<Scope>> map = new HashMap<>();
+        Map<ClientEntity, List<Scope>> map = new HashMap<>();
 
         for (Approval appr : approvals) {
             try {
                 String clientId = appr.getClientId();
-                Client client = clientManager.getClient(clientId);
+                ClientEntity client = clientService.getClient(clientId);
                 Scope scope = scopeRegistry.getScope(appr.getScope());
 
                 if (!map.containsKey(client)) {

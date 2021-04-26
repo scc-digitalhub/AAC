@@ -57,50 +57,32 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     private final InternalAccountService accountService;
     private final InternalPasswordService passwordService;
 
-    // services
-    private RealmAwareUriBuilder uriBuilder;
-
     public InternalIdentityProvider(
             String providerId,
             InternalUserAccountService userAccountService, UserEntityService userEntityService,
-            ConfigurableProvider configurableProvider, InternalIdentityProviderConfigMap defaultConfigMap,
+            InternalIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
+
+        Assert.isTrue(providerId.equals(config.getProvider()),
+                "configuration does not match this provider");
+        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
 
         // internal data repositories
         // TODO replace with service to support external repo
 //        this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
-
-        // translate configuration
-        if (configurableProvider != null) {
-            Assert.isTrue(SystemKeys.AUTHORITY_INTERNAL.equals(configurableProvider.getAuthority()),
-                    "configuration does not match this provider");
-            Assert.isTrue(providerId.equals(configurableProvider.getProvider()),
-                    "configuration does not match this provider");
-            Assert.isTrue(realm.equals(configurableProvider.getRealm()), "configuration does not match this provider");
-
-            // merge config with default
-            InternalIdentityProviderConfig providerConfig = InternalIdentityProviderConfig.fromConfigurableProvider(
-                    configurableProvider,
-                    defaultConfigMap);
-            config = providerConfig;
-        } else {
-            // keep default
-            InternalIdentityProviderConfig providerConfig = new InternalIdentityProviderConfig(providerId, realm);
-            providerConfig.setConfigMap(defaultConfigMap);
-            config = providerConfig;
-
-        }
+        this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new InternalAccountProvider(providerId, userAccountService, realm);
         this.accountService = new InternalAccountService(providerId, userAccountService, realm,
-                config.getConfigMap());
+                this.config.getConfigMap());
         this.passwordService = new InternalPasswordService(providerId, userAccountService, realm,
-                config.getConfigMap());
+                this.config.getConfigMap());
 
         // TODO attributeService to feed attribute provider
         this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
@@ -117,8 +99,6 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        this.uriBuilder = uriBuilder;
-
         // also assign to services
         this.accountService.setUriBuilder(uriBuilder);
         this.passwordService.setUriBuilder(uriBuilder);

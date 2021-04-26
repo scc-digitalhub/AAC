@@ -474,8 +474,7 @@ public class ProviderManager {
         if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
             IdentityAuthority a = authorityManager.getIdentityAuthority(authority);
 
-            IdentityProvider idp = a.getIdentityProvider(providerId);
-            return !(idp == null);
+            return a.hasIdentityProvider(providerId);
         } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(type)) {
             // TODO attribute providers
             throw new IllegalArgumentException("unsupported provider type");

@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.session.ChangeSessionIdAu
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
@@ -28,9 +29,12 @@ import it.smartcommunitylab.aac.common.NotRegisteredException;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
@@ -47,15 +51,19 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
     private final RequestMatcher providerRealmRequestMatcher;
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
+    private final InternalUserAccountService userAccountService;
 
-    public InternalLoginAuthenticationFilter() {
-        this(DEFAULT_FILTER_URI, new RealmAwareAuthenticationEntryPoint(
+    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService) {
+        this(userAccountService, DEFAULT_FILTER_URI, new RealmAwareAuthenticationEntryPoint(
                 "/" + ACTION));
     }
 
-    public InternalLoginAuthenticationFilter(String filterProcessingUrl,
+    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
+            String filterProcessingUrl,
             AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl + ACTION);
+        Assert.notNull(userAccountService, "user account service is required");
+        this.userAccountService = userAccountService;
 
         // build a matcher for all requests
         RequestMatcher baseRequestMatcher = new AntPathRequestMatcher(filterProcessingUrl + ACTION);
@@ -121,13 +129,6 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
             throw new NotRegisteredException();
         }
 
-        // build a request
-        UsernamePasswordAuthenticationToken authenticationRequest = new UsernamePasswordAuthenticationToken(username,
-                password);
-
-        // also collect request details
-        WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
-
         // discover realm and/or provider
         String realm = null;
         String providerId = null;
@@ -156,13 +157,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
                     .get(PROVIDER_URI_VARIABLE_NAME);
         }
 
-        WrappedAuthenticationToken wrappedAuthRequest = null;
-
-        if (StringUtils.hasText(providerId)) {
-            // wrap as provider
-            wrappedAuthRequest = new ProviderWrappedAuthenticationToken(authenticationRequest,
-                    providerId, SystemKeys.AUTHORITY_INTERNAL);
-        } else {
+        if (!StringUtils.hasText(providerId)) {
             // TODO handle COMMON realm via discovery or additinal params
             throw new ProviderNotFoundException("no provider or realm found for this request");
 //            // wrap as realm
@@ -174,6 +169,31 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 //            wrappedAuthRequest = new RealmWrappedAuthenticationToken(authenticationRequest,
 //                    realm, SystemKeys.AUTHORITY_INTERNAL);
         }
+
+        // fetch account
+        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        if (account == null) {
+            // don't leak user does not exists
+            throw new BadCredentialsException("invalid user or password");
+        }
+        HttpSession session = request.getSession(true);
+        if (session != null) {
+            // check if user needs to reset password, and add redirect
+            if (account.isChangeOnFirstAccess()) {
+                // TODO build url
+                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST, "/pwdchange");
+            }
+        }
+
+        // build a request
+        UsernamePasswordAuthenticationToken authenticationRequest = new UsernamePasswordAuthenticationToken(username,
+                password);
+
+        WrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(authenticationRequest,
+                providerId, SystemKeys.AUTHORITY_INTERNAL);
+
+        // also collect request details
+        WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
 
         // set details
         wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);

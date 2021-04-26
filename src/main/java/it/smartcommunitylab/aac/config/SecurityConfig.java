@@ -73,6 +73,7 @@ import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
@@ -409,6 +410,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
+    private RequestAwareAuthenticationSuccessHandler successHandler() {
+        return new RequestAwareAuthenticationSuccessHandler();
+    }
+
     /*
      * Internal auth
      */
@@ -418,18 +423,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         List<Filter> filters = new ArrayList<>();
 
-        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter();
+        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(userAccountService);
         loginFilter.setAuthenticationManager(authManager);
+        loginFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(loginFilter);
 
         InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
                 userAccountService);
         confirmKeyFilter.setAuthenticationManager(authManager);
+        confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
+
         filters.add(confirmKeyFilter);
 
         InternalResetKeyAuthenticationFilter resetKeyFilter = new InternalResetKeyAuthenticationFilter(
                 userAccountService);
         resetKeyFilter.setAuthenticationManager(authManager);
+        resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(resetKeyFilter);
 
         CompositeFilter filter = new CompositeFilter();

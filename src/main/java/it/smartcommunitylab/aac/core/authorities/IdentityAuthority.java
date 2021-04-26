@@ -20,6 +20,7 @@ public interface IdentityAuthority {
      * 
      * Resolve identities via authentication or direct fetch
      */
+    public boolean hasIdentityProvider(String providerId);
 
     public IdentityProvider getIdentityProvider(String providerId);
 

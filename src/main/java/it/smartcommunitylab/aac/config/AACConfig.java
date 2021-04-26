@@ -34,9 +34,11 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
+import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 
@@ -109,6 +111,11 @@ public class AACConfig {
     @Bean
     public SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
         return new SamlRelyingPartyRegistrationRepository();
+    }
+
+    @Bean
+    public InMemoryProviderRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
+        return new InMemoryProviderRepository<InternalIdentityProviderConfig>();
     }
 
     /*

@@ -187,23 +187,23 @@ public class ClientManager {
             throw new NoSuchClientException();
         }
 
-        // TODO session invalidation, token revoke, cleanups etc
-
-        String type = entity.getType();
-        ClientApp clientApp = null;
-
-        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            clientApp = oauthClientAppService.getClient(clientId);
-        }
-
-        if (clientApp == null) {
-            throw new IllegalArgumentException("invalid client type");
-        }
-
         // check realm match
-        if (!clientApp.getRealm().equals(realm)) {
+        if (!entity.getRealm().equals(realm)) {
             throw new AccessDeniedException("realm mismatch");
         }
+
+        // TODO session invalidation, token revoke, cleanups etc
+
+//        String type = entity.getType();
+//        ClientApp clientApp = null;
+//
+//        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+//            clientApp = oauthClientAppService.getClient(clientId);
+//        }
+//
+//        if (clientApp == null) {
+//            throw new IllegalArgumentException("invalid client type");
+//        }
 
         // delete via service to destroy related resources
         deleteClient(clientId);
@@ -211,31 +211,31 @@ public class ClientManager {
     }
 
     /*
-     * Client via service
+     * Client via service TODO move to dedicated service
      * 
      * we don't expose setters, we let appServices handle configuration
      */
 
-    public Client getClient(String clientId) throws NoSuchClientException {
-        ClientEntity entity = findClient(clientId);
-        if (entity == null) {
-            throw new NoSuchClientException();
-        }
-
-        String type = entity.getType();
-
-        Client client = null;
-        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            client = oauthClientService.getClient(clientId);
-        }
-
-        if (client == null) {
-            throw new IllegalArgumentException("invalid client type");
-        }
-
-        return client;
-
-    }
+//    public Client getClient(String clientId) throws NoSuchClientException {
+//        ClientEntity entity = findClient(clientId);
+//        if (entity == null) {
+//            throw new NoSuchClientException();
+//        }
+//
+//        String type = entity.getType();
+//
+//        Client client = null;
+//        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+//            client = oauthClientService.getClient(clientId);
+//        }
+//
+//        if (client == null) {
+//            throw new IllegalArgumentException("invalid client type");
+//        }
+//
+//        return client;
+//
+//    }
 
     public List<Client> listClients(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
@@ -248,7 +248,7 @@ public class ClientManager {
         return apps;
     }
 
-    public void deleteClient(String clientId) throws NoSuchClientException {
+    private void deleteClient(String clientId) throws NoSuchClientException {
         ClientEntity entity = findClient(clientId);
         if (entity == null) {
             throw new NoSuchClientException();

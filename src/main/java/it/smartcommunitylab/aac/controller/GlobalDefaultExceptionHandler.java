@@ -29,7 +29,7 @@ import org.springframework.web.servlet.ModelAndView;
  * @author raman
  *
  */
-//@Component
+@Component
 class GlobalDefaultExceptionHandler implements HandlerExceptionResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

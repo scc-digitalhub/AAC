@@ -1,8 +1,9 @@
 package it.smartcommunitylab.aac.internal;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
@@ -19,8 +25,10 @@ import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
@@ -68,15 +76,48 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     private RealmAwareUriBuilder uriBuilder;
 
     // identity providers by id
-    private Map<String, InternalIdentityProvider> providers = new HashMap<>();
+//    private Map<String, InternalIdentityProvider> providers = new HashMap<>();
 
-    public InternalIdentityAuthority(InternalUserAccountService userAccountService,
-            UserEntityService userEntityService) {
+    private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
+
+    // loading cache for idps
+    private final LoadingCache<String, InternalIdentityProvider> providers = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(new CacheLoader<String, InternalIdentityProvider>() {
+                @Override
+                public InternalIdentityProvider load(final String id) throws Exception {
+                    InternalIdentityProviderConfig config = registrationRepository.findByProviderId(id);
+
+                    if (config == null) {
+                        throw new IllegalArgumentException("no configuration matching the given provider id");
+                    }
+
+                    InternalIdentityProvider idp = new InternalIdentityProvider(
+                            id,
+                            userAccountService, userEntityService,
+                            config, config.getRealm());
+
+                    // set services
+                    idp.setMailService(mailService);
+                    idp.setUriBuilder(uriBuilder);
+
+                    return idp;
+
+                }
+            });
+
+    public InternalIdentityAuthority(
+            InternalUserAccountService userAccountService,
+            UserEntityService userEntityService,
+            ProviderRepository<InternalIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
+        Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
         this.userAccountService = userAccountService;
         this.userEntityService = userEntityService;
+        this.registrationRepository = registrationRepository;
 
     }
 
@@ -114,31 +155,33 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         return SystemKeys.AUTHORITY_INTERNAL;
     }
 
-    private void registerIdp(InternalIdentityProvider idp) {
-        providers.put(idp.getProvider(), idp);
+    @Override
+    public boolean hasIdentityProvider(String providerId) {
+        InternalIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
+        return (registration != null);
     }
 
     @Override
     public IdentityProvider getIdentityProvider(String providerId) {
-        return providers.get(providerId);
+        try {
+            return providers.get(providerId);
+        } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
+            return null;
+        }
     }
 
     @Override
     public List<IdentityProvider> getIdentityProviders(String realm) {
-        return providers.values().stream().filter(idp -> idp.getRealm().equals(realm)).collect(Collectors.toList());
+        // we need to fetch registrations and get idp from cache, with optional load
+        Collection<InternalIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
+        return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
+                .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
     @Override
     public String getUserProvider(String userId) {
         // unpack id
-        String providerId = extractProviderId(userId);
-
-        // check if exists
-        if (providers.containsKey(providerId)) {
-            return providerId;
-        }
-
-        return null;
+        return extractProviderId(userId);
     }
 
     @Override
@@ -151,32 +194,34 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
             String realm = cp.getRealm();
 
             // check if id clashes with another provider from a different realm
-            InternalIdentityProvider e = providers.get(providerId);
+            InternalIdentityProviderConfig e = registrationRepository.findByProviderId(providerId);
             if (e != null && !realm.equals(e.getRealm())) {
                 // name clash
                 throw new RegistrationException("a provider with the same id already exists under a different realm");
             }
 
             // we also enforce a single internal idp per realm
-            if (!getIdentityProviders(realm).isEmpty()) {
+            if (!registrationRepository.findByRealm(realm).isEmpty()) {
                 throw new RegistrationException("an internal provider is already registered for the given realm");
             }
 
-            // link to internal repos
-            InternalIdentityProvider idp = new InternalIdentityProvider(
-                    providerId,
-                    userAccountService, userEntityService,
-                    cp, defaultProviderConfig,
-                    realm);
+            // build config
+            InternalIdentityProviderConfig providerConfig = getProviderConfig(providerId, realm, cp);
 
-            // set services
-            idp.setMailService(mailService);
-            idp.setUriBuilder(uriBuilder);
+            // register, we defer loading
+            registrationRepository.addRegistration(providerConfig);
 
-            // register
-            registerIdp(idp);
+            // load and return
+            try {
+                return providers.get(providerId);
+            } catch (ExecutionException ee) {
+                // cleanup
+                // remove from registrations
+                registrationRepository.removeRegistration(providerId);
 
-            return idp;
+                throw new RegistrationException(ee.getMessage());
+
+            }
         } else {
             throw new IllegalArgumentException();
         }
@@ -184,26 +229,30 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     @Override
     public void unregisterIdentityProvider(String realm, String providerId) {
-        if (providers.containsKey(providerId)) {
-            synchronized (this) {
-                InternalIdentityProvider idp = providers.get(providerId);
+        InternalIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
-                // check realm match
-                if (!realm.equals(idp.getRealm())) {
-                    throw new IllegalArgumentException("realm does not match");
-                }
+        if (registration != null) {
 
-                // can't unregister default provider, check
-                if (SystemKeys.REALM_SYSTEM.equals(idp.getRealm())) {
-                    return;
-                }
-
-                // someone else should have already destroyed sessions
-                idp.shutdown();
-
-                // remove
-                providers.remove(providerId);
+            // check realm match
+            if (!realm.equals(registration.getRealm())) {
+                throw new IllegalArgumentException("realm does not match");
             }
+
+            // can't unregister system providers, check
+            if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
+                return;
+            }
+
+            // someone else should have already destroyed sessions
+            // manual shutdown, not required here
+//                InternalIdentityProvider idp = providers.get(providerId);
+//                idp.shutdown();
+
+            // remove from cache
+            providers.invalidate(providerId);
+
+            // remove from registrations
+            registrationRepository.removeRegistration(providerId);
 
         }
 
@@ -212,18 +261,41 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     @Override
     public InternalIdentityProvider getIdentityService(String providerId) {
         // internal idp is an identityService
-        return providers.get(providerId);
+        try {
+            return providers.get(providerId);
+        } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
+            return null;
+        }
     }
 
     @Override
     public List<IdentityService> getIdentityServices(String realm) {
-        // internal idps are identityService
-        return providers.values().stream().filter(idp -> idp.getRealm().equals(realm)).collect(Collectors.toList());
+        // we need to fetch registrations and get idp from cache, with optional load
+        Collection<InternalIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
+        return registrations.stream().map(r -> getIdentityService(r.getProvider()))
+                .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
     /*
      * Helpers
      */
+
+    private InternalIdentityProviderConfig getProviderConfig(String provider, String realm,
+            ConfigurableProvider cp) {
+
+        // build empty config if missing
+        if (cp == null) {
+            cp = new ConfigurableProvider(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+        } else {
+            Assert.isTrue(SystemKeys.AUTHORITY_INTERNAL.equals(cp.getAuthority()),
+                    "configuration does not match this provider");
+        }
+
+        // merge config with default
+        return InternalIdentityProviderConfig.fromConfigurableProvider(
+                cp, defaultProviderConfig);
+
+    }
 
     private String extractProviderId(String userId) throws IllegalArgumentException {
         if (!StringUtils.hasText(userId)) {

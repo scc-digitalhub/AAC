@@ -118,7 +118,7 @@ public class RealmManager {
                     if (client.getRealm().equals(slug)) {
 
                         // remove, will kill active sessions and cleanup
-                        clientManager.deleteClient(clientId);
+                        clientManager.deleteClientApp(slug, clientId);
                     }
                 } catch (NoSuchClientException e) {
                     // skip
