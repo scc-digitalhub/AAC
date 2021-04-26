@@ -37,7 +37,8 @@ angular.module('aac.controllers.main', [])
     var accounts = {};
     data.forEach(function(a) {
       if (a.provider !== 'internal') providers.push(a.provider);
-      accounts[a.provider] = a.attributes;      
+      accounts[a.provider] = Object.assign({},a.attributes);
+      accounts[a.provider].username = a.username;      
     });
     $scope.providers = providers;
     $scope.accounts = accounts;

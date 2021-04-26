@@ -8,9 +8,9 @@ angular.module('aac.controllers.realm', [])
   
   if (slug) {
     // global admin or realm admin
-    $scope.realmAdmin = $rootScope.user.authorities.findIndex(function(a) { return a.relam == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN'}) >= 0;
+    $scope.realmAdmin = $rootScope.user.authorities.findIndex(function(a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN'}) >= 0;
     // realm admin or developer
-    $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function(a) { return a.relam == slug && a.role == 'ROLE_DEVELOPER'}) >= 0 || $scope.realmAdmin;
+    $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function(a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER'}) >= 0 || $scope.realmAdmin;
     RealmData.getRealm(slug)
     .then(function(data){
       $scope.realm = data;
@@ -196,6 +196,7 @@ angular.module('aac.controllers.realm', [])
     $scope.providerAuthority = 'oidc';
     $scope.provider = provider ? Object.assign({}, provider.configuration) : 
     {clientAuthenticationMethod: 'basic', scope: 'openid,profile,email', userNameAttributeName: 'sub'};
+    $scope.provider.clientName = $scope.provider.clientName || '';
     $scope.provider.scope = toChips($scope.provider.scope);
     $('#oidcModal').modal({backdrop: 'static', focus: true})
     Utils.refreshFormBS();
@@ -235,6 +236,10 @@ angular.module('aac.controllers.realm', [])
       Utils.showError(err.data.message);
     });
   
+  }
+  
+  $scope.updateProviderType = function()  {
+    Utils.refreshFormBS();
   }
 
   init();
