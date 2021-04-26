@@ -25,12 +25,12 @@ angular.module('aac.controllers.main', [])
   if (!$rootScope.user) {
     Data.getProfile().then(function() {
       if ($rootScope.isAdmin) $scope.go('admin');
-      else $scope.go('realm/');
+      else $scope.go('realm');
     }).catch(function(err) {
       Utils.showError(err);
     });
   } else {
     if ($rootScope.isAdmin) $scope.go('admin');
-    else $scope.go('realm/');
+    else $scope.go('realm');
   }
 });

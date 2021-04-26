@@ -1,0 +1,85 @@
+<div class="modal fade bs-modal-lg" id="samlModal" tabindex="-1" role="dialog" aria-labelledby="serviceperm" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+			  <h3 class="modal-title" id="modal-title">SAML IdP Configuration</h3>
+			</div>
+			<div class="modal-body" id="modal-body">
+			 <form name="editForm"  class="needs-validation was-validated" novalidate >
+
+          <div class="form-group col ">
+              <label for="clientId">Provider Name*</label>
+              <input type="text" required name="name" class="form-control form-control-sm" id="name" ng-model="provider.name">
+          </div>
+	          
+	          <div class="form-group col ">
+	              <label for="issuerUri">IdP Metadata Discovery URL</label>
+	              <input type="text" name="idpMetadataUrl" class="form-control form-control-sm" id="idpMetadataUrl" ng-model="provider.idpMetadataUrl">
+	          </div>
+	          <div class="pt-0 pb-3 text-center"> -- OR -- </div>
+	          <div class="row">
+		          <div class="form-group col ">
+		              <label for="authorizationUri">Asserting Party Entity ID</label>
+		              <input type="text" name="idpEntityId" class="form-control form-control-sm" id="ssoLoginServiceLocation" ng-model="provider.idpEntityId">
+		          </div>
+	            <div class="form-group col ">
+	                <label for="tokenUri">Login Service Location</label>
+	                <input type="text" name="ssoLoginServiceLocation" class="form-control form-control-sm" id="ssoLoginServiceLocation" ng-model="provider.ssoLoginServiceLocation">
+	            </div>
+	          </div>
+	          <div class="row">
+	            <div class="col-md-3">
+			          <div class="form-check">
+			            <input class="form-check-input" name="signAuthNRequest" id="signAuthNRequest" type="checkbox" ng-model="provider.signAuthNRequest" >
+			            <label for="signAuthNRequest">Sign auth. request</label>
+			          </div>
+	            </div>
+	            <div class="form-group col-md-3">
+	              <div class="bootstrap-select-wrapper border-bottom-0">
+                  <label for="ssoServiceBinding">SSO Service Binding</label>
+                  <select required title="Select one" id="ssoServiceBinding" ng-model="provider.ssoServiceBinding" >
+                    <option value="HTTP-POST" ng-selected="provider.ssoServiceBinding=='HTTP-POST'">POST</option>
+                    <option value="HTTP-Redirect" ng-selected="provider.ssoServiceBinding=='HTTP-Redirect'">Redirect</option>
+                  </select>
+                </div>  
+	            </div>
+	            <div class="form-group col-md-6">
+                  <label for="verificationCertificate">Verification Certificate</label>
+                  <textarea rows="5" id="verificationCertificate" name="verificationCertificate" ng-model="provider.verificationCertificate"></textarea>
+	            </div>
+	          </div>
+	          <div class="py-0 text-center text-danger small" ng-if="!provider.idpMetadataUrl && (!provider.ssoLoginServiceLocation || !provider.ssoLoginServiceLocation ||!provider.ssoServiceBinding)"> 
+	          Either metadata or Asserting party entity + login service + SSO service binding should be specified
+	          </div>
+	          
+	          <div class="py-3">Signing &amp; Encryption</div>
+	          <div class="row">
+              <div class="form-group col ">
+                  <label for="signingKey">Signing Key</label>
+                  <input type="text" name="signingKey" class="form-control form-control-sm" id="signingKey" ng-model="provider.signingKey">
+              </div>
+              <div class="form-group col">
+                  <label for="signingCertificate">Signing Certificate</label>
+                  <textarea rows="5" id="signingCertificate" name="signingCertificate" ng-model="provider.signingCertificate"></textarea>
+              </div>
+	          </div>
+            <div class="row">
+              <div class="form-group col ">
+                  <label for="cryptKey">Encryption Key</label>
+                  <input type="text" name="cryptKey" class="form-control form-control-sm" id="cryptKey" ng-model="provider.cryptKey">
+              </div>
+              <div class="form-group col">
+                  <label for="cryptCertificate">Encryption Certificate</label>
+                  <textarea rows="5" id="cryptCertificate" name="cryptCertificate" ng-model="provider.cryptCertificate"></textarea>
+              </div>
+            </div>
+	          
+       </form> 
+			</div>
+			<div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+			  <button class="btn btn-primary" type="button" ng-click="saveProvider()" ng-disabled="editForm.$invalid || !provider.idpMetadataUrl && (!provider.ssoLoginServiceLocation || !provider.ssoLoginServiceLocation ||!provider.ssoServiceBinding)">Save</button>
+			</div>
+    </div>
+  </div>  			
+</div>  
