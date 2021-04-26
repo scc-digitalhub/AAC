@@ -180,21 +180,41 @@ angular.module('aac.controllers.realm', [])
   $scope.editProviderDlg = function(provider) {
     if (provider.authority == 'internal') {
       $scope.internalProviderDlg(provider);
+    } else if (provider.authority == 'oidc') {
+      $scope.oidcProviderDlg(provider);
+    } else if (provider.authority == 'saml') {
+      $scope.samlProviderDlg(provider);
     }
   }
-
+  
+  var toChips = function(str) {
+    return str.split(',').map(function(e) { return e.trim() }).filter(function(e) {return !!e });
+  }
+  
+  $scope.oidcProviderDlg = function(provider) {
+    $scope.providerId = provider ? provider.provider : null;
+    $scope.providerAuthority = 'oidc';
+    $scope.provider = provider ? Object.assign({}, provider.configuration) : 
+    {clientAuthenticationMethod: 'basic', scope: 'openid,profile,email', userNameAttributeName: 'sub'};
+    $scope.provider.scope = toChips($scope.provider.scope);
+    $('#oidcModal').modal({backdrop: 'static', focus: true})
+    Utils.refreshFormBS();
+  }
   $scope.internalProviderDlg = function(provider) {
     $scope.providerId = provider ? provider.provider : null;
     $scope.providerAuthority = 'internal';
-    $scope.provider = provider ? provider.configuration : 
+    $scope.provider = provider ? Object.assign({}, provider.configuration) : 
     {enableUpdate: true, enableDelete: true, enableRegistration: true, enablePasswordReset: true, enablePasswordSet: true, confirmationRequired: true, passwordMinLength: 8};
     $('#internalModal').modal({backdrop: 'static', focus: true})
     Utils.refreshFormBS();
-    
   }
 
   $scope.saveProvider = function() {
     $('#'+$scope.providerAuthority+'Modal').modal('hide');
+    if ($scope.providerAuthority === 'oidc' && $scope.provider.scope) {
+      $scope.provider.scope = $scope.provider.scope.map(function(s) { return s.text }).join(',');
+    }
+    
     var data = {realm: $scope.realm.slug, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', providerId: $scope.providerId};
     RealmData.saveProvider($scope.realm.slug, data)
     .then(function() {

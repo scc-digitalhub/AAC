@@ -13,8 +13,8 @@
 		    <div class="link-list-wrapper">
 		      <ul class="link-list">
 		        <li><a class="list-item" href="" ng-click="internalProviderDlg()"><span>Internal</span></a></li>
-		        <li><a class="list-item" href="#"><span>OpenID Connect</span></a></li>
-		        <li><a class="list-item" href="#"><span>SAML</span></a></li>
+		        <li><a class="list-item" href="" ng-click="oidcProviderDlg()"><span>OpenID Connect</span></a></li>
+		        <li><a class="list-item" href="" ng-click="samlProviderDlg()"><span>SAML</span></a></li>
 		      </ul>
 		    </div>
 		  </div>
@@ -49,6 +49,7 @@
 
 
 <div ng-include="'./html/realm.providers.internal.modal.html'"></div>
+<div ng-include="'./html/realm.providers.oidc.modal.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
     <div class="modal-dialog" role="document">

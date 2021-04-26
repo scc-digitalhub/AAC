@@ -2,10 +2,10 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
 			<div class="modal-header bg-primary text-white">
-			  <h3 class="modal-title" id="modal-title">Save Internal IdP Configuration</h3>
+			  <h3 class="modal-title" id="modal-title">Internal IdP Configuration</h3>
 			</div>
 			<div class="modal-body" id="modal-body">
-			 <form name="editForm" novalidate>
+			 <form name="editForm"  class="needs-validation was-validated" novalidate >
 			  <div class="pt-3 pb-3">User Management</div>
 			  <div class="row">
 			   <div class="col">
@@ -37,8 +37,8 @@
           </div>
          </div>  
          <div class="form-group col col-md-6 mb-0">
-              <label for="domain">Confirmation duration (seconds)</label>
-              <input type="number" min="0" name="confirmationValidity" class="form-control form-control-sm" id="domain" ng-model="provider.confirmationValidity">
+              <label for="confirmationValidity">Confirmation duration (seconds)</label>
+              <input type="number" min="0" name="confirmationValidity" class="form-control form-control-sm" id="confirmationValidity" ng-model="provider.confirmationValidity">
           </div>
         </div>        
         
@@ -57,20 +57,20 @@
           </div>
          </div>  
          <div class="form-group col mb-0">
-              <label for="domain">Reset duration (seconds)</label>
-              <input type="number" name="passwordResetValidity" min="0" class="form-control form-control-sm" id="domain" ng-model="provider.passwordResetValidity">
+              <label for="passwordResetValidity">Reset duration (seconds)</label>
+              <input type="number" name="passwordResetValidity" min="0" class="form-control form-control-sm" id="passwordResetValidity" ng-model="provider.passwordResetValidity">
           </div>
         </div>        
         
         <div class="pt-3 pb-3">Password Policies</div>
         <div class="row">
          <div class="form-group col mb-0">
-              <label for="domain">Min length</label>
-              <input required type="number" name="passwordMinLength" min="1" class="form-control form-control-sm" id="domain" ng-model="provider.passwordMinLength">
+              <label for="passwordMinLength">Min length</label>
+              <input required type="number" name="passwordMinLength" min="1" class="form-control form-control-sm" id="passwordMinLength" ng-model="provider.passwordMinLength">
           </div>
           <div class="form-group col mb-0">
-              <label for="domain">Max length</label>
-              <input type="number" name="passwordMaxLength" min="1" class="form-control form-control-sm" id="domain" ng-model="provider.passwordMaxLength">
+              <label for="passwordMaxLength">Max length</label>
+              <input type="number" name="passwordMaxLength" min="1" class="form-control form-control-sm" id="passwordMaxLength" ng-model="provider.passwordMaxLength">
           </div>
         </div>        
         <div class="row">
