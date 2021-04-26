@@ -32,7 +32,9 @@ public interface IdentityAuthority {
      * 
      * also *providers should return the same id for the same user!
      */
-    public String getUserProvider(String userId);
+    public String getUserProviderId(String userId);
+
+    public IdentityProvider getUserIdentityProvider(String userId);
 
     /*
      * Manage providers

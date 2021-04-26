@@ -1,11 +1,22 @@
 package it.smartcommunitylab.aac.saml.provider;
 
+import java.io.Serializable;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
+import org.apache.commons.lang.ArrayUtils;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
@@ -14,7 +25,6 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -22,10 +32,15 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.openid.OIDCUserIdentity;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
+import it.smartcommunitylab.aac.saml.SamlUserIdentity;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlIdentityProvider extends AbstractProvider implements IdentityService {
@@ -34,7 +49,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     private final AttributeStore attributeStore;
 
     private final SamlIdentityProviderConfig providerConfig;
-    private final RelyingPartyRegistration relyingPartyRegistration;
 
     // internal providers
     private final SamlAccountProvider accountProvider;
@@ -50,25 +64,22 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     public SamlIdentityProvider(
             String providerId,
             SamlUserAccountRepository accountRepository, AttributeStore attributeStore,
-            ConfigurableProvider configurableProvider,
+            SamlIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
-        Assert.notNull(configurableProvider, "configuration is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
 
         // internal data repositories
         this.accountRepository = accountRepository;
         this.attributeStore = attributeStore;
 
         // translate configuration
-        Assert.isTrue(SystemKeys.AUTHORITY_SAML.equals(configurableProvider.getAuthority()),
+        // check configuration
+        Assert.isTrue(providerId.equals(config.getProvider()),
                 "configuration does not match this provider");
-        Assert.isTrue(providerId.equals(configurableProvider.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(configurableProvider.getRealm()), "configuration does not match this provider");
-
-        providerConfig = SamlIdentityProviderConfig.fromConfigurableProvider(configurableProvider);
-        relyingPartyRegistration = providerConfig.toRelyingPartyRegistration();
+        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
+        this.providerConfig = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SamlAccountProvider(providerId, accountRepository, realm);
@@ -98,33 +109,113 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         return subjectResolver;
     }
 
-    public RelyingPartyRegistration getRelyingPartyRegistration() {
-        return relyingPartyRegistration;
-    }
-
     @Override
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+    public SamlUserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
             throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
+        // we expect an instance of our model
+        SamlAuthenticatedPrincipal user = (SamlAuthenticatedPrincipal) principal;
+        // we use internal id for accounts
+        String userId = parseResourceId(user.getUserId());
+        String realm = getRealm();
+        String provider = getProvider();
+        Map<String, String> attributes = user.getAttributes();
+
+        if (subjectId == null) {
+            // this better exists
+            throw new NoSuchUserException();
+
+        }
+
+        // TODO handle not persisted configuration
+        //
+        // look in repo or create
+        SamlUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
+
+        if (account == null) {
+
+            account = new SamlUserAccount();
+            account.setSubject(subjectId);
+            account.setUserId(userId);
+            account.setProvider(provider);
+            account.setRealm(realm);
+            account = accountRepository.save(account);
+        } else {
+            // force link
+            // TODO re-evaluate
+            account.setSubject(subjectId);
+
+        }
+
+        // update base attributes
+        // TODO
+        String issuer = attributes.get(IdTokenClaimNames.ISS);
+        if (!StringUtils.hasText(issuer)) {
+            issuer = provider;
+        }
+        account.setIssuer(issuer);
+
+        // TODO export static map for names
+        String username = user.getName();
+        String name = attributes.get("name");
+        String email = attributes.get("email");
+        String lang = attributes.get("locale");
+
+        // we override every time
+        account.setUsername(username);
+        account.setName(name);
+        account.setEmail(email);
+        account.setLang(lang);
+
+        account = accountRepository.save(account);
+
+        // TODO add additional attributes
+
+        // build identity
+        // detach account
+        account = accountRepository.detach(account);
+
+        // write custom model
+        SamlUserIdentity identity = SamlUserIdentity.from(account);
+        return identity;
     }
 
     @Override
-    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
+    public SamlUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
+        SamlUserAccount account = accountProvider.getAccount(userId);
+
+        if (!account.getSubject().equals(subject)) {
+            throw new NoSuchUserException();
+        }
+
+        // write custom model
+        SamlUserIdentity identity = SamlUserIdentity.from(account);
+        return identity;
+
     }
 
     @Override
-    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
+    public SamlUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
+            throws NoSuchUserException {
+        // TODO add attributes load
+        return getIdentity(subject, userId);
     }
 
     @Override
     public Collection<UserIdentity> listIdentities(String subject) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO handle not persisted configuration
+        List<UserIdentity> identities = new ArrayList<>();
+
+        Collection<SamlUserAccount> accounts = accountProvider.listAccounts(subject);
+
+        for (SamlUserAccount account : accounts) {
+            // write custom model
+            SamlUserIdentity identity = SamlUserIdentity.from(account);
+
+            identities.add(identity);
+        }
+
+        return identities;
+
     }
 
     @Override

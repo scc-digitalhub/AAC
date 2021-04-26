@@ -46,7 +46,7 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
     public Subject resolveByUserId(String userId) {
         logger.debug("resolve by user id " + userId);
         try {
-            SamlUserAccount account = accountProvider.getSamlAccount(userId);
+            SamlUserAccount account = accountProvider.getAccount(userId);
 
             // build subject with username
             return new Subject(account.getSubject(), account.getUsername());
@@ -59,14 +59,10 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
     public Subject resolveByIdentifyingAttributes(Map<String, String> attributes) {
         try {
             // let provider resolve to an account
-            DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(attributes);
-
-            // we need to fetch the internal object
-            // provider has exported the internalId
-            SamlUserAccount iaccount = accountProvider.getSamlAccount(account.getInternalUserId());
+            SamlUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
             // build subject with username
-            return new Subject(iaccount.getSubject(), iaccount.getUsername());
+            return new Subject(account.getSubject(), account.getUsername());
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -101,14 +97,10 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
             idAttrs.put("email", attributes.get("email"));
             // let provider resolve to an account
             try {
-                DefaultAccountImpl account = (DefaultAccountImpl) accountProvider.getByIdentifyingAttributes(idAttrs);
-
-                // we need to fetch the internal object
-                // provider has exported the internalId
-                SamlUserAccount iaccount = accountProvider.getSamlAccount(account.getInternalUserId());
+                SamlUserAccount account = accountProvider.getByIdentifyingAttributes(idAttrs);
 
                 // build subject with username
-                return new Subject(iaccount.getSubject(), iaccount.getUsername());
+                return new Subject(account.getSubject(), account.getUsername());
             } catch (NoSuchUserException nex) {
                 return null;
             }

@@ -28,9 +28,17 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
             + "sso/{registrationId}";
 
     private String name;
+    private String persistence;
+    private RelyingPartyRegistration relyingPartyRegistration;
 
     protected SamlIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
+        relyingPartyRegistration = null;
+    }
+
+    @Override
+    public String getType() {
+        return SystemKeys.RESOURCE_IDENTITY;
     }
 
     public String getName() {
@@ -41,32 +49,43 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         this.name = name;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
+    public String getPersistence() {
+        return persistence;
+    }
+
+    public void setPersistence(String persistence) {
+        this.persistence = persistence;
+    }
+
+    public RelyingPartyRegistration getRelyingPartyRegistration() {
+        if (relyingPartyRegistration == null) {
+            relyingPartyRegistration = toRelyingPartyRegistration();
+        }
+
+        return relyingPartyRegistration;
     }
 
     // TODO throws exception if configuration is invalid
-    public RelyingPartyRegistration toRelyingPartyRegistration() {
+    private RelyingPartyRegistration toRelyingPartyRegistration() {
         // set base parameters
         String entityId = DEFAULT_METADATA_URL;
         String assertionConsumerServiceLocation = DEFAULT_CONSUMER_URL;
 
         // read rp parameters from map
         // note: only RSA keys supported
-        String signingKey = (String)getConfigurationProperty("signingKey");
-        String signingCertificate = (String)getConfigurationProperty("signingCertificate");
-        String cryptKey = (String)getConfigurationProperty("cryptKey");
-        String cryptCertificate = (String)getConfigurationProperty("cryptCertificate");
+        String signingKey = (String) getConfigurationProperty("signingKey");
+        String signingCertificate = (String) getConfigurationProperty("signingCertificate");
+        String cryptKey = (String) getConfigurationProperty("cryptKey");
+        String cryptCertificate = (String) getConfigurationProperty("cryptCertificate");
 
         // ap autoconfiguration
-        String idpMetadataLocation = (String)getConfigurationProperty("idpMetadataUrl");
+        String idpMetadataLocation = (String) getConfigurationProperty("idpMetadataUrl");
         // ap manual configuration (only if not metadata)
-        String assertingPartyEntityId = (String)getConfigurationProperty("idpEntityId");
-        String ssoLoginServiceLocation = (String)getConfigurationProperty("webSsoUrl");
-        String ssoLogoutServiceLocation = (String)getConfigurationProperty("webLogoutUrl");
+        String assertingPartyEntityId = (String) getConfigurationProperty("idpEntityId");
+        String ssoLoginServiceLocation = (String) getConfigurationProperty("webSsoUrl");
+        String ssoLogoutServiceLocation = (String) getConfigurationProperty("webLogoutUrl");
         boolean signAuthNRequest = Boolean.parseBoolean(getProperty("signAuthNRequest", "true"));
-        String verificationCertificate = (String)getConfigurationProperty("verificationCertificate");
+        String verificationCertificate = (String) getConfigurationProperty("verificationCertificate");
         Saml2MessageBinding ssoServiceBinding = getServiceBinding(getProperty("ssoServiceBinding", "HTTP-POST"));
 
         // via builder
@@ -157,8 +176,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     }
 
     private String getProperty(String key, String defaultValue) {
-        if (StringUtils.hasText((String)getConfigurationProperty(key))) {
-            return (String)getConfigurationProperty(key);
+        if (StringUtils.hasText((String) getConfigurationProperty(key))) {
+            return (String) getConfigurationProperty(key);
         }
 
         return defaultValue;

@@ -24,7 +24,6 @@ public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializabl
     private static final long serialVersionUID = 2760694301395978161L;
 
     private String username;
-    private Set<AbstractMap.SimpleEntry<String, String>> attributes;
 
     protected OIDCUserIdentity(String provider, String realm) {
         super(SystemKeys.AUTHORITY_OIDC, provider, realm);
@@ -55,8 +54,6 @@ public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializabl
         return username;
     }
 
-
-
     /*
      * Builder
      */
@@ -65,22 +62,23 @@ public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializabl
         i.account = user;
         i.username = user.getUsername();
 
-        Set<AbstractMap.SimpleEntry<String, String>> attrs = new HashSet<>();
-        // static map base attrs
-        attrs.add(createAttribute("email", user.getEmail()));
-        attrs.add(createAttribute("email_verified", Boolean.toString(user.getEmailVerified())));
-        attrs.add(createAttribute("name", user.getName()));
-        attrs.add(createAttribute("given_name", user.getGivenName()));
-        attrs.add(createAttribute("family_name", user.getFamilyName()));
-        attrs.add(createAttribute("profile", user.getProfileUri()));
-        attrs.add(createAttribute("picture", user.getPictureUri()));
-
-        // also map additional attrs
-        attrs.addAll(
-                attributes.stream().map(a -> createAttribute(a.getKey(), a.getValue())).collect(Collectors.toSet()));
-
-        // filter empty or null attributes
-        i.attributes = attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet());
+        // TODO build attributes
+//        Set<AbstractMap.SimpleEntry<String, String>> attrs = new HashSet<>();
+//        // static map base attrs
+//        attrs.add(createAttribute("email", user.getEmail()));
+//        attrs.add(createAttribute("email_verified", Boolean.toString(user.getEmailVerified())));
+//        attrs.add(createAttribute("name", user.getName()));
+//        attrs.add(createAttribute("given_name", user.getGivenName()));
+//        attrs.add(createAttribute("family_name", user.getFamilyName()));
+//        attrs.add(createAttribute("profile", user.getProfileUri()));
+//        attrs.add(createAttribute("picture", user.getPictureUri()));
+//
+//        // also map additional attrs
+//        attrs.addAll(
+//                attributes.stream().map(a -> createAttribute(a.getKey(), a.getValue())).collect(Collectors.toSet()));
+//
+//        // filter empty or null attributes
+//        i.attributes = attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet());
 
         return i;
 

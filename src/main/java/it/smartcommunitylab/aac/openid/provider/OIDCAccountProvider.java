@@ -11,8 +11,6 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.DefaultAccountImpl;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
@@ -32,33 +30,39 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
-    public OIDCUserAccount getOIDCAccount(String userId) throws NoSuchUserException {
+    public OIDCUserAccount findAccount(String userId) {
         String id = parseResourceId(userId);
         String realm = getRealm();
         String provider = getProvider();
 
         OIDCUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, id);
         if (account == null) {
-            throw new NoSuchUserException(
-                    "OIDC user with userId " + id + " does not exist for realm " + realm);
+            return null;
         }
 
         // detach the entity, we don't want modifications to be persisted via a
         // read-only interface
         // for example eraseCredentials will reset the password in db
-        return accountRepository.detach(account);
+        account = accountRepository.detach(account);
+
+        // rewrite internal userId
+        account.setUserId(exportInternalId(id));
+
+        return account;
+    }
+
+    public OIDCUserAccount getAccount(String userId) throws NoSuchUserException {
+        OIDCUserAccount account = findAccount(userId);
+        if (account == null) {
+            throw new NoSuchUserException(
+                    "OIDC user with userId " + userId + " does not exist for realm " + getRealm());
+        }
+
+        return account;
     }
 
     @Override
-    public UserAccount getAccount(String userId) throws NoSuchUserException {
-        OIDCUserAccount account = getOIDCAccount(userId);
-
-        // make sure we don't leak internal data
-        return toDefaultImpl(account);
-    }
-
-    @Override
-    public UserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
+    public OIDCUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
         String realm = getRealm();
         String provider = getProvider();
 
@@ -90,32 +94,43 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
             throw new NoSuchUserException("No user found matching attributes");
         }
 
-        // make sure we don't leak internal data
-        return toDefaultImpl(account);
+        // detach the entity, we don't want modifications to be persisted via a
+        // read-only interface
+        // for example eraseCredentials will reset the password in db
+        account = accountRepository.detach(account);
+
+        // rewrite internal userId
+        account.setUserId(exportInternalId(account.getUserId()));
+
+        return account;
     }
 
     @Override
-    public Collection<UserAccount> listAccounts(String subject) {
+    public Collection<OIDCUserAccount> listAccounts(String subject) {
         List<OIDCUserAccount> accounts = accountRepository.findBySubjectAndRealmAndProvider(subject, getRealm(),
                 getProvider());
 
-        // we clear passwords etc by translating to baseImpl
-        return accounts.stream().map(a -> toDefaultImpl(a)).collect(Collectors.toList());
+        // we need to fix ids and detach
+        return accounts.stream().map(a -> {
+            a = accountRepository.detach(a);
+            a.setUserId(exportInternalId(a.getUserId()));
+            return a;
+        }).collect(Collectors.toList());
     }
 
     /*
      * helpers
      */
 
-    private DefaultAccountImpl toDefaultImpl(OIDCUserAccount account) {
-        DefaultAccountImpl base = new DefaultAccountImpl(SystemKeys.AUTHORITY_OIDC, account.getProvider(),
-                account.getRealm());
-        base.setUsername(account.getUsername());
-
-        // userId is globally addressable
-        base.setInternalUserId((account.getUsername()));
-
-        return base;
-    }
+//    private DefaultAccountImpl toDefaultImpl(OIDCUserAccount account) {
+//        DefaultAccountImpl base = new DefaultAccountImpl(SystemKeys.AUTHORITY_OIDC, account.getProvider(),
+//                account.getRealm());
+//        base.setUsername(account.getUsername());
+//
+//        // userId is globally addressable
+//        base.setInternalUserId((account.getUsername()));
+//
+//        return base;
+//    }
 
 }

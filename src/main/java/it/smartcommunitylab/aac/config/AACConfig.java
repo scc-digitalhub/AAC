@@ -40,7 +40,9 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 
 /*
  * AAC core config
@@ -116,6 +118,16 @@ public class AACConfig {
     @Bean
     public InMemoryProviderRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
         return new InMemoryProviderRepository<InternalIdentityProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
+        return new InMemoryProviderRepository<OIDCIdentityProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
+        return new InMemoryProviderRepository<SamlIdentityProviderConfig>();
     }
 
     /*

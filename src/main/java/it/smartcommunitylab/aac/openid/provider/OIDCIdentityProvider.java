@@ -51,7 +51,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     private final AttributeStore attributeStore;
 
     private final OIDCIdentityProviderConfig providerConfig;
-    private final ClientRegistration clientRegistration;
 
     // internal providers
     private final OIDCAccountProvider accountProvider;
@@ -62,27 +61,21 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     public OIDCIdentityProvider(
             String providerId,
             OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
-            ConfigurableProvider configurableProvider,
+            OIDCIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
-        Assert.notNull(configurableProvider, "configuration is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
 
         // internal data repositories
         this.accountRepository = accountRepository;
         this.attributeStore = attributeStore;
 
-        // translate configuration
-        Assert.isTrue(SystemKeys.AUTHORITY_OIDC.equals(configurableProvider.getAuthority()),
+        // check configuration
+        Assert.isTrue(providerId.equals(config.getProvider()),
                 "configuration does not match this provider");
-        Assert.isTrue(providerId.equals(configurableProvider.getProvider()),
-                "configuration does not match this provider");
-        Assert.isTrue(realm.equals(configurableProvider.getRealm()), "configuration does not match this provider");
-
-        providerConfig = OIDCIdentityProviderConfig.fromConfigurableProvider(configurableProvider);
-        clientRegistration = providerConfig.toClientRegistration();
-
-        // build oauth services to be used exclusively here
+        Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
+        this.providerConfig = config;
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, realm);
@@ -117,15 +110,12 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         return subjectResolver;
     }
 
-    public ClientRegistration getClientRegistration() {
-        return clientRegistration;
-    }
-
     @Override
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+    public OIDCUserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
             throws NoSuchUserException {
         // we expect an instance of our model
         OIDCAuthenticatedPrincipal user = (OIDCAuthenticatedPrincipal) principal;
+        // we use internal id for accounts
         String userId = parseResourceId(user.getUserId());
         String realm = getRealm();
         String provider = getProvider();
@@ -208,42 +198,43 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         // build identity
         // detach account
         account = accountRepository.detach(account);
-        // rewrite internal userId
-        account.setUserId(exportInternalId(userId));
+
         // write custom model
         OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
         return identity;
     }
 
     @Override
-    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
+    public OIDCUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
+        OIDCUserAccount account = accountProvider.getAccount(userId);
+
+        if (!account.getSubject().equals(subject)) {
+            throw new NoSuchUserException();
+        }
+
+        // write custom model
+        OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
+        return identity;
+
     }
 
     @Override
-    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
+    public OIDCUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
+            throws NoSuchUserException {
+        // TODO add attributes load
+        return getIdentity(subject, userId);
     }
 
     @Override
     public Collection<UserIdentity> listIdentities(String subject) {
         // TODO handle not persisted configuration
         List<UserIdentity> identities = new ArrayList<>();
-        String provider = getProvider();
-        String realm = getRealm();
-        List<OIDCUserAccount> accounts = accountRepository.findBySubjectAndRealmAndProvider(subject, realm,
-                provider);
+
+        Collection<OIDCUserAccount> accounts = accountProvider.listAccounts(subject);
 
         for (OIDCUserAccount account : accounts) {
-            // detach account
-            account = accountRepository.detach(account);
-
-            // TODO write custom model
-            DefaultIdentityImpl identity = new DefaultIdentityImpl(SystemKeys.AUTHORITY_OIDC, provider, realm);
-            identity.setAccount(account);
-            identity.setAttributes(Collections.emptyList());
+            // write custom model
+            OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
 
             identities.add(identity);
         }

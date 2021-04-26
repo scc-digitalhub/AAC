@@ -30,7 +30,7 @@ import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 public class DefaultIdentityImpl extends BaseIdentity implements CredentialsContainer {
 
     protected UserAccount account;
-    private Collection<UserAttributes> attributes;
+    protected Collection<UserAttributes> attributes;
 
     public DefaultIdentityImpl(String authority, String provider, String realm) {
         super(authority, provider, realm);

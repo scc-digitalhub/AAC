@@ -1,8 +1,9 @@
 package it.smartcommunitylab.aac.openid;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,11 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
@@ -22,10 +28,11 @@ import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.service.AttributeEntityService;
+import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 
 @Service
 public class OIDCIdentityAuthority implements IdentityAuthority {
@@ -39,11 +46,39 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
-    // identity providers by id
-    // TODO move to a registry with cache/db etc
-    // this class should fetch only configuration from registry, parsed, and handle
-    // a loading cache to instantiate providers as needed
-    private final Map<String, OIDCIdentityProvider> providers = new HashMap<>();
+//    // identity providers by id
+//    // TODO move to a registry with cache/db etc
+//    // this class should fetch only configuration from registry, parsed, and handle
+//    // a loading cache to instantiate providers as needed
+//    private final Map<String, OIDCIdentityProvider> providers = new HashMap<>();
+
+    private final ProviderRepository<OIDCIdentityProviderConfig> registrationRepository;
+
+    // loading cache for idps
+    private final LoadingCache<String, OIDCIdentityProvider> providers = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(new CacheLoader<String, OIDCIdentityProvider>() {
+                @Override
+                public OIDCIdentityProvider load(final String id) throws Exception {
+                    OIDCIdentityProviderConfig config = registrationRepository.findByProviderId(id);
+
+                    if (config == null) {
+                        throw new IllegalArgumentException("no configuration matching the given provider id");
+                    }
+
+                    AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
+
+                    OIDCIdentityProvider idp = new OIDCIdentityProvider(
+                            id,
+                            accountRepository, attributeStore,
+                            config,
+                            config.getRealm());
+
+                    return idp;
+
+                }
+            });
 
     // oauth shared services
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
@@ -51,14 +86,17 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
             AutoJdbcAttributeStore jdbcAttributeStore,
+            ProviderRepository<OIDCIdentityProviderConfig> registrationRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
 
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
+        Assert.notNull(registrationRepository, "provider registration repository is mandatory");
         Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.accountRepository = accountRepository;
         this.jdbcAttributeStore = jdbcAttributeStore;
+        this.registrationRepository = registrationRepository;
         this.clientRegistrationRepository = clientRegistrationRepository;
 //
 //        // global client registration repository to be used by global filters
@@ -82,26 +120,41 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     }
 
     @Override
-    public IdentityProvider getIdentityProvider(String providerId) {
-        return providers.get(providerId);
+    public boolean hasIdentityProvider(String providerId) {
+        OIDCIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
+        return (registration != null);
+    }
+
+    @Override
+    public OIDCIdentityProvider getIdentityProvider(String providerId) {
+        Assert.hasText(providerId, "provider id can not be null or empty");
+
+        try {
+            return providers.get(providerId);
+        } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
+            return null;
+        }
     }
 
     @Override
     public List<IdentityProvider> getIdentityProviders(String realm) {
-        return providers.values().stream().filter(idp -> idp.getRealm().equals(realm)).collect(Collectors.toList());
+        // we need to fetch registrations and get idp from cache, with optional load
+        Collection<OIDCIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
+        return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
+                .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
     @Override
-    public String getUserProvider(String userId) {
+    public String getUserProviderId(String userId) {
+        // unpack id
+        return extractProviderId(userId);
+    }
+
+    @Override
+    public OIDCIdentityProvider getUserIdentityProvider(String userId) {
         // unpack id
         String providerId = extractProviderId(userId);
-
-        // check if exists
-        if (providers.containsKey(providerId)) {
-            return providerId;
-        }
-
-        return null;
+        return getIdentityProvider(providerId);
     }
 
     @Override
@@ -114,39 +167,33 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
             String realm = cp.getRealm();
 
             // check if id clashes with another provider from a different realm
-            OIDCIdentityProvider e = providers.get(providerId);
+            OIDCIdentityProviderConfig e = registrationRepository.findByProviderId(providerId);
             if (e != null && !realm.equals(e.getRealm())) {
                 // name clash
                 throw new RegistrationException("a provider with the same id already exists under a different realm");
             }
 
             try {
-                // link to internal repos
-                // add attribute store where requested
-                AttributeStore attributeStore = getAttributeStore(providerId, cp.getPersistence());
-                OIDCIdentityProvider idp = new OIDCIdentityProvider(
-                        providerId,
-                        accountRepository, attributeStore,
-                        cp,
-                        realm);
+                OIDCIdentityProviderConfig providerConfig = OIDCIdentityProviderConfig.fromConfigurableProvider(cp);
 
                 // build registration, will ensure configuration is valid *before* registering
                 // the provider in repositories
-                ClientRegistration registration = idp.getClientRegistration();
+                ClientRegistration registration = providerConfig.getClientRegistration();
 
-                // register
-                providers.put(idp.getProvider(), idp);
+                // register, we defer loading
+                registrationRepository.addRegistration(providerConfig);
 
                 // add client registration to registry
                 clientRegistrationRepository.addRegistration(registration);
 
-                return idp;
+                // load and return
+                return providers.get(providerId);
             } catch (Exception ex) {
                 // cleanup
                 clientRegistrationRepository.removeRegistration(providerId);
-                providers.remove(providerId);
+                registrationRepository.removeRegistration(providerId);
 
-                throw new IllegalArgumentException("invalid provider configuration: " + ex.getMessage(), ex);
+                throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
             }
         } else {
             throw new IllegalArgumentException();
@@ -155,23 +202,29 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 
     @Override
     public void unregisterIdentityProvider(String realm, String providerId) {
-        if (providers.containsKey(providerId)) {
-            synchronized (this) {
-                OIDCIdentityProvider idp = providers.get(providerId);
+        OIDCIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
-                // check realm match
-                if (!realm.equals(idp.getRealm())) {
-                    throw new IllegalArgumentException("realm does not match");
-                }
-
-                // remove from repository to disable filters
-                clientRegistrationRepository.removeRegistration(providerId);
-
-                // someone else should have already destroyed sessions
-
-                // remove
-                providers.remove(providerId);
+        if (registration != null) {
+            // check realm match
+            if (!realm.equals(registration.getRealm())) {
+                throw new IllegalArgumentException("realm does not match");
             }
+
+            // can't unregister system providers, check
+            if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
+                return;
+            }
+
+            // remove from repository to disable filters
+            clientRegistrationRepository.removeRegistration(providerId);
+
+            // remove from cache
+            providers.invalidate(providerId);
+
+            // remove from registrations
+            registrationRepository.removeRegistration(providerId);
+
+            // someone else should have already destroyed sessions
 
         }
 
@@ -180,13 +233,15 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
     @Override
     public OIDCIdentityProvider getIdentityService(String providerId) {
         // idp are ids
-        return providers.get(providerId);
+        return getIdentityProvider(providerId);
     }
 
     @Override
     public List<IdentityService> getIdentityServices(String realm) {
-        // idp are ids
-        return providers.values().stream().filter(idp -> idp.getRealm().equals(realm)).collect(Collectors.toList());
+        // we need to fetch registrations and get idp from cache, with optional load
+        Collection<OIDCIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
+        return registrations.stream().map(r -> getIdentityService(r.getProvider()))
+                .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
     /*

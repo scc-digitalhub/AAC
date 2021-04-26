@@ -22,9 +22,12 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
             + "{action}/{registrationId}";
 
     private String name;
+    private String persistence;
+    private ClientRegistration clientRegistration;
 
     protected OIDCIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_OIDC, provider, realm);
+        this.clientRegistration = null;
     }
 
     @Override
@@ -40,14 +43,30 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         this.name = name;
     }
 
+    public String getPersistence() {
+        return persistence;
+    }
+
+    public void setPersistence(String persistence) {
+        this.persistence = persistence;
+    }
+
+    public ClientRegistration getClientRegistration() {
+        if (clientRegistration == null) {
+            clientRegistration = toClientRegistration();
+        }
+
+        return clientRegistration;
+    }
+
     // TODO map attributes? we could simply use clientRegistation
     // TODO validate? we could simply use clientRegistation
 
-    public ClientRegistration toClientRegistration() {
+    private ClientRegistration toClientRegistration() {
         // read base params from configMap
-        String clientId = (String)getConfigurationProperty("clientId");
-        String clientSecret = (String)getConfigurationProperty("clientSecret");
-        String clientName = (String)getConfigurationProperty("clientName");
+        String clientId = (String) getConfigurationProperty("clientId");
+        String clientSecret = (String) getConfigurationProperty("clientSecret");
+        String clientName = (String) getConfigurationProperty("clientName");
 
         // read default params from configMap
         String clientAuthenticationMethod = getProperty("clientAuthenticationMethod",
@@ -59,13 +78,13 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
         // read provider params
         // explicit config
-        String authorizationUri = (String)getConfigurationProperty("authorizationUri");
-        String tokenUri = (String)getConfigurationProperty("tokenUri");
-        String jwkSetUri = (String)getConfigurationProperty("jwkSetUri");
-        String userInfoUri = (String)getConfigurationProperty("userInfoUri");
+        String authorizationUri = (String) getConfigurationProperty("authorizationUri");
+        String tokenUri = (String) getConfigurationProperty("tokenUri");
+        String jwkSetUri = (String) getConfigurationProperty("jwkSetUri");
+        String userInfoUri = (String) getConfigurationProperty("userInfoUri");
 
         // autoconfiguration support from well-known
-        String issuerUri = (String)getConfigurationProperty("issuerUri");
+        String issuerUri = (String) getConfigurationProperty("issuerUri");
 
         // via builder,
         // providerId is unique, use as registrationId
@@ -122,9 +141,10 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 //            builder.issuerUri(issuerUri);
 //        }
 
-        //re-set registrationId since autoconfiguration sets values provided from issuer
+        // re-set registrationId since autoconfiguration sets values provided from
+        // issuer
         builder.registrationId(getProvider());
-        
+
         return builder.build();
 
     }
@@ -146,8 +166,8 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     }
 
     private String getProperty(String key, String defaultValue) {
-        if (StringUtils.hasText((String)getConfigurationProperty(key))) {
-            return (String)getConfigurationProperty(key);
+        if (StringUtils.hasText((String) getConfigurationProperty(key))) {
+            return (String) getConfigurationProperty(key);
         }
 
         return defaultValue;

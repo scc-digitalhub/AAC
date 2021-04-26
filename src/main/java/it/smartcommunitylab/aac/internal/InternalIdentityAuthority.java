@@ -162,7 +162,9 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public IdentityProvider getIdentityProvider(String providerId) {
+    public InternalIdentityProvider getIdentityProvider(String providerId) {
+        Assert.hasText(providerId, "provider id can not be null or empty");
+
         try {
             return providers.get(providerId);
         } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
@@ -179,9 +181,16 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public String getUserProvider(String userId) {
+    public String getUserProviderId(String userId) {
         // unpack id
         return extractProviderId(userId);
+    }
+
+    @Override
+    public InternalIdentityProvider getUserIdentityProvider(String userId) {
+        // unpack id
+        String providerId = extractProviderId(userId);
+        return getIdentityProvider(providerId);
     }
 
     @Override
@@ -205,22 +214,20 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
                 throw new RegistrationException("an internal provider is already registered for the given realm");
             }
 
-            // build config
-            InternalIdentityProviderConfig providerConfig = getProviderConfig(providerId, realm, cp);
-
-            // register, we defer loading
-            registrationRepository.addRegistration(providerConfig);
-
-            // load and return
             try {
+                // build config
+                InternalIdentityProviderConfig providerConfig = getProviderConfig(providerId, realm, cp);
+
+                // register, we defer loading
+                registrationRepository.addRegistration(providerConfig);
+
+                // load and return
                 return providers.get(providerId);
-            } catch (ExecutionException ee) {
+            } catch (Exception ee) {
                 // cleanup
-                // remove from registrations
                 registrationRepository.removeRegistration(providerId);
 
                 throw new RegistrationException(ee.getMessage());
-
             }
         } else {
             throw new IllegalArgumentException();
@@ -232,7 +239,6 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         InternalIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
-
             // check realm match
             if (!realm.equals(registration.getRealm())) {
                 throw new IllegalArgumentException("realm does not match");
@@ -260,12 +266,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     @Override
     public InternalIdentityProvider getIdentityService(String providerId) {
-        // internal idp is an identityService
-        try {
-            return providers.get(providerId);
-        } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
-            return null;
-        }
+        return getIdentityProvider(providerId);
     }
 
     @Override
