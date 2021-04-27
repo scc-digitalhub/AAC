@@ -173,6 +173,9 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         // build identity
         // detach account
         account = accountRepository.detach(account);
+        
+        //export userId
+        account.setUserId(exportInternalId(userId));
 
         // write custom model
         SamlUserIdentity identity = SamlUserIdentity.from(account);
