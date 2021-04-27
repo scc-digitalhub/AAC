@@ -23,11 +23,9 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.dto.ProviderRegistrationBean;
-import it.smartcommunitylab.aac.model.ClientApp;
 
 @RestController
 @RequestMapping("api")

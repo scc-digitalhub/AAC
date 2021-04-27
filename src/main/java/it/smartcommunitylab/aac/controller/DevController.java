@@ -19,21 +19,26 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.dto.ProviderRegistrationBean;
+import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
 import springfox.documentation.annotations.ApiIgnore;
@@ -48,6 +53,18 @@ public class DevController {
 	private UserManager userManager;
 	@Autowired
 	private ProviderManager providerManager;
+	@Autowired
+	private ClientManager clientManager;
+	
+    @RequestMapping("/dev")
+    public ModelAndView developer() {
+        UserDetails user = userManager.curUserDetails();
+        if (user == null || !user.isRealmDeveloper()) {
+            throw new SecurityException();
+        }
+        return new ModelAndView("index");
+    }
+	
 	
 	@GetMapping("/console/dev/realms")
 	public ResponseEntity<List<Realm>> myRealms() throws NoSuchRealmException {
@@ -117,6 +134,7 @@ public class DevController {
         ConfigurableProvider provider = providerManager.addProvider(realm, authority, type, name, configuration);
         return ResponseEntity.ok(provider);
 	}
+	
 	@PutMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
 	public ResponseEntity<ConfigurableProvider> updateRealmProvider(@PathVariable String realm, @PathVariable String providerId, @Valid @RequestBody ProviderRegistrationBean registration) throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
@@ -134,6 +152,7 @@ public class DevController {
         
         return ResponseEntity.ok(providerManager.updateProvider(realm, providerId, provider));
 	}
+	
 	@PutMapping("/console/dev/realms/{realm}/providers/{providerId}/state")
     @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
 	public ResponseEntity<ConfigurableProvider> updateRealmProviderState(@PathVariable String realm, @PathVariable String providerId, @RequestBody ProviderRegistrationBean registration) throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
@@ -148,6 +167,55 @@ public class DevController {
         return ResponseEntity.ok(provider);
 	}
 	
+	
+    @GetMapping("/console/dev/realms/{realm:.*}/apps")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Collection<ClientApp>> getRealmClientApps(@PathVariable String realm)
+            throws NoSuchRealmException {
+        return ResponseEntity.ok(clientManager.listClientApps(realm));
+    }
+    
+    @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ClientApp> getRealmClientApp(@PathVariable String realm, @PathVariable String clientId)
+            throws NoSuchRealmException, NoSuchClientException, SystemException {
+        return ResponseEntity.ok(clientManager.getClientApp(realm, clientId));
+    }
+
+    @PostMapping("/console/dev/realms/{realm}/apps")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ClientApp> createRealmClientApp(@PathVariable String realm,
+            @Valid @RequestBody ClientApp app)
+            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+        // enforce realm match
+        app.setRealm(realm);
+
+        ClientApp clientApp = clientManager.registerClientApp(realm, app);
+        return ResponseEntity.ok(clientApp);
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/apps/{clientId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ClientApp> updateRealmClientApp(@PathVariable String realm,
+            @PathVariable String clientId, @Valid @RequestBody ClientApp app)
+            throws NoSuchRealmException, NoSuchClientException, SystemException {
+
+        ClientApp clientApp = clientManager.updateClientApp(realm, clientId, app);
+        return ResponseEntity.ok(clientApp);
+    }
+
+    @DeleteMapping("/console/dev/realms/{realm}/apps/{clientId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Void> deleteRealmClientApp(@PathVariable String realm, @PathVariable String clientId)
+            throws NoSuchRealmException, NoSuchClientException, SystemException {
+        clientManager.deleteClientApp(realm, clientId);
+        return ResponseEntity.ok(null);
+    }
 	
 	public static class RolesBean {
 		

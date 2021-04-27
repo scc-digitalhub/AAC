@@ -8,7 +8,10 @@ import javax.validation.constraints.NotBlank;
 
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OIDCIdentityProviderConfigMap {
 
     @NotBlank

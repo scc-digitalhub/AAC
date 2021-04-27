@@ -23,8 +23,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.User;
 
 @RestController

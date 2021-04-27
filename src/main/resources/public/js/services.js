@@ -374,11 +374,43 @@ angular.module('aac.services', [])
       });    
     }
   }
+
   rService.changeProviderState = function(slug, providerId, state) {
     return $http.put('console/dev/realms/' + slug +'/providers/' + providerId + '/state', {enabled: state}).then(function(data) {
       return data.data;
     });    
   }
+
+  rService.getClientApps = function(slug) {
+    return $http.get('console/dev/realms/' + slug +'/apps').then(function(data) {
+      return data.data;
+    });
+  }
+  
+  rService.getClientApp = function(slug, clientId) {
+    return $http.get('console/dev/realms/' + slug +'/apps/' + clientId).then(function(data) {
+      return data.data;
+    });
+  } 
+
+  rService.removeClientApp = function(slug, clientId) {
+    return $http.delete('console/dev/realms/' + slug +'/apps/' + clientId).then(function(data) {
+      return data.data;
+    });
+  } 
+  
+  rService.saveClientApp = function(slug, clientApp) {
+    if (clientApp.clientId) {
+      return $http.put('console/dev/realms/' + slug +'/apps/' + clientApp.clientId, clientApp).then(function(data) {
+        return data.data;
+      });    
+    } else {
+      return $http.post('console/dev/realms/' + slug +'/apps', clientApp).then(function(data) {
+        return data.data;
+      });    
+    }
+  }
+
   return rService;
 
 })

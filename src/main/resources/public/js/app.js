@@ -51,7 +51,12 @@ app.config(function($stateProvider, $urlRouterProvider) {
         url: '/providers',
         templateUrl: 'html/realm.providers.html',
         controller: 'RealmProvidersController',
-    })
+    })    
+    .state('realm.apps', {
+        url: '/apps',
+        templateUrl: 'html/realm.apps.html',
+        controller: 'RealmAppsController',
+    })    
     .state('home', {
         url: '',
         controller: 'HomeController',

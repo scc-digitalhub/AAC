@@ -18,7 +18,9 @@ package it.smartcommunitylab.aac.controller;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +32,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -57,6 +62,9 @@ import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 public class UserAccountController {
 
     @Autowired
+    private AuthenticationHelper authHelper;
+    
+    @Autowired
     private UserManager userManager;
 
 //    @Autowired
@@ -67,9 +75,24 @@ public class UserAccountController {
 
     // TODO MANAGE accounts: add/merge, delete
 
+    @RequestMapping("/")
+    public ModelAndView home() {
+        return new ModelAndView("redirect:/account");
+    }
+
+    @RequestMapping("/account")
+    public ModelAndView account() {
+        UserDetails user = authHelper.getUserDetails();
+
+        Map<String, Object> model = new HashMap<String, Object>();
+        String username = user.getUsername();
+        model.put("username", username);
+        return new ModelAndView("account", model);
+    }
+    
     @GetMapping("/account/profile")
     public ResponseEntity<UserDetails> myProfile() throws InvalidDefinitionException {
-        UserDetails user = userManager.curUserDetails();
+        UserDetails user = authHelper.getUserDetails();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -79,7 +102,7 @@ public class UserAccountController {
 
     @GetMapping("/account/accounts")
     public ResponseEntity<List<AccountProfile>> getAccounts() {
-        UserDetails user = userManager.curUserDetails();
+        UserDetails user = authHelper.getUserDetails();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -89,19 +112,19 @@ public class UserAccountController {
 
     @DeleteMapping("/account/profile")
     public ResponseEntity<Void> deleteProfile() throws NoSuchUserException, NoSuchRealmException {
-        UserDetails cur = userManager.curUserDetails();
-        if (cur == null) {
+        UserDetails user = authHelper.getUserDetails();
+        if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        userManager.removeUser(cur.getRealm(), cur.getSubjectId());
+        userManager.removeUser(user.getRealm(), user.getSubjectId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/account/profile")
     public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile)
             throws InvalidDefinitionException {
-        UserDetails cur = userManager.curUserDetails();
-        if (cur == null) {
+        UserDetails user = authHelper.getUserDetails();
+        if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         try {

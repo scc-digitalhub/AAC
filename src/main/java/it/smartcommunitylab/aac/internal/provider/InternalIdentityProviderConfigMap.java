@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.internal.provider;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalIdentityProviderConfigMap {
     private boolean enableRegistration = true;
     private boolean enableDelete = true;

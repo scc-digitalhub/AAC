@@ -4,12 +4,17 @@
       <div class="sidebar-linklist-wrapper">
         <div class="link-list-wrapper">
           <ul class="link-list">
-            <li><h3>{{realm.name}}</h3></li>
+            <li>
+              <h3>{{realm.name}}</h3>
+            </li>
             <li ng-if="realmAdmin">
-            <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.users">Users</a>
+              <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.users">Users</a>
             </li>
             <li ng-if="realmAdmin && !realmImmutable">
-            <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.providers">Identity Providers</a>
+              <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.providers">Identity Providers</a>
+            </li>
+            <li ng-if="realmAdmin && !realmImmutable">
+              <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.apps">Client Applications</a>
             </li>
           </ul>
         </div>

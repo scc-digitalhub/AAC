@@ -51,37 +51,19 @@ public class AppController {
      * 
      * @return
      */
-    @RequestMapping("/")
-    public ModelAndView home() {
-        return new ModelAndView("redirect:/account");
-    }
+  
+    /**
+     * Retrieve the with the user data: currently on the username is added.
+     * 
+     * @return
+     */
+
 
     /**
      * Retrieve the with the user data: currently on the username is added.
      * 
      * @return
      */
-    @RequestMapping("/dev")
-    public ModelAndView developer() {
-        UserDetails user = userManager.curUserDetails();
-        if (user == null || !user.isRealmDeveloper()) {
-        	throw new SecurityException();
-        }
-        return new ModelAndView("index");
-    }
 
-    /**
-     * Retrieve the with the user data: currently on the username is added.
-     * 
-     * @return
-     */
-    @RequestMapping("/account")
-    public ModelAndView account(Authentication auth) {
-        Map<String, Object> model = new HashMap<String, Object>();
-
-        String username = auth.getName();
-        model.put("username", username);
-        return new ModelAndView("account", model);
-    }
 
 }
