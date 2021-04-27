@@ -1,12 +1,17 @@
 package it.smartcommunitylab.aac.openid;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -23,8 +28,11 @@ import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -33,9 +41,10 @@ import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
 @Service
-public class OIDCIdentityAuthority implements IdentityAuthority {
+public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBean {
 
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/oidc/";
@@ -80,6 +89,10 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
                 }
             });
 
+    // configuration templates
+    private ProvidersProperties providerProperties;
+    private final Map<String, OIDCIdentityProviderConfig> templates = new HashMap<>();
+
     // oauth shared services
     private final OIDCClientRegistrationRepository clientRegistrationRepository;
 
@@ -112,6 +125,32 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
 //        loginFilter = new OIDCLoginAuthenticationFilter(clientRegistrationRepository);
 //        loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
 //        loginFilter.setAuthenticationManager(authManager);
+    }
+
+    @Autowired
+    public void setProviderProperties(ProvidersProperties providerProperties) {
+        this.providerProperties = providerProperties;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        // build templates
+        if (providerProperties != null && providerProperties.getTemplates() != null) {
+            List<OIDCIdentityProviderConfigMap> templateConfigs = providerProperties.getTemplates().getOidc();
+            for (OIDCIdentityProviderConfigMap configMap : templateConfigs) {
+                try {
+                    String templateId = "oidc." + configMap.getClientName().toLowerCase();
+                    OIDCIdentityProviderConfig template = new OIDCIdentityProviderConfig(templateId, null);
+                    template.setConfigMap(configMap);
+                    template.setName(configMap.getClientName());
+
+                    templates.put(templateId, template);
+                } catch (Exception e) {
+                    // skip
+                }
+            }
+        }
+
     }
 
     @Override
@@ -242,6 +281,22 @@ public class OIDCIdentityAuthority implements IdentityAuthority {
         Collection<OIDCIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityService(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+        return templates.values().stream().map(c -> OIDCIdentityProviderConfig.toConfigurableProvider(c))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+            throws NoSuchProviderException {
+        if (templates.containsKey(templateId)) {
+            return OIDCIdentityProviderConfig.toConfigurableProvider(templates.get(templateId));
+        }
+
+        throw new NoSuchProviderException("no templates available");
     }
 
     /*

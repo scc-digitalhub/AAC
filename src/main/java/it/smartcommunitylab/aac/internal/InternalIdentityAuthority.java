@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.internal;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -19,8 +20,10 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -70,6 +73,8 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     private final InternalUserAccountService userAccountService;
 
     private InternalIdentityProviderConfigMap defaultProviderConfig;
+
+    private InternalIdentityProviderConfig template;
 
     // services
     private MailService mailService;
@@ -147,6 +152,10 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         defaultProviderConfig.setPasswordRequireNumber(passwordRequireNumber);
         defaultProviderConfig.setPasswordRequireSpecial(passwordRequireSpecial);
         defaultProviderConfig.setPasswordSupportWhitespace(passwordSupportWhitespace);
+
+        template = new InternalIdentityProviderConfig("internal.default", null);
+        template.setConfigMap(defaultProviderConfig);
+        template.setName("system default");
 
     }
 
@@ -275,6 +284,21 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         Collection<InternalIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityService(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+        return Collections.singleton(InternalIdentityProviderConfig.toConfigurableProvider(template));
+    }
+
+    @Override
+    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+            throws NoSuchProviderException {
+        if ("internal.default".equals(templateId)) {
+            return InternalIdentityProviderConfig.toConfigurableProvider(template);
+        }
+
+        throw new NoSuchProviderException("no templates available");
     }
 
     /*

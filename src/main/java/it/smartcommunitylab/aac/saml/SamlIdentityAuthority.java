@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.saml;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -23,8 +24,10 @@ import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -258,6 +261,17 @@ public class SamlIdentityAuthority implements IdentityAuthority {
 
         return s[1];
 
+    }
+
+    @Override
+    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+            throws NoSuchProviderException {
+        throw new NoSuchProviderException("no templates available");
     }
 
 }

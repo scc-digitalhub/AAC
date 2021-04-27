@@ -24,7 +24,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
 
-    protected InternalIdentityProviderConfig(String provider, String realm) {
+    public InternalIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.configMap = new InternalIdentityProviderConfigMap();
     }

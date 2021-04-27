@@ -29,6 +29,8 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
         this.configuration = new HashMap<>();
         this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
         this.name = provider;
+//        this.registered = false;
+        this.enabled = true;
     }
 
     /**
@@ -58,7 +60,7 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
         this.enabled = enabled;
     }
 
-    public boolean isRegistered() {
+    public Boolean isRegistered() {
         return registered;
     }
 

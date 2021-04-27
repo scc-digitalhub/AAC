@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +18,12 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
@@ -134,7 +137,7 @@ public class ProviderManager {
                         }
 
                     }
-                } catch (SystemException | IllegalArgumentException ex) {
+                } catch (RegistrationException | SystemException | IllegalArgumentException ex) {
                     logger.error("error registering provider :" + ex.getMessage(), ex);
                 }
             }
@@ -300,6 +303,10 @@ public class ProviderManager {
 
         if (!re.getSlug().equals(pe.getRealm())) {
             throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        if (StringUtils.hasText(provider.getProvider()) && !providerId.equals(provider.getProvider())) {
+            throw new IllegalArgumentException("configuration does not match provider");
         }
 
         // check if active, we don't support update for active providers
@@ -565,7 +572,11 @@ public class ProviderManager {
         if (ia == null) {
             return null;
         }
-        return ia.getIdentityProvider(providerId);
+        try {
+            return ia.getIdentityProvider(providerId);
+        } catch (NoSuchProviderException e) {
+            return null;
+        }
     }
 
     public Collection<IdentityProvider> getIdentityProviders(String realm) throws NoSuchRealmException {
@@ -580,10 +591,15 @@ public class ProviderManager {
         for (ConfigurableProvider provider : providers) {
             // lookup in authority
             IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
-            IdentityProvider idp = ia.getIdentityProvider(provider.getProvider());
-            if (idp != null) {
-                idps.add(idp);
+            try {
+                IdentityProvider idp = ia.getIdentityProvider(provider.getProvider());
+                if (idp != null) {
+                    idps.add(idp);
+                }
+            } catch (NoSuchProviderException e) {
+                // skip
             }
+
         }
 
         return idps;
@@ -724,6 +740,34 @@ public class ProviderManager {
         }
 
         return null;
+    }
+
+    /*
+     * Configuration templates
+     */
+
+    public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
+        if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
+            // we support only idp templates
+            List<ConfigurableProvider> templates = new ArrayList<>();
+            for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+                templates.addAll(ia.getConfigurableProviderTemplates());
+            }
+
+            return templates;
+
+        }
+        return Collections.emptyList();
+
+    }
+
+    public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String realm, String type) {
+        Collection<ConfigurableProvider> templates = listProviderConfigurationTemplates(type);
+        // keep only those matching realm or with realm == null
+        return templates.stream().filter(t -> (t.getRealm() == null
+                || realm.equals(t.getRealm())
+                || SystemKeys.REALM_GLOBAL.equals(t.getRealm()))).collect(Collectors.toList());
+
     }
 
     /*

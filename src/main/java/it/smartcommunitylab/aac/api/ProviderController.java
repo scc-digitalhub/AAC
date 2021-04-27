@@ -42,6 +42,13 @@ public class ProviderController {
      * 
      * Manage only realm providers, with config stored
      */
+    @GetMapping("/idptemplates/{realm}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public Collection<ConfigurableProvider> listTemplates(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+
+        return providerManager.listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
+    }
 
     @GetMapping("/idp/{realm}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")

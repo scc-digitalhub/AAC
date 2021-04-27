@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.core.authorities;
 
+import java.util.Collection;
 import java.util.List;
 
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -22,7 +25,7 @@ public interface IdentityAuthority {
      */
     public boolean hasIdentityProvider(String providerId);
 
-    public IdentityProvider getIdentityProvider(String providerId);
+    public IdentityProvider getIdentityProvider(String providerId) throws NoSuchProviderException;
 
     public List<IdentityProvider> getIdentityProviders(String realm);
 
@@ -58,5 +61,17 @@ public interface IdentityAuthority {
     public IdentityService getIdentityService(String providerId);
 
     public List<IdentityService> getIdentityServices(String realm);
+
+    /*
+     * Configuration templates
+     * 
+     * Optional, expose configurableProvider templates. Where unsupported return
+     * either a null or empty collection.
+     */
+
+    public Collection<ConfigurableProvider> getConfigurableProviderTemplates();
+
+    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+            throws NoSuchProviderException;
 
 }
