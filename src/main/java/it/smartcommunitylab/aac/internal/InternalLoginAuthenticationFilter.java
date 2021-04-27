@@ -33,63 +33,55 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 
 /*
  * Handles login requests for internal authority, via extended auth manager
  */
 public class InternalLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
-    public static final String ACTION = "login";
-    public static final String REALM_URI_VARIABLE_NAME = "realm";
-    public static final String PROVIDER_URI_VARIABLE_NAME = "provider";
+    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
 
-    private final RequestMatcher realmRequestMatcher;
-    private final RequestMatcher providerRequestMatcher;
-    private final RequestMatcher providerRealmRequestMatcher;
+    private final RequestMatcher requestMatcher;
 
-    private final AuthenticationEntryPoint authenticationEntryPoint;
+    private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
+
+    private AuthenticationEntryPoint authenticationEntryPoint;
     private final InternalUserAccountService userAccountService;
 
-    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService) {
-        this(userAccountService, DEFAULT_FILTER_URI, new RealmAwareAuthenticationEntryPoint(
-                "/" + ACTION));
+    public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
+            ProviderRepository<InternalIdentityProviderConfig> registrationRepository) {
+        this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
-            String filterProcessingUrl,
-            AuthenticationEntryPoint authenticationEntryPoint) {
-        super(filterProcessingUrl + ACTION);
+            ProviderRepository<InternalIdentityProviderConfig> registrationRepository,
+            String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
+        super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
+        Assert.notNull(registrationRepository, "provider registration repository cannot be null");
+        Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
+        Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
+                "filterProcessesUrl must contain a {registrationId} match variable");
+
         this.userAccountService = userAccountService;
+        this.registrationRepository = registrationRepository;
 
-        // build a matcher for all requests
-        RequestMatcher baseRequestMatcher = new AntPathRequestMatcher(filterProcessingUrl + ACTION);
-
-        realmRequestMatcher = new AntPathRequestMatcher(
-                "/-/{" + REALM_URI_VARIABLE_NAME + "}" + filterProcessingUrl + ACTION);
-
-        providerRequestMatcher = new AntPathRequestMatcher(
-                filterProcessingUrl + ACTION + "/{" + PROVIDER_URI_VARIABLE_NAME + "}");
-
-        providerRealmRequestMatcher = new AntPathRequestMatcher(
-                "/-/{" + REALM_URI_VARIABLE_NAME + "}" + filterProcessingUrl + ACTION + "/{"
-                        + PROVIDER_URI_VARIABLE_NAME + "}");
-
-        // use both the global and the realm matcher
-        RequestMatcher requestMatcher = new OrRequestMatcher(
-                baseRequestMatcher,
-                providerRequestMatcher,
-                realmRequestMatcher,
-                providerRealmRequestMatcher);
+        // we need to build a custom requestMatcher to extract variables from url
+        this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
         setRequiresAuthenticationRequestMatcher(requestMatcher);
 
         // redirect failed attempts to login
-        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+        if (authenticationEntryPoint != null) {
+            this.authenticationEntryPoint = authenticationEntryPoint;
+        }
 
-        // TODO evaluate adopting changeSessionStrategy to avoid fixation attacks
+        // enforce session id change to prevent fixation attacks
         setAllowSessionCreation(true);
         setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
 
@@ -117,57 +109,33 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
     public Authentication attemptAuthentication(HttpServletRequest request,
             HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
 
+        if (!requestMatcher.matches(request)) {
+            return null;
+        }
+
         // we support only POST requests
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
             throw new HttpRequestMethodNotSupportedException(request.getMethod(), new String[] { "POST" });
         }
 
+        // fetch registrationId
+        String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
+        InternalIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+
+        if (providerConfig == null) {
+            throw new ProviderNotFoundException("no provider or realm found for this request");
+        }
+
+        String realm = providerConfig.getRealm();
+        // set as attribute to enable fallback to login on error
+        request.setAttribute("realm", realm);
+
+        // get params
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
         if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
             throw new NotRegisteredException();
-        }
-
-        // discover realm and/or provider
-        String realm = null;
-        String providerId = null;
-
-        // check realm+provider
-        if (providerRealmRequestMatcher.matches(request)) {
-            // resolve variables
-            realm = providerRealmRequestMatcher.matcher(request).getVariables()
-                    .get(REALM_URI_VARIABLE_NAME);
-            // resolve realm variable
-            providerId = providerRealmRequestMatcher.matcher(request).getVariables()
-                    .get(PROVIDER_URI_VARIABLE_NAME);
-        }
-
-        // check realm
-        if (realmRequestMatcher.matches(request)) {
-            // resolve realm variable
-            realm = realmRequestMatcher.matcher(request).getVariables()
-                    .get(REALM_URI_VARIABLE_NAME);
-        }
-
-        // check provider
-        if (providerRequestMatcher.matches(request)) {
-            // resolve provider variable
-            providerId = providerRequestMatcher.matcher(request).getVariables()
-                    .get(PROVIDER_URI_VARIABLE_NAME);
-        }
-
-        if (!StringUtils.hasText(providerId)) {
-            // TODO handle COMMON realm via discovery or additinal params
-            throw new ProviderNotFoundException("no provider or realm found for this request");
-//            // wrap as realm
-//            if (!StringUtils.hasText(realm)) {
-//                // global realm
-//                realm = SystemKeys.REALM_GLOBAL;
-//            }
-//
-//            wrappedAuthRequest = new RealmWrappedAuthenticationToken(authenticationRequest,
-//                    realm, SystemKeys.AUTHORITY_INTERNAL);
         }
 
         // fetch account
@@ -176,6 +144,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
             // don't leak user does not exists
             throw new BadCredentialsException("invalid user or password");
         }
+
         HttpSession session = request.getSession(true);
         if (session != null) {
             // check if user needs to reset password, and add redirect
@@ -189,7 +158,8 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         UsernamePasswordAuthenticationToken authenticationRequest = new UsernamePasswordAuthenticationToken(username,
                 password);
 
-        WrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(authenticationRequest,
+        ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
+                authenticationRequest,
                 providerId, SystemKeys.AUTHORITY_INTERNAL);
 
         // also collect request details
@@ -207,8 +177,12 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
     }
 
-    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+    protected AuthenticationEntryPoint getAuthenticationEntryPoint() {
         return authenticationEntryPoint;
+    }
+
+    public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
+        this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
 }

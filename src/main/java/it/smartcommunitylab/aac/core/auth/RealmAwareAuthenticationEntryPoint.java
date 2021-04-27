@@ -54,6 +54,12 @@ public class RealmAwareAuthenticationEntryPoint extends LoginUrlAuthenticationEn
             return buildLoginUrl(request, realm);
         }
 
+        // check in attributes
+        if (StringUtils.hasText((String) request.getAttribute(REALM_URI_VARIABLE_NAME))) {
+            String realm = (String) request.getAttribute(REALM_URI_VARIABLE_NAME);
+            return buildLoginUrl(request, realm);
+        }
+
         // return global
         return getLoginFormUrl();
 

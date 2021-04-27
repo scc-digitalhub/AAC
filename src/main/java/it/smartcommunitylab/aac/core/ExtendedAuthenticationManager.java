@@ -409,10 +409,10 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             authorities.add(new SimpleGrantedAuthority(Config.R_USER));
 
             for (UserRoleEntity role : userRoles) {
-                if (SystemKeys.REALM_GLOBAL.equals(role.getRealm())) {
-                    authorities.add(new SimpleGrantedAuthority(role.getRole()));
-                } else {
+                if (StringUtils.hasText(role.getRealm())) {
                     authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
+                } else {
+                    authorities.add(new SimpleGrantedAuthority(role.getRole()));
                 }
             }
 

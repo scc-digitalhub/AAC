@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.service;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,17 +92,22 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
         try {
             List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
-            Set<GrantedAuthority> clientAuthorities = clientRoles.stream()
-                    .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
-                    .collect(Collectors.toSet());
 
-            authorities.addAll(clientAuthorities);
+            authorities.addAll(clientRoles.stream()
+                    .filter(r -> !StringUtils.hasText(r.getRealm()))
+                    .map(r -> new SimpleGrantedAuthority(r.getRole()))
+                    .collect(Collectors.toSet()));
+
+            authorities.addAll(clientRoles.stream()
+                    .filter(r -> StringUtils.hasText(r.getRealm()))
+                    .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
+                    .collect(Collectors.toSet()));
 
         } catch (it.smartcommunitylab.aac.common.NoSuchClientException e) {
 //            throw new NoSuchClientException("No client with requested id: " + clientId);
         }
 
-        clientDetails.setAuthorities(authorities);
+        clientDetails.setAuthorities(Collections.unmodifiableCollection(authorities));
 
         return clientDetails;
     }

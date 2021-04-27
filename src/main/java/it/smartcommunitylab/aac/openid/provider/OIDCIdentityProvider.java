@@ -199,6 +199,9 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         // detach account
         account = accountRepository.detach(account);
 
+        // export userId
+        account.setUserId(exportInternalId(userId));
+
         // write custom model
         OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
         return identity;

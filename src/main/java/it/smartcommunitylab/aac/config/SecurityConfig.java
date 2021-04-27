@@ -77,6 +77,8 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
@@ -85,6 +87,7 @@ import it.smartcommunitylab.aac.internal.InternalLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.InternalResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
@@ -100,10 +103,12 @@ import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.SamlMetadataFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.utils.Utils;
 
 /*
@@ -155,6 +160,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;
+
+    @Autowired
+    private ProviderRepository<InternalIdentityProviderConfig> internalProviderRepository;
+
+    @Autowired
+    private ProviderRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
+
+    @Autowired
+    private ProviderRepository<SamlIdentityProviderConfig> samlProviderRepository;
 
 //    @Autowired
 //    private UserRepository userRepository;
@@ -312,11 +326,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
-                .addFilterBefore(getInternalAuthorityFilters(authManager, internalUserAccountService),
+                .addFilterBefore(
+                        getInternalAuthorityFilters(authManager, internalProviderRepository,
+                                internalUserAccountService),
                         BasicAuthenticationFilter.class)
-                .addFilterBefore(getSamlAuthorityFilters(authManager, relyingPartyRegistrationRepository),
+                .addFilterBefore(
+                        getSamlAuthorityFilters(authManager, samlProviderRepository,
+                                relyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
-                .addFilterBefore(getOIDCAuthorityFilters(authManager, clientRegistrationRepository),
+                .addFilterBefore(
+                        getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
                         BasicAuthenticationFilter.class);
 
         // we always want a session here
@@ -419,11 +438,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
+            ProviderRepository<InternalIdentityProviderConfig> providerRepository,
             InternalUserAccountService userAccountService) {
 
         List<Filter> filters = new ArrayList<>();
 
-        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(userAccountService);
+        InternalLoginAuthenticationFilter loginFilter = new InternalLoginAuthenticationFilter(
+                userAccountService, providerRepository);
         loginFilter.setAuthenticationManager(authManager);
         loginFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(loginFilter);
@@ -452,6 +473,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getOIDCAuthorityFilters(AuthenticationManager authManager,
+            ProviderRepository<OIDCIdentityProviderConfig> providerRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
@@ -459,7 +481,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 clientRegistrationRepository);
         redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
 
-        OIDCLoginAuthenticationFilter loginFilter = new OIDCLoginAuthenticationFilter(clientRegistrationRepository);
+        OIDCLoginAuthenticationFilter loginFilter = new OIDCLoginAuthenticationFilter(
+                providerRepository,
+                clientRegistrationRepository);
         loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
         loginFilter.setAuthenticationManager(authManager);
 
@@ -478,12 +502,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getSamlAuthorityFilters(AuthenticationManager authManager,
+            ProviderRepository<SamlIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         // build filters
         SamlWebSsoAuthenticationRequestFilter requestFilter = new SamlWebSsoAuthenticationRequestFilter(
                 relyingPartyRegistrationRepository);
 
         SamlWebSsoAuthenticationFilter ssoFilter = new SamlWebSsoAuthenticationFilter(
+                providerRepository,
                 relyingPartyRegistrationRepository);
         ssoFilter.setAuthenticationManager(authManager);
 

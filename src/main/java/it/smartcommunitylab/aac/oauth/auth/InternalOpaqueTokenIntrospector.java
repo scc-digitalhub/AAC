@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.server.resource.introspection.BadOpaqueTokenException;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -91,10 +92,10 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
                     // translate to authorities
                     authorities.add(new SimpleGrantedAuthority(Config.R_USER));
                     for (UserRoleEntity role : roles) {
-                        if (SystemKeys.REALM_GLOBAL.equals(role.getRealm())) {
-                            authorities.add(new SimpleGrantedAuthority(role.getRole()));
-                        } else {
+                        if (StringUtils.hasText(role.getRealm())) {
                             authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
+                        } else {
+                            authorities.add(new SimpleGrantedAuthority(role.getRole()));
                         }
                     }
                 } else {

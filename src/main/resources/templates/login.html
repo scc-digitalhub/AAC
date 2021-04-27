@@ -70,8 +70,6 @@
           <div class="text-center mt-4" th:if="${internalAuthority != null}">
             <p th:text="#{lbl_login_internal}">Login with</p>
             <form th:action=${internalAuthority.loginUrl} th:object="${login}" method="post">
-              <input type="hidden" name="realm" th:value="${internalAuthority.realm}" />
-              <input type="hidden" name="provider" th:value="${internalAuthority.provider}" />
 
               <div class="col-md-12 form-group">
                 <label th:text="#{lbl_user}" for="username">: </label>

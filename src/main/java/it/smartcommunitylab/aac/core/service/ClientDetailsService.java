@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,11 +39,16 @@ public class ClientDetailsService {
 
         // load additional realm roles
         List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
-        Set<GrantedAuthority> clientAuthorities = clientRoles.stream()
-                .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
-                .collect(Collectors.toSet());
 
-        authorities.addAll(clientAuthorities);
+        authorities.addAll(clientRoles.stream()
+                .filter(r -> !StringUtils.hasText(r.getRealm()))
+                .map(r -> new SimpleGrantedAuthority(r.getRole()))
+                .collect(Collectors.toSet()));
+
+        authorities.addAll(clientRoles.stream()
+                .filter(r -> StringUtils.hasText(r.getRealm()))
+                .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
+                .collect(Collectors.toSet()));
 
         ClientDetails details = new ClientDetails(
                 client.getClientId(), client.getRealm(),
