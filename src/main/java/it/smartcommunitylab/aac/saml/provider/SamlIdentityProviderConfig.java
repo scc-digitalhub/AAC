@@ -1,11 +1,14 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.core.Saml2X509Credential.Saml2X509CredentialType;
@@ -28,12 +31,21 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
             + "sso/{registrationId}";
 
     private String name;
+    private String description;
     private String persistence;
+
+    private SamlIdentityProviderConfigMap configMap;
     private RelyingPartyRegistration relyingPartyRegistration;
 
     protected SamlIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
-        relyingPartyRegistration = null;
+        this.relyingPartyRegistration = null;
+        this.configMap = new SamlIdentityProviderConfigMap();
+        // set default params, will set vars after build
+        this.configMap.setEntityId(DEFAULT_METADATA_URL);
+        this.configMap.setMetadataUrl(DEFAULT_METADATA_URL);
+        this.configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
+
     }
 
     @Override
@@ -49,12 +61,43 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public SamlIdentityProviderConfigMap getConfigMap() {
+        return configMap;
+    }
+
+    public void setConfigMap(SamlIdentityProviderConfigMap configMap) {
+        this.configMap = configMap;
+    }
+
     public String getPersistence() {
         return persistence;
     }
 
     public void setPersistence(String persistence) {
         this.persistence = persistence;
+    }
+
+    @Override
+    public Map<String, Serializable> getConfiguration() {
+        return configMap.getConfiguration();
+    }
+
+    @Override
+    public void setConfiguration(Map<String, Serializable> props) {
+        configMap = new SamlIdentityProviderConfigMap();
+        configMap.setConfiguration(props);
+        
+        configMap.setMetadataUrl(DEFAULT_METADATA_URL);
+        configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
+
     }
 
     public RelyingPartyRegistration getRelyingPartyRegistration() {
@@ -71,22 +114,29 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         String entityId = DEFAULT_METADATA_URL;
         String assertionConsumerServiceLocation = DEFAULT_CONSUMER_URL;
 
+        if (StringUtils.hasText(configMap.getEntityId())) {
+            // let config override, this breaks some standards but saml...
+            entityId = configMap.getEntityId();
+        }
+
         // read rp parameters from map
         // note: only RSA keys supported
-        String signingKey = (String) getConfigurationProperty("signingKey");
-        String signingCertificate = (String) getConfigurationProperty("signingCertificate");
-        String cryptKey = (String) getConfigurationProperty("cryptKey");
-        String cryptCertificate = (String) getConfigurationProperty("cryptCertificate");
+        String signingKey = configMap.getSigningKey();
+        String signingCertificate = configMap.getSigningCertificate();
+        String cryptKey = configMap.getCryptKey();
+        String cryptCertificate = configMap.getCryptCertificate();
 
         // ap autoconfiguration
-        String idpMetadataLocation = (String) getConfigurationProperty("idpMetadataUrl");
+        String idpMetadataLocation = configMap.getIdpMetadataUrl();
         // ap manual configuration (only if not metadata)
-        String assertingPartyEntityId = (String) getConfigurationProperty("idpEntityId");
-        String ssoLoginServiceLocation = (String) getConfigurationProperty("webSsoUrl");
-        String ssoLogoutServiceLocation = (String) getConfigurationProperty("webLogoutUrl");
-        boolean signAuthNRequest = Boolean.parseBoolean(getProperty("signAuthNRequest", "true"));
-        String verificationCertificate = (String) getConfigurationProperty("verificationCertificate");
-        Saml2MessageBinding ssoServiceBinding = getServiceBinding(getProperty("ssoServiceBinding", "HTTP-POST"));
+        String assertingPartyEntityId = configMap.getIdpEntityId();
+        String ssoLoginServiceLocation = configMap.getWebSsoUrl();
+        String ssoLogoutServiceLocation = configMap.getWebLogoutUrl();
+        boolean signAuthNRequest = (configMap.getSignAuthNRequest() != null
+                ? configMap.getSignAuthNRequest().booleanValue()
+                : true);
+        String verificationCertificate = configMap.getVerificationCertificate();
+        Saml2MessageBinding ssoServiceBinding = getServiceBinding(configMap.getSsoServiceBinding());
 
         // via builder
         // providerId is unique, use as registrationId
@@ -121,6 +171,10 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
         // check if sign credentials are provided
         if (StringUtils.hasText(signingKey) && StringUtils.hasText(signingCertificate)) {
+            // cleanup pem
+            signingKey = cleanupPem("PRIVATE KEY", signingKey);
+            signingCertificate = cleanupPem("CERTIFICATE", signingCertificate);
+
             Saml2X509Credential signingCredentials = getCredentials(signingKey, signingCertificate,
                     Saml2X509CredentialType.SIGNING, Saml2X509CredentialType.DECRYPTION);
             // add for signature
@@ -131,6 +185,10 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         }
 
         if (StringUtils.hasText(cryptKey) && StringUtils.hasText(cryptCertificate)) {
+            // cleanup spaces, base64 encoding certs are expected
+            cryptKey = cleanupPem("PRIVATE KEY", cryptKey);
+            cryptCertificate = cleanupPem("CERTIFICATE", cryptCertificate);
+
             Saml2X509Credential cryptCredentials = getCredentials(cryptKey, cryptCertificate,
                     Saml2X509CredentialType.ENCRYPTION, Saml2X509CredentialType.DECRYPTION);
             // add to decrypt credentials
@@ -175,30 +233,66 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         return ssoServiceBinding;
     }
 
-    private String getProperty(String key, String defaultValue) {
-        if (StringUtils.hasText((String) getConfigurationProperty(key))) {
-            return (String) getConfigurationProperty(key);
+    // TODO rewrite with proper parser
+    private String cleanupPem(String kind, String value) {
+        // build headers
+        // we set a fixed length separator because spring rsaKeyConverter checks for
+        // this specific amount of dashes..
+        String sep = "-----";
+        String header = "BEGIN " + kind;
+        String footer = "END " + kind;
+
+        String[] lines = value.split("\\R");
+        String[] keyLines = lines;
+
+        if (lines.length > 2) {
+            // headers?
+            String headerLine = lines[0];
+            String footerLine = lines[lines.length - 1];
+
+            if (headerLine.contains(header)) {
+                // extract key
+                keyLines = new String[lines.length - 2];
+                System.arraycopy(lines, 1, keyLines, 0, keyLines.length);
+            }
         }
 
-        return defaultValue;
+        // cleanup and rebuild string
+        StringBuilder sb = new StringBuilder();
+        sb.append(sep).append(header).append(sep).append("\n");
+        for (int c = 0; c < keyLines.length; c++) {
+            sb.append(keyLines[c].trim()).append("\n");
+        }
+
+        sb.append(sep).append(footer).append(sep);
+        return sb.toString();
     }
 
     /*
      * builders
      */
-    public static ConfigurableProvider toConfigurableProvider(SamlIdentityProviderConfig op) {
-        ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_SAML, op.getProvider(), op.getRealm());
+    public static ConfigurableProvider toConfigurableProvider(SamlIdentityProviderConfig sp) {
+        ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_SAML, sp.getProvider(), sp.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setConfiguration(op.getConfiguration());
-        cp.setName(op.name);
+        cp.setPersistence(sp.getPersistence());
+
+        cp.setName(sp.getName());
+        cp.setDescription(sp.getDescription());
+
+        cp.setEnabled(true);
+        cp.setConfiguration(sp.getConfiguration());
         return cp;
     }
 
     public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
-        SamlIdentityProviderConfig op = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-        op.setConfiguration(cp.getConfiguration());
-        op.setName(cp.getName());
-        return op;
+        SamlIdentityProviderConfig sp = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+        sp.setConfiguration(cp.getConfiguration());
+
+        sp.name = cp.getName();
+        sp.description = cp.getDescription();
+        sp.persistence = cp.getPersistence();
+
+        return sp;
 
     }
 

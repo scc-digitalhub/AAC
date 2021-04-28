@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.internal.provider;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,10 +17,11 @@ import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 public class InternalIdentityProviderConfig extends AbstractConfigurableProvider {
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
     private String name;
+    private String description;
 
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
@@ -42,6 +44,14 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public void setConfigMap(InternalIdentityProviderConfigMap configMap) {
         this.configMap = configMap;
     }
@@ -51,10 +61,14 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     }
 
     @Override
-    public Map<String, Object> getConfiguration() {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(configMap, typeRef);
+    public Map<String, Serializable> getConfiguration() {
+        return configMap.getConfiguration();
+    }
+
+    @Override
+    public void setConfiguration(Map<String, Serializable> props) {
+        configMap = new InternalIdentityProviderConfigMap();
+        configMap.setConfiguration(props);
     }
 
     /*
@@ -63,39 +77,42 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     public static ConfigurableProvider toConfigurableProvider(InternalIdentityProviderConfig ip) {
         ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_INTERNAL, ip.getProvider(),
                 ip.getRealm());
-        cp.setName(ip.getName());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setConfiguration(ip.getConfiguration());
+        cp.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
+
+        cp.setName(ip.getName());
+        cp.setDescription(ip.getDescription());
+
+        cp.setEnabled(true);
+        cp.setConfiguration(ip.getConfigMap().getConfiguration());
 
         return cp;
     }
 
     public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
-        InternalIdentityProviderConfig op = new InternalIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-        op.configMap = mapper.convertValue(cp.getConfiguration(), InternalIdentityProviderConfigMap.class);
-        op.name = cp.getName();
-        return op;
+        InternalIdentityProviderConfig ip = new InternalIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+        ip.configMap = new InternalIdentityProviderConfigMap();
+        ip.configMap.setConfiguration(cp.getConfiguration());
 
+        ip.name = cp.getName();
+        ip.description = cp.getDescription();
+
+        return ip;
     }
 
     public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp,
             InternalIdentityProviderConfigMap defaultConfigMap) {
-        InternalIdentityProviderConfig op = new InternalIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+        InternalIdentityProviderConfig ip = fromConfigurableProvider(cp);
+
         // double conversion via map to merge default props
-        Map<String, Object> config = new HashMap<>();
+        Map<String, Serializable> config = new HashMap<>();
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        Map<String, Object> defaultMap = mapper.convertValue(defaultConfigMap, typeRef);
+        Map<String, Serializable> defaultMap = mapper.convertValue(defaultConfigMap, typeRef);
         config.putAll(defaultMap);
         config.putAll(cp.getConfiguration());
 
-        op.configMap = mapper.convertValue(config, InternalIdentityProviderConfigMap.class);
-        op.name = cp.getName();
-        return op;
-
+        ip.configMap.setConfiguration(config);
+        return ip;
     }
-
-    /*
-     * configMap
-     */
 
 }

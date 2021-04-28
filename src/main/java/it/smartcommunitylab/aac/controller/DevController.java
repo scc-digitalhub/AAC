@@ -1,11 +1,14 @@
 package it.smartcommunitylab.aac.controller;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,6 +40,7 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.dto.ProviderRegistrationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -85,6 +89,10 @@ public class DevController {
 		return ResponseEntity.ok(realmManager.getRealm(realm));
 	}
 	
+	
+	/*
+	 * Users
+	 */
 	@GetMapping("/console/dev/realms/{realm:.*}/users")
     @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
 	public ResponseEntity<Page<User>> getRealmUsers(@PathVariable String realm, @RequestParam(required=false) String q, Pageable pageRequest) throws NoSuchRealmException {
@@ -109,65 +117,147 @@ public class DevController {
 		userManager.updateRealmAuthorities(realm, subjectId, bean.getRoles());
 		return ResponseEntity.ok(userManager.getUser(realm, subjectId));
 	}
+	
+    /*
+     * Providers
+     */
 
-	@GetMapping("/console/dev/realms/{realm:.*}/providers")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviders(@PathVariable String realm) throws NoSuchRealmException {
-		return ResponseEntity.ok(providerManager.listProviders(realm));
-	}
-	
-	@DeleteMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<Void> deleteRealmProvider(@PathVariable String realm, @PathVariable String providerId) throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-		providerManager.deleteProvider(realm, providerId);
-		return ResponseEntity.ok(null);
-	}
-	
-	@PostMapping("/console/dev/realms/{realm}/providers")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<ConfigurableProvider> createRealmProvider(@PathVariable String realm, @Valid @RequestBody ProviderRegistrationBean registration) throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+    @GetMapping("/console/dev/realms/{realm:.*}/providers")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Collection<ProviderRegistrationBean>> getRealmProviders(@PathVariable String realm)
+            throws NoSuchRealmException {
+
+        List<ProviderRegistrationBean> providers = providerManager
+                .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY)
+                .stream()
+                .map(cp -> {
+                    ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(cp);
+                    res.setRegistered(providerManager.isProviderRegistered(cp));
+                    return res;
+                }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(providers);
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<ProviderRegistrationBean> getRealmProvider(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            throws NoSuchProviderException, NoSuchRealmException {
+        ConfigurableProvider provider = providerManager.getProvider(realm, ConfigurableProvider.TYPE_IDENTITY,
+                providerId);
+        ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(provider);
+
+        // check if registered
+        boolean isRegistered = providerManager.isProviderRegistered(provider);
+        res.setRegistered(isRegistered);
+
+        // if registered fetch active configuration
+        if (isRegistered) {
+            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
+            Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
+            // we replace config instead of merging, when active config can not be
+            // modified anyway
+            res.setConfiguration(configMap);
+        }
+
+        return ResponseEntity.ok(res);
+    }
+    
+    @DeleteMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteRealmProvider(@PathVariable String realm, @PathVariable String providerId)
+            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+        providerManager.deleteProvider(realm, providerId);
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/console/dev/realms/{realm}/providers")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<ProviderRegistrationBean> createRealmProvider(@PathVariable String realm,
+            @Valid @RequestBody ProviderRegistrationBean registration)
+            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+        // unpack and build model
         String authority = registration.getAuthority();
         String type = registration.getType();
         String name = registration.getName();
-        Map<String, Object> configuration = registration.getConfiguration();
+        String description = registration.getDescription();
+        String persistence = registration.getPersistence();
+        Map<String, Serializable> configuration = registration.getConfiguration();
 
-        ConfigurableProvider provider = providerManager.addProvider(realm, authority, type, name, configuration);
-        return ResponseEntity.ok(provider);
-	}
-	
-	@PutMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<ConfigurableProvider> updateRealmProvider(@PathVariable String realm, @PathVariable String providerId, @Valid @RequestBody ProviderRegistrationBean registration) throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+        ConfigurableProvider provider = new ConfigurableProvider(authority, null, realm);
+        provider.setName(name);
+        provider.setDescription(description);
+        provider.setType(type);
+        provider.setEnabled(false);
+        provider.setPersistence(persistence);
+        provider.setConfiguration(configuration);
+
+        provider = providerManager.addProvider(realm, provider);
+
+        return ResponseEntity.ok(ProviderRegistrationBean.fromProvider(provider));
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<ProviderRegistrationBean> updateRealmProvider(@PathVariable String realm,
+            @PathVariable String providerId, @Valid @RequestBody ProviderRegistrationBean registration)
+            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
 
         // we update only configuration
         String name = registration.getName();
-        Map<String, Object> configuration = registration.getConfiguration();
-        boolean enabled = registration.isEnabled();
-        
+        String description = registration.getDescription();
+        String persistence = registration.getPersistence();
+        boolean enabled = (registration.getEnabled() != null ? registration.getEnabled().booleanValue() : false);
+        Map<String, Serializable> configuration = registration.getConfiguration();
+
         provider.setName(name);
+        provider.setDescription(description);
+        provider.setPersistence(persistence);
         provider.setConfiguration(configuration);
         provider.setEnabled(enabled);
-        
-        return ResponseEntity.ok(providerManager.updateProvider(realm, providerId, provider));
-	}
-	
-	@PutMapping("/console/dev/realms/{realm}/providers/{providerId}/state")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<ConfigurableProvider> updateRealmProviderState(@PathVariable String realm, @PathVariable String providerId, @RequestBody ProviderRegistrationBean registration) throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+
+        provider = providerManager.updateProvider(realm, providerId, provider);
+        ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(provider);
+
+        // check if registered
+        boolean isRegistered = providerManager.isProviderRegistered(provider);
+        res.setRegistered(isRegistered);
+
+        return ResponseEntity.ok(res);
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/providers/{providerId}/state")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<ProviderRegistrationBean> updateRealmProviderState(@PathVariable String realm,
+            @PathVariable String providerId, @RequestBody ProviderRegistrationBean registration)
+            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
-        boolean enabled = registration.isEnabled();
+        boolean enabled = (registration.getEnabled() != null ? registration.getEnabled().booleanValue() : true);
+
         if (enabled) {
-        	provider = providerManager.registerProvider(realm, providerId);
+            provider = providerManager.registerProvider(realm, providerId);
         } else {
-        	provider = providerManager.unregisterProvider(realm, providerId);
+            provider = providerManager.unregisterProvider(realm, providerId);
         }
-        return ResponseEntity.ok(provider);
-	}
+
+        ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(provider);
+
+        // check if registered
+        boolean isRegistered = providerManager.isProviderRegistered(provider);
+        res.setRegistered(isRegistered);
+
+        return ResponseEntity.ok(res);
+    }
 	
 	
+	/*
+	 * ClientApps
+	 */
     @GetMapping("/console/dev/realms/{realm:.*}/apps")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")

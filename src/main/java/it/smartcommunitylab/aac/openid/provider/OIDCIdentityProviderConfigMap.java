@@ -1,18 +1,28 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OIDCIdentityProviderConfigMap {
+public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
+
+    private static ObjectMapper mapper = new ObjectMapper();
+    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
+    };
 
     @NotBlank
     private String clientId;
@@ -124,6 +134,40 @@ public class OIDCIdentityProviderConfigMap {
 
     public void setIssuerUri(String issuerUri) {
         this.issuerUri = issuerUri;
+    }
+
+    @Override
+    @JsonIgnore
+    public Map<String, Serializable> getConfiguration() {
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        return mapper.convertValue(this, typeRef);
+    }
+
+    @Override
+    @JsonIgnore
+    public void setConfiguration(Map<String, Serializable> props) {
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        OIDCIdentityProviderConfigMap map = mapper.convertValue(props, OIDCIdentityProviderConfigMap.class);
+
+        this.clientId = map.getClientId();
+        this.clientSecret = map.getClientSecret();
+        this.clientName = map.getClientName();
+
+        this.clientAuthenticationMethod = map.getClientAuthenticationMethod();
+        this.scope = map.getScope();
+        this.userNameAttributeName = map.getUserNameAttributeName();
+
+        // explicit config
+        this.authorizationUri = map.getAuthorizationUri();
+        this.tokenUri = map.getTokenUri();
+        this.jwkSetUri = map.getJwkSetUri();
+        this.userInfoUri = map.getUserInfoUri();
+
+        // autoconfiguration support from well-known
+        this.issuerUri = map.getIssuerUri();
+
     }
 
 }

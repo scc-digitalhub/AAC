@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
 import it.smartcommunitylab.aac.core.model.UserAccount;
@@ -322,6 +323,16 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     @Override
     public String getName() {
         return providerConfig.getName();
+    }
+
+    @Override
+    public String getDescription() {
+        return providerConfig.getDescription();
+    }
+
+    @Override
+    public ConfigurableProperties getConfiguration() {
+        return providerConfig;
     }
 
     public static String[] JWT_ATTRIBUTES = {

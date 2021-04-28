@@ -1,0 +1,58 @@
+<div class="pb-3 pt-3">
+    <div class="row mb-3">
+        <div class="col col-md-6 p-3">
+            <h3>{{app.name}}</h3>
+            <p class="text-monospace">{{app.clientId}}</p>
+        </div>
+        <div class="col col-md-6 text-right">
+            <button class="btn btn-secondary btn-sm  text-right" ng-click="exportClientApp(app)">Export</button>
+            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteClientAppDlg(app)">Delete</button>
+
+        </div>
+    </div>
+</div>
+
+<div class="accordion" id="app">
+
+    <ul class="nav nav-tabs nav-fill">
+        <li class="nav-item">
+            <a class="nav-link {{activeClientView('overview')}}" href ng-click="switchClientView('overview')">Overview</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeClientView('settings')}}" href ng-click="switchClientView('settings')">Settings</a>
+        </li>          
+        <li ng-if="app.type == 'oauth2'" class="nav-item">
+            <a class="nav-link  {{activeClientView('conf.oauth2')}}" href ng-click="switchClientView('conf.oauth2')">OAuth2</a>
+        </li>      
+        <li class="nav-item">
+            <a class="nav-link  {{activeClientView('claims')}}" href ng-click="switchClientView('claims')">Roles & Claims</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeClientView('scopes')}}" href ng-click="switchClientView('scopes')">API
+                Access</a>
+        </li>
+    </ul>
+    <div class="tab-content pt-3">
+        <div class="tab-pane fade show active">
+            <div ng-include="'./html/app/'+clientView+'.html'"></div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteClientAppConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to delete?</p>
+                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="deleteClientApp()" type="button">Delete</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

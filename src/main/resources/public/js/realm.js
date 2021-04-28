@@ -308,4 +308,53 @@ angular.module('aac.controllers.realm', [])
 
     init();
   })
+  .controller('RealmAppController', function ($scope, $stateParams, RealmData, Utils) {
+    var slug = $stateParams.realmId;
+    var clientId = $stateParams.clientId;
+
+    $scope.load = function () {
+      RealmData.getClientApp(slug, clientId)
+        .then(function (data) {
+          $scope.app = data;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load realm client app: ' + err.data.message);
+        });
+    }
+
+    /**
+     * Initialize the app: load list of apps
+     */
+    var init = function () {
+      $scope.load();
+      $scope.clientView = 'overview';
+    };
+
+    $scope.deleteClientAppDlg = function (clientApp) {
+      $scope.modClientApp = clientApp;
+      $('#deleteClientAppConfirm').modal({ keyboard: false });
+    }
+
+    $scope.deleteClientApp = function () {
+      $('#deleteClientAppConfirm').modal('hide');
+      RealmData.removeClientApp($scope.realm.slug, $scope.modClientApp.clientId).then(function () {
+        $scope.load();
+      }).catch(function (err) {
+        Utils.showError(err.data.message);
+      });
+    }
+
+
+    $scope.activeClientView = function(view) {
+      return view == $scope.clientView ? 'active' : '';
+    };
+
+    $scope.switchClientView = function(view) {
+    	console.log("switch view to "+view);
+      $scope.clientView = view;
+    }
+
+
+    init();
+  })  
 ;

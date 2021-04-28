@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.persistence;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import javax.persistence.Column;
@@ -40,13 +41,25 @@ public class ProviderEntity {
     private boolean enabled;
 
     private String name;
+    private String description;
+
+    @Column(name = "persistence_level")
+    private String persistence;
 
     // key-based configuration for persistence
     // converts to json via custom converter
     @Lob
     @Column(name = "configuration_map")
     @Convert(converter = HashMapConverter.class)
-    private Map<String, Object> configurationMap;
+    private Map<String, Serializable> configurationMap;
+
+    public ProviderEntity() {
+
+    }
+
+    public ProviderEntity(String providerId) {
+        this.providerId = providerId;
+    }
 
     public Long getId() {
         return id;
@@ -104,11 +117,27 @@ public class ProviderEntity {
         this.name = name;
     }
 
-    public Map<String, Object> getConfigurationMap() {
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getPersistence() {
+        return persistence;
+    }
+
+    public void setPersistence(String persistence) {
+        this.persistence = persistence;
+    }
+
+    public Map<String, Serializable> getConfigurationMap() {
         return configurationMap;
     }
 
-    public void setConfigurationMap(Map<String, Object> configurationMap) {
+    public void setConfigurationMap(Map<String, Serializable> configurationMap) {
         this.configurationMap = configurationMap;
     }
 

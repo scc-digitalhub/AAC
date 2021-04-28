@@ -1,39 +1,29 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.util.HashMap;
+import java.io.Serializable;
 import java.util.Map;
 
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
 public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
-
-    public static final String PROVIDER_GOOGLE = "google";
-    public static final String PROVIDER_FACEBOOK = "facebook";
-    public static final String PROVIDER_GITHUB = "github";
+//
+//    public static final String PROVIDER_GOOGLE = "google";
+//    public static final String PROVIDER_FACEBOOK = "facebook";
+//    public static final String PROVIDER_GITHUB = "github";
 
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
 
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
-    };
-
     private String name;
+    private String description;
     private String persistence;
 
     private OIDCIdentityProviderConfigMap configMap;
@@ -58,6 +48,14 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public OIDCIdentityProviderConfigMap getConfigMap() {
         return configMap;
     }
@@ -75,10 +73,14 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     }
 
     @Override
-    public Map<String, Object> getConfiguration() {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(configMap, typeRef);
+    public Map<String, Serializable> getConfiguration() {
+        return configMap.getConfiguration();
+    }
+
+    @Override
+    public void setConfiguration(Map<String, Serializable> props) {
+        configMap = new OIDCIdentityProviderConfigMap();
+        configMap.setConfiguration(props);
     }
 
     public ClientRegistration getClientRegistration() {
@@ -210,17 +212,26 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     public static ConfigurableProvider toConfigurableProvider(OIDCIdentityProviderConfig op) {
         ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(), op.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setConfiguration(op.getConfiguration());
+        cp.setPersistence(op.getPersistence());
+
         cp.setName(op.getName());
+        cp.setDescription(op.getDescription());
+
+        cp.setEnabled(true);
+        cp.setConfiguration(op.getConfiguration());
 
         return cp;
     }
 
     public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
         OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getProvider(), cp.getRealm());
-//        op.setConfiguration(cp.getConfiguration());
-        op.configMap = mapper.convertValue(cp.getConfiguration(), OIDCIdentityProviderConfigMap.class);
+        op.configMap = new OIDCIdentityProviderConfigMap();
+        op.configMap.setConfiguration(cp.getConfiguration());
+
         op.name = cp.getName();
+        op.description = cp.getDescription();
+        op.persistence = cp.getPersistence();
+
         return op;
 
     }

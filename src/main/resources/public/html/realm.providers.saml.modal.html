@@ -13,17 +13,17 @@
           </div>
 	          
 	          <div class="form-group col ">
-	              <label for="issuerUri">IdP Metadata Discovery URL</label>
+	              <label for="idpMetadataUrl">IdP Metadata Discovery URL</label>
 	              <input type="text" name="idpMetadataUrl" class="form-control form-control-sm" id="idpMetadataUrl" ng-model="provider.idpMetadataUrl">
 	          </div>
 	          <div class="pt-0 pb-3 text-center"> -- OR -- </div>
 	          <div class="row">
 		          <div class="form-group col ">
-		              <label for="authorizationUri">Asserting Party Entity ID</label>
+		              <label for="idpEntityId">Asserting Party Entity ID</label>
 		              <input type="text" name="idpEntityId" class="form-control form-control-sm" id="ssoLoginServiceLocation" ng-model="provider.idpEntityId">
 		          </div>
 	            <div class="form-group col ">
-	                <label for="tokenUri">Login Service Location</label>
+	                <label for="ssoLoginServiceLocation">Login Service Location</label>
 	                <input type="text" name="ssoLoginServiceLocation" class="form-control form-control-sm" id="ssoLoginServiceLocation" ng-model="provider.ssoLoginServiceLocation">
 	            </div>
 	          </div>
@@ -43,7 +43,13 @@
                   </select>
                 </div>  
 	            </div>
-	            <div class="form-group col-md-6">
+	            <div class="form-group col ">
+                    <label for="entityId">Entity ID</label>
+                    <input type="text" name="entityId" class="form-control form-control-sm" id="entityId" ng-model="provider.entityId">
+                </div>                 	            
+            </div>
+            <div class="row">
+	            <div class="form-group col">
                   <label for="verificationCertificate">Verification Certificate</label>
                   <textarea rows="5" id="verificationCertificate" name="verificationCertificate" ng-model="provider.verificationCertificate"></textarea>
 	            </div>
@@ -52,21 +58,22 @@
 	          Either metadata or Asserting party entity + login service + SSO service binding should be specified
 	          </div>
 	          
-	          <div class="py-3">Signing &amp; Encryption</div>
+	          <div class="py-3">Signing</div>
 	          <div class="row">
               <div class="form-group col ">
                   <label for="signingKey">Signing Key</label>
-                  <input type="text" name="signingKey" class="form-control form-control-sm" id="signingKey" ng-model="provider.signingKey">
+                  <textarea rows="5" name="signingKey" id="signingKey" ng-model="provider.signingKey"></textarea>
               </div>
-              <div class="form-group col">
+              <div class="form-group col ">
                   <label for="signingCertificate">Signing Certificate</label>
                   <textarea rows="5" id="signingCertificate" name="signingCertificate" ng-model="provider.signingCertificate"></textarea>
               </div>
 	          </div>
+	           <div class="py-3">Encryption</div>
             <div class="row">
               <div class="form-group col ">
                   <label for="cryptKey">Encryption Key</label>
-                  <input type="text" name="cryptKey" class="form-control form-control-sm" id="cryptKey" ng-model="provider.cryptKey">
+                  <textarea rows="5" name="cryptKey" id="cryptKey" ng-model="provider.cryptKey"></textarea>
               </div>
               <div class="form-group col">
                   <label for="cryptCertificate">Encryption Certificate</label>

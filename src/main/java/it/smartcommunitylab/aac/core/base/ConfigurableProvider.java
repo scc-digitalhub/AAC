@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -20,9 +22,12 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
     private String type;
     private boolean enabled;
     private String persistence;
-    private String name;
 
-    private Boolean registered;
+    private String name;
+    private String description;
+//    private String icon;
+
+    private Map<String, Serializable> configuration;
 
     public ConfigurableProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -60,14 +65,6 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
         this.enabled = enabled;
     }
 
-    public Boolean isRegistered() {
-        return registered;
-    }
-
-    public void setRegistered(Boolean registered) {
-        this.registered = registered;
-    }
-
     public String getPersistence() {
         return persistence;
     }
@@ -86,15 +83,37 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
         }
     }
 
-    public Object getConfigurationProperty(String key) {
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public Map<String, Serializable> getConfiguration() {
+        return configuration;
+    }
+
+    @Override
+    public void setConfiguration(Map<String, Serializable> props) {
+        this.configuration = new HashMap<>();
+        if (props != null) {
+            this.configuration.putAll(props);
+        }
+    }
+
+    public Serializable getConfigurationProperty(String key) {
         return configuration.get(key);
     }
 
-    public void setConfigurationProperty(String key, String value) {
+    public void setConfigurationProperty(String key, Serializable value) {
         configuration.put(key, value);
     }
 
     public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;
 
     public static final String TYPE_ATTRIBUTES = SystemKeys.RESOURCE_ATTRIBUTES;
+
 }

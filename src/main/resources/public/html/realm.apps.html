@@ -4,7 +4,7 @@
             <h3>Client Applications</h3>
         </div>
         <div class="col col-md-6 text-right">
-            <button class="btn btn-primary text-right" type="button" ng-click="addUser()">
+            <button class="btn btn-primary text-right" type="button" ng-click="addClientApp()">
                 <svg class="icon icon-sm icon-white">
                     <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
                 </svg>
@@ -32,7 +32,7 @@
                 </td>
                 <td class="text-right">
                     <button class="btn btn-success btn-sm"
-                        ng-click="editClientApp(item)">Edit</button>
+                    ui-sref="realm.app({realmId:item.realm, clientId:item.clientId})">Edit</button>
                     <button class="btn btn-danger btn-sm" 
                         ng-click="deleteClientAppDlg(item)">Delete</button>
                 </td>

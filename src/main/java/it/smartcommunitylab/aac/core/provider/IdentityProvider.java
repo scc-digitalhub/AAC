@@ -7,11 +7,19 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 public interface IdentityProvider extends ResourceProvider {
 
+    /*
+     * Config
+     */
     public String getName();
+
+    public String getDescription();
+
+    public ConfigurableProperties getConfiguration();
 
     /*
      * auth provider

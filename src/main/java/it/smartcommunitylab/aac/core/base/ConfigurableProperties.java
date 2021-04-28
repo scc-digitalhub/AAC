@@ -1,5 +1,6 @@
-package it.smartcommunitylab.aac.dto;
+package it.smartcommunitylab.aac.core.base;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -9,12 +10,12 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
  * 
  * Should be used to carry implementation specific properties over generic interfaces, replacing all the Map<> in base/default models
  */
-public abstract class ConfigurableProperties {
+public interface ConfigurableProperties {
 
-    public abstract Map<String, String> getProperties();
+    public Map<String, Serializable> getConfiguration();
 
-    public abstract void setProperties(Map<String, String> props);
+    public void setConfiguration(Map<String, Serializable> props);
 
-    public abstract JsonSchema getSchema();
+//    public JsonSchema getSchema();
 
 }

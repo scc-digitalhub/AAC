@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -173,8 +174,8 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         // build identity
         // detach account
         account = accountRepository.detach(account);
-        
-        //export userId
+
+        // export userId
         account.setUserId(exportInternalId(userId));
 
         // write custom model
@@ -298,5 +299,15 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     @Override
     public String getName() {
         return providerConfig.getName();
+    }
+
+    @Override
+    public String getDescription() {
+        return providerConfig.getDescription();
+    }
+
+    @Override
+    public ConfigurableProperties getConfiguration() {
+        return providerConfig;
     }
 }
