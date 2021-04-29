@@ -16,7 +16,7 @@
 
 -->
 
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org" data-ng-app="dev">
   <head>
     <meta charset="utf-8"/>
@@ -29,13 +29,16 @@
     <meta http-equiv="Expires" content="-1" />
     
     <!-- Design Italia -->
-    <link rel="stylesheet" href="italia/css/bootstrap-italia.min.css"/>		
-    <script>window.__PUBLIC_PATH__ = 'italia/fonts'</script>		
-    <link href="italia/style.css" rel="stylesheet" />
+	 <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+	 <script th:inline="javascript">
+	    const contextpath = /*[[@{/}]]*/ "/";
+	    window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+	 </script>	
+	 <link th:href="@{/italia/style.css}" rel="stylesheet" />
 		
-    <link rel="stylesheet" href="fonts/css/fontawesome-all.min.css"/>
-    <link rel="stylesheet" href="css/ng-tags-input.min.css"/>
-    <link rel="stylesheet" href="css/ng-tags-input.bootstrap.min.css"/>
+    <link rel="stylesheet" th:href="@{/fonts/css/fontawesome-all.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/ng-tags-input.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/ng-tags-input.bootstrap.min.css}"/>
 	 
 <!-- 	  <link href="css/style.css" rel="stylesheet" />
  -->    <!-- Custom styles for this template -->
@@ -124,6 +127,6 @@
 	     &copy; Digital Society Lab 2015 - 2021
 	   </div>	   
       <!-- Design Italia -->
-     <script src="italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
+     <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
    </body>
 </html>

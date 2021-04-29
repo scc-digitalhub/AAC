@@ -5,17 +5,7 @@ import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 
-public class OpenIdPhoneScope extends Scope {
-
-    @Override
-    public String getResourceId() {
-        return ProfileClaimsSet.RESOURCE_ID + ".openid";
-    }
-
-    @Override
-    public ScopeType getType() {
-        return ScopeType.USER;
-    }
+public class OpenIdPhoneScope extends AbstractProfileScope {
 
     @Override
     public String getScope() {

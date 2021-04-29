@@ -1,0 +1,24 @@
+<div class="modal fade bs-modal-lg" id="scopesModal" tabindex="-1" role="dialog"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h3 class="modal-title" id="modal-title">{{scopeResource.name}}</h3>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <p class="mb-4">{{scopeResource.description}}</p>
+        <div class="form-group col" ng-repeat="s in scopeResource.scopes">
+          <div class="form-check form-check-inline" ng-click="">
+               <input class="form-check-input" type="checkbox" ng-model="s.value" >
+               <label class="active">{{s.name}}</label>
+               <p>{{s.description}}</p>
+           </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Update</button>
+      </div>
+    </div>
+  </div>
+</div>

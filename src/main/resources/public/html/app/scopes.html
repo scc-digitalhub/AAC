@@ -1,0 +1,38 @@
+<div class="pt-3">
+ <fieldset>
+        <legend class="mb-4">API resources</legend>
+    <div class="form-group">
+        <label class="active">Selected scopes</label>
+        <tags-input type="text" placeholder="" ng-model="appScopes"></tags-input>
+    </div>
+
+
+   
+        <br>
+        <h5>Core</h5>
+        <table class="table border-bottom">
+            <tr ng-repeat="item in scopeResources" ng-if="item.resourceId.startsWith('aac.')">
+                <td class="align-middle">
+                    <bold>
+                        <a href ng-click="scopesDlg(item)">{{item.name}}</a>
+                    </bold> <br />{{item.description}}
+                </td>
+            </tr>
+        </table>
+        <br><br>
+        <h5>Services</h5>
+        <table class="table border-bottom">
+            <tr ng-repeat="item in scopeResources" ng-if="!item.resourceId.startsWith('aac.')">
+                <td class="align-middle">
+                    <bold>
+                        <a href ng-click="scopesDlg(item)">{{item.name}}</a>
+                    </bold> <br />{{item.description}}
+                </td>
+            </tr>
+        </table>
+
+
+    </fieldset>
+    <div ng-include="'./html/app/scopes.modal.html'"></div>
+
+</div>

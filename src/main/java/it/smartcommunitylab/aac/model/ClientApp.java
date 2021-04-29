@@ -13,6 +13,7 @@ import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
@@ -34,6 +35,8 @@ public class ClientApp {
 
     // configuration, type-specific
     private Map<String, Serializable> configuration;
+
+    private JsonSchema schema;
 
     // scopes
     // TODO evaluate a better mapping for services+attribute sets etc
@@ -152,6 +155,14 @@ public class ClientApp {
 
     public void setHookWebUrls(Map<String, String> hookWebUrls) {
         this.hookWebUrls = hookWebUrls;
+    }
+
+    public JsonSchema getSchema() {
+        return schema;
+    }
+
+    public void setSchema(JsonSchema schema) {
+        this.schema = schema;
     }
 
 }

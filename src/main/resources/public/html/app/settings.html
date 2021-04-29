@@ -1,0 +1,11 @@
+<div class="pt-3">
+    <div class="form-group row">
+        <input type="text" name="name" class="form-control " id="name" ng-model="app.name" required>
+        <label for="name"  class="{{app.name != '' ? 'active' : ''}}">Name</label>
+    </div>
+    <div class="form-group row">
+        <textarea rows="3" name="description" class="form-control form-control-sm" id="description"
+            ng-model="app.description"></textarea>
+        <label for="description" class="{{app.description != '' ? 'active' : ''}}">Description</label>
+    </div>
+</div>

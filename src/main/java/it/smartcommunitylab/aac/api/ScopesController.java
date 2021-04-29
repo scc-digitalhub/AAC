@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.core.ScopeManager;
+import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 
 @RestController
-@RequestMapping("api/scope")
+@RequestMapping("api/")
 public class ScopesController {
 
     @Autowired
@@ -30,15 +32,27 @@ public class ScopesController {
     // TODO evaluate restrict api to {realm} context, enforcing namespace
     // how do we handle permissions??
 
-    @GetMapping("")
+    @GetMapping("scope")
     public Collection<Scope> listScopes() {
         return scopeManager.listScopes();
     }
 
-    @GetMapping("{scope}")
+    @GetMapping("scope/{scope}")
     public Scope getScope(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) throws NoSuchScopeException {
         return scopeManager.getScope(scope);
+    }
+
+    @GetMapping("resources")
+    public Collection<Resource> listResources() {
+        return scopeManager.listResources();
+    }
+
+    @GetMapping("resources/{resourceId}")
+    public Resource listResources(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
+            throws NoSuchResourceException {
+        return scopeManager.getResource(resourceId);
     }
 
 }

@@ -5,11 +5,12 @@ import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 
+//TODO move to dedicated package
 public class OpenIdProfileScope extends Scope {
 
     @Override
     public String getResourceId() {
-        return ProfileClaimsSet.RESOURCE_ID + ".openid";
+        return ProfileClaimsSet.RESOURCE_ID;
     }
 
     @Override

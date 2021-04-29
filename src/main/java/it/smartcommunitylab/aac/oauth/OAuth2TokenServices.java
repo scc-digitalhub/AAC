@@ -45,6 +45,7 @@ import com.nimbusds.oauth2.sdk.ParseException;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
@@ -134,7 +135,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         }
 
         // if supported generate a new refresh token
-        if (supportsRefreshToken(authentication)) {
+        if (supportsRefreshToken(authentication) && clientDetails.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN.getValue())) {
             OAuth2RefreshToken refreshToken = createRefreshToken(authentication, refreshValiditySeconds);
             if (refreshToken != null && StringUtils.hasText(refreshToken.getValue())) {
                 tokenStore.storeRefreshToken(refreshToken, authentication);

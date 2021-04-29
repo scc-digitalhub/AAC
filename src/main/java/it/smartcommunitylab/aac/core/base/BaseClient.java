@@ -1,12 +1,7 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 public abstract class BaseClient extends AbstractClient {
 
@@ -28,7 +23,6 @@ public abstract class BaseClient extends AbstractClient {
 
     }
 
-    @JsonIgnore
     public String getName() {
         return name;
     }
@@ -37,7 +31,6 @@ public abstract class BaseClient extends AbstractClient {
         this.name = name;
     }
 
-    @JsonIgnore
     public String getDescription() {
         return description;
     }
@@ -46,7 +39,6 @@ public abstract class BaseClient extends AbstractClient {
         this.description = description;
     }
 
-    @JsonIgnore
     public Set<String> getScopes() {
         return scopes;
     }
@@ -55,7 +47,6 @@ public abstract class BaseClient extends AbstractClient {
         this.scopes = scopes;
     }
 
-    @JsonIgnore
     public Set<String> getResourceIds() {
         return resourceIds;
     }
@@ -64,7 +55,6 @@ public abstract class BaseClient extends AbstractClient {
         this.resourceIds = resourceIds;
     }
 
-    @JsonIgnore
     public Set<String> getProviders() {
         return providers;
     }
@@ -73,7 +63,6 @@ public abstract class BaseClient extends AbstractClient {
         this.providers = providers;
     }
 
-    @JsonIgnore
     public Map<String, String> getHookFunctions() {
         return hookFunctions;
     }
@@ -82,7 +71,6 @@ public abstract class BaseClient extends AbstractClient {
         this.hookFunctions = hookFunctions;
     }
 
-    @JsonIgnore
     public Map<String, String> getHookWebUrls() {
         return hookWebUrls;
     }
@@ -90,14 +78,5 @@ public abstract class BaseClient extends AbstractClient {
     public void setHookWebUrls(Map<String, String> hookWebUrls) {
         this.hookWebUrls = hookWebUrls;
     }
-
-    /*
-     * Implementation classes should be able to return a serializable map to
-     * represent configuration, with nested objects where needed
-     *
-     * This is used to import/export models + UI model
-     */
-    @JsonIgnore
-    public abstract Map<String, Serializable> getConfigurationMap();
 
 }

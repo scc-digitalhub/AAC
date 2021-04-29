@@ -27,39 +27,49 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.dto.ProviderRegistrationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.scope.Scope;
 import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
 @ApiIgnore
 public class DevController {
 
-	@Autowired
-	private RealmManager realmManager;
-	@Autowired
-	private UserManager userManager;
-	@Autowired
-	private ProviderManager providerManager;
-	@Autowired
-	private ClientManager clientManager;
-	
+    @Autowired
+    private RealmManager realmManager;
+    @Autowired
+    private UserManager userManager;
+    @Autowired
+    private ProviderManager providerManager;
+    @Autowired
+    private ClientManager clientManager;
+    @Autowired
+    private ScopeManager scopeManager;
+
     @RequestMapping("/dev")
     public ModelAndView developer() {
         UserDetails user = userManager.curUserDetails();
@@ -68,56 +78,58 @@ public class DevController {
         }
         return new ModelAndView("index");
     }
-	
-	
-	@GetMapping("/console/dev/realms")
-	public ResponseEntity<List<Realm>> myRealms() throws NoSuchRealmException {
+
+    @GetMapping("/console/dev/realms")
+    public ResponseEntity<List<Realm>> myRealms() throws NoSuchRealmException {
         // TODO: complete reading of user realms
         UserDetails user = userManager.curUserDetails();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         if (SystemKeys.REALM_GLOBAL.equals(user.getRealm())) {
-    		return ResponseEntity.ok(Collections.singletonList(new Realm(SystemKeys.REALM_GLOBAL, "GLOBAL")));
+            return ResponseEntity.ok(Collections.singletonList(new Realm(SystemKeys.REALM_GLOBAL, "GLOBAL")));
         }
-		return ResponseEntity.ok(Collections.singletonList(realmManager.getRealm(user.getRealm())));
-        
-	}
-	@GetMapping("/console/dev/realms/{realm:.*}")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-	public ResponseEntity<Realm> getRealm(@PathVariable String realm) throws NoSuchRealmException {
-		return ResponseEntity.ok(realmManager.getRealm(realm));
-	}
-	
-	
-	/*
-	 * Users
-	 */
-	@GetMapping("/console/dev/realms/{realm:.*}/users")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<Page<User>> getRealmUsers(@PathVariable String realm, @RequestParam(required=false) String q, Pageable pageRequest) throws NoSuchRealmException {
-		return ResponseEntity.ok(userManager.searchUsers(realm, q, pageRequest));
-	}
-	
-	@DeleteMapping("/console/dev/realms/{realm}/users/{subjectId:.*}")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<Void> deleteRealmUser(@PathVariable String realm, @PathVariable String subjectId) throws NoSuchRealmException, NoSuchUserException {
-		User curUser = userManager.curUser(realm);
-		if (curUser.getSubjectId().equals(subjectId)) {
-			throw new IllegalArgumentException("Cannot delete current user");
-		}
-		userManager.removeUser(realm, subjectId);
-		return ResponseEntity.ok(null);
-	}
-	
-	
-	@PutMapping("/console/dev/realms/{realm}/users/{subjectId:.*}/roles")
-    @PreAuthorize("hasAuthority('"+Config.R_ADMIN+"') or hasAuthority(#realm+':ROLE_ADMIN')")
-	public ResponseEntity<User> updateRealmRoles(@PathVariable String realm, @PathVariable String subjectId, @RequestBody RolesBean bean) throws NoSuchRealmException, NoSuchUserException {
-		userManager.updateRealmAuthorities(realm, subjectId, bean.getRoles());
-		return ResponseEntity.ok(userManager.getUser(realm, subjectId));
-	}
-	
+        return ResponseEntity.ok(Collections.singletonList(realmManager.getRealm(user.getRealm())));
+
+    }
+
+    @GetMapping("/console/dev/realms/{realm:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Realm> getRealm(@PathVariable String realm) throws NoSuchRealmException {
+        return ResponseEntity.ok(realmManager.getRealm(realm));
+    }
+
+    /*
+     * Users
+     */
+    @GetMapping("/console/dev/realms/{realm:.*}/users")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Page<User>> getRealmUsers(@PathVariable String realm,
+            @RequestParam(required = false) String q, Pageable pageRequest) throws NoSuchRealmException {
+        return ResponseEntity.ok(userManager.searchUsers(realm, q, pageRequest));
+    }
+
+    @DeleteMapping("/console/dev/realms/{realm}/users/{subjectId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteRealmUser(@PathVariable String realm, @PathVariable String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        User curUser = userManager.curUser(realm);
+        if (curUser.getSubjectId().equals(subjectId)) {
+            throw new IllegalArgumentException("Cannot delete current user");
+        }
+        userManager.removeUser(realm, subjectId);
+        return ResponseEntity.ok(null);
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/users/{subjectId:.*}/roles")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<User> updateRealmRoles(@PathVariable String realm, @PathVariable String subjectId,
+            @RequestBody RolesBean bean) throws NoSuchRealmException, NoSuchUserException {
+        userManager.updateRealmAuthorities(realm, subjectId, bean.getRoles());
+        return ResponseEntity.ok(userManager.getUser(realm, subjectId));
+    }
+
     /*
      * Providers
      */
@@ -164,7 +176,7 @@ public class DevController {
 
         return ResponseEntity.ok(res);
     }
-    
+
     @DeleteMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> deleteRealmProvider(@PathVariable String realm, @PathVariable String providerId)
@@ -253,11 +265,10 @@ public class DevController {
 
         return ResponseEntity.ok(res);
     }
-	
-	
-	/*
-	 * ClientApps
-	 */
+
+    /*
+     * ClientApps
+     */
     @GetMapping("/console/dev/realms/{realm:.*}/apps")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -265,13 +276,21 @@ public class DevController {
             throws NoSuchRealmException {
         return ResponseEntity.ok(clientManager.listClientApps(realm));
     }
-    
+
     @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<ClientApp> getRealmClientApp(@PathVariable String realm, @PathVariable String clientId)
             throws NoSuchRealmException, NoSuchClientException, SystemException {
-        return ResponseEntity.ok(clientManager.getClientApp(realm, clientId));
+
+        // get client app
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+
+        // fetch also configuration schema
+        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+        clientApp.setSchema(schema);
+
+        return ResponseEntity.ok(clientApp);
     }
 
     @PostMapping("/console/dev/realms/{realm}/apps")
@@ -284,6 +303,11 @@ public class DevController {
         app.setRealm(realm);
 
         ClientApp clientApp = clientManager.registerClientApp(realm, app);
+
+        // fetch also configuration schema
+        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+        clientApp.setSchema(schema);
+
         return ResponseEntity.ok(clientApp);
     }
 
@@ -295,6 +319,11 @@ public class DevController {
             throws NoSuchRealmException, NoSuchClientException, SystemException {
 
         ClientApp clientApp = clientManager.updateClientApp(realm, clientId, app);
+
+        // fetch also configuration schema
+        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+        clientApp.setSchema(schema);
+
         return ResponseEntity.ok(clientApp);
     }
 
@@ -306,17 +335,79 @@ public class DevController {
         clientManager.deleteClientApp(realm, clientId);
         return ResponseEntity.ok(null);
     }
-	
-	public static class RolesBean {
-		
-		private List<String> roles;
-		public List<String> getRoles() {
-			return roles;
-		}
-		public void setRoles(List<String> roles) {
-			this.roles = roles;
-		}
-		
-	}
-	
+
+    @DeleteMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/credentials")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ClientApp> resetRealmClientAppCredentials(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
+
+        ClientCredentials credentials = clientManager.resetClientCredentials(realm, clientId);
+
+        // re-read app
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+
+        // fetch also configuration schema
+        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+        clientApp.setSchema(schema);
+
+        return ResponseEntity.ok(clientApp);
+
+    }
+
+    /*
+     * Scopes and resources
+     */
+    @GetMapping("/console/dev/realms/{realm}/scopes")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Collection<Scope>> listScopes(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+        return ResponseEntity.ok(scopeManager.listScopes());
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/scopes/{scope:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Scope> getScope(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) throws NoSuchScopeException {
+        return ResponseEntity.ok(scopeManager.getScope(scope));
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/resources")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Collection<Resource>> listResources(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+        return ResponseEntity.ok(scopeManager.listResources());
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/resources/{resourceId:.*}")
+    public ResponseEntity<Resource> getResource(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
+            throws NoSuchResourceException {
+        return ResponseEntity.ok(scopeManager.getResource(resourceId));
+    }
+
+    /*
+     * DTO
+     */
+    public static class RolesBean {
+
+        private List<String> roles;
+
+        public List<String> getRoles() {
+            return roles;
+        }
+
+        public void setRoles(List<String> roles) {
+            this.roles = roles;
+        }
+
+    }
+
 }

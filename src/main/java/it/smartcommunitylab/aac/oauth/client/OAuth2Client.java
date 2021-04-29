@@ -27,6 +27,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -36,8 +37,9 @@ import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
+import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
-public class OAuth2Client extends BaseClient {
+public class OAuth2Client extends BaseClient implements ConfigurableProperties {
     public static final String CLIENT_TYPE = SystemKeys.CLIENT_TYPE_OAUTH2;
 
     private static ObjectMapper mapper = new ObjectMapper();
@@ -47,33 +49,30 @@ public class OAuth2Client extends BaseClient {
     @JsonIgnore
     private ClientSecret clientSecret;
 
-    private Set<AuthorizationGrantType> authorizedGrantTypes;
-    private Set<String> redirectUris;
-
-    private TokenType tokenType;
-    private Set<AuthenticationMethod> authenticationMethods;
-
-    private Boolean firstParty;
-    private Set<String> autoApproveScopes;
-
-    private Integer accessTokenValidity;
-    private Integer refreshTokenValidity;
-
-    private JWSAlgorithm jwtSignAlgorithm;
-    private JWEAlgorithm jwtEncAlgorithm;
-    private EncryptionMethod jwtEncMethod;
-    private JWKSet jwks;
-    private String jwksUri;
+//    private Set<AuthorizationGrantType> authorizedGrantTypes;
+//    private Set<String> redirectUris;
+//
+//    private TokenType tokenType;
+//    private Set<AuthenticationMethod> authenticationMethods;
+//
+//    private Boolean firstParty;
+//    private Set<String> autoApproveScopes;
+//
+//    private Integer accessTokenValidity;
+//    private Integer refreshTokenValidity;
+//
+//    private JWSAlgorithm jwtSignAlgorithm;
+//    private JWEAlgorithm jwtEncAlgorithm;
+//    private EncryptionMethod jwtEncMethod;
+//    private JWKSet jwks;
+//    private String jwksUri;
 
     @JsonUnwrapped
-    private OAuth2ClientInfo additionalInformation;
+    private OAuth2ClientConfigMap configMap;
 
     public OAuth2Client(@JsonProperty("realm") String realm, @JsonProperty("clientId") String clientId) {
         super(realm, clientId);
-        authorizedGrantTypes = new HashSet<>();
-        redirectUris = new HashSet<>();
-        authenticationMethods = new HashSet<>();
-        autoApproveScopes = new HashSet<>();
+        configMap = new OAuth2ClientConfigMap();
     }
 
     @Override
@@ -109,208 +108,217 @@ public class OAuth2Client extends BaseClient {
         }
     }
 
-    public Set<AuthorizationGrantType> getAuthorizedGrantTypes() {
-        return authorizedGrantTypes;
-    }
+//    public Set<AuthorizationGrantType> getAuthorizedGrantTypes() {
+//        return authorizedGrantTypes;
+//    }
+//
+//    public void setAuthorizedGrantTypes(Set<AuthorizationGrantType> authorizedGrantTypes) {
+//        this.authorizedGrantTypes = authorizedGrantTypes;
+//    }
+//
+//    public TokenType getTokenType() {
+//        return tokenType;
+//    }
+//
+//    public void setTokenType(TokenType tokenType) {
+//        this.tokenType = tokenType;
+//    }
+//
+//    public Set<AuthenticationMethod> getAuthenticationMethods() {
+//        return authenticationMethods;
+//    }
+//
+//    public void setAuthenticationMethods(Set<AuthenticationMethod> authenticationMethods) {
+//        this.authenticationMethods = authenticationMethods;
+//    }
+//
+//    public Set<String> getRedirectUris() {
+//        return redirectUris;
+//    }
+//
+//    public void setRedirectUris(Set<String> redirectUris) {
+//        this.redirectUris = redirectUris;
+//    }
+//
+//    public Boolean getFirstParty() {
+//        return firstParty;
+//    }
+//
+//    public void setFirstParty(Boolean firstParty) {
+//        this.firstParty = firstParty;
+//    }
+//
+//    public Set<String> getAutoApproveScopes() {
+//        return autoApproveScopes;
+//    }
+//
+//    public void setAutoApproveScopes(Set<String> autoApproveScopes) {
+//        this.autoApproveScopes = autoApproveScopes;
+//    }
+//
+//    public Integer getAccessTokenValidity() {
+//        return accessTokenValidity;
+//    }
+//
+//    public void setAccessTokenValidity(Integer accessTokenValidity) {
+//        this.accessTokenValidity = accessTokenValidity;
+//    }
+//
+//    public Integer getRefreshTokenValidity() {
+//        return refreshTokenValidity;
+//    }
+//
+//    public void setRefreshTokenValidity(Integer refreshTokenValidity) {
+//        this.refreshTokenValidity = refreshTokenValidity;
+//    }
+//
+//    public JWSAlgorithm getJwtSignAlgorithm() {
+//        return jwtSignAlgorithm;
+//    }
+//
+//    public void setJwtSignAlgorithm(JWSAlgorithm jwtSignAlgorithm) {
+//        this.jwtSignAlgorithm = jwtSignAlgorithm;
+//    }
+//
+//    public JWEAlgorithm getJwtEncAlgorithm() {
+//        return jwtEncAlgorithm;
+//    }
+//
+//    public void setJwtEncAlgorithm(JWEAlgorithm jwtEncAlgorithm) {
+//        this.jwtEncAlgorithm = jwtEncAlgorithm;
+//    }
+//
+//    public EncryptionMethod getJwtEncMethod() {
+//        return jwtEncMethod;
+//    }
+//
+//    public void setJwtEncMethod(EncryptionMethod jwtEncMethod) {
+//        this.jwtEncMethod = jwtEncMethod;
+//    }
+//
+//    public JWKSet getJwks() {
+//        return jwks;
+//    }
+//
+//    public void setJwks(JWKSet jwks) {
+//        this.jwks = jwks;
+//    }
+//
+//    public String getJwksUri() {
+//        return jwksUri;
+//    }
+//
+//    public void setJwksUri(String jwksUri) {
+//        this.jwksUri = jwksUri;
+//    }
 
-    public void setAuthorizedGrantTypes(Set<AuthorizationGrantType> authorizedGrantTypes) {
-        this.authorizedGrantTypes = authorizedGrantTypes;
-    }
+//    @JsonIgnore
+//    public OAuth2ClientInfo getAdditionalInformation() {
+//        return additionalInformation;
+//    }
+//
+//    public void setAdditionalInformation(OAuth2ClientInfo additionalInformation) {
+//        this.additionalInformation = additionalInformation;
+//    }
 
-    public TokenType getTokenType() {
-        return tokenType;
-    }
-
-    public void setTokenType(TokenType tokenType) {
-        this.tokenType = tokenType;
-    }
-
-    public Set<AuthenticationMethod> getAuthenticationMethods() {
-        return authenticationMethods;
-    }
-
-    public void setAuthenticationMethods(Set<AuthenticationMethod> authenticationMethods) {
-        this.authenticationMethods = authenticationMethods;
-    }
-
-    public Set<String> getRedirectUris() {
-        return redirectUris;
-    }
-
-    public void setRedirectUris(Set<String> redirectUris) {
-        this.redirectUris = redirectUris;
-    }
-
-    public Boolean getFirstParty() {
-        return firstParty;
-    }
-
-    public void setFirstParty(Boolean firstParty) {
-        this.firstParty = firstParty;
-    }
-
-    public Set<String> getAutoApproveScopes() {
-        return autoApproveScopes;
-    }
-
-    public void setAutoApproveScopes(Set<String> autoApproveScopes) {
-        this.autoApproveScopes = autoApproveScopes;
-    }
-
-    public Integer getAccessTokenValidity() {
-        return accessTokenValidity;
-    }
-
-    public void setAccessTokenValidity(Integer accessTokenValidity) {
-        this.accessTokenValidity = accessTokenValidity;
-    }
-
-    public Integer getRefreshTokenValidity() {
-        return refreshTokenValidity;
-    }
-
-    public void setRefreshTokenValidity(Integer refreshTokenValidity) {
-        this.refreshTokenValidity = refreshTokenValidity;
-    }
-
-    public JWSAlgorithm getJwtSignAlgorithm() {
-        return jwtSignAlgorithm;
-    }
-
-    public void setJwtSignAlgorithm(JWSAlgorithm jwtSignAlgorithm) {
-        this.jwtSignAlgorithm = jwtSignAlgorithm;
-    }
-
-    public JWEAlgorithm getJwtEncAlgorithm() {
-        return jwtEncAlgorithm;
-    }
-
-    public void setJwtEncAlgorithm(JWEAlgorithm jwtEncAlgorithm) {
-        this.jwtEncAlgorithm = jwtEncAlgorithm;
-    }
-
-    public EncryptionMethod getJwtEncMethod() {
-        return jwtEncMethod;
-    }
-
-    public void setJwtEncMethod(EncryptionMethod jwtEncMethod) {
-        this.jwtEncMethod = jwtEncMethod;
-    }
-
-    public JWKSet getJwks() {
-        return jwks;
-    }
-
-    public void setJwks(JWKSet jwks) {
-        this.jwks = jwks;
-    }
-
-    public String getJwksUri() {
-        return jwksUri;
-    }
-
-    public void setJwksUri(String jwksUri) {
-        this.jwksUri = jwksUri;
-    }
-
-    public OAuth2ClientInfo getAdditionalInformation() {
-        return additionalInformation;
-    }
-
-    public void setAdditionalInformation(OAuth2ClientInfo additionalInformation) {
-        this.additionalInformation = additionalInformation;
+    @Override
+    public Map<String, Serializable> getConfiguration() {
+        Map<String, Serializable> map = configMap.getConfiguration();
+        // add secret
+        map.put("clientSecret", getSecret());
+        return map;
     }
 
     @Override
-    @JsonIgnore
-    public Map<String, Serializable> getConfigurationMap() {
-        return getJacksonConfigurationMap();
+    public void setConfiguration(Map<String, Serializable> props) {
+        configMap = new OAuth2ClientConfigMap();
+        configMap.setConfiguration(props);
     }
 
-    @JsonIgnore
-    public Map<String, Serializable> getJacksonConfigurationMap() {
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(this, typeRef);
-    }
+//    @Override
+//    @JsonIgnore
+//    public Map<String, Serializable> getConfigurationMap() {
+//        return getJacksonConfigurationMap();
+//    }
+//
+//    @JsonIgnore
+//    public Map<String, Serializable> getJacksonConfigurationMap() {
+//        mapper.setSerializationInclusion(Include.NON_EMPTY);
+//        return mapper.convertValue(this, typeRef);
+//    }
+//
+//    @JsonIgnore
+//    public Map<String, Serializable> getStaticConfigurationMap() {
+//        // TODO fix naming to follow RFC standard and return TLD elements
+//        // will break converter
+//        try {
+//            Map<String, Serializable> map = new HashMap<>();
+//            // expose only specific properties
+//
+//            if (clientSecret != null) {
+//                map.put("clientSecret", clientSecret.getCredentials());
+//            }
+//
+//            // TODO rewrite properly
+//            if (authorizedGrantTypes != null) {
+//                map.put("authorizedGrantTypes", authorizedGrantTypes.toArray(new AuthorizationGrantType[0]));
+//            } else {
+//                map.put("authorizedGrantTypes", new AuthorizationGrantType[0]);
+//            }
+//
+//            if (redirectUris != null) {
+//                map.put("redirectUris", redirectUris.toArray(new String[0]));
+//            } else {
+//                map.put("redirectUris", new String[0]);
+//            }
+//
+//            if (authenticationMethods != null) {
+//                map.put("authenticationMethods", authenticationMethods.toArray(new AuthenticationMethod[0]));
+//            } else {
+//                map.put("authenticationMethods", new AuthenticationMethod[0]);
+//            }
+//
+//            map.put("tokenType", tokenType);
+//
+//            map.put("firstParty", firstParty);
+//            if (autoApproveScopes != null) {
+//                map.put("autoApproveScopes", autoApproveScopes.toArray(new String[0]));
+//            } else {
+//                map.put("autoApproveScopes", new String[0]);
+//            }
+//
+//            map.put("accessTokenValidity", accessTokenValidity);
+//            map.put("refreshTokenValidity", refreshTokenValidity);
+//
+//            if (jwtSignAlgorithm != null) {
+//                map.put("jwtSignAlgorithm", jwtSignAlgorithm.getValue());
+//            }
+//
+//            if (jwtEncMethod != null) {
+//                map.put("jwtEncMethod", jwtEncMethod.getValue());
+//            }
+//
+//            if (jwtEncAlgorithm != null) {
+//                map.put("jwtEncAlgorithm", jwtEncAlgorithm.getValue());
+//            }
+//
+//            map.put("jwks", jwks);
+//            map.put("jwksUri", jwksUri);
+//
+//            // filter null
+//            return map.entrySet().stream().filter(e -> e.getValue() != null)
+//                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+//
+//        } catch (Exception e) {
+//            return null;
+//        }
+//
+//    }
 
-    @JsonIgnore
-    public Map<String, Serializable> getStaticConfigurationMap() {
-        // TODO fix naming to follow RFC standard and return TLD elements
-        // will break converter
-        try {
-            Map<String, Serializable> map = new HashMap<>();
-            // expose only specific properties
-
-            if (clientSecret != null) {
-                map.put("clientSecret", clientSecret.getCredentials());
-            }
-
-            // TODO rewrite properly
-            if (authorizedGrantTypes != null) {
-                map.put("authorizedGrantTypes", authorizedGrantTypes.toArray(new AuthorizationGrantType[0]));
-            } else {
-                map.put("authorizedGrantTypes", new AuthorizationGrantType[0]);
-            }
-
-            if (redirectUris != null) {
-                map.put("redirectUris", redirectUris.toArray(new String[0]));
-            } else {
-                map.put("redirectUris", new String[0]);
-            }
-
-            if (authenticationMethods != null) {
-                map.put("authenticationMethods", authenticationMethods.toArray(new AuthenticationMethod[0]));
-            } else {
-                map.put("authenticationMethods", new AuthenticationMethod[0]);
-            }
-
-            map.put("tokenType", tokenType);
-
-            map.put("firstParty", firstParty);
-            if (autoApproveScopes != null) {
-                map.put("autoApproveScopes", autoApproveScopes.toArray(new String[0]));
-            } else {
-                map.put("autoApproveScopes", new String[0]);
-            }
-
-            map.put("accessTokenValidity", accessTokenValidity);
-            map.put("refreshTokenValidity", refreshTokenValidity);
-
-            if (jwtSignAlgorithm != null) {
-                map.put("jwtSignAlgorithm", jwtSignAlgorithm.getValue());
-            }
-
-            if (jwtEncMethod != null) {
-                map.put("jwtEncMethod", jwtEncMethod.getValue());
-            }
-
-            if (jwtEncAlgorithm != null) {
-                map.put("jwtEncAlgorithm", jwtEncAlgorithm.getValue());
-            }
-
-            map.put("jwks", jwks);
-            map.put("jwksUri", jwksUri);
-
-            // filter null
-            return map.entrySet().stream().filter(e -> e.getValue() != null)
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-
-        } catch (Exception e) {
-            return null;
-        }
-
-    }
-
-    @JsonIgnore
-    public static JsonSchema getConfigurationSchema() throws JsonMappingException {
-        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
-        return schemaGen.generateSchema(OAuth2Client.class);
-    }
-
-    private String toJson() throws JsonProcessingException {
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.writeValueAsString(this);
-    }
+//    private String toJson() throws JsonProcessingException {
+//        mapper.setSerializationInclusion(Include.NON_EMPTY);
+//        return mapper.writeValueAsString(this);
+//    }
 
     /*
      * builder
@@ -318,62 +326,105 @@ public class OAuth2Client extends BaseClient {
      * TODO add a proper builder to use with jackson
      */
 
-    public static OAuth2Client convert(Map<String, Serializable> map) {
-        // use mapper
-        // TODO custom mapping, see getConfigurationMap
-        return mapper.convertValue(map, OAuth2Client.class);
-    }
+//    public static OAuth2Client convert(Map<String, Serializable> map) {
+//        // use mapper
+//        // TODO custom mapping, see getConfigurationMap
+//        return mapper.convertValue(map, OAuth2Client.class);
+//    }
 
     public static OAuth2Client from(ClientEntity client, OAuth2ClientEntity oauth) {
         OAuth2Client c = new OAuth2Client(client.getRealm(), client.getClientId());
         c.setName(client.getName());
         c.setDescription(client.getDescription());
 
-        c.setScopes(StringUtils.commaDelimitedListToSet(client.getScopes()));
         c.setProviders(StringUtils.commaDelimitedListToSet(client.getProviders()));
+
+        c.setScopes(StringUtils.commaDelimitedListToSet(client.getScopes()));
+        c.setResourceIds(StringUtils.commaDelimitedListToSet(client.getResourceIds()));
+
         c.setHookFunctions(client.getHookFunctions());
         c.setHookWebUrls(client.getHookWebUrls());
 
         // map attributes
         c.clientSecret = (oauth.getClientSecret() != null ? new ClientSecret(oauth.getClientSecret()) : null);
-        c.tokenType = (oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : null);
+
+        c.configMap = new OAuth2ClientConfigMap();
+        c.configMap.setTokenType((oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : null));
 
         Set<String> authorizedGrantTypes = StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes());
-        c.authorizedGrantTypes = authorizedGrantTypes.stream()
+        c.configMap.setAuthorizedGrantTypes(authorizedGrantTypes.stream()
                 .map(a -> AuthorizationGrantType.parse(a))
                 .filter(a -> (a != null))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet()));
 
         Set<String> authenticationMethods = StringUtils.commaDelimitedListToSet(oauth.getAuthenticationMethods());
-        c.authenticationMethods = authenticationMethods.stream()
+        c.configMap.setAuthenticationMethods(authenticationMethods.stream()
                 .map(a -> AuthenticationMethod.parse(a))
                 .filter(a -> (a != null))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet()));
 
-        c.redirectUris.addAll(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
-        c.setResourceIds(StringUtils.commaDelimitedListToSet(oauth.getResourceIds()));
+        c.configMap.setRedirectUris(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
 
-        c.setFirstParty(oauth.isFirstParty());
-        c.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
+        c.configMap.setFirstParty(oauth.isFirstParty());
+        c.configMap.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
 
-        c.accessTokenValidity = oauth.getAccessTokenValidity();
-        c.refreshTokenValidity = oauth.getRefreshTokenValidity();
+        c.configMap.setAccessTokenValidity(oauth.getAccessTokenValidity());
+        c.configMap.setRefreshTokenValidity(oauth.getRefreshTokenValidity());
 
-        c.jwtSignAlgorithm = (oauth.getJwtSignAlgorithm() != null ? JWSAlgorithm.parse(oauth.getJwtSignAlgorithm())
-                : null);
-        c.jwtEncAlgorithm = (oauth.getJwtEncAlgorithm() != null ? JWEAlgorithm.parse(oauth.getJwtEncAlgorithm())
-                : null);
-        c.jwtEncMethod = (oauth.getJwtEncMethod() != null ? EncryptionMethod.parse(oauth.getJwtEncMethod()) : null);
+        c.configMap.setJwtSignAlgorithm(
+                oauth.getJwtSignAlgorithm() != null ? JWSAlgorithm.parse(oauth.getJwtSignAlgorithm())
+                        : null);
+        c.configMap
+                .setJwtEncAlgorithm(oauth.getJwtEncAlgorithm() != null ? JWEAlgorithm.parse(oauth.getJwtEncAlgorithm())
+                        : null);
+        c.configMap.setJwtEncMethod(
+                oauth.getJwtEncMethod() != null ? EncryptionMethod.parse(oauth.getJwtEncMethod()) : null);
         try {
-            c.jwks = (StringUtils.hasText(oauth.getJwks()) ? JWKSet.parse(oauth.getJwks()) : null);
+            c.configMap.setJwks(StringUtils.hasText(oauth.getJwks()) ? JWKSet.parse(oauth.getJwks()) : null);
         } catch (ParseException e) {
-            c.jwks = null;
+            c.configMap.setJwks(null);
         }
-        c.jwksUri = oauth.getJwksUri();
+        c.configMap.setJwksUri(oauth.getJwksUri());
+
+//        c.tokenType = (oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : null);
+//
+//        Set<String> authorizedGrantTypes = StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes());
+//        c.authorizedGrantTypes = authorizedGrantTypes.stream()
+//                .map(a -> AuthorizationGrantType.parse(a))
+//                .filter(a -> (a != null))
+//                .collect(Collectors.toSet());
+//
+//        Set<String> authenticationMethods = StringUtils.commaDelimitedListToSet(oauth.getAuthenticationMethods());
+//        c.authenticationMethods = authenticationMethods.stream()
+//                .map(a -> AuthenticationMethod.parse(a))
+//                .filter(a -> (a != null))
+//                .collect(Collectors.toSet());
+//
+//        c.redirectUris.addAll(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
+//        c.setResourceIds(StringUtils.commaDelimitedListToSet(oauth.getResourceIds()));
+//
+//        c.setFirstParty(oauth.isFirstParty());
+//        c.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
+//
+//        c.accessTokenValidity = oauth.getAccessTokenValidity();
+//        c.refreshTokenValidity = oauth.getRefreshTokenValidity();
+//
+//        c.jwtSignAlgorithm = (oauth.getJwtSignAlgorithm() != null ? JWSAlgorithm.parse(oauth.getJwtSignAlgorithm())
+//                : null);
+//        c.jwtEncAlgorithm = (oauth.getJwtEncAlgorithm() != null ? JWEAlgorithm.parse(oauth.getJwtEncAlgorithm())
+//                : null);
+//        c.jwtEncMethod = (oauth.getJwtEncMethod() != null ? EncryptionMethod.parse(oauth.getJwtEncMethod()) : null);
+//        try {
+//            c.jwks = (StringUtils.hasText(oauth.getJwks()) ? JWKSet.parse(oauth.getJwks()) : null);
+//        } catch (ParseException e) {
+//            c.jwks = null;
+//        }
+//        c.jwksUri = oauth.getJwksUri();
 
         Map<String, String> map = oauth.getAdditionalInformation();
         if (map != null) {
-            c.additionalInformation = OAuth2ClientInfo.convert(map);
+            c.configMap.setAdditionalInformation(OAuth2ClientInfo.convert(map));
+//            c.additionalInformation = OAuth2ClientInfo.convert(map);
         }
 
         return c;

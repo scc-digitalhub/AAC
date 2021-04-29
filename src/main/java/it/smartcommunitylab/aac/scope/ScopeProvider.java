@@ -17,6 +17,8 @@ import it.smartcommunitylab.aac.model.User;
 public interface ScopeProvider {
 
     public String getResourceId();
+    
+    public Resource getResource();
 
     public Collection<Scope> getScopes();
 
