@@ -222,7 +222,7 @@ angular.module('aac.controllers.realm', [])
     $scope.providerId = provider ? provider.provider : null;
     $scope.providerAuthority = 'oidc';
     $scope.provider = provider ? Object.assign({}, provider.configuration) : 
-    {clientAuthenticationMethod: {value: 'basic'}, scope: 'openid,profile,email', userNameAttributeName: 'sub'};
+    {clientAuthenticationMethod: 'client_secret_basic', scope: 'openid,profile,email', userNameAttributeName: 'sub'};
     $scope.provider.name = provider ? provider.name : null;
     $scope.provider.clientName = $scope.provider.clientName || '';
     $scope.provider.scope = toChips($scope.provider.scope);

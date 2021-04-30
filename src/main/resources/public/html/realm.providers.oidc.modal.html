@@ -39,10 +39,10 @@
 		          <div class="form-group col  ">
 			          <div class="bootstrap-select-wrapper border-bottom-0">
 								  <label for="clientAuthenticationMethod">Client Authentication Method*</label>
-								  <select required title="Select one" id="clientAuthenticationMethod" ng-model="provider.clientAuthenticationMethod.value" >
-								    <option value="basic" ng-selected="provider.clientAuthenticationMethod.value=='basic'">Basic</option>
-								    <option value="post" ng-selected="provider.clientAuthenticationMethod.value=='post'">POST</option>
-								    <option value="none" ng-selected="provider.clientAuthenticationMethod.value=='none'">None</option>
+								  <select required title="Select one" id="clientAuthenticationMethod" ng-model="provider.clientAuthenticationMethod" >
+								    <option value="client_secret_basic" ng-selected="provider.clientAuthenticationMethod=='client_secret_basic'">Basic</option>
+								    <option value="client_secret_post" ng-selected="provider.clientAuthenticationMethod=='client_secret_post'">POST</option>
+								    <option value="none" ng-selected="provider.clientAuthenticationMethod=='none'">None</option>
 								  </select>
 								</div>
 		          </div>

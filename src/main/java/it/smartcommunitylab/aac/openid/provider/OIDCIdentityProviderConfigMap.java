@@ -6,16 +6,17 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
-import org.apache.logging.log4j.CloseableThreadContext.Instance;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,7 +31,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
     private String clientSecret;
     private String clientName;
 
-    private ClientAuthenticationMethod clientAuthenticationMethod;
+    private AuthenticationMethod clientAuthenticationMethod;
     private String scope;
     private String userNameAttributeName = "sub";
 
@@ -44,9 +45,10 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
     private String issuerUri;
 
     public OIDCIdentityProviderConfigMap() {
-        this.scope = "openid,profile,email";
-
-        this.clientAuthenticationMethod = ClientAuthenticationMethod.BASIC;
+        // set default
+        this.scope = "openid,email";
+        this.userNameAttributeName = "sub";
+        this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
     }
 
     public String getClientId() {
@@ -73,11 +75,11 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
         this.clientName = clientName;
     }
 
-    public ClientAuthenticationMethod getClientAuthenticationMethod() {
+    public AuthenticationMethod getClientAuthenticationMethod() {
         return clientAuthenticationMethod;
     }
 
-    public void setClientAuthenticationMethod(ClientAuthenticationMethod clientAuthenticationMethod) {
+    public void setClientAuthenticationMethod(AuthenticationMethod clientAuthenticationMethod) {
         this.clientAuthenticationMethod = clientAuthenticationMethod;
     }
 
@@ -146,22 +148,22 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
     }
 
     @SuppressWarnings("rawtypes")
-	@Override
+    @Override
     @JsonIgnore
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        // workaround for clientAuthenticationMethod not having default constructor
-        ClientAuthenticationMethod method = null;
-        if (props.containsKey("clientAuthenticationMethod")) {
-        	Object v = props.get("clientAuthenticationMethod");
-        	String name = v instanceof String ? v.toString() : (String)((Map)v).get("value");
-        	method = new ClientAuthenticationMethod(name);
-        	props.remove("clientAuthenticationMethod");
-        }
-        
+//        // workaround for clientAuthenticationMethod not having default constructor
+//        ClientAuthenticationMethod method = null;
+//        if (props.containsKey("clientAuthenticationMethod")) {
+//            Object v = props.get("clientAuthenticationMethod");
+//            String name = v instanceof String ? v.toString() : (String) ((Map) v).get("value");
+//            method = new ClientAuthenticationMethod(name);
+//            props.remove("clientAuthenticationMethod");
+//        }
+
         OIDCIdentityProviderConfigMap map = mapper.convertValue(props, OIDCIdentityProviderConfigMap.class);
-        map.setClientAuthenticationMethod(method);
+//        map.setClientAuthenticationMethod(method);
 
         this.clientId = map.getClientId();
         this.clientSecret = map.getClientSecret();
@@ -180,6 +182,12 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
         // autoconfiguration support from well-known
         this.issuerUri = map.getIssuerUri();
 
+    }
+
+    @JsonIgnore
+    public static JsonSchema getConfigurationSchema() throws JsonMappingException {
+        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
+        return schemaGen.generateSchema(OIDCIdentityProviderConfigMap.class);
     }
 
 }

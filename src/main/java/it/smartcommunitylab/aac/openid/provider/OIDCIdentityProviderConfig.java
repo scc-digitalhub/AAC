@@ -6,11 +6,13 @@ import java.util.Map;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
 public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
@@ -134,7 +136,16 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         }
 
         // set config
-        builder.clientAuthenticationMethod(configMap.getClientAuthenticationMethod());
+        ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.BASIC;
+        if (configMap.getClientAuthenticationMethod() != null) {
+            // we support only these methods
+            if (AuthenticationMethod.CLIENT_SECRET_POST == configMap.getClientAuthenticationMethod()) {
+                clientAuthenticationMethod = ClientAuthenticationMethod.POST;
+            } else if (AuthenticationMethod.NONE == configMap.getClientAuthenticationMethod()) {
+                clientAuthenticationMethod = ClientAuthenticationMethod.NONE;
+            }
+        }
+        builder.clientAuthenticationMethod(clientAuthenticationMethod);
 
         String[] scope = StringUtils.commaDelimitedListToStringArray(configMap.getScope());
         builder.scope(scope);

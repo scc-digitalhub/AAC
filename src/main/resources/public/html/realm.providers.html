@@ -25,13 +25,15 @@
   <div  ng-if="providers && providers.length > 0">
 	  <table class="table table-hover border-bottom">
 	      <thead>
-	      <tr><th>Provider</th><th>Authority</th><th>Enabled</th><th></th></tr>
+	      <tr><th>Provider</th><th>Authority</th><th>Enabled</th><th>Active</th><th></th></tr>
 	      </thead>
 	    <tr ng-repeat="item in providers">
         <td class="align-middle">{{item.name}}</td>
         <td class="align-middle">{{item.authority | uppercase}}</td>
         <td class="align-middle"><div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}" type="checkbox" ng-checked="item.enabled" ng-model="item.enabled" ng-change="toggleProviderState(item)"><label ng-attr-for="{{item.provider}}"></label>
     </div></td>
+        <td class="align-middle"><div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}-registered" type="checkbox" ng-checked="item.registered" ng-model="item.registered" disabled><label ng-attr-for="{{item.provider}}-registered"></label>
+    </div></td>    
   	    <td class="text-right">
          <button class="btn btn-success btn-sm" ng-disabled="item.enabled" ng-click="editProviderDlg(item)">Edit</button>
   	     <button class="btn btn-danger btn-sm"  ng-disabled="item.enabled" ng-click="deleteProviderDlg(item)">Delete</button>

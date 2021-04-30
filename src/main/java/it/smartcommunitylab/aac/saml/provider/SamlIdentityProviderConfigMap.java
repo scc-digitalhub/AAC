@@ -10,7 +10,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 
@@ -189,8 +192,14 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
         this.signAuthNRequest = map.getSignAuthNRequest();
         this.verificationCertificate = map.getVerificationCertificate();
         this.ssoServiceBinding = map.getSsoServiceBinding();
-        
+
         this.entityId = map.getEntityId();
 
+    }
+
+    @JsonIgnore
+    public static JsonSchema getConfigurationSchema() throws JsonMappingException {
+        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
+        return schemaGen.generateSchema(SamlIdentityProviderConfigMap.class);
     }
 }

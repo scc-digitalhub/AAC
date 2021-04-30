@@ -109,7 +109,7 @@ providers:
     internal:
     oidc:
       - clientName: Google
-        clientAuthenticationMethod: basic
+        clientAuthenticationMethod: client_secret_basic
         scope: openid,profile,email
         authorizationUri: https://accounts.google.com/o/oauth2/v2/auth
         tokenUri: https://www.googleapis.com/oauth2/v4/token
@@ -118,14 +118,14 @@ providers:
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
         userNameAttributeName: sub
       - clientName: Facebook
-        clientAuthenticationMethod: post      
+        clientAuthenticationMethod: client_secret_post      
         scope: public_profile,email
         authorizationUri: https://www.facebook.com/v2.8/dialog/oauth
         tokenUri: https://graph.facebook.com/v2.8/oauth/access_token
         userInfoUri: https://graph.facebook.com/me?fields=id,name,email
         userNameAttributeName: id
       - clientName: GitHub
-        clientAuthenticationMethod: basic      
+        clientAuthenticationMethod: client_secret_basic      
         scope: read:user
         authorizationUri: https://github.com/login/oauth/authorize
         tokenUri: https://github.com/login/oauth/access_token
