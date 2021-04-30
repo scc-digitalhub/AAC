@@ -118,7 +118,7 @@ import it.smartcommunitylab.aac.utils.Utils;
  */
 
 @Configuration
-@Order(15)
+@Order(16)
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
