@@ -257,6 +257,14 @@ public class UserService {
 
     }
 
+    /**
+	 * @param realm
+	 * @return
+	 */
+	public Long countUsers(String realm) {
+		// TODO Auto-generated method stub
+		return userService.countUsers(realm);
+	}
 	protected List<User> convertUsers(String realm, List<UserEntity> users) {
 		List<User> realmUsers = users.stream()
                 .map(u -> {
@@ -391,5 +399,4 @@ public class UserService {
                 pageRequest,
                 () -> page.getTotalElements());
 	}
-
 }

@@ -30,7 +30,7 @@ app.config(function ($httpProvider, $translateProvider) {
 		$translateProvider.preferredLanguage(lang);
 	})
 
-app.config(function($stateProvider, $urlRouterProvider) {
+app.config(function($stateProvider, $transitionsProvider) {
  $stateProvider
     .state('admin', {
         url: '/admin',
@@ -41,6 +41,12 @@ app.config(function($stateProvider, $urlRouterProvider) {
         url: '/realm?realmId',
         templateUrl: 'html/realm.html',
         controller: 'RealmController',
+        redirectTo: 'realm.dashboard'
+    })
+    .state('realm.dashboard', {
+        url: '/dashboard',
+        templateUrl: 'html/realm.dashboard.html',
+        controller: 'RealmDashboardController',
     })
     .state('realm.users', {
         url: '/users',
@@ -66,6 +72,14 @@ app.config(function($stateProvider, $urlRouterProvider) {
         url: '',
         controller: 'HomeController',
     });
+    
+    $transitionsProvider.onBefore({
+        to: state => !!state.abstract
+      }, ($transition$, $state) => {
+        if (angular.isString($transition.to().redirectTo)) {
+          return $state.target($transition.to().redirectTo);
+        }
+      });
 });
 
 /*

@@ -30,6 +30,19 @@ angular.module('aac.controllers.realm', [])
         });
     }
   })
+  
+  .controller('RealmDashboardController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
+    var slug = $stateParams.realmId;
+    RealmData.getRealmStats(slug).then(function(stats) {
+      $scope.stats = stats;
+    })
+    .catch(function (err) {
+      Utils.showError('Failed to load realm: ' + err.data.message);
+    });
+    
+    
+
+  })
 
   /**
 	 * Realm users controller

@@ -20,4 +20,6 @@ public interface UserEntityRepository extends CustomJpaRepository<UserEntity, Lo
     @Query("select u from UserEntity u where u.realm = ?1 and LOWER(u.username) like lower(concat('%', ?2,'%'))")
     Page<UserEntity> findByRealm(String realm, String q, Pageable pageRequest);
 
+	Long countByRealm(String realm);
+
 }

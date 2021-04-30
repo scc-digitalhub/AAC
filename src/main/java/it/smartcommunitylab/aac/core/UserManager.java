@@ -176,7 +176,16 @@ public class UserManager {
 
         return userService.listUsers(realm);
     }
-    
+
+	/**
+	 * @param realm
+	 * @return
+	 * @throws NoSuchRealmException 
+	 */
+	public Long countUsers(String realm) throws NoSuchRealmException {
+        Realm r = realmService.getRealm(realm);
+		return userService.countUsers(realm);
+	}
     public Page<User> searchUsers(String realm, String keywords, Pageable pageRequest) {
         return userService.searchUsers(realm, keywords, pageRequest);
     }
@@ -413,6 +422,7 @@ public class UserManager {
         }
 
     }
+
 
 
 }

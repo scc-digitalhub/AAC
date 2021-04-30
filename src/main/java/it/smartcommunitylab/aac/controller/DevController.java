@@ -48,6 +48,7 @@ import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.dto.ProviderRegistrationBean;
+import it.smartcommunitylab.aac.dto.RealmStatsBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
@@ -91,6 +92,23 @@ public class DevController {
         }
         return ResponseEntity.ok(Collections.singletonList(realmManager.getRealm(user.getRealm())));
 
+    }
+
+    @GetMapping("/console/dev/realms/{realm:.*}/stats")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<RealmStatsBean> getRealmStats(@PathVariable String realm) throws NoSuchRealmException {
+    	RealmStatsBean bean = new RealmStatsBean();
+    	Realm realmObj = realmManager.getRealm(realm);
+    	bean.setRealm(realmObj);
+    	Long userCount = userManager.countUsers(realm);
+    	bean.setUsers(userCount);
+        Collection<ConfigurableProvider> providers = providerManager
+                .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY);
+        bean.setProviders(providers.size());
+    	Collection<ClientApp> apps = clientManager.listClientApps(realm);
+    	bean.setApps(apps.size());
+        return ResponseEntity.ok(bean);
     }
 
     @GetMapping("/console/dev/realms/{realm:.*}")

@@ -110,6 +110,14 @@ public class UserEntityService {
     public List<UserEntity> getUsers(String realm) {
         return userRepository.findByRealm(realm);
     }
+
+	/**
+	 * @param realm
+	 * @return
+	 */
+	public Long countUsers(String realm) {
+		return userRepository.countByRealm(realm);
+	}
     public Page<UserEntity> searchUsers(String realm, String q, Pageable pageRequest) {
         Page<UserEntity> page = StringUtils.hasText(q) ? userRepository.findByRealm(realm.toLowerCase(), q, pageRequest)
                 : userRepository.findByRealm(realm.toLowerCase(), pageRequest);
@@ -224,5 +232,6 @@ public class UserEntityService {
 
         return u;
     }
+
 
 }

@@ -329,6 +329,11 @@ angular.module('aac.services', [])
       return data.data;
     });
   }
+  rService.getRealmStats = function(slug) {
+    return $http.get('console/dev/realms/' + slug + '/stats').then(function(data) {
+      return data.data;
+    });
+  }
   rService.getMyRealms = function() {
     return $http.get('console/dev/realms').then(function(data) {
       return data.data;
