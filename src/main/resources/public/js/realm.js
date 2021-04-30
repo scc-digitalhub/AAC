@@ -305,7 +305,7 @@ angular.module('aac.controllers.realm', [])
 /**
    * Realm client controller
    */
-  .controller('RealmAppsController', function ($scope, $stateParams, RealmData, Utils) {
+  .controller('RealmAppsController', function ($scope, $stateParams, $state, RealmData, Utils) {
     var slug = $stateParams.realmId;
 
     $scope.load = function () {
@@ -325,18 +325,49 @@ angular.module('aac.controllers.realm', [])
       $scope.load();
     };
 
+    $scope.createClientAppDlg = function () {
+      $scope.modClientApp = {
+        name: '',
+        type: '',
+        realm: slug
+      };
+
+      $('#createClientAppDlg').modal({ keyboard: false });
+    }
+    
+    $scope.createClientApp = function() {
+      $('#createClientAppDlg').modal('hide');
+
+    	
+      RealmData.saveClientApp($scope.realm.slug, $scope.modClientApp)
+        .then(function (res) {
+          $state.go('realm.app',{realmId:res.realm, clientId:res.clientId} );
+          Utils.showSuccess();
+        })
+        .catch(function (err) {
+          Utils.showError(err.data.message);
+        });    	
+    	
+    }
+    
     $scope.deleteClientAppDlg = function (clientApp) {
       $scope.modClientApp = clientApp;
+      //add confirm field
+      $scope.modClientApp.confirmId = '';
       $('#deleteClientAppConfirm').modal({ keyboard: false });
     }
 
     $scope.deleteClientApp = function () {
       $('#deleteClientAppConfirm').modal('hide');
-      RealmData.removeClientApp($scope.realm.slug, $scope.modClientApp.clientId).then(function () {
-        $scope.load();
-      }).catch(function (err) {
-        Utils.showError(err.data.message);
-      });
+      if($scope.modClientApp.clientId === $scope.modClientApp.confirmId) {
+	      RealmData.removeClientApp($scope.realm.slug, $scope.modClientApp.clientId).then(function () {
+	        $scope.load();
+	      }).catch(function (err) {
+	        Utils.showError(err.data.message);
+	      });
+      } else {
+    	  Utils.showError("confirmId not valid");
+      }
     }
 
 
@@ -346,53 +377,67 @@ angular.module('aac.controllers.realm', [])
     var slug = $stateParams.realmId;
     var clientId = $stateParams.clientId;
 
-    $scope.load = function (data) {
 
-      $scope.app = data;
-      $scope.appname = data.name;
-      
-      // scopes
-      var scopes = [];
-      if (data.scopes) {
-        data.scopes.forEach(function (s) {         
-          scopes.push({ 'text': s });          
-        });
-      }
-      $scope.appScopes = scopes;
-      
-      $scope.updateResources(data.scopes);
-
-      if (data.type == 'oauth2') {
-        $scope.initConfiguration(data.type, data.configuration, data.schema);
-      }
-
-
-    }
 
     /**
    * Initialize the app: load list of apps
    */
     var init = function () {
-       RealmData.getResources(slug)
-         .then(function (list) {
-           $scope.resources = list;
-         })
-         .then(function() {
-             RealmData.getClientApp(slug, clientId)
-             .then(function (data) {
-               $scope.load(data);
-               $scope.clientView = 'overview';
-               return data;
-             }) 
-         })
+      //we load provider resources only at first load since it's expensive
+      RealmData.getResources(slug)
+        .then(function (resources) {
+          $scope.resources = resources;
+          return resources;
+        })
+        .then(function () {
+          return RealmData.getRealmProviders(slug)
+        })
+        .then(function (providers) {
+          $scope.identityProviders = providers.filter(p => p.type === 'identity');
+          return $scope.identityProviders;
+        })
+        .then(function () {
+          return RealmData.getClientApp(slug, clientId);
+        })
+        .then(function (data) {
+          $scope.load(data);
+          $scope.clientView = 'overview';
+          return data;
+        })
         .catch(function (err) {
           Utils.showError('Failed to load realm client app: ' + err.data.message);
         });
 
-     
+
     };
 
+    $scope.load = function (data) {
+      //set
+      $scope.app = data;
+      $scope.appname = data.name;
 
+      // process idps
+      var idps = [];
+
+      // process scopes scopes
+      var scopes = [];
+      if (data.scopes) {
+        data.scopes.forEach(function (s) {
+          scopes.push({ 'text': s });
+        });
+      }
+      $scope.appScopes = scopes;
+  	console.log($scope.appScopes);
+
+      $scope.updateResources(data.scopes);
+      $scope.updateIdps(data.providers);
+
+      if (data.type == 'oauth2') {
+        $scope.initConfiguration(data.type, data.configuration, data.schema);
+      }
+
+      return;
+    }
 
     $scope.initConfiguration = function (type, config, schema) {
 
@@ -471,7 +516,7 @@ angular.module('aac.controllers.realm', [])
       return conf;
 
     }
-
+   
 
     $scope.saveClientApp = function (clientApp) {
 
@@ -484,6 +529,11 @@ angular.module('aac.controllers.realm', [])
           return s;
         });
       
+      var providers = $scope.identityProviders.map(function (idp) {
+          if (idp.value === true) {
+            return idp.provider;
+          }
+        }).filter(function(idp) {return !!idp });
       
       var data = {
         realm: clientApp.realm,
@@ -493,7 +543,7 @@ angular.module('aac.controllers.realm', [])
         description: clientApp.description,
         configuration: configuration,
         scopes: scopes,
-        providers: clientApp.providers,
+        providers: providers,
         resourceIds: clientApp.resourceIds,
         hookFunctions: clientApp.hookFunctions
       };
@@ -549,26 +599,86 @@ angular.module('aac.controllers.realm', [])
       $scope.clientView = view;
     }
 
-    $scope.updateResources = function(scopes) {
-      var resources =[];
-      
-      for(var res of $scope.resources) {
+    $scope.updateResources = function (scopes) {
+      var resources = [];
+
+      for (var res of $scope.resources) {
         //inflate value for scopes
         res.scopes.forEach(function (s) {
           s.value = scopes.includes(s.scope)
         });
-        
+
         resources.push(res);
-        
+
       }
-      
+
       $scope.scopeResources = resources;
-      
+    }
+
+    $scope.updateIdps = function (providers) {
+      var idps = [];
+
+      for (var idp of $scope.identityProviders) {
+        //inflate value
+        idp.value = providers.includes(idp.provider)
+        idps.push(idp);
+      }
+
+      $scope.identityProviders = idps;
+    }    
+    
+    $scope.updateClientAppScopeResource = function() {
+    	var resource = $scope.scopeResource;
+    	var scopesToRemove = resource.scopes
+    	.filter(function(s) {
+    		return !s.value
+    	})
+    	.map( function(s) {
+    		return s.scope;
+    	});
+    	var scopesToAdd = resource.scopes
+    	.filter(function(s) {
+    		return s.value
+    	})
+    	.map( function(s) {
+    		return s.scope;
+    	});    	    	    
+    	
+	    var scopes = $scope.appScopes.map(function (s) {
+	          if (s.hasOwnProperty('text')) {
+	            return s.text;
+	          }
+	          return s;
+	    }).filter(s => !scopesToRemove.includes(s));
+	    	    
+	    scopesToAdd.forEach(function (s) {
+    		 if(!scopes.includes(s)) {
+    			scopes.push(s); 
+    		 } 
+    	 });
+    	 
+    	 //inflate again
+         var appScopes = [];
+           scopes.forEach(function (s) {
+             appScopes.push({ 'text': s });
+           });
+         
+    	 $scope.appScopes = appScopes;
+    	console.log($scope.appScopes);
     }
     
 
     $scope.scopesDlg = function (resource) {
-      console.log(resource);
+	    var scopes = $scope.appScopes.map(function (s) {
+	          if (s.hasOwnProperty('text')) {
+	            return s.text;
+	          }
+	          return s;
+	    });
+     	resource.scopes.forEach(function (s) {
+     		s.value  = scopes.includes(s.scope);
+   		});
+      
       $scope.scopeResource = resource;
       $('#scopesModal').modal({ backdrop: 'static', focus: true })
       Utils.refreshFormBS();

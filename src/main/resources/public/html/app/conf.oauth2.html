@@ -3,28 +3,23 @@
     <fieldset>
         <legend class="mb-4">Client credentials</legend>
         <div class="form-group ">
-            <div class="col-auto">
+            <div class="input-group">
                 <label for="secret" class="active">Client secret</label>
                 <input type="text" class="form-control input-password" id="secret"
-                    ng-model="app.configuration.clientSecret" disabled> <span class="password-icon" aria-hidden="true">
-                    <svg class="password-icon-visible icon icon-sm">
-                        <use xlink:href="/italia/svg/sprite.svg#it-password-visible"></use>
-                    </svg> <svg class="password-icon-invisible icon icon-sm d-none">
-                        <use xlink:href="/italia/svg/sprite.svg#it-password-invisible"></use>
-                    </svg>
+                    ng-model="app.configuration.clientSecret" disabled>
                 </span>
-            </div>
 
-            <div class="col-auto">
-                <button class="btn btn-danger btn-sm  text-right"
-                    ng-click="resetClientCredentialsDlg(app)">Reset</button>
+
+                <div class="input-group-append">
+                    <button class="btn btn-danger btn-sm  text-right"
+                        ng-click="resetClientCredentialsDlg(app)">Reset</button>
+                </div>
             </div>
         </div>
-
-        <div class="form-group">
+        <div class="form-row">
             <label class="active">Authentication methods</label>
-            <div class="" ng-repeat="am in oauth2AuthenticationMethods">
-                <div class="form-check form-check-inline" ng-click="am.value = !am.value">
+            <div class="form-group" >
+                <div class="form-check form-check-inline" ng-repeat="am in oauth2AuthenticationMethods" ng-click="am.value = !am.value">
                     <input class="form-check-input" type="checkbox" ng-model="am.value">
                     <label>{{am.key}}</label>
                 </div>

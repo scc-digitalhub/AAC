@@ -4,7 +4,7 @@
             <h3>Client Applications</h3>
         </div>
         <div class="col col-md-6 text-right">
-            <button class="btn btn-primary text-right" type="button" ng-click="addClientApp()">
+            <button class="btn btn-primary text-right" type="button" ng-click="createClientAppDlg()">
                 <svg class="icon icon-sm icon-white">
                     <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
                 </svg>
@@ -32,9 +32,8 @@
                 </td>
                 <td class="text-right">
                     <button class="btn btn-success btn-sm"
-                    ui-sref="realm.app({realmId:item.realm, clientId:item.clientId})">Edit</button>
-                    <button class="btn btn-danger btn-sm" 
-                        ng-click="deleteClientAppDlg(item)">Delete</button>
+                        ui-sref="realm.app({realmId:item.realm, clientId:item.clientId})">Edit</button>
+                    <button class="btn btn-danger btn-sm" ng-click="deleteClientAppDlg(item)">Delete</button>
                 </td>
             </tr>
         </table>
@@ -46,16 +45,61 @@
 
 </div>
 
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createClientAppDlg">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title">Create application            </h5>
+               </div>
+            <div class="modal-body">
+                <form name="createAppForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="name">Client Name*</label>
+                        <input type="text" name="name" class="form-control form-control-sm" id="name" required
+                            ng-model="modClientApp.name">
+                    </div>
+                    <div class="form-group col pt-4">
+                        <div class="bootstrap-select-wrapper border-bottom-0">
+                            <label for="type">Client Type*</label>
+                            <select required title="Select one" id="type" ng-model="modClientApp.type">
+                                <option value="oauth2" ng-selected="provider.type=='oauth2'"> OAuth2 </option>
+                            </select>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="createClientApp()"
+                    ng-disabled="createAppForm.$invalid">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteClientAppConfirm">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title">Delete application      </h5>
+               </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete?</p>
+                <p>Are you sure you want to delete {{modClientApp.name}}?</p>
+                <p>You are deleting client <span class="text-monospace">{{modClientApp.clientId}}</span> <br>To proceed enter the clientId</p>
                 <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+                
+                <form name="deleteAppForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col mb-4">
+                        <label for="confirmId">Client Id*</label>
+                        <input type="text" name="confirmId" class="form-control form-control-sm" id="confirmId" required
+                            ng-model="modClientApp.confirmId" ng-pattern="(modClientApp.clientId)">
+                    </div>                
+                </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-danger btn-sm" ng-click="deleteClientApp()" type="button">Delete</button>
+                <button class="btn btn-danger btn-sm" ng-click="deleteClientApp()" type="button" ng-disabled="deleteAppForm.$invalid">Delete</button>
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
             </div>
         </div>
