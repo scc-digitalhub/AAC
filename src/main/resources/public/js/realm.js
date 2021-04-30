@@ -155,7 +155,7 @@ angular.module('aac.controllers.realm', [])
 .controller('RealmProvidersController', function ($scope, $stateParams, RealmData, Utils) {  
   var slug = $stateParams.realmId;
   
-    $scope.load = function() {
+  $scope.load = function() {
     RealmData.getRealmProviders(slug)
     .then(function(data) {
       $scope.providers = data;
@@ -169,6 +169,10 @@ angular.module('aac.controllers.realm', [])
    * Initialize the app: load list of the providers
    */
   var init = function() {
+    RealmData.getRealmProviderTemplates(slug)
+    .then(function(data) {
+      $scope.providerTemplates = data;
+    });
     $scope.load();
   };
   
@@ -204,10 +208,13 @@ angular.module('aac.controllers.realm', [])
     $scope.providerId = provider ? provider.provider : null;
     $scope.providerAuthority = 'oidc';
     $scope.provider = provider ? Object.assign({}, provider.configuration) : 
-    {clientAuthenticationMethod: 'basic', scope: 'openid,profile,email', userNameAttributeName: 'sub'};
+    {clientAuthenticationMethod: {value: 'basic'}, scope: 'openid,profile,email', userNameAttributeName: 'sub'};
     $scope.provider.name = provider ? provider.name : null;
     $scope.provider.clientName = $scope.provider.clientName || '';
     $scope.provider.scope = toChips($scope.provider.scope);
+    
+    $scope.oidcProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function(pt) {return pt.authority === 'oidc'}) : [];
+    
     $('#oidcModal').modal({backdrop: 'static', focus: true})
     Utils.refreshFormBS();
   }
@@ -263,6 +270,17 @@ angular.module('aac.controllers.realm', [])
   }
   
   $scope.updateProviderType = function()  {
+    if ($scope.provider.clientName) {
+      var ptIdx = $scope.oidcProviderTemplates.findIndex(function(pt) { return pt.name === $scope.provider.clientName});
+      if (ptIdx >= 0) {
+        var pt = Object.assign({}, $scope.oidcProviderTemplates[ptIdx].configuration);
+        pt.name = $scope.provider.name;
+        pt.clientId = $scope.provider.clientId;
+        pt.clientSecret = $scope.provider.clientSecret;
+        pt.scope = toChips(pt.scope);
+        $scope.provider = pt; // 167055061711-7i61n2hlbum3arejn6cf6bf5t6jb0e6u.apps.googleusercontent.com 39fdo9LTog7YzcLhS0nkLDpe
+      }
+    }
     Utils.refreshFormBS();
   }
 

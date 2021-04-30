@@ -139,6 +139,23 @@ public class DevController {
         return ResponseEntity.ok(providers);
     }
 
+    @GetMapping("/console/dev/realms/{realm:.*}/providertemplates")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Collection<ProviderRegistrationBean>> getRealmProviderTemplates(@PathVariable String realm)
+            throws NoSuchRealmException {
+
+        List<ProviderRegistrationBean> providers = providerManager
+                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY)
+                .stream()
+                .map(cp -> {
+                    ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(cp);
+                    res.setRegistered(providerManager.isProviderRegistered(cp));
+                    return res;
+                }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(providers);
+    }
+    
     @GetMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<ProviderRegistrationBean> getRealmProvider(

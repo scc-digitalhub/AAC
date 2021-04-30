@@ -20,7 +20,7 @@
           </div>
           <div class="form-group col ">
               <label for="clientSecret">Client Secret*</label>
-              <input type="text" required name="clientSecret" class="form-control form-control-sm" id="clientSecret" ng-model="provider.clientSecret">
+              <input type="text" required name="clientSecret" class="form-control form-control-sm input-password" id="clientSecret" ng-model="provider.clientSecret">
           </div>
           <div class="row">
             <div class="form-group col  ">
@@ -28,23 +28,21 @@
                 <label for="clientName">Provider type</label>
                 <select id="clientName" ng-model="provider.clientName" ng-change="updateProviderType()">
                   <option value="">Generic</option>
-                  <option value="google" ng-selected="provider.clientName=='google'">Google</option>
-                  <option value="facebook" ng-selected="provider.clientName=='facebook'">Facebook</option>
-                  <option value="github" ng-selected="provider.clientName=='github'">Github</option>
+                  <option ng-repeat="pt in oidcProviderTemplates" ng-value="pt.name" ng-selected="provider.clientName==pt.name">{{pt.name}}</option>
                 </select>
               </div>
             </div>  
           </div>
 
-          <div ng-if="!provider.clientName">        
+          <div>        
 		        <div class="row">
 		          <div class="form-group col  ">
 			          <div class="bootstrap-select-wrapper border-bottom-0">
 								  <label for="clientAuthenticationMethod">Client Authentication Method*</label>
-								  <select required title="Select one" id="clientAuthenticationMethod" ng-model="provider.clientAuthenticationMethod" >
-								    <option value="basic" ng-selected="provider.clientAuthenticationMethod=='basic'">Basic</option>
-								    <option value="post" ng-selected="provider.clientAuthenticationMethod=='post'">POST</option>
-								    <option value="none" ng-selected="provider.clientAuthenticationMethod=='none'">None</option>
+								  <select required title="Select one" id="clientAuthenticationMethod" ng-model="provider.clientAuthenticationMethod.value" >
+								    <option value="basic" ng-selected="provider.clientAuthenticationMethod.value=='basic'">Basic</option>
+								    <option value="post" ng-selected="provider.clientAuthenticationMethod.value=='post'">POST</option>
+								    <option value="none" ng-selected="provider.clientAuthenticationMethod.value=='none'">None</option>
 								  </select>
 								</div>
 		          </div>
@@ -58,11 +56,11 @@
 	              <tags-input min-tags="1" name="scope" type="string" placeholder="Scopes" ng-model="provider.scope"></tags-input>
 	          </div>
 	          
-	          <div class="form-group col ">
+	          <div class="form-group col mb-3">
 	              <label for="issuerUri">Metadata Discovery URL</label>
 	              <input type="text" name="issuerUri" class="form-control form-control-sm" id="issuerUri" ng-model="provider.issuerUri">
 	          </div>
-	          <div class="py-0 text-center"> -- OR -- </div>
+	          <div class="pb-4 text-center"> -- OR -- </div>
 	          <div class="row">
 		          <div class="form-group col ">
 		              <label for="authorizationUri">Authorization Endpoint</label>

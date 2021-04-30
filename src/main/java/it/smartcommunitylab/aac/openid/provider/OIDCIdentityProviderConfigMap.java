@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
+import org.apache.logging.log4j.CloseableThreadContext.Instance;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -144,12 +145,23 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
         return mapper.convertValue(this, typeRef);
     }
 
-    @Override
+    @SuppressWarnings("rawtypes")
+	@Override
     @JsonIgnore
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
+        // workaround for clientAuthenticationMethod not having default constructor
+        ClientAuthenticationMethod method = null;
+        if (props.containsKey("clientAuthenticationMethod")) {
+        	Object v = props.get("clientAuthenticationMethod");
+        	String name = v instanceof String ? v.toString() : (String)((Map)v).get("value");
+        	method = new ClientAuthenticationMethod(name);
+        	props.remove("clientAuthenticationMethod");
+        }
+        
         OIDCIdentityProviderConfigMap map = mapper.convertValue(props, OIDCIdentityProviderConfigMap.class);
+        map.setClientAuthenticationMethod(method);
 
         this.clientId = map.getClientId();
         this.clientSecret = map.getClientSecret();

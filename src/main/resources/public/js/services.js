@@ -356,6 +356,11 @@ angular.module('aac.services', [])
       return data.data;
     });
   }
+  rService.getRealmProviderTemplates = function(slug) {
+    return $http.get('console/dev/realms/' + slug +'/providertemplates').then(function(data) {
+      return data.data;
+    });
+  }
   
   rService.removeProvider = function(slug, providerId) {
     return $http.delete('console/dev/realms/' + slug +'/providers/' + providerId).then(function(data) {

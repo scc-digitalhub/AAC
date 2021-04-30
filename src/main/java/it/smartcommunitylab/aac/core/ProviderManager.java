@@ -207,10 +207,10 @@ public class ProviderManager {
     }
 
     public Collection<ConfigurableProvider> listProviders(String realm, String type) throws NoSuchRealmException {
-        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
-            // we do not persist in db global providers
-            throw new SystemException("global providers are immutable");
-        }
+//        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
+//            // we do not persist in db global providers
+//            throw new SystemException("global providers are immutable");
+//        }
 
         Realm re = realmService.getRealm(realm);
         List<ProviderEntity> providers = providerService.listProvidersByRealmAndType(re.getSlug(), type);
