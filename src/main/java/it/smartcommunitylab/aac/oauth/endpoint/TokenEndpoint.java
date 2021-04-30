@@ -9,12 +9,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
@@ -72,6 +78,27 @@ public class TokenEndpoint {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         return response;
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<OAuth2Exception> handleHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException e) throws Exception {
+        return tokenEndpoint.handleHttpRequestMethodNotSupportedException(e);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<OAuth2Exception> handleException(Exception e) throws Exception {
+        return tokenEndpoint.handleException(e);
+    }
+
+    @ExceptionHandler(ClientRegistrationException.class)
+    public ResponseEntity<OAuth2Exception> handleClientRegistrationException(Exception e) throws Exception {
+        return tokenEndpoint.handleClientRegistrationException(e);
+    }
+
+    @ExceptionHandler(OAuth2Exception.class)
+    public ResponseEntity<OAuth2Exception> handleException(OAuth2Exception e) throws Exception {
+        return tokenEndpoint.handleException(e);
     }
 
 }

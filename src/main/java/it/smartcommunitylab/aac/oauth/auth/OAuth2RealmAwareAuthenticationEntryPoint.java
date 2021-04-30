@@ -61,7 +61,7 @@ public class OAuth2RealmAwareAuthenticationEntryPoint extends LoginUrlAuthentica
                 OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
                 String realm = clientDetails.getRealm();
 
-                return "/-/" + realm + getLoginFormUrl();
+                return "/-/" + realm + getLoginFormUrl() + "?" + CLIENT_ID_PARAMETER_NAME + "=" + clientId;
 
             } catch (ClientRegistrationException e) {
                 // send to error page

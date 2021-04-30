@@ -27,10 +27,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Controller
@@ -44,6 +46,9 @@ public class LoginController {
     @Autowired
     private RealmManager realmManager;
 
+    @Autowired
+    private ClientDetailsService clientDetailsService;
+
     @RequestMapping(value = {
             "/login",
             "/-/{realm}/login",
@@ -52,12 +57,14 @@ public class LoginController {
     public String login(
             @PathVariable("realm") Optional<String> realmKey,
             @PathVariable("providerId") Optional<String> providerKey,
+            @RequestParam(required = false, name = "client_id") Optional<String> clientKey,
             Model model,
             HttpServletRequest req, HttpServletResponse res) throws Exception {
 
         // TODO handle /login as COMMON login, ie any realm is valid
         String realm = SystemKeys.REALM_SYSTEM;
         String providerId = "";
+        String clientId = null;
 
         // fetch realm+provider
         if (realmKey.isPresent()) {
@@ -65,6 +72,9 @@ public class LoginController {
         }
         if (providerKey.isPresent()) {
             providerId = providerKey.get();
+        }
+        if (clientKey.isPresent()) {
+            clientId = clientKey.get();
         }
 
         if (!StringUtils.hasText(realm)) {
@@ -88,6 +98,19 @@ public class LoginController {
             IdentityProvider idp = providerManager.getIdentityProvider(providerId);
             if (idp.getRealm().equals(realm)) {
                 providers = Collections.singleton(idp);
+            }
+        }
+
+        // fetch client if provided
+        if (clientId != null) {
+            ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
+            model.addAttribute("client", clientDetails);
+
+            // check realm and providers
+            // TODO evaluate enforcing realm (or common) match
+            if (clientDetails.getRealm().equals(realm)) {
+                providers = providers.stream().filter(p -> clientDetails.getProviders().contains(p.getProvider()))
+                        .collect(Collectors.toList());
             }
         }
 

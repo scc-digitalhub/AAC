@@ -92,12 +92,14 @@ import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
@@ -149,6 +151,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
 
+    @Autowired
+    private OAuth2ClientService oauth2ClientService;
+    
     @Autowired
     private InternalUserAccountService internalUserAccountService;
 
@@ -336,7 +341,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
-                        BasicAuthenticationFilter.class);
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService), BasicAuthenticationFilter.class);
 
         // we always want a session here
         http.sessionManagement()
