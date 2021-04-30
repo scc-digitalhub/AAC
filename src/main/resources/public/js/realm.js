@@ -226,7 +226,8 @@ angular.module('aac.controllers.realm', [])
     $scope.provider.name = provider ? provider.name : null;
     $scope.provider.clientName = $scope.provider.clientName || '';
     $scope.provider.scope = toChips($scope.provider.scope);
-    
+    $scope.provider.persistence = provider ? provider.persistence : 'none';
+
     $scope.oidcProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function(pt) {return pt.authority === 'oidc'}) : [];
     
     $('#oidcModal').modal({backdrop: 'static', focus: true})
@@ -248,6 +249,7 @@ angular.module('aac.controllers.realm', [])
     $scope.provider = provider ? Object.assign({}, provider.configuration) :
       { signAuthNRequest: 'true', ssoServiceBinding: 'HTTP-POST' };
     $scope.provider.name = provider ? provider.name : null;
+    $scope.provider.persistence = provider ? provider.persistence : 'none';
     $('#samlModal').modal({ backdrop: 'static', focus: true })
     Utils.refreshFormBS();
   }
@@ -261,7 +263,10 @@ angular.module('aac.controllers.realm', [])
     }
     var name = $scope.provider.name;
     delete $scope.provider.name;
-    var data = { realm: $scope.realm.slug, name: name, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', providerId: $scope.providerId };
+    var persistence = $scope.provider.persistence;
+    delete $scope.provider.persistence;
+    
+    var data = { realm: $scope.realm.slug, name: name, persistence: persistence, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', providerId: $scope.providerId };
     RealmData.saveProvider($scope.realm.slug, data)
       .then(function () {
         $scope.load();
@@ -295,6 +300,10 @@ angular.module('aac.controllers.realm', [])
         $scope.provider = pt; // 167055061711-7i61n2hlbum3arejn6cf6bf5t6jb0e6u.apps.googleusercontent.com 39fdo9LTog7YzcLhS0nkLDpe
       }
     }
+    Utils.refreshFormBS();
+  }
+  
+  $scope.updatePersistenceType = function()  {
     Utils.refreshFormBS();
   }
   
