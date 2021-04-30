@@ -69,9 +69,9 @@ public class JwtTokenConverter implements TokenEnhancer {
 
             // client requested JWT?
             TokenType tokenType = TokenType.parse(clientDetails.getTokenType());
-            boolean requireJwt = TokenType.TOKEN_TYPE_JWT == tokenType;
+            boolean requireJwt = (tokenType != null ? TokenType.TOKEN_TYPE_JWT == tokenType : useJwtByDefault);
 
-            if (!requireJwt && !useJwtByDefault) {
+            if (!requireJwt) {
                 // nothing to do, return opaque
                 return token;
             }

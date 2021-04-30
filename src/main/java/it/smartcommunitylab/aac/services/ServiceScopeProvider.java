@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
@@ -16,11 +17,20 @@ import it.smartcommunitylab.aac.scope.ScopeProvider;
 public class ServiceScopeProvider implements ScopeProvider {
 
     private final Service service;
+    private Resource resource;
     private Map<String, ScopeApprover> approvers = new HashMap<>();
 
     public ServiceScopeProvider(Service service) {
         Assert.notNull(service, "services is required");
         this.service = service;
+        build();
+    }
+
+    private void build() {
+        resource = new Resource(service.getNamespace());
+        resource.setName(service.getName());
+        resource.setDescription(service.getDescription());
+        resource.setScopes(getScopes());
     }
 
     @Override
@@ -54,6 +64,11 @@ public class ServiceScopeProvider implements ScopeProvider {
 
     private Set<String> listScope() {
         return service.getScopes().stream().map(s -> s.getScope()).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Resource getResource() {
+        return resource;
     }
 
 }

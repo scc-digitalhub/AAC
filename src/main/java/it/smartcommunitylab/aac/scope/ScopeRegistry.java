@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.scope;
 
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 
 /*
@@ -43,5 +44,14 @@ public interface ScopeRegistry {
      * Approvers are exposed by providers
      */
     public ScopeApprover getScopeApprover(String scope) throws NoSuchScopeException;
+
+    /*
+     * Resources as exposed by providers
+     */
+    public Resource findResource(String resourceId);
+
+    public Resource getResource(String resourceId) throws NoSuchResourceException;
+
+    public Collection<Resource> listResources();
 
 }

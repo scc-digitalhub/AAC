@@ -7,8 +7,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 
 /*
@@ -181,6 +184,32 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
 
         // approver may be null
         return provider.getApprover(scope);
+    }
+
+    @Override
+    public Resource findResource(String resourceId) {
+        if (providers.containsKey(resourceId)) {
+            return providers.get(resourceId).getResource();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Resource getResource(String resourceId) throws NoSuchResourceException {
+        Resource res = findResource(resourceId);
+        if (res == null) {
+            throw new NoSuchResourceException();
+        }
+
+        return res;
+    }
+
+    @Override
+    public Collection<Resource> listResources() {
+        return providers.values().stream()
+                .map(p -> p.getResource())
+                .collect(Collectors.toList());
     }
 
 }

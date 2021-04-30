@@ -5,17 +5,7 @@ import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 
-public class AccountProfileScope extends Scope {
-
-    @Override
-    public String getResourceId() {
-        return ProfileClaimsSet.RESOURCE_ID + ".account";
-    }
-
-    @Override
-    public ScopeType getType() {
-        return ScopeType.USER;
-    }
+public class AccountProfileScope extends AbstractProfileScope {
 
     @Override
     public String getScope() {

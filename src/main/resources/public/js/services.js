@@ -404,6 +404,13 @@ angular.module('aac.services', [])
     });
   } 
   
+  rService.resetClientAppCredentials = function(slug, clientId) {
+	    return $http.delete('console/dev/realms/' + slug +'/apps/' + clientId+'/credentials').then(function(data) {
+	      return data.data;
+	    });
+	  } 
+	    
+  
   rService.saveClientApp = function(slug, clientApp) {
     if (clientApp.clientId) {
       return $http.put('console/dev/realms/' + slug +'/apps/' + clientApp.clientId, clientApp).then(function(data) {
@@ -414,6 +421,13 @@ angular.module('aac.services', [])
         return data.data;
       });    
     }
+  }
+  
+
+  rService.getResources = function(slug) {
+    return $http.get('console/dev/realms/' + slug +'/resources').then(function(data) {
+      return data.data;
+    });
   }
 
   return rService;
