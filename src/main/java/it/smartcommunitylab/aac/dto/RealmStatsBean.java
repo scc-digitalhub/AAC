@@ -28,6 +28,7 @@ public class RealmStatsBean {
 	private Long users;
 	private Integer apps;
 	private Integer providers;
+	private Integer services;
 	
 	public Realm getRealm() {
 		return realm;
@@ -53,6 +54,11 @@ public class RealmStatsBean {
 	public void setProviders(Integer providers) {
 		this.providers = providers;
 	}
-	
+	public Integer getServices() {
+		return services;
+	}
+	public void setServices(Integer services) {
+		this.services = services;
+	}
 	
 }

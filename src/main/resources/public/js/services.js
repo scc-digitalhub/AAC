@@ -534,4 +534,25 @@ angular.module('aac.services', [])
 	
 	return providersService;
 })	
+
+.directive('customValidation', function () {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function (scope, elem, attrs, ctrl) {
+            scope.$watch(attrs['customValidation'], function (errObj) {
+              var  invalid = '';
+              for (var k in errObj) {
+                if (elem[0] && elem[0].setCustomValidity) { 
+                    if (!errObj[k]) invalid += k;
+                }
+                if (ctrl) { // AngularJS validation
+                    ctrl.$setValidity(k, errObj[k]);
+                }                
+              }
+              elem[0].setCustomValidity(invalid);
+            });
+        }
+    }
+})
 ;

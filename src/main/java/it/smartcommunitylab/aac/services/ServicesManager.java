@@ -144,7 +144,7 @@ public class ServicesManager implements InitializingBean {
         Realm re = realmService.getRealm(realm);
 
         // explode
-        String namespace = service.getNamespace();
+        String namespace = service.getNamespace().toLowerCase();
         String name = StringUtils.hasText(service.getName()) ? service.getName() : namespace;
         String description = service.getDescription();
 
@@ -226,7 +226,7 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String namespace = service.getNamespace();
+        String namespace = service.getNamespace().toLowerCase();
         String name = StringUtils.hasText(service.getName()) ? service.getName() : namespace;
         String description = service.getDescription();
         Map<String, String> claimMapping = service.getClaimMapping();
@@ -831,4 +831,12 @@ public class ServicesManager implements InitializingBean {
 
     }
 
+	/**
+	 * 
+	 * @param serviceNamespace
+	 * @return
+	 */
+	public Boolean checkServiceNamespace(String serviceNamespace) {
+		return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
+	}
 }

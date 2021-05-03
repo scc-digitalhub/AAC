@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.services;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -16,11 +15,8 @@ import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.scope.Scope;
-import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimRepository;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntity;
@@ -129,7 +125,7 @@ public class ServicesService {
 
         ServiceEntity se = serviceRepository.findByNamespace(namespace);
         if (se != null) {
-            throw new RegistrationException("duplicated namespace");
+            throw new RegistrationException("duplicate namespace");
         }
 
         // generate unique serviceId
