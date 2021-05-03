@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -730,6 +733,29 @@ public class ServicesManager implements InitializingBean {
 
     }
 
+	/**
+	 * @param realm
+	 * @param serviceId
+	 * @return
+	 * @throws NoSuchServiceException 
+	 */
+	public Collection<Approval>  getServiceApprovals(@Valid @Pattern(regexp = "^[a-zA-Z0-9_-]+$") String realm,
+			@Valid @Pattern(regexp = "^[a-zA-Z0-9_-]+$") String serviceId) throws NoSuchServiceException 
+	{
+        // use finder to avoid loading all related
+        Service service = serviceService.findService(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        if (!realm.equals(service.getRealm())) {
+            throw new IllegalArgumentException("service does not match realm");
+        }
+        // we use serviceId as id
+        String resourceId = serviceId;
+        return approvalStore.findUserApprovals(resourceId);
+	}
+	
     public Approval addServiceScopeApproval(String realm, String serviceId, String scope, String clientId,
             int duration, boolean approved)
             throws NoSuchServiceException, NoSuchScopeException {
@@ -839,4 +865,6 @@ public class ServicesManager implements InitializingBean {
 	public Boolean checkServiceNamespace(String serviceNamespace) {
 		return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
 	}
+
+
 }

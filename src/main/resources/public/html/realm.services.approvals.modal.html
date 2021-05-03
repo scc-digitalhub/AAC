@@ -1,0 +1,30 @@
+<div class="modal fade bs-modal-lg" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModal" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+			  <h3 class="modal-title" id="modal-title">Add Service Approval</h3>
+			</div>
+			<form  class="needs-validation was-validated" novalidate name="approvalForm">
+			<div class="modal-body" id="modal-body">
+			   <div class="form-group">
+			     <label for="slug">Subject*</label>
+			     <input type="text" class="form-control form-control-sm" id="clientId" ng-model="approval.clientId" required>
+			   </div>
+				 <div class="form-group">
+            <div class="bootstrap-select-wrapper border-bottom-0">          
+              <label for="scope">Scope*</label>
+                <select title="Select a value" id="scope" ng-model="approval.scope" required>
+                  <option ng-repeat="s in service.scopes" ng-value="s.scope">{{s.scope}}</option>
+                </select>
+            </div>    
+				 </div>
+			</div>
+			<div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+			  <button class="btn btn-primary" type="button" ng-click="saveApproval()" ng-disabled="approvalForm.$invalid">Save</button>
+			</div>
+			</form>
+    </div>
+  </div>  			
+</div>  
+

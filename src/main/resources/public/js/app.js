@@ -8,10 +8,10 @@ var app = angular.module('dev', [
 	'aac.services', 
 	'aac.controllers.main', 
 	'aac.controllers.clients', 
-	'aac.controllers.customservices', 
 	'aac.controllers.apis', 
 	'aac.controllers.admin',
 	'aac.controllers.realm',
+  'aac.controllers.realmservices', 
   'ui.ace',
 	]);
 
@@ -30,7 +30,7 @@ app.config(function ($httpProvider, $translateProvider) {
 		$translateProvider.preferredLanguage(lang);
 	})
 
-app.config(function($stateProvider, $transitionsProvider) {
+app.config(function($stateProvider) {
  $stateProvider
     .state('admin', {
         url: '/admin',
@@ -68,18 +68,26 @@ app.config(function($stateProvider, $transitionsProvider) {
         templateUrl: 'html/realm.app.html',
         controller: 'RealmAppController',
     })    
+    .state('realm.services', {
+        url: '/services',
+        templateUrl: 'html/realm.services.html',
+        controller: 'RealmServicesController',
+    })    
+    .state('realm.service', {
+        url: '/service?serviceId',
+        templateUrl: 'html/realm.services.service.html',
+        controller: 'RealmServiceController',
+    })    
+    .state('realm.serviceapprovals', {
+        url: '/serviceapprovals?serviceId',
+        templateUrl: 'html/realm.services.approvals.html',
+        controller: 'RealmServiceApprovalsController',
+    })    
     .state('home', {
         url: '',
         controller: 'HomeController',
     });
-    
-    $transitionsProvider.onBefore({
-        to: state => !!state.abstract
-      }, ($transition$, $state) => {
-        if (angular.isString($transition.to().redirectTo)) {
-          return $state.target($transition.to().redirectTo);
-        }
-      });
+
 });
 
 /*
