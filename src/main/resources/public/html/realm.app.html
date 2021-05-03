@@ -19,6 +19,10 @@
             <a class="nav-link {{activeClientView('overview')}}" href
                 ng-click="switchClientView('overview')">Overview</a>
         </li>
+        <li ng-if="app.type == 'oauth2'" class="nav-item">
+            <a class="nav-link  {{activeClientView('test.oauth2')}}" href
+                ng-click="switchClientView('test.oauth2')">Test</a>
+        </li>
         <li class="nav-item">
             <a class="nav-link  {{activeClientView('settings')}}" href
                 ng-click="switchClientView('settings')">Settings</a>

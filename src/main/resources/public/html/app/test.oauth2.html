@@ -1,0 +1,28 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-4">Test OAuth2 application</legend>
+
+        <div class="form-group">
+
+            <div ng-repeat="gt in oauth2GrantTypes">
+                <div class="form-group" ng-if="gt.value">
+                    <h5>{{gt.key}}</h5>
+                    <p>description + instructions</p>
+                    <div class="form-group mt-5" ng-if="oauth2Tokens.hasOwnProperty(gt.key)">
+                        <div class="input-group">
+                            <label class="active"><strong>{{gt.key}}</strong></label>
+                            <input class="form-control" type="text" ng-model="oauth2Tokens[gt.key].token" disabled>
+                                                
+                            <div class="input-group-append">
+                                <button class="btn btn-secondary btn-sm  text-right"
+                                    ng-click="testOAuth2ClientApp(gt.key)">Test</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+</div>

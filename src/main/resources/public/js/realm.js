@@ -413,6 +413,21 @@ angular.module('aac.controllers.realm', [])
           $scope.clientView = 'overview';
           return data;
         })
+        .then(function(data) {
+          if(data.type == 'oauth2') {
+            var oauth2Tokens = {};
+
+            $scope.oauth2GrantTypes.forEach(function(gt) {
+            if("authorization_code" == gt.key || "implicit" == gt.key ||"client_credentials" == gt.key  ) {
+              oauth2Tokens[gt.key] = {
+                token: null
+              }
+            }
+            });
+
+            $scope.oauth2Tokens = oauth2Tokens;
+          }
+        })
         .catch(function (err) {
           Utils.showError('Failed to load realm client app: ' + err.data.message);
         });
@@ -436,13 +451,21 @@ angular.module('aac.controllers.realm', [])
         });
       }
       $scope.appScopes = scopes;
-  	console.log($scope.appScopes);
 
       $scope.updateResources(data.scopes);
       $scope.updateIdps(data.providers);
 
       if (data.type == 'oauth2') {
         $scope.initConfiguration(data.type, data.configuration, data.schema);
+      }
+      
+      $scope.claimMapping = {
+        code: "",
+        result: null,
+        error: null
+      };
+      if(data.hookFunctions.hasOwnProperty("claimMapping")) {
+    	  $scope.claimMapping.code = data.hookFunctions["claimMapping"];
       }
 
       return;
@@ -544,6 +567,13 @@ angular.module('aac.controllers.realm', [])
           }
         }).filter(function(idp) {return !!idp });
       
+      var hookFunctions = clientApp.hookFunctions;
+      if($scope.claimMapping.code != "") {
+    	  hookFunctions["claimMapping"] = $scope.claimMapping.code;
+      } else {
+    	  delete hookFunctions["claimMapping"];
+      }
+      
       var data = {
         realm: clientApp.realm,
         clientId: clientApp.clientId,
@@ -554,7 +584,7 @@ angular.module('aac.controllers.realm', [])
         scopes: scopes,
         providers: providers,
         resourceIds: clientApp.resourceIds,
-        hookFunctions: clientApp.hookFunctions
+        hookFunctions: hookFunctions
       };
 
       RealmData.saveClientApp($scope.realm.slug, data)
@@ -673,7 +703,6 @@ angular.module('aac.controllers.realm', [])
            });
          
     	 $scope.appScopes = appScopes;
-    	console.log($scope.appScopes);
     }
     
 
@@ -692,6 +721,43 @@ angular.module('aac.controllers.realm', [])
       $('#scopesModal').modal({ backdrop: 'static', focus: true })
       Utils.refreshFormBS();
     }
+
+
+    $scope.testOAuth2ClientApp = function (grantType) {
+    	console.log("test "+grantType);
+   
+      if(!$scope.app.type == 'oauth2') {
+        Utils.showError("invalid app type");
+        return;
+      }
+
+      RealmData.testOAuth2ClientApp($scope.realm.slug, $scope.app.clientId, grantType).then(function (token) {
+        $scope.oauth2Tokens[grantType].token = token.access_token;
+        console.log($scope.oauth2Tokens);
+      }).catch(function (err) {
+        Utils.showError(err.data.message);
+      });
+    }
+
+    $scope.testClientAppClaimMapping = function () {
+      var functionCode = $scope.claimMapping.code;
+
+      if(functionCode == '') {
+        Utils.showError("empty function code");
+        return;
+      }
+
+
+      RealmData.testClientAppClaimMapping($scope.realm.slug, $scope.app.clientId, functionCode).then(function (result) {
+        $scope.claimMapping.result = result;
+        $scope.claimMapping.error = null;
+        console.log(result);
+      }).catch(function (err) {
+    	  $scope.claimMapping.result = null;
+        $scope.claimMapping.error =  err.data.message;
+      });
+    }    
+
 
     init();
   })

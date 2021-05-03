@@ -1,0 +1,22 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-4">Custom claim mapping</legend>
+
+        <div class="form-group">
+            <div ui-ace="aceOption" ng-model="claimMapping.code"></div>
+
+            <button class="btn btn-secondary btn-sm " ng-click="testClientAppClaimMapping()">Test</button>
+
+            <div ng-if="claimMapping.result">
+               <figure class="highlight">
+                  <code class="language-json" data-lang="json">
+                  <pre>{{claimMapping.result | json:4}}</pre>
+                  </code>
+               </figure>
+                
+            </div>
+            <div class="text-danger" ng-if="claimMapping.error">{{claimMapping.error}}</div>
+        </div>
+    </fieldset>
+</div>

@@ -428,7 +428,18 @@ angular.module('aac.services', [])
     }
   }
   
-
+  rService.testOAuth2ClientApp = function(slug, clientId, grantType) {
+	    return $http.get('console/dev/realms/' + slug +'/apps/' + clientId+"/oauth2/"+grantType).then(function(data) {
+	      return data.data;
+	    });
+   } 
+  
+  rService.testClientAppClaimMapping = function(slug, clientId, functionCode) {
+	    return $http.post('console/dev/realms/' + slug +'/apps/' + clientId+"/claims", functionCode).then(function(data) {
+	      return data.data;
+	    });
+ }   
+  
   rService.getResources = function(slug) {
     return $http.get('console/dev/realms/' + slug +'/resources').then(function(data) {
       return data.data;
