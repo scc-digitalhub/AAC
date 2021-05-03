@@ -33,6 +33,7 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -150,7 +151,8 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
             // check if user needs to reset password, and add redirect
             if (account.isChangeOnFirstAccess()) {
                 // TODO build url
-                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST, "/pwdchange");
+                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+                        "/changepwd/" + providerId + "/" + username);
             }
         }
 

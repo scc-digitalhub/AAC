@@ -531,8 +531,11 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         if (!StringUtils.hasText(mappingFunction)) {
             return new HashMap<>(claims);
         }
+        
+        //cleanup
+        String code = mappingFunction.replaceAll("\\R+", " ");
 
-        return executionService.executeFunction(CLAIM_MAPPING_FUNCTION, mappingFunction, claims);
+        return executionService.executeFunction(CLAIM_MAPPING_FUNCTION, code, claims);
 
     }
 

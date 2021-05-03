@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.dto.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.model.UserPasswordCredentials;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -81,8 +82,20 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         return config.isEnablePasswordReset();
     }
 
+    public PasswordPolicy getPasswordPolicy() {
+        // return new every time to avoid corruption
+        PasswordPolicy policy = new PasswordPolicy();
+        policy.setPasswordMinLength(config.getPasswordMinLength());
+        policy.setPasswordMaxLength(config.getPasswordMaxLength());
+        policy.setPasswordRequireAlpha(config.isPasswordRequireAlpha());
+        policy.setPasswordRequireNumber(config.isPasswordRequireNumber());
+        policy.setPasswordRequireSpecial(config.isPasswordRequireSpecial());
+        policy.setPasswordSupportWhitespace(config.isPasswordSupportWhitespace());
+        return policy;
+    }
+
     @Override
-    public UserCredentials getUserCredentials(String userId) throws NoSuchUserException {
+    public UserPasswordCredentials getUserCredentials(String userId) throws NoSuchUserException {
         // fetch user
         String username = parseResourceId(userId);
         String realm = getRealm();
@@ -97,12 +110,14 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         credentials.setUserId(userId);
         credentials.setCanReset(canReset());
         credentials.setCanSet(canSet());
+        credentials.setChangeOnFirstAccess(account.getChangeOnFirstAccess());
 
         return credentials;
     }
 
     @Override
-    public UserCredentials setUserCredentials(String userId, UserCredentials credentials) throws NoSuchUserException {
+    public UserPasswordCredentials setUserCredentials(String userId, UserCredentials credentials)
+            throws NoSuchUserException {
         if (!config.isEnablePasswordSet()) {
             throw new IllegalArgumentException("set is disabled for this provider");
         }
@@ -122,12 +137,13 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         result.setUserId(userId);
         result.setCanReset(canReset());
         result.setCanSet(canSet());
+        result.setChangeOnFirstAccess(account.getChangeOnFirstAccess());
 
         return result;
     }
 
     @Override
-    public UserCredentials resetUserCredentials(String userId) throws NoSuchUserException {
+    public UserPasswordCredentials resetUserCredentials(String userId) throws NoSuchUserException {
         if (!config.isEnablePasswordReset()) {
             throw new IllegalArgumentException("reset is disabled for this provider");
         }
@@ -143,6 +159,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         result.setCanReset(canReset());
         result.setCanSet(canSet());
         result.setPassword(password);
+        result.setChangeOnFirstAccess(account.getChangeOnFirstAccess());
 
         // send mail
         try {
@@ -161,14 +178,38 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         // TODO filter, will ask users for confirmation and then build a resetKey to be
         // sent via mail
         // to be implemented outside this component?
-        // TODO build a realm-bound url, need updates on filters
 
         return InternalIdentityAuthority.AUTHORITY_URL + "reset/" + getProvider();
     }
 
+    @Override
+    public String getSetUrl() throws NoSuchUserException {
+        // internal controller route
+        return "/changepwd";
+    }
     /*
      * Manage
      */
+
+    public boolean verifyPassword(String userId, String password) throws NoSuchUserException {
+
+        // fetch user
+        String username = parseResourceId(userId);
+        String realm = getRealm();
+        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        try {
+            // verify match
+            return PasswordHash.validatePassword(password, account.getPassword());
+
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new SystemException(e.getMessage());
+        }
+
+    }
 
     public InternalUserAccount setPassword(
             String userId,

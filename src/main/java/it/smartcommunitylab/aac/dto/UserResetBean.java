@@ -1,7 +1,9 @@
 package it.smartcommunitylab.aac.dto;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 
+@Valid
 public class UserResetBean {
 
     @Email(message = "{validation.email}")

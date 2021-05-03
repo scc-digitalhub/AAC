@@ -23,6 +23,8 @@ public interface CredentialsService extends ResourceProvider {
 
     public UserCredentials setUserCredentials(String userId, UserCredentials credentials) throws NoSuchUserException;
 
+    public String getSetUrl() throws NoSuchUserException;
+
     /*
      * At least one between resetLink or resetCredentials is required to support
      * reset. Credentials used for login should be resettable

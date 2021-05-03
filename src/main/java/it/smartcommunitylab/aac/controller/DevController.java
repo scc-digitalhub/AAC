@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.controller;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +33,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -39,6 +42,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.DevManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
@@ -70,6 +74,8 @@ public class DevController {
     private ClientManager clientManager;
     @Autowired
     private ScopeManager scopeManager;
+    @Autowired
+    private DevManager devManager;
 
     @RequestMapping("/dev")
     public ModelAndView developer() {
@@ -390,6 +396,50 @@ public class DevController {
 
         return ResponseEntity.ok(clientApp);
 
+    }
+    
+    @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/oauth2/{grantType}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<OAuth2AccessToken> testRealmClientAppOAuth2(@PathVariable String realm, @PathVariable String clientId,
+            @PathVariable String grantType)
+            throws NoSuchRealmException, NoSuchClientException, SystemException {
+
+        // get client app
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+
+        //check if oauth2
+        if(!clientApp.getType().equals(SystemKeys.CLIENT_TYPE_OAUTH2)) {
+            throw new IllegalArgumentException("client does not support oauth2");
+        }
+        
+        OAuth2AccessToken accessToken = devManager.testOAuth2Flow(realm, clientId, grantType);
+
+        return ResponseEntity.ok(accessToken);
+    }
+    
+    @PostMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/claims")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Map<String, Serializable>> testRealmClientAppClaims(@PathVariable String realm, @PathVariable String clientId,
+            @RequestBody String functionCode)
+            throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+
+        // get client app
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+        try {
+        Map<String, Serializable> result = devManager.testClientClaimMapping(realm, clientId, functionCode);
+
+        return ResponseEntity.ok(result);
+        
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            e.printStackTrace();
+            //wrap error
+            Map<String, Serializable> res =  new HashMap<>();
+            res.put("error",e.getClass().getName());
+            res.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(res);
+        }
     }
 
     /*

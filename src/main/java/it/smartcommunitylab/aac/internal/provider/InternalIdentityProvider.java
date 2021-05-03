@@ -116,7 +116,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
-    public AccountProvider getAccountProvider() {
+    public InternalAccountProvider getAccountProvider() {
         return accountProvider;
     }
 
@@ -283,12 +283,12 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
-    public AccountService getAccountService() {
+    public InternalAccountService getAccountService() {
         return accountService;
     }
 
     @Override
-    public CredentialsService getCredentialsService() {
+    public InternalPasswordService getCredentialsService() {
         return passwordService;
     }
 

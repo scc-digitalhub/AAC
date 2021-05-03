@@ -83,7 +83,7 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
         } catch (IOException e) {
             throw new SystemException(e.getMessage());
         } catch (ScriptCPUAbuseException | ScriptException e) {
-            throw new SystemException(e.getMessage());
+            throw new InvalidDefinitionException(e.getMessage());
         } finally {
             sandbox.getExecutor().shutdown();
         }
