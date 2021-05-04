@@ -1,7 +1,9 @@
 package it.smartcommunitylab.aac.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,8 +141,8 @@ public class ClientManager {
         Realm r = realmService.getRealm(realm);
 
         String type = app.getType();
-
-        Set<String> invalidScopes = app.getScopes().stream().filter(s -> scopeRegistry.findScope(s) == null)
+        Set<String> appScopes = new HashSet<>(Arrays.asList(app.getScopes()));
+        Set<String> invalidScopes = appScopes.stream().filter(s -> scopeRegistry.findScope(s) == null)
                 .collect(Collectors.toSet());
         if (!invalidScopes.isEmpty()) {
             throw new IllegalArgumentException("invalid scopes: " + invalidScopes.toString());
@@ -162,8 +164,8 @@ public class ClientManager {
 
         String type = app.getType();
         ClientApp clientApp = null;
-
-        Set<String> invalidScopes = app.getScopes().stream().filter(s -> scopeRegistry.findScope(s) == null)
+        Set<String> appScopes = new HashSet<>(Arrays.asList(app.getScopes()));
+        Set<String> invalidScopes = appScopes.stream().filter(s -> scopeRegistry.findScope(s) == null)
                 .collect(Collectors.toSet());
         if (!invalidScopes.isEmpty()) {
             throw new IllegalArgumentException("invalid scopes: " + invalidScopes.toString());

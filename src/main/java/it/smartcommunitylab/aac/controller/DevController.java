@@ -458,6 +458,28 @@ public class DevController {
         }
     }
 
+    @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/yaml")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public void getRealmClientApp(@PathVariable String realm, @PathVariable String clientId,
+            HttpServletResponse res)
+            throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
+        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
+        
+        // get client app
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+
+        
+        String s = yaml.dump(clientApp);
+        //write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition","attachment;filename="+clientApp.getName()+".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.print(s);
+        out.flush();
+        out.close();
+    }
+    
     /*
      * Scopes and resources
      */

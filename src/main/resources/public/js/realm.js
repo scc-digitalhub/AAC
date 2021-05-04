@@ -386,7 +386,13 @@ angular.module('aac.controllers.realm', [])
     var slug = $stateParams.realmId;
     var clientId = $stateParams.clientId;
 
-
+    $scope.aceOption = {
+      mode: 'javascript',
+      theme: 'monokai',
+      maxLines: 30,
+        minLines: 6
+    };
+    
 
     /**
    * Initialize the app: load list of apps
@@ -459,14 +465,18 @@ angular.module('aac.controllers.realm', [])
         $scope.initConfiguration(data.type, data.configuration, data.schema);
       }
       
-      $scope.claimMapping = {
+      var claimMapping = {
+    	enabled: false,
         code: "",
         result: null,
         error: null
       };
       if(data.hookFunctions.hasOwnProperty("claimMapping")) {
-    	  $scope.claimMapping.code = data.hookFunctions["claimMapping"];
+    	  claimMapping.enabled = true;
+    	  claimMapping.code = data.hookFunctions["claimMapping"];
       }
+      
+      $scope.claimMapping = claimMapping;
 
       return;
     }
@@ -629,6 +639,10 @@ angular.module('aac.controllers.realm', [])
     }
 
 
+    $scope.exportClientApp = function(clientApp) {
+      window.open('console/dev/realms/' + clientApp.realm + '/apps/' + clientApp.clientId+ '/yaml');
+    };
+
     $scope.activeClientView = function (view) {
       return view == $scope.clientView ? 'active' : '';
     };
@@ -721,6 +735,22 @@ angular.module('aac.controllers.realm', [])
       $('#scopesModal').modal({ backdrop: 'static', focus: true })
       Utils.refreshFormBS();
     }
+    
+    $scope.loadScopes = function (query) {
+    	var scopes = [];
+        for (var res of $scope.resources) {
+            res.scopes.forEach(function (s) {
+              if(s.scope.toLowerCase().includes(query.toLowerCase())) {
+            	  scopes.push({
+            		  text: s.scope
+            	  });
+              }
+            });
+
+
+          }
+    	   return scopes;
+    }
 
 
     $scope.testOAuth2ClientApp = function (grantType) {
@@ -739,6 +769,23 @@ angular.module('aac.controllers.realm', [])
       });
     }
 
+    $scope.toggleClientAppClaimMapping = function() {
+    	var claimMapping = $scope.claimMapping;      
+        
+        if (claimMapping.enabled && claimMapping.code == '') {
+            claimMapping.code = 
+              '/**\n * DEFINE YOUR OWN CLAIM MAPPING HERE\n' +
+              '**/\n'+
+              'function claimMapping(claims) {\n   return claims;\n}';
+          }
+        
+        claimMapping.error = null;
+        claimMapping.result = null;
+        
+        $scope.claimMapping = claimMapping;    
+
+      }
+    
     $scope.testClientAppClaimMapping = function () {
       var functionCode = $scope.claimMapping.code;
 

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth.service;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -74,8 +75,8 @@ public class OAuth2ClientAppService implements ClientAppService {
             OAuth2Client client = clientService.addClient(realm,
                     app.getClientId(),
                     app.getName(), app.getDescription(),
-                    app.getScopes(), app.getResourceIds(),
-                    app.getProviders(),
+                    Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
+                    Arrays.asList(app.getProviders()),
                     null,
                     null, null,
                     null,
@@ -103,8 +104,8 @@ public class OAuth2ClientAppService implements ClientAppService {
             OAuth2Client client = clientService.addClient(realm,
                     app.getClientId(),
                     app.getName(), app.getDescription(),
-                    app.getScopes(), app.getResourceIds(),
-                    app.getProviders(),
+                    Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
+                    Arrays.asList(app.getProviders()),
                     clientSecret,
                     configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
                     configMap.getTokenType(), configMap.getAuthenticationMethods(),
@@ -132,8 +133,8 @@ public class OAuth2ClientAppService implements ClientAppService {
         // update
         client = clientService.updateClient(clientId,
                 app.getName(), app.getDescription(),
-                app.getScopes(), app.getResourceIds(),
-                app.getProviders(),
+                Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
+                Arrays.asList(app.getProviders()),
                 app.getHookFunctions(), app.getHookWebUrls(),
                 configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
                 configMap.getTokenType(), configMap.getAuthenticationMethods(),
@@ -174,12 +175,15 @@ public class OAuth2ClientAppService implements ClientAppService {
 
         app.setRealm(client.getRealm());
 
-        app.setScopes(client.getScopes());
-        app.setResourceIds(client.getResourceIds());
-        app.setProviders(client.getProviders());
-        app.setHookFunctions(client.getHookFunctions());
-        app.setHookWebUrls(client.getHookWebUrls());
-
+        app.setScopes(client.getScopes() != null ? client.getScopes().toArray(new String[0]) : null);
+        app.setResourceIds(client.getResourceIds() != null ? client.getResourceIds().toArray(new String[0]) : null);
+        app.setProviders(client.getProviders() != null ? client.getProviders().toArray(new String[0]) : null);
+        if (client.getHookFunctions() != null) {
+            app.setHookFunctions(client.getHookFunctions());
+        }
+        if (client.getHookWebUrls() != null) {
+            app.setHookWebUrls(client.getHookWebUrls());
+        }
         // flatten configuration
         app.setConfiguration(client.getConfiguration());
 

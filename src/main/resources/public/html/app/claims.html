@@ -2,11 +2,14 @@
 
     <fieldset>
         <legend class="mb-4">Custom claim mapping</legend>
-
+              <div class="form-check form-check-inline">
+                 <input id="appClaimMappingnabled" class="form-check-input" type="checkbox" ng-model="claimMapping.enabled" ng-change="toggleClientAppClaimMapping()">
+                <label for="appClaimMappingnabled">Enable</label>
+              </div>   
         <div class="form-group">
             <div ui-ace="aceOption" ng-model="claimMapping.code"></div>
 
-            <button class="btn btn-secondary btn-sm " ng-click="testClientAppClaimMapping()">Test</button>
+            <button class="btn btn-secondary btn-sm " ng-click="testClientAppClaimMapping()" ng-disabled="!claimMapping.enabled">Test</button>
 
             <div ng-if="claimMapping.result">
                <figure class="highlight">

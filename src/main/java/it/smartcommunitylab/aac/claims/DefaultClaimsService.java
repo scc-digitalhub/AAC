@@ -227,14 +227,16 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         if (StringUtils.hasText(customMappingFunction)) {
             // execute custom mapping function via executor
             Map<String, Serializable> customClaims = this.executeClaimMapping(customMappingFunction, claims);
-            // add/replace only non-protected claims
-            Map<String, Serializable> allowedClaims = customClaims.entrySet().stream()
-                    .filter(e -> (!reservedKeys.contains(e.getKey()) &&
-                            !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
-                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
-                            !SYSTEM_CLAIM_NAMES.contains(e.getKey())))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-            claims.putAll(allowedClaims);
+            if (customClaims != null) {
+                // add/replace only non-protected claims
+                Map<String, Serializable> allowedClaims = customClaims.entrySet().stream()
+                        .filter(e -> (!reservedKeys.contains(e.getKey()) &&
+                                !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                                !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
+                                !SYSTEM_CLAIM_NAMES.contains(e.getKey())))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                claims.putAll(allowedClaims);
+            }
         }
 
         return claims;
@@ -531,8 +533,8 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         if (!StringUtils.hasText(mappingFunction)) {
             return new HashMap<>(claims);
         }
-        
-        //cleanup
+
+        // cleanup
         String code = mappingFunction.replaceAll("\\R+", " ");
 
         return executionService.executeFunction(CLAIM_MAPPING_FUNCTION, code, claims);
