@@ -482,7 +482,7 @@ angular.module('aac.services', [])
 		});
 	}
 	
-	utils.refreshFormBS = function() {
+	utils.refreshFormBS = function(delay) {
 	 var inputSelector =
       'input[type="text"],' +
       'input[type="password"],' +
@@ -496,7 +496,7 @@ angular.module('aac.services', [])
     setTimeout(function() {      
       $(inputSelector).trigger('change');
       $('select').selectpicker('refresh');
-    });  
+    }, delay || 1);  
 	}
 	
 	return utils;

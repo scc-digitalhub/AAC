@@ -1,105 +1,112 @@
 <div class="pt-3">
 
     <fieldset>
-        <legend class="mb-4">Client credentials</legend>
-        <div class="form-group ">
-            <div class="input-group">
-                <label for="secret" class="active">Client secret</label>
-                <input type="text" class="form-control input-password" id="secret"
-                    ng-model="app.configuration.clientSecret" disabled>
-                </span>
-
-
-                <div class="input-group-append">
-                    <button class="btn btn-danger btn-sm  text-right"
-                        ng-click="resetClientCredentialsDlg(app)">Reset</button>
-                </div>
-            </div>
+        <legend class="mb-4">OAuth2.0 Configuration</legend>
+        <div class="row">
+          <div class="form-group col">
+              <div class="input-group">
+                  <label for="clientid" class="active">Client ID</label>
+                  <input type="text" class="form-control input-password" id="clientid"
+                      ng-model="app.clientId" readonly>
+                  </span>
+                  <div class="input-group-append">
+                      <button class="btn btn-primary btn-sm  text-right"
+                          ng-click="copyText(app.clientId)">
+                          <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-copy"></use></svg>
+                      </button>
+                  </div>
+                  
+              </div>
+          </div>
+          <div class="form-group col">
+	            <div class="input-group">
+	                <label for="secret" class="active">Client secret</label>
+	                <input type="password" class="form-control input-password" id="secret"
+	                    ng-model="app.configuration.clientSecret" readonly>
+	                </span>
+	                <div class="input-group-append">
+                      <button class="btn btn-primary btn-sm  text-right"
+                          ng-click="copyText(app.configuration.clientSecret)">
+                          <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-copy"></use></svg>
+                      </button>
+	                    <button class="btn btn-danger btn-sm  text-right"
+	                        ng-click="resetClientCredentialsDlg(app)">Reset</button>
+	                </div>
+	            </div>
+	        </div>
         </div>
-        <div class="form-row">
-            <label class="active">Authentication methods</label>
-            <div class="form-group" >
-                <div class="form-check form-check-inline" ng-repeat="am in oauth2AuthenticationMethods" ng-click="am.value = !am.value">
-                    <input class="form-check-input" type="checkbox" ng-model="am.value">
-                    <label>{{am.key}}</label>
-                </div>
-            </div>
+        <div class="row">
+	         <div class="form-group col">
+	            <label class="active">Grant types</label>
+	            <div class="" ng-repeat="gt in oauth2GrantTypes">
+	                <div class="form-check form-check-inline" ng-click="gt.value = !gt.value">
+	                    <input class="form-check-input" type="checkbox" ng-model="gt.value">
+	                    <label>{{gt.key}}</label>
+	                </div>
+	
+	            </div>
+	        </div>
+	        <div class="form-group col">
+              <label class="active">Authentication methods</label>
+              <div class="" ng-repeat="am in oauth2AuthenticationMethods">
+                  <div class="form-check form-check-inline"ng-click="am.value = !am.value">
+                      <input class="form-check-input" type="checkbox" ng-model="am.value">
+                      <label>{{am.key}}</label>
+                  </div>
+  
+              </div>
+          </div>
         </div>
-
-
-    </fieldset>
-
-    <fieldset>
-        <legend class="mb-4">OAuth2 flows</legend>
-        <div class="form-group">
-            <label class="active">Grant types</label>
-            <div class="" ng-repeat="gt in oauth2GrantTypes">
-                <div class="form-check form-check-inline" ng-click="gt.value = !gt.value">
-                    <input class="form-check-input" type="checkbox" ng-model="gt.value">
-                    <label>{{gt.key}}</label>
-                </div>
-
-            </div>
-
+        
+        <div class="row">
+	        <div class="form-group col">
+	            <label class="active">Redirect uris</label>
+	            <tags-input type="url" placeholder="Add a redirect URL" ng-model="oauth2RedirectUris"></tags-input>
+	        </div>        
         </div>
-
-        <div class="form-group">
-            <label class="active">Redirect uris</label>
-            <tags-input type="url" placeholder="Add a redirect URL" ng-model="oauth2RedirectUris"></tags-input>
-        </div>
-
     </fieldset>
 
     <fieldset class="collapse-div collapse-right-icon" role="tablist">
-        <legend class="collapse-header mb-4">
-            <button data-toggle="collapse" data-target="#advancedForm" aria-expanded="false"
-                aria-controls="advancedForm">
-                Advanced
-            </button>
-
-        </legend>
-        <div id="advancedForm" class="collapse" role="tabpanel">
-            <div class="collapse-body">
-                <div class="form-group">
-                    <div class="form-check form-check-inline"
-                        ng-click="app.configuration.firstParty = !app.configuration.firstParty">
-                        <input class="form-check-input" type="checkbox" ng-model="app.configuration.firstParty">
-                        <label>First party</label>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="bootstrap-select-wrapper border-bottom-0">
-                        <label class="active" for="clientName">Token type</label>
-                        <select id="clientName" ng-model="app.configuration.tokenType">
-                            <option value="jwt" ng-selected="app.configuration.tokenType =='jwt'">JWT</option>
-                            <option value="opaque" ng-selected="app.configuration.tokenType == 'opaque'">Opaque</option>
-                        </select>
-                    </div>
-
-                </div>
-
-                <div class="form-group col">
-                    <label for="accessTokenValidity" class="active">Access
-                        token validity</label>
-                    <span class="input-number">
-                        <input type="number" name=accessTokenValidity class="" id="accessTokenValidity"
-                            ng-model="app.configuration.accessTokenValidity">
-
-
-                    </span>
-                </div>
-                <div class="form-group col">
-                    <label for="refreshTokenValidity" class="active">Refresh
-                        token validity</label>
-                    <span class="input-number">
-                        <input type="number" name=refreshTokenValidity class="" id="refreshTokenValidity"
-                            ng-model="app.configuration.refreshTokenValidity">
-
-
-                    </span>
-                </div>
-            </div>
+        <legend class="collapse-header mb-4">Advanced Configuration</legend>
+        <div class="row">
+	        <div class="form-group col">
+	            <div class="form-check form-check-inline"
+	                ng-click="app.configuration.firstParty = !app.configuration.firstParty">
+	                <input class="form-check-input" type="checkbox" ng-model="app.configuration.firstParty">
+	                <label>First party</label>
+	            </div>
+	        </div>
+	        <div class="form-group col">
+	            <div class="bootstrap-select-wrapper border-bottom-0">
+	                <label class="active" for="clientName">Token type</label>
+	                <select id="clientName" ng-model="app.configuration.tokenType">
+	                    <option value="jwt" ng-selected="app.configuration.tokenType =='jwt'">JWT</option>
+	                    <option value="opaque" ng-selected="app.configuration.tokenType == 'opaque'">Opaque</option>
+	                </select>
+	            </div>
+	
+	        </div>
+        </div>
+        
+        <div class="row">
+	        <div class="form-group col">
+	            <label for="accessTokenValidity" class="active">Access token validity (sec)</label>
+	            <span class="input-number">
+	                <input type="number" name=accessTokenValidity class="" id="accessTokenValidity"
+	                    ng-model="app.configuration.accessTokenValidity">
+	
+	
+	            </span>
+	        </div>
+	        <div class="form-group col">
+	            <label for="refreshTokenValidity" class="active">Refresh token validity (sec)</label>
+	            <span class="input-number">
+	                <input type="number" name=refreshTokenValidity class="" id="refreshTokenValidity"
+	                    ng-model="app.configuration.refreshTokenValidity">
+	
+	
+	            </span>
+	        </div>
         </div>
     </fieldset>
 

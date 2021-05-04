@@ -1,18 +1,19 @@
 <div class="pt-3">
-    <fieldset>
+  <div class="row">
+    <fieldset class="col-md-5">
         <legend class="mb-4">Basic settings</legend>
-        <div class="form-group row">
-            <input type="text" name="name" class="form-control " id="name" ng-model="app.name" required>
-            <label for="name" class="{{app.name != '' ? 'active' : ''}}">Name</label>
-        </div>
-        <div class="form-group row">
-            <textarea rows="3" name="description" class="form-control form-control-sm" id="description"
-                ng-model="app.description"></textarea>
-            <label for="description" class="{{app.description != '' ? 'active' : ''}}">Description</label>
-        </div>
-
+          <div class="form-group col">
+	            <input type="text" name="name" class="form-control " id="name" ng-model="app.name" required>
+	            <label for="name" class="{{app.name != '' ? 'active' : ''}}">Name</label>
+	        </div>
+	        <div class="form-group col">
+	            <textarea rows="3" name="description" id="description"
+	                ng-model="app.description"></textarea>
+	            <label for="description" class="{{app.description != '' ? 'active' : ''}}">Description</label>
+	        </div>
     </fieldset>
-    <fieldset>
+    
+    <fieldset  class="offset-md-1 col-md-6">
         <legend class="mb-4">Providers</legend>
         <div class="">
             <label class="active">Identity providers</label>
@@ -23,4 +24,5 @@
             </div>
          </div>
     </fieldset>
+  </div>
 </div>
