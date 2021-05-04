@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.services;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +71,8 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         return null;
     }
 
-    public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException {
 
         if (executionService == null) {
@@ -92,11 +94,17 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
             return null;
         }
 
+        Map<String, Serializable> exts = Collections.emptyMap();
+        if (extensions != null) {
+            exts = extensions;
+        }
+
         // translate user, client and scopes to a map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
         map.put("user", mapper.convertValue(u, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
+        map.put("extensions", mapper.convertValue(exts, serMapTypeRef));
 
         // execute script
         Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
@@ -118,7 +126,8 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
     }
 
-    public ClaimsSet extractClientClaims(String resourceId, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String resourceId, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException {
 
         if (executionService == null) {
@@ -135,10 +144,16 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
             return null;
         }
 
+        Map<String, Serializable> exts = Collections.emptyMap();
+        if (extensions != null) {
+            exts = extensions;
+        }
+
         // translate user, client and scopes to a map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
+        map.put("extensions", mapper.convertValue(exts, serMapTypeRef));
 
         // execute script
         Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,

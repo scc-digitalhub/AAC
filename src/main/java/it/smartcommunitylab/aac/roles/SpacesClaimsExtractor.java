@@ -15,14 +15,16 @@ import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
+import it.smartcommunitylab.aac.claims.model.StringClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 
-public class RolesClaimsExtractor implements ScopeClaimsExtractor {
+public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
+
+    public static final String SPACES_EXTENSIONS_KEY = "aac.roles.spaces_selection";
 
     @Override
     public String getResourceId() {
@@ -31,7 +33,7 @@ public class RolesClaimsExtractor implements ScopeClaimsExtractor {
 
     @Override
     public Collection<String> getScopes() {
-        return Collections.singleton(Config.SCOPE_ROLE);
+        return Collections.singleton(Config.SCOPE_SPACES);
     }
 
     @Override
@@ -41,30 +43,43 @@ public class RolesClaimsExtractor implements ScopeClaimsExtractor {
 
         // we get roles from user, it should be up-to-date
         Set<SpaceRole> roles = user.getRoles();
+        // export as space name
+        Set<String> spaces = roles.stream().map(r -> r.getSpace()).collect(Collectors.toSet());
 
-        // we also include realm authorities, since we don't have a separate scope for
-        // these
-        Set<RealmGrantedAuthority> authorities = user.getAuthorities().stream()
-                .filter(r -> r instanceof RealmGrantedAuthority).map(r -> (RealmGrantedAuthority) r)
-                .collect(Collectors.toSet());
+        String space = null;
+        // check if we get a selection in extensions
+        if (extensions != null) {
+            if (extensions.containsKey(SPACES_EXTENSIONS_KEY)) {
+                try {
+                    space = (String) extensions.get(SPACES_EXTENSIONS_KEY);
+                } catch (Exception e) {
+                    // ignore
+                    space = null;
+                }
+            }
+        }
 
-        // convert to a claims list flattening roles
+        if (space != null && spaces.contains(space)) {
+            spaces = Collections.singleton(space);
+        }
+
+        // convert to claim
+        // if someone has performed a selection we will output a single space
         List<Claim> claims = new ArrayList<>();
-
-        SerializableClaim roleClaim = new SerializableClaim("roles");
-        List<String> rolesClaims = roles.stream().map(r -> r.getAuthority()).collect(Collectors.toList());
-        roleClaim.setValue(new ArrayList<>(rolesClaims));
-        claims.add(roleClaim);
-
-        SerializableClaim authClaim = new SerializableClaim("authorities");
-        List<String> authsClaims = authorities.stream().map(r -> r.getAuthority()).collect(Collectors.toList());
-        authClaim.setValue(new ArrayList<>(authsClaims));
-        claims.add(authClaim);
+        if (spaces.size() == 1) {
+            StringClaim sc = new StringClaim("space");
+            sc.setValue(spaces.iterator().next());
+            claims.add(sc);
+        } else {
+            SerializableClaim sc = new SerializableClaim("space");
+            sc.setValue(new ArrayList<>(spaces));
+            claims.add(sc);
+        }
 
         // build a claimsSet
         DefaultClaimsSet claimsSet = new DefaultClaimsSet();
         claimsSet.setResourceId(getResourceId());
-        claimsSet.setScope(Config.SCOPE_ROLE);
+        claimsSet.setScope(Config.SCOPE_SPACES);
         // we merge our map with namespace to tld
         claimsSet.setNamespace(null);
         claimsSet.setUser(true);

@@ -57,6 +57,7 @@ public class ClientApp {
     // TODO map to fixed list or explode
     private Map<String, String> hookFunctions;
     private Map<String, String> hookWebUrls;
+    private String hookUniqueSpaces;
 
     public ClientApp() {
         this.configuration = new HashMap<>();
@@ -152,6 +153,14 @@ public class ClientApp {
 
     public void setHookWebUrls(Map<String, String> hookWebUrls) {
         this.hookWebUrls = hookWebUrls;
+    }
+
+    public String getHookUniqueSpaces() {
+        return hookUniqueSpaces;
+    }
+
+    public void setHookUniqueSpaces(String hookUniqueSpaces) {
+        this.hookUniqueSpaces = hookUniqueSpaces;
     }
 
     public JsonSchema getSchema() {

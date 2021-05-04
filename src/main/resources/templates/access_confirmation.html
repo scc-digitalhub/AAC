@@ -82,14 +82,16 @@
 							</div>
 
 							<div th:if="${spaces.size() > 0}">
+							<input id="spaceSelectionApproval_required" name="spaceSelectionApproval_required" value="true"
+                              type="hidden" />
 								<br /> <br />
-								<div th:each="space : ${spaces.keySet()}" class="form-group row">
+								<div class="form-group row">
 									<div class="col-md-12 bootstrap-select-wrapper standard">
 										<label th:text="#{lbl_approval_space(${clientName})}">space</label>
-										<select class="custom-select" th:name="${'spaceSelectionApproval_map.'+space}"
+										<select class="custom-select" name="space_selection"
 											required="required">
 											<option value="" th:text="#{lbl_approval_empty}"></option>
-											<option th:each="option : ${spaces.get(space)}" th:value="${option}"
+											<option th:each="option : ${spaces}" th:value="${option}"
 												th:text="${option}"></option>
 										</select>
 									</div>
@@ -101,8 +103,7 @@
 								<div class="col-6 text-right">
 									<input id="user_oauth_approval" name="user_oauth_approval" value="true"
 										type="hidden" />
-									<input id="user_oauth_approval" name="spaceSelectionApproval_required" value="true"
-										type="hidden" />
+
 									<label><button id="authorize" class="btn btn-primary" name="authorize"
 											th:text="#{lbl_approval_do_authorize}"></button></label>
 								</div>

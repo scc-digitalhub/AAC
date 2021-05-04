@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
@@ -39,7 +42,8 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException {
 
         // we handle multiple profiles, one per identity
@@ -67,7 +71,8 @@ public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException {
         // not supported
         return null;

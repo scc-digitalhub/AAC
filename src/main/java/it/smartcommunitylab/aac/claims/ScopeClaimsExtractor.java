@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.claims;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -20,7 +22,7 @@ import it.smartcommunitylab.aac.model.User;
  */
 
 public interface ScopeClaimsExtractor {
-    
+
     public String getRealm();
 
     public String getResourceId();
@@ -28,10 +30,12 @@ public interface ScopeClaimsExtractor {
     // a list of scopes (for the declared resource) this extractor will answer to
     public Collection<String> getScopes();
 
-    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException;
 
-    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException;
 
 }

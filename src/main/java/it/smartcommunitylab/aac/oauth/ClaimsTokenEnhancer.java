@@ -49,6 +49,7 @@ public class ClaimsTokenEnhancer implements TokenEnhancer {
         String clientId = request.getClientId();
         Set<String> scopes = request.getScope();
         Set<String> resourceIds = request.getResourceIds();
+        Map<String, Serializable> extensions = request.getExtensions();
 
         try {
             AACOAuth2AccessToken token = new AACOAuth2AccessToken(accessToken);
@@ -58,7 +59,7 @@ public class ClaimsTokenEnhancer implements TokenEnhancer {
 
             // check if client or user
             if (isClientRequest(request)) {
-                claims = claimsService.getClientClaims(clientDetails, scopes, resourceIds);
+                claims = claimsService.getClientClaims(clientDetails, scopes, resourceIds, extensions);
             } else {
                 Authentication userAuth = authentication.getUserAuthentication();
                 if (userAuth != null && userAuth instanceof UserAuthenticationToken) {
@@ -67,7 +68,7 @@ public class ClaimsTokenEnhancer implements TokenEnhancer {
                     claims = claimsService.getUserClaims(
                             userDetails, clientDetails.getRealm(),
                             clientDetails,
-                            scopes, resourceIds);
+                            scopes, resourceIds, extensions);
                 }
             }
 

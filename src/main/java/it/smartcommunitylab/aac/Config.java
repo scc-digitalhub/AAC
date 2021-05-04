@@ -131,6 +131,7 @@ public class Config {
     public static final String SCOPE_USERMANAGEMENT = "usermanagement";
     public static final String SCOPE_ROLE = "user.roles.me";
     public static final String SCOPE_GROUP = "user.groups.me";
+    public static final String SCOPE_SPACES = "user.spaces.me";
     public static final String SCOPE_ROLES_READ = "user.roles.read";
     public static final String SCOPE_ROLES_WRITE = "user.roles.write";
 

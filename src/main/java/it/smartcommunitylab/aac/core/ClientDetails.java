@@ -28,6 +28,7 @@ public class ClientDetails {
     // hook functions
     private Map<String, String> hookFunctions;
     private Map<String, String> hookWebUrls;
+    private String hookUniqueSpaces;
 
     // attributes related to client
     // sets are bound to realm, stored with addressable keys
@@ -99,6 +100,14 @@ public class ClientDetails {
 
     public void setHookWebUrls(Map<String, String> hookWebUrls) {
         this.hookWebUrls = hookWebUrls;
+    }
+
+    public String getHookUniqueSpaces() {
+        return hookUniqueSpaces;
+    }
+
+    public void setHookUniqueSpaces(String hookUniqueSpaces) {
+        this.hookUniqueSpaces = hookUniqueSpaces;
     }
 
     public Map<String, ClientAttributes> getAttributes() {

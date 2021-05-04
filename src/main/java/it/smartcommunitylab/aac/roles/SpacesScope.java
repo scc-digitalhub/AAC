@@ -4,7 +4,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
 
-public class RolesScope extends Scope {
+public class SpacesScope extends Scope {
 
     @Override
     public String getResourceId() {
@@ -18,18 +18,18 @@ public class RolesScope extends Scope {
 
     @Override
     public String getScope() {
-        return Config.SCOPE_ROLE;
+        return Config.SCOPE_SPACES;
     }
 
     // TODO replace with keys for i18n
     @Override
     public String getName() {
-        return "Read user's roles";
+        return "Read user's spaces";
     }
 
     @Override
     public String getDescription() {
-        return "Roles and authorities of the current platform user. Read access only.";
+        return "Read spaces of the current platform user. Read access only.";
     }
 
 }

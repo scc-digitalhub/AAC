@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
 
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
@@ -22,7 +24,8 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     public abstract String getKey();
 
     @Override
-    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractUserClaims(String scope, User user, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException {
 
         AbstractProfile profile = buildUserProfile(user, scopes);
@@ -54,7 +57,8 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
     }
 
     @Override
-    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes)
+    public ClaimsSet extractClientClaims(String scope, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions)
             throws InvalidDefinitionException, SystemException {
         // not supported now but subclasses can override
         return null;

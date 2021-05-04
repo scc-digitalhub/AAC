@@ -62,7 +62,7 @@ public class ClientDetailsService {
         details.setResourceIds(StringUtils.commaDelimitedListToSet(client.getResourceIds()));
         details.setHookFunctions(client.getHookFunctions());
         details.setHookWebUrls(client.getHookWebUrls());
-
+        details.setHookUniqueSpaces(client.getHookUniqueSpaces());
         // TODO client attributes from attr providers
 
         return details;

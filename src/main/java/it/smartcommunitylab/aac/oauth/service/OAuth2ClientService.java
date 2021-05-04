@@ -392,7 +392,7 @@ public class OAuth2ClientService implements ClientService {
             String name, String description,
             Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
-            Map<String, String> hookFunctions, Map<String, String> hookWebUrls,
+            Map<String, String> hookFunctions, Map<String, String> hookWebUrls, String hookUniqueSpaces,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
             TokenType tokenType,
@@ -467,7 +467,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         client = clientService.updateClient(clientId, name, description, scopes, resourceIds, providers, hookFunctions,
-                hookWebUrls);
+                hookWebUrls, hookUniqueSpaces);
 
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));

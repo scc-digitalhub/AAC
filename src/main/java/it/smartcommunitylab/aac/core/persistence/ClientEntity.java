@@ -59,6 +59,9 @@ public class ClientEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, String> hookWebUrls;
 
+    @Column(name = "hook_uniquespaces")
+    private String hookUniqueSpaces;
+
     // audit
     @CreatedDate
     @Column(name = "created_date")
@@ -171,6 +174,14 @@ public class ClientEntity {
 
     public void setHookWebUrls(Map<String, String> hookWebUrls) {
         this.hookWebUrls = hookWebUrls;
+    }
+
+    public String getHookUniqueSpaces() {
+        return hookUniqueSpaces;
+    }
+
+    public void setHookUniqueSpaces(String hookUniqueSpaces) {
+        this.hookUniqueSpaces = hookUniqueSpaces;
     }
 
     public String getResourceIds() {

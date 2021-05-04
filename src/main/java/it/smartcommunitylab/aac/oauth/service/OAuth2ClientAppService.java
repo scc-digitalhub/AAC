@@ -135,7 +135,7 @@ public class OAuth2ClientAppService implements ClientAppService {
                 app.getName(), app.getDescription(),
                 Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
                 Arrays.asList(app.getProviders()),
-                app.getHookFunctions(), app.getHookWebUrls(),
+                app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),
                 configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
                 configMap.getTokenType(), configMap.getAuthenticationMethods(),
                 configMap.getFirstParty(), configMap.getAutoApproveScopes(),
@@ -184,6 +184,8 @@ public class OAuth2ClientAppService implements ClientAppService {
         if (client.getHookWebUrls() != null) {
             app.setHookWebUrls(client.getHookWebUrls());
         }
+        app.setHookUniqueSpaces(client.getHookUniqueSpaces());
+
         // flatten configuration
         app.setConfiguration(client.getConfiguration());
 

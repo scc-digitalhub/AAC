@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.roles;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,12 +19,20 @@ import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 public class RolesScopeProvider implements ScopeProvider {
 
     private static final RolesResource resource = new RolesResource();
+    private static final Set<Scope> scopes;
     public static final Map<String, WhitelistScopeApprover> approvers;
 
     static {
+        Set<Scope> s = new HashSet<>();
+        s.add(new RolesScope());
+        s.add(new SpacesScope());
+
+        scopes = Collections.unmodifiableSet(s);
+        resource.setScopes(scopes);
+
         Map<String, WhitelistScopeApprover> a = new HashMap<>();
-        for (Scope s : resource.getScopes()) {
-            a.put(s.getScope(), new WhitelistScopeApprover(null, s.getResourceId(), s.getScope()));
+        for (Scope sc : scopes) {
+            a.put(sc.getScope(), new WhitelistScopeApprover(null, sc.getResourceId(), sc.getScope()));
         }
 
         approvers = a;

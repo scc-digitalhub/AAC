@@ -112,7 +112,8 @@ public class ClientEntityService {
             Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
             Map<String, String> hookFunctions,
-            Map<String, String> hookWebUrls) throws NoSuchClientException {
+            Map<String, String> hookWebUrls,
+            String hookUniqueSpaces) throws NoSuchClientException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c == null) {
             throw new NoSuchClientException();
@@ -127,7 +128,7 @@ public class ClientEntityService {
 
         c.setHookFunctions(hookFunctions);
         c.setHookWebUrls(hookWebUrls);
-
+        c.setHookUniqueSpaces(hookUniqueSpaces);
         c = clientRepository.save(c);
 
         return c;

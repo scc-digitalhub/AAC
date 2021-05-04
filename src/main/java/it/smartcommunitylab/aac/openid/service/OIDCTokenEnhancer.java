@@ -2,7 +2,10 @@
 package it.smartcommunitylab.aac.openid.service;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -25,7 +28,9 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsService;
+import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
@@ -35,9 +40,12 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.jwt.JWTService;
+import it.smartcommunitylab.aac.model.AttributeType;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
 
 /**
  * Build an ID token via profile
@@ -54,7 +62,10 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
 
     // TODO evaluate drop claimService, idToken could be standard only
     // at minimum we should split claim mapping for access and id tokens
-    private final ClaimsService claimsService;
+//    private final ClaimsService claimsService;
+
+    // provide only standard claims
+    private final OpenIdClaimsExtractorProvider claimsExtractorProvider;
 
     private final JWTService jwtService;
 
@@ -63,18 +74,21 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
 
     public OIDCTokenEnhancer(String issuer, JWTService jwtService,
             ClientDetailsService clientDetailsService, OAuth2ClientDetailsService oauth2ClientDetailsService,
-            ClaimsService claimsService) {
+            OpenIdClaimsExtractorProvider openidClaimsExtractorProvider) {
+//            ClaimsService claimsService) {
         Assert.hasText(issuer, "a valid issuer is required");
         Assert.notNull(jwtService, "jwt service is mandatory to sign tokens");
         Assert.notNull(clientDetailsService, "client details service is mandatory");
         Assert.notNull(oauth2ClientDetailsService, "oauth2 client details service is mandatory");
-        Assert.notNull(claimsService, "claims service is mandatory");
+//        Assert.notNull(claimsService, "claims service is mandatory");
+        Assert.notNull(openidClaimsExtractorProvider, "openid claims extractor provider is mandatory");
 
         this.issuer = issuer;
         this.jwtService = jwtService;
         this.clientDetailsService = clientDetailsService;
         this.oauth2ClientDetailsService = oauth2ClientDetailsService;
-        this.claimsService = claimsService;
+//        this.claimsService = claimsService;
+        this.claimsExtractorProvider = openidClaimsExtractorProvider;
     }
 
     @Override
@@ -112,6 +126,7 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
 
             token.setIdToken(idToken);
 
+            logger.trace("enhance id token  for " + authentication.getName() + " value " + idToken.toString());
             return token;
 
         } catch (NoSuchClientException | ClientRegistrationException e) {
@@ -138,14 +153,34 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         // build claims set according to OIDC 1.0
         JWTClaimsSet.Builder idClaims = new JWTClaimsSet.Builder();
 
-        // ask claim Manager for user claims
-        // TODO evaluate splitting claims from accessToken or dropping extended claims
-        // on idToken. Besides we already have claims here, why do again if we get the
-        // same result
-        Map<String, Serializable> userClaims = claimsService.getUserClaims(
-                userDetails, clientDetails.getRealm(),
-                clientDetails, scopes,
-                resourceIds);
+//        // ask claim Manager for user claims
+//        // TODO evaluate splitting claims from accessToken or dropping extended claims
+//        // on idToken. Besides we already have claims here, why do again if we get the
+//        // same result
+//        Map<String, Serializable> userClaims = claimsService.getUserClaims(
+//                userDetails, clientDetails.getRealm(),
+//                clientDetails, scopes,
+//                resourceIds);
+
+        User user = new User(userDetails);
+        Map<String, Serializable> userClaims = new HashMap<>();
+        List<Claim> claimss = new ArrayList<>();
+        for (String scope : scopes) {
+            if (claimsExtractorProvider.getScopes().contains(scope)) {
+                ClaimsSet cs = claimsExtractorProvider.getExtractor(scope).extractUserClaims(scope, user, clientDetails,
+                        scopes, null);
+                if (cs != null) {
+                    claimss.addAll(cs.getClaims());
+                }
+            }
+        }
+
+        // flat conversion, does not support complex objects (for example address)
+        for (Claim c : claimss) {
+            if (!AttributeType.OBJECT.equals(c.getType())) {
+                userClaims.put(c.getKey(), c.getValue());
+            }
+        }
 
         // set via builder
         userClaims.entrySet().forEach(e -> idClaims.claim(e.getKey(), e.getValue()));

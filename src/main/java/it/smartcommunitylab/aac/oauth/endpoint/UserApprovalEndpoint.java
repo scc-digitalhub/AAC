@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class UserApprovalEndpoint {
 
         AuthorizationRequest authorizationRequest = (AuthorizationRequest) model.get("authorizationRequest");
         String clientId = authorizationRequest.getClientId();
+Map<String, String> approvalParameters = authorizationRequest.getApprovalParameters();
 
         OAuth2ClientDetails clientDetails;
         try {
@@ -106,9 +108,11 @@ public class UserApprovalEndpoint {
         // re-add to model
         model.put("scopes", scopes);
 
-        // TODO add spaces
-//        model.put("spaces", spaces == null ? Collections.emptyMap() : spaces);
-        model.put("spaces", Collections.emptyMap());
+        // add spaces
+        @SuppressWarnings("unchecked")
+        Collection<String> spaces = (Collection<String>) (model.containsKey("spaces") ? model.get("spaces")
+                : request.getAttribute("spaces"));
+        model.put("spaces", spaces);
 
         // TODO handle csrf
         if (request.getAttribute("_csrf") != null) {

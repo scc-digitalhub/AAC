@@ -50,6 +50,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACApprovalHandler;
@@ -85,6 +86,7 @@ import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
+import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 /*
@@ -210,11 +212,14 @@ public class OAuth2Config {
 
     public ApprovalStoreUserApprovalHandler userApprovalHandler(
             ApprovalStore approvalStore,
-            OAuth2ClientDetailsService clientDetailsService) {
+            OAuth2ClientDetailsService oauthClientDetailsService,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            UserService userService) {
         ApprovalStoreUserApprovalHandler handler = new ApprovalStoreUserApprovalHandler();
         handler.setApprovalStore(approvalStore);
+        handler.setClientDetailsService(oauthClientDetailsService);
         handler.setClientDetailsService(clientDetailsService);
-
+        handler.setUserService(userService);
         return handler;
     }
 
@@ -234,9 +239,11 @@ public class OAuth2Config {
             OAuth2ClientDetailsService oauthClientDetailsService,
             ScopeRegistry scopeRegistry,
             it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            UserService userService,
             UserTranslatorService userTranslatorService,
             FlowExtensionsService flowExtensionsService) {
-        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService);
+        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService,
+                clientDetailsService, userService);
         ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService,
                 userTranslatorService);
         OAuthFlowExtensionsHandler flowExtensionsHandler = new OAuthFlowExtensionsHandler(flowExtensionsService,
@@ -259,10 +266,12 @@ public class OAuth2Config {
     public OIDCTokenEnhancer oidcTokenEnhancer(JWTService jwtService,
             it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
             OAuth2ClientDetailsService oauth2ClientDetailsService,
-            ClaimsService claimsService) {
+            OpenIdClaimsExtractorProvider openidClaimsExtractorProvider) {
+//            ClaimsService claimsService) {
 
         return new OIDCTokenEnhancer(issuer, jwtService, clientDetailsService, oauth2ClientDetailsService,
-                claimsService);
+//                claimsService);
+                openidClaimsExtractorProvider);
     }
 
     @Bean

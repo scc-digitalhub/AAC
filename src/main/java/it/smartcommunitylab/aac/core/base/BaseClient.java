@@ -17,6 +17,7 @@ public abstract class BaseClient extends AbstractClient {
 
     private Map<String, String> hookFunctions;
     private Map<String, String> hookWebUrls;
+    private String hookUniqueSpaces;
 
     public BaseClient(String realm, String clientId) {
         super(realm, clientId);
@@ -77,6 +78,14 @@ public abstract class BaseClient extends AbstractClient {
 
     public void setHookWebUrls(Map<String, String> hookWebUrls) {
         this.hookWebUrls = hookWebUrls;
+    }
+
+    public String getHookUniqueSpaces() {
+        return hookUniqueSpaces;
+    }
+
+    public void setHookUniqueSpaces(String hookUniqueSpaces) {
+        this.hookUniqueSpaces = hookUniqueSpaces;
     }
 
 }

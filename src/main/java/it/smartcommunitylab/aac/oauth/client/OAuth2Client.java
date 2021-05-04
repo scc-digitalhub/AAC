@@ -344,6 +344,7 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
 
         c.setHookFunctions(client.getHookFunctions());
         c.setHookWebUrls(client.getHookWebUrls());
+        c.setHookUniqueSpaces(client.getHookUniqueSpaces());
 
         // map attributes
         c.clientSecret = (oauth.getClientSecret() != null ? new ClientSecret(oauth.getClientSecret()) : null);

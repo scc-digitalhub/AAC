@@ -146,7 +146,7 @@ public class DevManager {
 
         // execute
         ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(),
-                userTranslatorService.translate(userDetails, realm), clientDetails, approvedScopes);
+                userTranslatorService.translate(userDetails, realm), clientDetails, approvedScopes, null);
         // get map via claimsService (hack)
         Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
 
@@ -197,7 +197,7 @@ public class DevManager {
 
         // execute
         ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(),
-                clientDetails, approvedScopes);
+                clientDetails, approvedScopes, null);
         // get map via claimsService (hack)
         Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
 
@@ -235,7 +235,7 @@ public class DevManager {
 
         // fetch claims
         Map<String, Serializable> claims = claimsService.getUserClaims(userDetails, realm, clientDetails,
-                approvedScopes, resourceIds);
+                approvedScopes, resourceIds, null);
 
         return claims;
     }

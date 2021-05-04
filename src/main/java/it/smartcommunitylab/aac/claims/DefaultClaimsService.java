@@ -105,7 +105,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     @Override
     public Map<String, Serializable> getUserClaims(UserDetails userDetails, String realm, ClientDetails client,
             Collection<String> scopes,
-            Collection<String> resourceIds)
+            Collection<String> resourceIds, Map<String, Serializable> extensions)
             throws NoSuchResourceException, InvalidDefinitionException, SystemException {
 
         Map<String, Serializable> claims = new HashMap<>();
@@ -138,7 +138,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 User user = userService.getUser(userDetails, ce.getRealm());
-                ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes);
+                ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes, extensions);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));
                 }
@@ -153,7 +153,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 User user = userService.getUser(userDetails, ce.getRealm());
-                ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes);
+                ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes, extensions);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));
                 }
@@ -244,7 +244,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     @Override
     public Map<String, Serializable> getClientClaims(ClientDetails client, Collection<String> scopes,
-            Collection<String> resourceIds)
+            Collection<String> resourceIds, Map<String, Serializable> extensions)
             throws NoSuchResourceException, InvalidDefinitionException, SystemException {
 
         Map<String, Serializable> claims = new HashMap<>();
@@ -267,7 +267,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Collection<ScopeClaimsExtractor> exts = extractorsRegistry.getScopeExtractors(scope);
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
-                ClaimsSet cs = ce.extractClientClaims(scope, client, scopes);
+                ClaimsSet cs = ce.extractClientClaims(scope, client, scopes, extensions);
                 if (cs != null && cs.isClient()) {
                     claims.putAll(extractClaims(cs));
                 }
@@ -281,7 +281,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Collection<ResourceClaimsExtractor> exts = extractorsRegistry.getResourceExtractors(resourceId);
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
-                ClaimsSet cs = ce.extractClientClaims(resourceId, client, scopes);
+                ClaimsSet cs = ce.extractClientClaims(resourceId, client, scopes, extensions);
                 if (cs != null && cs.isClient()) {
                     claims.putAll(extractClaims(cs));
                 }
