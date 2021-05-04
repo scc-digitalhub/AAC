@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -15,6 +16,7 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
+@Transactional
 public class OIDCAccountProvider extends AbstractProvider implements AccountProvider {
 
     private final OIDCUserAccountRepository accountRepository;
@@ -30,6 +32,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
+    @Transactional(readOnly = true)
     public OIDCUserAccount findAccount(String userId) {
         String id = parseResourceId(userId);
         String realm = getRealm();
@@ -51,6 +54,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         return account;
     }
 
+    @Transactional(readOnly = true)
     public OIDCUserAccount getAccount(String userId) throws NoSuchUserException {
         OIDCUserAccount account = findAccount(userId);
         if (account == null) {
@@ -62,6 +66,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OIDCUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
         String realm = getRealm();
         String provider = getProvider();
@@ -106,6 +111,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<OIDCUserAccount> listAccounts(String subject) {
         List<OIDCUserAccount> accounts = accountRepository.findBySubjectAndRealmAndProvider(subject, getRealm(),
                 getProvider());

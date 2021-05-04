@@ -1,20 +1,12 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import java.io.Serializable;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -35,9 +27,6 @@ import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.openid.OIDCUserIdentity;
-import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.SamlUserIdentity;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
@@ -111,6 +100,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public SamlUserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
             throws NoSuchUserException {
         // we expect an instance of our model
@@ -139,7 +129,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
             account.setUserId(userId);
             account.setProvider(provider);
             account.setRealm(realm);
-            account = accountRepository.save(account);
+            account = accountRepository.saveAndFlush(account);
         } else {
             // force link
             // TODO re-evaluate
@@ -167,7 +157,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         account.setEmail(email);
         account.setLang(lang);
 
-        account = accountRepository.save(account);
+        account = accountRepository.saveAndFlush(account);
 
         // TODO add additional attributes
 
@@ -184,6 +174,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SamlUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
         SamlUserAccount account = accountProvider.getAccount(userId);
 
@@ -198,6 +189,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SamlUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
             throws NoSuchUserException {
         // TODO add attributes load
@@ -205,6 +197,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<UserIdentity> listIdentities(String subject) {
         // TODO handle not persisted configuration
         List<UserIdentity> identities = new ArrayList<>();
@@ -263,6 +256,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public UserIdentity registerIdentity(
             String subject, UserAccount account,
             Collection<UserAttributes> attributes)
@@ -271,6 +265,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public UserIdentity updateIdentity(String subject,
             String userId, UserAccount account,
             Collection<UserAttributes> attributes)
@@ -280,12 +275,14 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
         // TODO delete via service
 
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteIdentities(String subjectId) {
         // TODO Auto-generated method stub
 

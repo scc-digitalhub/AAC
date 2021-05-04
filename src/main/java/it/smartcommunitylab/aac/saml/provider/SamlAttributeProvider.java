@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.saml.provider;
 
 import java.util.Collection;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -14,6 +15,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
+@Transactional
 public class SamlAttributeProvider extends AbstractProvider implements AttributeProvider {
 
     private final SamlUserAccountRepository accountRepository;
@@ -36,12 +38,14 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<AttributeSet> listCustomAttributeSets() {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<String> listCustomAttributes(String setId) {
         // TODO Auto-generated method stub
         return null;
@@ -78,12 +82,14 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<UserAttributes> getUserAttributes(String userId) throws NoSuchUserException {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException {
         // TODO Auto-generated method stub
         return null;

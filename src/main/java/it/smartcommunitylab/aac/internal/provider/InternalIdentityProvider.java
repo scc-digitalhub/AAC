@@ -3,12 +3,9 @@ package it.smartcommunitylab.aac.internal.provider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -19,32 +16,23 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.AccountProvider;
-import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalIdentityProvider extends AbstractProvider implements IdentityService {
 
     // services
-    // TODO replace with internalUserService to abstract repo + remove core user
-    // service, we don't want access to core here
-//    private final InternalUserAccountRepository accountRepository;
     private final UserEntityService userEntityService;
 
     // provider configuration
@@ -131,6 +119,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
+    @Transactional(readOnly = false)
     public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
             throws NoSuchUserException {
         // extract account and attributes in raw format from authenticated principal
@@ -183,12 +172,14 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InternalUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
 
         return getIdentity(subject, userId, false);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InternalUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
             throws NoSuchUserException {
 
@@ -220,6 +211,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<InternalUserIdentity> listIdentities(String subject) {
         // lookup for matching accounts
         List<InternalUserAccount> accounts = accountProvider.listAccounts(subject);
@@ -293,6 +285,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
+    @Transactional(readOnly = false)
     public InternalUserIdentity registerIdentity(
             String subject, UserAccount reg,
             Collection<UserAttributes> attributes)
@@ -356,6 +349,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
+    @Transactional(readOnly = false)
     public InternalUserIdentity updateIdentity(
             String subject,
             String userId, UserAccount reg,
@@ -400,6 +394,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteIdentity(String subject, String userId) throws NoSuchUserException {
         if (!config.getConfigMap().isEnableDelete()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
@@ -417,6 +412,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteIdentities(String subjectId) {
         if (!config.getConfigMap().isEnableDelete()) {
             throw new IllegalArgumentException("delete is disabled for this provider");

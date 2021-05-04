@@ -3,18 +3,17 @@ package it.smartcommunitylab.aac.core.service;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 
 @Service
+@Transactional
 public class ProviderService {
 
     private final ProviderEntityRepository providerRepository;
@@ -24,26 +23,32 @@ public class ProviderService {
         this.providerRepository = providerRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<ProviderEntity> listProviders() {
         return providerRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<ProviderEntity> listProvidersByAuthority(String authority) {
         return providerRepository.findByAuthority(authority);
     }
 
+    @Transactional(readOnly = true)
     public List<ProviderEntity> listProvidersByRealm(String realm) {
         return providerRepository.findByRealm(realm);
     }
 
+    @Transactional(readOnly = true)
     public List<ProviderEntity> listProvidersByRealmAndType(String realm, String type) {
         return providerRepository.findByRealmAndType(realm, type);
     }
 
+    @Transactional(readOnly = true)
     public ProviderEntity fetchProvider(String providerId) {
         return providerRepository.findByProviderId(providerId);
     }
 
+    @Transactional(readOnly = true)
     public ProviderEntity getProvider(String providerId) throws NoSuchProviderException {
         ProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -15,6 +16,7 @@ import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
+@Transactional
 public class SamlAccountProvider extends AbstractProvider implements AccountProvider {
 
     private final SamlUserAccountRepository accountRepository;
@@ -30,6 +32,7 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         return SystemKeys.RESOURCE_ACCOUNT;
     }
 
+    @Transactional(readOnly = true)
     public SamlUserAccount getAccount(String userId) throws NoSuchUserException {
         String id = parseResourceId(userId);
         String realm = getRealm();
@@ -53,6 +56,7 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SamlUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
         String realm = getRealm();
         String provider = getProvider();
@@ -97,6 +101,7 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<SamlUserAccount> listAccounts(String subject) {
         List<SamlUserAccount> accounts = accountRepository.findBySubjectAndRealmAndProvider(subject, getRealm(),
                 getProvider());

@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -25,6 +26,7 @@ import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeRepository;
 
 @Service
+@Transactional
 public class ServicesService {
 
     private final ServiceEntityRepository serviceRepository;
@@ -48,10 +50,12 @@ public class ServicesService {
     /*
      * Namespaces
      */
+    @Transactional(readOnly = true)
     public List<String> listNamespaces() {
         return serviceRepository.listAllNamespaces();
     }
 
+    @Transactional(readOnly = true)
     public it.smartcommunitylab.aac.services.Service findServiceByNamespace(String namespace) {
         ServiceEntity s = serviceRepository.findByNamespace(namespace);
         if (s == null) {
@@ -61,6 +65,7 @@ public class ServicesService {
         return toService(s);
     }
 
+    @Transactional(readOnly = true)
     public it.smartcommunitylab.aac.services.Service getServiceByNamespace(String namespace)
             throws NoSuchServiceException {
         ServiceEntity s = serviceRepository.findByNamespace(namespace);
@@ -80,6 +85,7 @@ public class ServicesService {
      * Services
      */
 
+    @Transactional(readOnly = true)
     public it.smartcommunitylab.aac.services.Service getService(String serviceId) throws NoSuchServiceException {
         ServiceEntity s = serviceRepository.findOne(serviceId);
         if (s == null) {
@@ -92,6 +98,7 @@ public class ServicesService {
         return toService(s, scopes, claims);
     }
 
+    @Transactional(readOnly = true)
     public it.smartcommunitylab.aac.services.Service findService(String serviceId) {
         ServiceEntity s = serviceRepository.findOne(serviceId);
         if (s == null) {
@@ -101,11 +108,13 @@ public class ServicesService {
         return toService(s);
     }
 
+    @Transactional(readOnly = true)
     public List<it.smartcommunitylab.aac.services.Service> listServices() {
         List<ServiceEntity> services = serviceRepository.findAll();
         return services.stream().map(s -> toService(s)).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<it.smartcommunitylab.aac.services.Service> listServices(String realm) {
         List<ServiceEntity> services = serviceRepository.findByRealm(realm);
         return services.stream().map(s -> toService(s)).collect(Collectors.toList());
@@ -213,6 +222,7 @@ public class ServicesService {
     /*
      * Service scopes
      */
+    @Transactional(readOnly = true)
     public ServiceScope getScope(String serviceId, String scope) throws NoSuchScopeException, NoSuchServiceException {
         ServiceScopeEntity s = scopeRepository.findByServiceIdAndScope(serviceId, scope);
         if (s == null) {
@@ -226,6 +236,7 @@ public class ServicesService {
         return ServiceScope.from(s, se.getNamespace());
     }
 
+    @Transactional(readOnly = true)
     public ServiceScope findScope(String serviceId, String scope) throws NoSuchServiceException {
         ServiceScopeEntity s = scopeRepository.findByServiceIdAndScope(serviceId, scope);
         if (s == null) {
@@ -238,6 +249,7 @@ public class ServicesService {
         return ServiceScope.from(s, se.getNamespace());
     }
 
+    @Transactional(readOnly = true)
     public List<ServiceScope> listScopes(String serviceId) throws NoSuchServiceException {
         ServiceEntity se = serviceRepository.findOne(serviceId);
         if (se == null) {
@@ -248,6 +260,7 @@ public class ServicesService {
         return list.stream().map(s -> ServiceScope.from(s, se.getNamespace())).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ServiceScope> listScopes(String serviceId, String type) throws NoSuchServiceException {
         ServiceEntity se = serviceRepository.findOne(serviceId);
         if (se == null) {
@@ -361,6 +374,7 @@ public class ServicesService {
     /*
      * Service claims
      */
+    @Transactional(readOnly = true)
     public ServiceClaim getClaim(String serviceId, String key) throws NoSuchClaimException, NoSuchServiceException {
         ServiceEntity service = serviceRepository.findOne(serviceId);
         if (service == null) {
@@ -375,6 +389,7 @@ public class ServicesService {
         return ServiceClaim.from(s);
     }
 
+    @Transactional(readOnly = true)
     public ServiceClaim findClaim(String serviceId, String key) throws NoSuchClaimException {
         ServiceClaimEntity s = claimRepository.findByServiceIdAndKey(serviceId, key);
         if (s == null) {
@@ -384,11 +399,13 @@ public class ServicesService {
         return ServiceClaim.from(s);
     }
 
+    @Transactional(readOnly = true)
     public List<ServiceClaim> findClaims(String serviceId) {
         List<ServiceClaimEntity> list = claimRepository.findByServiceId(serviceId);
         return list.stream().map(se -> ServiceClaim.from(se)).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ServiceClaim> listClaims(String serviceId) throws NoSuchServiceException {
         ServiceEntity service = serviceRepository.findOne(serviceId);
         if (service == null) {

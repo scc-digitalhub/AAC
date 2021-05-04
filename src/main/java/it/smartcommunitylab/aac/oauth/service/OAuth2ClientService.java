@@ -8,13 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -45,6 +44,7 @@ import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
  */
 
 @Service
+@Transactional
 public class OAuth2ClientService implements ClientService {
 
     // keep a list of supported grant types, should match tokenGranters
@@ -83,6 +83,7 @@ public class OAuth2ClientService implements ClientService {
 
     }
 
+    @Transactional(readOnly = true)
     public OAuth2Client findClient(String clientId) {
         ClientEntity client = clientService.findClient(clientId);
         OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(clientId);
@@ -96,6 +97,7 @@ public class OAuth2ClientService implements ClientService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OAuth2Client getClient(String clientId) throws NoSuchClientException {
         ClientEntity client = clientService.findClient(clientId);
         OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(clientId);
@@ -109,6 +111,7 @@ public class OAuth2ClientService implements ClientService {
     }
 
 //    @Override
+    @Transactional(readOnly = true)
     public Collection<BaseClient> listClients() {
         List<BaseClient> result = new ArrayList<>();
         List<OAuth2ClientEntity> oauths = oauthClientRepository.findAll();
@@ -123,6 +126,7 @@ public class OAuth2ClientService implements ClientService {
         return result;
     }
 
+    @Transactional(readOnly = true)
     public List<OAuth2Client> listClients(String realm) {
         List<OAuth2Client> result = new ArrayList<>();
         Collection<ClientEntity> clients = clientService.listClients(realm, OAuth2Client.CLIENT_TYPE);
@@ -138,6 +142,7 @@ public class OAuth2ClientService implements ClientService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ClientSecret getClientCredentials(String clientId) throws NoSuchClientException {
         OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(clientId);
 

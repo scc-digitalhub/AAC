@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -163,6 +164,7 @@ public class UserManager {
 //    }
 
     // per-realm view, partial and translated
+    @Transactional(readOnly = true)
     public User getUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
         // TODO evaluate if every user is globally accessible via translation or if we
@@ -171,6 +173,7 @@ public class UserManager {
     }
 
     // per realm view, lists both owned and proxied
+    @Transactional(readOnly = true)
     public List<User> listUsers(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -182,10 +185,13 @@ public class UserManager {
 	 * @return
 	 * @throws NoSuchRealmException 
 	 */
-	public Long countUsers(String realm) throws NoSuchRealmException {
+    @Transactional(readOnly = true)
+	public long countUsers(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 		return userService.countUsers(realm);
 	}
+    
+    @Transactional(readOnly = true)
     public Page<User> searchUsers(String realm, String keywords, Pageable pageRequest) {
         return userService.searchUsers(realm, keywords, pageRequest);
     }
@@ -197,10 +203,12 @@ public class UserManager {
 	 * @param roles
 	 * @throws NoSuchUserException 
 	 */
+    @Transactional(readOnly = false)
 	public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
 		userService.updateRealmAuthorities(slug, subjectId, roles);
 	}
 
+    @Transactional(readOnly = false)
     public void removeUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -297,6 +305,7 @@ public class UserManager {
      * Connected apps: current user
      */
 
+    @Transactional(readOnly = false)
     public Collection<ConnectedAppProfile> getMyConnectedApps() {
         UserDetails details = curUserDetails();
         return getConnectedApps(details.getSubjectId());
@@ -310,7 +319,7 @@ public class UserManager {
     /*
      * Connected apps: subjects
      */
-
+    @Transactional(readOnly = false)
     public Collection<ConnectedAppProfile> getConnectedApps(String realm, String subjectId) {
 
         // we return only clients which belong to the given realm
@@ -321,6 +330,7 @@ public class UserManager {
         return apps;
     }
 
+    @Transactional(readOnly = false)
     public void deleteConnectedApp(String realm, String subjectId, String clientId)
             throws NoSuchUserException, NoSuchClientException {
 

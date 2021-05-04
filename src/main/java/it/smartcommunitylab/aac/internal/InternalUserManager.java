@@ -52,7 +52,7 @@ public class InternalUserManager {
     private String[] adminRoles;
 
     @PostConstruct
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void init() throws Exception {
         // create admin as superuser
         logger.debug("create internal admin user " + adminUsername);

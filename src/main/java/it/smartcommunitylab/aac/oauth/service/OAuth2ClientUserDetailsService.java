@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.Config;
@@ -29,6 +30,7 @@ import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
  * @author raman
  *
  */
+@Transactional
 public class OAuth2ClientUserDetailsService implements UserDetailsService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -40,6 +42,7 @@ public class OAuth2ClientUserDetailsService implements UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String clientId) throws UsernameNotFoundException {
         logger.debug("load by client id " + clientId);
 

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -22,6 +23,7 @@ import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Service
+@Transactional
 public class RealmService implements InitializingBean {
 
     public static final Set<String> RESERVED_SLUG;
@@ -98,6 +100,7 @@ public class RealmService implements InitializingBean {
 
     }
 
+    @Transactional(readOnly = true)
     public Realm findRealm(String slug) {
         if (!StringUtils.hasText(slug)) {
             return null;
@@ -115,6 +118,7 @@ public class RealmService implements InitializingBean {
         return toRealm(r);
     }
 
+    @Transactional(readOnly = true)
     public Realm getRealm(String slug) throws NoSuchRealmException {
         Realm realm = findRealm(slug);
         if (realm == null) {
@@ -156,11 +160,13 @@ public class RealmService implements InitializingBean {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Realm> listRealms() {
         List<RealmEntity> realms = realmRepository.findAll();
         return realms.stream().map(r -> toRealm(r)).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<Realm> searchRealms(String keywords) {
         Set<RealmEntity> realms = new HashSet<>();
         realms.addAll(realmRepository.findBySlugContainingIgnoreCase(keywords));
@@ -169,6 +175,7 @@ public class RealmService implements InitializingBean {
         return realms.stream().map(r -> toRealm(r)).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
         Page<RealmEntity> page = StringUtils.hasText(keywords) ? realmRepository.findByKeywords(keywords, pageRequest)
                 : realmRepository.findAll(pageRequest);

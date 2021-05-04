@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
@@ -56,33 +57,40 @@ public class RealmManager {
      * TODO add role assignments, import/export etc
      */
 
+    @Transactional(readOnly = false)
     public Realm addRealm(Realm r) throws AlreadyRegisteredException {
         r.setSlug(r.getSlug().toLowerCase());
         return realmService.addRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic());
     }
 
+    @Transactional(readOnly = false)
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
         slug = slug.trim().toLowerCase();
         r.setSlug(slug);
         return realmService.updateRealm(slug, r.getName(), r.isEditable(), r.isPublic());
     }
 
+    @Transactional(readOnly = true)
     public Realm getRealm(String slug) throws NoSuchRealmException {
         return realmService.getRealm(slug);
     }
 
+    @Transactional(readOnly = true)
     public Collection<Realm> listRealms() {
         return realmService.listRealms();
     }
 
+    @Transactional(readOnly = true)
     public Collection<Realm> searchRealms(String keywords) {
         return realmService.searchRealms(keywords);
     }
 
+    @Transactional(readOnly = true)
     public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
         return realmService.searchRealms(keywords, pageRequest);
     }
 
+    @Transactional(readOnly = false)
     public void deleteRealm(String slug, boolean cleanup) throws NoSuchRealmException {
         Realm realm = realmService.getRealm(slug);
 

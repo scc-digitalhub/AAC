@@ -16,6 +16,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -112,6 +113,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public OIDCUserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
             throws NoSuchUserException {
         // we expect an instance of our model
@@ -140,7 +142,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
             account.setUserId(userId);
             account.setProvider(provider);
             account.setRealm(realm);
-            account = accountRepository.save(account);
+            account = accountRepository.saveAndFlush(account);
         } else {
             // force link
             // TODO re-evaluate
@@ -179,7 +181,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         account.setPictureUri(picture);
         account.setLang(lang);
 
-        account = accountRepository.save(account);
+        account = accountRepository.saveAndFlush(account);
 
         // update additional attributes in store, remove stale
         // avoid jwt attributes
@@ -209,6 +211,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OIDCUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
         OIDCUserAccount account = accountProvider.getAccount(userId);
 
@@ -223,6 +226,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OIDCUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
             throws NoSuchUserException {
         // TODO add attributes load
@@ -230,6 +234,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<UserIdentity> listIdentities(String subject) {
         // TODO handle not persisted configuration
         List<UserIdentity> identities = new ArrayList<>();
@@ -287,6 +292,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public UserIdentity registerIdentity(
             String subject, UserAccount account,
             Collection<UserAttributes> attributes)
@@ -295,6 +301,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public UserIdentity updateIdentity(String subject,
             String userId, UserAccount account,
             Collection<UserAttributes> attributes)
@@ -304,12 +311,14 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
         // TODO delete via service
 
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteIdentities(String subjectId) {
         // TODO Auto-generated method stub
 

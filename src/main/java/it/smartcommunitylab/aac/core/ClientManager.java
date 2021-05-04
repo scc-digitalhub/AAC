@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -70,6 +71,7 @@ public class ClientManager {
      * TODO add permission checkers
      */
 
+    @Transactional(readOnly = true)
     public Collection<ClientApp> listClientApps(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -82,6 +84,7 @@ public class ClientManager {
 
     }
 
+    @Transactional(readOnly = true)
     public Collection<ClientApp> listClientApps(String realm, String type) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -92,6 +95,7 @@ public class ClientManager {
         throw new IllegalArgumentException("invalid client type");
     }
 
+    @Transactional(readOnly = true)
     public ClientApp getClientApp(String realm, String clientId) throws NoSuchClientException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -130,6 +134,7 @@ public class ClientManager {
 //
 //    }
 
+    @Transactional(readOnly = false)
     public ClientApp registerClientApp(String realm, ClientApp app) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -150,6 +155,7 @@ public class ClientManager {
 
     }
 
+    @Transactional(readOnly = false)
     public ClientApp updateClientApp(String realm, String clientId, ClientApp app)
             throws NoSuchClientException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
@@ -179,6 +185,7 @@ public class ClientManager {
         return clientApp;
     }
 
+    @Transactional(readOnly = false)
     public void deleteClientApp(String realm, String clientId) throws NoSuchClientException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -237,6 +244,7 @@ public class ClientManager {
 //
 //    }
 
+    @Transactional(readOnly = true)
     public List<Client> listClients(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 
@@ -248,6 +256,7 @@ public class ClientManager {
         return apps;
     }
 
+    @Transactional(readOnly = false)
     private void deleteClient(String clientId) throws NoSuchClientException {
         ClientEntity entity = findClient(clientId);
         if (entity == null) {
@@ -291,6 +300,7 @@ public class ClientManager {
      * Client Credentials via service
      */
 
+    @Transactional(readOnly = true)
     public ClientCredentials getClientCredentials(String realm, String clientId)
             throws NoSuchClientException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
@@ -316,6 +326,7 @@ public class ClientManager {
         throw new IllegalArgumentException("invalid client type");
     }
 
+    @Transactional(readOnly = false)
     public ClientCredentials resetClientCredentials(String realm, String clientId)
             throws NoSuchClientException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
@@ -341,6 +352,7 @@ public class ClientManager {
         throw new IllegalArgumentException("invalid client type");
     }
 
+    @Transactional(readOnly = false)
     public ClientCredentials setClientCredentials(String realm, String clientId, Map<String, Object> credentials)
             throws NoSuchClientException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
@@ -372,6 +384,7 @@ public class ClientManager {
      * Client roles
      */
 
+    @Transactional(readOnly = true)
     public Collection<RealmRole> getRoles(String realm, String clientId)
             throws NoSuchClientException, NoSuchRealmException {
         Realm rlm = realmService.getRealm(realm);
@@ -391,6 +404,7 @@ public class ClientManager {
 
     }
 
+    @Transactional(readOnly = false)
     public Collection<RealmRole> updateRoles(String clientId, String realm, Collection<String> roles)
             throws NoSuchClientException, NoSuchRealmException {
         Realm rlm = realmService.getRealm(realm);
@@ -410,6 +424,7 @@ public class ClientManager {
     }
 
     // TODO evaluate removal, no reason to expose all roles
+    @Transactional(readOnly = false)
     protected Collection<RealmRole> getRoles(String clientId) throws NoSuchClientException {
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);

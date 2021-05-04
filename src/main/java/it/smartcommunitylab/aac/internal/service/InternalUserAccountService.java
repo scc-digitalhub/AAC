@@ -27,6 +27,7 @@ public class InternalUserAccountService {
     @Autowired
     private InternalUserAccountRepository accountRepository;
 
+    @Transactional(readOnly = true)
     public InternalUserAccount getAccount(long id) throws NoSuchUserException {
         InternalUserAccount account = accountRepository.findOne(id);
         if (account == null) {
@@ -36,6 +37,7 @@ public class InternalUserAccountService {
         return accountRepository.detach(account);
     }
 
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccount(long id) {
         InternalUserAccount account = accountRepository.findOne(id);
         if (account == null) {
@@ -45,6 +47,7 @@ public class InternalUserAccountService {
         return accountRepository.detach(account);
     }
 
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByUsername(String realm, String username) {
         InternalUserAccount account = accountRepository.findByRealmAndUsername(realm, username);
         if (account == null) {
@@ -54,6 +57,7 @@ public class InternalUserAccountService {
         return accountRepository.detach(account);
     }
 
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByEmail(String realm, String email) {
         InternalUserAccount account = accountRepository.findByRealmAndEmail(realm, email);
         if (account == null) {
@@ -63,6 +67,7 @@ public class InternalUserAccountService {
         return accountRepository.detach(account);
     }
 
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByConfirmationKey(String key) {
         InternalUserAccount account = accountRepository.findByConfirmationKey(key);
         if (account == null) {
@@ -72,6 +77,7 @@ public class InternalUserAccountService {
         return accountRepository.detach(account);
     }
 
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByResetKey(String key) {
         InternalUserAccount account = accountRepository.findByResetKey(key);
         if (account == null) {
@@ -81,6 +87,7 @@ public class InternalUserAccountService {
         return accountRepository.detach(account);
     }
 
+    @Transactional(readOnly = true)
     public List<InternalUserAccount> findBySubject(String subject) {
         List<InternalUserAccount> accounts = accountRepository.findBySubject(subject);
         return accounts.stream().map(a -> {
@@ -88,6 +95,7 @@ public class InternalUserAccountService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<InternalUserAccount> findBySubject(String subject, String realm) {
         List<InternalUserAccount> accounts = accountRepository.findBySubjectAndRealm(subject, realm);
         return accounts.stream().map(a -> {
@@ -119,7 +127,7 @@ public class InternalUserAccountService {
             account.setResetKey(reg.getResetKey());
             account.setChangeOnFirstAccess(reg.getChangeOnFirstAccess());
 
-            account = accountRepository.save(account);
+            account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
 
             return account;

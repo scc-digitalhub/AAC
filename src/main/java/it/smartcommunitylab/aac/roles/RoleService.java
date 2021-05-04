@@ -9,17 +9,20 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntityRepository;
 
 @Service
+@Transactional
 public class RoleService {
 
     @Autowired
     private SpaceRoleEntityRepository roleRepository;
 
+    @Transactional(readOnly = true)
     public Set<SpaceRole> getRoles(String subject) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubject(subject);
 
@@ -28,6 +31,7 @@ public class RoleService {
                 .collect(Collectors.toSet());
     }
 
+    @Transactional(readOnly = true)
     public Set<SpaceRole> getRoles(String subject, String context) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubjectAndContext(subject, context);
 
@@ -36,6 +40,7 @@ public class RoleService {
                 .collect(Collectors.toSet());
     }
 
+    @Transactional(readOnly = true)
     public Set<SpaceRole> getRoles(String subject, String context, String space) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubjectAndContextAndSpace(subject, context, space);
 

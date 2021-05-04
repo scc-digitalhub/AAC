@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -27,6 +28,7 @@ import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
  * Manage persistence for user entities and authorities (roles) 
  */
 @Service
+@Transactional
 public class UserEntityService {
 
     private final UserEntityRepository userRepository;
@@ -94,10 +96,12 @@ public class UserEntityService {
         return u;
     }
 
+    @Transactional(readOnly = true)
     public UserEntity findUser(String uuid) {
         return userRepository.findByUuid(uuid);
     }
 
+    @Transactional(readOnly = true)
     public UserEntity getUser(String uuid) throws NoSuchUserException {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u == null) {
@@ -107,28 +111,34 @@ public class UserEntityService {
         return u;
     }
 
+    @Transactional(readOnly = true)
     public List<UserEntity> getUsers(String realm) {
         return userRepository.findByRealm(realm);
     }
 
-	/**
-	 * @param realm
-	 * @return
-	 */
-	public Long countUsers(String realm) {
-		return userRepository.countByRealm(realm);
-	}
+    /**
+     * @param realm
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public long countUsers(String realm) {
+        return userRepository.countByRealm(realm);
+    }
+
+    @Transactional(readOnly = true)
     public Page<UserEntity> searchUsers(String realm, String q, Pageable pageRequest) {
         Page<UserEntity> page = StringUtils.hasText(q) ? userRepository.findByRealm(realm.toLowerCase(), q, pageRequest)
                 : userRepository.findByRealm(realm.toLowerCase(), pageRequest);
         return page;
     }
 
+    @Transactional(readOnly = true)
     public List<UserRoleEntity> getRoles(String uuid) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
         return userRoleRepository.findBySubject(u.getUuid());
     }
 
+    @Transactional(readOnly = true)
     public List<UserRoleEntity> getRoles(String uuid, String realm) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
         return userRoleRepository.findBySubjectAndRealm(u.getUuid(), realm);
@@ -232,6 +242,5 @@ public class UserEntityService {
 
         return u;
     }
-
 
 }

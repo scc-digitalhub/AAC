@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +22,7 @@ import it.smartcommunitylab.aac.core.persistence.ClientRoleEntityRepository;
  * Manage persistence for client entities and roles
  */
 @Service
+@Transactional
 public class ClientEntityService {
 
     private final ClientEntityRepository clientRepository;
@@ -75,10 +77,12 @@ public class ClientEntityService {
 
     }
 
+    @Transactional(readOnly = true)
     public ClientEntity findClient(String clientId) {
         return clientRepository.findByClientId(clientId);
     }
 
+    @Transactional(readOnly = true)
     public ClientEntity getClient(String clientId) throws NoSuchClientException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c == null) {
@@ -88,14 +92,17 @@ public class ClientEntityService {
         return c;
     }
 
+    @Transactional(readOnly = true)
     public Collection<ClientEntity> listClients() {
         return clientRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Collection<ClientEntity> listClients(String realm) {
         return clientRepository.findByRealm(realm);
     }
 
+    @Transactional(readOnly = true)
     public Collection<ClientEntity> listClients(String realm, String type) {
         return clientRepository.findByRealmAndType(realm, type);
     }
@@ -142,11 +149,13 @@ public class ClientEntityService {
     /*
      * Client roles
      */
+    @Transactional(readOnly = true)
     public List<ClientRoleEntity> getRoles(String clientId) throws NoSuchClientException {
 //        ClientEntity c = getClient(clientId);
         return clientRoleRepository.findByClientId(clientId);
     }
 
+    @Transactional(readOnly = true)
     public List<ClientRoleEntity> getRoles(String clientId, String realm) throws NoSuchClientException {
 //      ClientEntity c = getClient(clientId);
         return clientRoleRepository.findByClientIdAndRealm(clientId, realm);

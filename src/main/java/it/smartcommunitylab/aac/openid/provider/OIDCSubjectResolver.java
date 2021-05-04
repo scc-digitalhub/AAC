@@ -13,17 +13,18 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.DefaultAccountImpl;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
+@Transactional
 public class OIDCSubjectResolver extends AbstractProvider implements SubjectResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -43,6 +44,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Subject resolveByUserId(String userId) {
         logger.debug("resolve by user id " + userId);
         try {
@@ -56,6 +58,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Subject resolveByIdentifyingAttributes(Map<String, String> attributes) {
         try {
             // let provider resolve to an account
@@ -69,6 +72,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Set<String>> getIdentifyingAttributes() {
         // hardcoded, see repository
         List<Set<String>> attributes = new ArrayList<>();
@@ -86,6 +90,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Subject resolveByLinkingAttributes(Map<String, String> attributes) {
 
         if (attributes.keySet().containsAll(Arrays.asList("realm", "email"))

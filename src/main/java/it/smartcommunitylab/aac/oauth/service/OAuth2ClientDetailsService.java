@@ -8,11 +8,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.NoSuchClientException;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -21,11 +20,11 @@ import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
-import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 
+@Transactional
 public class OAuth2ClientDetailsService implements ClientDetailsService {
 
     // TODO evaluate direct repo access VS service
@@ -47,6 +46,7 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
     // TODO add a local cache, client definitions don't change frequently
     // even short window (30s) could cover a whole request
     @Override
+    @Transactional(readOnly = true)
     public OAuth2ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
         ClientEntity client = clientService.findClient(clientId);
         OAuth2ClientEntity oauth = clientRepository.findByClientId(clientId);
