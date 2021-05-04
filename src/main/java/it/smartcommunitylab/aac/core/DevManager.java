@@ -2,14 +2,18 @@ package it.smartcommunitylab.aac.core;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
@@ -20,17 +24,23 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest;
 import org.springframework.stereotype.Component;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ClaimsService;
+import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -40,6 +50,9 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.services.ScriptServiceClaimExtractor;
+import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.services.ServicesManager;
 
 @Component
 public class DevManager {
@@ -72,19 +85,127 @@ public class DevManager {
     private TokenGranter oauth2TokenGranter;
 
     @Autowired
-    private ClaimsService claimsService;
+    private DefaultClaimsService claimsService;
 
     @Autowired
     private ScopeRegistry scopeRegistry;
 
     @Autowired
-    private ScriptExecutionService scriptExecutionService;
+    private ScriptExecutionService executionService;
 
+    @Autowired
+    private ServicesManager serviceManager;
+
+    @Autowired
+    private UserTranslatorService userTranslatorService;
     /*
      * Claims
      */
 
-    public Map<String, Serializable> testClientClaimMapping(String realm, String clientId, String functionCode)
+    public Map<String, Serializable> testServiceUserClaimMapping(String realm, String serviceId, String functionCode,
+            Collection<String> scopes)
+            throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
+        // fetch context
+        // TODO evaluate mock userDetails for testing
+        UserDetails userDetails = authHelper.getUserDetails();
+        if (userDetails == null) {
+            throw new InsufficientAuthenticationException("invalid or missing user authentication");
+        }
+
+        // mock clientDetails
+        String clientId = UUID.randomUUID().toString();
+        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
+        ClientDetails clientDetails = new ClientDetails(clientId, realm,
+                SystemKeys.CLIENT_TYPE_OAUTH2,
+                clientAuthorities);
+
+        // fetch and validate scopes?
+        // not really needed for testing
+        Set<String> approvedScopes = new HashSet<>();
+        for (String s : scopes) {
+            Scope scope = scopeRegistry.findScope(s);
+            if (scope != null) {
+                approvedScopes.add(scope.getScope());
+            }
+        }
+
+        clientDetails.setScopes(approvedScopes);
+
+        // fetch service
+        Service service = serviceManager.getService(realm, serviceId);
+
+        // clear hookFunctions already set and pass only test function
+        Map<String, String> functions = new HashMap<>();
+        functions.put("user", functionCode);
+        service.setClaimMapping(functions);
+
+        // build extractor
+        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
+        e.setExecutionService(executionService);
+        e.setUserTranslatorService(userTranslatorService);
+
+        // execute
+        ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(),
+                userTranslatorService.translate(userDetails, realm), clientDetails, approvedScopes);
+        // get map via claimsService (hack)
+        Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+
+        return claims;
+    }
+
+    public Map<String, Serializable> testServiceClientClaimMapping(String realm, String serviceId, String functionCode,
+            Collection<String> scopes)
+            throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
+        // fetch context
+        // TODO evaluate mock userDetails for testing
+        UserDetails userDetails = authHelper.getUserDetails();
+        if (userDetails == null) {
+            throw new InsufficientAuthenticationException("invalid or missing user authentication");
+        }
+
+        // mock clientDetails
+        String clientId = UUID.randomUUID().toString();
+        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
+        ClientDetails clientDetails = new ClientDetails(clientId, realm,
+                SystemKeys.CLIENT_TYPE_OAUTH2,
+                clientAuthorities);
+
+        // fetch and validate scopes?
+        // not really needed for testing
+        Set<String> approvedScopes = new HashSet<>();
+        for (String s : scopes) {
+            Scope scope = scopeRegistry.findScope(s);
+            if (scope != null) {
+                approvedScopes.add(scope.getScope());
+            }
+        }
+
+        clientDetails.setScopes(approvedScopes);
+
+        // fetch service
+        Service service = serviceManager.getService(realm, serviceId);
+
+        // clear hookFunctions already set and pass only test function
+        Map<String, String> functions = new HashMap<>();
+        functions.put("client", functionCode);
+        service.setClaimMapping(functions);
+
+        // build extractor
+        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
+        e.setExecutionService(executionService);
+        e.setUserTranslatorService(userTranslatorService);
+
+        // execute
+        ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(),
+                clientDetails, approvedScopes);
+        // get map via claimsService (hack)
+        Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+
+        return claims;
+    }
+
+    public Map<String, Serializable> testClientClaimMapping(String realm, String clientId, String functionCode,
+            Collection<String> scopes)
             throws NoSuchClientException, SystemException, NoSuchResourceException, InvalidDefinitionException {
         // fetch context
         // TODO evaluate mock userDetails for testing
@@ -100,6 +221,10 @@ public class DevManager {
 
         // fetch and validate scopes and resourceids, we need approvals
         Collection<String> clientScopes = clientDetails.getScopes();
+        if (scopes != null) {
+            clientScopes = scopes;
+        }
+
         Set<String> resourceIds = new HashSet<>(clientDetails.getResourceIds());
         Set<String> approvedScopes = getClientApprovedScopes(clientDetails, userDetails, clientScopes);
 
@@ -209,7 +334,7 @@ public class DevManager {
             String grantType = AuthorizationGrantType.IMPLICIT.getValue();
             TokenRequest tokenRequest = oauth2RequestFactory.createTokenRequest(authorizationRequest, grantType);
             OAuth2Request storedOAuth2Request = oauth2RequestFactory.createOAuth2Request(authorizationRequest);
-            ImplicitTokenRequest implicitRequest =   new ImplicitTokenRequest(tokenRequest, storedOAuth2Request);
+            ImplicitTokenRequest implicitRequest = new ImplicitTokenRequest(tokenRequest, storedOAuth2Request);
             OAuth2AccessToken accessToken = oauth2TokenGranter.grant(grantType, implicitRequest);
 
             return accessToken;

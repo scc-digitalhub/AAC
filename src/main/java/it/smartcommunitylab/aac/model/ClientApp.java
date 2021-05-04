@@ -40,12 +40,12 @@ public class ClientApp {
 
     // scopes
     // TODO evaluate a better mapping for services+attribute sets etc
-    private String[] scopes;
+    private String[] scopes = new String[0];
 
-    private String[] resourceIds;
+    private String[] resourceIds = new String[0];
 
     // providers enabled
-    private String[] providers;
+    private String[] providers = new String[0];
 
     // roles
     // TODO

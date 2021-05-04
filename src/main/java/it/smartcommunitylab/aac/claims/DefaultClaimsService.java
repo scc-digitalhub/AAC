@@ -344,7 +344,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     // custom converter from claims list to values map
     // TODO rework
-    private HashMap<String, Serializable> claimsToMap(Collection<Claim> claims) {
+    public HashMap<String, Serializable> claimsToMap(Collection<Claim> claims) {
         // we build a tree where
         // namespace -> collection of claims via key
         // with multiple claims with the same key grouped under a collection

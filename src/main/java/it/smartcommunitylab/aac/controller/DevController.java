@@ -17,12 +17,14 @@ import javax.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.yaml.snakeyaml.Yaml;
 
@@ -119,17 +123,17 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<RealmStatsBean> getRealmStats(@PathVariable String realm) throws NoSuchRealmException {
-    	RealmStatsBean bean = new RealmStatsBean();
-    	Realm realmObj = realmManager.getRealm(realm);
-    	bean.setRealm(realmObj);
-    	Long userCount = userManager.countUsers(realm);
-    	bean.setUsers(userCount);
+        RealmStatsBean bean = new RealmStatsBean();
+        Realm realmObj = realmManager.getRealm(realm);
+        bean.setRealm(realmObj);
+        Long userCount = userManager.countUsers(realm);
+        bean.setUsers(userCount);
         Collection<ConfigurableProvider> providers = providerManager
                 .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY);
         bean.setProviders(providers.size());
-    	Collection<ClientApp> apps = clientManager.listClientApps(realm);
-    	bean.setApps(apps.size());
-    	bean.setServices(serviceManager.listServices(realm).size());
+        Collection<ClientApp> apps = clientManager.listClientApps(realm);
+        bean.setApps(apps.size());
+        bean.setServices(serviceManager.listServices(realm).size());
         return ResponseEntity.ok(bean);
     }
 
@@ -207,7 +211,7 @@ public class DevController {
 
         return ResponseEntity.ok(providers);
     }
-    
+
     @GetMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<ProviderRegistrationBean> getRealmProvider(
@@ -413,49 +417,53 @@ public class DevController {
         return ResponseEntity.ok(clientApp);
 
     }
-    
+
     @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/oauth2/{grantType}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<OAuth2AccessToken> testRealmClientAppOAuth2(@PathVariable String realm, @PathVariable String clientId,
+    public ResponseEntity<OAuth2AccessToken> testRealmClientAppOAuth2(@PathVariable String realm,
+            @PathVariable String clientId,
             @PathVariable String grantType)
             throws NoSuchRealmException, NoSuchClientException, SystemException {
 
         // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
-        //check if oauth2
-        if(!clientApp.getType().equals(SystemKeys.CLIENT_TYPE_OAUTH2)) {
+        // check if oauth2
+        if (!clientApp.getType().equals(SystemKeys.CLIENT_TYPE_OAUTH2)) {
             throw new IllegalArgumentException("client does not support oauth2");
         }
-        
+
         OAuth2AccessToken accessToken = devManager.testOAuth2Flow(realm, clientId, grantType);
 
         return ResponseEntity.ok(accessToken);
     }
-    
+
     @PostMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/claims")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Map<String, Serializable>> testRealmClientAppClaims(@PathVariable String realm, @PathVariable String clientId,
+    public ResponseEntity<Map<String, Serializable>> testRealmClientAppClaims(@PathVariable String realm,
+            @PathVariable String clientId,
             @RequestBody String functionCode)
-            throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+            throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException,
+            InvalidDefinitionException {
 
         // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
-        try {
-        Map<String, Serializable> result = devManager.testClientClaimMapping(realm, clientId, functionCode);
+//        try {
+        // TODO receive list of scopes for testing
+        Map<String, Serializable> result = devManager.testClientClaimMapping(realm, clientId, functionCode, null);
 
         return ResponseEntity.ok(result);
-        
-        } catch (InvalidDefinitionException | RuntimeException e) {
-            e.printStackTrace();
-            //wrap error
-            Map<String, Serializable> res =  new HashMap<>();
-            res.put("error",e.getClass().getName());
-            res.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(res);
-        }
+
+//        } catch (InvalidDefinitionException | RuntimeException e) {
+//            e.printStackTrace();
+//            // wrap error
+//            Map<String, Serializable> res = new HashMap<>();
+//            res.put("error", e.getClass().getName());
+//            res.put("message", e.getMessage());
+//            return ResponseEntity.badRequest().body(res);
+//        }
     }
 
     @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/yaml")
@@ -465,21 +473,20 @@ public class DevController {
             HttpServletResponse res)
             throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
         Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
-        
+
         // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
-        
         String s = yaml.dump(clientApp);
-        //write as file
+        // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition","attachment;filename="+clientApp.getName()+".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=" + clientApp.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();
         out.close();
     }
-    
+
     /*
      * Scopes and resources
      */
@@ -519,27 +526,34 @@ public class DevController {
     @GetMapping("/console/dev/realms/{realm}/services")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<List<Service>> listServices(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
-    	return ResponseEntity.ok(serviceManager.listServices(realm));
+    public ResponseEntity<List<Service>> listServices(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+        return ResponseEntity.ok(serviceManager.listServices(realm));
     }
+
     @GetMapping("/console/dev/realms/{realm}/services/{serviceId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Service> getService(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @PathVariable String serviceId) throws NoSuchRealmException, NoSuchServiceException {
-    	return ResponseEntity.ok(serviceManager.getService(realm, serviceId));
+    public ResponseEntity<Service> getService(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable String serviceId) throws NoSuchRealmException, NoSuchServiceException {
+        return ResponseEntity.ok(serviceManager.getService(realm, serviceId));
     }
+
     @GetMapping("/console/dev/realms/{realm}/services/{serviceId}/yaml")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public void exportService(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @PathVariable String serviceId, HttpServletResponse res) throws NoSuchRealmException, NoSuchServiceException, IOException {
-    	Yaml yaml = YamlUtils.getInstance(true, Service.class);
-        
-    	Service service = serviceManager.getService(realm, serviceId);
-    	
-    	String s = yaml.dump(service);
-        //write as file
+    public void exportService(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable String serviceId, HttpServletResponse res)
+            throws NoSuchRealmException, NoSuchServiceException, IOException {
+        Yaml yaml = YamlUtils.getInstance(true, Service.class);
+
+        Service service = serviceManager.getService(realm, serviceId);
+
+        String s = yaml.dump(service);
+        // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition","attachment;filename="+service.getName()+".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=" + service.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();
@@ -547,9 +561,12 @@ public class DevController {
     }
 
     @PostMapping("/console/dev/realms/{realm}/services")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Service> addService(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @RequestBody @Valid Service s) throws NoSuchRealmException {
-    	return ResponseEntity.ok(serviceManager.addService(realm, s));
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Service> addService(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @RequestBody @Valid Service s)
+            throws NoSuchRealmException {
+        return ResponseEntity.ok(serviceManager.addService(realm, s));
     }
 
     @PutMapping("/console/dev/realms/{realm}/services/{serviceId}")
@@ -572,11 +589,12 @@ public class DevController {
         serviceManager.deleteService(realm, serviceId);
         return ResponseEntity.ok(null);
     }
+
     @GetMapping("/console/dev/services/nsexists")
     public ResponseEntity<Boolean> checkNamespace(@RequestParam String ns) throws NoSuchRealmException {
-    	return ResponseEntity.ok(serviceManager.checkServiceNamespace(ns));
+        return ResponseEntity.ok(serviceManager.checkServiceNamespace(ns));
     }
-    
+
     @PostMapping("/console/dev/realms/{realm}/services/{serviceId}/claims")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -612,20 +630,33 @@ public class DevController {
         return ResponseEntity.ok(null);
     }
 
-
     @PostMapping("/console/dev/realms/{realm}/services/{serviceId}/claims/validate")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<ValidationResultBean> validate(
+    public ResponseEntity<Map<String, Serializable>> validate(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId, @RequestBody ValidationBean bean) throws NoSuchServiceException, NoSuchRealmException {
-    	Service service = serviceManager.getService(realm, serviceId);
-    	ValidationResultBean res = new ValidationResultBean();
-    	res.data = new HashMap<>();
-    	// TODO
-    	return ResponseEntity.ok(res);
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @RequestBody ValidationBean bean)
+            throws NoSuchServiceException, NoSuchRealmException, SystemException, InvalidDefinitionException {
+
+        String kind = bean.getKind();
+        String functionCode = bean.getMapping();
+        List<String> scopes = bean.getScopes();
+
+        Service service = serviceManager.getService(realm, serviceId);
+        if ("user".equals(kind)) {
+            Map<String, Serializable> result = devManager.testServiceUserClaimMapping(realm, serviceId, functionCode,
+                    scopes);
+
+            return ResponseEntity.ok(result);
+        } else {
+            Map<String, Serializable> result = devManager.testServiceClientClaimMapping(realm, serviceId, functionCode,
+                    scopes);
+            return ResponseEntity.ok(result);
+        }
+
     }
-    
+
     @PostMapping("/console/dev/realms/{realm}/services/{serviceId}/scopes")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -671,6 +702,7 @@ public class DevController {
             throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
         return ResponseEntity.ok(serviceManager.getServiceScopeApprovals(realm, serviceId, scope));
     }
+
     @GetMapping("/console/dev/realms/{realm}/services/{serviceId}/approvals")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -692,7 +724,8 @@ public class DevController {
             @RequestParam(required = false, defaultValue = "true") boolean approved)
             throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
         int duration = SystemKeys.DEFAULT_APPROVAL_VALIDITY;
-        return ResponseEntity.ok(serviceManager.addServiceScopeApproval(realm, serviceId, scope, clientId, duration, approved));
+        return ResponseEntity
+                .ok(serviceManager.addServiceScopeApproval(realm, serviceId, scope, clientId, duration, approved));
     }
 
     @DeleteMapping("/console/dev/realms/{realm}/services/{serviceId}/scopes/{scope}/approvals")
@@ -705,9 +738,69 @@ public class DevController {
             @RequestParam String clientId)
             throws NoSuchRealmException, NoSuchScopeException, NoSuchServiceException {
         serviceManager.revokeServiceScopeApproval(realm, serviceId, scope, clientId);
-        return  ResponseEntity.ok(null);
+        return ResponseEntity.ok(null);
     }
-    
+
+    /*
+     * REST style exception handling
+     */
+    @ExceptionHandler({
+            NoSuchRealmException.class,
+            NoSuchUserException.class,
+            NoSuchClientException.class,
+            NoSuchServiceException.class,
+            NoSuchScopeException.class,
+            NoSuchClaimException.class,
+            NoSuchProviderException.class
+    })
+    public ResponseEntity<Object> handleNotFoundException(Exception ex) {
+        HttpHeaders headers = new HttpHeaders();
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        Map<String, Object> response = buildResponse(ex, status, null);
+
+        return new ResponseEntity<>(response, headers, status);
+    }
+
+    @ExceptionHandler({
+            InvalidDefinitionException.class,
+            IllegalArgumentException.class,
+            RegistrationException.class
+    })
+    public ResponseEntity<Object> handleBadRequestException(Exception ex) {
+        HttpHeaders headers = new HttpHeaders();
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        Map<String, Object> response = buildResponse(ex, status, null);
+
+        return new ResponseEntity<>(response, headers, status);
+    }
+
+    @ExceptionHandler({
+            SystemException.class,
+            RuntimeException.class
+    })
+    public ResponseEntity<Object> handleSystemException(Exception ex) {
+        HttpHeaders headers = new HttpHeaders();
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        Map<String, Object> response = buildResponse(ex, status, null);
+
+        return new ResponseEntity<>(response, headers, status);
+    }
+
+    private Map<String, Object> buildResponse(Exception ex, HttpStatus status, Object body) {
+        Map<String, Object> response = new HashMap<>();
+//        response.put("timestamp", new Date())
+        response.put("status", status.value());
+        response.put("error", status.getReasonPhrase());
+        response.put("message", ex.getMessage());
+
+        if (body != null) {
+            response.put("description", body);
+        }
+
+        return response;
+
+    }
+
     /*
      * DTO
      */
@@ -724,36 +817,56 @@ public class DevController {
         }
 
     }
+
     public static class ValidationBean {
-    	private List<String> scopes;
-    	private String mapping;
-		public List<String> getScopes() {
-			return scopes;
-		}
-		public void setScopes(List<String> scopes) {
-			this.scopes = scopes;
-		}
-		public String getMapping() {
-			return mapping;
-		}
-		public void setMapping(String mapping) {
-			this.mapping = mapping;
-		}
+        private List<String> scopes;
+        private String mapping;
+        private String kind;
+
+        public List<String> getScopes() {
+            return scopes;
+        }
+
+        public void setScopes(List<String> scopes) {
+            this.scopes = scopes;
+        }
+
+        public String getMapping() {
+            return mapping;
+        }
+
+        public void setMapping(String mapping) {
+            this.mapping = mapping;
+        }
+
+        public String getKind() {
+            return kind;
+        }
+
+        public void setKind(String kind) {
+            this.kind = kind;
+        }
+
     }
-    public static class ValidationResultBean {
-    	private String errorMessage;
-    	private Map<String, Object> data;
-		public String getErrorMessage() {
-			return errorMessage;
-		}
-		public void setErrorMessage(String errorMessage) {
-			this.errorMessage = errorMessage;
-		}
-		public Map<String, Object> getData() {
-			return data;
-		}
-		public void setData(Map<String, Object> data) {
-			this.data = data;
-		}
-    }
+
+//    public static class ValidationResultBean {
+//        private String errorMessage;
+//        private Map<String, Object> data;
+//
+//        public String getErrorMessage() {
+//            return errorMessage;
+//        }
+//
+//        public void setErrorMessage(String errorMessage) {
+//            this.errorMessage = errorMessage;
+//        }
+//
+//        public Map<String, Object> getData() {
+//            return data;
+//        }
+//
+//        public void setData(Map<String, Object> data) {
+//            this.data = data;
+//        }
+//    }
 }

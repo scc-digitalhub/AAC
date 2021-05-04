@@ -60,8 +60,8 @@ angular.module('aac.controllers.realmservices', [])
       return data.data;
     });
   }
-  rsService.validateClaims = function(realm, serviceId, mapping, scopes) {
-    return $http.post('console/dev/realms/' + realm + '/services/' + serviceId +'/claims/validate', {scopes: scopes, mapping: mapping}).then(function(data) {
+  rsService.validateClaims = function(realm, serviceId, kind, mapping, scopes) {
+    return $http.post('console/dev/realms/' + realm + '/services/' + serviceId +'/claims/validate', {kind: kind, scopes: scopes, mapping: mapping}).then(function(data) {
       return data.data;
     });
   }
@@ -381,7 +381,7 @@ angular.module('aac.controllers.realmservices', [])
       $scope.service.claimMapping[m] = 
         '/**\n * DEFINE YOUR OWN CLAIM MAPPING HERE\n' +
         '**/\n'+
-        'function claimMapping(claims) {\n   return {};\n}';
+        'function claimMapping(context) {\n let client = context.client; \n let user = context.user; \n let scopes = context.scopes; \n  return {};\n}';
     }
   }
   /**
@@ -391,13 +391,9 @@ angular.module('aac.controllers.realmservices', [])
     $scope.validationResult[m] = '';
     $scope.validationError[m] = '';
     
-    RealmServicesData.validateClaims($scope.service.realm, $scope.service.serviceId, $scope.service.claimMapping[m], $scope.claimEnabled[m].scopes.map(function(s) { return s.text}))
+    RealmServicesData.validateClaims($scope.service.realm, $scope.service.serviceId, m, $scope.service.claimMapping[m], $scope.claimEnabled[m].scopes.map(function(s) { return s.text}))
     .then(function(data) {
-      if (data.errorMessage) {
-        $scope.validationError[m] = data.errorMessage;       
-      } else {
-        $scope.validationResult[m] = data.data;
-      }
+        $scope.validationResult[m] = data;   
     })
     .catch(function (e) {
       $scope.validationResult[m] = '';
