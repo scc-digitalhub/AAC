@@ -1,22 +1,18 @@
 <table class="table table-bordered align-middle">
 	<tr>
-		<th>name</th>
+		<th>Name</th>
 		<td>{{app.name}}</td>
 	</tr>
 	<tr>
-		<th>type</th>
+		<th>Type</th>
 		<td>{{app.type}}</td>
 	</tr>
 	<tr>
-		<th>clientId</th>
+		<th>Client Id</th>
 		<td>{{app.clientId}}</td>
 	</tr>
-	<tr>
-		<th>realm</th>
-		<td>{{app.realm}}</td>
-	</tr>
    <tr>
-      <th>scopes</th>
-      <td>{{app.scopes.join()}}</td>
+      <th>Scopes</th>
+      <td>{{app.scopes.join(', ')}}</td>
    </tr>	
 </table>

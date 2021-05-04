@@ -2,24 +2,30 @@
 
     <fieldset>
         <legend class="mb-4">Custom claim mapping</legend>
-              <div class="form-check form-check-inline">
-                 <input id="appClaimMappingnabled" class="form-check-input" type="checkbox" ng-model="claimMapping.enabled" ng-change="toggleClientAppClaimMapping()">
-                <label for="appClaimMappingnabled">Enable</label>
-              </div>   
-        <div class="form-group">
+        <div class="row">
+	        <div class="form-group col">
+	          <div class="row mb-2">
+	            <div class="form-check form-check-inline col">
+	              <input id="appClaimMappingnabled" class="form-check-input" type="checkbox" ng-model="claimMapping.enabled" ng-change="toggleClientAppClaimMapping()">
+	              <label for="appClaimMappingnabled">Enable</label>
+	            </div>   
+	            <div class="col text-right">
+                <button class="btn btn-secondary btn-sm text-right" ng-click="testClientAppClaimMapping()" ng-disabled="!claimMapping.enabled">Test</button>
+	            </div>
+	          </div> 
             <div ui-ace="aceOption" ng-model="claimMapping.code"></div>
-
-            <button class="btn btn-secondary btn-sm " ng-click="testClientAppClaimMapping()" ng-disabled="!claimMapping.enabled">Test</button>
-
-            <div ng-if="claimMapping.result">
-               <figure class="highlight">
-                  <code class="language-json" data-lang="json">
-                  <pre>{{claimMapping.result | json:4}}</pre>
-                  </code>
-               </figure>
-                
-            </div>
-            <div class="text-danger" ng-if="claimMapping.error">{{claimMapping.error}}</div>
+	        </div>
+	        <div class="col">
+              <div ng-if="claimMapping.result" class="mt-5 mb-5 border p-2">
+                 <figure class="highlight mb-0">
+                    <code class="language-json" data-lang="json">
+                    <pre class="mb-0">{{claimMapping.result | json:4}}</pre>
+                    </code>
+                 </figure>
+                  
+              </div>
+              <div class="text-danger" ng-if="claimMapping.error">{{claimMapping.error}}</div>
+	        </div>
         </div>
     </fieldset>
 </div>

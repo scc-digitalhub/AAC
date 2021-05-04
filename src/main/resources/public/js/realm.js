@@ -385,6 +385,7 @@ angular.module('aac.controllers.realm', [])
   .controller('RealmAppController', function ($scope, $stateParams, RealmData, Utils) {
     var slug = $stateParams.realmId;
     var clientId = $stateParams.clientId;
+    $scope.clientView = 'overview';
 
     $scope.aceOption = {
       mode: 'javascript',
@@ -433,6 +434,7 @@ angular.module('aac.controllers.realm', [])
 
             $scope.oauth2Tokens = oauth2Tokens;
           }
+          
         })
         .catch(function (err) {
           Utils.showError('Failed to load realm client app: ' + err.data.message);
@@ -650,7 +652,17 @@ angular.module('aac.controllers.realm', [])
     $scope.switchClientView = function (view) {
       console.log("switch view to " + view);
       $scope.clientView = view;
+      Utils.refreshFormBS(300);
     }
+
+    $scope.copyText = function(txt) {
+      var textField = document.createElement('textarea');
+      textField.innerText = txt;
+      document.body.appendChild(textField);
+      textField.select();
+      document.execCommand('copy');
+      textField.remove();   
+  } 
 
     $scope.updateResources = function (scopes) {
       var resources = [];
