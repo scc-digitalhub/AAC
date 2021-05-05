@@ -399,4 +399,24 @@ public class UserService {
                 pageRequest,
                 () -> page.getTotalElements());
 	}
+
+	/**
+	 * @param realm
+	 * @param username
+	 * @param roles
+	 */
+	public void inviteInternalUser(String realm, String username, List<String> roles) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * @param realm
+	 * @param subjectId
+	 * @param roles
+	 */
+	public void inviteExternalUser(String realm, String subjectId, List<String> roles) {
+		// TODO Auto-generated method stub
+		
+	}
 }

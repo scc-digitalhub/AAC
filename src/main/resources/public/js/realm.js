@@ -125,6 +125,28 @@ angular.module('aac.controllers.realm', [])
 
     }
 
+    $scope.inviteUser = function () {
+      $scope.invitation = {
+        external: false
+      }
+      $scope.roles = {
+        system_map: {}, map: {}, custom: ''
+      }
+      $('#inviteModal').modal({ backdrop: 'static', focus: true })
+    }
+    $scope.invite = function() {
+      $('#inviteModal').modal('hide');
+      var roles = [];
+      for (var k in $scope.roles.system_map) if ($scope.roles.system_map[k]) roles.push(k);
+      for (var k in $scope.roles.map) if ($scope.roles.map[k]) roles.push(k);
+      RealmData.inviteUser($scope.realm.slug, $scope.invitation, roles).then(function () {
+        $scope.load();
+      }).catch(function (err) {
+        Utils.showError(err.data.message);
+      });
+    }
+    
+    
     $scope.hasRoles = function (m1, m2) {
       var res = false;
       for (var r in m1) res |= m1[r];

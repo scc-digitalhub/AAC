@@ -5,33 +5,8 @@
 			  <h3 class="modal-title" id="modal-title">Change roles</h3>
 			</div>
 			<div class="modal-body" id="modal-body">
-        <div class="pt-3 pb-3">System roles</div>
-         <fieldset class="form-group">
-          <div class="form-check">
-            <input class="form-check-input" id="r_admin" type="checkbox" ng-model="roles.system_map['ROLE_ADMIN']" >
-            <label for="r_admin">Realm Admin</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" id="r_dev" type="checkbox" ng-model="roles.system_map['ROLE_DEVELOPER']" >
-            <label for="r_dev">Realm Developer</label>
-          </div>         
-        </fieldset>
-			
-			  <div class="row "> 
-				  <div class="form-group col col-md-10">
-              <label for="domain">Custom roles</label>
-					    <input type="text" pattern="" class="form-control form-control-sm" id="domain" ng-model="roles.custom">
-				  </div>
-				  <div class="col text-right">
-            <button type="button" class="btn btn-primary" ng-click="addRole()" ng-disabled="invalidRole(roles.custom)">Add</button>
-          </div>  
-			  </div>
-			  <fieldset class="form-group">
-		      <div class="form-check" ng-repeat="(r,checked) in roles.map">
-            <input class="form-check-input" ng-attr-id="{{'r_' + r}}" type="checkbox" ng-model="roles.map[r]" >
-		        <label class="form-check-label" ng-attr-for="{{'r_' + r}}">{{r}}</label>
-		      </div>
-		    </fieldset>
+
+      <div ng-include="'./html/realm.users.roles.roles.html'"></div>
 
 			</div>
 			<div class="modal-footer">

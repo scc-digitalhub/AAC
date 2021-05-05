@@ -4,7 +4,7 @@
       <h3>Users</h3>
     </div>
     <div class="col col-md-6 text-right">
-      <button class="btn btn-primary text-right" type="button" ng-click="addUser()">
+      <button class="btn btn-primary text-right" type="button" ng-click="inviteUser()">
       <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>
       Add / Invite User</button>
     </div>
@@ -64,6 +64,7 @@
 
 
 <div ng-include="'./html/realm.users.roles.modal.html'"></div>
+<div ng-include="'./html/realm.users.invite.modal.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
     <div class="modal-dialog" role="document">

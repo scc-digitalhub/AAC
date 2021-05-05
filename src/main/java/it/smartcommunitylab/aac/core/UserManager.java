@@ -24,7 +24,6 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
@@ -202,10 +201,12 @@ public class UserManager {
 	 * @param subjectId
 	 * @param roles
 	 * @throws NoSuchUserException 
+	 * @throws NoSuchRealmException 
 	 */
     @Transactional(readOnly = false)
-	public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
-		userService.updateRealmAuthorities(slug, subjectId, roles);
+	public void updateRealmAuthorities(String realm, String subjectId, List<String> roles) throws NoSuchUserException, NoSuchRealmException {
+        realmService.getRealm(realm);
+		userService.updateRealmAuthorities(realm, subjectId, roles);
 	}
 
     @Transactional(readOnly = false)
@@ -245,6 +246,25 @@ public class UserManager {
         // let userService handle account, registrations etc
         userService.deleteUser(subjectId);
     }
+    
+
+	/**
+	 * @param realm
+	 * @param username
+	 * @param subjectId
+	 * @param roles
+	 * @throws NoSuchRealmException 
+	 */
+	public void inviteUser(String realm, String username, String subjectId, List<String> roles) throws NoSuchRealmException {
+        realmService.getRealm(realm);
+        if (username != null) {
+        	userService.inviteInternalUser(realm, username, roles);
+        }
+        if (subjectId != null) {
+        	userService.inviteExternalUser(realm, subjectId, roles);
+        }
+	}
+
 
 //    /*
 //     * registration

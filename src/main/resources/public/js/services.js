@@ -355,6 +355,13 @@ angular.module('aac.services', [])
       return data.data;
     });
   } 
+  
+  rService.inviteUser = function(slug, invitation, roles) {
+    var data = {roles: roles, username: invitation.external ? null : invitation.username, subjectId: invitation.external ? invitation.subjectId: null};
+    return $http.post('console/dev/realms/' + slug +'/users/invite', data).then(function(data) {
+      return data.data;
+    });
+  } 
 
   rService.getRealmProviders = function(slug) {
     return $http.get('console/dev/realms/' + slug +'/providers').then(function(data) {

@@ -174,6 +174,14 @@ public class DevController {
         return ResponseEntity.ok(userManager.getUser(realm, subjectId));
     }
 
+    @PostMapping("/console/dev/realms/{realm}/users/invite")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Void> inviteUser(@PathVariable String realm,
+            @RequestBody InvitationBean bean) throws NoSuchRealmException, NoSuchUserException {
+        userManager.inviteUser(realm, bean.getUsername(), bean.getSubjectId(), bean.getRoles());
+        return ResponseEntity.ok(null);
+    }
+    
     /*
      * Providers
      */
@@ -815,6 +823,37 @@ public class DevController {
         public void setRoles(List<String> roles) {
             this.roles = roles;
         }
+
+    }
+    public static class InvitationBean {
+
+    	private String username, subjectId;
+    	
+        private List<String> roles;
+
+        public List<String> getRoles() {
+            return roles;
+        }
+
+        public void setRoles(List<String> roles) {
+            this.roles = roles;
+        }
+
+		public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		public String getSubjectId() {
+			return subjectId;
+		}
+
+		public void setSubjectId(String subjectId) {
+			this.subjectId = subjectId;
+		}
 
     }
 
