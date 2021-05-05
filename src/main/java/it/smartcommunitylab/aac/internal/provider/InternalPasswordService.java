@@ -279,12 +279,12 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             throw new IllegalArgumentException("empty-key");
         }
 
-        InternalUserAccount account = userAccountService.findAccountByResetKey(resetKey);
+        String realm = getRealm();
+        InternalUserAccount account = userAccountService.findAccountByResetKey(realm, resetKey);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
-        String realm = getRealm();
         if (!account.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }

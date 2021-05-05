@@ -6,10 +6,14 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+
 public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     private final String username;
     private String key;
+
+    private InternalUserAccount account;
 
     public ResetKeyAuthenticationToken(String username, String key) {
         super(null);
@@ -26,12 +30,25 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
         super.setAuthenticated(true);
     }
 
+    public ResetKeyAuthenticationToken(String username, String key, InternalUserAccount account,
+            Collection<? extends GrantedAuthority> authorities) {
+        super(authorities);
+        this.username = username;
+        this.key = key;
+        this.account = account;
+        super.setAuthenticated(true);
+    }
+
     public String getUsername() {
         return username;
     }
 
     public String getKey() {
         return key;
+    }
+
+    public InternalUserAccount getAccount() {
+        return account;
     }
 
     @Override
@@ -41,7 +58,7 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return this.username;
+        return (this.account == null ? this.username : this.account);
     }
 
     @Override

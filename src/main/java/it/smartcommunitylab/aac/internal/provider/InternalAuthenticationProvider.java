@@ -1,11 +1,5 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,11 +7,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
@@ -25,12 +18,15 @@ import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationToken;
+import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 
 public class InternalAuthenticationProvider extends ExtendedAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final InternalUserAccountService userAccountService;
     private final InternalUserDetailsService userDetailsService;
     private final DaoAuthenticationProvider authProvider;
     private final ConfirmKeyAuthenticationProvider confirmKeyProvider;
@@ -42,7 +38,7 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
             String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
-
+        this.userAccountService = userAccountService;
         // build a userDetails service
         userDetailsService = new InternalUserDetailsService(userAccountService, realm);
 
@@ -66,7 +62,21 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
         // just delegate to provider
         // TODO check if providers are available
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
-            return authProvider.authenticate(authentication);
+            UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authProvider
+                    .authenticate(authentication);
+            if (token == null) {
+                return null;
+            }
+
+            // rebuild token to include account
+            String username = token.getName();
+            InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
+
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(account,
+                    token.getCredentials(), token.getAuthorities());
+            auth.setDetails(token.getDetails());
+            return auth;
+
         } else if (authentication instanceof ConfirmKeyAuthenticationToken) {
             return confirmKeyProvider.authenticate(authentication);
         } else if (authentication instanceof ResetKeyAuthenticationToken) {
@@ -85,33 +95,21 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
 
     @Override
     protected UserAuthenticatedPrincipal createUserPrincipal(Object principal) {
-        String username = null;
+        InternalUserAccount account = (InternalUserAccount) principal;
+        String username = account.getUsername();
+        String name = account.getUsername();
+//        StringBuilder fullName = new StringBuilder();
+//        fullName.append(account.getName()).append(" ").append(account.getSurname());
+//
+//        String name = fullName.toString();
+//        if (!StringUtils.hasText(name)) {
+//            name = username;
+//        }
 
-        if (principal instanceof UserDetails) {
-            // we need to unpack user and fetch properties from repo
-            UserDetails details = (UserDetails) principal;
-            username = details.getUsername();
-        } else {
-            // assume a string
-            username = (String) principal;
-        }
-
-        // TODO complete mapping, for now this suffices
-        String userId = this.exportInternalId(username);
-
-        // fallback to username
-        String name = username;
-        // add auth-related attributes
-        Map<String, String> attributes = new HashMap<>();
-
-        Instant now = new Date().toInstant();
-        // format date
-        attributes.put("loginDate", DateTimeFormatter.ISO_INSTANT.format(now));
-
-        DefaultUserAuthenticatedPrincipal user = new DefaultUserAuthenticatedPrincipal(SystemKeys.AUTHORITY_INTERNAL,
-                getProvider(), getRealm(), userId);
+        InternalUserAuthenticatedPrincipal user = new InternalUserAuthenticatedPrincipal(getProvider(), getRealm(),
+                exportInternalId(username));
         user.setName(name);
-        user.setAttributes(attributes);
+        user.setPrincipal(account);
 
         return user;
     }

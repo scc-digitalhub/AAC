@@ -1,27 +1,20 @@
 package it.smartcommunitylab.aac.internal.model;
 
-import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.springframework.security.core.CredentialsContainer;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.BaseIdentity;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
@@ -31,20 +24,39 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     // TODO use a global version as serial uid
     private static final long serialVersionUID = -2050916229494701678L;
 
+    private final UserAuthenticatedPrincipal principal;
+
     private InternalUserAccount account;
 
     private String userId;
-    // we override providerid to be able to update it
-    private String provider;
+//    // we override providerid to be able to update it
+//    private String provider;
 
     // we keep attributes in flat map
     // TODO evaluate drop, we shouldn't have extra attributes
     private Map<String, String> attributes;
 
-    public InternalUserIdentity(String authority, String provider, String realm, InternalUserAccount account) {
-        super(authority, provider, realm);
+    public InternalUserIdentity(String provider, String realm, InternalUserAccount account) {
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.account = account;
-        this.provider = provider;
+//        this.provider = provider;
+        this.principal = null;
+        this.userId = account.getUserId();
+    }
+
+    public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
+            UserAuthenticatedPrincipal principal) {
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+        this.account = account;
+//        this.provider = provider;
+        this.principal = principal;
+        this.userId = account.getUserId();
+
+    }
+
+    @Override
+    public UserAuthenticatedPrincipal getPrincipal() {
+        return principal;
     }
 
     @Override
@@ -110,28 +122,28 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
         this.userId = userId;
     }
 
-    // provider id can be resetted to properly map identity
-    public void setProvider(String providerId) {
-        this.provider = providerId;
-    }
-
-    public String getProvider() {
-        return this.provider;
-    }
-
-    /*
-     * Builder
-     */
-    public static InternalUserIdentity from(String provider, InternalUserAccount user, String realm) {
-        InternalUserIdentity i = new InternalUserIdentity(SystemKeys.AUTHORITY_INTERNAL, provider, realm, user);
-        i.userId = user.getUserId();
-
-        // we do not copy password by default
-        // let service handle the retrieval
-
-        return i;
-
-    }
+//    // provider id can be resetted to properly map identity
+//    public void setProvider(String providerId) {
+//        this.provider = providerId;
+//    }
+//
+//    public String getProvider() {
+//        return this.provider;
+//    }
+//
+//    /*
+//     * Builder
+//     */
+//    public static InternalUserIdentity from(String provider, InternalUserAccount user, String realm) {
+//        InternalUserIdentity i = new InternalUserIdentity(SystemKeys.AUTHORITY_INTERNAL, provider, realm, user);
+//        i.userId = user.getUserId();
+//
+//        // we do not copy password by default
+//        // let service handle the retrieval
+//
+//        return i;
+//
+//    }
 
     /*
      * Helpers
@@ -189,7 +201,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
     @Override
     public String toString() {
-        return "InternalUserIdentity [account=" + account + ", userId=" + userId + ", provider=" + provider + "]";
+        return "InternalUserIdentity [account=" + account + ", userId=" + userId + "]";
     }
 
 }

@@ -17,9 +17,9 @@ public interface InternalUserAccountRepository
 
     InternalUserAccount findByRealmAndUsername(String realm, String username);
 
-    InternalUserAccount findByConfirmationKey(String key);
+    InternalUserAccount findByRealmAndConfirmationKey(String realm, String key);
 
-    InternalUserAccount findByResetKey(String key);
+    InternalUserAccount findByRealmAndResetKey(String realm, String key);
 
     List<InternalUserAccount> findBySubject(String subject);
 

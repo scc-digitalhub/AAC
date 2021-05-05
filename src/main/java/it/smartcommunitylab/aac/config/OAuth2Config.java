@@ -67,6 +67,7 @@ import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2TokenServices;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.ScopeApprovalHandler;
+import it.smartcommunitylab.aac.oauth.SpacesApprovalHandler;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
@@ -212,14 +213,10 @@ public class OAuth2Config {
 
     public ApprovalStoreUserApprovalHandler userApprovalHandler(
             ApprovalStore approvalStore,
-            OAuth2ClientDetailsService oauthClientDetailsService,
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
-            UserService userService) {
+            OAuth2ClientDetailsService oauthClientDetailsService) {
         ApprovalStoreUserApprovalHandler handler = new ApprovalStoreUserApprovalHandler();
         handler.setApprovalStore(approvalStore);
         handler.setClientDetailsService(oauthClientDetailsService);
-        handler.setClientDetailsService(clientDetailsService);
-        handler.setUserService(userService);
         return handler;
     }
 
@@ -233,6 +230,13 @@ public class OAuth2Config {
         return handler;
     }
 
+    public SpacesApprovalHandler spacesApprovalHandler(
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            UserService userService) {
+        SpacesApprovalHandler handler = new SpacesApprovalHandler(clientDetailsService, userService);
+        return handler;
+    }
+
     @Bean
     public AACApprovalHandler aacApprovalHandler(
             ApprovalStore approvalStore,
@@ -242,16 +246,17 @@ public class OAuth2Config {
             UserService userService,
             UserTranslatorService userTranslatorService,
             FlowExtensionsService flowExtensionsService) {
-        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService,
-                clientDetailsService, userService);
+        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService);
         ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService,
                 userTranslatorService);
+        SpacesApprovalHandler spacesHandler = spacesApprovalHandler(clientDetailsService, userService);
         OAuthFlowExtensionsHandler flowExtensionsHandler = new OAuthFlowExtensionsHandler(flowExtensionsService,
                 clientDetailsService);
         flowExtensionsHandler.setUserTranslatorService(userTranslatorService);
 
         AACApprovalHandler handler = new AACApprovalHandler(userHandler);
         handler.setScopeApprovalHandler(scopeHandler);
+        handler.setSpacesApprovalHandler(spacesHandler);
         handler.setFlowExtensionsHandler(flowExtensionsHandler);
         return handler;
     }

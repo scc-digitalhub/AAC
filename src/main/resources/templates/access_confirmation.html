@@ -81,7 +81,7 @@
 								</ul>
 							</div>
 
-							<div th:if="${spaces.size() > 0}">
+							<div th:if="${spaces != null && spaces.size() > 0}">
 							<input id="spaceSelectionApproval_required" name="spaceSelectionApproval_required" value="true"
                               type="hidden" />
 								<br /> <br />

@@ -38,6 +38,7 @@ import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
+//TODO add support for audience in request
 public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -133,7 +134,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
             // we collect serviceIds as resourceIds to mark these as audience
             Set<String> resourceIds = new HashSet<>();
             resourceIds.addAll(OAuth2Utils.parseParameterList(
-                    decodeParameters(authorizationParameters.get("resource_id"))));
+                    decodeParameters(authorizationParameters.get("resource"))));
 
             // also load resources derived from requested scope
             resourceIds.addAll(extractResourceIds(scopes));
@@ -265,7 +266,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
             // we collect serviceIds as resourceIds to mark these as audience
             Set<String> resourceIds = new HashSet<>();
             resourceIds.addAll(OAuth2Utils.parseParameterList(
-                    decodeParameters(requestParameters.get("resource_id"))));
+                    decodeParameters(requestParameters.get("resource"))));
 
             // also load resources derived from requested scope
             resourceIds.addAll(extractResourceIds(scopes));

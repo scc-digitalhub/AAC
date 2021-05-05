@@ -1,10 +1,16 @@
 package it.smartcommunitylab.aac.profiles.model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
+import it.smartcommunitylab.aac.claims.model.StringClaim;
 
 public class ProfileClaimsSet implements ClaimsSet {
 
@@ -85,10 +91,21 @@ public class ProfileClaimsSet implements ClaimsSet {
             return Collections.emptyList();
         }
 
-        SerializableClaim claim = new SerializableClaim(key);
-        claim.setValue(profile.toMap());
+//        SerializableClaim claim = new SerializableClaim(key);
+//        claim.setValue(profile.toMap());
+//
+//        return Collections.singleton(claim);
 
-        return Collections.singleton(claim);
+        // serialize each property as claim
+        List<Claim> claims = new ArrayList<>();
+        Map<String, Serializable> map = profile.toMap();
+        for (Map.Entry<String, Serializable> e : map.entrySet()) {
+            SerializableClaim sc = new SerializableClaim(e.getKey(), e.getValue());
+            claims.add(sc);
+        }
+
+        return claims;
+
     }
 
 }

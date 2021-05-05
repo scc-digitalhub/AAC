@@ -153,7 +153,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private OAuth2ClientService oauth2ClientService;
-    
+
     @Autowired
     private InternalUserAccountService internalUserAccountService;
 
@@ -456,14 +456,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filters.add(loginFilter);
 
         InternalConfirmKeyAuthenticationFilter confirmKeyFilter = new InternalConfirmKeyAuthenticationFilter(
-                userAccountService);
+                userAccountService, providerRepository);
         confirmKeyFilter.setAuthenticationManager(authManager);
         confirmKeyFilter.setAuthenticationSuccessHandler(successHandler());
 
         filters.add(confirmKeyFilter);
 
         InternalResetKeyAuthenticationFilter resetKeyFilter = new InternalResetKeyAuthenticationFilter(
-                userAccountService);
+                userAccountService, providerRepository);
         resetKeyFilter.setAuthenticationManager(authManager);
         resetKeyFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(resetKeyFilter);

@@ -90,7 +90,7 @@ public class ConfirmKeyAuthenticationProvider implements AuthenticationProvider 
             Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_USER));
 
             // build a valid token
-            ConfirmKeyAuthenticationToken auth = new ConfirmKeyAuthenticationToken(username, key, authorities);
+            ConfirmKeyAuthenticationToken auth = new ConfirmKeyAuthenticationToken(username, key, account, authorities);
 
             return auth;
 

@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.core.model;
 import java.io.Serializable;
 import java.util.Collection;
 
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
@@ -22,7 +23,10 @@ import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
  */
 public interface UserIdentity extends UserResource, Serializable {
 
-    // the login account
+    // login principal
+    public UserAuthenticatedPrincipal getPrincipal();
+
+    // the account
     public UserAccount getAccount();
 
     // attributes are mapped into multiple sets

@@ -86,22 +86,12 @@ public class InternalAccountProvider extends AbstractProvider implements Account
 
         if (account == null
                 && attributes.keySet().contains("confirmationKey")) {
-            account = userAccountService.findAccountByConfirmationKey(attributes.get("confirmationKey"));
-            // check realm match
-            if (!realm.equals(account.getRealm())) {
-                // does not belong here, can't use
-                account = null;
-            }
+            account = userAccountService.findAccountByConfirmationKey(realm, attributes.get("confirmationKey"));  
         }
 
         if (account == null
                 && attributes.keySet().contains("resetKey")) {
-            account = userAccountService.findAccountByResetKey(attributes.get("resetKey"));
-            // check realm match
-            if (!realm.equals(account.getRealm())) {
-                // does not belong here, can't use
-                account = null;
-            }
+            account = userAccountService.findAccountByResetKey(realm, attributes.get("resetKey"));          
         }
 
         if (account == null) {

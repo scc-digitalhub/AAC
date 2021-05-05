@@ -596,7 +596,8 @@ angular.module('aac.controllers.realm', [])
         scopes: scopes,
         providers: providers,
         resourceIds: clientApp.resourceIds,
-        hookFunctions: hookFunctions
+        hookFunctions: hookFunctions,
+        hookUniqueSpaces: clientApp.hookUniqueSpaces
       };
 
       RealmData.saveClientApp($scope.realm.slug, data)

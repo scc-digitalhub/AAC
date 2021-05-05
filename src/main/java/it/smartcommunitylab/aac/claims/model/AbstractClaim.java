@@ -79,4 +79,9 @@ public abstract class AbstractClaim implements Claim {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "AbstractClaim [key=" + key + "]";
+    }
+
 }

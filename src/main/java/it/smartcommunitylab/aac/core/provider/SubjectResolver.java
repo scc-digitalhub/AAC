@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.model.Subject;
 
 public interface SubjectResolver {
@@ -32,7 +33,10 @@ public interface SubjectResolver {
 
     public Subject resolveByIdentifyingAttributes(Map<String, String> attributes);
 
-    public Collection<Set<String>> getIdentifyingAttributes();
+    // disabled exposure of attribute keys
+//    public Collection<Set<String>> getIdentifyingAttributes();
+
+    public Map<String, String> getIdentifyingAttributes(UserAuthenticatedPrincipal principal);
 
     /*
      * Account linking
@@ -48,6 +52,9 @@ public interface SubjectResolver {
 
     public Subject resolveByLinkingAttributes(Map<String, String> attributes);
 
-    public Collection<String> getLinkingAttributes();
+    // disabled exposure of attribute keys
+//    public Collection<String> getLinkingAttributes();
+
+    public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal);
 
 }

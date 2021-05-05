@@ -103,7 +103,8 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         AACOAuth2AccessToken token = new AACOAuth2AccessToken(accessToken);
 
         // evaluate if request is for an idToken
-        if (!scopes.contains(Config.SCOPE_OPENID) || !request.getResponseTypes().contains("id_token")) {
+//        if (!scopes.contains(Config.SCOPE_OPENID) || !request.getResponseTypes().contains("id_token")) {
+        if (!scopes.contains(Config.SCOPE_OPENID)) {
             // nothing to do
             return token;
         }
@@ -126,7 +127,6 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
 
             token.setIdToken(idToken);
 
-            logger.trace("enhance id token  for " + authentication.getName() + " value " + idToken.toString());
             return token;
 
         } catch (NoSuchClientException | ClientRegistrationException e) {
@@ -175,11 +175,9 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
             }
         }
 
-        // flat conversion, does not support complex objects (for example address)
+        // flat conversion, does not support nested objects (for example address)
         for (Claim c : claimss) {
-            if (!AttributeType.OBJECT.equals(c.getType())) {
-                userClaims.put(c.getKey(), c.getValue());
-            }
+            userClaims.put(c.getKey(), c.getValue());
         }
 
         // set via builder

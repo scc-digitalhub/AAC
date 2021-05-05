@@ -1,11 +1,14 @@
 package it.smartcommunitylab.aac.openid.provider;
 
+import java.util.Collection;
 import java.util.Collections;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationProvider;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
@@ -14,15 +17,20 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResp
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExchange;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
@@ -74,12 +82,16 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
             auth = oauthProvider.authenticate(authentication);
         }
 
-        // TODO
-        // wrap provider token with custom class implementing eraseCredentials
-        // also evaluate cleanup authentication token from details?
         if (auth != null) {
+            // convert to out authToken and clear exchange information, those are not
+            // serializable..
             OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
-
+            //
+            auth = new OIDCAuthenticationToken(
+                    authenticationToken.getPrincipal(),
+                    authenticationToken.getAccessToken(),
+                    authenticationToken.getRefreshToken(),
+                    Collections.singleton(new SimpleGrantedAuthority(Config.R_USER)));
         }
 
         return auth;
@@ -95,7 +107,7 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
         // we need to unpack user and fetch properties from repo
         OAuth2User oauthDetails = (OAuth2User) principal;
 
-        // TODO complete mapping, for now this suffices
+        // name is always available, is mapped via provider configuration
         String userId = oauthDetails.getName();
         String username = StringUtils.hasText(oauthDetails.getAttribute("email")) ? oauthDetails.getAttribute("email")
                 : userId;
@@ -105,6 +117,8 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
         // everything else
 
         // bind principal to ourselves
+        // TODO use internal id for principal, not exported. Needs alignment in
+        // accountprovider
         OIDCAuthenticatedPrincipal user = new OIDCAuthenticatedPrincipal(getProvider(), getRealm(),
                 exportInternalId(userId));
         user.setName(username);

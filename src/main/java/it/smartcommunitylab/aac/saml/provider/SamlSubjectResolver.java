@@ -15,12 +15,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
@@ -71,8 +74,8 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
         }
     }
 
-    @Override
-    @Transactional(readOnly = true)
+//    @Override
+//    @Transactional(readOnly = true)
     public Collection<Set<String>> getIdentifyingAttributes() {
         // hardcoded, see repository
         List<Set<String>> attributes = new ArrayList<>();
@@ -114,7 +117,7 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
         }
     }
 
-    @Override
+//    @Override
     public Collection<String> getLinkingAttributes() {
         // only realm+email
         // We don't want global linking with only email
@@ -123,6 +126,41 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
         return Stream.of("realm", "email")
                 .collect(Collectors.toSet());
 
+    }
+
+    @Override
+    public Map<String, String> getIdentifyingAttributes(UserAuthenticatedPrincipal principal) {
+        if (!(principal instanceof SamlAuthenticatedPrincipal)) {
+            return null;
+        }
+
+        Map<String, String> attributes = new HashMap<>();
+
+        // export userId
+        attributes.put("userId", exportInternalId(principal.getUserId()));
+
+        return attributes;
+    }
+
+    @Override
+    public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal) {
+        if (!(principal instanceof SamlAuthenticatedPrincipal)) {
+            return null;
+        }
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("realm", getRealm());
+
+        // export userId
+        attributes.put("userId", exportInternalId(principal.getUserId()));
+
+        Map<String, String> map = principal.getAttributes();
+        String email = map.get("email");
+        if (StringUtils.hasText(email)) {
+            attributes.put("email", email);
+        }
+
+        return attributes;
     }
 
 }

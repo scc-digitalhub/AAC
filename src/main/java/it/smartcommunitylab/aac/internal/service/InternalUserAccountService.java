@@ -68,8 +68,8 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByConfirmationKey(String key) {
-        InternalUserAccount account = accountRepository.findByConfirmationKey(key);
+    public InternalUserAccount findAccountByConfirmationKey(String realm, String key) {
+        InternalUserAccount account = accountRepository.findByRealmAndConfirmationKey(realm, key);
         if (account == null) {
             return null;
         }
@@ -78,8 +78,8 @@ public class InternalUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public InternalUserAccount findAccountByResetKey(String key) {
-        InternalUserAccount account = accountRepository.findByResetKey(key);
+    public InternalUserAccount findAccountByResetKey(String realm, String key) {
+        InternalUserAccount account = accountRepository.findByRealmAndResetKey(realm, key);
         if (account == null) {
             return null;
         }

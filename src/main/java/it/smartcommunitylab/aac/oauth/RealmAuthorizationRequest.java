@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.oauth;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 public class RealmAuthorizationRequest extends AuthorizationRequest {
 
     private String realm;
+    private Set<String> audience = new HashSet<>();
 
     public String getRealm() {
         return realm;
@@ -53,6 +55,14 @@ public class RealmAuthorizationRequest extends AuthorizationRequest {
         // service approval, we need those in flight bound to request ( since we store
         // this in db)
         return super.getAuthorities();
+    }
+
+    public Set<String> getAudience() {
+        return audience;
+    }
+
+    public void setAudience(Set<String> audience) {
+        this.audience = audience;
     }
 
 }

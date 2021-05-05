@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -309,8 +310,16 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
         if (subjectId == null) {
             // account linking via attributes
-            // TODO, disabled now due to security concerns
-            // should use linking attribute(s)
+            Map<String, String> attributes = resolver.getLinkingAttributes(principal);
+            Collection<IdentityProvider> idps = providerManager.fetchIdentityProviders(realm);
+            // first result is ok
+            for (IdentityProvider i : idps) {
+                Subject ss = i.getSubjectResolver().resolveByLinkingAttributes(attributes);
+                if (ss != null) {
+                    subjectId = ss.getSubjectId();
+                    break;
+                }
+            }
         }
 
         if (subjectId == null) {

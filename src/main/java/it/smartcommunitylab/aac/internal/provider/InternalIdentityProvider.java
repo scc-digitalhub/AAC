@@ -124,12 +124,12 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             throws NoSuchUserException {
         // extract account and attributes in raw format from authenticated principal
         String userId = principal.getUserId();
-        String username = principal.getName();
-
-        // userId should be username, check
-        if (!parseResourceId(userId).equals(username)) {
-            throw new NoSuchUserException();
-        }
+//        String username = principal.getName();
+//
+//        // userId should be username, check
+//        if (!parseResourceId(userId).equals(username)) {
+//            throw new NoSuchUserException();
+//        }
 
         if (subjectId == null) {
             // this better exists
@@ -162,7 +162,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
         // use builder to properly map attributes
         // TODO consolidate *all* attribute sets logic in attributeProvider
-        InternalUserIdentity identity = InternalUserIdentity.from(getProvider(), account, getRealm());
+        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account, principal);
 
         // do note returned identity has credentials populated
         // consumers will need to eraseCredentials
@@ -201,7 +201,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
         // use builder to properly map attributes
         // TODO consolidate *all* attribute sets logic in attributeProvider
-        InternalUserIdentity identity = InternalUserIdentity.from(getProvider(), account, getRealm());
+        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
         // do note returned identity has credentials populated
         // we erase here
@@ -228,7 +228,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
             // use builder to properly map attributes
             // TODO consolidate *all* attribute sets logic in attributeProvider
-            InternalUserIdentity identity = InternalUserIdentity.from(getProvider(), account, getRealm());
+            InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
             // do note returned identity has credentials populated
             // we erase here
@@ -332,7 +332,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
             // use builder to properly map attributes
             // TODO consolidate *all* attribute sets logic in attributeProvider
-            InternalUserIdentity identity = InternalUserIdentity.from(getProvider(), account, getRealm());
+            InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
             // this identity has credentials
             return identity;
@@ -385,7 +385,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
         // use builder to properly map attributes
         // TODO consolidate *all* attribute sets logic in attributeProvider
-        InternalUserIdentity identity = InternalUserIdentity.from(getProvider(), account, getRealm());
+        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
         // this identity has credentials, erase
         identity.eraseCredentials();

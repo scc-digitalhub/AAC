@@ -94,7 +94,7 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
             Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_USER));
 
             // build a valid token
-            ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(username, key, authorities);
+            ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(username, key, account, authorities);
 
             return auth;
 

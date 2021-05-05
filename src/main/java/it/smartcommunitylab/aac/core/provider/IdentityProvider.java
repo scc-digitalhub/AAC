@@ -1,7 +1,5 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.util.Collection;
-
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;

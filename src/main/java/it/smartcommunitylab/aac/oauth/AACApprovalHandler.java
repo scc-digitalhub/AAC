@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.core.Authentication;
@@ -13,7 +14,8 @@ import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
 public class AACApprovalHandler implements UserApprovalHandler {
 
     private final UserApprovalHandler userApprovalHandler;
-    private UserApprovalHandler scopeApprovalHandler;
+    private ScopeApprovalHandler scopeApprovalHandler;
+    private SpacesApprovalHandler spacesApprovalHandler;
     private OAuthFlowExtensionsHandler flowExtensionsHandler;
 
     public AACApprovalHandler(UserApprovalHandler userApprovalHandler) {
@@ -21,8 +23,12 @@ public class AACApprovalHandler implements UserApprovalHandler {
         this.userApprovalHandler = userApprovalHandler;
     }
 
-    public void setScopeApprovalHandler(UserApprovalHandler scopeApprovalHandler) {
+    public void setScopeApprovalHandler(ScopeApprovalHandler scopeApprovalHandler) {
         this.scopeApprovalHandler = scopeApprovalHandler;
+    }
+
+    public void setSpacesApprovalHandler(SpacesApprovalHandler spacesApprovalHandler) {
+        this.spacesApprovalHandler = spacesApprovalHandler;
     }
 
     public void setFlowExtensionsHandler(OAuthFlowExtensionsHandler flowExtensionsHandler) {
@@ -32,7 +38,6 @@ public class AACApprovalHandler implements UserApprovalHandler {
     @Override
     public boolean isApproved(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
         boolean result = userApprovalHandler.isApproved(authorizationRequest, userAuthentication);
-        // TODO add space selection here
 
         // check flow extensions
         if (flowExtensionsHandler != null) {
@@ -51,8 +56,12 @@ public class AACApprovalHandler implements UserApprovalHandler {
             request = scopeApprovalHandler.checkForPreApproval(request, userAuthentication);
         }
 
-        request = userApprovalHandler.checkForPreApproval(authorizationRequest,
-                userAuthentication);
+        request = userApprovalHandler.checkForPreApproval(request, userAuthentication);
+
+        // check spaces
+        if (spacesApprovalHandler != null) {
+            request = spacesApprovalHandler.checkForPreApproval(request, userAuthentication);
+        }
 
         return request;
     }
@@ -62,6 +71,12 @@ public class AACApprovalHandler implements UserApprovalHandler {
             Authentication userAuthentication) {
         AuthorizationRequest request = userApprovalHandler.updateAfterApproval(authorizationRequest,
                 userAuthentication);
+
+        // update spaces
+        if (spacesApprovalHandler != null) {
+            request = spacesApprovalHandler.updateAfterApproval(request, userAuthentication);
+        }
+
         if (scopeApprovalHandler != null) {
             // call scopeApprover after user approver to let it "unauthorize" an approved
             // request
@@ -74,7 +89,20 @@ public class AACApprovalHandler implements UserApprovalHandler {
     @Override
     public Map<String, Object> getUserApprovalRequest(AuthorizationRequest authorizationRequest,
             Authentication userAuthentication) {
-        return userApprovalHandler.getUserApprovalRequest(authorizationRequest, userAuthentication);
+        Map<String, Object> model = new HashMap<>();
+
+        Map<String, Object> userApprovalModel = userApprovalHandler.getUserApprovalRequest(authorizationRequest,
+                userAuthentication);
+        model.putAll(userApprovalModel);
+
+        // get spaces model
+        if (spacesApprovalHandler != null) {
+            Map<String, Object> spacesApprovalModel = spacesApprovalHandler.getUserApprovalRequest(authorizationRequest,
+                    userAuthentication);
+            model.putAll(spacesApprovalModel);
+        }
+
+        return model;
     }
 
 }

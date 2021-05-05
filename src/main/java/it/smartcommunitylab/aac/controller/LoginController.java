@@ -135,10 +135,10 @@ public class LoginController {
                 a.icon = key;
             }
 
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(a.authority)) {
+            if (SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority())) {
                 internal = a;
                 // also lookup internal service for registration/reset links
-                IdentityService ids = providerManager.fetchIdentityService(idp.getRealm(), idp.getProvider());
+                IdentityService ids = providerManager.fetchIdentityService(idp.getAuthority(), idp.getProvider());
                 if (ids != null) {
                     if (ids.canRegister() && StringUtils.hasText(ids.getRegistrationUrl())) {
                         a.registrationUrl = ids.getRegistrationUrl();

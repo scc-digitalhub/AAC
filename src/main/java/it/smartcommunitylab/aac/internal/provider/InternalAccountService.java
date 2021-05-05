@@ -314,13 +314,12 @@ public class InternalAccountService extends InternalAccountProvider implements A
         if (!StringUtils.hasText(confirmationKey)) {
             throw new IllegalArgumentException("empty-key");
         }
-
-        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(confirmationKey);
+        String realm = getRealm();
+        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(realm, confirmationKey);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
-        String realm = getRealm();
         if (!account.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
         }

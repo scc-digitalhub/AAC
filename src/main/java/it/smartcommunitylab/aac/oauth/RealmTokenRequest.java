@@ -16,6 +16,7 @@ public class RealmTokenRequest extends TokenRequest {
 
     private String realm;
     private Set<String> resourceIds = new HashSet<String>();
+    private Set<String> audience = new HashSet<>();
     private Collection<? extends GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
 
     public String getRealm() {
@@ -32,6 +33,14 @@ public class RealmTokenRequest extends TokenRequest {
 
     public void setResourceIds(Set<String> resourceIds) {
         this.resourceIds = resourceIds;
+    }
+
+    public Set<String> getAudience() {
+        return audience;
+    }
+
+    public void setAudience(Set<String> audience) {
+        this.audience = audience;
     }
 
     public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {

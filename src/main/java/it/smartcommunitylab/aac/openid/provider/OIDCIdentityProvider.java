@@ -186,6 +186,8 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         // update additional attributes in store, remove stale
         // avoid jwt attributes
         // TODO avoid attributes in account
+        // TODO process via mapper, which should include mapping logic defined by
+        // configuration
         Set<Entry<String, String>> principalAttributes = principal.getAttributes().entrySet().stream()
                 .filter(e -> !ArrayUtils.contains(JWT_ATTRIBUTES, e.getKey()))
                 .collect(Collectors.toSet());
@@ -206,7 +208,10 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         account.setUserId(exportInternalId(userId));
 
         // write custom model
-        OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
+        OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm(), user);
+        identity.setAccount(account);
+        identity.setAttributes(Collections.emptyList());
+
         return identity;
     }
 
@@ -220,7 +225,9 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         }
 
         // write custom model
-        OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
+        OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm());
+        identity.setAccount(account);
+        identity.setAttributes(Collections.emptyList());
         return identity;
 
     }
@@ -243,8 +250,9 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
         for (OIDCUserAccount account : accounts) {
             // write custom model
-            OIDCUserIdentity identity = OIDCUserIdentity.from(account, Collections.emptyList());
-
+            OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm());
+            identity.setAccount(account);
+            identity.setAttributes(Collections.emptyList());
             identities.add(identity);
         }
 

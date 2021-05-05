@@ -83,9 +83,6 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String SCOPE_PREFIX = "";
-    private static final String SPACE_SELECTION_APPROVAL_REQUIRED = "spaceSelectionApproval_required";
-    private static final String SPACE_SELECTION_APPROVAL_DONE = "spaceSelectionApproval_done";
-    private static final String SPACE_SELECTION_APPROVAL_MAP = "spaceSelectionApproval_map";
 
     private static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30;// 30 days
 
@@ -94,15 +91,12 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     private ApprovalStore approvalStore;
 //    private OAuthFlowExtensions flowExtensions;
     private OAuth2ClientDetailsService oauthClientDetailsService;
-    private it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService;
-    private UserService userService;
+//    private it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService;
+//    private UserService userService;
 
     public void afterPropertiesSet() {
         Assert.notNull(approvalStore, "approval store is required");
-        Assert.notNull(clientDetailsService, "client details service is required");
         Assert.notNull(oauthClientDetailsService, "oauth client details service is required");
-        Assert.notNull(userService, "user service is required");
-
     }
 
     @Override
@@ -127,11 +121,9 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         String subjectId = userDetails.getSubjectId();
 
         OAuth2ClientDetails clientDetails;
-        ClientDetails client;
         try {
             clientDetails = oauthClientDetailsService.loadClientByClientId(clientId);
-            client = clientDetailsService.loadClient(clientId);
-        } catch (NoSuchClientException | ClientRegistrationException e) {
+        } catch (ClientRegistrationException e) {
             // non existing client, drop
             throw new InvalidRequestException("invalid client");
         }
@@ -169,22 +161,6 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             request.setApproved(true);
         }
 
-        // see if the user has to perform the space selection
-        String uniqueSpaces = client.getHookUniqueSpaces();
-        if (StringUtils.hasText(uniqueSpaces)) {
-            // fetch spaces list from context
-            Set<String> spaces = getUniqueSpaces(userDetails, uniqueSpaces);
-            if (!spaces.isEmpty()) {
-                // reset params since these are supposed to be immutable
-                Map<String, String> params = new HashMap<>();
-                params.putAll(request.getApprovalParameters());
-                params.put(SPACE_SELECTION_APPROVAL_REQUIRED, "true");
-                params.put(SPACE_SELECTION_APPROVAL_DONE, "false");
-
-                request.setApprovalParameters(params);
-                request.setApproved(false);
-            }
-        }
 //        Multimap<String, String> spaces = roleManager.getRoleSpacesToNarrow(authorizationRequest.getClientId(),
 //                selectedAuthorities);
 //        if (spaces != null && !spaces.isEmpty()) {
@@ -263,35 +239,8 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     @Override
     public AuthorizationRequest updateAfterApproval(AuthorizationRequest request, Authentication userAuth) {
         AuthorizationRequest result = updateScopeApprovals(request, userAuth);
-        String clientId = request.getClientId();
-        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
-
-        // space selection
-        if (result.getApprovalParameters().containsKey(SPACE_SELECTION_APPROVAL_REQUIRED)) {
-//            ClientDetails client;
-//            try {
-//                client = clientDetailsService.loadClient(clientId);
-//            } catch (NoSuchClientException | ClientRegistrationException e) {
-//                // non existing client, drop
-//                throw new InvalidRequestException("invalid client");
-//            }
-//            String uniqueSpaces = client.getHookUniqueSpaces();
-//            if (StringUtils.hasText(uniqueSpaces)) {
-//                Set<String> spaces = getUniqueSpaces(userDetails, uniqueSpaces);
-//            }
-
-            // we don't actually care about what client asked, user has already performed
-            // selection
-            String spaceSelection = result.getApprovalParameters().get("space_selection");
-            if (StringUtils.hasText(spaceSelection)) {
-                // export selection as extension
-                Map<String, Serializable> extensions = new HashMap<>();
-                extensions.putAll(result.getExtensions());
-                extensions.put(SpacesClaimsExtractor.SPACES_EXTENSIONS_KEY, spaceSelection);
-                result.setExtensions(extensions);
-            }
-
-        }
+//        String clientId = request.getClientId();
+//        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
 
         // TODO space selection
 //        if (result.getApprovalParameters().containsKey(SPACE_SELECTION_APPROVAL_REQUIRED)) {
@@ -374,14 +323,10 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         Set<String> requestedScopes = request.getScope();
 
         UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
-        String subjectId = userDetails.getSubjectId();
-
         OAuth2ClientDetails clientDetails;
-        ClientDetails client;
         try {
             clientDetails = oauthClientDetailsService.loadClientByClientId(clientId);
-            client = clientDetailsService.loadClient(clientId);
-        } catch (NoSuchClientException | ClientRegistrationException e) {
+        } catch (ClientRegistrationException e) {
             // non existing client, drop
             throw new InvalidRequestException("invalid client");
         }
@@ -411,17 +356,6 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         }
         model.put("scopes", scopes);
-
-        // see if the user has to perform the space selection
-        model.put("spaces", Collections.emptyList());
-        String uniqueSpaces = client.getHookUniqueSpaces();
-        if (StringUtils.hasText(uniqueSpaces)) {
-            // fetch spaces list from context
-            Set<String> spaces = getUniqueSpaces(userDetails, uniqueSpaces);
-            if (!spaces.isEmpty()) {
-                model.put("spaces", spaces);
-            }
-        }
 
         // the returned model will be accessible via sessionAttributes as model,
         // or via requestAttributes for additional properties
@@ -541,19 +475,19 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         }
         return userApprovedScopes;
     }
-
-    private Set<String> getUniqueSpaces(UserDetails userDetails, String uniqueSpaces) {
-        it.smartcommunitylab.aac.model.User user = userService.getUser(userDetails);
-        Set<SpaceRole> roles = user.getRoles();
-
-        // filter and flatmap everything under context
-        Set<String> spaces = roles.stream()
-                .filter(r -> (r.getContext() != null && r.getContext().startsWith(uniqueSpaces))).map(r -> r.getSpace())
-                .collect(Collectors.toSet());
-
-        return spaces;
-
-    }
+//
+//    private Set<String> getUniqueSpaces(UserDetails userDetails, String uniqueSpaces) {
+//        it.smartcommunitylab.aac.model.User user = userService.getUser(userDetails);
+//        Set<SpaceRole> roles = user.getRoles();
+//
+//        // filter and flatmap everything under context
+//        Set<String> spaces = roles.stream()
+//                .filter(r -> (r.getContext() != null && r.getContext().startsWith(uniqueSpaces))).map(r -> r.getSpace())
+//                .collect(Collectors.toSet());
+//
+//        return spaces;
+//
+//    }
 
     /*
      * Configuration
@@ -575,14 +509,14 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 //        this.flowExtensions = extensions;
 //    }
 
-    public void setClientDetailsService(
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService) {
-        this.clientDetailsService = clientDetailsService;
-    }
-
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
+//    public void setClientDetailsService(
+//            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService) {
+//        this.clientDetailsService = clientDetailsService;
+//    }
+//
+//    public void setUserService(UserService userService) {
+//        this.userService = userService;
+//    }
 
     private Date computeExpiry() {
         Calendar expiresAt = Calendar.getInstance();

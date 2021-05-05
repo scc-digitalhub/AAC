@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -24,11 +25,14 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
+import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationToken;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
 /*
@@ -36,54 +40,54 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
  */
 public class InternalResetKeyAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
-    public static final String ACTION = "doreset";
-    public static final String REALM_URI_VARIABLE_NAME = "realm";
-    public static final String PROVIDER_URI_VARIABLE_NAME = "provider";
+    public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
+            + "doreset/{registrationId}";
 
-    private final RequestMatcher realmRequestMatcher;
-    private final RequestMatcher providerRequestMatcher;
-    private final RequestMatcher providerRealmRequestMatcher;
+    private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
 
-    private final AuthenticationEntryPoint authenticationEntryPoint;
+//    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
+//    public static final String ACTION = "doreset";
+//    public static final String REALM_URI_VARIABLE_NAME = "realm";
+//    public static final String PROVIDER_URI_VARIABLE_NAME = "provider";
+
+    private final RequestMatcher requestMatcher;
+
+//    private final RequestMatcher realmRequestMatcher;
+//    private final RequestMatcher providerRequestMatcher;
+//    private final RequestMatcher providerRealmRequestMatcher;
+
+    private AuthenticationEntryPoint authenticationEntryPoint;
     private final InternalUserAccountService userAccountService;
 
-    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService) {
-        this(userAccountService, DEFAULT_FILTER_URI, new RealmAwareAuthenticationEntryPoint(
-                "/login"));
+    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+            ProviderRepository<InternalIdentityProviderConfig> registrationRepository) {
+        this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
-    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService, String filterProcessingUrl,
-            AuthenticationEntryPoint authenticationEntryPoint) {
-        super(filterProcessingUrl + ACTION);
+    public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
+            ProviderRepository<InternalIdentityProviderConfig> registrationRepository,
+            String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
+        super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
+        Assert.notNull(registrationRepository, "provider registration repository cannot be null");
+        Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
+        Assert.isTrue(filterProcessingUrl.contains("{registrationId}"),
+                "filterProcessesUrl must contain a {registrationId} match variable");
+
         this.userAccountService = userAccountService;
+        this.registrationRepository = registrationRepository;
 
-        // build a matcher for all requests
-        RequestMatcher baseRequestMatcher = new AntPathRequestMatcher(filterProcessingUrl + ACTION);
-
-        realmRequestMatcher = new AntPathRequestMatcher(
-                "/-/{" + REALM_URI_VARIABLE_NAME + "}" + filterProcessingUrl + ACTION);
-
-        providerRequestMatcher = new AntPathRequestMatcher(
-                filterProcessingUrl + ACTION + "/{" + PROVIDER_URI_VARIABLE_NAME + "}");
-
-        providerRealmRequestMatcher = new AntPathRequestMatcher(
-                "/-/{" + REALM_URI_VARIABLE_NAME + "}" + filterProcessingUrl + ACTION + "/{"
-                        + PROVIDER_URI_VARIABLE_NAME + "}");
-
-        // use both the global and the realm matcher
-        RequestMatcher requestMatcher = new OrRequestMatcher(
-                baseRequestMatcher,
-                providerRequestMatcher,
-                realmRequestMatcher,
-                providerRealmRequestMatcher);
+        // we need to build a custom requestMatcher to extract variables from url
+        this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
         setRequiresAuthenticationRequestMatcher(requestMatcher);
 
         // redirect failed attempts to login
-        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+        if (authenticationEntryPoint != null) {
+            this.authenticationEntryPoint = authenticationEntryPoint;
+        }
 
-        // TODO evaluate adopting changeSessionStrategy to avoid fixation attacks
+        // enforce session id change to prevent fixation attacks
         setAllowSessionCreation(true);
         setSessionAuthenticationStrategy(new ChangeSessionIdAuthenticationStrategy());
 
@@ -111,67 +115,62 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
     public Authentication attemptAuthentication(HttpServletRequest request,
             HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
 
+        if (!requestMatcher.matches(request)) {
+            return null;
+        }
+
         // we support only GET requests
         if (!"GET".equalsIgnoreCase(request.getMethod())) {
             throw new HttpRequestMethodNotSupportedException(request.getMethod(), new String[] { "GET" });
         }
 
+        // fetch registrationId
+        String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
+        InternalIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+
+        if (providerConfig == null) {
+            throw new ProviderNotFoundException("no provider or realm found for this request");
+        }
+
+        String realm = providerConfig.getRealm();
+        // set as attribute to enable fallback to login on error
+        request.setAttribute("realm", realm);
+
         String code = request.getParameter("code");
 
         if (!StringUtils.hasText(code)) {
-            throw new BadCredentialsException("missing or invalid reset code");
+            throw new BadCredentialsException("missing or invalid confirm code");
         }
 
         // fetch account
-        InternalUserAccount account = userAccountService.findAccountByResetKey(code);
+        InternalUserAccount account = userAccountService.findAccountByResetKey(realm, code);
         if (account == null) {
             // don't leak user does not exists
-            throw new BadCredentialsException("invalid reset code");
+            throw new BadCredentialsException("invalid confirm code");
         }
 
         String username = account.getUsername();
-        String realm = account.getRealm();
-        String provider = account.getProvider();
+
+        HttpSession session = request.getSession(true);
+        if (session != null) {
+            // check if user needs to reset password, and add redirect
+            if (account.isChangeOnFirstAccess()) {
+                // TODO build url
+                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+                        "/changepwd/" + providerId + "/" + username);
+            }
+        }
 
         // build a request
         ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username,
                 code);
 
+        ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
+                authenticationRequest,
+                providerId, SystemKeys.AUTHORITY_INTERNAL);
+
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
-
-        // check realm+provider
-        if (providerRealmRequestMatcher.matches(request)) {
-            // resolve variables
-            String realmParam = providerRealmRequestMatcher.matcher(request).getVariables()
-                    .get(REALM_URI_VARIABLE_NAME);
-            String providerParam = providerRealmRequestMatcher.matcher(request).getVariables()
-                    .get(PROVIDER_URI_VARIABLE_NAME);
-
-            // we need to match user account realm
-            if (!realm.equals(realmParam) || !provider.equals(providerParam)) {
-                // request was misplaced
-                throw new BadCredentialsException("invalid reset code");
-            }
-
-        }
-
-        // check provider
-        if (providerRequestMatcher.matches(request)) {
-            // resolve provider variable
-            String providerParam = providerRequestMatcher.matcher(request).getVariables()
-                    .get(PROVIDER_URI_VARIABLE_NAME);
-
-            // we need to match user account realm
-            if (!provider.equals(providerParam)) {
-                // request was misplaced
-                throw new BadCredentialsException("invalid reset code");
-            }
-        }
-
-        WrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
-                authenticationRequest,
-                provider, SystemKeys.AUTHORITY_INTERNAL);
 
         // set details
         wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);

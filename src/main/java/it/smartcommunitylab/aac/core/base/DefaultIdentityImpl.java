@@ -16,6 +16,7 @@ import org.springframework.security.core.CredentialsContainer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -29,12 +30,26 @@ import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
 public class DefaultIdentityImpl extends BaseIdentity implements CredentialsContainer {
 
+    protected final UserAuthenticatedPrincipal principal;
     protected UserAccount account;
     protected Collection<UserAttributes> attributes;
 
     public DefaultIdentityImpl(String authority, String provider, String realm) {
         super(authority, provider, realm);
+        principal = null;
         attributes = Collections.emptyList();
+    }
+
+    public DefaultIdentityImpl(String authority, String provider, String realm, UserAuthenticatedPrincipal principal) {
+        super(authority, provider, realm);
+        attributes = Collections.emptyList();
+        this.principal = principal;
+
+    }
+
+    @Override
+    public UserAuthenticatedPrincipal getPrincipal() {
+        return principal;
     }
 
     @Override

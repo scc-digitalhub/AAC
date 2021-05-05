@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.saml.provider;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
@@ -169,7 +170,10 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         account.setUserId(exportInternalId(userId));
 
         // write custom model
-        SamlUserIdentity identity = SamlUserIdentity.from(account);
+        SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), user);
+        identity.setAccount(account);
+        identity.setAttributes(Collections.emptyList());
+
         return identity;
     }
 
@@ -183,7 +187,9 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         }
 
         // write custom model
-        SamlUserIdentity identity = SamlUserIdentity.from(account);
+        SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm());
+        identity.setAccount(account);
+        identity.setAttributes(Collections.emptyList());
         return identity;
 
     }
@@ -206,8 +212,9 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
         for (SamlUserAccount account : accounts) {
             // write custom model
-            SamlUserIdentity identity = SamlUserIdentity.from(account);
-
+            SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm());
+            identity.setAccount(account);
+            identity.setAttributes(Collections.emptyList());
             identities.add(identity);
         }
 

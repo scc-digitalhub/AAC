@@ -17,13 +17,17 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
 
-public class InternalSubjectResolver extends AbstractProvider implements SubjectResolver {
+public class InternalSubjectResolver extends AbstractProvider
+        implements SubjectResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private InternalAccountProvider accountProvider;
@@ -67,7 +71,7 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
         }
     }
 
-    @Override
+//    @Override
     public Collection<Set<String>> getIdentifyingAttributes() {
         // hardcoded, see repository
         List<Set<String>> attributes = new ArrayList<>();
@@ -99,7 +103,7 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
             idAttrs.put("email", attributes.get("email"));
             // let provider resolve to an account
             try {
-                InternalUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
+                InternalUserAccount account = accountProvider.getByIdentifyingAttributes(idAttrs);
 
                 // build subject with username
                 return new Subject(account.getSubject(), account.getUsername());
@@ -111,13 +115,60 @@ public class InternalSubjectResolver extends AbstractProvider implements Subject
         }
     }
 
-    @Override
+//    @Override
     public Collection<String> getLinkingAttributes() {
         // only realm+email
         // TODO re-evaluate global linking with only email
         return Stream.of("realm", "email")
                 .collect(Collectors.toSet());
 
+    }
+
+    @Override
+    public Map<String, String> getIdentifyingAttributes(UserAuthenticatedPrincipal principal) {
+        if (!(principal instanceof InternalUserAuthenticatedPrincipal)) {
+            return null;
+        }
+
+        InternalUserAuthenticatedPrincipal user = (InternalUserAuthenticatedPrincipal) principal;
+
+        Map<String, String> attributes = new HashMap<>();
+        // export userId
+        attributes.put("userId", user.getUserId());
+
+        if (user.getPrincipal() != null) {
+            InternalUserAccount account = user.getPrincipal();
+
+            // export internal id
+            attributes.put("id", Long.toString(account.getId()));
+
+        }
+
+        return attributes;
+    }
+
+    @Override
+    public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal) {
+        if (!(principal instanceof InternalUserAuthenticatedPrincipal)) {
+            return null;
+        }
+
+        InternalUserAuthenticatedPrincipal user = (InternalUserAuthenticatedPrincipal) principal;
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("realm", getRealm());
+
+        // export userId
+        attributes.put("userId", user.getUserId());
+
+        if (user.getPrincipal() != null) {
+            InternalUserAccount account = user.getPrincipal();
+            if (account.isConfirmed()) {
+                // export email
+                attributes.put("email", account.getEmail());
+            }
+        }
+
+        return attributes;
     }
 
 }

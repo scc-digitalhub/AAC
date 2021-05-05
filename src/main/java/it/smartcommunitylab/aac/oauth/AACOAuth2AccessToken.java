@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.io.Serializable;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -14,10 +15,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nimbusds.jwt.JWT;
 
 import it.smartcommunitylab.aac.oauth.model.TokenType;
+import it.smartcommunitylab.aac.oauth.common.AACOAuth2AccessTokenSerializer;
 
+@com.fasterxml.jackson.databind.annotation.JsonSerialize(using = AACOAuth2AccessTokenSerializer.class)
 public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     private static final long serialVersionUID = -5481174420095804102L;
+
+    public static String ID_TOKEN = "id_token";
 
     // the result value, can be replaced to encode a JWT
     private String value;
