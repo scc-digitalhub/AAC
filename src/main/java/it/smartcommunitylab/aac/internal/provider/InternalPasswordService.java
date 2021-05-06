@@ -164,7 +164,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         // send mail
         try {
             sendPasswordMail(account, password);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
 
@@ -266,7 +266,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         // send mail
         try {
             sendResetMail(account, resetKey);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
 

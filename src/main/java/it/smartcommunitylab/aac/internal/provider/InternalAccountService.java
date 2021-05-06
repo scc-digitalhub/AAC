@@ -211,7 +211,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
                 sendConfirmationMail(account, account.getConfirmationKey());
             }
 
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
         // TODO evaluate returning cleartext password after creation
