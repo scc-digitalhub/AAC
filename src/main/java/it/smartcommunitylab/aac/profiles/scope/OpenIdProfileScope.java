@@ -8,6 +8,8 @@ import it.smartcommunitylab.aac.scope.Scope;
 //TODO move to dedicated package
 public class OpenIdProfileScope extends Scope {
 
+    public static final String SCOPE = Config.SCOPE_OPENID;
+
     @Override
     public String getResourceId() {
         return ProfileClaimsSet.RESOURCE_ID;
@@ -20,7 +22,7 @@ public class OpenIdProfileScope extends Scope {
 
     @Override
     public String getScope() {
-        return Config.SCOPE_OPENID;
+        return SCOPE;
     }
 
     // TODO replace with keys for i18n

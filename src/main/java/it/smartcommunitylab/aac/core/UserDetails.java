@@ -46,11 +46,12 @@ public class UserDetails implements org.springframework.security.core.userdetail
     // base attributes
     private final String subjectId;
     private final String realm;
+    private String username;
 
-    // this is mutable, we want to keep one "identity" mapped
-    // TODO evaluate removal from here, use only attributes or drop and let
-    // claim/attribute services handle
-    private BasicProfile profile;
+//    // this is mutable, we want to keep one "identity" mapped
+//    // TODO evaluate removal from here, use only attributes or drop and let
+//    // claim/attribute services handle
+//    private BasicProfile profile;
 
     // identities are stored with addressable keys (userId)
     private final Map<String, UserIdentity> identities;
@@ -83,6 +84,7 @@ public class UserDetails implements org.springframework.security.core.userdetail
         // subject is our id
         this.subjectId = subjectId;
         this.realm = realm;
+        this.username = identity.getAccount().getUsername();
 
         // identity sets, at minimum we handle first login identity
         this.identities = new HashMap<>();
@@ -137,7 +139,7 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     @Override
     public String getUsername() {
-        return profile.getUsername();
+        return username;
     }
 
     @Override
@@ -170,33 +172,33 @@ public class UserDetails implements org.springframework.security.core.userdetail
     public String getRealm() {
         return realm;
     }
-
-    public String getFirstName() {
-        return profile != null ? profile.getName() : "";
-    }
-
-    public String getLastName() {
-        return profile != null ? profile.getSurname() : "";
-    }
-
-    public String getFullName() {
-        StringBuilder sb = new StringBuilder();
-        String firstName = getFirstName();
-        String lastName = getLastName();
-        if (StringUtils.hasText(firstName)) {
-            sb.append(firstName).append(" ");
-        }
-        if (StringUtils.hasText(lastName)) {
-            sb.append(lastName);
-        }
-
-        return sb.toString().trim();
-
-    }
-
-    public String getEmailAddress() {
-        return profile != null ? profile.getEmail() : "";
-    }
+//
+//    public String getFirstName() {
+//        return profile != null ? profile.getName() : "";
+//    }
+//
+//    public String getLastName() {
+//        return profile != null ? profile.getSurname() : "";
+//    }
+//
+//    public String getFullName() {
+//        StringBuilder sb = new StringBuilder();
+//        String firstName = getFirstName();
+//        String lastName = getLastName();
+//        if (StringUtils.hasText(firstName)) {
+//            sb.append(firstName).append(" ");
+//        }
+//        if (StringUtils.hasText(lastName)) {
+//            sb.append(lastName);
+//        }
+//
+//        return sb.toString().trim();
+//
+//    }
+//
+//    public String getEmailAddress() {
+//        return profile != null ? profile.getEmail() : "";
+//    }
 
 //    public BasicProfile getBasicProfile() {
 //        // return a copy to avoid mangling
@@ -242,8 +244,12 @@ public class UserDetails implements org.springframework.security.core.userdetail
         // we add or replace
         identities.put(identity.getUserId(), identity);
 
-        // we also check if profile is incomplete
-        updateProfile(identity.toBasicProfile());
+//        // we also check if profile is incomplete
+//        updateProfile(identity.toBasicProfile());
+
+        // we update username with last set
+        this.username = identity.getAccount().getUsername();
+
     }
 
     // remove an identity from user
@@ -255,50 +261,56 @@ public class UserDetails implements org.springframework.security.core.userdetail
         identities.remove(identity.getUserId());
     }
 
-    private void updateProfile(BasicProfile p) {
-        if (profile == null) {
-            profile = p;
-            return;
-        }
-
-        // selectively fill missing fields
-        // first-come first-served
-        // TODO expose selector for end users to choose identity
-        if (!StringUtils.hasText(profile.getUsername())) {
-            profile.setUsername(p.getUsername());
-        }
-        if (!StringUtils.hasText(profile.getEmail())) {
-            profile.setEmail(p.getEmail());
-        }
-        if (!StringUtils.hasText(profile.getName())) {
-            profile.setName(p.getName());
-        }
-        if (!StringUtils.hasText(profile.getSurname())) {
-            profile.setSurname(p.getSurname());
-        }
-
-    }
+//    private void updateProfile(BasicProfile p) {
+//        if (profile == null) {
+//            profile = p;
+//            return;
+//        }
+//
+//        // selectively fill missing fields
+//        // first-come first-served
+//        // TODO expose selector for end users to choose identity
+//        if (!StringUtils.hasText(profile.getUsername())) {
+//            profile.setUsername(p.getUsername());
+//        }
+//        if (!StringUtils.hasText(profile.getEmail())) {
+//            profile.setEmail(p.getEmail());
+//        }
+//        if (!StringUtils.hasText(profile.getName())) {
+//            profile.setName(p.getName());
+//        }
+//        if (!StringUtils.hasText(profile.getSurname())) {
+//            profile.setSurname(p.getSurname());
+//        }
+//
+//    }
 
     public boolean hasAuthority(String auth) {
-    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(auth));
+        return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(auth));
     }
-    public boolean hasAnyAuthority(String ... auth) {
-    	Set<String> set = Sets.newHashSet(auth); 
-    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a ->set.contains(a.getAuthority()));
+
+    public boolean hasAnyAuthority(String... auth) {
+        Set<String> set = Sets.newHashSet(auth);
+        return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> set.contains(a.getAuthority()));
     }
+
     public boolean isRealmDeveloper() {
         // TODO check if can do better at the level of user
-    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN) || isRealmRole(a.getAuthority(), Config.R_DEVELOPER));
+        return getAuthorities() != null && getAuthorities().stream()
+                .anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN)
+                        || isRealmRole(a.getAuthority(), Config.R_DEVELOPER));
     }
+
     public boolean isRealmAdmin() {
         // TODO check if can do better at the level of user
-    	return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN));
+        return getAuthorities() != null && getAuthorities().stream().anyMatch(
+                a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN));
     }
-    
+
     private boolean isRealmRole(String authority, String role) {
-    	return authority.endsWith(':'+role);
+        return authority.endsWith(':' + role);
     }
-    
+
     /*
      * Attributes
      * 

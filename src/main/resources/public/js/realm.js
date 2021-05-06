@@ -829,14 +829,17 @@ angular.module('aac.controllers.realm', [])
         return;
       }
 
+      var data = {
+    		  code: functionCode,
+    		  name: 'claimMapping'
+      }
 
-      RealmData.testClientAppClaimMapping($scope.realm.slug, $scope.app.clientId, functionCode).then(function (result) {
-        $scope.claimMapping.result = result;
-        $scope.claimMapping.error = null;
-        console.log(result);
+      RealmData.testClientAppClaimMapping($scope.realm.slug, $scope.app.clientId, data).then(function (res) {
+        $scope.claimMapping.result = res.result;
+        $scope.claimMapping.errors = res.errors;
       }).catch(function (err) {
     	  $scope.claimMapping.result = null;
-        $scope.claimMapping.error =  err.data.message;
+    	  $scope.claimMapping.errors =  [err.data.message];
       });
     }    
 

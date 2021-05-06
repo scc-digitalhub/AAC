@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.AttributeType;
@@ -75,7 +76,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     };
 
     public DefaultClaimsService(ExtractorsRegistry extractorsRegistry) {
-        Assert.notNull(extractorsRegistry, "extractos registry is mandatory");
+        Assert.notNull(extractorsRegistry, "extractors registry is mandatory");
         this.extractorsRegistry = extractorsRegistry;
         mapper.setSerializationInclusion(Include.NON_EMPTY);
 
@@ -138,6 +139,12 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             for (ScopeClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 User user = userService.getUser(userDetails, ce.getRealm());
+
+                // filter attribute sets according to scopes
+                if (!scopes.contains(Config.SCOPE_FULL_PROFILE)) {
+                    user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
+                }
+
                 ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes, extensions);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));
@@ -153,6 +160,12 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             for (ResourceClaimsExtractor ce : exts) {
                 // each extractor can respond, we keep only userClaims
                 User user = userService.getUser(userDetails, ce.getRealm());
+
+                // filter attribute sets according to scopes
+                if (!scopes.contains(Config.SCOPE_FULL_PROFILE)) {
+                    user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
+                }
+
                 ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes, extensions);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));
@@ -435,6 +448,13 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
         // add
         contents.get(key).add(value);
+    }
+
+    public List<UserAttributes> narrowUserAttributes(Collection<UserAttributes> attributes,
+            Collection<String> scopes) {
+        return attributes.stream()
+                .filter(at -> scopes.contains(at.getIdentifier()))
+                .collect(Collectors.toList());
     }
 
 //    public Map<String, Serializable> getUserClaimsFromBasicProfile(UserDetails user) {

@@ -6,6 +6,10 @@ public class BooleanAttribute extends AbstractAttribute {
 
     private Boolean value;
 
+    public BooleanAttribute(String key) {
+        this.key = key;
+    }
+
     public BooleanAttribute(String key, Boolean boo) {
         this.key = key;
         this.value = boo;

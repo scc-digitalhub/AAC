@@ -10,6 +10,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 public interface IdentityProvider extends ResourceProvider {
 
+    public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributesMapping";
+
     /*
      * Config
      */

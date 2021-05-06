@@ -76,7 +76,7 @@ public class UserAccountController {
 
     @Autowired
     private AuthenticationHelper authHelper;
-    
+
     @Autowired
     private UserManager userManager;
 
@@ -85,10 +85,10 @@ public class UserAccountController {
 
     @Autowired
     private ProfileManager profileManager;
-    
+
 //    @Autowired
 //    private InternalUserAccountService userAccountService;
-    
+
     @Autowired
     private ProviderManager providerManager;
 
@@ -108,7 +108,7 @@ public class UserAccountController {
         model.put("username", username);
         return new ModelAndView("account", model);
     }
-    
+
     @GetMapping("/account/profile")
     public ResponseEntity<UserDetails> myProfile() throws InvalidDefinitionException {
         UserDetails user = authHelper.getUserDetails();
@@ -120,13 +120,14 @@ public class UserAccountController {
     }
 
     @GetMapping("/account/accounts")
-    public ResponseEntity<List<AccountProfile>> getAccounts() {
+    public ResponseEntity<Collection<AccountProfile>> getAccounts() throws InvalidDefinitionException {
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        Collection<UserIdentity> identities = user.getIdentities();
-        return ResponseEntity.ok(identities.stream().map(i -> i.getAccount().toProfile()).collect(Collectors.toList()));
+        Collection<AccountProfile> profiles = profileManager.curAccountProfiles();
+
+        return ResponseEntity.ok(profiles);
     }
 
     @DeleteMapping("/account/profile")
@@ -177,7 +178,6 @@ public class UserAccountController {
         Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
-    
 
     @GetMapping("/credentials/{userId}")
     public ModelAndView credentials(
@@ -209,7 +209,7 @@ public class UserAccountController {
         }
 
         String url = service.getSetUrl();
-        return new ModelAndView("redirect:"+url);       
+        return new ModelAndView("redirect:" + url);
     }
 
 }

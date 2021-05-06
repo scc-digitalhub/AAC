@@ -28,6 +28,7 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
 //    private String icon;
 
     private Map<String, Serializable> configuration;
+    private Map<String, String> hookFunctions = new HashMap<>();
 
     public ConfigurableProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -110,6 +111,14 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
 
     public void setConfigurationProperty(String key, Serializable value) {
         configuration.put(key, value);
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
     }
 
     public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;

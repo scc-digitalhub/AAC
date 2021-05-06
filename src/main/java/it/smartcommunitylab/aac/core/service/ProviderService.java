@@ -79,7 +79,8 @@ public class ProviderService {
             String type,
             String name, String description,
             String persistence,
-            Map<String, Serializable> configurationMap) {
+            Map<String, Serializable> configurationMap,
+            Map<String, String> hookFunctions) {
 
         ProviderEntity p = new ProviderEntity();
         p.setAuthority(authority);
@@ -92,6 +93,7 @@ public class ProviderService {
         p.setDescription(description);
         p.setPersistence(persistence);
         p.setConfigurationMap(configurationMap);
+        p.setHookFunctions(hookFunctions);
 
         p = providerRepository.save(p);
 
@@ -103,7 +105,8 @@ public class ProviderService {
             boolean enabled,
             String name, String description,
             String persistence,
-            Map<String, Serializable> configurationMap) throws NoSuchProviderException {
+            Map<String, Serializable> configurationMap,
+            Map<String, String> hookFunctions) throws NoSuchProviderException {
 
         ProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
@@ -114,6 +117,7 @@ public class ProviderService {
         p.setName(name);
         p.setDescription(description);
         p.setPersistence(persistence);
+        p.setHookFunctions(hookFunctions);
 
         // we update both status and configuration at the same time
         p.setEnabled(enabled);

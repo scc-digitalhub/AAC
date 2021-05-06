@@ -2,12 +2,20 @@ package it.smartcommunitylab.aac.profiles.service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.profiles.AccountProfileAttributesSet;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.scope.AccountProfileScope;
 
 public class AccountProfileExtractor extends UserProfileExtractor {
 
@@ -24,7 +32,8 @@ public class AccountProfileExtractor extends UserProfileExtractor {
 
         // TODO decide how to select primary identity
         // for now get first identity, should be last logged in
-        AccountProfile profile = identities.iterator().next().getAccount().toProfile();
+        UserIdentity id = identities.iterator().next();
+        AccountProfile profile = extract(id.getAccount(), id.getAttributes());
 
         return profile;
     }
@@ -35,7 +44,7 @@ public class AccountProfileExtractor extends UserProfileExtractor {
             return null;
         }
 
-        return identity.getAccount().toProfile();
+        return extract(identity.getAccount(), identity.getAttributes());
     }
 
     @Override
@@ -47,7 +56,37 @@ public class AccountProfileExtractor extends UserProfileExtractor {
             return Collections.emptyList();
         }
 
-        return identities.stream().map(i -> i.getAccount().toProfile()).collect(Collectors.toList());
+        return identities.stream().map(id -> extract(id.getAccount(), id.getAttributes())).collect(Collectors.toList());
+    }
+
+    private AccountProfile extract(UserAccount account, Collection<UserAttributes> attributes) {
+        AccountProfile profile = new AccountProfile();
+        profile.setAuthority(account.getAuthority());
+        profile.setProvider(account.getProvider());
+        profile.setRealm(account.getRealm());
+
+        profile.setUserId(account.getUserId());
+        profile.setUsername(account.getUsername());
+
+        // look for accountProfile extra attributes
+        Map<String, String> extra = new HashMap<>();
+        Optional<UserAttributes> attrs = attributes.stream()
+                .filter(a -> a.getIdentifier().equals(AccountProfileAttributesSet.IDENTIFIER)).findFirst();
+        if (attrs.isPresent()) {
+            // add every extra property
+            attrs.get().getAttributes().forEach(attr -> {
+                if (!AccountProfileAttributesSet.USER_ID.equals(attr.getKey()) &&
+                        !AccountProfileAttributesSet.USERNAME.equals(attr.getKey()) &&
+                        attr.getType() == AttributeType.STRING) {
+                    extra.put(attr.getKey(), attr.getValue().toString());
+                }
+            });
+        }
+
+        profile.setAttributes(extra);
+
+        return profile;
+
     }
 
 }

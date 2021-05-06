@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 
 public class DefaultUserAttributesImpl extends BaseAttributes {
 
-    private String internalUserId;
+    private String userId;
     private Set<Attribute> attributes;
 
     public DefaultUserAttributesImpl(String authority, String provider, String realm, String identifier) {
@@ -27,22 +27,16 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
 
     @Override
     public String getAttributesId() {
-        // leverage the default mapper to translate id
-        return exportInternalId(identifier);
+        return identifier + ":" + userId;
     }
 
-    public String getInternalUserId() {
-        return internalUserId;
-    }
-
-    public void setInternalUserId(String internalUserId) {
-        this.internalUserId = internalUserId;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     @Override
     public String getUserId() {
-        // leverage the default mapper to translate internalId
-        return exportInternalId(internalUserId);
+        return userId;
     }
 
     public Collection<Attribute> getAttributes() {

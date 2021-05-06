@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -31,10 +32,15 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     private OIDCIdentityProviderConfigMap configMap;
     private ClientRegistration clientRegistration;
 
+    // hook functions
+    private Map<String, String> hookFunctions;
+
     public OIDCIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_OIDC, provider, realm);
         this.clientRegistration = null;
         this.configMap = new OIDCIdentityProviderConfigMap();
+        this.hookFunctions = Collections.emptyMap();
+
     }
 
     @Override
@@ -72,6 +78,14 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public void setPersistence(String persistence) {
         this.persistence = persistence;
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
     }
 
     @Override
@@ -227,6 +241,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
         cp.setName(op.getName());
         cp.setDescription(op.getDescription());
+        cp.setHookFunctions(op.getHookFunctions());
 
         cp.setEnabled(true);
         cp.setConfiguration(op.getConfiguration());
@@ -242,6 +257,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         op.name = cp.getName();
         op.description = cp.getDescription();
         op.persistence = cp.getPersistence();
+        op.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return op;
 

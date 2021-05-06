@@ -1,8 +1,15 @@
 package it.smartcommunitylab.aac.profiles.service;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
@@ -38,4 +45,21 @@ public abstract class UserProfileExtractor {
 
     public abstract Collection<? extends AbstractProfile> extractUserProfiles(User user)
             throws InvalidDefinitionException;
+
+    // lookup an attribute in multiple sets, return first match
+    protected String getAttribute(Collection<UserAttributes> attributes, String key, String... identifier) {
+        Set<UserAttributes> sets = attributes.stream()
+                .filter(a -> ArrayUtils.contains(identifier, a.getIdentifier()))
+                .collect(Collectors.toSet());
+
+        for (UserAttributes uattr : sets) {
+            Optional<Attribute> attr = uattr.getAttributes().stream().filter(a -> a.getKey().equals(key)).findFirst();
+            if (attr.isPresent()) {
+                return attr.get().getValue().toString();
+            }
+        }
+
+        return null;
+
+    }
 }

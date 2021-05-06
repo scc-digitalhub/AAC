@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -34,6 +37,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     // services
     private final UserEntityService userEntityService;
+    private ScriptExecutionService executionService;
 
     // provider configuration
     private final InternalIdentityProviderConfig config;
@@ -91,6 +95,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         // also assign to services
         this.accountService.setUriBuilder(uriBuilder);
         this.passwordService.setUriBuilder(uriBuilder);
+    }
+
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.executionService = executionService;
     }
 
     @Override

@@ -37,6 +37,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy.Configurable;
 
 @Service
 public class ProviderManager {
@@ -318,11 +319,14 @@ public class ProviderManager {
             configuration = configurable.getConfiguration();
         }
 
+        // fetch hooks
+        Map<String, String> hookFunctions = provider.getHookFunctions();
+
         pe = providerService.addProvider(authority, providerId, re.getSlug(),
                 type,
                 name, description,
                 persistence,
-                configuration);
+                configuration, hookFunctions);
 
         return fromEntity(pe);
 
@@ -421,11 +425,14 @@ public class ProviderManager {
             configuration = configurable.getConfiguration();
         }
 
+        // fetch hooks
+        Map<String, String> hookFunctions = provider.getHookFunctions();
+
         // update: even when enabled this provider won't be active until registration
         pe = providerService.updateProvider(providerId, enabled,
                 name, description,
                 persistence,
-                configuration);
+                configuration, hookFunctions);
 
         return fromEntity(pe);
     }
@@ -474,7 +481,7 @@ public class ProviderManager {
             pe = providerService.updateProvider(providerId, true,
                     pe.getName(), pe.getDescription(),
                     pe.getPersistence(),
-                    pe.getConfigurationMap());
+                    pe.getConfigurationMap(), pe.getHookFunctions());
         }
 
         ConfigurableProvider provider = fromEntity(pe);
@@ -509,7 +516,7 @@ public class ProviderManager {
             pe = providerService.updateProvider(providerId, false,
                     pe.getName(), pe.getDescription(),
                     pe.getPersistence(),
-                    pe.getConfigurationMap());
+                    pe.getConfigurationMap(), pe.getHookFunctions());
         }
 
         ConfigurableProvider provider = fromEntity(pe);

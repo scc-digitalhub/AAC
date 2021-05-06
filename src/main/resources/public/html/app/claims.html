@@ -24,7 +24,7 @@
                  </figure>
                   
               </div>
-              <div class="text-danger" ng-if="claimMapping.error">{{claimMapping.error}}</div>
+              <div class="text-danger" ng-repeat="err in claimMapping.errors">{{err}}</div>
 	        </div>
         </div>
     </fieldset>

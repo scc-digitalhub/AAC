@@ -6,10 +6,12 @@ import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 
 public class BasicProfileScope extends AbstractProfileScope {
+    
+    public static final String SCOPE = Config.SCOPE_BASIC_PROFILE;
 
     @Override
     public String getScope() {
-        return Config.SCOPE_BASIC_PROFILE;
+        return SCOPE;
     }
 
     // TODO replace with keys for i18n

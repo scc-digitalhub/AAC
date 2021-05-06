@@ -35,9 +35,9 @@ public interface UserIdentity extends UserResource, Serializable {
     // expose method to clear private data
     public void eraseCredentials();
 
-    // mapper for user profiles
-    // implementations need to provide this to be used for claim mapping
-    public BasicProfile toBasicProfile();
-
-    public OpenIdProfile toOpenIdProfile();
+//    // mapper for user profiles
+//    // implementations need to provide this to be used for claim mapping
+//    public BasicProfile toBasicProfile();
+//
+//    public OpenIdProfile toOpenIdProfile();
 }

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,9 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ClaimsService;
@@ -41,7 +45,9 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -56,6 +62,11 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 
 @Component
 public class DevManager {
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
+    };
+    private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<ArrayList<Serializable>>() {
+    };
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -144,9 +155,15 @@ public class DevManager {
         e.setExecutionService(executionService);
         e.setUserTranslatorService(userTranslatorService);
 
+        // map user
+        User user = userTranslatorService.translate(userDetails, realm);
+        // narrow attributes
+        if (!approvedScopes.contains(Config.SCOPE_FULL_PROFILE)) {
+            user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
+        }
+
         // execute
-        ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(),
-                userTranslatorService.translate(userDetails, realm), clientDetails, approvedScopes, null);
+        ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(), user, clientDetails, approvedScopes, null);
         // get map via claimsService (hack)
         Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
 
@@ -204,11 +221,12 @@ public class DevManager {
         return claims;
     }
 
-    public Map<String, Serializable> testClientClaimMapping(String realm, String clientId, String functionCode,
-            Collection<String> scopes)
+    @SuppressWarnings("unchecked")
+    public FunctionValidationBean testClientClaimMapping(String realm, String clientId,
+            FunctionValidationBean functionBean)
             throws NoSuchClientException, SystemException, NoSuchResourceException, InvalidDefinitionException {
         // fetch context
-        // TODO evaluate mock userDetails for testing
+        // TODO evaluate mock userDetails for testing, maybe read from functionBean
         UserDetails userDetails = authHelper.getUserDetails();
         if (userDetails == null) {
             throw new InsufficientAuthenticationException("invalid or missing user authentication");
@@ -221,14 +239,15 @@ public class DevManager {
 
         // fetch and validate scopes and resourceids, we need approvals
         Collection<String> clientScopes = clientDetails.getScopes();
-        if (scopes != null) {
-            clientScopes = scopes;
+        if (functionBean.getAttributes() != null && functionBean.getAttributes().get("scopes") != null) {
+            clientScopes = mapper.convertValue(functionBean.getAttributes().get("scopes"), ArrayList.class);
         }
 
         Set<String> resourceIds = new HashSet<>(clientDetails.getResourceIds());
         Set<String> approvedScopes = getClientApprovedScopes(clientDetails, userDetails, clientScopes);
 
         // clear hookFunctions already set and pass only test function
+        String functionCode = functionBean.getCode();
         Map<String, String> functions = new HashMap<>();
         functions.put(DefaultClaimsService.CLAIM_MAPPING_FUNCTION, functionCode);
         clientDetails.setHookFunctions(functions);
@@ -237,7 +256,11 @@ public class DevManager {
         Map<String, Serializable> claims = claimsService.getUserClaims(userDetails, realm, clientDetails,
                 approvedScopes, resourceIds, null);
 
-        return claims;
+        // TODO execute here claimMapping after default
+
+        functionBean.setResult(claims);
+
+        return functionBean;
     }
 
     /*

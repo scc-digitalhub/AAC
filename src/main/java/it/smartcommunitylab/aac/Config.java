@@ -122,6 +122,7 @@ public class Config {
     public static final String SCOPE_ACCOUNT_PROFILE = "profile.accountprofile.me";
     public static final String SCOPE_BASIC_PROFILE = "profile.basicprofile.me";
     public static final String SCOPE_SESSION_PROFILE = "profile.sessionprofile.me";
+    public static final String SCOPE_FULL_PROFILE = "profile.fullprofile.me";
 
     /* api scopes */
     public static final String SCOPE_ACCOUNT_PROFILE_ALL = "profile.accountprofile.all";

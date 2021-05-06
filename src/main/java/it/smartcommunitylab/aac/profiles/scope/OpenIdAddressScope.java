@@ -7,9 +7,11 @@ import it.smartcommunitylab.aac.scope.Scope;
 
 public class OpenIdAddressScope extends AbstractProfileScope {
 
+    public static final String SCOPE = Config.SCOPE_ADDRESS;
+
     @Override
     public String getScope() {
-        return Config.SCOPE_ADDRESS;
+        return SCOPE;
     }
 
     // TODO replace with keys for i18n

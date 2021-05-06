@@ -1,10 +1,9 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -26,9 +25,13 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
 
+    // hook functions
+    private Map<String, String> hookFunctions;
+
     public InternalIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.configMap = new InternalIdentityProviderConfigMap();
+        this.hookFunctions = Collections.emptyMap();
     }
 
     @Override
@@ -71,6 +74,14 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
         configMap.setConfiguration(props);
     }
 
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
+    }
+
     /*
      * builders
      */
@@ -85,6 +96,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
 
         cp.setEnabled(true);
         cp.setConfiguration(ip.getConfigMap().getConfiguration());
+        cp.setHookFunctions(ip.getHookFunctions());
 
         return cp;
     }
@@ -96,6 +108,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
 
         ip.name = cp.getName();
         ip.description = cp.getDescription();
+        ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return ip;
     }

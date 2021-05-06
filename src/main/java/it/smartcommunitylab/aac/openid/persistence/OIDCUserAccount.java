@@ -237,7 +237,7 @@ public class OIDCUserAccount implements UserAccount {
         this.username = username;
     }
 
-    @Override
+//    @Override
     public AccountProfile toProfile() {
         OIDCAccountProfile profile = new OIDCAccountProfile();
         profile.setAuthority(getAuthority());

@@ -183,7 +183,7 @@ public class SamlUserAccount implements UserAccount {
         this.username = username;
     }
 
-    @Override
+//    @Override
     public AccountProfile toProfile() {
         SAMLAccountProfile profile = new SAMLAccountProfile();
         profile.setAuthority(getAuthority());

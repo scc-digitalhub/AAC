@@ -258,7 +258,7 @@ public class InternalUserAccount implements UserAccount {
         this.provider = provider;
     }
 
-    @Override
+//    @Override
     public AccountProfile toProfile() {
         AccountProfile profile = new AccountProfile();
         profile.setAuthority(getAuthority());

@@ -39,11 +39,13 @@ public class User {
     private String realm;
 
     // basic profile
-    // could be empty
-    private String name;
-    private String surname;
     private String username;
-    private String email;
+
+//    // could be empty
+//    private String name;
+//    private String surname;
+//    private String username;
+//    private String email;
 
     // identities associated with this user
     // this will be populated as needed, make no assumption about being always set
@@ -99,9 +101,9 @@ public class User {
         this.roles = new HashSet<>();
 
         this.username = details.getUsername();
-        this.name = details.getFirstName();
-        this.surname = details.getLastName();
-        this.email = details.getEmailAddress();
+//        this.name = details.getFirstName();
+//        this.surname = details.getLastName();
+//        this.email = details.getEmailAddress();
 
     }
 
@@ -130,21 +132,21 @@ public class User {
         this.realm = realm;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
+//
+//    public String getSurname() {
+//        return surname;
+//    }
+//
+//    public void setSurname(String surname) {
+//        this.surname = surname;
+//    }
 
     public String getUsername() {
         return username;
@@ -154,13 +156,13 @@ public class User {
         this.username = username;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+//    public String getEmail() {
+//        return email;
+//    }
+//
+//    public void setEmail(String email) {
+//        this.email = email;
+//    }
 
     public Set<UserIdentity> getIdentities() {
         return identities;

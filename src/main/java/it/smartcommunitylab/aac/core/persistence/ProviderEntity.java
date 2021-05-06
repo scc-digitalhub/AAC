@@ -53,6 +53,11 @@ public class ProviderEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> configurationMap;
 
+    @Lob
+    @Column(name = "hook_functions")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, String> hookFunctions;
+
     public ProviderEntity() {
 
     }
@@ -139,6 +144,14 @@ public class ProviderEntity {
 
     public void setConfigurationMap(Map<String, Serializable> configurationMap) {
         this.configurationMap = configurationMap;
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
     }
 
 }

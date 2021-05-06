@@ -63,6 +63,7 @@ import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.dto.ProviderRegistrationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;
 import it.smartcommunitylab.aac.model.ClientApp;
@@ -177,11 +178,12 @@ public class DevController {
     @PostMapping("/console/dev/realms/{realm}/users/invite")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> inviteUser(@PathVariable String realm,
-            @RequestBody InvitationBean bean) throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
+            @RequestBody InvitationBean bean)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
         userManager.inviteUser(realm, bean.getUsername(), bean.getSubjectId(), bean.getRoles());
         return ResponseEntity.ok(null);
     }
-    
+
     /*
      * Providers
      */
@@ -450,28 +452,30 @@ public class DevController {
     @PostMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/claims")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Map<String, Serializable>> testRealmClientAppClaims(@PathVariable String realm,
+    public ResponseEntity<FunctionValidationBean> testRealmClientAppClaims(@PathVariable String realm,
             @PathVariable String clientId,
-            @RequestBody String functionCode)
+            @Valid @RequestBody FunctionValidationBean function)
             throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException,
             InvalidDefinitionException {
 
         // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
-//        try {
-        // TODO receive list of scopes for testing
-        Map<String, Serializable> result = devManager.testClientClaimMapping(realm, clientId, functionCode, null);
+        try {
+            // TODO expose context personalization in UI
+            function = devManager.testClientClaimMapping(realm, clientId, function);
 
-        return ResponseEntity.ok(result);
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            // translate error
+            function.addError(e.getMessage());
 
-//        } catch (InvalidDefinitionException | RuntimeException e) {
-//            e.printStackTrace();
 //            // wrap error
 //            Map<String, Serializable> res = new HashMap<>();
 //            res.put("error", e.getClass().getName());
 //            res.put("message", e.getMessage());
 //            return ResponseEntity.badRequest().body(res);
-//        }
+        }
+
+        return ResponseEntity.ok(function);
     }
 
     @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/yaml")
@@ -825,10 +829,11 @@ public class DevController {
         }
 
     }
+
     public static class InvitationBean {
 
-    	private String username, subjectId;
-    	
+        private String username, subjectId;
+
         private List<String> roles;
 
         public List<String> getRoles() {
@@ -839,21 +844,21 @@ public class DevController {
             this.roles = roles;
         }
 
-		public String getUsername() {
-			return username;
-		}
+        public String getUsername() {
+            return username;
+        }
 
-		public void setUsername(String username) {
-			this.username = username;
-		}
+        public void setUsername(String username) {
+            this.username = username;
+        }
 
-		public String getSubjectId() {
-			return subjectId;
-		}
+        public String getSubjectId() {
+            return subjectId;
+        }
 
-		public void setSubjectId(String subjectId) {
-			this.subjectId = subjectId;
-		}
+        public void setSubjectId(String subjectId) {
+            this.subjectId = subjectId;
+        }
 
     }
 

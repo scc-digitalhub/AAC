@@ -74,10 +74,9 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
         // manually map attributes into sets
         List<UserAttributes> attributes = new ArrayList<>();
         // TODO rework and move to attributeProvider, here we should simly store them
-        String internalUserId = this.parseResourceId(userId);
         DefaultUserAttributesImpl profile = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
                 "profile");
-        profile.setInternalUserId(internalUserId);
+        profile.setUserId(userId);
         profile.addAttribute(new StringAttribute("name", account.getName()));
         profile.addAttribute(new StringAttribute("surname", account.getSurname()));
         profile.addAttribute(new StringAttribute("email", account.getEmail()));
@@ -85,13 +84,13 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
         DefaultUserAttributesImpl email = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
                 "email");
-        email.setInternalUserId(internalUserId);
+        email.setUserId(userId);
         email.addAttribute(new StringAttribute("email", account.getEmail()));
         attributes.add(email);
 
         DefaultUserAttributesImpl username = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
                 "username");
-        username.setInternalUserId(internalUserId);
+        username.setUserId(userId);
         username.addAttribute(new StringAttribute("username", account.getUsername()));
         attributes.add(username);
 
@@ -167,7 +166,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
     private static final String ATTRIBUTE_PREFIX = SystemKeys.AUTHORITY_INTERNAL + ".";
 
-    @Override
+//    @Override
     public BasicProfile toBasicProfile() {
         BasicProfile profile = new BasicProfile();
         profile.setUsername(account.getUsername());
@@ -178,7 +177,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
         return profile;
     }
 
-    @Override
+//    @Override
     public OpenIdProfile toOpenIdProfile() {
         OpenIdProfile profile = new OpenIdProfile();
         profile.setUsername(account.getUsername());
