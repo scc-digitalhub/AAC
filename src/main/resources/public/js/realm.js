@@ -5,43 +5,53 @@ angular.module('aac.controllers.realm', [])
 	 */
   .controller('RealmController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
     var slug = $stateParams.realmId;
+    var toDashboard = false;
 
-    if (slug) {
-      // global admin or realm admin
-      $scope.realmAdmin = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN' }) >= 0;
-      // realm admin or developer
-      $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER' }) >= 0 || $scope.realmAdmin;
-      RealmData.getRealm(slug)
-        .then(function (data) {
-          $scope.realm = data;
-          $scope.realmImmutable = data.slug == 'system' || data.slug == '';
-        })
-        .catch(function (err) {
-          Utils.showError('Failed to load realm: ' + err.data.message);
-        });
-    } else {
-      RealmData.getMyRealms()
-        .then(function (data) {
-          $scope.realm = data[0];
-          $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
-        })
-        .catch(function (err) {
-          Utils.showError('Failed to load realms: ' + err.data.message);
-        });
+    $scope.selectRealm = function(r) {
+      localStorage.setItem('realm', r.slug);  
+      $scope.realm = r;
+      $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
     }
+
+    RealmData.getMyRealms()
+    .then(function (data) {
+      $scope.realms = data;
+      if (!slug) {
+        var stored = localStorage.getItem('realm') || null;
+        var idx = stored ? data.findIndex(r => r.slug == slug) : 0;
+        if (idx < 0) idx = 0;
+        slug = data[idx].slug;
+        toDashboard = true;
+      }
+      RealmData.getRealm(slug)
+      .then(function(data) {
+        $scope.realm = data;
+        // global admin or realm admin
+        $scope.realmAdmin = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN' }) >= 0;
+        // realm admin or developer
+        $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER' }) >= 0 || $scope.realmAdmin;
+        $scope.realmImmutable = $scope.realm.slug == 'system' || data.slug == '';
+        if (toDashboard) {
+          $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
+        }
+      });      
+    })
+    .catch(function (err) {
+      Utils.showError('Failed to load realms: ' + err.data.message);
+    });
   })
   
   .controller('RealmDashboardController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
     var slug = $stateParams.realmId;
-    RealmData.getRealmStats(slug).then(function(stats) {
-      $scope.stats = stats;
-    })
-    .catch(function (err) {
-      Utils.showError('Failed to load realm: ' + err.data.message);
-    });
+    if (slug) {
+      RealmData.getRealmStats(slug).then(function(stats) {
+        $scope.stats = stats;
+      })
+      .catch(function (err) {
+        Utils.showError('Failed to load realm: ' + err.data.message);
+      });
+    }
     
-    
-
   })
 
   /**

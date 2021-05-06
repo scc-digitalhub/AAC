@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
@@ -293,6 +294,16 @@ public class UserDetails implements org.springframework.security.core.userdetail
     public boolean isRealmAdmin() {
         // TODO check if can do better at the level of user
     	return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN));
+    }
+    
+    public Collection<String> getRealms() {
+    	return getAuthorities().stream().filter(a -> {
+    		if (!(a instanceof RealmGrantedAuthority)) return false;
+    		return true;
+    	}).map(a -> {
+			 return ((RealmGrantedAuthority)a).getRealm();
+    	})
+    	.collect(Collectors.toSet());
     }
     
     private boolean isRealmRole(String authority, String role) {

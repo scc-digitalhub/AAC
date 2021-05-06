@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.controller;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +32,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.yaml.snakeyaml.Yaml;
 
@@ -107,16 +104,22 @@ public class DevController {
 
     @GetMapping("/console/dev/realms")
     public ResponseEntity<List<Realm>> myRealms() throws NoSuchRealmException {
-        // TODO: complete reading of user realms
         UserDetails user = userManager.curUserDetails();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        if (SystemKeys.REALM_GLOBAL.equals(user.getRealm())) {
-            return ResponseEntity.ok(Collections.singletonList(new Realm(SystemKeys.REALM_GLOBAL, "GLOBAL")));
-        }
-        return ResponseEntity.ok(Collections.singletonList(realmManager.getRealm(user.getRealm())));
-
+        return ResponseEntity.ok(
+        	user.getRealms().stream()
+			.map(r -> {
+				try {
+					return realmManager.getRealm(r);
+				} catch (NoSuchRealmException e) {
+					return null;
+				}
+			})
+			.filter(r -> r != null)
+			.collect(Collectors.toList())
+		);
     }
 
     @GetMapping("/console/dev/realms/{realm:.*}/stats")
