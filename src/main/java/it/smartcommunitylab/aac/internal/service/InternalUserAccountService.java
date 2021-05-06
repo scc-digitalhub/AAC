@@ -119,7 +119,7 @@ public class InternalUserAccountService {
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
             account.setSurname(reg.getSurname());
-            account.setLang(reg.getSurname());
+            account.setLang(reg.getLang());
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());
@@ -157,7 +157,7 @@ public class InternalUserAccountService {
             account.setEmail(reg.getEmail());
             account.setName(reg.getName());
             account.setSurname(reg.getSurname());
-            account.setLang(reg.getSurname());
+            account.setLang(reg.getLang());
             account.setConfirmed(reg.isConfirmed());
             account.setConfirmationDeadline(reg.getConfirmationDeadline());
             account.setConfirmationKey(reg.getConfirmationKey());

@@ -384,11 +384,18 @@ public class InternalAccountService extends InternalAccountProvider implements A
     private void sendPasswordMail(InternalUserAccount account, String password)
             throws MessagingException {
         if (mailService != null) {
+            String realm = getRealm();
+            String provider = getProvider();
+            String loginUrl = "/login";
+            if (uriBuilder != null) {
+                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
+            }
             String lang = (account.getLang() != null ? account.getLang() : "und");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
+            vars.put("url", loginUrl);
 
             String template = "mail/password";
             if (StringUtils.hasText(lang)) {

@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -126,6 +127,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     }
 
+    @Autowired
     public void setMailService(MailService mailService) {
         this.mailService = mailService;
     }
