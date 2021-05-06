@@ -317,6 +317,8 @@ public class UserService {
         } else {
             // fetch accessible
             // TODO decide policy + implement
+        	// CURRENTLY ONLY DROP REALM ROLES
+        	updateRealmAuthorities(realm, subjectId, Collections.emptyList());
         }
 
     }
@@ -400,23 +402,4 @@ public class UserService {
                 () -> page.getTotalElements());
 	}
 
-	/**
-	 * @param realm
-	 * @param username
-	 * @param roles
-	 */
-	public void inviteInternalUser(String realm, String username, List<String> roles) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/**
-	 * @param realm
-	 * @param subjectId
-	 * @param roles
-	 */
-	public void inviteExternalUser(String realm, String subjectId, List<String> roles) {
-		// TODO Auto-generated method stub
-		
-	}
 }

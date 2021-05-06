@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,16 +21,23 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
@@ -254,14 +262,34 @@ public class UserManager {
 	 * @param subjectId
 	 * @param roles
 	 * @throws NoSuchRealmException 
+	 * @throws NoSuchProviderException 
+	 * @throws NoSuchUserException 
+	 * @throws RegistrationException 
 	 */
-	public void inviteUser(String realm, String username, String subjectId, List<String> roles) throws NoSuchRealmException {
+	public void inviteUser(String realm, String username, String subjectId, List<String> roles) throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
         realmService.getRealm(realm);
         if (username != null) {
-        	userService.inviteInternalUser(realm, username, roles);
+        	Collection<IdentityProvider> providers = providerManager.getIdentityProviders(realm);
+        	// Assume internal provider exists and is unique
+        	Optional<IdentityProvider> internalProvider = providers.stream().filter(p -> p.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL)).findFirst();
+        	if (!internalProvider.isPresent()) {
+        		throw new NoSuchProviderException("No internal provider available");
+        	}
+        	IdentityService identityService = providerManager.getIdentityService(internalProvider.get().getProvider());
+            InternalUserAccount account = new InternalUserAccount();
+            account.setUsername(username);
+            account.setEmail(username);
+            account.setRealm(realm);
+            
+        	UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
+        	updateRealmAuthorities(realm, ((InternalUserAccount)identity.getAccount()).getSubject(), roles);
         }
         if (subjectId != null) {
-        	userService.inviteExternalUser(realm, subjectId, roles);
+        	User user = userService.getUser(subjectId);
+        	if (user == null) {
+        		throw new NoSuchUserException("No user with specified subjectId exist");
+        	}
+    		updateRealmAuthorities(realm, subjectId, roles);
         }
 	}
 
