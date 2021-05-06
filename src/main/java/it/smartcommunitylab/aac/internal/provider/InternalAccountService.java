@@ -25,7 +25,12 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalAccountService extends InternalAccountProvider implements AccountService {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    /**
+	 * 
+	 */
+	private static final String LANG_UNDEFINED = "en";
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // use password service to handle password
     private final InternalPasswordService passwordService;
@@ -206,7 +211,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
                 sendConfirmationMail(account, account.getConfirmationKey());
             }
 
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
         // TODO evaluate returning cleartext password after creation
@@ -390,7 +395,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
             if (uriBuilder != null) {
                 loginUrl = uriBuilder.buildUrl(realm, loginUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : "und");
+            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
@@ -421,7 +426,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
             if (uriBuilder != null) {
                 confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : "und");
+            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
@@ -451,7 +456,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
                 confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
             }
 
-            String lang = (account.getLang() != null ? account.getLang() : "und");
+            String lang = (account.getLang() != null ? account.getLang() : LANG_UNDEFINED);
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);

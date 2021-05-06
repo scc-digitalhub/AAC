@@ -5,8 +5,25 @@
         <div class="link-list-wrapper">
           <ul class="link-list">
             <li>
-              <h3>{{realm.name}}</h3>
-               <p class="pl-4 text-monospace text-muted">{{realm.slug}} </p>              
+              <div>
+                <div ng-if="realms.length > 1" >
+	                <a class="font-weight-semibold dropdown-toggle" ng-click="changeRealm()" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	                  <span class="text-primary ">{{realm.name}}</span>
+	                  <svg class="icon icon-sm icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use></svg>
+	                </a>
+	                <div class="dropdown-menu dark">
+					        <div class="link-list-wrapper">
+					          <ul class="link-list">
+					            <li ng-repeat="r in realms"><a class="list-item" href="" ng-click="selectRealm(r)"><span>{{r.name}}</span></a></li>
+					          </ul>
+					        </div>
+					      </div>
+				      </div>
+                
+              <h3  ng-if="realms.length == 1">{{realm.name}}</h3>
+                
+              </div>
+              <p class="pl-4 text-monospace text-muted">{{realm.slug}} </p>              
             </li>
             <li>
               <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.dashboard">Dashboard</a>
