@@ -70,30 +70,33 @@ public class OpenIdProfileExtractor extends UserProfileExtractor {
         profile.setUsername(account.getUsername());
 
         // lookup attributes with default names in openid profile
-        String givenName = getAttribute(attributes, OpenIdProfileAttributesSet.GIVEN_NAME,
+        String givenName = getStringAttribute(getAttribute(attributes, OpenIdProfileAttributesSet.GIVEN_NAME,
                 OpenIdProfileAttributesSet.IDENTIFIER,
-                "profile", "profile.fullprofile.me");
+                "profile", "profile.fullprofile.me"));
         if (!StringUtils.hasText(givenName)) {
             // fall back to basic profile
-            givenName = getAttribute(attributes, BasicProfileAttributesSet.NAME, BasicProfileAttributesSet.IDENTIFIER,
-                    "profile", "profile.fullprofile.me");
+            givenName = getStringAttribute(
+                    getAttribute(attributes, BasicProfileAttributesSet.NAME, BasicProfileAttributesSet.IDENTIFIER,
+                            "profile", "profile.fullprofile.me"));
         }
-        String familyName = getAttribute(attributes, OpenIdProfileAttributesSet.FAMILY_NAME,
+        String familyName = getStringAttribute(getAttribute(attributes, OpenIdProfileAttributesSet.FAMILY_NAME,
                 OpenIdProfileAttributesSet.IDENTIFIER,
-                "profile", "profile.fullprofile.me");
+                "profile", "profile.fullprofile.me"));
         if (!StringUtils.hasText(familyName)) {
             // fall back to basic profile
-            familyName = getAttribute(attributes, BasicProfileAttributesSet.SURNAME,
+            familyName = getStringAttribute(getAttribute(attributes, BasicProfileAttributesSet.SURNAME,
                     BasicProfileAttributesSet.IDENTIFIER,
-                    "profile", "profile.fullprofile.me");
+                    "profile", "profile.fullprofile.me"));
         }
-        String email = getAttribute(attributes, OpenIdProfileAttributesSet.EMAIL, OpenIdProfileAttributesSet.IDENTIFIER,
-                "email",
-                "profile", "profile.fullprofile.me");
+        String email = getStringAttribute(
+                getAttribute(attributes, OpenIdProfileAttributesSet.EMAIL, OpenIdProfileAttributesSet.IDENTIFIER,
+                        "email",
+                        "profile", "profile.fullprofile.me"));
         if (!StringUtils.hasText(email)) {
             // fall back to basic profile
-            email = getAttribute(attributes, BasicProfileAttributesSet.EMAIL, BasicProfileAttributesSet.IDENTIFIER,
-                    "profile", "profile.fullprofile.me");
+            email = getStringAttribute(
+                    getAttribute(attributes, BasicProfileAttributesSet.EMAIL, BasicProfileAttributesSet.IDENTIFIER,
+                            "profile", "profile.fullprofile.me"));
         }
 
         profile.setGivenName(givenName);
@@ -102,43 +105,45 @@ public class OpenIdProfileExtractor extends UserProfileExtractor {
 
         // lookup attributes with default names (oidc)
 
-        profile.setMiddleName(
+        profile.setMiddleName(getStringAttribute(
                 getAttribute(attributes, OpenIdProfileAttributesSet.MIDDLE_NAME, OpenIdProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
-        profile.setNickName(
+                        "profile", "profile.fullprofile.me")));
+        profile.setNickName(getStringAttribute(
                 getAttribute(attributes, OpenIdProfileAttributesSet.NICKNAME, OpenIdProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
-        profile.setPhone(
+                        "profile", "profile.fullprofile.me")));
+        profile.setPhone(getStringAttribute(
                 getAttribute(attributes, OpenIdProfileAttributesSet.PHONE_NUMBER, OpenIdProfileAttributesSet.IDENTIFIER,
-                        "phone", "profile", "profile.fullprofile.me"));
-        profile.setProfileUrl(
+                        "phone", "profile", "profile.fullprofile.me")));
+        profile.setProfileUrl(getStringAttribute(
                 getAttribute(attributes, OpenIdProfileAttributesSet.PROFILE, OpenIdProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
-        profile.setPictureUrl(
+                        "profile", "profile.fullprofile.me")));
+        profile.setPictureUrl(getStringAttribute(
                 getAttribute(attributes, OpenIdProfileAttributesSet.PICTURE, OpenIdProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
-        profile.setWebsiteUrl(
+                        "profile", "profile.fullprofile.me")));
+        profile.setWebsiteUrl(getStringAttribute(
                 getAttribute(attributes, OpenIdProfileAttributesSet.WEBSITE, OpenIdProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
-        profile.setGender(
+                        "profile", "profile.fullprofile.me")));
+        profile.setGender(getStringAttribute(
                 getAttribute(attributes, OpenIdProfileAttributesSet.GENDER, OpenIdProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
+                        "profile", "profile.fullprofile.me")));
 
-        String emailVerifiedAttr = getAttribute(attributes, OpenIdProfileAttributesSet.EMAIL_VERIFIED,
-                OpenIdProfileAttributesSet.IDENTIFIER, "email",
-                "profile", "profile.fullprofile.me");
+        String emailVerifiedAttr = getStringAttribute(
+                getAttribute(attributes, OpenIdProfileAttributesSet.EMAIL_VERIFIED,
+                        OpenIdProfileAttributesSet.IDENTIFIER, "email",
+                        "profile", "profile.fullprofile.me"));
         boolean emailVerified = emailVerifiedAttr != null ? Boolean.parseBoolean(emailVerifiedAttr) : false;
         profile.setEmailVerified(emailVerified);
 
-        String phoneVerifiedAttr = getAttribute(attributes, OpenIdProfileAttributesSet.PHONE_NUMBER_VERIFIED,
-                OpenIdProfileAttributesSet.IDENTIFIER, "phone",
-                "profile", "profile.fullprofile.me");
+        String phoneVerifiedAttr = getStringAttribute(
+                getAttribute(attributes, OpenIdProfileAttributesSet.PHONE_NUMBER_VERIFIED,
+                        OpenIdProfileAttributesSet.IDENTIFIER, "phone",
+                        "profile", "profile.fullprofile.me"));
         boolean phoneVerified = phoneVerifiedAttr != null ? Boolean.parseBoolean(phoneVerifiedAttr) : false;
         profile.setPhoneVerified(phoneVerified);
 
         try {
-            String birthdateAttr = getAttribute(attributes, OpenIdProfileAttributesSet.BIRTHDATE,
-                    OpenIdProfileAttributesSet.IDENTIFIER, "profile", "profile.fullprofile.me");
+            String birthdateAttr = getStringAttribute(getAttribute(attributes, OpenIdProfileAttributesSet.BIRTHDATE,
+                    OpenIdProfileAttributesSet.IDENTIFIER, "profile", "profile.fullprofile.me"));
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             Date birthdate = birthdateAttr != null ? formatter.parse(birthdateAttr) : null;
             profile.setBirthdate(birthdate);
@@ -146,17 +151,17 @@ public class OpenIdProfileExtractor extends UserProfileExtractor {
             profile.setBirthdate(null);
         }
 
-        String zoneInfo = getAttribute(attributes, OpenIdProfileAttributesSet.ZONEINFO,
+        String zoneInfo = getStringAttribute(getAttribute(attributes, OpenIdProfileAttributesSet.ZONEINFO,
                 OpenIdProfileAttributesSet.IDENTIFIER,
-                "profile", "profile.fullprofile.me");
+                "profile", "profile.fullprofile.me"));
         if (!StringUtils.hasText(zoneInfo)) {
             zoneInfo = TimeZone.getDefault().getDisplayName();
         }
         profile.setZoneinfo(zoneInfo);
 
-        String locale = getAttribute(attributes, OpenIdProfileAttributesSet.LOCALE,
+        String locale = getStringAttribute(getAttribute(attributes, OpenIdProfileAttributesSet.LOCALE,
                 OpenIdProfileAttributesSet.IDENTIFIER,
-                "profile", "profile.fullprofile.me");
+                "profile", "profile.fullprofile.me"));
         if (!StringUtils.hasText(locale)) {
             locale = Locale.getDefault().getDisplayName();
         }

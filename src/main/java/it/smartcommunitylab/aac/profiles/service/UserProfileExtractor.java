@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.profiles.service;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -11,6 +12,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
@@ -47,7 +49,7 @@ public abstract class UserProfileExtractor {
             throws InvalidDefinitionException;
 
     // lookup an attribute in multiple sets, return first match
-    protected String getAttribute(Collection<UserAttributes> attributes, String key, String... identifier) {
+    protected Attribute getAttribute(Collection<UserAttributes> attributes, String key, String... identifier) {
         Set<UserAttributes> sets = attributes.stream()
                 .filter(a -> ArrayUtils.contains(identifier, a.getIdentifier()))
                 .collect(Collectors.toSet());
@@ -55,11 +57,28 @@ public abstract class UserProfileExtractor {
         for (UserAttributes uattr : sets) {
             Optional<Attribute> attr = uattr.getAttributes().stream().filter(a -> a.getKey().equals(key)).findFirst();
             if (attr.isPresent()) {
-                return attr.get().getValue().toString();
+                return attr.get();
             }
         }
 
         return null;
 
     }
+
+    protected String getStringAttribute(Attribute attr) {
+        if (attr == null) {
+            return null;
+        }
+
+        if (attr.getValue() == null) {
+            return null;
+        }
+
+        if (AttributeType.STRING == attr.getType()) {
+            return (String) attr.getValue();
+        }
+
+        return String.valueOf(attr.getValue());
+    }
+
 }
