@@ -311,7 +311,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         String realm = getRealm();
 
         // validate base param, nothing to do when missing
-        String username = Jsoup.clean(reg.getUsername(), Whitelist.none());
+        String username = reg.getUsername();
+        if (StringUtils.hasText(username)) {
+            username = Jsoup.clean(username, Whitelist.none());
+        }
         if (!StringUtils.hasText(username)) {
             throw new RegistrationException("missing-username");
         }

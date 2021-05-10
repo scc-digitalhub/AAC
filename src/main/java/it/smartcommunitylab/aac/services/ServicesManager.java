@@ -149,8 +149,15 @@ public class ServicesManager implements InitializingBean {
         Realm re = realmService.getRealm(realm);
 
         String namespace = Jsoup.clean(service.getNamespace().toLowerCase(), Whitelist.none());
-        String name = Jsoup.clean(service.getName(), Whitelist.none());
-        String description = Jsoup.clean(service.getDescription(), Whitelist.none());
+        String name = service.getName();
+        String description = service.getDescription();
+
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
         if (!StringUtils.hasText(name)) {
             name = namespace;
         }
@@ -234,8 +241,15 @@ public class ServicesManager implements InitializingBean {
 
         // explode
         String namespace = service.getNamespace().toLowerCase();
-        String name = Jsoup.clean(service.getName(), Whitelist.none());
-        String description = Jsoup.clean(service.getDescription(), Whitelist.none());
+        String name = service.getName();
+        String description = service.getDescription();
+
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
         if (!StringUtils.hasText(name)) {
             name = namespace;
         }
@@ -446,11 +460,17 @@ public class ServicesManager implements InitializingBean {
 
         // explode
         String scope = Jsoup.clean(sc.getScope().toLowerCase(), Whitelist.none());
-        String name = Jsoup.clean(sc.getName(), Whitelist.none());
+        String name = sc.getName();
+        String description = sc.getDescription();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
         if (!StringUtils.hasText(name)) {
             name = scope;
         }
-        String description = Jsoup.clean(sc.getDescription(), Whitelist.none());
         ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
         Set<String> claims = sc.getClaims();
         Set<String> roles = sc.getApprovalRoles();
@@ -519,11 +539,17 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String name = Jsoup.clean(sc.getName(), Whitelist.none());
+        String name = sc.getName();
+        String description = sc.getDescription();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
         if (!StringUtils.hasText(name)) {
             name = scope;
         }
-        String description = Jsoup.clean(sc.getDescription(), Whitelist.none());
         ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
         Set<String> claims = sc.getClaims();
         Set<String> roles = sc.getApprovalRoles();
@@ -652,11 +678,17 @@ public class ServicesManager implements InitializingBean {
 
         // explode
         String key = Jsoup.clean(claim.getKey(), Whitelist.none());
-        String name = Jsoup.clean(claim.getName(), Whitelist.none());
+        String name = claim.getName();
+        String description = claim.getDescription();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
         if (!StringUtils.hasText(name)) {
             name = key;
         }
-        String description = Jsoup.clean(claim.getDescription(), Whitelist.none());
         AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
         boolean isMultiple = claim.isMultiple();
 
@@ -689,11 +721,17 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String name = Jsoup.clean(claim.getName(), Whitelist.none());
+        String name = claim.getName();
+        String description = claim.getDescription();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
         if (!StringUtils.hasText(name)) {
             name = key;
         }
-        String description = Jsoup.clean(claim.getDescription(), Whitelist.none());
         AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
         boolean isMultiple = claim.isMultiple();
 

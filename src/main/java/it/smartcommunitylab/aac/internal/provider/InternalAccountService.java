@@ -140,11 +140,28 @@ public class InternalAccountService extends InternalAccountProvider implements A
 
         if (reg instanceof InternalUserAccount) {
             InternalUserAccount ireg = (InternalUserAccount) reg;
-            password = Jsoup.clean(ireg.getPassword(), Whitelist.none());
-            email = Jsoup.clean(ireg.getEmail(), Whitelist.none());
-            name = Jsoup.clean(ireg.getName(), Whitelist.none());
-            surname = Jsoup.clean(ireg.getSurname(), Whitelist.none());
-            lang = Jsoup.clean(ireg.getLang(), Whitelist.none());
+            password = ireg.getPassword();
+            email = ireg.getEmail();
+            name = ireg.getName();
+            surname = ireg.getSurname();
+            lang = ireg.getLang();
+
+            if (StringUtils.hasText(password)) {
+                password = Jsoup.clean(password, Whitelist.none());
+            }
+            if (StringUtils.hasText(email)) {
+                email = Jsoup.clean(email, Whitelist.none());
+            }
+            if (StringUtils.hasText(name)) {
+                name = Jsoup.clean(name, Whitelist.none());
+            }
+            if (StringUtils.hasText(surname)) {
+                surname = Jsoup.clean(surname, Whitelist.none());
+            }
+            if (StringUtils.hasText(lang)) {
+                lang = Jsoup.clean(lang, Whitelist.none());
+            }
+
             // we accept confirmed accounts
             if (!confirmed) {
                 confirmed = ireg.isConfirmed();
@@ -246,10 +263,23 @@ public class InternalAccountService extends InternalAccountProvider implements A
         // can update only from our model
         if (reg instanceof InternalUserAccount) {
             InternalUserAccount ireg = (InternalUserAccount) reg;
-            String email = Jsoup.clean(ireg.getEmail(), Whitelist.none());
-            String name = Jsoup.clean(ireg.getName(), Whitelist.none());
-            String surname = Jsoup.clean(ireg.getSurname(), Whitelist.none());
-            String lang = Jsoup.clean(ireg.getLang(), Whitelist.none());
+            String email = ireg.getEmail();
+            String name = ireg.getName();
+            String surname = ireg.getSurname();
+            String lang = ireg.getLang();
+
+            if (StringUtils.hasText(email)) {
+                email = Jsoup.clean(email, Whitelist.none());
+            }
+            if (StringUtils.hasText(name)) {
+                name = Jsoup.clean(name, Whitelist.none());
+            }
+            if (StringUtils.hasText(surname)) {
+                surname = Jsoup.clean(surname, Whitelist.none());
+            }
+            if (StringUtils.hasText(lang)) {
+                lang = Jsoup.clean(lang, Whitelist.none());
+            }
 
             // we update all props, even if empty or null
             account.setEmail(email);

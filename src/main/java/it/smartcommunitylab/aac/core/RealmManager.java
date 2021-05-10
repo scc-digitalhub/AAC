@@ -70,8 +70,16 @@ public class RealmManager {
         r.setSlug(r.getSlug().toLowerCase());
 
         // cleanup input
-        String slug = Jsoup.clean(r.getSlug(), Whitelist.none());
-        String name = Jsoup.clean(r.getName(), Whitelist.none());
+        String slug = r.getSlug();
+        String name = r.getName();
+
+        if (StringUtils.hasText(slug)) {
+            slug = Jsoup.clean(slug, Whitelist.none());
+        }
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+
         if (!StringUtils.hasText(name.trim())) {
             throw new RegistrationException("name cannot be empty");
         }
@@ -84,7 +92,10 @@ public class RealmManager {
         slug = slug.trim().toLowerCase();
         r.setSlug(slug);
 
-        String name = Jsoup.clean(r.getName(), Whitelist.none());
+        String name = r.getName();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
         if (!StringUtils.hasText(name.trim())) {
             throw new RegistrationException("name cannot be empty");
         }
@@ -102,8 +113,15 @@ public class RealmManager {
 
                     // sanitize
                     for (Map.Entry<String, String> e : cb.getResources().entrySet()) {
-                        String k = Jsoup.clean(e.getKey(), Whitelist.none());
-                        String v = Jsoup.clean(e.getValue(), Config.WHITELIST_RELAXED_NOIMG);
+                        String k = e.getKey();
+                        String v = e.getValue();
+
+                        if (StringUtils.hasText(k)) {
+                            k = Jsoup.clean(k, Whitelist.none());
+                        }
+                        if (StringUtils.hasText(v)) {
+                            v = Jsoup.clean(v, Whitelist.none());
+                        }
 
                         if (StringUtils.hasText(k)) {
                             res.put(k, v);

@@ -284,8 +284,14 @@ public class ProviderManager {
             throw new RegistrationException("invalid provider type");
         }
 
-        String name = Jsoup.clean(provider.getName(), Whitelist.none());
-        String description = Jsoup.clean(provider.getDescription(), Whitelist.none());
+        String name = provider.getName();
+        String description = provider.getDescription();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
 
         // TODO add enum
         String persistence = provider.getPersistence();
@@ -386,8 +392,14 @@ public class ProviderManager {
         }
 
         // we update only props and configuration
-        String name = Jsoup.clean(provider.getName(), Whitelist.none());
-        String description = Jsoup.clean(provider.getDescription(), Whitelist.none());
+        String name = provider.getName();
+        String description = provider.getDescription();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
 
         // TODO add enum
         String persistence = provider.getPersistence();

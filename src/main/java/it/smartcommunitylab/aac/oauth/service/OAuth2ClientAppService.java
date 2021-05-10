@@ -72,8 +72,15 @@ public class OAuth2ClientAppService implements ClientAppService {
     @Override
     public ClientApp registerClient(String realm, ClientApp app) {
 
-        String name = Jsoup.clean(app.getName(), Whitelist.none());
-        String description = Jsoup.clean(app.getDescription(), Whitelist.none());
+        String name = app.getName();
+        String description = app.getDescription();
+
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
 
         if (app.getConfiguration() == null) {
             // add as new
@@ -129,8 +136,15 @@ public class OAuth2ClientAppService implements ClientAppService {
     public ClientApp updateClient(String clientId, ClientApp app) throws NoSuchClientException {
         OAuth2Client client = clientService.getClient(clientId);
 
-        String name = Jsoup.clean(app.getName(), Whitelist.none());
-        String description = Jsoup.clean(app.getDescription(), Whitelist.none());
+        String name = app.getName();
+        String description = app.getDescription();
+
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Whitelist.none());
+        }
 
         // unpack
         Map<String, Serializable> configuration = app.getConfiguration();
