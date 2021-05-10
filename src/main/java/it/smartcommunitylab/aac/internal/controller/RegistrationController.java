@@ -157,10 +157,6 @@ public class RegistrationController {
             BindingResult result,
             HttpServletRequest req) {
 
-        if (result.hasErrors()) {
-            return "registration/register";
-        }
-
         try {
 
             // resolve provider
@@ -171,6 +167,29 @@ public class RegistrationController {
             }
 
             String realm = ids.getRealm();
+
+            // build model for result
+            model.addAttribute("providerId", providerId);
+            model.addAttribute("realm", realm);
+
+            Realm re = realmManager.getRealm(realm);
+            String displayName = re.getName();
+            CustomizationBean cb = re.getCustomization("registration");
+
+            if (cb != null) {
+                model.addAttribute("customization", cb.getResources());
+            } else {
+                model.addAttribute("customization", null);
+            }
+
+            model.addAttribute("displayName", displayName);
+
+            model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
+            model.addAttribute("loginUrl", "/-/" + realm + "/login");
+
+            if (result.hasErrors()) {
+                return "registration/register";
+            }
 
             String username = reg.getEmail();
             String password = reg.getPassword();
@@ -197,20 +216,7 @@ public class RegistrationController {
             // register
             UserIdentity identity = ids.registerIdentity(subjectId, account, Collections.emptyList());
 
-            // build model for result
-            model.addAttribute("providerId", providerId);
-            model.addAttribute("realm", realm);
             model.addAttribute("identity", identity);
-
-            String displayName = null;
-            if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                Realm re = realmManager.getRealm(realm);
-                displayName = re.getName();
-            }
-            model.addAttribute("displayName", displayName);
-
-            model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
-            model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             // WRONG, should send redirect to success page to avoid double POST
             return "registration/regsuccess";
@@ -440,7 +446,7 @@ public class RegistrationController {
             } else {
                 model.addAttribute("customization", null);
             }
-            
+
             String username = reg.getUsername();
             String email = reg.getEmail();
 
