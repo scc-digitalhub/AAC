@@ -11,8 +11,9 @@ var app = angular.module('dev', [
 	'aac.controllers.apis', 
 	'aac.controllers.admin',
 	'aac.controllers.realm',
-  'aac.controllers.realmservices', 
-  'ui.ace',
+    'aac.controllers.realmapps',
+    'aac.controllers.realmservices', 
+    'ui.ace',
 	]);
 
 app.config(function ($httpProvider, $translateProvider) {
@@ -82,7 +83,12 @@ app.config(function($stateProvider) {
         url: '/serviceapprovals?serviceId',
         templateUrl: 'html/realm.services.approvals.html',
         controller: 'RealmServiceApprovalsController',
-    })    
+    })   
+    .state('realm.custom', {
+        url: '/custom',
+        templateUrl: 'html/realm.custom.html',
+        controller: 'RealmCustomController',
+    })         
     .state('home', {
         url: '',
         controller: 'HomeController',

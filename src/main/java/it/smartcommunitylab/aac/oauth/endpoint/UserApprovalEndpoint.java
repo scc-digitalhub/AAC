@@ -21,9 +21,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.dto.CustomizationBean;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -42,6 +46,9 @@ public class UserApprovalEndpoint {
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
 
+    @Autowired
+    private RealmManager realmManager;
+    
     @Autowired
     private ScopeRegistry scopeRegistry;
 
@@ -69,6 +76,20 @@ Map<String, String> approvalParameters = authorizationRequest.getApprovalParamet
         }
 
         UserDetails userDetails = userAuth.getUser();
+        String realm = clientDetails.getRealm();
+        
+        Realm re = null;
+        CustomizationBean cb = null;
+        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+            re = realmManager.getRealm(realm);
+            cb = re.getCustomization("approval");
+        }
+
+        if (cb != null) {
+            model.put("customization", cb.getResources());
+        } else {
+            model.put("customization", null);
+        }
 
         // add client info
         String clientName = StringUtils.hasText(clientDetails.getName()) ? clientDetails.getName() : clientId;

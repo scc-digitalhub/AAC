@@ -1,0 +1,12 @@
+<div class="pt-3">
+    <div class="row">
+      <fieldset class="col-md-5">
+          <legend class="mb-4">Approval page</legend>
+            <div class="form-group col"  ng-repeat="res in realmCustom.approval">
+                  <div ui-ace="aceOption" ng-model="res.value"></div>
+                  <label class="active">{{res.key}}</label>
+              </div>
+      </fieldset>
+    
+    </div>
+  </div>

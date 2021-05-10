@@ -19,6 +19,8 @@ package it.smartcommunitylab.aac;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jsoup.safety.Whitelist;
+
 /**
  * Constants and methods for managing resource visibility
  * 
@@ -175,4 +177,12 @@ public class Config {
     public static final String SCOPE_ROLEMANAGEMENT = "user.roles.manage.all";
 
     public static final String WELL_KNOWN_URL = "/.well-known";
+
+    public static final Whitelist WHITELIST_RELAXED_NOIMG = Whitelist.relaxed()
+            .removeTags("img")
+            .addTags("nav", "button", "hr")
+            .addProtocols("a", "href", "#")
+            .addAttributes(":all", "class")
+            .addAttributes(":all", "style")
+            .addAttributes(":all", "role");
 }

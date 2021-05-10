@@ -43,21 +43,22 @@
 <body>
 	<div class="container">
 
-		<div th:if="${headerText == null}">
-			<img class="logo d-none d-md-block" src="../img/ls_logo.png" alt="SmartCommunity" />
-			<div class="clear"></div>
-		</div>
+    <div>
+      <img class="logo d-none d-md-block" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
+      <div class="clear"></div>
+    </div>
 
-		<div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${headerText != null}"
-			th:utext="${headerText}"></div>
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('headerText') != null}"
+      th:utext="${customization.get('headerText')}"></div>
 
-		<div class="row mt-md-0 mt-5 justify-content-center  customization-block"
-			th:if="${accessConfirmationText != null}" th:utext="${accessConfirmationText}"></div>
 
 		<div class="row mt-md-0 mt-5 justify-content-center">
 			<div class="confirmation-content container-fluid">
 				<div class="row justify-content-center">
 					<div class="col-md-offset-2 col-md-8">
+					
+
+					
 						<form id="confirmationForm" name="confirmationForm" th:action="${formAction}" method="post">
 
 							<div class="error"
@@ -70,7 +71,9 @@
 
 							<div th:if="${resources.size() > 0}">
 								<h2 th:text="#{lbl_approval_confirm}">Please Confirm</h2>
-
+                         <div class="mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('approvalText') != null}"
+                  th:utext="${customization.get('approvalText')}"></div>
+                  
 								<p th:utext="#{lbl_approval_authorize(${clientName})}">Text:</p>
 								<ul class="permission">
 									<li th:each="r : ${resources}">
@@ -119,8 +122,9 @@
 				</div>
 			</div>
 		</div>
-		<div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${footerText != null}"
-			th:utext="${footerText}"></div>
+
+    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${customization != null && customization.get('footerText') != null}"
+      th:utext="${customization.get('footerText')}"></div>
 
 	</div>
 	<script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
