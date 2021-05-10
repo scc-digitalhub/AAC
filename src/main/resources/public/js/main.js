@@ -5,7 +5,10 @@ angular.module('aac.controllers.main', [])
  * @param $scope
  */
 .controller('MainCtrl', function($scope, $rootScope, $location, Data, Utils) {
-  Data.getProfile().then(function() {
+  Data.getProfile().then(function(p) {
+    Data.getProfileRoles().then(function(roles) {
+      $scope.hasRolespaces = !!roles && roles.length > 0;
+    })
   }).catch(function(err) {
     Utils.showError(err);
   });

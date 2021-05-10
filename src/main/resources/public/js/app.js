@@ -7,11 +7,10 @@ var app = angular.module('dev', [
 	'ngTagsInput',
 	'aac.services', 
 	'aac.controllers.main', 
-	'aac.controllers.clients', 
-	'aac.controllers.apis', 
 	'aac.controllers.admin',
 	'aac.controllers.realm',
   'aac.controllers.realmservices', 
+  'aac.controllers.rolespaces', 
   'ui.ace',
 	]);
 
@@ -82,6 +81,11 @@ app.config(function($stateProvider) {
         url: '/serviceapprovals?serviceId',
         templateUrl: 'html/realm.services.approvals.html',
         controller: 'RealmServiceApprovalsController',
+    })    
+    .state('rolespaces', {
+        url: '/rolespaces',
+        templateUrl: 'html/rolespaces.html',
+        controller: 'RoleSpaceController',
     })    
     .state('home', {
         url: '',

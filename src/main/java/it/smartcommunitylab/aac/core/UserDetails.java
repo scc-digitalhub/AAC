@@ -16,7 +16,6 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
 
@@ -24,7 +23,6 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
 /*
  * User details container
@@ -306,6 +304,10 @@ public class UserDetails implements org.springframework.security.core.userdetail
         // TODO check if can do better at the level of user
         return getAuthorities() != null && getAuthorities().stream().anyMatch(
                 a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN));
+    }
+    public boolean isSystemAdmin() {
+        // TODO check if can do better at the level of user
+        return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()));
     }
 
     public Collection<String> getRealms() {

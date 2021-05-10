@@ -22,6 +22,11 @@
       </tr>    
     </table>
   </div>
+  
+  <div ng-if="services == null || services.length == 0">
+    <h5>No data</h5>
+  </div>   
+  
 </div>  
   
 <div ng-include="'./html/realm.services.modal.html'"></div>

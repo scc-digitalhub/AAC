@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -39,6 +40,8 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -480,6 +483,45 @@ public class UserManager {
         }
 
     }
+
+	/**
+	 * @param subjectId
+	 * @return
+	 * @throws NoSuchUserException 
+	 * @throws NoSuchRealmException 
+	 */
+	public Collection<SpaceRole> getMyRoles() throws NoSuchUserException, NoSuchRealmException {
+        UserDetails user = authHelper.getUserDetails();
+        if (user == null) {
+        	throw new NoSuchUserException();
+        }
+        Collection<SpaceRole> roles = new HashSet<>(userService.getUserRoles(user.getRealm(), user.getSubjectId()));
+        if (user.isSystemAdmin()) {
+        	roles.add(new SpaceRole(null, null, Config.R_PROVIDER));
+        }
+        return roles;
+	}
+
+	/**
+	 * @param context
+	 * @param q
+	 * @param pageRequest
+	 * @return
+	 */
+	public Page<SpaceRoles> getContextRoles(String context, String space, String q, Pageable pageRequest) {
+		return userService.getContextRoles(context, space, q, pageRequest);
+	}
+
+	/**
+	 * @param subject
+	 * @param context
+	 * @param space
+	 * @param roles
+	 * @return
+	 */
+	public SpaceRoles saveContextRoles(String subject, String context, String space, List<String> roles) {
+		return userService.saveContextRoles(subject, context, space, roles);
+	}
 
 
 
