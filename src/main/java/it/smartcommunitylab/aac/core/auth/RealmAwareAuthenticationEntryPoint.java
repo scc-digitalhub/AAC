@@ -9,6 +9,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 
 public class RealmAwareAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
@@ -16,6 +17,7 @@ public class RealmAwareAuthenticationEntryPoint extends LoginUrlAuthenticationEn
     public static final String REALM_URI_VARIABLE_NAME = "realm";
 
     private RequestMatcher realmRequestMatcher;
+    private RequestMatcher devRequestMatcher;
     public RealmAwarePathUriBuilder realmUriBuilder;
 
     public RealmAwareAuthenticationEntryPoint(String loginFormUrl) {
@@ -23,6 +25,7 @@ public class RealmAwareAuthenticationEntryPoint extends LoginUrlAuthenticationEn
 
         // build a matcher for realm requests
         realmRequestMatcher = new AntPathRequestMatcher("/-/{" + REALM_URI_VARIABLE_NAME + "}/**");
+        devRequestMatcher = new AntPathRequestMatcher("/dev/**");
     }
 
     public void setRealmRequestMatcher(RequestMatcher realmRequestMatcher) {
@@ -58,6 +61,11 @@ public class RealmAwareAuthenticationEntryPoint extends LoginUrlAuthenticationEn
         if (StringUtils.hasText((String) request.getAttribute(REALM_URI_VARIABLE_NAME))) {
             String realm = (String) request.getAttribute(REALM_URI_VARIABLE_NAME);
             return buildLoginUrl(request, realm);
+        }
+
+        // check if dev console, system realm
+        if (devRequestMatcher.matches(request)) {
+            return buildLoginUrl(request, SystemKeys.REALM_SYSTEM);
         }
 
         // return global
