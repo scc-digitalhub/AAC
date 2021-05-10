@@ -16,6 +16,7 @@ import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import org.yaml.snakeyaml.Yaml;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
@@ -98,6 +100,10 @@ public class DevController {
     private DevManager devManager;
     @Autowired
     private ServicesManager serviceManager;
+    
+    @Autowired
+    @Qualifier("yamlObjectMapper")
+    private ObjectMapper yamlObjectMapper;
 
     @RequestMapping("/dev")
     public ModelAndView developer() {
@@ -492,12 +498,14 @@ public class DevController {
     public void getRealmClientApp(@PathVariable String realm, @PathVariable String clientId,
             HttpServletResponse res)
             throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
-        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
+//        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
 
         // get client app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
-        String s = yaml.dump(clientApp);
+//        String s = yaml.dump(clientApp);
+        String s = yamlObjectMapper.writeValueAsString(clientApp);
+        
         // write as file
         res.setContentType("text/yaml");
         res.setHeader("Content-Disposition", "attachment;filename=" + clientApp.getName() + ".yaml");
@@ -566,11 +574,13 @@ public class DevController {
     public void exportService(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable String serviceId, HttpServletResponse res)
             throws NoSuchRealmException, NoSuchServiceException, IOException {
-        Yaml yaml = YamlUtils.getInstance(true, Service.class);
+//        Yaml yaml = YamlUtils.getInstance(true, Service.class);
 
         Service service = serviceManager.getService(realm, serviceId);
 
-        String s = yaml.dump(service);
+//        String s = yaml.dump(service);
+        String s = yamlObjectMapper.writeValueAsString(service);
+
         // write as file
         res.setContentType("text/yaml");
         res.setHeader("Content-Disposition", "attachment;filename=" + service.getName() + ".yaml");

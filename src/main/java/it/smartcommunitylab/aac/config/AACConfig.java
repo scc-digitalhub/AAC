@@ -22,6 +22,7 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -109,7 +110,7 @@ public class AACConfig {
 
         YAMLFactory factory = yamlFactory();
         ObjectMapper yamlObjectMapper = new ObjectMapper(factory);
-
+        yamlObjectMapper.setSerializationInclusion(Include.NON_EMPTY);
         return yamlObjectMapper;
     }
 
