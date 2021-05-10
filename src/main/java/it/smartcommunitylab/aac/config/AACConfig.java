@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.config;
 
 import java.beans.PropertyVetoException;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Map;
 
@@ -16,6 +18,15 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
+
+import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.Maps;
 
 import it.smartcommunitylab.aac.Config;
@@ -81,6 +92,74 @@ public class AACConfig {
     @ConfigurationProperties(prefix = "attributesets")
     public AttributeSetsProperties systemAttributeSets() {
         return new AttributeSetsProperties();
+    }
+
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper;
+    }
+
+    @Bean
+    public ObjectMapper yamlObjectMapper() {
+//        YAMLFactory factory = new YAMLFactory()
+//                .configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false)
+//                .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true);
+
+        YAMLFactory factory = yamlFactory();
+        ObjectMapper yamlObjectMapper = new ObjectMapper(factory);
+
+        return yamlObjectMapper;
+    }
+
+    @Bean
+    public YAMLFactory yamlFactory() {
+        class CustomYAMLFactory extends YAMLFactory {
+            @Override
+            protected YAMLGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
+                int feats = _yamlGeneratorFeatures;
+                return yamlGenerator(ctxt, _generatorFeatures, feats,
+                        _objectCodec, out, _version);
+            }
+        }
+
+        return new CustomYAMLFactory()
+                .configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false)
+                .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, false)
+                .configure(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE, true);
+    }
+
+    private YAMLGenerator yamlGenerator(IOContext ctxt, int jsonFeatures, int yamlFeatures,
+            ObjectCodec codec, Writer out,
+            org.yaml.snakeyaml.DumperOptions.Version version) throws IOException {
+
+        class MyYAMLGenerator extends YAMLGenerator {
+
+            public MyYAMLGenerator(IOContext ctxt, int jsonFeatures, int yamlFeatures,
+                    ObjectCodec codec, Writer out, org.yaml.snakeyaml.DumperOptions.Version version)
+                    throws IOException {
+                super(ctxt, jsonFeatures, yamlFeatures, codec, out, version);
+            }
+
+            @Override
+            protected DumperOptions buildDumperOptions(int jsonFeatures, int yamlFeatures,
+                    org.yaml.snakeyaml.DumperOptions.Version version) {
+                DumperOptions opt = super.buildDumperOptions(jsonFeatures, yamlFeatures, version);
+                // override opts
+                opt.setDefaultScalarStyle(ScalarStyle.LITERAL);
+                opt.setDefaultFlowStyle(FlowStyle.BLOCK);
+                opt.setIndicatorIndent(2);
+                opt.setIndent(4);
+                opt.setPrettyFlow(true);
+                opt.setCanonical(false);
+                return opt;
+            }
+
+        }
+
+        return new MyYAMLGenerator(ctxt, jsonFeatures, yamlFeatures, codec,
+                out, version);
     }
 
     /*

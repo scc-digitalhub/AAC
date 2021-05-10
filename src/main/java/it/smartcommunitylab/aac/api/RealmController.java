@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.api;
 
+import java.util.Collection;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
@@ -32,8 +34,8 @@ public class RealmController {
 
     @GetMapping("")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')")
-    public Page<Realm> getRealms(@RequestParam(required = false) String q, Pageable pageRequest) {
-        return realmManager.searchRealms(q, pageRequest);
+    public Collection<Realm> getRealms(@RequestParam(required = false) String q) {
+        return realmManager.searchRealms(q);
     }
 
     @GetMapping("{slug}")

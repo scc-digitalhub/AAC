@@ -1,16 +1,26 @@
 package it.smartcommunitylab.aac.config;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /*
  * Configure web container before security  
@@ -57,7 +67,35 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         // configure a sane path mapping by disabling content negotiation via extensions
         // the default breaks every single mapping which receives a path ending with
         // '.x', like 'user.roles.me'
-        configurer.favorPathExtension(false);
+        configurer
+                .favorPathExtension(false)
+                .favorParameter(false);
+
+        // add mediatypes
+        configurer
+                .ignoreAcceptHeader(false)
+                .defaultContentType(MediaType.APPLICATION_JSON)
+                .mediaType(MediaType.APPLICATION_JSON.getSubtype(),
+                        MediaType.APPLICATION_JSON)
+                .mediaType(MEDIA_TYPE_YML.getSubtype(), MEDIA_TYPE_YML)
+                .mediaType(MEDIA_TYPE_YAML.getSubtype(), MEDIA_TYPE_YAML);
+    }
+
+    /*
+     * Yaml support (experimental)
+     */
+    private static final MediaType MEDIA_TYPE_YAML = MediaType.valueOf("text/yaml");
+    private static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
+
+    @Autowired
+    @Qualifier("yamlObjectMapper")
+    private ObjectMapper yamlObjectMapper;
+
+    @Override
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        MappingJackson2HttpMessageConverter yamlConverter = new MappingJackson2HttpMessageConverter(yamlObjectMapper);
+        yamlConverter.setSupportedMediaTypes(Arrays.asList(MEDIA_TYPE_YML, MEDIA_TYPE_YAML));
+        converters.add(yamlConverter);
     }
 
 }
