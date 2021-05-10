@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -282,8 +284,8 @@ public class ProviderManager {
             throw new RegistrationException("invalid provider type");
         }
 
-        String name = provider.getName();
-        String description = provider.getDescription();
+        String name = Jsoup.clean(provider.getName(), Whitelist.none());
+        String description = Jsoup.clean(provider.getDescription(), Whitelist.none());
 
         // TODO add enum
         String persistence = provider.getPersistence();
@@ -384,8 +386,8 @@ public class ProviderManager {
         }
 
         // we update only props and configuration
-        String name = provider.getName();
-        String description = provider.getDescription();
+        String name = Jsoup.clean(provider.getName(), Whitelist.none());
+        String description = Jsoup.clean(provider.getDescription(), Whitelist.none());
 
         // TODO add enum
         String persistence = provider.getPersistence();

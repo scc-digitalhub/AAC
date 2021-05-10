@@ -6,6 +6,8 @@ import java.util.Locale;
 import java.util.Map;
 import javax.mail.MessagingException;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -26,11 +28,11 @@ import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalAccountService extends InternalAccountProvider implements AccountService {
     /**
-	 * 
-	 */
-	private static final String LANG_UNDEFINED = "en";
+     * 
+     */
+    private static final String LANG_UNDEFINED = "en";
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // use password service to handle password
     private final InternalPasswordService passwordService;
@@ -116,7 +118,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
         String realm = getRealm();
 
         // extract base fields
-        String username = reg.getUsername();
+        String username = Jsoup.clean(reg.getUsername(), Whitelist.none());
 
         // validate username
         if (!StringUtils.hasText(username)) {
@@ -128,7 +130,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
             throw new AlreadyRegisteredException("duplicate-registration");
         }
 
-        // chech type and extract our parameters if present
+        // check type and extract our parameters if present
         String password = null;
         String email = null;
         String name = null;
@@ -138,11 +140,11 @@ public class InternalAccountService extends InternalAccountProvider implements A
 
         if (reg instanceof InternalUserAccount) {
             InternalUserAccount ireg = (InternalUserAccount) reg;
-            password = ireg.getPassword();
-            email = ireg.getEmail();
-            name = ireg.getName();
-            surname = ireg.getSurname();
-            lang = ireg.getLang();
+            password = Jsoup.clean(ireg.getPassword(), Whitelist.none());
+            email = Jsoup.clean(ireg.getEmail(), Whitelist.none());
+            name = Jsoup.clean(ireg.getName(), Whitelist.none());
+            surname = Jsoup.clean(ireg.getSurname(), Whitelist.none());
+            lang = Jsoup.clean(ireg.getLang(), Whitelist.none());
             // we accept confirmed accounts
             if (!confirmed) {
                 confirmed = ireg.isConfirmed();
@@ -244,11 +246,16 @@ public class InternalAccountService extends InternalAccountProvider implements A
         // can update only from our model
         if (reg instanceof InternalUserAccount) {
             InternalUserAccount ireg = (InternalUserAccount) reg;
+            String email = Jsoup.clean(ireg.getEmail(), Whitelist.none());
+            String name = Jsoup.clean(ireg.getName(), Whitelist.none());
+            String surname = Jsoup.clean(ireg.getSurname(), Whitelist.none());
+            String lang = Jsoup.clean(ireg.getLang(), Whitelist.none());
+
             // we update all props, even if empty or null
-            account.setEmail(ireg.getEmail());
-            account.setName(ireg.getName());
-            account.setSurname(ireg.getSurname());
-            account.setLang(ireg.getLang());
+            account.setEmail(email);
+            account.setName(name);
+            account.setSurname(surname);
+            account.setLang(lang);
 
             account = userAccountService.updateAccount(account.getId(), account);
         }

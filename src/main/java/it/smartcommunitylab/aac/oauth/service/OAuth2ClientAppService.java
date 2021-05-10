@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -70,11 +72,14 @@ public class OAuth2ClientAppService implements ClientAppService {
     @Override
     public ClientApp registerClient(String realm, ClientApp app) {
 
+        String name = Jsoup.clean(app.getName(), Whitelist.none());
+        String description = Jsoup.clean(app.getDescription(), Whitelist.none());
+
         if (app.getConfiguration() == null) {
             // add as new
             OAuth2Client client = clientService.addClient(realm,
                     app.getClientId(),
-                    app.getName(), app.getDescription(),
+                    name, description,
                     Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
                     Arrays.asList(app.getProviders()),
                     null,
@@ -103,7 +108,7 @@ public class OAuth2ClientAppService implements ClientAppService {
             // add as new
             OAuth2Client client = clientService.addClient(realm,
                     app.getClientId(),
-                    app.getName(), app.getDescription(),
+                    name, description,
                     Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
                     Arrays.asList(app.getProviders()),
                     clientSecret,
@@ -124,6 +129,9 @@ public class OAuth2ClientAppService implements ClientAppService {
     public ClientApp updateClient(String clientId, ClientApp app) throws NoSuchClientException {
         OAuth2Client client = clientService.getClient(clientId);
 
+        String name = Jsoup.clean(app.getName(), Whitelist.none());
+        String description = Jsoup.clean(app.getDescription(), Whitelist.none());
+
         // unpack
         Map<String, Serializable> configuration = app.getConfiguration();
 
@@ -132,7 +140,7 @@ public class OAuth2ClientAppService implements ClientAppService {
 
         // update
         client = clientService.updateClient(clientId,
-                app.getName(), app.getDescription(),
+                name, description,
                 Arrays.asList(app.getScopes()), Arrays.asList(app.getResourceIds()),
                 Arrays.asList(app.getProviders()),
                 app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),

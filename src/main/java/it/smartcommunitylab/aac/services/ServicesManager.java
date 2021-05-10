@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -146,10 +148,12 @@ public class ServicesManager implements InitializingBean {
         // fetch realm
         Realm re = realmService.getRealm(realm);
 
-        // explode
-        String namespace = service.getNamespace().toLowerCase();
-        String name = StringUtils.hasText(service.getName()) ? service.getName() : namespace;
-        String description = service.getDescription();
+        String namespace = Jsoup.clean(service.getNamespace().toLowerCase(), Whitelist.none());
+        String name = Jsoup.clean(service.getName(), Whitelist.none());
+        String description = Jsoup.clean(service.getDescription(), Whitelist.none());
+        if (!StringUtils.hasText(name)) {
+            name = namespace;
+        }
 
         // add
         Service s = serviceService.addService(re.getSlug(), namespace, name, description);
@@ -230,8 +234,11 @@ public class ServicesManager implements InitializingBean {
 
         // explode
         String namespace = service.getNamespace().toLowerCase();
-        String name = StringUtils.hasText(service.getName()) ? service.getName() : namespace;
-        String description = service.getDescription();
+        String name = Jsoup.clean(service.getName(), Whitelist.none());
+        String description = Jsoup.clean(service.getDescription(), Whitelist.none());
+        if (!StringUtils.hasText(name)) {
+            name = namespace;
+        }
         Map<String, String> claimMapping = service.getClaimMapping();
 
         // update
@@ -438,9 +445,12 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String scope = sc.getScope();
-        String name = StringUtils.hasText(sc.getName()) ? sc.getName() : scope;
-        String description = sc.getDescription();
+        String scope = Jsoup.clean(sc.getScope().toLowerCase(), Whitelist.none());
+        String name = Jsoup.clean(sc.getName(), Whitelist.none());
+        if (!StringUtils.hasText(name)) {
+            name = scope;
+        }
+        String description = Jsoup.clean(sc.getDescription(), Whitelist.none());
         ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
         Set<String> claims = sc.getClaims();
         Set<String> roles = sc.getApprovalRoles();
@@ -509,8 +519,11 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String name = StringUtils.hasText(sc.getName()) ? sc.getName() : scope;
-        String description = sc.getDescription();
+        String name = Jsoup.clean(sc.getName(), Whitelist.none());
+        if (!StringUtils.hasText(name)) {
+            name = scope;
+        }
+        String description = Jsoup.clean(sc.getDescription(), Whitelist.none());
         ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
         Set<String> claims = sc.getClaims();
         Set<String> roles = sc.getApprovalRoles();
@@ -638,9 +651,12 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String key = claim.getKey();
-        String name = StringUtils.hasText(claim.getName()) ? claim.getName() : key;
-        String description = claim.getDescription();
+        String key = Jsoup.clean(claim.getKey(), Whitelist.none());
+        String name = Jsoup.clean(claim.getName(), Whitelist.none());
+        if (!StringUtils.hasText(name)) {
+            name = key;
+        }
+        String description = Jsoup.clean(claim.getDescription(), Whitelist.none());
         AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
         boolean isMultiple = claim.isMultiple();
 
@@ -673,8 +689,11 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String name = StringUtils.hasText(claim.getName()) ? claim.getName() : key;
-        String description = claim.getDescription();
+        String name = Jsoup.clean(claim.getName(), Whitelist.none());
+        if (!StringUtils.hasText(name)) {
+            name = key;
+        }
+        String description = Jsoup.clean(claim.getDescription(), Whitelist.none());
         AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
         boolean isMultiple = claim.isMultiple();
 
@@ -733,15 +752,14 @@ public class ServicesManager implements InitializingBean {
 
     }
 
-	/**
-	 * @param realm
-	 * @param serviceId
-	 * @return
-	 * @throws NoSuchServiceException 
-	 */
-	public Collection<Approval>  getServiceApprovals(@Valid @Pattern(regexp = "^[a-zA-Z0-9_-]+$") String realm,
-			@Valid @Pattern(regexp = "^[a-zA-Z0-9_-]+$") String serviceId) throws NoSuchServiceException 
-	{
+    /**
+     * @param realm
+     * @param serviceId
+     * @return
+     * @throws NoSuchServiceException
+     */
+    public Collection<Approval> getServiceApprovals(@Valid @Pattern(regexp = "^[a-zA-Z0-9_-]+$") String realm,
+            @Valid @Pattern(regexp = "^[a-zA-Z0-9_-]+$") String serviceId) throws NoSuchServiceException {
         // use finder to avoid loading all related
         Service service = serviceService.findService(serviceId);
         if (service == null) {
@@ -754,8 +772,8 @@ public class ServicesManager implements InitializingBean {
         // we use serviceId as id
         String resourceId = serviceId;
         return approvalStore.findUserApprovals(resourceId);
-	}
-	
+    }
+
     public Approval addServiceScopeApproval(String realm, String serviceId, String scope, String clientId,
             int duration, boolean approved)
             throws NoSuchServiceException, NoSuchScopeException {
@@ -857,14 +875,13 @@ public class ServicesManager implements InitializingBean {
 
     }
 
-	/**
-	 * 
-	 * @param serviceNamespace
-	 * @return
-	 */
-	public Boolean checkServiceNamespace(String serviceNamespace) {
-		return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
-	}
-
+    /**
+     * 
+     * @param serviceNamespace
+     * @return
+     */
+    public Boolean checkServiceNamespace(String serviceNamespace) {
+        return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
+    }
 
 }

@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.transaction.annotation.Transactional;
@@ -309,7 +311,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         String realm = getRealm();
 
         // validate base param, nothing to do when missing
-        String username = reg.getUsername();
+        String username = Jsoup.clean(reg.getUsername(), Whitelist.none());
         if (!StringUtils.hasText(username)) {
             throw new RegistrationException("missing-username");
         }
