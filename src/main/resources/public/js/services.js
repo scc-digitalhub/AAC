@@ -31,6 +31,20 @@ angular.module('aac.services', [])
     });
     return deferred.promise;
   }
+	
+	 /**
+   * Read the user profile
+   */
+  dataService.getProfileRoles = function() {
+    var deferred = $q.defer();
+    $http.get('account/profile/roles').then(function(data){
+      $rootScope.spaceRoles = data.data;
+      deferred.resolve(data.data);
+    }, function(err) {
+      deferred.reject(err);
+    });
+    return deferred.promise;
+  }
 		
 	/**
 	 * Read a specific page of the  user apps matching the specified query 

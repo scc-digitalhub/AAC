@@ -1,9 +1,166 @@
-angular.module('aac.controllers.apis', [])
+function buildQuery(params, serializer) {
+    var q = Object.assign({}, params);
+    if (q.sort) q.sort = Object.keys(q.sort).map(function(k) { return k + ',' + (q.sort[k] > 0 ? 'asc': 'desc'); });
+    var queryString = serializer(q);
+    return queryString;
+}
+
+
+angular.module('aac.controllers.rolespaces', [])
+
+.service('RoleSpaceData', function($q, $http, $rootScope, $httpParamSerializer) {
+  var rsService = {};
+  
+  rsService.getSpaceUsers = function(context, space, params) {
+    return $http.get('console/dev/rolespaces/users?context=' + (context || '') + '&space=' + (space || '') + '&' + buildQuery(params, $httpParamSerializer)).then(function(data) {
+      return data.data;
+    });
+  }
+  
+  rsService.saveRoles = function(subject, context, space, roles) {
+    return $http.post('console/dev/rolespaces/users', {subject: subject, space: space, context: context, roles: roles}).then(function(data) {
+      return data.data;
+    });
+  }
+  
+  return rsService;
+})
 
 /**
- * List of Tenant space User Roles controller
+ * List of RoleSpace space User Roles controller
  */
-.controller('TenantUsersController', function($scope, $rootScope, $location, Data, Utils) {
+.controller('RoleSpaceController', function($scope, RoleSpaceData, Data, Utils) {
+  $scope.query = {
+    page: 0,
+    size: 20,
+    sort: { subject: 1 },
+    q: ''
+  }
+  $scope.currentSpaceRole = null;
+
+  $scope.load = function () {
+    RoleSpaceData.getSpaceUsers($scope.currentSpaceRole.context, $scope.currentSpaceRole.space, $scope.query)
+      .then(function (data) {
+        $scope.users = data;
+      })
+      .catch(function (err) {
+        Utils.showError('Failed to load spaces and users: ' + err.data.message);
+      });
+  }
+
+  /**
+   * Initialize the app: load list of the users
+   */
+  var init = function () {
+    Data.getProfileRoles()
+    .then(function (data) {
+      data = data.filter(function(r) {
+        return r.role == 'ROLE_PROVIDER'; 
+      });        
+       data.forEach(function(r) {
+        r.strId = (r.context || '-') +'/' + (r.space || '-');
+        r.label = (r.context || '');
+        if (r.label) r.label += ' / ';
+        r.label += (r.space || '');
+        if (!r.label) r.label = '-- ROOT --';
+       });
+      data.sort(function(a,b) {
+        var res = (a.context || '').localeCompare(b.context || '');
+        if (res != 0) return res;
+        return (a.space || '').localeCompare(b.space || '');
+      });  
+      $scope.spaceRoles = data; 
+      if (!$scope.currentSpaceRole) {
+        $scope.currentSpaceRole = $scope.spaceRoles[0];
+        $scope.load();
+      }
+      Utils.refreshFormBS();
+    })
+    .catch(function (err) {
+      Utils.showError('Failed to load spaces and users: ' + err.data.message);
+    });
+  };
+
+  init();
+  
+  $scope.addSubject = function () {
+    $scope.roles = {
+      system_map: {}, map: {}, custom: '', withSubject: true, subject: '', space: ''
+    }
+    $('#rolesModal').modal({ backdrop: 'static', focus: true })
+    Utils.refreshFormBS();    
+  }
+  
+  $scope.changeRoles = function(subj) {    
+    $scope.roles = {
+      system_map: {}, map: {}, custom: '', withSubject: false, subject: subj.subject, space: ''
+    }
+    subj.roles.forEach(function(r) {
+      if (r == 'ROLE_PROVIDER') $scope.roles.system_map[r] = true;
+      else $scope.roles.map[r] = true;
+    });
+    $('#rolesModal').modal({ backdrop: 'static', focus: true })
+    Utils.refreshFormBS();
+    
+  }
+  
+  $scope.hasRoles = function (m1, m2) {
+    var res = false;
+    for (var r in m1) res |= m1[r];
+    for (var r in m2) res |= m2[r];
+    return res;
+  }
+
+  // save roles
+  $scope.updateRoles = function () {
+    var roles = [];
+    for (var k in $scope.roles.system_map) if ($scope.roles.system_map[k]) roles.push(k);
+    for (var k in $scope.roles.map) if ($scope.roles.map[k]) roles.push(k);
+
+    $('#rolesModal').modal('hide');
+    var context = $scope.currentSpaceRole.context;
+    var space = $scope.currentSpaceRole.space;
+    if ($scope.roles.space) {
+      context = (context ? (context + '/'): '') + (space || '');
+      space = $scope.roles.space;
+    }
+    RoleSpaceData.saveRoles($scope.roles.subject, context, space, roles)
+      .then(function () {
+        if ($scope.roles.space) {
+          init();
+        }
+        $scope.load();
+        Utils.showSuccess();
+      })
+      .catch(function (err) {
+        Utils.showError(err);
+      });
+  }
+  $scope.dismiss = function () {
+    $('#rolesModal').modal('hide');
+  }
+
+  $scope.addRole = function () {
+    $scope.roles.map[$scope.roles.custom] = true;
+    $scope.roles.custom = null;
+  }
+
+  $scope.invalidRole = function (role) {
+    return !role || !(/^[a-zA-Z0-9_]{1,63}((\.[a-zA-Z0-9_]+)*\.[a-zA-Z]+)?$/g.test(role))
+  }
+  
+  $scope.changeSpace = function(val) {
+    $scope.currentSpaceRole = val;
+    $scope.load();
+  }
+  
+  
+})
+
+/**
+ * List of RoleSpace space User Roles controller
+ */
+.controller('RoleSpaceUsersController', function($scope, Data, Utils) {
 	$scope.contexts = {selected: null, all : null}; 
 	
 	var reset = function() {
@@ -134,9 +291,9 @@ angular.module('aac.controllers.apis', [])
 })
 
 /**
- * List of Tenant space User Owners controller
+ * List of RoleSpace space User Owners controller
  */
-.controller('TenantOwnersController', function($scope, $rootScope, $location, Data, Utils) {
+.controller('RoleSpaceOwnersController', function($scope, $rootScope, $location, Data, Utils) {
 	$scope.contexts = {selected: null, all: null}; 
 	
 	var reset = function() {

@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.model;
 
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
@@ -16,8 +15,8 @@ public class SpaceRole {
 
     public SpaceRole(String context, String space, String role) {
         super();
-        this.context = context;
-        this.space = space;
+        this.context = StringUtils.hasText(context) ? context: null;
+        this.space = StringUtils.hasText(space) ? space: null;
         this.role = role;
         validate(this);
     }

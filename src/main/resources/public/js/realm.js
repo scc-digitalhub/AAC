@@ -379,51 +379,50 @@ angular.module('aac.controllers.realm', [])
       // TODO multilanguage
       //TODO handle templates registration in controllers...
       var customization = {
-    		  "login" : {
-    			  'headerText' :null,
-    			  'footerText' : null,
-    			  'loginText' : null,
-    			  'resetPasswordText': null
-    		  },
-    		  "registration" : {
-    			  'headerText' :null,
-    			  'footerText' : null,
-    			  'registrationText' : null,
-    			  'registrationSuccessText' : null,    			  
-    		  },
-    		  "approval" : {
-    			  'headerText' :null,
-    			  'footerText' : null,
-    			  'approvalText' : null
-    		  },  
-    		  "endsession" : {
-    			  'headerText' :null,
-    			  'footerText' : null,
-    			  'logoutText' : null
-    		  }
-      
-      
+        "login": {
+          'headerText': null,
+          'footerText': null,
+          'loginText': null,
+          'resetPasswordText': null
+        },
+        "registration": {
+          'headerText': null,
+          'footerText': null,
+          'registrationText': null,
+          'registrationSuccessText': null,
+        },
+        "approval": {
+          'headerText': null,
+          'footerText': null,
+          'approvalText': null
+        },
+        "endsession": {
+          'headerText': null,
+          'footerText': null,
+          'logoutText': null
+        }
+
+
 
       };
 
       if (data.customization != null) {
         for (cb of data.customization) {
           var k = cb.identifier;
-          for(r in cb.resources) {       	          	  
-        	  customization[k][r] =  cb.resources[r];
-        	          	
-          }                    
+          for (r in cb.resources) {
+            customization[k][r] = cb.resources[r];
+
+          }
         }
       }
-      console.log(customization);
       var custom = [];
-      for(k in customization) {
-    	  var arr = [];
-    	  for (r in customization[k]) {
-    		  arr.push({'key': r,  'value': customization[k][r]});
-    	  }
-    	  
-    	  custom[k] = arr;
+      for (k in customization) {
+        var arr = [];
+        for (r in customization[k]) {
+          arr.push({ 'key': r, 'value': customization[k][r] });
+        }
+
+        custom[k] = arr;
       }
       $scope.realmCustom = custom;
     }
@@ -435,19 +434,19 @@ angular.module('aac.controllers.realm', [])
       for (k in $scope.realmCustom) {
         var res = {};
         var rs = $scope.realmCustom[k]
-          .filter(function(r) {
+          .filter(function (r) {
             return r.value != null;
           });
 
-        for(r of rs) {
+        for (r of rs) {
           res[r.key] = r.value;
         }
 
-        if(Object.keys(res).length > 0) {
-          customization.push({'identifier': k, 'resources': res});
+        if (Object.keys(res).length > 0) {
+          customization.push({ 'identifier': k, 'resources': res });
         }
       }
-      
+
       data.customization = customization;
 
 

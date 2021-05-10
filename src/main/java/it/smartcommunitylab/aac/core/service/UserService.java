@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.RoleService;
 
@@ -400,6 +401,49 @@ public class UserService {
         		convertUsers(realm, page.getContent()),
                 pageRequest,
                 () -> page.getTotalElements());
+	}
+
+	/**
+	 * @param realm
+	 * @param subjectId
+	 * @return
+	 * @throws NoSuchUserException 
+	 */
+	public Collection<SpaceRole> getUserRoles(String realm, String subjectId) throws NoSuchUserException {
+		return fetchUserSpaceRoles(subjectId, realm);
+	}
+
+	/**
+	 * @param context
+	 * @param space
+	 * @param q
+	 * @param pageRequest
+	 * @return
+	 */
+	public Page<SpaceRoles> getContextRoles(String context, String space, String q, Pageable pageRequest) {
+		return roleService.getContextRoles(context, space, q, pageRequest);
+	}
+
+	/**
+	 * @param subject
+	 * @param context
+	 * @param space
+	 * @param roles
+	 * @return
+	 */
+	public SpaceRoles saveContextRoles(String subject, String context, String space, List<String> roles) {
+		Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r)).collect(Collectors.toList());
+		
+		Set<SpaceRole> oldRoles = roleService.getRoles(subject, context, space);
+		roleService.removeRoles(subject, oldRoles);
+		roleService.addRoles(subject, spaceRoles);
+		
+		SpaceRoles res = new SpaceRoles();
+		res.setSubject(subject);
+		res.setSpace(space);
+		res.setContext(space);
+		res.setRoles(roles);
+		return res;
 	}
 
 }
