@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -80,6 +82,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @RestController
 @ApiIgnore
 public class DevController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private RealmManager realmManager;
@@ -843,6 +846,9 @@ public class DevController {
             response.put("description", body);
         }
 
+        logger.error("error processing request: "+ex.getMessage());
+        ex.printStackTrace();
+        
         return response;
 
     }

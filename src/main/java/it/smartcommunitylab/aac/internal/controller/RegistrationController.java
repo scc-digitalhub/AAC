@@ -65,6 +65,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.dto.UserResetBean;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
@@ -114,11 +115,16 @@ public class RegistrationController {
         String realm = ids.getRealm();
         model.addAttribute("realm", realm);
 
-        String displayName = null;
-        if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            Realm re = realmManager.getRealm(realm);
-            displayName = re.getName();
+        Realm re = realmManager.getRealm(realm);
+        String displayName = re.getName();
+        CustomizationBean cb = re.getCustomization("registration");
+
+        if (cb != null) {
+            model.addAttribute("customization", cb.getResources());
+        } else {
+            model.addAttribute("customization", null);
         }
+
         model.addAttribute("displayName", displayName);
 
         // build model
@@ -361,11 +367,20 @@ public class RegistrationController {
         model.addAttribute("realm", realm);
 
         String displayName = null;
+        Realm re = null;
+        CustomizationBean cb = null;
         if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            Realm re = realmManager.getRealm(realm);
+            re = realmManager.getRealm(realm);
             displayName = re.getName();
+            cb = re.getCustomization("login");
         }
+
         model.addAttribute("displayName", displayName);
+        if (cb != null) {
+            model.addAttribute("customization", cb.getResources());
+        } else {
+            model.addAttribute("customization", null);
+        }
 
         // build model
         model.addAttribute("reg", new UserResetBean());
@@ -411,12 +426,21 @@ public class RegistrationController {
             model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             String displayName = null;
+            Realm re = null;
+            CustomizationBean cb = null;
             if (!realm.equals(SystemKeys.REALM_COMMON)) {
-                Realm re = realmManager.getRealm(realm);
+                re = realmManager.getRealm(realm);
                 displayName = re.getName();
+                cb = re.getCustomization("login");
             }
-            model.addAttribute("displayName", displayName);
 
+            model.addAttribute("displayName", displayName);
+            if (cb != null) {
+                model.addAttribute("customization", cb.getResources());
+            } else {
+                model.addAttribute("customization", null);
+            }
+            
             String username = reg.getUsername();
             String email = reg.getEmail();
 

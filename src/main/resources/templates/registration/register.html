@@ -43,24 +43,24 @@
 <body>
   <div class="container">
 
-    <div th:if="${headerText == null}">
+    <div>
       <img class="logo d-none d-md-block" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
       <div class="clear"></div>
     </div>
 
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${headerText != null}"
-      th:utext="${headerText}"></div>
-
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${registrationText != null}"
-      th:utext="${registrationText}"></div>
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('headerText') != null}"
+      th:utext="${customization.get('headerText')}"></div>
 
 
-    <div class="row justify-content-center">
+    <div class="row mt-md-0 mt-5 justify-content-center">
       <div class="col-md-offset-4 col-md-4">
         <div class="panel panel-default">
 
           <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_register_title}">AAC</h4>
           <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
+
+           <div class="mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('registrationText') != null}"
+                  th:utext="${customization.get('registrationText')}"></div>
 
           <h5 th:text="#{lbl_register_title}">Register</h5>
           <form action="#" th:action="${registrationUrl}" th:object="${reg}" method="post">
@@ -109,8 +109,9 @@
       </div>
     </div>
 
-    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${footerText != null}"
-      th:utext="${footerText}"></div>
+    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${customization != null && customization.get('footerText') != null}"
+      th:utext="${customization.get('footerText')}"></div>
+
 
   </div>
   <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>

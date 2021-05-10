@@ -1,20 +1,41 @@
 package it.smartcommunitylab.aac.model;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import it.smartcommunitylab.aac.dto.CustomizationBean;
+
+@Valid
+@JsonInclude(Include.ALWAYS)
 public class Realm {
 
     private String name;
+
+    @NotBlank
     private String slug;
 
     private boolean isEditable = true;
     private boolean isPublic = true;
 
-    public Realm() {
+    private List<CustomizationBean> customization;
 
+    public Realm() {
+        this.customization = Collections.emptyList();
     }
 
     public Realm(String slug, String name) {
         this.name = name;
         this.slug = slug;
+        this.customization = Collections.emptyList();
     }
 
     public String getName() {
@@ -47,6 +68,22 @@ public class Realm {
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public List<CustomizationBean> getCustomization() {
+        return customization;
+    }
+
+    public void setCustomization(List<CustomizationBean> customization) {
+        this.customization = customization;
+    }
+
+    public CustomizationBean getCustomization(String key) {
+        if (customization == null) {
+            return null;
+        }
+
+        return customization.stream().filter(c -> c.getIdentifier().equals(key)).findFirst().orElse(null);
     }
 
 }

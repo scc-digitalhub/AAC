@@ -13,6 +13,8 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 public interface RealmEntityRepository extends CustomJpaRepository<RealmEntity, String> {
 
     RealmEntity findBySlug(String slug);
+    
+    List<RealmEntity> findByIsPublic(boolean isPublic);
 
     List<RealmEntity> findBySlugContainingIgnoreCase(String keywords);
     List<RealmEntity> findByNameContainingIgnoreCase(String keywords);

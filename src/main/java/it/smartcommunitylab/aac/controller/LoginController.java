@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.controller;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Controller
@@ -49,8 +51,50 @@ public class LoginController {
     @Autowired
     private ClientDetailsService clientDetailsService;
 
+    // TODO handle COMMON realm
     @RequestMapping(value = {
-            "/login",
+            "/login"
+    }, method = RequestMethod.GET)
+    public String entrypoint(
+            @RequestParam(required = false, name = "realm") Optional<String> realmKey,
+            @RequestParam(required = false, name = "client_id") Optional<String> clientKey,
+            Model model,
+            HttpServletRequest req, HttpServletResponse res) throws Exception {
+
+        if (clientKey.isPresent()) {
+            String clientId = clientKey.get();
+
+            // lookup client realm and dispatch redirect
+            ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
+            String realm = clientDetails.getRealm();
+
+            String redirect = "/-/" + realm + "/login?client_id=" + clientId;
+            return "redirect:" + redirect;
+        }
+
+        if (realmKey.isPresent() && StringUtils.hasText(realmKey.get())) {
+            String realm = realmKey.get();
+            String redirect = "/-/" + realm + "/login";
+            return "redirect:" + redirect;
+        }
+
+        // load (public) realm list and present select page
+        List<Realm> realms = new ArrayList<>(realmManager.listRealms(true));
+
+        Collections.sort(realms, new Comparator<Realm>() {
+            @Override
+            public int compare(Realm o1, Realm o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
+        model.addAttribute("realms", realms);
+        model.addAttribute("loginUrl", "/login");
+
+        return "entrypoint";
+    }
+
+    @RequestMapping(value = {
             "/-/{realm}/login",
             "/-/{realm}/login/{providerId}"
     }, method = RequestMethod.GET)
@@ -84,12 +128,20 @@ public class LoginController {
         model.addAttribute("realm", realm);
 
         String displayName = null;
+        Realm re = null;
+        CustomizationBean cb = null;
         if (!realm.equals(SystemKeys.REALM_COMMON)) {
-            Realm re = realmManager.getRealm(realm);
+            re = realmManager.getRealm(realm);
             displayName = re.getName();
+            cb = re.getCustomization("login");
         }
 
         model.addAttribute("displayName", displayName);
+        if (cb != null) {
+            model.addAttribute("customization", cb.getResources());
+        } else {
+            model.addAttribute("customization", null);
+        }
 
         // fetch providers for given realm
         Collection<IdentityProvider> providers = providerManager.getIdentityProviders(realm);

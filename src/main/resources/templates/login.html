@@ -43,16 +43,13 @@
 <body>
   <div class="container">
 
-    <div th:if="${headerText == null}">
+    <div>
       <img class="logo d-none d-md-block" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
       <div class="clear"></div>
     </div>
 
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${headerText != null}"
-      th:utext="${headerText}"></div>
-
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${loginText != null}"
-      th:utext="${loginText}"></div>
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('headerText') != null}"
+      th:utext="${customization.get('headerText')}"></div>
 
     <div class="row mt-md-0 mt-5 justify-content-center">
       <div class="col-xl-offset-4 col-xl-4 col-lg-offset-3 col-lg-6 col-md-8 col-md-offset-2 col-sm-offset-1 col-sm-10">
@@ -61,11 +58,18 @@
           <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
           <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
+		    <div class="mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('loginText') != null}"
+		      th:utext="${customization.get('loginText')}"></div>
 
-          <div th:if="${realm == ''}" class="alert alert-info" role="alert" th:text="#{alert_login_global}">
+
+          <div th:if="${realm == 'system'}" class="alert alert-info" role="alert" th:text="#{alert_login_global}">
           </div>
 
           <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
+
+          <div class="text-center mt-4" th:if="${internalAuthority == null && externalAuthorities.size() == 0}">
+            <p th:text="#{lbl_login_no_provider}">Login is disabled</p>
+          </div>
 
           <div class="text-center mt-4" th:if="${internalAuthority != null}">
             <p th:text="#{lbl_login_internal}">Login with</p>
@@ -133,8 +137,8 @@
       </div>
     </div>
 
-    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${footerText != null}"
-      th:utext="${footerText}"></div>
+    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${customization != null && customization.get('footerText') != null}"
+      th:utext="${customization.get('footerText')}"></div>
 
   </div>
   <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>

@@ -1,10 +1,14 @@
 package it.smartcommunitylab.aac.core;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +16,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -20,9 +26,11 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.services.ServicesManager;
@@ -60,14 +68,56 @@ public class RealmManager {
     @Transactional(readOnly = false)
     public Realm addRealm(Realm r) throws AlreadyRegisteredException {
         r.setSlug(r.getSlug().toLowerCase());
-        return realmService.addRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic());
+
+        // cleanup input
+        String slug = Jsoup.clean(r.getSlug(), Whitelist.none());
+        String name = Jsoup.clean(r.getName(), Whitelist.none());
+        if (!StringUtils.hasText(name.trim())) {
+            throw new RegistrationException("name cannot be empty");
+        }
+
+        return realmService.addRealm(slug, name, r.isEditable(), r.isPublic());
     }
 
     @Transactional(readOnly = false)
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
         slug = slug.trim().toLowerCase();
         r.setSlug(slug);
-        return realmService.updateRealm(slug, r.getName(), r.isEditable(), r.isPublic());
+
+        String name = Jsoup.clean(r.getName(), Whitelist.none());
+        if (!StringUtils.hasText(name.trim())) {
+            throw new RegistrationException("name cannot be empty");
+        }
+
+        // explode customization
+        Map<String, Map<String, String>> customizationMap = null;
+        if (r.getCustomization() != null) {
+            customizationMap = new HashMap<>();
+
+            for (CustomizationBean cb : r.getCustomization()) {
+
+                String key = cb.getIdentifier();
+                if (StringUtils.hasText(key) && cb.getResources() != null) {
+                    Map<String, String> res = new HashMap<>();
+
+                    // sanitize
+                    for (Map.Entry<String, String> e : cb.getResources().entrySet()) {
+                        String k = Jsoup.clean(e.getKey(), Whitelist.none());
+                        String v = Jsoup.clean(e.getValue(), Config.WHITELIST_RELAXED_NOIMG);
+
+                        if (StringUtils.hasText(k)) {
+                            res.put(k, v);
+                        }
+                    }
+
+                    customizationMap.put(key, res);
+                }
+            }
+        }
+
+        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), customizationMap);
+
+        return realm;
     }
 
     @Transactional(readOnly = true)
@@ -78,6 +128,11 @@ public class RealmManager {
     @Transactional(readOnly = true)
     public Collection<Realm> listRealms() {
         return realmService.listRealms();
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Realm> listRealms(boolean isPublic) {
+        return realmService.listRealms(isPublic);
     }
 
     @Transactional(readOnly = true)
