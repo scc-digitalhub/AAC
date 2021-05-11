@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -40,6 +42,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import org.thymeleaf.context.WebContext;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
@@ -66,6 +70,7 @@ import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;
 import it.smartcommunitylab.aac.model.ClientApp;
@@ -104,6 +109,9 @@ public class DevController {
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
+
+    @Autowired
+    private ServletContext servletContext;
 
     @RequestMapping("/dev")
     public ModelAndView developer() {
@@ -174,6 +182,27 @@ public class DevController {
         // write as file
         res.setContentType("text/yaml");
         res.setHeader("Content-Disposition", "attachment;filename=" + r.getSlug() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.print(s);
+        out.flush();
+        out.close();
+
+    }
+
+    @PostMapping("/console/dev/realms/{realm}/custom")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public void previewRealm(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = true) @Valid @NotBlank String template,
+            @RequestBody @Valid CustomizationBean cb,
+            HttpServletRequest req, HttpServletResponse res)
+            throws NoSuchRealmException, SystemException, IOException {
+
+        WebContext ctx = new WebContext(req, res, servletContext, req.getLocale());
+        String s = devManager.previewRealmTemplate(realm, template, cb, ctx);
+
+        // write as file
+        res.setContentType("text/html");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();

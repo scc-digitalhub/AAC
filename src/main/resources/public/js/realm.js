@@ -321,6 +321,40 @@ angular.module('aac.controllers.realm', [])
     };
 
 
+    $scope.previewRealmCustom = function (template) {
+      if ($scope.realmCustom[template] == null) {
+        Utils.showError("invalid template or missing data");
+      } else {
+         var cb = {
+            'identifier': template,
+            'resources' : {}
+         }
+        var res = {};
+        var rs = $scope.realmCustom[template]
+          .filter(function (r) {
+            return r.value != null;
+          });
+
+        for (r of rs) {
+          res[r.key] = r.value;
+        }
+
+        if (Object.keys(res).length > 0) {
+          cb.resources = res;
+        }
+         
+         
+        RealmData.previewRealm($scope.realm.slug, template, cb)
+          .then(function (res) {
+            console.log(res);
+            $scope.customPreview = res;
+            $('#customPreview').modal({ keyboard: false });
+          })
+          .catch(function (err) {
+            Utils.showError(err.data.message);
+          });
+      }
+    };
 
     init();
   });

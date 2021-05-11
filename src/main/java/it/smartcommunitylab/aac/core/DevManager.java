@@ -10,8 +10,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.mail.internet.MimeMessage;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,6 +27,9 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.context.WebContext;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,9 +49,12 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
@@ -109,6 +118,13 @@ public class DevManager {
 
     @Autowired
     private UserTranslatorService userTranslatorService;
+
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    @Autowired
+    private RealmService realmService;
+
     /*
      * Claims
      */
@@ -261,6 +277,35 @@ public class DevManager {
         functionBean.setResult(claims);
 
         return functionBean;
+    }
+
+    /*
+     * Realm customization
+     */
+
+    public String previewRealmTemplate(String realm, String template, CustomizationBean cb, WebContext ctx)
+            throws NoSuchRealmException {
+
+        Realm re = realmService.getRealm(realm);
+
+        if (!template.equals(cb.getIdentifier())) {
+            throw new IllegalArgumentException("customization does not match template");
+        }
+
+        // build model
+        Map<String, Object> model = new HashMap<>();
+        model.put("realm", realm);
+        model.put("displayName", re.getName());
+        model.put("customization", cb.getResources());
+
+        // Create the HTML body using Thymeleaf
+        for (String var : model.keySet()) {
+            ctx.setVariable(var, model.get(var));
+        }
+
+        final String html = this.templateEngine.process(template, ctx);
+
+        return html;
     }
 
     /*

@@ -67,7 +67,7 @@
 
           <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
-          <div class="text-center mt-4" th:if="${internalAuthority == null && externalAuthorities.size() == 0}">
+          <div class="text-center mt-4" th:if="${internalAuthority == null && (externalAuthorities == null || externalAuthorities.size() == 0)}">
             <p th:text="#{lbl_login_no_provider}">Login is disabled</p>
           </div>
 
@@ -108,7 +108,7 @@
           </div>
           </form>
 
-          <div class="text-center mt-4" th:if="${externalAuthorities.size() > 0}">
+          <div class="text-center mt-4" th:if="${externalAuthorities != null && externalAuthorities.size() > 0}">
             <p th:text="#{lbl_login_providers}">Login with</p>
             <div class="row  d-md-none justify-content-center">
               <div class="col col-12 mb-3" th:each="authority: ${externalAuthorities}">
