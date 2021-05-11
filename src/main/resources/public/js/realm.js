@@ -57,7 +57,7 @@ angular.module('aac.controllers.realm', [])
   /**
    * Realm users controller
    */
-  .controller('RealmUsersController', function ($scope, $stateParams, RealmData, Utils) {
+  .controller('RealmUsersController', function ($scope, $stateParams, RealmData, RealmProviders, Utils) {
     var slug = $stateParams.realmId;
     $scope.query = {
       page: 0,
@@ -88,7 +88,7 @@ angular.module('aac.controllers.realm', [])
    * Initialize the app: load list of the users
    */
     var init = function () {
-      RealmData.getRealmProviders(slug)
+      RealmProviders.getIdentityProviders(slug)
         .then(function (providers) {
           var pMap = {};
           providers.forEach(function (p) { pMap[p.provider] = p });
@@ -195,153 +195,7 @@ angular.module('aac.controllers.realm', [])
 
   })
 
-  /**
-   * Realm providers controller
-   */
-  .controller('RealmProvidersController', function ($scope, $stateParams, RealmData, Utils) {
-    var slug = $stateParams.realmId;
 
-    $scope.load = function () {
-      RealmData.getRealmProviders(slug)
-        .then(function (data) {
-          $scope.providers = data;
-        })
-        .catch(function (err) {
-          Utils.showError('Failed to load realm providers: ' + err.data.message);
-        });
-    }
-
-    /**
-     * Initialize the app: load list of the providers
-     */
-    var init = function () {
-      RealmData.getRealmProviderTemplates(slug)
-        .then(function (data) {
-          $scope.providerTemplates = data;
-        });
-      $scope.load();
-    };
-
-    $scope.deleteProviderDlg = function (provider) {
-      $scope.modProvider = provider;
-      $('#deleteConfirm').modal({ keyboard: false });
-    }
-
-    $scope.deleteProvider = function () {
-      $('#deleteConfirm').modal('hide');
-      RealmData.removeProvider($scope.realm.slug, $scope.modProvider.provider).then(function () {
-        $scope.load();
-      }).catch(function (err) {
-        Utils.showError(err.data.message);
-      });
-    }
-
-    $scope.editProviderDlg = function (provider) {
-      if (provider.authority == 'internal') {
-        $scope.internalProviderDlg(provider);
-      } else if (provider.authority == 'oidc') {
-        $scope.oidcProviderDlg(provider);
-      } else if (provider.authority == 'saml') {
-        $scope.samlProviderDlg(provider);
-      }
-    }
-
-    var toChips = function (str) {
-      return str.split(',').map(function (e) { return e.trim() }).filter(function (e) { return !!e });
-    }
-
-    $scope.oidcProviderDlg = function (provider) {
-      $scope.providerId = provider ? provider.provider : null;
-      $scope.providerAuthority = 'oidc';
-      $scope.provider = provider ? Object.assign({}, provider.configuration) :
-        { clientAuthenticationMethod: 'client_secret_basic', scope: 'openid,profile,email', userNameAttributeName: 'sub' };
-      $scope.provider.name = provider ? provider.name : null;
-      $scope.provider.clientName = $scope.provider.clientName || '';
-      $scope.provider.scope = toChips($scope.provider.scope);
-      $scope.provider.persistence = provider ? provider.persistence : 'none';
-
-      $scope.oidcProviderTemplates = $scope.providerTemplates ? $scope.providerTemplates.filter(function (pt) { return pt.authority === 'oidc' }) : [];
-
-      $('#oidcModal').modal({ backdrop: 'static', focus: true })
-      Utils.refreshFormBS();
-    }
-    $scope.internalProviderDlg = function (provider) {
-      $scope.providerId = provider ? provider.provider : null;
-      $scope.providerAuthority = 'internal';
-      $scope.provider = provider ? Object.assign({}, provider.configuration) :
-        { enableUpdate: true, enableDelete: true, enableRegistration: true, enablePasswordReset: true, enablePasswordSet: true, confirmationRequired: true, passwordMinLength: 8 };
-      $scope.provider.name = provider ? provider.name : null;
-      $('#internalModal').modal({ backdrop: 'static', focus: true })
-      Utils.refreshFormBS();
-    }
-
-    $scope.samlProviderDlg = function (provider) {
-      $scope.providerId = provider ? provider.provider : null;
-      $scope.providerAuthority = 'saml';
-      $scope.provider = provider ? Object.assign({}, provider.configuration) :
-        { signAuthNRequest: 'true', ssoServiceBinding: 'HTTP-POST' };
-      $scope.provider.name = provider ? provider.name : null;
-      $scope.provider.persistence = provider ? provider.persistence : 'none';
-      $('#samlModal').modal({ backdrop: 'static', focus: true })
-      Utils.refreshFormBS();
-    }
-
-    $scope.saveProvider = function () {
-      $('#' + $scope.providerAuthority + 'Modal').modal('hide');
-
-      // HOOK: OIDC contains scopes to be converted to string
-      if ($scope.providerAuthority === 'oidc' && $scope.provider.scope) {
-        $scope.provider.scope = $scope.provider.scope.map(function (s) { return s.text }).join(',');
-      }
-      var name = $scope.provider.name;
-      delete $scope.provider.name;
-      var persistence = $scope.provider.persistence;
-      delete $scope.provider.persistence;
-
-      var data = { realm: $scope.realm.slug, name: name, persistence: persistence, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', providerId: $scope.providerId };
-      RealmData.saveProvider($scope.realm.slug, data)
-        .then(function () {
-          $scope.load();
-          Utils.showSuccess();
-        })
-        .catch(function (err) {
-          Utils.showError(err.data.message);
-        });
-    }
-
-    $scope.toggleProviderState = function (item) {
-      RealmData.changeProviderState($scope.realm.slug, item.provider, item.enabled)
-        .then(function () {
-          Utils.showSuccess();
-        })
-        .catch(function (err) {
-          Utils.showError(err.data.message);
-        });
-
-    }
-
-    $scope.updateProviderType = function () {
-      if ($scope.provider.clientName) {
-        var ptIdx = $scope.oidcProviderTemplates.findIndex(function (pt) { return pt.name === $scope.provider.clientName });
-        if (ptIdx >= 0) {
-          var pt = Object.assign({}, $scope.oidcProviderTemplates[ptIdx].configuration);
-          pt.name = $scope.provider.name;
-          pt.clientId = $scope.provider.clientId;
-          pt.clientSecret = $scope.provider.clientSecret;
-          pt.scope = toChips(pt.scope);
-          $scope.provider = pt;
-        }
-      }
-      Utils.refreshFormBS();
-    }
-
-    $scope.updatePersistenceType = function () {
-      Utils.refreshFormBS();
-    }
-
-
-    init();
-  })
   .controller('RealmCustomController', function ($scope, $stateParams, RealmData, Utils) {
     var slug = $stateParams.realmId;
 
@@ -351,7 +205,7 @@ angular.module('aac.controllers.realm', [])
       mode: 'html',
       theme: 'monokai',
       maxLines: 30,
-      minLines: 12
+      minLines: 12,
     };
 
     $scope.activeView = function (view) {
@@ -461,6 +315,12 @@ angular.module('aac.controllers.realm', [])
         });
 
     }
+
+    $scope.exportRealm = function () {
+      window.open('console/dev/realms/' + $scope.realm.slug + '/export');
+    };
+
+
 
     init();
   });

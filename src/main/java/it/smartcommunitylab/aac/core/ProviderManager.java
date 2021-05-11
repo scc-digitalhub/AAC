@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -17,6 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -270,9 +274,24 @@ public class ProviderManager {
 
         Realm re = realmService.getRealm(realm);
 
-        // generate a valid id
-        ProviderEntity pe = providerService.createProvider();
-        String providerId = pe.getProviderId();
+        // check if id provided
+        String providerId = provider.getProvider();
+        if (StringUtils.hasText(providerId)) {
+            ProviderEntity pe = providerService.fetchProvider(providerId);
+            if (pe != null) {
+                throw new RegistrationException("id already in use");
+            }
+
+            // validate
+            if (providerId.length() < 6 || !Pattern.matches(SystemKeys.SLUG_PATTERN, providerId)) {
+                throw new RegistrationException("invalid id");
+            }
+
+        } else {
+            // generate a valid id
+            ProviderEntity pe = providerService.createProvider();
+            providerId = pe.getProviderId();
+        }
 
         // unpack props and validate
         // TODO handle enum of authorities for validation
@@ -330,7 +349,7 @@ public class ProviderManager {
         // fetch hooks
         Map<String, String> hookFunctions = provider.getHookFunctions();
 
-        pe = providerService.addProvider(authority, providerId, re.getSlug(),
+        ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(),
                 type,
                 name, description,
                 persistence,
@@ -903,6 +922,30 @@ public class ProviderManager {
     }
 
     /*
+     * Configuration schemas
+     */
+
+    public JsonSchema getConfigurationSchema(String type, String authority) {
+        try {
+            if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
+                if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
+                    return InternalIdentityProviderConfigMap.getConfigurationSchema();
+                } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
+                    return OIDCIdentityProviderConfigMap.getConfigurationSchema();
+                } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
+                    return SamlIdentityProviderConfigMap.getConfigurationSchema();
+                }
+
+            }
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        throw new IllegalArgumentException("invalid provider type");
+    }
+
+    /*
      * Helpers
      */
 
@@ -912,6 +955,7 @@ public class ProviderManager {
         cp.setConfiguration(pe.getConfigurationMap());
         cp.setEnabled(pe.isEnabled());
         cp.setPersistence(pe.getPersistence());
+        cp.setHookFunctions(pe.getHookFunctions() != null ? pe.getHookFunctions() : Collections.emptyMap());
 
         cp.setName(pe.getName());
         cp.setDescription(pe.getDescription());

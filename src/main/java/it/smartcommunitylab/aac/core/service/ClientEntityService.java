@@ -55,7 +55,10 @@ public class ClientEntityService {
             String type,
             String name, String description,
             Collection<String> scopes, Collection<String> resourceIds,
-            Collection<String> providers) throws IllegalArgumentException {
+            Collection<String> providers,
+            Map<String, String> hookFunctions,
+            Map<String, String> hookWebUrls,
+            String hookUniqueSpaces) throws IllegalArgumentException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c != null) {
             throw new IllegalArgumentException("client already exists with the same id");
@@ -70,6 +73,10 @@ public class ClientEntityService {
         c.setScopes(StringUtils.collectionToCommaDelimitedString(scopes));
         c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
+
+        c.setHookFunctions(hookFunctions);
+        c.setHookWebUrls(hookWebUrls);
+        c.setHookUniqueSpaces(hookUniqueSpaces);
 
         c = clientRepository.save(c);
 

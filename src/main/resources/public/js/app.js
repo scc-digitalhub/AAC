@@ -9,10 +9,12 @@ var app = angular.module('dev', [
     'aac.controllers.main',
     'aac.controllers.admin',
     'aac.controllers.realm',
+    'aac.controllers.realmproviders',
     'aac.controllers.realmapps',
     'aac.controllers.realmservices',
     'aac.controllers.rolespaces',
     'ui.ace',
+    'ngSanitize'
 ]);
 
 app.config(function ($httpProvider, $translateProvider) {
@@ -58,6 +60,11 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/realm.providers.html',
             controller: 'RealmProvidersController',
         })
+        .state('realm.provider', {
+            url: '/provider?providerId',
+            templateUrl: 'html/realm.provider.html',
+            controller: 'RealmProviderController',
+        })        
         .state('realm.apps', {
             url: '/apps',
             templateUrl: 'html/realm.apps.html',

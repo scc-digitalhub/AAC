@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac;
 
+import org.springframework.http.MediaType;
+
 public class SystemKeys {
 
     // to be upgraded when serialized objects are updated, breaks db
@@ -46,5 +48,9 @@ public class SystemKeys {
     public static final String KEY_PATTERN = "^[a-zA-Z0-9._]+$";
 
     public static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30;// 30 days
+
+    public static final MediaType MEDIA_TYPE_YAML = MediaType.valueOf("text/yaml");
+    public static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
+    public static final MediaType MEDIA_TYPE_XYAML = MediaType.valueOf("application/x-yaml");
 
 }

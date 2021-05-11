@@ -1,0 +1,89 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">SAML2 IdP Configuration</legend>
+
+
+        <div class="form-group col ">
+            <label for="idpMetadataUrl">IdP Metadata Discovery URL</label>
+            <input type="text" name="idpMetadataUrl" class="form-control form-control-sm" id="idpMetadataUrl"
+                ng-model="idp.configuration.idpMetadataUrl">
+        </div>
+        <div class="pt-0 pb-3 text-center"> -- OR -- </div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="idpEntityId">Asserting Party Entity ID</label>
+                <input type="text" name="idpEntityId" class="form-control form-control-sm" id="ssoLoginServiceLocation"
+                    ng-model="idp.configuration.idpEntityId">
+            </div>
+            <div class="form-group col ">
+                <label for="ssoLoginServiceLocation">Login Service Location</label>
+                <input type="text" name="ssoLoginServiceLocation" class="form-control form-control-sm"
+                    id="ssoLoginServiceLocation" ng-model="idp.configuration.ssoLoginServiceLocation">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-check">
+                    <input class="form-check-input" name="signAuthNRequest" id="signAuthNRequest" type="checkbox"
+                        ng-model="idp.configuration.signAuthNRequest">
+                    <label for="signAuthNRequest">Sign auth. request</label>
+                </div>
+            </div>
+            <div class="form-group col-md-3">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="ssoServiceBinding">SSO Service Binding</label>
+                    <select required title="Select one" id="ssoServiceBinding"
+                        ng-model="idp.configuration.ssoServiceBinding">
+                        <option value="HTTP-POST" ng-selected="idp.configuration.ssoServiceBinding=='HTTP-POST'">POST
+                        </option>
+                        <option value="HTTP-Redirect"
+                            ng-selected="idp.configuration.ssoServiceBinding=='HTTP-Redirect'">Redirect
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col ">
+                <label for="entityId">Entity ID</label>
+                <input type="text" name="entityId" class="form-control form-control-sm" id="entityId"
+                    ng-model="idp.configuration.entityId">
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <label for="verificationCertificate">Verification Certificate</label>
+                <textarea rows="5" id="verificationCertificate" name="verificationCertificate"
+                    ng-model="idp.configuration.verificationCertificate"></textarea>
+            </div>
+        </div>
+        <div class="py-0 text-center text-danger small"
+            ng-if="!idp.configuration.idpMetadataUrl && (!idp.configuration.ssoLoginServiceLocation || !idp.configuration.ssoLoginServiceLocation ||!idp.configuration.ssoServiceBinding)">
+            Either metadata or Asserting party entity + login service + SSO service binding should be specified
+        </div>
+
+        <div class="py-3">Signing</div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="signingKey">Signing Key</label>
+                <textarea rows="5" name="signingKey" id="signingKey" ng-model="idp.configuration.signingKey"></textarea>
+            </div>
+            <div class="form-group col ">
+                <label for="signingCertificate">Signing Certificate</label>
+                <textarea rows="5" id="signingCertificate" name="signingCertificate"
+                    ng-model="idp.configuration.signingCertificate"></textarea>
+            </div>
+        </div>
+        <div class="py-3">Encryption</div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="cryptKey">Encryption Key</label>
+                <textarea rows="5" name="cryptKey" id="cryptKey" ng-model="idp.configuration.cryptKey"></textarea>
+            </div>
+            <div class="form-group col">
+                <label for="cryptCertificate">Encryption Certificate</label>
+                <textarea rows="5" id="cryptCertificate" name="cryptCertificate"
+                    ng-model="idp.configuration.cryptCertificate"></textarea>
+            </div>
+        </div>
+    </fieldset>
+</div>

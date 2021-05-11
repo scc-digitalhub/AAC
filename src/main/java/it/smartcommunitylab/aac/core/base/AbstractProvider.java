@@ -1,16 +1,22 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.regex.Pattern;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 
 public abstract class AbstractProvider implements ResourceProvider {
 
+    @NotBlank
     private final String authority;
+
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private final String realm;
+
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
     private final String provider;
 
     protected AbstractProvider(String authority, String provider, String realm) {
@@ -53,7 +59,7 @@ public abstract class AbstractProvider implements ResourceProvider {
             throw new IllegalArgumentException("empty or null id");
         }
 
-        String[] s = resourceId.split(Pattern.quote(ID_SEPARATOR));
+        String[] s = resourceId.split(java.util.regex.Pattern.quote(ID_SEPARATOR));
 
         if (s.length != 3) {
             throw new IllegalArgumentException("invalid resource id");
@@ -81,7 +87,7 @@ public abstract class AbstractProvider implements ResourceProvider {
             throw new IllegalArgumentException("empty or null id");
         }
 
-        String[] s = resourceId.split(Pattern.quote(ID_SEPARATOR));
+        String[] s = resourceId.split(java.util.regex.Pattern.quote(ID_SEPARATOR));
 
         if (s.length != 3) {
             throw new IllegalArgumentException("invalid resource id");
@@ -109,7 +115,7 @@ public abstract class AbstractProvider implements ResourceProvider {
             throw new IllegalArgumentException("empty or null id");
         }
 
-        String[] s = resourceId.split(Pattern.quote(ID_SEPARATOR));
+        String[] s = resourceId.split(java.util.regex.Pattern.quote(ID_SEPARATOR));
 
         if (s.length != 3) {
             throw new IllegalArgumentException("invalid resource id");

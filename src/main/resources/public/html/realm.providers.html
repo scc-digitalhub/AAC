@@ -4,49 +4,73 @@
       <h3>Identity Providers</h3>
     </div>
     <div class="col col-md-6 text-right">
-      <button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>
-      Add Provider
-      <svg class="icon-expand icon icon-sm icon-light"><use xlink:href="italia/svg/sprite.svg#it-expand"></use></svg>
+      <button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <svg class="icon icon-sm icon-white">
+          <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+        </svg>
+        Add Provider
+        <svg class="icon-expand icon icon-sm icon-light">
+          <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+        </svg>
       </button>
       <div class="dropdown-menu">
-		    <div class="link-list-wrapper">
-		      <ul class="link-list">
-		        <li><a class="list-item" href="" ng-click="internalProviderDlg()"><span>Internal</span></a></li>
-		        <li><a class="list-item" href="" ng-click="oidcProviderDlg()"><span>OpenID Connect</span></a></li>
-		        <li><a class="list-item" href="" ng-click="samlProviderDlg()"><span>SAML</span></a></li>
-		      </ul>
-		    </div>
-		  </div>
+        <div class="link-list-wrapper">
+          <ul class="link-list">
+            <li><a class="list-item" href="" ng-click="internalProviderDlg()"><span>Internal</span></a></li>
+            <li><a class="list-item" href="" ng-click="oidcProviderDlg()"><span>OpenID Connect</span></a></li>
+            <li><a class="list-item" href="" ng-click="samlProviderDlg()"><span>SAML</span></a></li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-sm" ng-click="importProviderDlg()">Import</button>
+
     </div>
   </div>
 </div>
 <div class="accordion" id="providers">
-  <div  ng-if="providers && providers.length > 0">
-	  <table class="table table-hover border-bottom">
-	      <thead>
-	      <tr><th>Provider</th><th>Authority</th><th>Enabled</th><th>Active</th><th></th></tr>
-	      </thead>
-	    <tr ng-repeat="item in providers">
+  <div ng-if="providers && providers.length > 0">
+    <table class="table table-hover border-bottom">
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Authority</th>
+          <th>Enabled</th>
+          <th>Active</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tr ng-repeat="item in providers">
         <td class="align-middle">{{item.name}}</td>
         <td class="align-middle">{{item.authority | uppercase}}</td>
-        <td class="align-middle"><div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}" type="checkbox" ng-checked="item.enabled" ng-model="item.enabled" ng-change="toggleProviderState(item)"><label ng-attr-for="{{item.provider}}"></label>
-    </div></td>
-        <td class="align-middle"><div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}-registered" type="checkbox" ng-checked="item.registered" ng-model="item.registered" disabled><label ng-attr-for="{{item.provider}}-registered"></label>
-    </div></td>    
-  	    <td class="text-right">
-         <button class="btn btn-success btn-sm" ng-disabled="item.enabled" ng-click="editProviderDlg(item)">Edit</button>
-  	     <button class="btn btn-danger btn-sm"  ng-disabled="item.enabled" ng-click="deleteProviderDlg(item)">Delete</button>
-  	    </td>
-	    </tr>
-	  </table>
+        <td class="align-middle">
+          <div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}" type="checkbox"
+              ng-checked="item.enabled" ng-model="item.enabled" ng-change="toggleProviderState(item)"><label
+              ng-attr-for="{{item.provider}}"></label>
+          </div>
+        </td>
+        <td class="align-middle">
+          <div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}-registered" type="checkbox"
+              ng-checked="item.registered" ng-model="item.registered" disabled><label
+              ng-attr-for="{{item.provider}}-registered"></label>
+          </div>
+        </td>
+        <td class="text-right">
+          <button class="btn btn-success btn-sm"
+            ui-sref="realm.provider({realmId:item.realm, providerId:item.provider})">Edit</button>
+          <button class="btn btn-danger btn-sm" ng-disabled="item.enabled"
+            ng-click="deleteProviderDlg(item)">Delete</button>
+        </td>
+      </tr>
+    </table>
   </div>
-  
+
   <div ng-if="providers == null || providers.length == 0">
     <h5>No data</h5>
-  </div>   
-  
-</div>    
+  </div>
+
+</div>
 
 
 
@@ -54,17 +78,60 @@
 <div ng-include="'./html/realm.providers.oidc.modal.html'"></div>
 <div ng-include="'./html/realm.providers.saml.modal.html'"></div>
 
-<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-body">
-            <p>Are you sure you want to delete?</p>
-            <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteProviderConfirm">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+        <p>You are deleting provider <span class="text-monospace">{{modProvider.provider}}</span> <br>To proceed
+          enter the id</p>
+        <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+        <form name="deleteProviderForm" class="needs-validation was-validated" novalidate>
+          <div class="form-group col mb-4">
+            <label for="confirmId">Provider Id*</label>
+            <input type="text" name="confirmId" class="form-control form-control-sm" id="confirmId" required
+              ng-model="modProvider.confirmId" ng-pattern="(modProvider.provider)">
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-danger btn-sm" ng-click="deleteProvider()" type="button">Delete</button>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
-          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="deleteProvider()" type="button"
+          ng-disabled="deleteProviderForm.$invalid">Delete</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importProviderDlg">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Import provider </h5>
+      </div>
+      <div class="modal-body">
+        <form name="importProviderForm" enctype="multipart/form-data" class="needs-validation was-validated" novalidate>
+          <div class="form-group col pt-4 mb-2">
+
+            <label for="file">File*</label>
+            <input type="file" name="file" class="form-control form-control-sm upload" id="file" file-model="importFile"
+              required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+            <ul class="upload-file-list">
+              <li class="upload-file success" ng-if="importFile != null">
+                <p>
+                  {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                </p>
+              </li>
+            </ul>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="importProvider()"
+          ng-disabled="importFile == null">Import</button>
+      </div>
+    </div>
+  </div>
 </div>

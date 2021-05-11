@@ -22,6 +22,8 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /*
  * Configure web container before security  
  */
@@ -77,15 +79,14 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .defaultContentType(MediaType.APPLICATION_JSON)
                 .mediaType(MediaType.APPLICATION_JSON.getSubtype(),
                         MediaType.APPLICATION_JSON)
-                .mediaType(MEDIA_TYPE_YML.getSubtype(), MEDIA_TYPE_YML)
-                .mediaType(MEDIA_TYPE_YAML.getSubtype(), MEDIA_TYPE_YAML);
+                .mediaType(SystemKeys.MEDIA_TYPE_YML.getSubtype(), SystemKeys.MEDIA_TYPE_YML)
+                .mediaType(SystemKeys.MEDIA_TYPE_YAML.getSubtype(), SystemKeys.MEDIA_TYPE_YAML);
     }
 
     /*
      * Yaml support (experimental)
      */
-    private static final MediaType MEDIA_TYPE_YAML = MediaType.valueOf("text/yaml");
-    private static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
+
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -94,7 +95,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter yamlConverter = new MappingJackson2HttpMessageConverter(yamlObjectMapper);
-        yamlConverter.setSupportedMediaTypes(Arrays.asList(MEDIA_TYPE_YML, MEDIA_TYPE_YAML));
+        yamlConverter.setSupportedMediaTypes(Arrays.asList(SystemKeys.MEDIA_TYPE_YML, SystemKeys.MEDIA_TYPE_YAML));
         converters.add(yamlConverter);
     }
 

@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
@@ -29,6 +30,9 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
 
     private Map<String, Serializable> configuration;
     private Map<String, String> hookFunctions = new HashMap<>();
+
+    private JsonSchema schema;
+    private Boolean registered;
 
     public ConfigurableProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -119,6 +123,22 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
 
     public void setHookFunctions(Map<String, String> hookFunctions) {
         this.hookFunctions = hookFunctions;
+    }
+
+    public JsonSchema getSchema() {
+        return schema;
+    }
+
+    public void setSchema(JsonSchema schema) {
+        this.schema = schema;
+    }
+
+    public Boolean getRegistered() {
+        return registered;
+    }
+
+    public void setRegistered(Boolean registered) {
+        this.registered = registered;
     }
 
     public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;

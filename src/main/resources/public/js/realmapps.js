@@ -1,5 +1,17 @@
 angular.module('aac.controllers.realmapps', [])
-
+    .directive('fileModel', ['$parse', function ($parse) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                var model = $parse(attrs.fileModel);
+                var modelSetter = model.assign; element.bind('change', function () {
+                    scope.$apply(function () {
+                        modelSetter(scope, element[0].files[0]);
+                    });
+                });
+            }
+        };
+    }])
     /**
       * Realm Data Services
       */
@@ -41,6 +53,20 @@ angular.module('aac.controllers.realmapps', [])
                     return data.data;
                 });
             }
+        }
+
+        raService.importClientApp = function (slug, file) {
+            var fd = new FormData();
+            fd.append('file', file);
+            return $http({
+                url: 'console/dev/realms/' + slug + '/apps',
+                headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
+                data: fd,
+                method: "PUT"
+            }).then(function (data) {
+                return data.data;
+            });
+
         }
 
         raService.testOAuth2ClientApp = function (slug, clientId, grantType) {
@@ -119,6 +145,7 @@ angular.module('aac.controllers.realmapps', [])
             if ($scope.modClientApp.clientId === $scope.modClientApp.confirmId) {
                 RealmAppsData.removeClientApp($scope.realm.slug, $scope.modClientApp.clientId).then(function () {
                     $scope.load();
+                    Utils.showSuccess();
                 }).catch(function (err) {
                     Utils.showError(err.data.message);
                 });
@@ -127,10 +154,34 @@ angular.module('aac.controllers.realmapps', [])
             }
         }
 
+        $scope.importClientAppDlg = function () {
+            $('#importClientAppDlg').modal({ keyboard: false });
+        }
+
+
+        $scope.importClientApp = function () {
+            $('#importClientAppDlg').modal('hide');
+            var file = $scope.importFile;
+            var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
+            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+                Utils.showError("invalid file");
+            } else {
+                RealmAppsData.importClientApp($scope.realm.slug, file)
+                    .then(function (res) {
+                        $scope.importFile = null;
+                        $state.go('realm.app', { realmId: res.realm, clientId: res.clientId });
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+        }
+
 
         init();
     })
-    .controller('RealmAppController', function ($scope, $stateParams, RealmData, RealmAppsData, Utils) {
+    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, RealmProviders, Utils) {
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
         $scope.clientView = 'overview';
@@ -154,7 +205,7 @@ angular.module('aac.controllers.realmapps', [])
                     return resources;
                 })
                 .then(function () {
-                    return RealmData.getRealmProviders(slug)
+                    return RealmProviders.getIdentityProviders(slug)
                 })
                 .then(function (providers) {
                     $scope.identityProviders = providers.filter(p => p.type === 'identity');
@@ -383,7 +434,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.deleteClientApp = function () {
             $('#deleteClientAppConfirm').modal('hide');
             RealmAppsData.removeClientApp($scope.realm.slug, $scope.modClientApp.clientId).then(function () {
-                $scope.load();
+                $state.go('realm.apps', { realmId: $scope.realm.slug });
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });
@@ -391,7 +442,7 @@ angular.module('aac.controllers.realmapps', [])
 
 
         $scope.exportClientApp = function (clientApp) {
-            window.open('console/dev/realms/' + clientApp.realm + '/apps/' + clientApp.clientId + '/yaml');
+            window.open('console/dev/realms/' + clientApp.realm + '/apps/' + clientApp.clientId + '/export');
         };
 
         $scope.activeClientView = function (view) {

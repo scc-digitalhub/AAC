@@ -1,0 +1,29 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-5">
+            <legend class="mb-4">Basic settings</legend>
+            <div class="form-group col">
+                <input type="text" name="name" class="form-control form-control-sm" id="name" ng-model="idp.name"
+                    required>
+                <label for="name" class="{{idp.name != '' ? 'active' : ''}}">Provider Name</label>
+            </div>
+            <div class="form-group col">
+                <textarea rows="3" name="description" id="description" ng-model="idp.description"></textarea>
+                <label for="description" class="{{idp.description != '' ? 'active' : ''}}">Description</label>
+            </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="persistence">Persistence*</label>
+                    <select id="persistence" ng-model="idp.persistence">
+                        <option value="none" ng-selected="idp.persistence=='none'">None</option>
+                        <option value="session" ng-selected="idp.persistence=='session'">Session</option>
+                        <option value="memory" ng-selected="idp.persistence=='memory'">Memory</option>
+                        <option value="repository" ng-selected="idp.persistence=='repository'">Repository</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+
+    </div>
+</div>

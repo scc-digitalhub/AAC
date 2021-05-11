@@ -4,11 +4,14 @@ import java.util.Collection;
 import java.util.Map;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +20,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
@@ -36,7 +42,7 @@ import it.smartcommunitylab.aac.model.ClientApp;
  * also we want to expose client management
  */
 @RestController
-@RequestMapping("api/app")
+@RequestMapping("api")
 //@Validated
 public class ClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -50,7 +56,11 @@ public class ClientAppController {
     @Autowired
     private ClientManager clientManager;
 
-    @GetMapping("{realm}")
+    @Autowired
+    @Qualifier("yamlObjectMapper")
+    private ObjectMapper yamlObjectMapper;
+
+    @GetMapping("/app/{realm}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public Collection<ClientApp> listApp(
@@ -60,7 +70,7 @@ public class ClientAppController {
 
     }
 
-    @GetMapping("{realm}/{clientId}")
+    @GetMapping("/app/{realm}/{clientId}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ClientApp getApp(
@@ -75,7 +85,7 @@ public class ClientAppController {
     /*
      * Management
      */
-    @PostMapping("{realm}")
+    @PostMapping("/app/{realm}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ClientApp registerApp(
@@ -85,7 +95,7 @@ public class ClientAppController {
         return clientManager.registerClientApp(realm, app);
     }
 
-    @PutMapping("{realm}/{clientId}")
+    @PutMapping("/app/{realm}/{clientId}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ClientApp updateApp(
@@ -96,7 +106,7 @@ public class ClientAppController {
         return clientManager.updateClientApp(realm, clientId, app);
     }
 
-    @DeleteMapping("{realm}/{clientId}")
+    @DeleteMapping("/app/{realm}/{clientId}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public void deleteApp(
@@ -108,11 +118,38 @@ public class ClientAppController {
 
     }
 
+    @PutMapping("/app/{realm}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ClientApp importApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("empty file");
+        }
+
+        if (file.getContentType() != null &&
+                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString()) &&
+                        !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString()))) {
+            throw new IllegalArgumentException("invalid file");
+        }
+        try {
+            ClientApp reg = yamlObjectMapper.readValue(file.getInputStream(), ClientApp.class);
+            reg.setRealm(realm);
+
+            return clientManager.registerClientApp(realm, reg);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+    }
+
     /*
      * Credentials
      */
 
-    @GetMapping("{realm}/{clientId}/credentials")
+    @GetMapping("/app/{realm}/{clientId}/credentials")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ClientCredentials getAppCredentials(
@@ -124,7 +161,7 @@ public class ClientAppController {
 
     }
 
-    @PutMapping("{realm}/{clientId}/credentials")
+    @PutMapping("/app/{realm}/{clientId}/credentials")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ClientCredentials getAppCredentials(
@@ -137,7 +174,7 @@ public class ClientAppController {
 
     }
 
-    @DeleteMapping("{realm}/{clientId}/credentials")
+    @DeleteMapping("/app/{realm}/{clientId}/credentials")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ClientCredentials resetAppCredentials(
@@ -150,9 +187,9 @@ public class ClientAppController {
     }
 
     /*
-     * Configuration models
+     * Configuration schema
      */
-    @GetMapping("schema/{type}")
+    @GetMapping("/app_schema/{type}")
     public JsonSchema getConfigurationSchema(
             @PathVariable(required = true) String type) throws IllegalArgumentException {
 

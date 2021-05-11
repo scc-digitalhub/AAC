@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
@@ -19,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import com.nimbusds.jose.jwk.JWKSet;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.base.BaseClient;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
@@ -219,7 +222,9 @@ public class OAuth2ClientService implements ClientService {
 
     public OAuth2Client addClient(String realm, String clientId, String name) {
         return this.addClient(realm, clientId, name,
-                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, null,
+                null, null, null, null, null,
                 null, null, null, null, null, null, null);
     }
 
@@ -228,6 +233,7 @@ public class OAuth2ClientService implements ClientService {
             String name, String description,
             Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
+            Map<String, String> hookFunctions, Map<String, String> hookWebUrls, String hookUniqueSpaces,
             String clientSecret,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
@@ -249,6 +255,7 @@ public class OAuth2ClientService implements ClientService {
                 name, description,
                 scopes, resourceIds,
                 providers,
+                hookFunctions, hookWebUrls, hookUniqueSpaces,
                 clientSecret,
                 authorizedGrantTypes,
                 redirectUris,
@@ -267,6 +274,7 @@ public class OAuth2ClientService implements ClientService {
             String name, String description,
             Collection<String> scopes, Collection<String> resourceIds,
             Collection<String> providers,
+            Map<String, String> hookFunctions, Map<String, String> hookWebUrls, String hookUniqueSpaces,
             String clientSecret,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
@@ -281,7 +289,11 @@ public class OAuth2ClientService implements ClientService {
 
         // TODO add custom validator for class
         // manual validation for now
-        if (!StringUtils.hasText(clientId)) {
+        if (StringUtils.hasText(clientId)) {
+            if (clientId.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, clientId)) {
+                throw new IllegalArgumentException("invalid client id");
+            }
+        } else {
             // regenerate clientId
             clientId = clientService.createClient().getClientId();
         }
@@ -361,7 +373,9 @@ public class OAuth2ClientService implements ClientService {
                 clientId, realm, OAuth2Client.CLIENT_TYPE,
                 name, description,
                 scopes, resourceIds,
-                providers);
+                providers,
+                hookFunctions,
+                hookWebUrls, hookUniqueSpaces);
 
         OAuth2ClientEntity oauth = new OAuth2ClientEntity();
         oauth.setClientId(clientId);

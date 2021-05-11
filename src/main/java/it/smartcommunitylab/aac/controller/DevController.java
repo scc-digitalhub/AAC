@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
@@ -34,10 +36,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
-import org.yaml.snakeyaml.Yaml;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
@@ -65,7 +67,6 @@ import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
-import it.smartcommunitylab.aac.dto.ProviderRegistrationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -78,7 +79,6 @@ import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServiceClaim;
 import it.smartcommunitylab.aac.services.ServiceScope;
 import it.smartcommunitylab.aac.services.ServicesManager;
-import it.smartcommunitylab.aac.utils.YamlUtils;
 import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
@@ -100,7 +100,7 @@ public class DevController {
     private DevManager devManager;
     @Autowired
     private ServicesManager serviceManager;
-    
+
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
@@ -121,23 +121,23 @@ public class DevController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(
-        	user.getRealms().stream()
-			.map(r -> {
-				try {
-					return realmManager.getRealm(r);
-				} catch (NoSuchRealmException e) {
-					return null;
-				}
-			})
-			.filter(r -> r != null)
-			.collect(Collectors.toList())
-		);
+                user.getRealms().stream()
+                        .map(r -> {
+                            try {
+                                return realmManager.getRealm(r);
+                            } catch (NoSuchRealmException e) {
+                                return null;
+                            }
+                        })
+                        .filter(r -> r != null)
+                        .collect(Collectors.toList()));
     }
 
     @GetMapping("/console/dev/realms/{realm:.*}/stats")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<RealmStatsBean> getRealmStats(@PathVariable String realm) throws NoSuchRealmException {
+    public ResponseEntity<RealmStatsBean> getRealmStats(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         RealmStatsBean bean = new RealmStatsBean();
         Realm realmObj = realmManager.getRealm(realm);
         bean.setRealm(realmObj);
@@ -155,8 +155,30 @@ public class DevController {
     @GetMapping("/console/dev/realms/{realm:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Realm> getRealm(@PathVariable String realm) throws NoSuchRealmException {
+    public ResponseEntity<Realm> getRealm(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
         return ResponseEntity.ok(realmManager.getRealm(realm));
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/export")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public void exportRealm(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            HttpServletResponse res)
+            throws NoSuchRealmException, SystemException, IOException {
+        Realm r = realmManager.getRealm(realm);
+
+//      String s = yaml.dump(clientApp);
+        String s = yamlObjectMapper.writeValueAsString(r);
+
+        // write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=" + r.getSlug() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.print(s);
+        out.flush();
+        out.close();
+
     }
 
     /*
@@ -164,14 +186,17 @@ public class DevController {
      */
     @GetMapping("/console/dev/realms/{realm:.*}/users")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<Page<User>> getRealmUsers(@PathVariable String realm,
+    public ResponseEntity<Page<User>> getRealmUsers(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false) String q, Pageable pageRequest) throws NoSuchRealmException {
         return ResponseEntity.ok(userManager.searchUsers(realm, q, pageRequest));
     }
 
     @DeleteMapping("/console/dev/realms/{realm}/users/{subjectId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteRealmUser(@PathVariable String realm, @PathVariable String subjectId)
+    public ResponseEntity<Void> deleteRealmUser(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
             throws NoSuchRealmException, NoSuchUserException {
         User curUser = userManager.curUser(realm);
         if (curUser.getSubjectId().equals(subjectId)) {
@@ -183,7 +208,9 @@ public class DevController {
 
     @PutMapping("/console/dev/realms/{realm}/users/{subjectId:.*}/roles")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<User> updateRealmRoles(@PathVariable String realm, @PathVariable String subjectId,
+    public ResponseEntity<User> updateRealmRoles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
             @RequestBody RolesBean bean) throws NoSuchRealmException, NoSuchUserException {
         userManager.updateRealmAuthorities(realm, subjectId, bean.getRoles());
         return ResponseEntity.ok(userManager.getUser(realm, subjectId));
@@ -191,7 +218,7 @@ public class DevController {
 
     @PostMapping("/console/dev/realms/{realm}/users/invite")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<Void> inviteUser(@PathVariable String realm,
+    public ResponseEntity<Void> inviteUser(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody InvitationBean bean)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
         userManager.inviteUser(realm, bean.getUsername(), bean.getSubjectId(), bean.getRoles());
@@ -204,16 +231,16 @@ public class DevController {
 
     @GetMapping("/console/dev/realms/{realm:.*}/providers")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<Collection<ProviderRegistrationBean>> getRealmProviders(@PathVariable String realm)
+    public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviders(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
 
-        List<ProviderRegistrationBean> providers = providerManager
+        List<ConfigurableProvider> providers = providerManager
                 .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY)
                 .stream()
                 .map(cp -> {
-                    ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(cp);
-                    res.setRegistered(providerManager.isProviderRegistered(cp));
-                    return res;
+                    cp.setRegistered(providerManager.isProviderRegistered(cp));
+                    return cp;
                 }).collect(Collectors.toList());
 
         return ResponseEntity.ok(providers);
@@ -221,16 +248,16 @@ public class DevController {
 
     @GetMapping("/console/dev/realms/{realm:.*}/providertemplates")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<Collection<ProviderRegistrationBean>> getRealmProviderTemplates(@PathVariable String realm)
+    public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviderTemplates(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
 
-        List<ProviderRegistrationBean> providers = providerManager
+        List<ConfigurableProvider> providers = providerManager
                 .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY)
                 .stream()
                 .map(cp -> {
-                    ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(cp);
-                    res.setRegistered(providerManager.isProviderRegistered(cp));
-                    return res;
+                    cp.setRegistered(providerManager.isProviderRegistered(cp));
+                    return cp;
                 }).collect(Collectors.toList());
 
         return ResponseEntity.ok(providers);
@@ -238,17 +265,16 @@ public class DevController {
 
     @GetMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ProviderRegistrationBean> getRealmProvider(
+    public ResponseEntity<ConfigurableProvider> getRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
         ConfigurableProvider provider = providerManager.getProvider(realm, ConfigurableProvider.TYPE_IDENTITY,
                 providerId);
-        ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(provider);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
-        res.setRegistered(isRegistered);
+        provider.setRegistered(isRegistered);
 
         // if registered fetch active configuration
         if (isRegistered) {
@@ -256,15 +282,21 @@ public class DevController {
             Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
             // we replace config instead of merging, when active config can not be
             // modified anyway
-            res.setConfiguration(configMap);
+            provider.setConfiguration(configMap);
         }
 
-        return ResponseEntity.ok(res);
+        // fetch also configuration schema
+        JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
+        provider.setSchema(schema);
+
+        return ResponseEntity.ok(provider);
     }
 
     @DeleteMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteRealmProvider(@PathVariable String realm, @PathVariable String providerId)
+    public ResponseEntity<Void> deleteRealmProvider(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
         providerManager.deleteProvider(realm, providerId);
         return ResponseEntity.ok(null);
@@ -272,8 +304,9 @@ public class DevController {
 
     @PostMapping("/console/dev/realms/{realm}/providers")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ProviderRegistrationBean> createRealmProvider(@PathVariable String realm,
-            @Valid @RequestBody ProviderRegistrationBean registration)
+    public ResponseEntity<ConfigurableProvider> createRealmProvider(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @Valid @RequestBody ConfigurableProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
         // unpack and build model
         String authority = registration.getAuthority();
@@ -293,13 +326,19 @@ public class DevController {
 
         provider = providerManager.addProvider(realm, provider);
 
-        return ResponseEntity.ok(ProviderRegistrationBean.fromProvider(provider));
+        // fetch also configuration schema
+        JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
+        provider.setSchema(schema);
+
+        return ResponseEntity.ok(provider);
     }
 
     @PutMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ProviderRegistrationBean> updateRealmProvider(@PathVariable String realm,
-            @PathVariable String providerId, @Valid @RequestBody ProviderRegistrationBean registration)
+    public ResponseEntity<ConfigurableProvider> updateRealmProvider(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @Valid @RequestBody ConfigurableProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
@@ -308,33 +347,38 @@ public class DevController {
         String name = registration.getName();
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
-        boolean enabled = (registration.getEnabled() != null ? registration.getEnabled().booleanValue() : false);
         Map<String, Serializable> configuration = registration.getConfiguration();
+        Map<String, String> hookFunctions = registration.getHookFunctions();
 
         provider.setName(name);
         provider.setDescription(description);
         provider.setPersistence(persistence);
         provider.setConfiguration(configuration);
-        provider.setEnabled(enabled);
+        provider.setHookFunctions(hookFunctions);
 
         provider = providerManager.updateProvider(realm, providerId, provider);
-        ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(provider);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
-        res.setRegistered(isRegistered);
+        provider.setRegistered(isRegistered);
 
-        return ResponseEntity.ok(res);
+        // fetch also configuration schema
+        JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
+        provider.setSchema(schema);
+
+        return ResponseEntity.ok(provider);
     }
 
     @PutMapping("/console/dev/realms/{realm}/providers/{providerId}/state")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ProviderRegistrationBean> updateRealmProviderState(@PathVariable String realm,
-            @PathVariable String providerId, @RequestBody ProviderRegistrationBean registration)
+    public ResponseEntity<ConfigurableProvider> updateRealmProviderState(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @RequestBody ConfigurableProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
-        boolean enabled = (registration.getEnabled() != null ? registration.getEnabled().booleanValue() : true);
+        boolean enabled = registration.isEnabled();
 
         if (enabled) {
             provider = providerManager.registerProvider(realm, providerId);
@@ -342,13 +386,88 @@ public class DevController {
             provider = providerManager.unregisterProvider(realm, providerId);
         }
 
-        ProviderRegistrationBean res = ProviderRegistrationBean.fromProvider(provider);
-
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
-        res.setRegistered(isRegistered);
+        provider.setRegistered(isRegistered);
 
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok(provider);
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/providers/{providerId:.*}/export")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public void exportRealmProvider(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            HttpServletResponse res)
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
+        ConfigurableProvider provider = providerManager.getProvider(realm, ConfigurableProvider.TYPE_IDENTITY,
+                providerId);
+
+//      String s = yaml.dump(clientApp);
+        String s = yamlObjectMapper.writeValueAsString(provider);
+
+        // write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=" + provider.getName() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.print(s);
+        out.flush();
+        out.close();
+
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/providers")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ConfigurableProvider> importProvider(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("empty file");
+        }
+
+        if (file.getContentType() != null &&
+                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString())
+                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString())
+                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_XYAML.toString()))) {
+            throw new IllegalArgumentException("invalid file");
+        }
+        try {
+            ConfigurableProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
+                    ConfigurableProvider.class);
+
+            // unpack and build model
+            String id = registration.getProvider();
+            String authority = registration.getAuthority();
+            String type = registration.getType();
+            String name = registration.getName();
+            String description = registration.getDescription();
+            String persistence = registration.getPersistence();
+            Map<String, Serializable> configuration = registration.getConfiguration();
+            Map<String, String> hookFunctions = registration.getHookFunctions();
+
+            ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
+            provider.setName(name);
+            provider.setDescription(description);
+            provider.setType(type);
+            provider.setEnabled(false);
+            provider.setPersistence(persistence);
+            provider.setConfiguration(configuration);
+            provider.setHookFunctions(hookFunctions);
+
+            provider = providerManager.addProvider(realm, provider);
+
+            // fetch also configuration schema
+            JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
+            provider.setSchema(schema);
+
+            return ResponseEntity.ok(provider);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
     }
 
     /*
@@ -357,7 +476,8 @@ public class DevController {
     @GetMapping("/console/dev/realms/{realm:.*}/apps")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Collection<ClientApp>> getRealmClientApps(@PathVariable String realm)
+    public ResponseEntity<Collection<ClientApp>> getRealmClientApps(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
         return ResponseEntity.ok(clientManager.listClientApps(realm));
     }
@@ -365,7 +485,9 @@ public class DevController {
     @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<ClientApp> getRealmClientApp(@PathVariable String realm, @PathVariable String clientId)
+    public ResponseEntity<ClientApp> getRealmClientApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchClientException, SystemException {
 
         // get client app
@@ -381,7 +503,8 @@ public class DevController {
     @PostMapping("/console/dev/realms/{realm}/apps")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<ClientApp> createRealmClientApp(@PathVariable String realm,
+    public ResponseEntity<ClientApp> createRealmClientApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @Valid @RequestBody ClientApp app)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
         // enforce realm match
@@ -396,11 +519,47 @@ public class DevController {
         return ResponseEntity.ok(clientApp);
     }
 
+    @PutMapping("/console/dev/realms/{realm}/apps")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ClientApp> importRealmClientApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("empty file");
+        }
+
+        if (file.getContentType() != null &&
+                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString())
+                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString())
+                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_XYAML.toString()))) {
+            throw new IllegalArgumentException("invalid file");
+        }
+        try {
+            ClientApp app = yamlObjectMapper.readValue(file.getInputStream(), ClientApp.class);
+            app.setRealm(realm);
+
+            ClientApp clientApp = clientManager.registerClientApp(realm, app);
+
+            // fetch also configuration schema
+            JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+            clientApp.setSchema(schema);
+
+            return ResponseEntity.ok(clientApp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RegistrationException(e.getMessage());
+        }
+
+    }
+
     @PutMapping("/console/dev/realms/{realm}/apps/{clientId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<ClientApp> updateRealmClientApp(@PathVariable String realm,
-            @PathVariable String clientId, @Valid @RequestBody ClientApp app)
+    public ResponseEntity<ClientApp> updateRealmClientApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @Valid @RequestBody ClientApp app)
             throws NoSuchRealmException, NoSuchClientException, SystemException {
 
         ClientApp clientApp = clientManager.updateClientApp(realm, clientId, app);
@@ -415,7 +574,9 @@ public class DevController {
     @DeleteMapping("/console/dev/realms/{realm}/apps/{clientId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Void> deleteRealmClientApp(@PathVariable String realm, @PathVariable String clientId)
+    public ResponseEntity<Void> deleteRealmClientApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchClientException, SystemException {
         clientManager.deleteClientApp(realm, clientId);
         return ResponseEntity.ok(null);
@@ -445,8 +606,9 @@ public class DevController {
     @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/oauth2/{grantType}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<OAuth2AccessToken> testRealmClientAppOAuth2(@PathVariable String realm,
-            @PathVariable String clientId,
+    public ResponseEntity<OAuth2AccessToken> testRealmClientAppOAuth2(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @PathVariable String grantType)
             throws NoSuchRealmException, NoSuchClientException, SystemException {
 
@@ -466,8 +628,9 @@ public class DevController {
     @PostMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/claims")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<FunctionValidationBean> testRealmClientAppClaims(@PathVariable String realm,
-            @PathVariable String clientId,
+    public ResponseEntity<FunctionValidationBean> testRealmClientAppClaims(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             @Valid @RequestBody FunctionValidationBean function)
             throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException,
             InvalidDefinitionException {
@@ -492,10 +655,12 @@ public class DevController {
         return ResponseEntity.ok(function);
     }
 
-    @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/yaml")
+    @GetMapping("/console/dev/realms/{realm}/apps/{clientId:.*}/export")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public void getRealmClientApp(@PathVariable String realm, @PathVariable String clientId,
+    public void exportRealmClientApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
             HttpServletResponse res)
             throws NoSuchRealmException, NoSuchClientException, SystemException, IOException {
 //        Yaml yaml = YamlUtils.getInstance(true, ClientApp.class);
@@ -505,7 +670,7 @@ public class DevController {
 
 //        String s = yaml.dump(clientApp);
         String s = yamlObjectMapper.writeValueAsString(clientApp);
-        
+
         // write as file
         res.setContentType("text/yaml");
         res.setHeader("Content-Disposition", "attachment;filename=" + clientApp.getName() + ".yaml");
@@ -564,15 +729,17 @@ public class DevController {
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Service> getService(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable String serviceId) throws NoSuchRealmException, NoSuchServiceException {
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+            throws NoSuchRealmException, NoSuchServiceException {
         return ResponseEntity.ok(serviceManager.getService(realm, serviceId));
     }
 
     @GetMapping("/console/dev/realms/{realm}/services/{serviceId}/yaml")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public void exportService(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable String serviceId, HttpServletResponse res)
+    public void exportService(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId, HttpServletResponse res)
             throws NoSuchRealmException, NoSuchServiceException, IOException {
 //        Yaml yaml = YamlUtils.getInstance(true, Service.class);
 
@@ -594,7 +761,8 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Service> addService(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @RequestBody @Valid Service s)
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid Service s)
             throws NoSuchRealmException {
         return ResponseEntity.ok(serviceManager.addService(realm, s));
     }
@@ -776,30 +944,34 @@ public class DevController {
      */
     @GetMapping("/console/dev/rolespaces/users")
     public ResponseEntity<Page<SpaceRoles>> getRoleSpaceUsers(
-    		@RequestParam(required=false) String context,
-    		@RequestParam(required=false) String space,
-            @RequestParam(required = false) String q, Pageable pageRequest) throws NoSuchRealmException, NoSuchUserException {
-    	if (invalidOwner(context, space)) {
-    		return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    	}
-    	return ResponseEntity.ok(userManager.getContextRoles(context, space, q, pageRequest));
+            @RequestParam(required = false) String context,
+            @RequestParam(required = false) String space,
+            @RequestParam(required = false) String q, Pageable pageRequest)
+            throws NoSuchRealmException, NoSuchUserException {
+        if (invalidOwner(context, space)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(userManager.getContextRoles(context, space, q, pageRequest));
     }
+
     @PostMapping("/console/dev/rolespaces/users")
-    public ResponseEntity<SpaceRoles> addRoleSpaceRoles(@RequestBody SpaceRoles roles) throws NoSuchRealmException, NoSuchUserException {
-    	if (invalidOwner(roles.getContext(), roles.getSpace())) {
-    		return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    	}
-        return ResponseEntity.ok(userManager.saveContextRoles(roles.getSubject(), roles.getContext(), roles.getSpace(), roles.getRoles()));
+    public ResponseEntity<SpaceRoles> addRoleSpaceRoles(@RequestBody SpaceRoles roles)
+            throws NoSuchRealmException, NoSuchUserException {
+        if (invalidOwner(roles.getContext(), roles.getSpace())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(userManager.saveContextRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
+                roles.getRoles()));
     }
-    
+
     private boolean invalidOwner(String context, String space) throws NoSuchUserException, NoSuchRealmException {
-    	// current user should be owner of the space or of the parent
-    	Collection<SpaceRole> myRoles = userManager.getMyRoles();
-    	SpaceRole spaceOwner = new SpaceRole(context, space, Config.R_PROVIDER);
-    	SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
-    	return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));
+        // current user should be owner of the space or of the parent
+        Collection<SpaceRole> myRoles = userManager.getMyRoles();
+        SpaceRole spaceOwner = new SpaceRole(context, space, Config.R_PROVIDER);
+        SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
+        return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));
     }
-    
+
     /*
      * REST style exception handling
      */
@@ -835,7 +1007,8 @@ public class DevController {
 
     @ExceptionHandler({
             SystemException.class,
-            RuntimeException.class
+            RuntimeException.class,
+            IOException.class
     })
     public ResponseEntity<Object> handleSystemException(Exception ex) {
         HttpHeaders headers = new HttpHeaders();
@@ -856,9 +1029,9 @@ public class DevController {
             response.put("description", body);
         }
 
-        logger.error("error processing request: "+ex.getMessage());
+        logger.error("error processing request: " + ex.getMessage());
         ex.printStackTrace();
-        
+
         return response;
 
     }

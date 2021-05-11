@@ -95,7 +95,7 @@ public class ProviderService {
         p.setConfigurationMap(configurationMap);
         p.setHookFunctions(hookFunctions);
 
-        p = providerRepository.save(p);
+        p = providerRepository.saveAndFlush(p);
 
         return p;
     }
@@ -122,7 +122,7 @@ public class ProviderService {
         // we update both status and configuration at the same time
         p.setEnabled(enabled);
         p.setConfigurationMap(configurationMap);
-        p = providerRepository.save(p);
+        p = providerRepository.saveAndFlush(p);
 
         return p;
 
