@@ -17,6 +17,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
 public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
@@ -34,7 +35,7 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public Map<String, String> onBeforeUserApproval(Map<String, String> requestParameters, User user,
-            ClientDetails client) throws FlowExecutionException {
+            OAuth2ClientDetails client) throws FlowExecutionException {
         if (executionService == null || client.getHookFunctions() == null) {
             return null;
         }
@@ -66,7 +67,7 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public Boolean onAfterUserApproval(Collection<String> scopes, User user, ClientDetails client)
+    public Boolean onAfterUserApproval(Collection<String> scopes, User user, OAuth2ClientDetails client)
             throws FlowExecutionException {
         if (executionService == null || client.getHookFunctions() == null) {
             return null;
@@ -100,7 +101,7 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, ClientDetails client)
+    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, OAuth2ClientDetails client)
             throws FlowExecutionException {
         if (executionService == null || client.getHookFunctions() == null) {
             return null;
@@ -132,7 +133,8 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public void onAfterTokenGrant(OAuth2AccessToken accessToken, ClientDetails client) throws FlowExecutionException {
+    public void onAfterTokenGrant(OAuth2AccessToken accessToken, OAuth2ClientDetails client)
+            throws FlowExecutionException {
         // not supported
 
     }

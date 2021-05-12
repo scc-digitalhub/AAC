@@ -143,7 +143,7 @@ public class OAuth2Config {
 
     @Bean
     public AACOAuth2RequestFactory getOAuth2RequestFactory(
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+            OAuth2ClientDetailsService clientDetailsService,
             UserTranslatorService userTranslatorService,
             FlowExtensionsService flowExtensionsService,
             ScopeRegistry scopeRegistry,
@@ -251,7 +251,7 @@ public class OAuth2Config {
                 userTranslatorService);
         SpacesApprovalHandler spacesHandler = spacesApprovalHandler(clientDetailsService, userService);
         OAuthFlowExtensionsHandler flowExtensionsHandler = new OAuthFlowExtensionsHandler(flowExtensionsService,
-                clientDetailsService);
+                oauthClientDetailsService);
         flowExtensionsHandler.setUserTranslatorService(userTranslatorService);
 
         AACApprovalHandler handler = new AACApprovalHandler(userHandler);
@@ -336,12 +336,13 @@ public class OAuth2Config {
     @Bean
     public TokenGranter getTokenGranter(
             AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService,
+            OAuth2ClientDetailsService clientDetailsService,
             AuthorizationCodeServices authorizationCodeServices,
             OAuth2RequestFactory oAuth2RequestFactory,
             it.smartcommunitylab.aac.core.service.ClientDetailsService clientService,
             ScopeRegistry scopeRegistry,
-            UserTranslatorService userTranslatorService) {
+            UserTranslatorService userTranslatorService,
+            FlowExtensionsService flowExtensionsService) {
 
         // build our own list of granters
         List<AbstractTokenGranter> granters = new ArrayList<>();
@@ -352,20 +353,25 @@ public class OAuth2Config {
         if (oauth2PKCEAllowRefresh) {
             pkceTokenGranter.setAllowRefresh(true);
         }
+        pkceTokenGranter.setFlowExtensionsService(flowExtensionsService);
         granters.add(pkceTokenGranter);
 
         // auth code
-        granters.add(new AuthorizationCodeTokenGranter(tokenServices,
+        AuthorizationCodeTokenGranter authCodeTokenGranter = new AuthorizationCodeTokenGranter(tokenServices,
                 authorizationCodeServices, clientDetailsService,
-                oAuth2RequestFactory));
+                oAuth2RequestFactory);
+        authCodeTokenGranter.setFlowExtensionsService(flowExtensionsService);
+        granters.add(authCodeTokenGranter);
 
         // refresh
         granters.add(new RefreshTokenGranter(tokenServices, clientDetailsService,
                 oAuth2RequestFactory));
 
         // implicit
-        granters.add(new ImplicitTokenGranter(tokenServices,
-                clientDetailsService, oAuth2RequestFactory));
+        ImplicitTokenGranter implicitTokenGranter = new ImplicitTokenGranter(tokenServices,
+                clientDetailsService, oAuth2RequestFactory);
+        implicitTokenGranter.setFlowExtensionsService(flowExtensionsService);
+        granters.add(implicitTokenGranter);
 
         // client credentials
         ClientCredentialsTokenGranter clientCredentialsTokenGranter = new ClientCredentialsTokenGranter(
@@ -374,6 +380,7 @@ public class OAuth2Config {
         if (oauth2ClientCredentialsAllowRefresh) {
             clientCredentialsTokenGranter.setAllowRefresh(true);
         }
+        clientCredentialsTokenGranter.setFlowExtensionsService(flowExtensionsService);
         granters.add(clientCredentialsTokenGranter);
 
         // resource owner password
@@ -384,6 +391,7 @@ public class OAuth2Config {
             if (!oauth2ResourceOwnerPasswordAllowRefresh) {
                 passwordTokenGranter.setAllowRefresh(false);
             }
+            passwordTokenGranter.setFlowExtensionsService(flowExtensionsService);
             granters.add(passwordTokenGranter);
         }
 

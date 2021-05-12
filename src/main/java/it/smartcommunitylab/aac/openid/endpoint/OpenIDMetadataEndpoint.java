@@ -44,6 +44,8 @@ import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
+import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
 
 /**
 *
@@ -233,8 +235,8 @@ public class OpenIDMetadataEndpoint {
 
         Map<String, Object> m = new HashMap<>();
         m.put("issuer", issuer);
-        m.put("authorization_endpoint", baseUrl + "/eauth/authorize"); //TODO replace with const
-        m.put("token_endpoint", baseUrl + "/oauth/token"); //TODO replace with const
+        m.put("authorization_endpoint", baseUrl + AuthorizationEndpoint.AUTHORIZATION_URL); 
+        m.put("token_endpoint", baseUrl + TokenEndpoint.TOKEN_URL); 
         m.put("userinfo_endpoint", baseUrl + UserInfoEndpoint.USERINFO_URL);
         m.put("jwks_uri", baseUrl + JWKSetPublishingEndpoint.JWKS_URL);
 //	          m.put("registration_endpoint", baseUrl + DynamicClientRegistrationEndpoint.URL); //not implemented

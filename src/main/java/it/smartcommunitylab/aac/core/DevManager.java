@@ -171,8 +171,8 @@ public class DevManager {
         e.setExecutionService(executionService);
         e.setUserTranslatorService(userTranslatorService);
 
-        // map user
-        User user = userTranslatorService.translate(userDetails, realm);
+        // map user and load attributes
+        User user = userService.getUser(userDetails, realm);
         // narrow attributes
         if (!approvedScopes.contains(Config.SCOPE_FULL_PROFILE)) {
             user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));

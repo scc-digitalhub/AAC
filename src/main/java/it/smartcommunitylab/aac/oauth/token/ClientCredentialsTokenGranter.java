@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
 
@@ -20,12 +21,12 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
     private boolean allowRefresh = false;
 
     public ClientCredentialsTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
         this(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
     protected ClientCredentialsTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
     }
 

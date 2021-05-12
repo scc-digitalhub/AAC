@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
 @Service
 public class FlowExtensionsService implements InitializingBean {
@@ -16,14 +17,15 @@ public class FlowExtensionsService implements InitializingBean {
     private ScriptOAuthFlowExtensions scriptFlowExtensions;
     private WebhookOAuthFlowExtensions webhookFlowExtensions;
 
-    public OAuthFlowExtensions getOAuthFlowExtensions(ClientDetails clientDetails) {
+    public OAuthFlowExtensions getOAuthFlowExtensions(OAuth2ClientDetails clientDetails) {
 
         // TODO write delegateFlowExtensions to support multiple extensions
-        if (clientDetails.getHookFunctions() != null && scriptFlowExtensions != null) {
+        if (scriptFlowExtensions != null && clientDetails.getHookFunctions() != null
+                && !clientDetails.getHookFunctions().isEmpty()) {
             return scriptFlowExtensions;
         }
 
-        if (clientDetails.getHookWebUrls() != null) {
+        if (clientDetails.getHookWebUrls() != null && !clientDetails.getHookWebUrls().isEmpty()) {
             return webhookFlowExtensions;
         }
 

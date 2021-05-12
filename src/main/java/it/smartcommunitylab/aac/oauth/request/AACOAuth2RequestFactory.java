@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserExc
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
@@ -35,6 +36,8 @@ import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
 import it.smartcommunitylab.aac.oauth.RealmTokenRequest;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
@@ -44,14 +47,14 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 
     private static final String NONCE = "nonce";
 
-    private final ClientDetailsService clientDetailsService;
+    private final OAuth2ClientDetailsService clientDetailsService;
     private FlowExtensionsService flowExtensionsService;
     private UserTranslatorService userTranslatorService;
     private ScopeRegistry scopeRegistry;
 
     private AuthenticationHelper authenticationHelper = new DefaultSecurityContextAuthenticationHelper();
 
-    public AACOAuth2RequestFactory(ClientDetailsService clientDetailsService) {
+    public AACOAuth2RequestFactory(OAuth2ClientDetailsService clientDetailsService) {
         Assert.notNull(clientDetailsService, "client details service is mandatory");
         this.clientDetailsService = clientDetailsService;
     }
@@ -91,7 +94,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         String realm = authorizationParameters.get("realm");
 
         try {
-            it.smartcommunitylab.aac.core.ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
+            OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
 
             // also validate that user has an identity in the asked realm
             UserAuthenticationToken userAuth = authenticationHelper.getUserAuthentication();
@@ -129,7 +132,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
             Set<String> scopes = extractScopes(
                     OAuth2Utils.parseParameterList(
                             decodeParameters(authorizationParameters.get(OAuth2Utils.SCOPE))),
-                    clientDetails.getScopes(), false);
+                    clientDetails.getScope(), false);
 
             // we collect serviceIds as resourceIds to mark these as audience
             Set<String> resourceIds = new HashSet<>();
@@ -204,7 +207,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
             }
 
             return request;
-        } catch (NoSuchClientException e) {
+        } catch (ClientRegistrationException e) {
             throw new InvalidClientException("invalid client");
         }
 
@@ -233,7 +236,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         String realm = requestParameters.get("realm");
 
         try {
-            it.smartcommunitylab.aac.core.ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
+            OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
 
             // check extensions and integrate modifications
             if (flowExtensionsService != null) {
@@ -260,7 +263,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
                     Config.GRANT_TYPE_REFRESH_TOKEN.equals(grantType)) {
                 scopes = extractScopes(OAuth2Utils.parseParameterList(
                         decodeParameters(requestParameters.get(OAuth2Utils.SCOPE))),
-                        clientDetails.getScopes(), isClientRequest(grantType));
+                        clientDetails.getScope(), isClientRequest(grantType));
             }
 
             // we collect serviceIds as resourceIds to mark these as audience
@@ -299,7 +302,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
             }
 
             return request;
-        } catch (NoSuchClientException e) {
+        } catch (ClientRegistrationException e) {
             throw new InvalidClientException("invalid client");
         }
     }

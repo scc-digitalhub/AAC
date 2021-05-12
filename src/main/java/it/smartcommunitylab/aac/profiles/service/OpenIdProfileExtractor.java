@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.profiles.service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -155,7 +156,7 @@ public class OpenIdProfileExtractor extends UserProfileExtractor {
                 OpenIdProfileAttributesSet.IDENTIFIER,
                 "profile", "profile.fullprofile.me"));
         if (!StringUtils.hasText(zoneInfo)) {
-            zoneInfo = TimeZone.getDefault().getDisplayName();
+            zoneInfo = ZonedDateTime.now().getZone().getId();
         }
         profile.setZoneinfo(zoneInfo);
 
@@ -163,7 +164,7 @@ public class OpenIdProfileExtractor extends UserProfileExtractor {
                 OpenIdProfileAttributesSet.IDENTIFIER,
                 "profile", "profile.fullprofile.me"));
         if (!StringUtils.hasText(locale)) {
-            locale = Locale.getDefault().getDisplayName();
+            locale = Locale.getDefault().toLanguageTag();
         }
         profile.setLocale(locale);
 

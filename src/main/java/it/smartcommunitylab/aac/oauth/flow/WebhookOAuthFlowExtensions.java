@@ -19,8 +19,10 @@ package it.smartcommunitylab.aac.oauth.flow;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +47,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
 /**
  * Implementation of the {@link OAuthFlowExtensions} with the Web hook
@@ -92,7 +95,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public Map<String, String> onBeforeUserApproval(Map<String, String> requestParameters,
-            User user, ClientDetails client) throws FlowExecutionException {
+            User user, OAuth2ClientDetails client) throws FlowExecutionException {
 
         if (client.getHookWebUrls() == null) {
             return null;
@@ -115,7 +118,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             HttpHeaders headers = new HttpHeaders();
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
             // TODO add signature header
-//                headers.set("Authorization", "Bearer " + token);
+            headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
             HttpEntity<Map<String, Serializable>> entity = new HttpEntity<>(map, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
@@ -140,12 +143,12 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
     @Override
     public Boolean onAfterUserApproval(Collection<String> scopes, User user,
-            ClientDetails client) throws FlowExecutionException {
+            OAuth2ClientDetails client) throws FlowExecutionException {
         if (client.getHookWebUrls() == null) {
             return null;
         }
 
-        String webhook = client.getHookWebUrls().get(OAuthFlowExtensions.BEFORE_USER_APPROVAL);
+        String webhook = client.getHookWebUrls().get(OAuthFlowExtensions.AFTER_USER_APPROVAL);
 
         if (!StringUtils.hasText(webhook)) {
             return null;
@@ -162,7 +165,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             HttpHeaders headers = new HttpHeaders();
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
             // TODO add signature header
-//                headers.set("Authorization", "Bearer " + token);
+            headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
             HttpEntity<Map<String, Serializable>> entity = new HttpEntity<>(map, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
@@ -196,7 +199,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, ClientDetails client)
+    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, OAuth2ClientDetails client)
             throws FlowExecutionException {
         if (client.getHookWebUrls() == null) {
             return null;
@@ -218,7 +221,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             HttpHeaders headers = new HttpHeaders();
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
             // TODO add signature header
-//                headers.set("Authorization", "Bearer " + token);
+            headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
             HttpEntity<Map<String, Serializable>> entity = new HttpEntity<>(map, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
@@ -241,7 +244,8 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public void onAfterTokenGrant(OAuth2AccessToken accessToken, ClientDetails client) throws FlowExecutionException {
+    public void onAfterTokenGrant(OAuth2AccessToken accessToken, OAuth2ClientDetails client)
+            throws FlowExecutionException {
         if (client.getHookWebUrls() != null) {
 
             String webhook = client.getHookWebUrls().get(OAuthFlowExtensions.AFTER_TOKEN_GRANT);
@@ -253,7 +257,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
                     HttpHeaders headers = new HttpHeaders();
                     headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
                     // TODO add signature header
-//                headers.set("Authorization", "Bearer " + token);
+                    headers.set("Authorization", buildBasicAuth(client.getClientId(), client.getClientSecret()));
                     HttpEntity<OAuth2AccessToken> entity = new HttpEntity<>(accessToken, headers);
 
                     ResponseEntity<String> response = restTemplate.exchange(url.toString(), HttpMethod.POST, entity,
@@ -277,6 +281,14 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
     public class ApprovalResult {
         public Boolean approved;
+    }
+
+    private String buildBasicAuth(String username, String password) {
+        String auth = username + ":" + password;
+        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(Charset.forName("US-ASCII")));
+        String authHeader = "Basic " + new String(encodedAuth);
+
+        return authHeader;
     }
 
 }

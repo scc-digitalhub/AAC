@@ -2,12 +2,21 @@ package it.smartcommunitylab.aac.services;
 
 import java.util.Set;
 
+import javax.validation.Valid;
+
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
 
+@Valid
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceScope extends Scope {
 
     private String serviceId;

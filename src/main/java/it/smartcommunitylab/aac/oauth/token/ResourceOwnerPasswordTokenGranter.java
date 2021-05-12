@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
 
@@ -38,14 +39,14 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
     private final AuthenticationManager authenticationManager;
 
     public ResourceOwnerPasswordTokenGranter(AuthenticationManager authenticationManager,
-            AuthorizationServerTokenServices tokenServices, ClientDetailsService clientDetailsService,
+            AuthorizationServerTokenServices tokenServices, OAuth2ClientDetailsService clientDetailsService,
             OAuth2RequestFactory requestFactory) {
         this(authenticationManager, tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
     protected ResourceOwnerPasswordTokenGranter(AuthenticationManager authenticationManager,
             AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
         this.authenticationManager = authenticationManager;
     }

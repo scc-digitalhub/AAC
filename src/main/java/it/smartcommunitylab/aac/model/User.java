@@ -11,6 +11,11 @@ import javax.validation.constraints.NotBlank;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -25,6 +30,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * Do note that in cross realm managers and builders should properly handle private attributes and 
  * disclose only appropriate identities/properties. 
  */
+@JsonInclude(Include.NON_EMPTY)
 public class User {
 
     // base attributes
@@ -58,6 +64,7 @@ public class User {
     // realm roles (ie authorities in AAC)
     // these can be managed inside realms
     // do note that the set should describe only the roles for the current context
+    @JsonIgnore
     private Set<GrantedAuthority> authorities;
 
     // roles are OUTSIDE aac (ie not grantedAuthorities)
@@ -66,6 +73,7 @@ public class User {
     // otherwise we should implement an (external) expiring + refreshing cache with
     // locking.
     // this field is always discosed in cross-realm scenarios
+    @JsonIgnore
     private Set<SpaceRole> roles;
 
     // additional attributes as UserAttributes collection
@@ -223,5 +231,19 @@ public class User {
     public void removeRole(SpaceRole r) {
         this.roles.remove(r);
     }
+    
+    /*
+     * Serialization helpers
+     */
 
+    @JsonProperty("authorities")
+    public Set<String> getAuthoritiesSet() {
+        return authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet());
+    }
+    
+    @JsonProperty("roles")
+    public Set<String> getRolesSet() {
+        return roles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
+    }
+    
 }

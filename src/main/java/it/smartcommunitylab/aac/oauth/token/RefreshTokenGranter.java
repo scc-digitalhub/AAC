@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+
 public class RefreshTokenGranter extends AbstractTokenGranter {
     
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -17,12 +19,12 @@ public class RefreshTokenGranter extends AbstractTokenGranter {
     private static final String GRANT_TYPE = "refresh_token";
 
     public RefreshTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
         this(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
     protected RefreshTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService,
+            OAuth2ClientDetailsService clientDetailsService,
             OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
     }

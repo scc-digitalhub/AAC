@@ -44,6 +44,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 /**
  * @author raman
@@ -60,14 +61,14 @@ public class PKCEAwareTokenGranter extends AbstractTokenGranter {
     private boolean allowRefresh = false;
 
     public PKCEAwareTokenGranter(AuthorizationServerTokenServices tokenServices,
-            AuthorizationCodeServices authorizationCodeServices, ClientDetailsService clientDetailsService,
+            AuthorizationCodeServices authorizationCodeServices, OAuth2ClientDetailsService clientDetailsService,
             OAuth2RequestFactory requestFactory) {
         this(tokenServices, authorizationCodeServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
     protected PKCEAwareTokenGranter(AuthorizationServerTokenServices tokenServices,
             AuthorizationCodeServices authorizationCodeServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
         this.authorizationCodeServices = authorizationCodeServices;
     }

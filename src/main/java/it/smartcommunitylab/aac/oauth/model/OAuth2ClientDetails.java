@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth.model;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -28,6 +29,11 @@ public class OAuth2ClientDetails extends BaseClientDetails {
     private String jwtEncAlgorithm;
 
     private String jwtEncMethod;
+
+    // hooks
+    private Map<String, String> hookFunctions;
+    private Map<String, String> hookWebUrls;
+    private String hookUniqueSpaces;
 
     public String getRealm() {
         return realm;
@@ -107,6 +113,30 @@ public class OAuth2ClientDetails extends BaseClientDetails {
 
     public void setFirstParty(boolean firstParty) {
         this.firstParty = firstParty;
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
+    }
+
+    public Map<String, String> getHookWebUrls() {
+        return hookWebUrls;
+    }
+
+    public void setHookWebUrls(Map<String, String> hookWebUrls) {
+        this.hookWebUrls = hookWebUrls;
+    }
+
+    public String getHookUniqueSpaces() {
+        return hookUniqueSpaces;
+    }
+
+    public void setHookUniqueSpaces(String hookUniqueSpaces) {
+        this.hookUniqueSpaces = hookUniqueSpaces;
     }
 
 }

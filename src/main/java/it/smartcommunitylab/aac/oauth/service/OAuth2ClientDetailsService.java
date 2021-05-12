@@ -87,6 +87,11 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
             clientDetails.setAdditionalInformation(oauth.getAdditionalInformation());
         }
 
+        // map hooks
+        clientDetails.setHookFunctions(client.getHookFunctions());
+        clientDetails.setHookWebUrls(client.getHookWebUrls());
+        clientDetails.setHookUniqueSpaces(client.getHookUniqueSpaces());
+
         // always grant role_client
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));

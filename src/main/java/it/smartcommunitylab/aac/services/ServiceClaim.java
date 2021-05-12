@@ -9,6 +9,9 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.claims.model.AbstractClaim;
@@ -16,6 +19,8 @@ import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
 
 @Valid
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceClaim extends AbstractClaim {
 
     private static ObjectMapper mapper = new ObjectMapper();

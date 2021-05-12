@@ -36,6 +36,8 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 @SessionAttributes({ AuthorizationEndpoint.AUTHORIZATION_REQUEST_ATTR_NAME,
         AuthorizationEndpoint.ORIGINAL_AUTHORIZATION_REQUEST_ATTR_NAME })
 public class AuthorizationEndpoint {
+    public static final String AUTHORIZATION_URL = "/oauth/authorize";
+
     static final String AUTHORIZATION_REQUEST_ATTR_NAME = "authorizationRequest";
 
     static final String ORIGINAL_AUTHORIZATION_REQUEST_ATTR_NAME = "org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint.ORIGINAL_AUTHORIZATION_REQUEST";
@@ -47,8 +49,8 @@ public class AuthorizationEndpoint {
     private org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint authEndpoint;
 
     @RequestMapping(value = {
-            "/oauth/authorize",
-            "/-/{realm}/oauth/authorize" })
+            AUTHORIZATION_URL,
+            "/-/{realm}" + AUTHORIZATION_URL })
     public ModelAndView authorize(Map<String, Object> model, @RequestParam Map<String, String> parameters,
             @PathVariable("realm") Optional<String> realmKey,
             SessionStatus sessionStatus, Principal principal) {
@@ -72,8 +74,8 @@ public class AuthorizationEndpoint {
     }
 
     @RequestMapping(value = {
-            "/oauth/authorize",
-            "/-/{realm}/oauth/authorize" }, method = RequestMethod.POST, params = OAuth2Utils.USER_OAUTH_APPROVAL)
+            AUTHORIZATION_URL,
+            "/-/{realm}" + AUTHORIZATION_URL }, method = RequestMethod.POST, params = OAuth2Utils.USER_OAUTH_APPROVAL)
     public View approveOrDeny(@RequestParam Map<String, String> approvalParameters, Map<String, ?> model,
             @PathVariable("realm") Optional<String> realmKey,
             SessionStatus sessionStatus, Principal principal) {

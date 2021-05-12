@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.exceptions.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.util.Assert;
 
@@ -18,15 +19,18 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final FlowExtensionsService flowExtensionsService;
-    private final ClientDetailsService clientService;
+    private final OAuth2ClientDetailsService clientService;
     private UserTranslatorService userTranslatorService;
 
-    public OAuthFlowExtensionsHandler(FlowExtensionsService flowExtensionsService, ClientDetailsService clientService) {
+    public OAuthFlowExtensionsHandler(FlowExtensionsService flowExtensionsService,
+            OAuth2ClientDetailsService clientService) {
         Assert.notNull(flowExtensionsService, "flow extensions service is required");
         Assert.notNull(clientService, "client details service is required");
         this.flowExtensionsService = flowExtensionsService;
@@ -47,7 +51,7 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
             }
 
             Set<String> scopes = authorizationRequest.getScope();
-            ClientDetails clientDetails = clientService.loadClient(authorizationRequest.getClientId());
+            OAuth2ClientDetails clientDetails = clientService.loadClientByClientId(authorizationRequest.getClientId());
             String realm = clientDetails.getRealm();
 
             UserDetails userDetails = null;
@@ -78,7 +82,7 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
 
             return approved.booleanValue();
 
-        } catch (NoSuchClientException e) {
+        } catch (ClientRegistrationException e) {
             // block the request
             throw new OAuth2AccessDeniedException();
         }

@@ -3,6 +3,8 @@ package it.smartcommunitylab.aac.profiles.model;
 import java.io.Serializable;
 import java.util.Date;
 
+import org.springframework.util.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -101,9 +103,10 @@ public class OpenIdProfile extends AbstractProfile {
 
     public OpenIdProfile toEmailProfile() {
         OpenIdProfile profile = new OpenIdProfile();
-        profile.email = this.email;
-        profile.emailVerified = this.emailVerified;
-
+        if (StringUtils.hasText(this.email)) {
+            profile.email = this.email;
+            profile.emailVerified = this.emailVerified;
+        }
         return profile;
     }
 
@@ -116,9 +119,10 @@ public class OpenIdProfile extends AbstractProfile {
 
     public OpenIdProfile toPhoneProfile() {
         OpenIdProfile profile = new OpenIdProfile();
-        profile.phone = this.phone;
-        profile.phoneVerified = this.phoneVerified;
-
+        if (StringUtils.hasText(this.phone)) {
+            profile.phone = this.phone;
+            profile.phoneVerified = this.phoneVerified;
+        }
         return profile;
     }
 

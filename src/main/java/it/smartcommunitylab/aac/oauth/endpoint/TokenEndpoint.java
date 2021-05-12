@@ -27,12 +27,14 @@ import it.smartcommunitylab.aac.SystemKeys;
 @Controller
 public class TokenEndpoint {
 
+    public static final String TOKEN_URL = "/oauth/token";
+
     @Autowired
     private org.springframework.security.oauth2.provider.endpoint.TokenEndpoint tokenEndpoint;
 
     @RequestMapping(value = {
-            "/oauth/token",
-            "/-/{realm}/oauth/token" }, method = RequestMethod.GET)
+            TOKEN_URL,
+            "/-/{realm}" + TOKEN_URL }, method = RequestMethod.GET)
     public ResponseEntity<OAuth2AccessToken> getAccessToken(
             @RequestParam Map<String, String> parameters,
             @PathVariable("realm") Optional<String> realmKey,
@@ -53,8 +55,8 @@ public class TokenEndpoint {
     }
 
     @RequestMapping(value = {
-            "/oauth/token",
-            "/-/{realm}/oauth/token" }, method = RequestMethod.POST)
+            TOKEN_URL,
+            "/-/{realm}" + TOKEN_URL }, method = RequestMethod.POST)
     public ResponseEntity<OAuth2AccessToken> postAccessToken(
             @RequestParam Map<String, String> parameters,
             @PathVariable("realm") Optional<String> realmKey,

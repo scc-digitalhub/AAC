@@ -1,41 +1,51 @@
 <div class="pt-3">
 
-    <fieldset>
-        <legend class="mb-4">Custom claim mapping</legend>
-        <div class="row">
-	        <div class="form-group col">
-	          <div class="row mb-2">
-	            <div class="form-check form-check-inline col">
-	              <input id="appClaimMappingnabled" class="form-check-input" type="checkbox" ng-model="claimMapping.enabled" ng-change="toggleClientAppClaimMapping()">
-	              <label for="appClaimMappingnabled">Enable</label>
-	            </div>   
-	            <div class="col text-right">
-                <button class="btn btn-secondary btn-sm text-right" ng-click="testClientAppClaimMapping()" ng-disabled="!claimMapping.enabled">Test</button>
-	            </div>
-	          </div> 
-            <div ui-ace="aceOption" ng-model="claimMapping.code"></div>
-	        </div>
-	        <div class="col">
-              <div ng-if="claimMapping.result" class="mt-5 mb-5 border p-2">
-                 <figure class="highlight mb-0">
-                    <code class="language-json" data-lang="json">
+	<fieldset>
+		<legend class="mb-4">Custom claim mapping</legend>
+		<div class="row">
+			<div class="form-group col">
+				<div class="row mb-2">
+					<div class="form-check form-check-inline col">
+						<input id="appClaimMappingnabled" class="form-check-input" type="checkbox"
+							ng-model="claimMapping.enabled" ng-change="toggleClientAppClaimMapping()">
+						<label for="appClaimMappingnabled">Enable</label>
+					</div>
+					<div class="col text-right">
+						<button class="btn btn-secondary btn-sm text-right" ng-click="testClientAppClaimMapping()"
+							ng-disabled="!claimMapping.enabled">Test</button>
+					</div>
+				</div>
+				<div ui-ace="aceOption" ng-model="claimMapping.code"></div>
+			</div>
+			<div class="col">
+				<div ng-if="claimMapping.result" class="mt-5 mb-5 border p-2">
+					<figure class="highlight mb-0">
+						<code class="language-json" data-lang="json">
                     <pre class="mb-0">{{claimMapping.result | json:4}}</pre>
                     </code>
-                 </figure>
-                  
-              </div>
-              <div class="text-danger" ng-repeat="err in claimMapping.errors">{{err}}</div>
-	        </div>
-        </div>
-    </fieldset>
+					</figure>
+
+				</div>
+				<div class="text-danger" ng-repeat="err in claimMapping.errors">{{err}}</div>
+			</div>
+		</div>
+	</fieldset>
 
 
 
 	<fieldset>
 		<legend class="mb-4">Hooks</legend>
 		<div class="form-group col">
-			<input type="text" name="hookUniqueSpaces" class="form-control" id="hookUniqueSpaces" ng-model="app.hookUniqueSpaces"> 
-			<label for="hookUniqueSpaces" class="{{app.hookUniqueSpaces != '' ? 'active' : ''}}">Unique spaces prefix</label>
+			<input type="text" name="hookUniqueSpaces" class="form-control" id="hookUniqueSpaces"
+				ng-model="app.hookUniqueSpaces">
+			<label for="hookUniqueSpaces" class="{{app.hookUniqueSpaces != '' ? 'active' : ''}}">Unique spaces
+				prefix</label>
+		</div>
+		<div class="form-group col" ng-if="app.type == 'oauth2'">
+			<input type="url" name="webHookAfterTokenGrant" class="form-control" id="webHookAfterTokenGrant"
+				ng-model="webHooks['afterTokenGrant']">
+			<label for="webHookAfterTokenGrant" class="{{webHooks['afterTokenGrant'] != '' ? 'active' : ''}}">After token
+				grant webhook</label>{{webHooks}}
 		</div>
 	</fieldset>
 

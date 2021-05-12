@@ -272,12 +272,27 @@ angular.module('aac.controllers.realmapps', [])
                 result: null,
                 error: null
             };
-            if (data.hookFunctions.hasOwnProperty("claimMapping")) {
+            if (data.hookFunctions != null && data.hookFunctions.hasOwnProperty("claimMapping")) {
                 claimMapping.enabled = true;
                 claimMapping.code = data.hookFunctions["claimMapping"];
             }
 
             $scope.claimMapping = claimMapping;
+
+
+            //flow extensions hook
+            var webHooks = {
+                "afterTokenGrant": null
+            }
+            if (data.hookWebUrls != null) {
+                for (h in data.hookWebUrls) {
+                    console.log(h);
+                    if (webHooks.hasOwnProperty(h)) {
+                        webHooks[h] = data.hookWebUrls[h];
+                    }
+                }
+            }
+            $scope.webHooks = webHooks;
 
             return;
         }
@@ -316,6 +331,7 @@ angular.module('aac.controllers.realmapps', [])
                     });
                 }
                 $scope.oauth2RedirectUris = redirectUris;
+
             }
 
 
@@ -378,12 +394,25 @@ angular.module('aac.controllers.realmapps', [])
                 }
             }).filter(function (idp) { return !!idp });
 
-            var hookFunctions = clientApp.hookFunctions;
-            if ($scope.claimMapping.code != "") {
+            //flow extensions hooks
+            var hookFunctions = clientApp.hookFunctions != null ? clientApp.hookFunctions : {};
+            if ($scope.claimMapping.enable == true && $scope.claimMapping.code != null && $scope.claimMapping.code != "") {
                 hookFunctions["claimMapping"] = $scope.claimMapping.code;
             } else {
                 delete hookFunctions["claimMapping"];
             }
+            console.log($scope.webHooks)
+
+            var hookWebUrls = clientApp.hookWebUrls != null ? clientApp.hookWebUrls : {};
+            for (h in $scope.webHooks) {
+                if ($scope.webHooks[h] != null && $scope.webHooks[h] != '') {
+                    hookWebUrls[h] = $scope.webHooks[h];
+                } else {
+                    delete hookWebUrls[h];
+                }
+            }
+
+            console.log(hookWebUrls)
 
             var data = {
                 realm: clientApp.realm,
@@ -396,6 +425,7 @@ angular.module('aac.controllers.realmapps', [])
                 providers: providers,
                 resourceIds: clientApp.resourceIds,
                 hookFunctions: hookFunctions,
+                hookWebUrls: hookWebUrls,
                 hookUniqueSpaces: clientApp.hookUniqueSpaces
             };
 

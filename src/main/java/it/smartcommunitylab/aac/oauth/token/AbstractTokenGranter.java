@@ -14,20 +14,27 @@ import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
+import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+
 public abstract class AbstractTokenGranter implements TokenGranter {
 
     protected final Log logger = LogFactory.getLog(getClass());
 
     private final AuthorizationServerTokenServices tokenServices;
 
-    private final ClientDetailsService clientDetailsService;
+    private final OAuth2ClientDetailsService clientDetailsService;
 
     private final OAuth2RequestFactory requestFactory;
+
+    private FlowExtensionsService flowExtensionsService;
 
     private final String grantType;
 
     protected AbstractTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
         this.clientDetailsService = clientDetailsService;
         this.grantType = grantType;
         this.tokenServices = tokenServices;
@@ -41,14 +48,25 @@ public abstract class AbstractTokenGranter implements TokenGranter {
         }
 
         String clientId = tokenRequest.getClientId();
-        ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
+        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
         validateGrantType(grantType, client);
 //        tokenRequest.setScope(
 //                validateScopes(getOAuth2Authentication(client, tokenRequest), client, tokenRequest.getScope()));
 
         logger.debug("Getting access token for: " + clientId);
 
-        return getAccessToken(client, tokenRequest);
+        OAuth2AccessToken accessToken = getAccessToken(client, tokenRequest);
+
+        // check extensions
+        if (flowExtensionsService != null) {
+            OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(client);
+            if (ext != null) {
+                // call extension with token
+                ext.onAfterTokenGrant(accessToken, client);
+            }
+
+        }
+        return accessToken;
 
     }
 
@@ -75,6 +93,14 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
     protected OAuth2RequestFactory getRequestFactory() {
         return requestFactory;
+    }
+
+    public FlowExtensionsService getFlowExtensionsService() {
+        return flowExtensionsService;
+    }
+
+    public void setFlowExtensionsService(FlowExtensionsService flowExtensionsService) {
+        this.flowExtensionsService = flowExtensionsService;
     }
 
 }

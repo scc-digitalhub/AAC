@@ -20,8 +20,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
 /**
  * OAuth 2.0 Flow extensions manager. Handles specific Flow phases, in
@@ -46,7 +46,7 @@ public interface OAuthFlowExtensions {
      * The returned parameters can be modified to alter the process
      */
     public Map<String, String> onBeforeUserApproval(Map<String, String> requestParameters, User user,
-            ClientDetails client)
+            OAuth2ClientDetails client)
             throws FlowExecutionException;
 
     /**
@@ -57,7 +57,7 @@ public interface OAuthFlowExtensions {
      * false, any other modifications will be discarded
      */
     public Boolean onAfterUserApproval(Collection<String> scopes, User user,
-            ClientDetails client)
+            OAuth2ClientDetails client)
             throws FlowExecutionException;
 
     /**
@@ -65,14 +65,14 @@ public interface OAuthFlowExtensions {
      * 
      * The returned parameters can be modified to alter the process
      */
-    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, ClientDetails client)
+    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, OAuth2ClientDetails client)
             throws FlowExecutionException;
 
     /*
      * Event triggered immediately after the token generation
      */
 
-    public void onAfterTokenGrant(OAuth2AccessToken accessToken, ClientDetails client)
+    public void onAfterTokenGrant(OAuth2AccessToken accessToken, OAuth2ClientDetails client)
             throws FlowExecutionException;
 
 }
