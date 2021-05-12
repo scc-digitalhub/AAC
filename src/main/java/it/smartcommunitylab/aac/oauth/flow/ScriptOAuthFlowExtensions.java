@@ -16,6 +16,7 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
@@ -46,10 +47,14 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
             return null;
         }
 
+        // convert to profile beans
+        // TODO client
+        UserProfile profile = new UserProfile(user);
+
         // convert to map
         Map<String, Serializable> map = new HashMap<>();
         map.put("request", mapper.convertValue(requestParameters, stringMapTypeRef));
-        map.put("user", mapper.convertValue(user, serMapTypeRef));
+        map.put("user", mapper.convertValue(profile, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script
@@ -79,10 +84,14 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
             return null;
         }
 
+        // convert to profile beans
+        // TODO client
+        UserProfile profile = new UserProfile(user);
+
         // convert to map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
-        map.put("user", mapper.convertValue(user, serMapTypeRef));
+        map.put("user", mapper.convertValue(profile, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script

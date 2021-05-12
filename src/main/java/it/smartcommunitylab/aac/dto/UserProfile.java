@@ -16,42 +16,130 @@
 
 package it.smartcommunitylab.aac.dto;
 
-import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.validation.constraints.NotBlank;
+
+import org.springframework.security.core.GrantedAuthority;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.User;
 
 /**
+ * Describe a user in a reduced form, used for processing and profile
+ * generation.
+ * 
  * @author raman
  *
  */
-public class UserProfile extends BasicProfile {
 
-	private String password;
-	private String lang;
+@JsonInclude(Include.NON_EMPTY)
+public class UserProfile {
 
-	/**
-	 * @return the password
-	 */
-	public String getPassword() {
-		return password;
-	}
+    // base attributes
+    // always set
+    @NotBlank
+    private final String subjectId;
 
-	/**
-	 * @param password the password to set
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    // describes the realm responsible for this user
+    private final String source;
 
-	/**
-	 * @return the lang
-	 */
-	public String getLang() {
-		return lang;
-	}
+    // realm describes the current user for the given realm
+    private String realm;
 
-	/**
-	 * @param lang the lang to set
-	 */
-	public void setLang(String lang) {
-		this.lang = lang;
-	}
+    // basic profile
+    private String username;
+
+    // roles are translated as authorities
+    private Set<String> authorities;
+
+    private Set<String> roles;
+
+    // attributes are exposed as sets to keep identifiers private
+    private Set<AttributeSet> attributes;
+
+    public UserProfile() {
+        this.subjectId = null;
+        this.source = null;
+    }
+
+    public UserProfile(User user) {
+        this.subjectId = user.getSubjectId();
+        this.source = user.getSource();
+        this.realm = user.getRealm();
+        this.username = user.getUsername();
+
+        setAuthorities(user.getAuthorities());
+        setRoles(user.getRoles());
+        setAttributes(user.getAttributes());
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Set<String> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Set<String> authorities) {
+        this.authorities = authorities;
+    }
+
+    public void setAuthorities(Collection<GrantedAuthority> authorities) {
+        this.authorities = authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet());
+    }
+
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
+    }
+
+    public void setRoles(Collection<SpaceRole> roles) {
+        this.roles = roles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
+    }
+
+    public Set<AttributeSet> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Set<AttributeSet> attributes) {
+        this.attributes = attributes;
+    }
+
+    public void setAttributes(Collection<UserAttributes> attributes) {
+        this.attributes = new HashSet<>(attributes);
+    }
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
 }

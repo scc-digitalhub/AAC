@@ -71,12 +71,16 @@ angular.module('aac.controllers.realm', [])
         .then(function (data) {
           $scope.users = data;
           $scope.users.content.forEach(function (u) {
-            u._providers = u.identities.map(function (i) {
-              return $scope.providers[i.provider] ? $scope.providers[i.provider].name : i.provider;
-            });
-            u._authorities = u.authorities
-              .filter(function (a) { return a.realm === $scope.realm.slug })
-              .map(function (a) { return a.role });
+            if (u.hasOwnProperty('identities')) {
+              u._providers = u.identities.map(function (i) {
+                return $scope.providers[i.provider] ? $scope.providers[i.provider].name : i.provider;
+              });
+            }
+            if (u.hasOwnProperty('authorities')) {
+              u._authorities = u.authorities
+                .filter(function (a) { return a.realm === $scope.realm.slug })
+                .map(function (a) { return a.role });
+            }
           });
         })
         .catch(function (err) {
@@ -325,10 +329,10 @@ angular.module('aac.controllers.realm', [])
       if ($scope.realmCustom[template] == null) {
         Utils.showError("invalid template or missing data");
       } else {
-         var cb = {
-            'identifier': template,
-            'resources' : {}
-         }
+        var cb = {
+          'identifier': template,
+          'resources': {}
+        }
         var res = {};
         var rs = $scope.realmCustom[template]
           .filter(function (r) {
@@ -342,8 +346,8 @@ angular.module('aac.controllers.realm', [])
         if (Object.keys(res).length > 0) {
           cb.resources = res;
         }
-         
-         
+
+
         RealmData.previewRealm($scope.realm.slug, template, cb)
           .then(function (res) {
             console.log(res);

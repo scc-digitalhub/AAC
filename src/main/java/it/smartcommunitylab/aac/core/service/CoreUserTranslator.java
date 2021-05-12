@@ -4,6 +4,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
@@ -41,10 +45,23 @@ public class CoreUserTranslator implements UserTranslator {
 
         result.setAttributes(attributes);
 
-        // no authorities
-        result.setAuthorities(Collections.emptySet());
-        // no roles
-        result.setRoles(Collections.emptySet());
+        // filter authorities
+        List<GrantedAuthority> authorities = user.getAuthorities().stream()
+                .filter(a -> {
+                    if (a instanceof SimpleGrantedAuthority) {
+                        return true;
+                    }
+                    if (a instanceof RealmGrantedAuthority) {
+                        return ((RealmGrantedAuthority) a).getRealm().equals(realm);
+                    }
+
+                    return false;
+                })
+                .collect(Collectors.toList());
+        result.setAuthorities(authorities);
+
+        // all roles
+        result.setRoles(user.getRoles());
 
         return result;
 

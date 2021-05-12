@@ -19,6 +19,7 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
 
 public class ScriptScopeApprover implements ScopeApprover {
@@ -78,10 +79,14 @@ public class ScriptScopeApprover implements ScopeApprover {
             return null;
         }
 
+        // convert to profile beans
+        // TODO client
+        UserProfile profile = new UserProfile(user);
+
         // translate user, client and scopes to a map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
-        map.put("user", mapper.convertValue(user, serMapTypeRef));
+        map.put("user", mapper.convertValue(profile, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
 
         // execute script

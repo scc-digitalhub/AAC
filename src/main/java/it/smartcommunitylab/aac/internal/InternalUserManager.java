@@ -103,6 +103,14 @@ public class InternalUserManager {
             roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, role));
 
         }
+
+        // merge roles
+        List<UserRoleEntity> curRoles = userService.getRoles(subjectId);
+        for (UserRoleEntity ur : curRoles) {
+            roles.add(new AbstractMap.SimpleEntry<>(ur.getRealm(), ur.getRole()));
+        }
+
+        // set
         List<UserRoleEntity> userRoles = userService.updateRoles(subjectId, roles);
 
         logger.debug("admin user id " + String.valueOf(account.getId()));

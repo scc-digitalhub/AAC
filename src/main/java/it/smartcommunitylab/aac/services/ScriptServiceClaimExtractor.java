@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
 
 public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
@@ -67,8 +68,9 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
     @Override
     public String getRealm() {
-        // we return null to avoid user translation, we do it ourselves
-        return null;
+//        // we return null to avoid user translation, we do it ourselves
+//        return null;
+        return service.getRealm();
     }
 
     public ClaimsSet extractUserClaims(String resourceId, User user, ClientDetails client, Collection<String> scopes,
@@ -84,9 +86,9 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         }
 
         User u = user;
-        if (userTranslatorService != null && !service.getRealm().equals(user.getRealm())) {
-            u = userTranslatorService.translate(user, service.getRealm());
-        }
+//        if (userTranslatorService != null && !service.getRealm().equals(user.getRealm())) {
+//            u = userTranslatorService.translate(user, service.getRealm());
+//        }
 
         // fetch claimMapping
         String claimMapping = service.getUserClaimMapping();
@@ -99,10 +101,14 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
             exts = extensions;
         }
 
+        // convert to profile beans
+        // TODO client
+        UserProfile profile = new UserProfile(u);
+
         // translate user, client and scopes to a map
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
-        map.put("user", mapper.convertValue(u, serMapTypeRef));
+        map.put("user", mapper.convertValue(profile, serMapTypeRef));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
         map.put("extensions", mapper.convertValue(exts, serMapTypeRef));
 

@@ -139,23 +139,23 @@ public class UserAccountController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/account/profile")
-    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile)
-            throws InvalidDefinitionException {
-        UserDetails user = authHelper.getUserDetails();
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        try {
-            // TODO use update, the current user must exists
-            // TODO implement update in userManager
-//            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(profileManager.curBasicProfile());
-    }
+//    @PostMapping("/account/profile")
+//    public ResponseEntity<BasicProfile> updateProfile(@RequestBody UserProfile profile)
+//            throws InvalidDefinitionException {
+//        UserDetails user = authHelper.getUserDetails();
+//        if (user == null) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+//        }
+//        try {
+//            // TODO use update, the current user must exists
+//            // TODO implement update in userManager
+////            internalUserManager.updateOrCreateAccount(cur.getSubjectId(), cur.getRealm(), profile.getUsername(), profile.getPassword(), profile.getEmail(), profile.getName(), profile.getSurname(), profile.getLang(), Collections.emptySet());
+//
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().build();
+//        }
+//        return ResponseEntity.ok(profileManager.curBasicProfile());
+//    }
 
     @GetMapping("/account/attributes")
     public ResponseEntity<Collection<UserAttributes>> readAttributes() {

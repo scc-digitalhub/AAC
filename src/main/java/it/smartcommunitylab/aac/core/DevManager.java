@@ -178,6 +178,11 @@ public class DevManager {
             user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
         }
 
+        if (!approvedScopes.contains(Config.SCOPE_ROLE)) {
+            user.setAuthorities(null);
+            user.setRoles(null);
+        }
+
         // execute
         ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(), user, clientDetails, approvedScopes, null);
         // get map via claimsService (hack)

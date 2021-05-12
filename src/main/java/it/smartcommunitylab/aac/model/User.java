@@ -11,11 +11,8 @@ import javax.validation.constraints.NotBlank;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -64,7 +61,6 @@ public class User {
     // realm roles (ie authorities in AAC)
     // these can be managed inside realms
     // do note that the set should describe only the roles for the current context
-    @JsonIgnore
     private Set<GrantedAuthority> authorities;
 
     // roles are OUTSIDE aac (ie not grantedAuthorities)
@@ -73,7 +69,6 @@ public class User {
     // otherwise we should implement an (external) expiring + refreshing cache with
     // locking.
     // this field is always discosed in cross-realm scenarios
-    @JsonIgnore
     private Set<SpaceRole> roles;
 
     // additional attributes as UserAttributes collection
@@ -129,7 +124,9 @@ public class User {
 
     public void setAuthorities(Collection<GrantedAuthority> authorities) {
         this.authorities = new HashSet<>();
-        this.authorities.addAll(authorities);
+        if (authorities != null) {
+            this.authorities.addAll(authorities);
+        }
     }
 
     public String getRealm() {
@@ -178,7 +175,9 @@ public class User {
 
     public void setIdentities(Collection<UserIdentity> identities) {
         this.identities = new HashSet<>();
-        this.identities.addAll(identities);
+        if (identities != null) {
+            this.identities.addAll(identities);
+        }
     }
 
     public void addIdentity(UserIdentity identity) {
@@ -191,7 +190,9 @@ public class User {
 
     public void setAttributes(Collection<UserAttributes> attributes) {
         this.attributes = new HashSet<>();
-        this.attributes.addAll(attributes);
+        if (attributes != null) {
+            this.attributes.addAll(attributes);
+        }
     }
 
     public void addAttributes(UserAttributes attributes) {
@@ -217,7 +218,9 @@ public class User {
     }
 
     public void addRoles(Collection<SpaceRole> rr) {
-        roles.addAll(rr);
+        if (rr != null) {
+            roles.addAll(rr);
+        }
     }
 
     public void removeRoles(Collection<SpaceRole> rr) {
@@ -231,19 +234,5 @@ public class User {
     public void removeRole(SpaceRole r) {
         this.roles.remove(r);
     }
-    
-    /*
-     * Serialization helpers
-     */
 
-    @JsonProperty("authorities")
-    public Set<String> getAuthoritiesSet() {
-        return authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet());
-    }
-    
-    @JsonProperty("roles")
-    public Set<String> getRolesSet() {
-        return roles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
-    }
-    
 }

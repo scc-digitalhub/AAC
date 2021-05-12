@@ -145,6 +145,11 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                     user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
                 }
 
+                if (!scopes.contains(Config.SCOPE_ROLE)) {
+                    user.setAuthorities(null);
+                    user.setRoles(null);
+                }
+
                 ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes, extensions);
                 if (cs != null && cs.isUser()) {
                     claims.putAll(extractClaims(cs));
@@ -164,6 +169,11 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                 // filter attribute sets according to scopes
                 if (!scopes.contains(Config.SCOPE_FULL_PROFILE)) {
                     user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
+                }
+
+                if (!scopes.contains(Config.SCOPE_ROLE)) {
+                    user.setAuthorities(null);
+                    user.setRoles(null);
                 }
 
                 ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes, extensions);
