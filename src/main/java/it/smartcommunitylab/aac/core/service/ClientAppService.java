@@ -16,6 +16,8 @@ public interface ClientAppService {
      */
     public Collection<ClientApp> listClients(String realm);
 
+    public ClientApp findClient(String clientId);
+
     public ClientApp getClient(String clientId) throws NoSuchClientException;
 
     public ClientApp updateClient(String clientId, ClientApp app) throws NoSuchClientException;

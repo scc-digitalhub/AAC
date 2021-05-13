@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
@@ -30,7 +29,6 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
@@ -43,7 +41,6 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy.Configurable;
 
 @Service
 public class ProviderManager {
@@ -226,6 +223,21 @@ public class ProviderManager {
                 .collect(Collectors.toList());
     }
 
+    public ConfigurableProvider findProvider(String realm, String providerId) {
+        ProviderEntity pe = providerService.findProvider(providerId);
+
+        if (pe == null) {
+            return null;
+        }
+
+        if (!realm.equals(pe.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        return fromEntity(pe);
+
+    }
+
     public ConfigurableProvider getProvider(String realm, String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
         Realm re = realmService.getRealm(realm);
@@ -277,7 +289,7 @@ public class ProviderManager {
         // check if id provided
         String providerId = provider.getProvider();
         if (StringUtils.hasText(providerId)) {
-            ProviderEntity pe = providerService.fetchProvider(providerId);
+            ProviderEntity pe = providerService.findProvider(providerId);
             if (pe != null) {
                 throw new RegistrationException("id already in use");
             }

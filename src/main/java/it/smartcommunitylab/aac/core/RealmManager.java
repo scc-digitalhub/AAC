@@ -139,6 +139,11 @@ public class RealmManager {
     }
 
     @Transactional(readOnly = true)
+    public Realm findRealm(String slug) {
+        return realmService.findRealm(slug);
+    }
+
+    @Transactional(readOnly = true)
     public Realm getRealm(String slug) throws NoSuchRealmException {
         return realmService.getRealm(slug);
     }

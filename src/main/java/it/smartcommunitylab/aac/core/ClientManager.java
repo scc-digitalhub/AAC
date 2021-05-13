@@ -98,6 +98,31 @@ public class ClientManager {
     }
 
     @Transactional(readOnly = true)
+    public ClientApp findClientApp(String realm, String clientId) {
+
+        // get type by loading base client
+        // TODO optimize to avoid db fetch
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            return null;
+        }
+
+        String type = entity.getType();
+        ClientApp clientApp = null;
+
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            clientApp = oauthClientAppService.findClient(clientId);
+        }
+
+        // check realm match
+        if (!clientApp.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+
+        return clientApp;
+    }
+
+    @Transactional(readOnly = true)
     public ClientApp getClientApp(String realm, String clientId) throws NoSuchClientException, NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
 

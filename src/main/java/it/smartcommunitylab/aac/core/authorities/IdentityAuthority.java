@@ -6,7 +6,6 @@ import java.util.List;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;

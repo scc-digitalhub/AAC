@@ -6,7 +6,9 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
+import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -17,7 +19,17 @@ import it.smartcommunitylab.aac.SystemKeys;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
-public class ConfigurableProvider extends AbstractConfigurableProvider {
+@ConstructorBinding
+public class ConfigurableProvider implements ConfigurableProperties {
+
+    @NotBlank
+    private String authority;
+
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String realm;
+
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    private String provider;
 
     @NotBlank
     private String type;
@@ -35,7 +47,9 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
     private Boolean registered;
 
     public ConfigurableProvider(String authority, String provider, String realm) {
-        super(authority, provider, realm);
+        this.authority = authority;
+        this.realm = realm;
+        this.provider = provider;
         this.configuration = new HashMap<>();
         this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
         this.name = provider;
@@ -52,6 +66,30 @@ public class ConfigurableProvider extends AbstractConfigurableProvider {
     @SuppressWarnings("unused")
     private ConfigurableProvider() {
         this((String) null, (String) null, (String) null);
+    }
+
+    public String getAuthority() {
+        return authority;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getType() {

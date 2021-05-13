@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.openid;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,6 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;

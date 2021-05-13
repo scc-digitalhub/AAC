@@ -52,6 +52,16 @@ public class OAuth2ClientAppService implements ClientAppService {
     }
 
     @Override
+    public ClientApp findClient(String clientId) {
+        OAuth2Client client = clientService.findClient(clientId);
+        if (client == null) {
+            return null;
+        }
+
+        return toApp(client);
+    }
+
+    @Override
     public ClientApp getClient(String clientId) throws NoSuchClientException {
         OAuth2Client client = clientService.getClient(clientId);
 

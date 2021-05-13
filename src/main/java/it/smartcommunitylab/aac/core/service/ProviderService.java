@@ -44,7 +44,7 @@ public class ProviderService {
     }
 
     @Transactional(readOnly = true)
-    public ProviderEntity fetchProvider(String providerId) {
+    public ProviderEntity findProvider(String providerId) {
         return providerRepository.findByProviderId(providerId);
     }
 

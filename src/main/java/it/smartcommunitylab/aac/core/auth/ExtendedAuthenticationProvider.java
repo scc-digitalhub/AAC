@@ -5,7 +5,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 
 public abstract class ExtendedAuthenticationProvider extends AbstractProvider
