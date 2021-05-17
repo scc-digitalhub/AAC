@@ -123,22 +123,29 @@ public class DevController {
     }
 
     @GetMapping("/console/dev/realms")
-    public ResponseEntity<List<Realm>> myRealms() throws NoSuchRealmException {
+    public ResponseEntity<Collection<Realm>> myRealms() throws NoSuchRealmException {
         UserDetails user = userManager.curUserDetails();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(
-                user.getRealms().stream()
-                        .map(r -> {
-                            try {
-                                return realmManager.getRealm(r);
-                            } catch (NoSuchRealmException e) {
-                                return null;
-                            }
-                        })
-                        .filter(r -> r != null)
-                        .collect(Collectors.toList()));
+
+        Collection<Realm> realms = user.getRealms().stream()
+                .map(r -> {
+                    try {
+                        return realmManager.getRealm(r);
+                    } catch (NoSuchRealmException e) {
+                        return null;
+                    }
+                })
+                .filter(r -> r != null)
+                .collect(Collectors.toList());
+
+        if (user.hasAuthority(Config.R_ADMIN)) {
+            // system admin ccan access all realms
+            realms = realmManager.listRealms();
+        }
+
+        return ResponseEntity.ok(realms);
     }
 
     @GetMapping("/console/dev/realms/{realm:.*}/stats")
@@ -813,6 +820,36 @@ public class DevController {
             throws NoSuchServiceException {
         serviceManager.deleteService(realm, serviceId);
         return ResponseEntity.ok(null);
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/services")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Service> importService(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("empty file");
+        }
+
+        if (file.getContentType() != null &&
+                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString())
+                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString())
+                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_XYAML.toString()))) {
+            throw new IllegalArgumentException("invalid file");
+        }
+        try {
+            Service s = yamlObjectMapper.readValue(file.getInputStream(), Service.class);
+            s.setRealm(realm);
+
+            Service service = serviceManager.addService(realm, s);
+
+            return ResponseEntity.ok(service);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RegistrationException(e.getMessage());
+        }
+
     }
 
     @GetMapping("/console/dev/services/nsexists")

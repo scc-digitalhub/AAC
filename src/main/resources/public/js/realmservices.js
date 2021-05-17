@@ -29,6 +29,19 @@ angular.module('aac.controllers.realmservices', [])
         return data.data;
       });
     }
+    rsService.importService = function (realm, file) {
+      var fd = new FormData();
+      fd.append('file', file);
+      return $http({
+        url: 'console/dev/realms/' + realm + '/services',
+        headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
+        data: fd,
+        method: "PUT"
+      }).then(function (data) {
+        return data.data;
+      });
+    }
+
     rsService.addClaim = function (realm, serviceId, claim) {
       return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/claims', claim).then(function (data) {
         return data.data;
@@ -144,6 +157,31 @@ angular.module('aac.controllers.realmservices', [])
         .catch(function (err) {
           Utils.showError('Failed to save service: ' + err.data.message);
         });
+    }
+
+
+    $scope.importServiceDlg = function () {
+      $('#importServiceDlg').modal({ keyboard: false });
+    }
+
+
+    $scope.importService = function () {
+      $('#importServiceDlg').modal('hide');
+      var file = $scope.importFile;
+      var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
+      if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+        Utils.showError("invalid file");
+      } else {
+        RealmServicesData.importService(slug, file)
+          .then(function (res) {
+            $scope.importFile = null;
+            $state.go('realm.service', { realmId: res.realm, serviceId: res.serviceId });
+            Utils.showSuccess();
+          })
+          .catch(function (err) {
+            Utils.showError(err.data.message);
+          });
+      }
     }
 
     var doCheck = function () {
@@ -274,6 +312,7 @@ angular.module('aac.controllers.realmservices', [])
       }
       $('#deleteConfirm').modal({ keyboard: false });
     };
+
 
     /**
      * Export service

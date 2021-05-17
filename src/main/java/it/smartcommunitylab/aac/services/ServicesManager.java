@@ -77,8 +77,8 @@ public class ServicesManager implements InitializingBean {
     @Autowired
     private ScriptExecutionService executionService;
 
-    @Autowired
-    private UserTranslatorService userTranslatorService;
+//    @Autowired
+//    private UserTranslatorService userTranslatorService;
 
     private ServiceResourceClaimsExtractorProvider resourceClaimsExtractorProvider;
 
@@ -90,7 +90,7 @@ public class ServicesManager implements InitializingBean {
         // build and register the claims extractor
         resourceClaimsExtractorProvider = new ServiceResourceClaimsExtractorProvider(serviceService);
         resourceClaimsExtractorProvider.setExecutionService(executionService);
-        resourceClaimsExtractorProvider.setUserTranslatorService(userTranslatorService);
+//        resourceClaimsExtractorProvider.setUserTranslatorService(userTranslatorService);
 
         extractorsRegistry.registerExtractorProvider(resourceClaimsExtractorProvider);
 

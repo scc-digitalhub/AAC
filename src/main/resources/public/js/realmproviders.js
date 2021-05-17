@@ -184,16 +184,30 @@ angular.module('aac.controllers.realmproviders', [])
                 });
         }
 
-        $scope.toggleProviderState = function (item) {
-            RealmProviders.changeIdentityProviderState($scope.realm.slug, item.provider, item.enabled)
-                .then(function () {
+//        $scope.toggleProviderState = function (item) {
+//            RealmProviders.changeIdentityProviderState($scope.realm.slug, item.provider, item)
+//                .then(function () {
+//                    Utils.showSuccess();
+//                })
+//                .catch(function (err) {
+//                    Utils.showError(err.data.message);
+//                });
+//
+//        }
+        
+        $scope.toggleProviderState = function (provider) {
+
+            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
+                .then(function (res) {
+                    provider.enabled = res.enabled;
+                    provider.registered = res.registered;
                     Utils.showSuccess();
                 })
                 .catch(function (err) {
                     Utils.showError(err.data.message);
                 });
 
-        }
+        }        
 
         $scope.updateProviderType = function () {
             if ($scope.provider.clientName) {

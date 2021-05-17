@@ -7,6 +7,7 @@
       <button class="btn btn-primary text-right" type="button" ng-click="newService()">
       <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>
       New Service</button>
+      <button class="btn btn-secondary btn-sm" ng-click="importServiceDlg()">Import</button>
     </div>
   </div>
 </div>
@@ -30,4 +31,40 @@
 </div>  
   
 <div ng-include="'./html/realm.services.modal.html'"></div>
+
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importServiceDlg">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">Import service </h5>
+          </div>
+          <div class="modal-body">
+              <form name="importServiceForm" enctype="multipart/form-data" class="needs-validation was-validated"
+                  novalidate>
+                  <div class="form-group col pt-4 mb-2">
+
+                      <label for="file">File*</label>
+                      <input type="file" name="file" class="form-control form-control-sm upload" id="file"
+                          file-model="importFile" required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+                      <ul class="upload-file-list">
+                          <li class="upload-file success" ng-if="importFile != null">
+                              <p>
+                                  {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                              </p>
+                          </li>
+                      </ul>
+                  </div>
+
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary" type="button" ng-click="importService()"
+                  ng-disabled="importFile == null">Import</button>
+          </div>
+      </div>
+  </div>
+</div>
   

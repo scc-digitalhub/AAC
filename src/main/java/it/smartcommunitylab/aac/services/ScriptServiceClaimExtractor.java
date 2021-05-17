@@ -44,7 +44,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     };
     private final Service service;
     private ScriptExecutionService executionService;
-    private UserTranslatorService userTranslatorService;
+//    private UserTranslatorService userTranslatorService;
 
     // TODO add a loadingcache for scripts
 
@@ -57,9 +57,9 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         this.executionService = executionService;
     }
 
-    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
-        this.userTranslatorService = userTranslatorService;
-    }
+//    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
+//        this.userTranslatorService = userTranslatorService;
+//    }
 
     public String getResourceId() {
         // service namespace is resourceId
@@ -102,7 +102,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         }
 
         // translate user, client and scopes to a map
-        Map<String, Serializable> map = buildContext(u, client, scopes, extensions);
+        Map<String, Serializable> map = buildUserContext(u, client, scopes, exts);
 
         // execute script
         Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
@@ -148,10 +148,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         }
 
         // translate user, client and scopes to a map
-        Map<String, Serializable> map = new HashMap<>();
-        map.put("scopes", new ArrayList<>(scopes));
-        map.put("client", mapper.convertValue(client, serMapTypeRef));
-        map.put("extensions", mapper.convertValue(exts, serMapTypeRef));
+        Map<String, Serializable> map = buildClientContext(client, scopes, exts);
 
         // execute script
         Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
@@ -173,7 +170,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
     }
 
-    public Map<String, Serializable> buildContext(User user, ClientDetails client, Collection<String> scopes,
+    public Map<String, Serializable> buildUserContext(User user, ClientDetails client, Collection<String> scopes,
             Map<String, Serializable> extensions) {
         UserProfile profile = new UserProfile(user);
 
@@ -181,6 +178,20 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         Map<String, Serializable> map = new HashMap<>();
         map.put("scopes", new ArrayList<>(scopes));
         map.put("user", mapper.convertValue(profile, serMapTypeRef));
+        map.put("client", mapper.convertValue(client, serMapTypeRef));
+        if (extensions != null) {
+            map.put("extensions", mapper.convertValue(extensions, serMapTypeRef));
+        }
+
+        return map;
+    }
+
+    public Map<String, Serializable> buildClientContext(ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions) {
+
+        // translate client and scopes to a map
+        Map<String, Serializable> map = new HashMap<>();
+        map.put("scopes", new ArrayList<>(scopes));
         map.put("client", mapper.convertValue(client, serMapTypeRef));
         if (extensions != null) {
             map.put("extensions", mapper.convertValue(extensions, serMapTypeRef));

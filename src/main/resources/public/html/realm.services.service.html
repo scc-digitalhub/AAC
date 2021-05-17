@@ -2,8 +2,10 @@
 <div>
   <div class="row">
     <div class="col col-md-9">
-      <h4>{{service.name}}</h4>
-      <p>{{service.namespace || ' - '}}</p>
+      <h6><a ui-sref="realm.services({realmId:service.realm})">Custom services
+          &raquo;</a></h6>            
+      <h3>{{service.name}}</h3>
+      <p class="text-monospace">{{service.namespace}}</p>    
     </div>
     <div class="col col-md-3 text-right">
       <button class="btn btn-primary" type="button" ng-click="editService()">Edit</button>
@@ -272,7 +274,7 @@
                  </div>                 
                 <div class="row">
                    <div class="col">
-                       <label>Authorization with global roles</label>
+                       <label>Authorization with global roles (glob supported)</label>
                        <tags-input use-strings="true" type="url" placeholder="Add a global role" class="form-control form-control-sm" ng-model="scope.approvalSpaceRoles"></tags-input>
                    <br>
                    </div>

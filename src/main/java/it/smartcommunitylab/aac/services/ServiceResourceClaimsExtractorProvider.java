@@ -19,7 +19,7 @@ public class ServiceResourceClaimsExtractorProvider implements ResourceClaimsExt
 
     private final ServicesService servicesService;
     private ScriptExecutionService executionService;
-    private UserTranslatorService userTranslatorService;
+//    private UserTranslatorService userTranslatorService;
 
     public ServiceResourceClaimsExtractorProvider(ServicesService servicesService) {
         Assert.notNull(servicesService, "services service is required");
@@ -30,9 +30,9 @@ public class ServiceResourceClaimsExtractorProvider implements ResourceClaimsExt
         this.executionService = executionService;
     }
 
-    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
-        this.userTranslatorService = userTranslatorService;
-    }
+//    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
+//        this.userTranslatorService = userTranslatorService;
+//    }
 
     @Override
     public Collection<String> getResourceIds() {
@@ -73,7 +73,7 @@ public class ServiceResourceClaimsExtractorProvider implements ResourceClaimsExt
                 || StringUtils.hasText(service.getClientClaimMapping())) {
             ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
             e.setExecutionService(executionService);
-            e.setUserTranslatorService(userTranslatorService);
+//            e.setUserTranslatorService(userTranslatorService);
 
             return e;
         }

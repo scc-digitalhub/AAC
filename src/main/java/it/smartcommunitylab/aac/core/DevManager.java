@@ -135,19 +135,96 @@ public class DevManager {
             FunctionValidationBean functionBean)
             throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
 
-        // TODO handle context init here
-        // TODO handle errors
-        // TODO handle log
+        // extract function call
         String kind = functionBean.getName();
         String functionCode = StringUtils.hasText(functionBean.getCode())
                 ? new String(Base64.getDecoder().decode(functionBean.getCode()))
                 : null;
+        Set<String> scopes = functionBean.getScopes() != null ? functionBean.getScopes() : Collections.emptySet();
+
+        // TODO handle context init here
+        // TODO handle errors
+        // TODO handle log
+
+        UserDetails userDetails = authHelper.getUserDetails();
+        if (userDetails == null) {
+            throw new InsufficientAuthenticationException("invalid or missing user authentication");
+        }
+
+        // mock clientDetails
+        String clientId = UUID.randomUUID().toString();
+        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
+        ClientDetails clientDetails = new ClientDetails(clientId, realm,
+                SystemKeys.CLIENT_TYPE_OAUTH2,
+                clientAuthorities);
+
+        // fetch and validate scopes?
+        // not really needed for testing
+        Set<String> approvedScopes = new HashSet<>();
+        for (String s : scopes) {
+            Scope scope = scopeRegistry.findScope(s);
+            if (scope != null) {
+                approvedScopes.add(scope.getScope());
+            }
+        }
+
+        clientDetails.setScopes(approvedScopes);
+
+        // fetch service
+        Service service = serviceManager.getService(realm, serviceId);
+
+        // clear hookFunctions already set and pass only test function
+        Map<String, String> functions = new HashMap<>();
+        functions.put(kind, functionCode);
+        service.setClaimMapping(functions);
+
+        // build extractor
+        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
+        e.setExecutionService(executionService);
+
         if ("user".equals(kind)) {
-            functionBean.setResult(
-                    testServiceUserClaimMapping(realm, serviceId, functionCode, functionBean.getScopes()));
-        } else if ("user".equals(kind)) {
-            functionBean.setResult(
-                    testServiceClientClaimMapping(realm, serviceId, functionCode, functionBean.getScopes()));
+            // map user and load attributes
+            User user = userService.getUser(userDetails, realm);
+            // narrow attributes
+            if (!approvedScopes.contains(Config.SCOPE_FULL_PROFILE)) {
+                user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
+            }
+
+            if (!approvedScopes.contains(Config.SCOPE_ROLE)) {
+                user.setAuthorities(null);
+                user.setRoles(null);
+            }
+
+            // build context to populate result
+            Map<String, Serializable> ctx = e.buildUserContext(user, clientDetails, approvedScopes, null);
+
+            // execute
+            ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(), user, clientDetails, approvedScopes,
+                    null);
+            // get map via claimsService (hack)
+            Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+
+            // save result
+            functionBean.setContext(ctx);
+            functionBean.setResult(claims);
+
+            // TODO log
+
+        } else if ("client".equals(kind)) {
+            // build context to populate result
+            Map<String, Serializable> ctx = e.buildClientContext(clientDetails, approvedScopes, null);
+
+            // execute
+            ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(),
+                    clientDetails, approvedScopes, null);
+            // get map via claimsService (hack)
+            Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+
+            // save result
+            functionBean.setContext(ctx);
+            functionBean.setResult(claims);
+
+            // TODO log
         } else {
             throw new IllegalArgumentException("unsupported function kind");
         }
@@ -155,121 +232,119 @@ public class DevManager {
         return functionBean;
     }
 
-    public Map<String, Serializable> testServiceUserClaimMapping(String realm, String serviceId, String functionCode,
-            Collection<String> scopes)
-            throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
-        // fetch context
-        // TODO evaluate mock userDetails for testing
-        UserDetails userDetails = authHelper.getUserDetails();
-        if (userDetails == null) {
-            throw new InsufficientAuthenticationException("invalid or missing user authentication");
-        }
-
-        // mock clientDetails
-        String clientId = UUID.randomUUID().toString();
-        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
-        ClientDetails clientDetails = new ClientDetails(clientId, realm,
-                SystemKeys.CLIENT_TYPE_OAUTH2,
-                clientAuthorities);
-
-        // fetch and validate scopes?
-        // not really needed for testing
-        Set<String> approvedScopes = new HashSet<>();
-        for (String s : scopes) {
-            Scope scope = scopeRegistry.findScope(s);
-            if (scope != null) {
-                approvedScopes.add(scope.getScope());
-            }
-        }
-
-        clientDetails.setScopes(approvedScopes);
-
-        // fetch service
-        Service service = serviceManager.getService(realm, serviceId);
-
-        // clear hookFunctions already set and pass only test function
-        Map<String, String> functions = new HashMap<>();
-        functions.put("user", functionCode);
-        service.setClaimMapping(functions);
-
-        // build extractor
-        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
-        e.setExecutionService(executionService);
-        e.setUserTranslatorService(userTranslatorService);
-
-        // map user and load attributes
-        User user = userService.getUser(userDetails, realm);
-        // narrow attributes
-        if (!approvedScopes.contains(Config.SCOPE_FULL_PROFILE)) {
-            user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
-        }
-
-        if (!approvedScopes.contains(Config.SCOPE_ROLE)) {
-            user.setAuthorities(null);
-            user.setRoles(null);
-        }
-
-        // build context to populate result
-        Map<String, Serializable> ctx = e.buildContext(user, clientDetails, approvedScopes, null);
-
-        // execute
-        ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(), user, clientDetails, approvedScopes, null);
-        // get map via claimsService (hack)
-        Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
-
-        return claims;
-    }
-
-    public Map<String, Serializable> testServiceClientClaimMapping(String realm, String serviceId, String functionCode,
-            Collection<String> scopes)
-            throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
-        // fetch context
-        // TODO evaluate mock userDetails for testing
-        UserDetails userDetails = authHelper.getUserDetails();
-        if (userDetails == null) {
-            throw new InsufficientAuthenticationException("invalid or missing user authentication");
-        }
-
-        // mock clientDetails
-        String clientId = UUID.randomUUID().toString();
-        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
-        ClientDetails clientDetails = new ClientDetails(clientId, realm,
-                SystemKeys.CLIENT_TYPE_OAUTH2,
-                clientAuthorities);
-
-        // fetch and validate scopes?
-        // not really needed for testing
-        Set<String> approvedScopes = new HashSet<>();
-        for (String s : scopes) {
-            Scope scope = scopeRegistry.findScope(s);
-            if (scope != null) {
-                approvedScopes.add(scope.getScope());
-            }
-        }
-
-        clientDetails.setScopes(approvedScopes);
-
-        // fetch service
-        Service service = serviceManager.getService(realm, serviceId);
-
-        // clear hookFunctions already set and pass only test function
-        Map<String, String> functions = new HashMap<>();
-        functions.put("client", functionCode);
-        service.setClaimMapping(functions);
-
-        // build extractor
-        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
-        e.setExecutionService(executionService);
-        e.setUserTranslatorService(userTranslatorService);
-
-        // execute
-        ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(),
-                clientDetails, approvedScopes, null);
-        // get map via claimsService (hack)
-        Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
-
-        return claims;
-    }
+//    public Map<String, Serializable> testServiceUserClaimMapping(String realm, String serviceId, String functionCode,
+//            Collection<String> scopes)
+//            throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
+//        // fetch context
+//        // TODO evaluate mock userDetails for testing
+//        UserDetails userDetails = authHelper.getUserDetails();
+//        if (userDetails == null) {
+//            throw new InsufficientAuthenticationException("invalid or missing user authentication");
+//        }
+//
+//        // mock clientDetails
+//        String clientId = UUID.randomUUID().toString();
+//        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
+//        ClientDetails clientDetails = new ClientDetails(clientId, realm,
+//                SystemKeys.CLIENT_TYPE_OAUTH2,
+//                clientAuthorities);
+//
+//        // fetch and validate scopes?
+//        // not really needed for testing
+//        Set<String> approvedScopes = new HashSet<>();
+//        for (String s : scopes) {
+//            Scope scope = scopeRegistry.findScope(s);
+//            if (scope != null) {
+//                approvedScopes.add(scope.getScope());
+//            }
+//        }
+//
+//        clientDetails.setScopes(approvedScopes);
+//
+//        // fetch service
+//        Service service = serviceManager.getService(realm, serviceId);
+//
+//        // clear hookFunctions already set and pass only test function
+//        Map<String, String> functions = new HashMap<>();
+//        functions.put("user", functionCode);
+//        service.setClaimMapping(functions);
+//
+//        // build extractor
+//        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
+//        e.setExecutionService(executionService);
+//
+//        // map user and load attributes
+//        User user = userService.getUser(userDetails, realm);
+//        // narrow attributes
+//        if (!approvedScopes.contains(Config.SCOPE_FULL_PROFILE)) {
+//            user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
+//        }
+//
+//        if (!approvedScopes.contains(Config.SCOPE_ROLE)) {
+//            user.setAuthorities(null);
+//            user.setRoles(null);
+//        }
+//
+//        // build context to populate result
+//        Map<String, Serializable> ctx = e.buildUserContext(user, clientDetails, approvedScopes, null);
+//
+//        // execute
+//        ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(), user, clientDetails, approvedScopes, null);
+//        // get map via claimsService (hack)
+//        Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+//
+//        return claims;
+//    }
+//
+//    public Map<String, Serializable> testServiceClientClaimMapping(String realm, String serviceId, String functionCode,
+//            Collection<String> scopes)
+//            throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
+//        // fetch context
+//        // TODO evaluate mock userDetails for testing
+//        UserDetails userDetails = authHelper.getUserDetails();
+//        if (userDetails == null) {
+//            throw new InsufficientAuthenticationException("invalid or missing user authentication");
+//        }
+//
+//        // mock clientDetails
+//        String clientId = UUID.randomUUID().toString();
+//        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
+//        ClientDetails clientDetails = new ClientDetails(clientId, realm,
+//                SystemKeys.CLIENT_TYPE_OAUTH2,
+//                clientAuthorities);
+//
+//        // fetch and validate scopes?
+//        // not really needed for testing
+//        Set<String> approvedScopes = new HashSet<>();
+//        for (String s : scopes) {
+//            Scope scope = scopeRegistry.findScope(s);
+//            if (scope != null) {
+//                approvedScopes.add(scope.getScope());
+//            }
+//        }
+//
+//        clientDetails.setScopes(approvedScopes);
+//
+//        // fetch service
+//        Service service = serviceManager.getService(realm, serviceId);
+//
+//        // clear hookFunctions already set and pass only test function
+//        Map<String, String> functions = new HashMap<>();
+//        functions.put("client", functionCode);
+//        service.setClaimMapping(functions);
+//
+//        // build extractor
+//        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
+//        e.setExecutionService(executionService);
+//
+//        // execute
+//        ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(),
+//                clientDetails, approvedScopes, null);
+//        // get map via claimsService (hack)
+//        Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+//
+//        return claims;
+//    }
 
     @SuppressWarnings("unchecked")
     public FunctionValidationBean testClientClaimMapping(String realm, String clientId,
