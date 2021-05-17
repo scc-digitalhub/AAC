@@ -3,6 +3,8 @@ package it.smartcommunitylab.aac.claims;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.net.URL;
+import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -60,6 +62,17 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             throws InvalidDefinitionException, SystemException {
 
         // TODO evaluate function syntax etc
+
+        // workaround for graal 19.2.1 and fat jars
+        // https://github.com/oracle/graal/issues/1348
+        try {
+            URL res = com.oracle.js.parser.ScriptEnvironment.class.getClassLoader()
+                    .getResource("/META-INF/truffle/language");
+            // initialize the file system for the language file
+            FileSystems.newFileSystem(res.toURI(), new HashMap<>());
+        } catch (Throwable ignored) {
+            // in case of starting without fat jar
+        }
 
         GraalSandbox sandbox = createSandbox();
         try {

@@ -221,17 +221,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.yaml</groupId>
-			<artifactId>snakeyaml</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>1.13.1</version>
-		</dependency>
-
-
-		<dependency>
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
 		</dependency>
@@ -382,8 +371,12 @@
 	<repositories>
 		<repository>
 			<id>SmartCommunity</id>
-			<url>http://repository.smartcommunitylab.it/content/groups/public</url>
+			<url>https://repository.smartcommunitylab.it/content/groups/public</url>
 		</repository>
+<!-- 		<repository> -->
+<!--          <id>SmartCommunity snapshots</id> -->
+<!--          <url>http://repository.smartcommunitylab.it/content/repositories/snapshots</url> -->
+<!--       </repository> -->
 		<!-- <repository> -->
 		<!-- <id>spring-milestone</id> -->
 		<!-- <name>Spring Maven MILESTONE Repository</name> -->
