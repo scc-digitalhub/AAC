@@ -91,7 +91,7 @@
 <div class="row"><p/></div>
 <div class="row">
   <div class="col col-md-9"><h4>Client claim mapping</h4>
-  <p>Claim mapping function should return fully-qualified claims of the current service ONLY. </p>
+  <p>Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens.</p>
   </div>
     <div class="col col-md-3 text-right">
       <button class="btn btn-primary" type="button" ng-click="saveClaimMapping('client')">Update mapping</button>
@@ -99,32 +99,42 @@
 </div>
 <div class="row">
   <div class="col">
-     <table class="table"> 
-        <tr>
-            <td width="60%">
-              <div class="form-check form-check-inline">
-                 <input id="clientclaimenabled" class="form-check-input" type="checkbox" ng-model="claimEnabled['client'].checked" ng-change="toggleClaimMapping('client')">
-                <label for="clientclaimenabled">Enable</label>
-              </div>               
-              <div ui-ace="aceOption" ng-model="service.claimMapping.client"></div>
-             </td>
-            <th><span ng-if="claimEnabled['client'].checked"><a href="" ng-click="validateClaims('client')">Validate</a></span>
-              <br/><br/>
-              <div ng-if="claimEnabled['client'].checked">
-                 <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm" ng-model="claimEnabled['client'].scopes"></tags-input>
-              </div>
-              <br>
-              <div ng-if="claimEnabled['client'].checked && validationResult['client']">result: <pre>{{validationResult['client'] | json:4}}</pre></div>
-              <div class="text-danger" ng-if="claimEnabled['client'].checked && validationError['client']">{{validationError['client']}}</div>
-            </th>
-        </tr>
+    <table class="table">
+      <tr>
+        <td width="60%">
+          <div class="form-check form-check-inline">
+            <input id="clientclaimenabled" class="form-check-input" type="checkbox"
+              ng-model="claimMapping['client'].enabled" ng-change="toggleClaimMapping('client')">
+            <label for="clientclaimenabled">Enable</label>
+          </div>
+          <div ui-ace="aceOption" ng-model="claimMapping['client'].code"></div>
+        </td>
+
+        <th>
+          <div ng-if="claimMapping['client'].enabled">
+            <button class="btn btn-secondary btn-sm text-right"  ng-click="validateClaims('client')">Validate</button>
+            <br /><br />
+              <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm"
+                ng-model="claimMapping['client'].scopes"></tags-input>
+            <br>
+            <div ng-if="claimMapping['client'].result" class="mt-5 mb-5 border p-2">
+              <figure class="highlight mb-0">
+                <code class="language-json" data-lang="json">
+                            <pre class="mb-0">{{claimMapping['client'].result | json:4}}</pre>
+                          </code>
+              </figure>
+            </div>
+            <div class="text-danger" ng-repeat="err in claimMapping['client'].errors">{{err}}</div>
+          </div>
+        </th>
+      </tr>
     </table>
   </div>
 </div>
 
 <div class="row">
   <div class="col col-md-9"><h4>User claim mapping</h4>
-  <p>Claim mapping function should return fully-qualified claims of the current service ONLY. </p>
+  <p>Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens.</p>
   </div>
     <div class="col col-md-3 text-right">
       <button class="btn btn-primary" type="button" ng-click="saveClaimMapping('user')">Update mapping</button>
@@ -132,25 +142,35 @@
 </div>
 <div class="row">
   <div class="col">
-     <table class="table"> 
-        <tr>
-            <td width="60%">
-              <div class="form-check form-check-inline">
-                 <input id="userclaimenabled" class="form-check-input" type="checkbox" ng-model="claimEnabled['user'].checked" ng-change="toggleClaimMapping('user')">
-                <label for="userclaimenabled">Enable</label>
-              </div>               
-              <div ui-ace="aceOption" ng-model="service.claimMapping.user"></div>
-             </td>
-            <th><span ng-if="claimEnabled['user'].checked"><a href="" ng-click="validateClaims('user')">Validate</a></span>
-              <br/><br/>
-              <div ng-if="claimEnabled['user'].checked">
-                 <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm" ng-model="claimEnabled['user'].scopes"></tags-input>
-              </div>
-              <br>
-              <div ng-if="claimEnabled['user'].checked && validationResult['user']">result: <pre>{{validationResult['user'] | json:4}}</pre></div>
-              <div class="text-danger" ng-if="claimEnabled['user'].checked && validationError['user']">{{validationError['user']}}</div>
-            </th>
-        </tr>
+    <table class="table">
+      <tr>
+        <td width="60%">
+          <div class="form-check form-check-inline">
+            <input id="userclaimenabled" class="form-check-input" type="checkbox"
+              ng-model="claimMapping['user'].enabled" ng-change="toggleClaimMapping('user')">
+            <label for="userclaimenabled">Enable</label>
+          </div>
+          <div ui-ace="aceOption" ng-model="claimMapping['user'].code"></div>
+        </td>
+
+        <th>
+          <div ng-if="claimMapping['user'].enabled">
+            <button class="btn btn-secondary btn-sm text-right"  ng-click="validateClaims('user')">Validate</button>
+            <br /><br />
+              <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm"
+                ng-model="claimMapping['user'].scopes"></tags-input>
+            <br>
+            <div ng-if="claimMapping['user'].result" class="mt-5 mb-5 border p-2">
+              <figure class="highlight mb-0">
+                <code class="language-json" data-lang="json">
+                            <pre class="mb-0">{{claimMapping['user'].result | json:4}}</pre>
+                          </code>
+              </figure>
+            </div>
+            <div class="text-danger" ng-repeat="err in claimMapping['user'].errors">{{err}}</div>
+          </div>
+        </th>
+      </tr>
     </table>
   </div>
 </div>

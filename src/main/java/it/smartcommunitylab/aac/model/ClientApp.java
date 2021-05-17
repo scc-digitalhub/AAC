@@ -2,17 +2,23 @@ package it.smartcommunitylab.aac.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -55,6 +61,7 @@ public class ClientApp {
 
     // hook
     // TODO map to fixed list or explode
+    @JsonIgnore
     private Map<String, String> hookFunctions;
     private Map<String, String> hookWebUrls;
     private String hookUniqueSpaces;
@@ -169,6 +176,29 @@ public class ClientApp {
 
     public void setSchema(JsonSchema schema) {
         this.schema = schema;
+    }
+
+    @JsonProperty("hookFunctions")
+    public Map<String, String> getHookFunctionsBase64() {
+        if (hookFunctions == null) {
+            return null;
+        }
+        return hookFunctions.entrySet().stream()
+                .filter(e -> StringUtils.hasText(e.getValue()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                    return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
+                }));
+    }
+
+    @JsonProperty("hookFunctions")
+    public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
+        if (hookFunctions != null) {
+            this.hookFunctions = hookFunctions.entrySet().stream()
+                    .filter(e -> StringUtils.hasText(e.getValue()))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                    }));
+        }
     }
 
 }

@@ -26,6 +26,7 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 /**
@@ -54,7 +55,7 @@ public class ServiceEntity {
 
     @Lob
     @Column(name = "claim_mapping")
-    @Convert(converter = HashMapConverter.class)
+    @Convert(converter = HashMapBase64Converter.class)
     private Map<String, String> claimMappings;
 
     public String getServiceId() {

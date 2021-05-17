@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
@@ -121,7 +123,8 @@ public class ServicesService {
     }
 
     public it.smartcommunitylab.aac.services.Service addService(
-            String realm, String namespace,
+            String realm,
+            String serviceId, String namespace,
             String name, String description) {
 
         if (!StringUtils.hasText(realm)) {
@@ -137,14 +140,20 @@ public class ServicesService {
             throw new RegistrationException("duplicate namespace");
         }
 
-        // generate unique serviceId
-        String uuid = UUID.randomUUID().toString();
+        if (!StringUtils.hasText(serviceId)) {
+            // generate unique serviceId
+            String uuid = UUID.randomUUID().toString();
 
-        // we prepend a fixed prefix to enable discovery of entity type from uuid
-        String id = ServiceEntity.ID_PREFIX + uuid;
+            // we prepend a fixed prefix to enable discovery of entity type from uuid
+            serviceId = ServiceEntity.ID_PREFIX + uuid;
+        } else {
+            if (serviceId.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, serviceId)) {
+                throw new IllegalArgumentException("invalid service id");
+            }
+        }
 
         se = new ServiceEntity();
-        se.setServiceId(id);
+        se.setServiceId(serviceId);
         se.setNamespace(namespace);
         se.setRealm(realm);
 

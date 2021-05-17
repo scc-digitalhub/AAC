@@ -30,9 +30,16 @@ import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.crypto.PasswordHash;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.services.ServicesManager;
 
 @Component
 public class AACBootstrap {
@@ -68,13 +75,22 @@ public class AACBootstrap {
     private ClientManager clientManager;
 
     @Autowired
+    private ServicesManager serviceManager;
+
+    @Autowired
     private UserManager userManager;
+
+    @Autowired
+    private UserEntityService userService;
+
+    @Autowired
+    private InternalUserAccountService internalUserService;
 
     // TODO rework with dedicated bootstrappers *per-manager*
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
-            // base initalization
+            // base initialization
             logger.debug("application init");
             initServices();
 
@@ -87,7 +103,7 @@ public class AACBootstrap {
             }
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+            logger.error("error bootstrapping: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -104,7 +120,9 @@ public class AACBootstrap {
 
         // read config
         config = yamlObjectMapper.readValue(res.getInputStream(), BootstrapConfig.class);
-        
+
+        // TODO validation on imported beans
+
         /*
          * Realms creation
          */
@@ -120,6 +138,7 @@ public class AACBootstrap {
                 if (!StringUtils.hasText(r.getSlug())) {
                     // we ask id to be provided otherwise we create a new one every time
                     logger.error("error creating realm, missing slug");
+                    throw new IllegalArgumentException("missing slug");
                 }
 
                 logger.debug("create or update realm " + r.getSlug());
@@ -143,6 +162,8 @@ public class AACBootstrap {
         /*
          * IdP
          */
+        // keep a cache, we'll load users only to these providers
+        Map<String, ConfigurableProvider> providers = new HashMap<>();
         for (ConfigurableProvider cp : config.getProviders()) {
 
             try {
@@ -153,6 +174,7 @@ public class AACBootstrap {
                 if (!StringUtils.hasText(cp.getProvider())) {
                     // we ask id to be provided otherwise we create a new one every time
                     logger.error("error creating provider, missing id");
+                    throw new IllegalArgumentException("missing id");
                 }
                 // we support only idp for now
                 if (SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
@@ -173,10 +195,49 @@ public class AACBootstrap {
                         }
                     }
 
+                    // keep in cache
+                    providers.put(provider.getProvider(), provider);
+
                 }
 
             } catch (Exception e) {
                 logger.error("error creating provider " + String.valueOf(cp.getProvider()) + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        /*
+         * Services
+         */
+        for (Service s : config.getServices()) {
+
+            try {
+                if (!StringUtils.hasText(s.getRealm()) || !realms.containsKey(s.getRealm())) {
+                    // not managed here, skip
+                    continue;
+                }
+                if (!StringUtils.hasText(s.getServiceId())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating service, missing serviceId");
+                    throw new IllegalArgumentException("missing serviceId");
+                }
+
+                if (!StringUtils.hasText(s.getNamespace())) {
+                    logger.error("error creating service, missing namespace");
+                    throw new IllegalArgumentException("missing namespace");
+                }
+
+                logger.debug("create or update service " + s.getServiceId());
+                Service service = serviceManager.findService(s.getRealm(), s.getServiceId());
+
+                if (service == null) {
+                    service = serviceManager.addService(s.getRealm(), s);
+                } else {
+                    service = serviceManager.updateService(s.getRealm(), s.getServiceId(), s);
+                }
+
+            } catch (Exception e) {
+                logger.error("error creating service " + String.valueOf(s.getServiceId()) + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -194,6 +255,7 @@ public class AACBootstrap {
                 if (!StringUtils.hasText(ca.getClientId())) {
                     // we ask id to be provided otherwise we create a new one every time
                     logger.error("error creating client, missing clientId");
+                    throw new IllegalArgumentException("missing clientId");
                 }
 
                 logger.debug("create or update client " + ca.getClientId());
@@ -211,7 +273,80 @@ public class AACBootstrap {
             }
         }
 
-        // TODO users
+        // Internal users
+
+        for (InternalUserAccount ua : config.getUsers().getInternal()) {
+            try {
+                if (!StringUtils.hasText(ua.getRealm()) || !StringUtils.hasText(ua.getProvider())) {
+                    // invalid, skip
+                    continue;
+                }
+                if (!realms.containsKey(ua.getRealm()) || !providers.containsKey(ua.getProvider())) {
+                    // not managed here, skip
+                    continue;
+                }
+                if (!StringUtils.hasText(ua.getSubject())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating user, missing subjectId");
+                    throw new IllegalArgumentException("missing subjectId");
+                }
+                if (!StringUtils.hasText(ua.getUsername())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating user, missing username");
+                    throw new IllegalArgumentException("missing username");
+                }
+                if (!StringUtils.hasText(ua.getPassword())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating user, missing password");
+                    throw new IllegalArgumentException("missing password");
+                }
+
+                logger.debug("create or update user " + ua.getSubject() + " with authority internal");
+
+                // check if user exists, recreate if needed
+                UserEntity user = userService.findUser(ua.getSubject());
+                if (user == null) {
+                    user = userService.addUser(ua.getSubject(), ua.getRealm(), ua.getUsername());
+                } else {
+                    // check match
+                    if (!user.getRealm().equals(ua.getRealm())) {
+                        logger.error("error creating user, realm mismatch");
+                        throw new IllegalArgumentException("realm mismatch");
+                    }
+
+                    user = userService.updateUser(ua.getSubject(), ua.getUsername());
+                }
+
+                InternalUserAccount account = internalUserService.findAccountByUsername(ua.getRealm(),
+                        ua.getUsername());
+
+                if (account == null) {
+                    account = internalUserService.addAccount(ua);
+                } else {
+                    account = internalUserService.updateAccount(account.getId(), account);
+                }
+
+                // re-set password
+                String hash = PasswordHash.createHash(ua.getPassword());
+                account.setPassword(hash);
+                account.setChangeOnFirstAccess(false);
+
+                // ensure account is unlocked
+                account.setConfirmed(true);
+                account.setConfirmationKey(null);
+                account.setConfirmationDeadline(null);
+                account.setResetKey(null);
+                account.setResetDeadline(null);
+                account = internalUserService.updateAccount(account.getId(), account);
+
+            } catch (Exception e) {
+                logger.error("error creating user " + String.valueOf(ua.getSubject()) + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // TODO oidc/saml users
+        // requires accountService extracted from idp to detach from repo
 
         /*
          * Migrations?

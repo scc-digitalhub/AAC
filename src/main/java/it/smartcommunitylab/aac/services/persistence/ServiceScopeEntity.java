@@ -17,15 +17,14 @@
 package it.smartcommunitylab.aac.services.persistence;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import it.smartcommunitylab.aac.repository.StringBase64Converter;
 
 /**
  * @author raman
@@ -92,7 +91,9 @@ public class ServiceScopeEntity {
     @Column(name = "approval_manual")
     private boolean approvalRequired = false;
 
+    @Lob
     @Column(name = "approval_function", columnDefinition = "LONGTEXT")
+    @Convert(converter = StringBase64Converter.class)
     private String approvalFunction;
 
     /*

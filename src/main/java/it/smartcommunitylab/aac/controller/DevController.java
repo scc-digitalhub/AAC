@@ -664,8 +664,6 @@ public class DevController {
             throws NoSuchRealmException, NoSuchClientException, SystemException, NoSuchResourceException,
             InvalidDefinitionException {
 
-        // get client app
-        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
         try {
             // TODO expose context personalization in UI
             function = devManager.testClientClaimMapping(realm, clientId, function);
@@ -860,28 +858,22 @@ public class DevController {
     @PostMapping("/console/dev/realms/{realm}/services/{serviceId}/claims/validate")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Map<String, Serializable>> validate(
+    public ResponseEntity<FunctionValidationBean> validate(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-            @RequestBody ValidationBean bean)
+            @Valid @RequestBody FunctionValidationBean function)
             throws NoSuchServiceException, NoSuchRealmException, SystemException, InvalidDefinitionException {
 
-        String kind = bean.getKind();
-        String functionCode = bean.getMapping();
-        List<String> scopes = bean.getScopes();
+        try {
+            // TODO expose context personalization in UI
+            function = devManager.testServiceClaimMapping(realm, serviceId, function);
 
-        Service service = serviceManager.getService(realm, serviceId);
-        if ("user".equals(kind)) {
-            Map<String, Serializable> result = devManager.testServiceUserClaimMapping(realm, serviceId, functionCode,
-                    scopes);
-
-            return ResponseEntity.ok(result);
-        } else {
-            Map<String, Serializable> result = devManager.testServiceClientClaimMapping(realm, serviceId, functionCode,
-                    scopes);
-            return ResponseEntity.ok(result);
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            // translate error
+            function.addError(e.getMessage());
         }
 
+        return ResponseEntity.ok(function);
     }
 
     @PostMapping("/console/dev/realms/{realm}/services/{serviceId}/scopes")

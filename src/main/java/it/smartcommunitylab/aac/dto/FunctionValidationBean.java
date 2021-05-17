@@ -3,8 +3,10 @@ package it.smartcommunitylab.aac.dto;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -23,6 +25,8 @@ public class FunctionValidationBean {
 
     @NotBlank
     private String code;
+
+    private Set<String> scopes = new HashSet<>();
 
     private Map<String, Serializable> context = new HashMap<>();
     private Map<String, Serializable> attributes = new HashMap<>();
@@ -48,6 +52,14 @@ public class FunctionValidationBean {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public Set<String> getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(Set<String> scopes) {
+        this.scopes = scopes;
     }
 
     public Map<String, Serializable> getContext() {

@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.core;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.context.WebContext;
@@ -129,6 +131,30 @@ public class DevManager {
      * Claims
      */
 
+    public FunctionValidationBean testServiceClaimMapping(String realm, String serviceId,
+            FunctionValidationBean functionBean)
+            throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
+
+        // TODO handle context init here
+        // TODO handle errors
+        // TODO handle log
+        String kind = functionBean.getName();
+        String functionCode = StringUtils.hasText(functionBean.getCode())
+                ? new String(Base64.getDecoder().decode(functionBean.getCode()))
+                : null;
+        if ("user".equals(kind)) {
+            functionBean.setResult(
+                    testServiceUserClaimMapping(realm, serviceId, functionCode, functionBean.getScopes()));
+        } else if ("user".equals(kind)) {
+            functionBean.setResult(
+                    testServiceClientClaimMapping(realm, serviceId, functionCode, functionBean.getScopes()));
+        } else {
+            throw new IllegalArgumentException("unsupported function kind");
+        }
+
+        return functionBean;
+    }
+
     public Map<String, Serializable> testServiceUserClaimMapping(String realm, String serviceId, String functionCode,
             Collection<String> scopes)
             throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
@@ -182,6 +208,9 @@ public class DevManager {
             user.setAuthorities(null);
             user.setRoles(null);
         }
+
+        // build context to populate result
+        Map<String, Serializable> ctx = e.buildContext(user, clientDetails, approvedScopes, null);
 
         // execute
         ClaimsSet claimsSet = e.extractUserClaims(service.getNamespace(), user, clientDetails, approvedScopes, null);
@@ -246,6 +275,10 @@ public class DevManager {
     public FunctionValidationBean testClientClaimMapping(String realm, String clientId,
             FunctionValidationBean functionBean)
             throws NoSuchClientException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+        // TODO handle context init here
+        // TODO handle errors
+        // TODO handle log
+
         // fetch context
         // TODO evaluate mock userDetails for testing, maybe read from functionBean
         UserDetails userDetails = authHelper.getUserDetails();
@@ -268,7 +301,9 @@ public class DevManager {
         Set<String> approvedScopes = getClientApprovedScopes(clientDetails, userDetails, clientScopes);
 
         // clear hookFunctions already set and pass only test function
-        String functionCode = functionBean.getCode();
+        String functionCode = StringUtils.hasText(functionBean.getCode())
+                ? new String(Base64.getDecoder().decode(functionBean.getCode()))
+                : null;
         Map<String, String> functions = new HashMap<>();
         functions.put(DefaultClaimsService.CLAIM_MAPPING_FUNCTION, functionCode);
         clientDetails.setHookFunctions(functions);
@@ -277,7 +312,8 @@ public class DevManager {
         Map<String, Serializable> claims = claimsService.getUserClaims(userDetails, realm, clientDetails,
                 approvedScopes, resourceIds, null);
 
-        // TODO execute here claimMapping after default
+        // TODO execute here claimMapping after default instead of passing to
+        // claimsService new function
 
         functionBean.setResult(claims);
 

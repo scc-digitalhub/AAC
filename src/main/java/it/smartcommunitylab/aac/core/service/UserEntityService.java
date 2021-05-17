@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -62,6 +63,14 @@ public class UserEntityService {
             throw new RegistrationException("realm is invalid");
         }
 
+        if (!StringUtils.hasText(uuid)) {
+            throw new IllegalArgumentException("empty subject id");
+        }
+
+        if (uuid.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, uuid)) {
+            throw new IllegalArgumentException("invalid subject id");
+        }
+
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
             throw new AlreadyRegisteredException("user already exists");
@@ -77,6 +86,14 @@ public class UserEntityService {
             throws AlreadyRegisteredException {
         if (!StringUtils.hasText(realm)) {
             throw new RegistrationException("realm is invalid");
+        }
+
+        if (!StringUtils.hasText(uuid)) {
+            throw new IllegalArgumentException("empty subject id");
+        }
+
+        if (uuid.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, uuid)) {
+            throw new IllegalArgumentException("invalid subject id");
         }
 
         UserEntity u = userRepository.findByUuid(uuid);

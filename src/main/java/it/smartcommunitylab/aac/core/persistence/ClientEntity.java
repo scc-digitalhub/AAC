@@ -16,6 +16,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
@@ -51,7 +52,7 @@ public class ClientEntity {
 
     @Lob
     @Column(name = "hook_functions")
-    @Convert(converter = HashMapConverter.class)
+    @Convert(converter = HashMapBase64Converter.class)
     private Map<String, String> hookFunctions;
 
     @Lob

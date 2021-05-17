@@ -101,16 +101,8 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
             exts = extensions;
         }
 
-        // convert to profile beans
-        // TODO client
-        UserProfile profile = new UserProfile(u);
-
         // translate user, client and scopes to a map
-        Map<String, Serializable> map = new HashMap<>();
-        map.put("scopes", new ArrayList<>(scopes));
-        map.put("user", mapper.convertValue(profile, serMapTypeRef));
-        map.put("client", mapper.convertValue(client, serMapTypeRef));
-        map.put("extensions", mapper.convertValue(exts, serMapTypeRef));
+        Map<String, Serializable> map = buildContext(u, client, scopes, extensions);
 
         // execute script
         Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,
@@ -179,6 +171,22 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
         return claimsSet;
 
+    }
+
+    public Map<String, Serializable> buildContext(User user, ClientDetails client, Collection<String> scopes,
+            Map<String, Serializable> extensions) {
+        UserProfile profile = new UserProfile(user);
+
+        // translate user, client and scopes to a map
+        Map<String, Serializable> map = new HashMap<>();
+        map.put("scopes", new ArrayList<>(scopes));
+        map.put("user", mapper.convertValue(profile, serMapTypeRef));
+        map.put("client", mapper.convertValue(client, serMapTypeRef));
+        if (extensions != null) {
+            map.put("extensions", mapper.convertValue(extensions, serMapTypeRef));
+        }
+
+        return map;
     }
 
     private List<Claim> processClaims(Collection<ServiceClaim> serviceClaimsList,

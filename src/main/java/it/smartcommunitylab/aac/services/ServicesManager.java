@@ -123,6 +123,22 @@ public class ServicesManager implements InitializingBean {
      * Services
      * 
      */
+    public Service findService(String realm, String serviceId) {
+
+        Service service = serviceService.findService(serviceId);
+
+        if (service == null) {
+            return null;
+        }
+
+        if (!realm.equals(service.getRealm())) {
+            throw new IllegalArgumentException("service does not match realm");
+        }
+
+        // note: find returns a bare model
+        return service;
+    }
+
     public Service getService(String realm, String serviceId) throws NoSuchServiceException, NoSuchRealmException {
         Realm re = realmService.getRealm(realm);
 
@@ -147,7 +163,7 @@ public class ServicesManager implements InitializingBean {
     public Service addService(String realm, Service service) throws NoSuchRealmException {
         // fetch realm
         Realm re = realmService.getRealm(realm);
-
+        String serviceId = service.getServiceId();
         String namespace = Jsoup.clean(service.getNamespace().toLowerCase(), Whitelist.none());
         String name = service.getName();
         String description = service.getDescription();
@@ -163,8 +179,8 @@ public class ServicesManager implements InitializingBean {
         }
 
         // add
-        Service s = serviceService.addService(re.getSlug(), namespace, name, description);
-        String serviceId = s.getServiceId();
+        Service s = serviceService.addService(re.getSlug(), serviceId, namespace, name, description);
+        serviceId = s.getServiceId();
 
         try {
             // optional

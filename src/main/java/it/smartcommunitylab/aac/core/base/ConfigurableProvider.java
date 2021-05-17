@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.io.Serializable;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -11,7 +13,9 @@ import javax.validation.constraints.Pattern;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
@@ -41,6 +45,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
 //    private String icon;
 
     private Map<String, Serializable> configuration;
+    @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
 
     private JsonSchema schema;
@@ -177,6 +182,29 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setRegistered(Boolean registered) {
         this.registered = registered;
+    }
+
+    @JsonProperty("hookFunctions")
+    public Map<String, String> getHookFunctionsBase64() {
+        if (hookFunctions == null) {
+            return null;
+        }
+        return hookFunctions.entrySet().stream()
+                .filter(e -> StringUtils.hasText(e.getValue()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                    return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
+                }));
+    }
+
+    @JsonProperty("hookFunctions")
+    public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
+        if (hookFunctions != null) {
+            this.hookFunctions = hookFunctions.entrySet().stream()
+                    .filter(e -> StringUtils.hasText(e.getValue()))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                    }));
+        }
     }
 
     public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;

@@ -269,12 +269,13 @@ angular.module('aac.controllers.realmapps', [])
             var claimMapping = {
                 enabled: false,
                 code: "",
+                scopes: [],
                 result: null,
                 error: null
             };
             if (data.hookFunctions != null && data.hookFunctions.hasOwnProperty("claimMapping")) {
                 claimMapping.enabled = true;
-                claimMapping.code = data.hookFunctions["claimMapping"];
+                claimMapping.code = atob(data.hookFunctions["claimMapping"]);
             }
 
             $scope.claimMapping = claimMapping;
@@ -286,7 +287,6 @@ angular.module('aac.controllers.realmapps', [])
             }
             if (data.hookWebUrls != null) {
                 for (h in data.hookWebUrls) {
-                    console.log(h);
                     if (webHooks.hasOwnProperty(h)) {
                         webHooks[h] = data.hookWebUrls[h];
                     }
@@ -396,12 +396,11 @@ angular.module('aac.controllers.realmapps', [])
 
             //flow extensions hooks
             var hookFunctions = clientApp.hookFunctions != null ? clientApp.hookFunctions : {};
-            if ($scope.claimMapping.enable == true && $scope.claimMapping.code != null && $scope.claimMapping.code != "") {
-                hookFunctions["claimMapping"] = $scope.claimMapping.code;
+            if ($scope.claimMapping.enabled == true && $scope.claimMapping.code != null && $scope.claimMapping.code != "") {
+                hookFunctions["claimMapping"] = btoa($scope.claimMapping.code);
             } else {
                 delete hookFunctions["claimMapping"];
             }
-            console.log($scope.webHooks)
 
             var hookWebUrls = clientApp.hookWebUrls != null ? clientApp.hookWebUrls : {};
             for (h in $scope.webHooks) {
@@ -412,7 +411,6 @@ angular.module('aac.controllers.realmapps', [])
                 }
             }
 
-            console.log(hookWebUrls)
 
             var data = {
                 realm: clientApp.realm,
@@ -464,7 +462,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.deleteClientApp = function () {
             $('#deleteClientAppConfirm').modal('hide');
             RealmAppsData.removeClientApp($scope.realm.slug, $scope.modClientApp.clientId).then(function () {
-                $state.go('realm.apps', { realmId: $scope.realm.slug });
+                $state.go('realm.apps', { realmId: $stateParams.realmId });
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });
@@ -480,7 +478,6 @@ angular.module('aac.controllers.realmapps', [])
         };
 
         $scope.switchClientView = function (view) {
-            console.log("switch view to " + view);
             $scope.clientView = view;
             Utils.refreshFormBS(300);
         }
@@ -596,7 +593,6 @@ angular.module('aac.controllers.realmapps', [])
 
 
         $scope.testOAuth2ClientApp = function (grantType) {
-            console.log("test " + grantType);
 
             if (!$scope.app.type == 'oauth2') {
                 Utils.showError("invalid app type");
@@ -605,7 +601,6 @@ angular.module('aac.controllers.realmapps', [])
 
             RealmAppsData.testOAuth2ClientApp($scope.realm.slug, $scope.app.clientId, grantType).then(function (token) {
                 $scope.oauth2Tokens[grantType].token = token.access_token;
-                console.log($scope.oauth2Tokens);
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });
@@ -637,8 +632,9 @@ angular.module('aac.controllers.realmapps', [])
             }
 
             var data = {
-                code: functionCode,
-                name: 'claimMapping'
+                code: btoa(functionCode),
+                name: 'claimMapping',
+                scopes: $scope.claimMapping.scopes.map(function (s) { return s.text })
             }
 
             RealmAppsData.testClientAppClaimMapping($scope.realm.slug, $scope.app.clientId, data).then(function (res) {
