@@ -256,8 +256,19 @@ bootstrap:
 
 #port used to expose actuator
 management:
-   server:
-    port: ${MANAGEMENT_PORT:8081}
+    server:
+      port: ${MANAGEMENT_PORT:8081}
+    endpoints:
+      enabled-by-default: false
+      web.base-path: 
+    endpoint:
+      info:
+        enabled: true
+      health:
+        enabled: true
+              
+
+    
 
 #---
 ## SPRING

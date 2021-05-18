@@ -120,7 +120,7 @@ import it.smartcommunitylab.aac.utils.Utils;
  */
 
 @Configuration
-@Order(16)
+@Order(19)
 @EnableConfigurationProperties
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
