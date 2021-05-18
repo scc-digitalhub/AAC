@@ -48,18 +48,20 @@
       <div class="clear"></div>
     </div>
 
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('headerText') != null}"
+    <div class="row mt-md-0 mt-5 justify-content-center  customization-block"
+      th:if="${customization != null && customization.get('headerText') != null}"
       th:utext="${customization.get('headerText')}"></div>
 
     <div class="row mt-md-0 mt-5 justify-content-center">
-      <div class="col-xl-offset-4 col-xl-4 col-lg-offset-3 col-lg-6 col-md-8 col-md-offset-2 col-sm-offset-1 col-sm-10">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10">
         <div class="panel panel-default">
 
           <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
           <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-		    <div class="mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('loginText') != null}"
-		      th:utext="${customization.get('loginText')}"></div>
+          <div class="mt-md-0 mt-5 justify-content-center  customization-block"
+            th:if="${customization != null && customization.get('loginText') != null}"
+            th:utext="${customization.get('loginText')}"></div>
 
 
           <div th:if="${realm == 'system'}" class="alert alert-info" role="alert" th:text="#{alert_login_global}">
@@ -67,7 +69,8 @@
 
           <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
-          <div class="text-center mt-4" th:if="${internalAuthority == null && (externalAuthorities == null || externalAuthorities.size() == 0)}">
+          <div class="text-center mt-4"
+            th:if="${internalAuthority == null && (externalAuthorities == null || externalAuthorities.size() == 0)}">
             <p th:text="#{lbl_login_no_provider}">Login is disabled</p>
           </div>
 
@@ -80,7 +83,7 @@
                 <input class="form-control" type="text" id="username" name="username" />
               </div>
 
-              <div class="col-md-12 form-group">
+              <div class="col-md-12 form-group mb-3">
                 <label th:text="#{lbl_pwd}" for="password">: </label>
                 <input class="form-control input-password" type="password" id="password" name="password" />
                 <span class="password-icon" aria-hidden="true">
@@ -93,33 +96,29 @@
                 </span>
               </div>
 
-              <div class="col-md-12 mt-2" th:if="${internalAuthority.resetUrl != null}">
-                <a class="" th:href="${internalAuthority.resetUrl}" th:text="#{lbl_pwd_reset}">Reset
-                  password</a>
+              <div class="col-md-12 text-left mt-n2 mb-4" th:if="${internalAuthority.resetUrl != null}">
+                <small>
+                  <a class="" th:href="${internalAuthority.resetUrl}" th:text="#{lbl_pwd_reset}">Reset
+                    password</a>
+                </small>
               </div>
 
-              <div class="row px-2 mt-4 align-items-center">
-                <div class="col-md-8" th:if="${internalAuthority.registrationUrl != null}">
+              <div class="row px-2 align-items-center">
+                <button class="btn btn-primary btn-block" th:text="#{lbl_login}">Login</button>
+              </div>
+              <div class="col-md-12 text-left mt-4 mb-4" th:if="${internalAuthority.registrationUrl != null}">
+                <span>
                   <a class="" th:href="${internalAuthority.registrationUrl}" th:text="#{lbl_register}">Register</a>
-                </div>
-                <div class="col-md-4 text-right"><button class="btn btn-primary" th:text="#{lbl_login}">Login</button>
-                </div>
+                </span>
+
               </div>
           </div>
           </form>
 
           <div class="text-center mt-4" th:if="${externalAuthorities != null && externalAuthorities.size() > 0}">
             <p th:text="#{lbl_login_providers}">Login with</p>
-            <div class="row  d-md-none justify-content-center">
-              <div class="col col-12 mb-3" th:each="authority: ${externalAuthorities}">
-                <div>
-                  <a class="btn btn-block btn-outline-primary" th:classAppend="${authority.cssClass}"
-                    th:href="${authority.loginUrl}" th:text="${authority.name}"></a>
-                </div>
-              </div>
-            </div>
-            <div class="row d-none d-md-flex justify-content-center">
-              <div class="col mb-3" th:each="authority: ${externalAuthorities}">
+            <div class="row d-md-flex justify-content-center">
+              <div class="col col-md-12 mb-3" th:each="authority: ${externalAuthorities}">
                 <div>
                   <a class="btn loginbtn btn-block btn-outline-primary" th:classAppend="${authority.cssClass}"
                     th:href="${authority.loginUrl}">
@@ -137,7 +136,8 @@
       </div>
     </div>
 
-    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${customization != null && customization.get('footerText') != null}"
+    <div class="row mt-md-0 mt-5 justify-content-center customization-block"
+      th:if="${customization != null && customization.get('footerText') != null}"
       th:utext="${customization.get('footerText')}"></div>
 
   </div>

@@ -189,6 +189,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.aceOption = {
             mode: 'javascript',
             theme: 'monokai',
+            showGutter: false,
             maxLines: 30,
             minLines: 6
         };
@@ -271,7 +272,8 @@ angular.module('aac.controllers.realmapps', [])
                 code: "",
                 scopes: [],
                 result: null,
-                error: null
+                error: null,
+                context: '{}'
             };
             if (data.hookFunctions != null && data.hookFunctions.hasOwnProperty("claimMapping")) {
                 claimMapping.enabled = true;
@@ -618,6 +620,7 @@ angular.module('aac.controllers.realmapps', [])
 
             claimMapping.error = null;
             claimMapping.result = null;
+            claimMapping.context = '{}';
 
             $scope.claimMapping = claimMapping;
 
@@ -640,8 +643,10 @@ angular.module('aac.controllers.realmapps', [])
             RealmAppsData.testClientAppClaimMapping($scope.realm.slug, $scope.app.clientId, data).then(function (res) {
                 $scope.claimMapping.result = res.result;
                 $scope.claimMapping.errors = res.errors;
+                $scope.claimMapping.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
             }).catch(function (err) {
                 $scope.claimMapping.result = null;
+                $scope.claimMapping.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
                 $scope.claimMapping.errors = [err.data.message];
             });
         }

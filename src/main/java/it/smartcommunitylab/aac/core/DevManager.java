@@ -383,7 +383,14 @@ public class DevManager {
         functions.put(DefaultClaimsService.CLAIM_MAPPING_FUNCTION, functionCode);
         clientDetails.setHookFunctions(functions);
 
-        // fetch claims
+        // fetch claims as input
+        clientDetails.setHookFunctions(null);
+        Map<String, Serializable> ctx = claimsService.getUserClaims(userDetails, realm, clientDetails,
+                approvedScopes, resourceIds, null);
+        functionBean.setContext(ctx);
+
+        // fetch claims with function
+        clientDetails.setHookFunctions(functions);
         Map<String, Serializable> claims = claimsService.getUserClaims(userDetails, realm, clientDetails,
                 approvedScopes, resourceIds, null);
 
