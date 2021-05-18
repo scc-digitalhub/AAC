@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -30,6 +31,8 @@ public abstract class AbstractTokenGranter implements TokenGranter {
     private final OAuth2RequestFactory requestFactory;
 
     private FlowExtensionsService flowExtensionsService;
+
+    private OAuth2EventPublisher eventPublisher = new OAuth2EventPublisher();
 
     private final String grantType;
 
@@ -54,8 +57,13 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 //                validateScopes(getOAuth2Authentication(client, tokenRequest), client, tokenRequest.getScope()));
 
         logger.debug("Getting access token for: " + clientId);
+        OAuth2Authentication authentication = getOAuth2Authentication(client, tokenRequest);
+        OAuth2AccessToken accessToken = getAccessToken(client, tokenRequest, authentication);
 
-        OAuth2AccessToken accessToken = getAccessToken(client, tokenRequest);
+        // audit
+        if (eventPublisher != null) {
+            eventPublisher.publishTokenGrant(accessToken, authentication);
+        }
 
         // check extensions
         if (flowExtensionsService != null) {
@@ -66,12 +74,14 @@ public abstract class AbstractTokenGranter implements TokenGranter {
             }
 
         }
+
         return accessToken;
 
     }
 
-    protected OAuth2AccessToken getAccessToken(ClientDetails client, TokenRequest tokenRequest) {
-        return tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest));
+    protected OAuth2AccessToken getAccessToken(ClientDetails client, TokenRequest tokenRequest,
+            OAuth2Authentication authentication) {
+        return tokenServices.createAccessToken(authentication);
     }
 
     protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {

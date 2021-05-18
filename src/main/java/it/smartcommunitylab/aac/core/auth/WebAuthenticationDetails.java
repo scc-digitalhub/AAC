@@ -1,12 +1,11 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import java.util.Calendar;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpHeaders;
-
-import com.ibm.icu.util.Calendar;
 
 public class WebAuthenticationDetails extends org.springframework.security.web.authentication.WebAuthenticationDetails {
 

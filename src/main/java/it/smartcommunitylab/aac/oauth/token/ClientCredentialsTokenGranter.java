@@ -54,11 +54,4 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
         return token;
     }
 
-    @Override
-    protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
-        OAuth2Authentication clientAuth = super.getOAuth2Authentication(client, tokenRequest);
-        logger.trace("got oauth authentication from request " + clientAuth.toString());
-
-        return clientAuth;
-    }
 }

@@ -16,22 +16,19 @@
 
 package it.smartcommunitylab.aac.common;
 
-import org.springframework.security.core.AuthenticationException;
-
 /**
  * @author raman
  *
  */
-public class RegistrationException extends AuthenticationException {
-	private static final long serialVersionUID = -3713058847321448029L;
+public class RegistrationException extends RuntimeException {
+    private static final long serialVersionUID = -3713058847321448029L;
 
-	public RegistrationException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public RegistrationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public RegistrationException(String message) {
-		super(message);
-	}
+    public RegistrationException(String message) {
+        super(message);
+    }
 
-	
 }

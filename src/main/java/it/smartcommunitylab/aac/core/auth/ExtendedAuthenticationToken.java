@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -9,7 +10,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.ibm.icu.util.Calendar;
 
 /*
  * An authenticationToken holding both the provider token and a resolved identity

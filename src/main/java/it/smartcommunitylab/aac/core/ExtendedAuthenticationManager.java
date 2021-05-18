@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -11,7 +12,9 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,10 +28,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.ibm.icu.util.Calendar;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -40,7 +41,6 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
@@ -69,6 +69,8 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
     private final UserEntityService userService;
     private final ProviderManager providerManager;
 
+    private ExtendedAuthenticationEventPublisher eventPublisher;
+
     public ExtendedAuthenticationManager(
             ProviderManager providerManager,
             UserEntityService userService) {
@@ -81,117 +83,129 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         logger.debug("authentication manager created");
     }
 
+    @Autowired
+    public void setAuthenticationEventPublisher(ExtendedAuthenticationEventPublisher eventPublisher) {
+        Assert.notNull(eventPublisher, "AuthenticationEventPublisher cannot be null");
+        this.eventPublisher = eventPublisher;
+    }
+
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        logger.debug("process authentication for " + authentication.getName());
+        try {
+            logger.debug("process authentication for " + authentication.getName());
 
-        if (!(authentication instanceof WrappedAuthenticationToken)) {
-            logger.error("invalid authentication class: " + authentication.getClass().getName());
-            throw new AuthenticationServiceException("invalid request");
-        }
-
-        WrappedAuthenticationToken request = (WrappedAuthenticationToken) authentication;
-        AbstractAuthenticationToken token = request.getAuthenticationToken();
-
-        if (token == null) {
-            logger.error("missing authentication token");
-            throw new BadCredentialsException("invalid authentication request");
-        }
-
-        // resolve type
-
-        if (request instanceof ProviderWrappedAuthenticationToken) {
-            // resolve provider and then process auth
-            ProviderWrappedAuthenticationToken providerRequest = (ProviderWrappedAuthenticationToken) authentication;
-            String authorityId = providerRequest.getAuthority();
-            String providerId = providerRequest.getProvider();
-
-            logger.debug("authentication token for provider " + String.valueOf(authorityId) + ":"
-                    + String.valueOf(providerId));
-            logger.trace(String.valueOf(token));
-
-            // validate
-            if (!StringUtils.hasText(providerId)) {
-                logger.error("missing or invalid  providerId " + String.valueOf(providerId));
-                throw new ProviderNotFoundException("provider not found");
+            if (!(authentication instanceof WrappedAuthenticationToken)) {
+                logger.error("invalid authentication class: " + authentication.getClass().getName());
+                throw new AuthenticationServiceException("invalid request");
             }
 
-            IdentityProvider idp = null;
-            if (StringUtils.hasText(authorityId)) {
-                // fast load
-                idp = providerManager.fetchIdentityProvider(authorityId, providerId);
-            } else {
-                // from db
-                idp = providerManager.findIdentityProvider(providerId);
-            }
+            WrappedAuthenticationToken request = (WrappedAuthenticationToken) authentication;
+            AbstractAuthenticationToken token = request.getAuthenticationToken();
 
-            if (idp == null) {
-                logger.error("identity provider not found for " + providerId);
-                throw new ProviderNotFoundException("provider not found for " + providerId);
-            }
-
-            ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
-            if (eap == null) {
-                logger.error("auth provider not found for " + providerId);
-                throw new ProviderNotFoundException("provider not found for " + providerId);
-            }
-
-            // process with provider, no fallback
-            return doAuthenticate(request, eap);
-        } else if (request instanceof RealmWrappedAuthenticationToken) {
-            RealmWrappedAuthenticationToken realmRequest = (RealmWrappedAuthenticationToken) authentication;
-            String authorityId = realmRequest.getAuthority();
-            String realm = realmRequest.getRealm();
-
-            logger.debug("authentication token for realm " + String.valueOf(realm) + ":" + String.valueOf(authorityId));
-            logger.trace(String.valueOf(token));
-
-            // validate
-            if (!StringUtils.hasText(realm)) {
-                logger.error("missing or invalid  realm " + String.valueOf(realm));
-                throw new ProviderNotFoundException("provider not found");
-            }
-
-            // since we don't have an authority we ask all idps to process, and keep the
-            // first not null result
-            List<IdentityProvider> providers = new ArrayList<>();
-
-            if (StringUtils.hasText(authorityId)) {
-                // fast load
-                providers.addAll(providerManager.fetchIdentityProviders(authorityId, realm));
-            } else {
-                // from db
-                try {
-                    providers.addAll(providerManager.getIdentityProviders(realm));
-                } catch (NoSuchRealmException re) {
-                    providers = Collections.emptyList();
-                }
-            }
-
-            UserAuthenticationToken result = null;
-
-            // TODO rework loop
-            for (IdentityProvider idp : providers) {
-                ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
-                if (eap == null) {
-                    continue;
-                }
-
-                result = attempAuthenticate(request, eap);
-                if (result != null) {
-                    break;
-                }
-            }
-
-            if (result == null) {
+            if (token == null) {
+                logger.error("missing authentication token");
                 throw new BadCredentialsException("invalid authentication request");
             }
 
-            return result;
+            // resolve type
 
-        } else {
-            throw new ProviderNotFoundException("provider not found");
+            if (request instanceof ProviderWrappedAuthenticationToken) {
+                // resolve provider and then process auth
+                ProviderWrappedAuthenticationToken providerRequest = (ProviderWrappedAuthenticationToken) authentication;
+                String authorityId = providerRequest.getAuthority();
+                String providerId = providerRequest.getProvider();
+
+                logger.debug("authentication token for provider " + String.valueOf(authorityId) + ":"
+                        + String.valueOf(providerId));
+                logger.trace(String.valueOf(token));
+
+                // validate
+                if (!StringUtils.hasText(providerId)) {
+                    logger.error("missing or invalid  providerId " + String.valueOf(providerId));
+                    throw new ProviderNotFoundException("provider not found");
+                }
+
+                IdentityProvider idp = null;
+                if (StringUtils.hasText(authorityId)) {
+                    // fast load
+                    idp = providerManager.fetchIdentityProvider(authorityId, providerId);
+                } else {
+                    // from db
+                    idp = providerManager.findIdentityProvider(providerId);
+                }
+
+                if (idp == null) {
+                    logger.error("identity provider not found for " + providerId);
+                    throw new ProviderNotFoundException("provider not found for " + providerId);
+                }
+
+                ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
+                if (eap == null) {
+                    logger.error("auth provider not found for " + providerId);
+                    throw new ProviderNotFoundException("provider not found for " + providerId);
+                }
+
+                // process with provider, no fallback
+                return doAuthenticate(request, eap);
+            } else if (request instanceof RealmWrappedAuthenticationToken) {
+                RealmWrappedAuthenticationToken realmRequest = (RealmWrappedAuthenticationToken) authentication;
+                String authorityId = realmRequest.getAuthority();
+                String realm = realmRequest.getRealm();
+
+                logger.debug(
+                        "authentication token for realm " + String.valueOf(realm) + ":" + String.valueOf(authorityId));
+                logger.trace(String.valueOf(token));
+
+                // validate
+                if (!StringUtils.hasText(realm)) {
+                    logger.error("missing or invalid  realm " + String.valueOf(realm));
+                    throw new ProviderNotFoundException("provider not found");
+                }
+
+                // since we don't have an authority we ask all idps to process, and keep the
+                // first not null result
+                List<IdentityProvider> providers = new ArrayList<>();
+
+                if (StringUtils.hasText(authorityId)) {
+                    // fast load
+                    providers.addAll(providerManager.fetchIdentityProviders(authorityId, realm));
+                } else {
+                    // from db
+                    try {
+                        providers.addAll(providerManager.getIdentityProviders(realm));
+                    } catch (NoSuchRealmException re) {
+                        providers = Collections.emptyList();
+                    }
+                }
+
+                UserAuthenticationToken result = null;
+
+                // TODO rework loop
+                for (IdentityProvider idp : providers) {
+                    ExtendedAuthenticationProvider eap = idp.getAuthenticationProvider();
+                    if (eap == null) {
+                        continue;
+                    }
+
+                    result = attempAuthenticate(request, eap);
+                    if (result != null) {
+                        break;
+                    }
+                }
+
+                if (result == null) {
+                    throw new BadCredentialsException("invalid authentication request");
+                }
+
+                return result;
+
+            } else {
+                throw new ProviderNotFoundException("provider not found");
+            }
+        } catch (AuthenticationException e) {
+            auditException(e, authentication);
+
+            throw e;
         }
-
     }
 
     /*
@@ -483,6 +497,12 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // set webAuth details matching this request
             result.setWebAuthenticationDetails(webAuthDetails);
 
+            // audit trail
+            if (eventPublisher != null) {
+                // publish as is, listener will resolve realm
+                eventPublisher.publishUserAuthenticationSuccess(authorityId, providerId, realm, result);
+            }
+
             return result;
 
         } catch (NoSuchUserException e) {
@@ -515,6 +535,21 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         return (ProviderWrappedAuthenticationToken.class
                 .isAssignableFrom(authentication) ||
                 RealmWrappedAuthenticationToken.class.isAssignableFrom(authentication));
+    }
+
+    private void auditException(AuthenticationException ex, Authentication auth) {
+        if (eventPublisher != null) {
+            // publish failure as is, will be sent to global audit
+            // on listener we infer realm from auth
+            eventPublisher.publishAuthenticationFailure(ex, auth);
+        }
+    }
+
+    private void auditSuccess(UserAuthenticationToken auth) {
+        if (eventPublisher != null) {
+            // publish as is, listener will resolve realm
+            eventPublisher.publishAuthenticationSuccess(auth);
+        }
     }
 
 }

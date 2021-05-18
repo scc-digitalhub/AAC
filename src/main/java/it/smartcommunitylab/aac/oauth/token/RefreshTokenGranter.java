@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class RefreshTokenGranter extends AbstractTokenGranter {
-    
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "refresh_token";
@@ -41,17 +41,11 @@ public class RefreshTokenGranter extends AbstractTokenGranter {
     }
 
     @Override
-    protected OAuth2AccessToken getAccessToken(ClientDetails client, TokenRequest tokenRequest) {
+    protected OAuth2AccessToken getAccessToken(ClientDetails client, TokenRequest tokenRequest,
+            OAuth2Authentication authentication) {
         String refreshToken = tokenRequest.getRequestParameters().get("refresh_token");
         logger.trace("get access token for refresh token " + refreshToken);
         return getTokenServices().refreshAccessToken(refreshToken, tokenRequest);
     }
 
-    @Override
-    protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
-        OAuth2Authentication clientAuth = super.getOAuth2Authentication(client, tokenRequest);
-        logger.trace("got oauth authentication from request " + clientAuth.toString());
-
-        return clientAuth;
-    }
 }
