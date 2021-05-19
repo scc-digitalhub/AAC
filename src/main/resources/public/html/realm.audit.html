@@ -1,0 +1,98 @@
+<div class="pb-3 pt-3">
+    <div class="row mb-3">
+        <div class="col col-md-6 p-3">
+            <h3>Audit events</h3>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col col-md-12 text-right">
+            <form name="auditFilter" class="needs-validation was-validated" novalidate>
+                <div class="form-row">
+                    <div class="form-group col-4">
+                        <label class="active" for="filterAfter">After</label>
+                        <input type="datetime-local" id="filterAfter" name="filterAfter" ng-model="filterAfter" />
+                    </div>
+                    <div class="form-group col-4">
+                        <label class="active" for="filterBefore">Before</label>
+                        <input type="datetime-local" id="filterBefore" name="filterBefore" ng-model="filterBefore" />
+                    </div>
+                    <div class="form-group col-3">
+                        <div class="bootstrap-select-wrapper border-bottom-0">
+                            <label class="active" for="type">Type</label>
+                            <select title="Select one" id="type" ng-model="filterType">
+                                <option value="" ng-selected="filterType==''"> All </option>
+                                <option ng-selected="{{filterType == typ}}" ng-repeat="typ in eventTypes"
+                                    value="{{typ}}">
+                                    {{typ}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col">
+                        <button class="btn btn-primary" type="button" ng-click="reload()">Search</button>
+                    </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+<div class="accordion" id="events">
+    <div ng-if="events && events.length > 0">
+        <table class="table table-hover border-bottom">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Principal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tr ng-repeat="item in events">
+                <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                <td class="align-middle">{{item.type | uppercase}}</td>
+                <td class="align-middle">{{item.principal}}</td>
+                <td class="text-right">
+                    <button class="btn btn-primary btn-sm" ng-click="auditEventDlg(item)">View</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div ng-if="events == null || events.length == 0">
+        <h5>No data</h5>
+    </div>
+
+</div>
+
+
+<div class="modal fade bs-modal-lg" id="auditEventModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">Event details</h3>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <h6>Timestamp</h6>
+                <p>{{modEvent.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</p>
+                
+                <h6>Event type</h6>                
+                <p>{{modEvent.type | uppercase}}</p>
+                
+                <h6>Principal</h6>                
+                <p>{{modEvent.principal}}</p>
+                
+                <h6>Data</h6>                
+                <figure class="neutral-2-bg p-2 mb-0">
+                    <pre>
+<code class="language-json" data-lang="json">
+{{modEvent.data | json:4}}
+</code>
+                </pre>
+                </figure>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

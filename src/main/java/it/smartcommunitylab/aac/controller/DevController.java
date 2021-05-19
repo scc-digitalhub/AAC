@@ -3,9 +3,11 @@ package it.smartcommunitylab.aac.controller;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +52,8 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.AuditManager;
+import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -105,6 +110,8 @@ public class DevController {
     private DevManager devManager;
     @Autowired
     private ServicesManager serviceManager;
+    @Autowired
+    private AuditManager auditManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -1028,6 +1035,25 @@ public class DevController {
         SpaceRole spaceOwner = new SpaceRole(context, space, Config.R_PROVIDER);
         SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
         return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));
+    }
+
+    /*
+     * Audit events
+     */
+
+    @GetMapping("/console/dev/realms/{realm}/audit")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Collection<RealmAuditEvent>> findEvents(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = false, name = "type") Optional<String> type,
+            @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> after,
+            @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> before)
+            throws NoSuchRealmException {
+
+        return ResponseEntity
+                .ok(auditManager.listRealmEvents(realm,
+                        type.orElse(null), after.orElse(null), before.orElse(null)));
+
     }
 
     /*

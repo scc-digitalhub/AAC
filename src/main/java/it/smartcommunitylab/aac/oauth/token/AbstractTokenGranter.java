@@ -113,4 +113,10 @@ public abstract class AbstractTokenGranter implements TokenGranter {
         this.flowExtensionsService = flowExtensionsService;
     }
 
+    public void setEventPublisher(OAuth2EventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    
+    
 }

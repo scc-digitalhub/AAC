@@ -12,6 +12,7 @@ var app = angular.module('dev', [
     'aac.controllers.realmproviders',
     'aac.controllers.realmapps',
     'aac.controllers.realmservices',
+    'aac.controllers.realmaudit',
     'aac.controllers.rolespaces',
     'ui.ace',
     'ngSanitize'
@@ -94,6 +95,11 @@ app.config(function ($stateProvider) {
             url: '/custom',
             templateUrl: 'html/realm.custom.html',
             controller: 'RealmCustomController',
+        })
+        .state('realm.audit', {
+            url: '/audit',
+            templateUrl: 'html/realm.audit.html',
+            controller: 'RealmAuditController',
         })
         .state('rolespaces', {
             url: '/rolespaces',

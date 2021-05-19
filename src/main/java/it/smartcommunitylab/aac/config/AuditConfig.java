@@ -15,6 +15,7 @@ import it.smartcommunitylab.aac.audit.AuthorizationEventListener;
 import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
 import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.audit.store.AutoJdbcAuditEventStore;
+import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 
 /*
  * Audit configuration
@@ -28,18 +29,23 @@ public class AuditConfig {
     @Autowired
     private DataSource dataSource;
 
-    @Bean
-    public ExtendedAuthenticationEventPublisher authenticationEventPublisher(
-            ApplicationEventPublisher applicationEventPublisher) {
-        return new ExtendedAuthenticationEventPublisher(applicationEventPublisher);
-    }
-
     @Bean(name = "applicationEventMulticaster")
     public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
         SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
 
         eventMulticaster.setTaskExecutor(new SimpleAsyncTaskExecutor());
         return eventMulticaster;
+    }
+
+    @Bean
+    public ExtendedAuthenticationEventPublisher authenticationEventPublisher(
+            ApplicationEventPublisher applicationEventPublisher) {
+        return new ExtendedAuthenticationEventPublisher(applicationEventPublisher);
+    }
+
+    @Bean
+    public OAuth2EventPublisher oauth2EventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        return new OAuth2EventPublisher(applicationEventPublisher);
     }
 
 //    @Bean

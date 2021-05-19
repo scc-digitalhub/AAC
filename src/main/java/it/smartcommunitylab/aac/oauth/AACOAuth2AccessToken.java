@@ -39,7 +39,6 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     private String responseType = TokenType.TOKEN_TYPE_OPAQUE.getValue();
 
-    // TODO evaluate if needed
     private String realm;
 
     private Date expiration;
@@ -105,6 +104,7 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
         setSubject(accessToken.getSubject());
         setAuthorizedParty(accessToken.getAuthorizedParty());
         setAudience(accessToken.getAudience());
+        setRealm(accessToken.getRealm());
         setRefreshToken(accessToken.getRefreshToken());
         setExpiration(accessToken.getExpiration());
         setScope(accessToken.getScope());
@@ -139,6 +139,7 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
             setSubject(token.getSubject());
             setAuthorizedParty(token.getAuthorizedParty());
             setAudience(token.getAudience());
+            setRealm(token.getRealm());
 
             // copy dates
             setIssuedAt(token.getIssuedAt());

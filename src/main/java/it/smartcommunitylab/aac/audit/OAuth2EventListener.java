@@ -56,7 +56,12 @@ public class OAuth2EventListener
             AACOAuth2AccessToken token = (AACOAuth2AccessToken) event.getToken();
             OAuth2Authentication auth = event.getAuthentication();
 
-            String principal = auth.getName();
+//            String principal = auth.getName();
+            String principal = token.getSubject();
+            if (!StringUtils.hasText(principal)) {
+                principal = auth.getName();
+            }
+
             String realm = token.getRealm();
             String type = auth.getUserAuthentication() == null ? "client" : "user";
 

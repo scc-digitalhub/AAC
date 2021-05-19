@@ -43,6 +43,9 @@
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.custom">Customization</a>
             </li>
+            <li ng-if="realmAdmin">
+              <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.audit">Audit</a>
+            </li>            
           </ul>
         </div>
       </div>

@@ -134,8 +134,13 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
             throw new OAuth2Exception("token error");
         }
 
+        // additional params
+        // TODO evaluate additional params
+        accessToken.setRealm(clientDetails.getRealm());
+
         // if supported generate a new refresh token
-        if (supportsRefreshToken(authentication) && clientDetails.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN.getValue())) {
+        if (supportsRefreshToken(authentication)
+                && clientDetails.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN.getValue())) {
             OAuth2RefreshToken refreshToken = createRefreshToken(authentication, refreshValiditySeconds);
             if (refreshToken != null && StringUtils.hasText(refreshToken.getValue())) {
                 tokenStore.storeRefreshToken(refreshToken, authentication);
@@ -241,6 +246,10 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
             if (accessToken == null || !StringUtils.hasText(accessToken.getValue())) {
                 throw new OAuth2Exception("token error");
             }
+
+            // additional params
+            // TODO evaluate additional params
+            accessToken.setRealm(clientDetails.getRealm());
 
             // make sure we return the same refresh token
             accessToken.setRefreshToken(refreshToken);
