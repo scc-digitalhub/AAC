@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,7 +49,6 @@ public class TokenIntrospection {
         n.add("jti");
         n.add("scope");
         n.add("client_id");
-        n.add("username");
         n.add("token_type");
         n.add("exp");
         n.add("iat");
@@ -67,8 +68,6 @@ public class TokenIntrospection {
 
     @JsonProperty("client_id")
     private String clientId;
-
-    private String username;
 
     @JsonProperty("token_type")
     private String tokenType;
@@ -94,7 +93,7 @@ public class TokenIntrospection {
     @JsonProperty("azp")
     private String authorizedParty;
 
-    @JsonUnwrapped
+    @JsonIgnore
     Map<String, Serializable> claims;
 
     public TokenIntrospection(boolean active) {
@@ -124,14 +123,6 @@ public class TokenIntrospection {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getTokenType() {
@@ -217,5 +208,10 @@ public class TokenIntrospection {
             throw new IllegalArgumentException("can't set a reserved claim");
         }
         claims.put(key, value);
+    }
+
+    @JsonAnyGetter
+    public Map<String, Serializable> getMap() {
+        return claims;
     }
 }

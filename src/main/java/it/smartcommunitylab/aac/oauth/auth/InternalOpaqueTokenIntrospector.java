@@ -159,6 +159,7 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
             Map<String, Object> params = new HashMap<>();
             params.put("sub", accessToken.getSubject());
             params.put("scopes", token.getScope());
+            params.put("realm", realm);
 
             return new DefaultOAuth2AuthenticatedPrincipal(
                     principal, params, authorities);

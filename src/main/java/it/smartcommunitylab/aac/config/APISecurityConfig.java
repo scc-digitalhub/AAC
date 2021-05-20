@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
@@ -59,7 +60,12 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     public RequestMatcher getRequestMatcher() {
-        return new AntPathRequestMatcher(API_PREFIX + "/**");
+        return new OrRequestMatcher(
+                new AntPathRequestMatcher(API_PREFIX + "/**"),
+                // TODO remap as /profile/basic etc..
+                new AntPathRequestMatcher("/basicprofile/**"),
+                new AntPathRequestMatcher("/accountprofile/**"),
+                new AntPathRequestMatcher("openidprofile/**"));
 
     }
 

@@ -31,8 +31,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +46,9 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.ApiAuditScope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -77,21 +82,67 @@ public class ProfileController {
      */
 
     @ApiOperation(value = "Get basic profile of the current user")
+    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE + "')")
     @GetMapping(value = "/basicprofile/me")
-    public @ResponseBody BasicProfile myBasicProfile() throws InvalidDefinitionException {
-        return profileManager.curBasicProfile();
+    public @ResponseBody BasicProfile myBasicProfile(BearerTokenAuthentication auth)
+            throws InvalidDefinitionException, NoSuchUserException {
+        if (auth == null) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        String subject = (String) auth.getTokenAttributes().get("sub");
+        String realm = (String) auth.getTokenAttributes().get("realm");
+
+        if (!StringUtils.hasText(subject) || !StringUtils.hasText(realm)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        return profileManager.getBasicProfile(realm, subject);
     }
 
     @ApiOperation(value = "Get openid profile of the current user")
+    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_PROFILE + "')")
     @GetMapping(value = "/openidprofile/me")
-    public @ResponseBody OpenIdProfile myOpenIdProfile() throws InvalidDefinitionException {
-        return profileManager.curOpenIdProfile();
+    public @ResponseBody OpenIdProfile myOpenIdProfile(BearerTokenAuthentication auth)
+            throws InvalidDefinitionException, NoSuchUserException {
+        if (auth == null) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        String subject = (String) auth.getTokenAttributes().get("sub");
+        String realm = (String) auth.getTokenAttributes().get("realm");
+
+        if (!StringUtils.hasText(subject) || !StringUtils.hasText(realm)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        return profileManager.getOpenIdProfile(realm, subject);
     }
 
     @ApiOperation(value = "Get account profiles of the current user")
+    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE
+            + "')")
     @GetMapping(value = "/accountprofile/me")
-    public @ResponseBody Collection<AccountProfile> myAccountProfiles() throws InvalidDefinitionException {
-        return profileManager.curAccountProfiles();
+    public @ResponseBody Collection<AccountProfile> myAccountProfiles(BearerTokenAuthentication auth)
+            throws InvalidDefinitionException, NoSuchUserException {
+        if (auth == null) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        String subject = (String) auth.getTokenAttributes().get("sub");
+        String realm = (String) auth.getTokenAttributes().get("realm");
+
+        if (!StringUtils.hasText(subject) || !StringUtils.hasText(realm)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        return profileManager.getAccountProfiles(realm, subject);
     }
 
     /*

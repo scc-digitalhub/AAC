@@ -97,19 +97,19 @@ public class ProfileService {
 
     public BasicProfile getBasicProfile(String realm, String subjectId)
             throws NoSuchUserException, InvalidDefinitionException {
-        User user = userService.getUser(realm, subjectId);
+        User user = userService.getUser(subjectId, realm);
         return getBasicProfile(user);
     }
 
     public OpenIdProfile getOpenIdProfile(String realm, String subjectId)
             throws NoSuchUserException, InvalidDefinitionException {
-        User user = userService.getUser(realm, subjectId);
+        User user = userService.getUser(subjectId, realm);
         return getOpenIdProfile(user);
     }
 
     public Collection<AccountProfile> getAccountProfiles(String realm, String subjectId)
             throws NoSuchUserException, InvalidDefinitionException {
-        User user = userService.getUser(realm, subjectId);
+        User user = userService.getUser(subjectId, realm);
         return getAccountProfiles(user);
     }
 }
