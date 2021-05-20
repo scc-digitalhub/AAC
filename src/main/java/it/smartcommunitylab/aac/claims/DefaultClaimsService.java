@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 
@@ -565,7 +564,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         }
 
         // cleanup
-        String code = mappingFunction.replaceAll("\\R+", " ");
+        String code = mappingFunction.replaceAll("\\R+", "\n");
 
         return executionService.executeFunction(CLAIM_MAPPING_FUNCTION, code, claims);
 

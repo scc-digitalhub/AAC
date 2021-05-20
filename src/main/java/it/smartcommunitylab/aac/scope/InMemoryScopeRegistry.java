@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
@@ -19,6 +21,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
  */
 
 public class InMemoryScopeRegistry implements ScopeRegistry {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider registry is a map with keys matching resourceIds
     private final Map<String, ScopeProvider> providers = new HashMap<>();
@@ -153,7 +156,7 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
         }
 
         String resourceId = sp.getResourceId();
-
+        logger.debug("register scope provider " + sp.toString() + " for resource " + resourceId);
         providers.put(resourceId, sp);
 
     }

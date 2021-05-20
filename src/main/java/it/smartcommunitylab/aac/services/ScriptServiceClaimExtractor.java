@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.claims.model.StringClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.User;
 
@@ -44,7 +43,6 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     };
     private final Service service;
     private ScriptExecutionService executionService;
-//    private UserTranslatorService userTranslatorService;
 
     // TODO add a loadingcache for scripts
 
@@ -56,10 +54,6 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
     }
-
-//    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
-//        this.userTranslatorService = userTranslatorService;
-//    }
 
     public String getResourceId() {
         // service namespace is resourceId
@@ -85,11 +79,6 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
             throw new IllegalArgumentException("resource id mismatch");
         }
 
-        User u = user;
-//        if (userTranslatorService != null && !service.getRealm().equals(user.getRealm())) {
-//            u = userTranslatorService.translate(user, service.getRealm());
-//        }
-
         // fetch claimMapping
         String claimMapping = service.getUserClaimMapping();
         if (!StringUtils.hasText(claimMapping)) {
@@ -102,7 +91,7 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
         }
 
         // translate user, client and scopes to a map
-        Map<String, Serializable> map = buildUserContext(u, client, scopes, exts);
+        Map<String, Serializable> map = buildUserContext(user, client, scopes, exts);
 
         // execute script
         Map<String, Serializable> customClaims = executionService.executeFunction(CLAIM_MAPPING_FUNCTION,

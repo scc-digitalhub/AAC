@@ -69,7 +69,7 @@ public class RoleScopeApprover implements ScopeApprover {
             });
         } else {
             // we look for at least one
-            approved = roles.stream().allMatch(a -> {
+            approved = roles.stream().anyMatch(a -> {
                 return userRoles.stream().anyMatch(c -> matches(c, a));
             });
         }

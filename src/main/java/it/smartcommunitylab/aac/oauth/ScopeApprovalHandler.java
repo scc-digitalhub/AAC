@@ -10,7 +10,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.util.Assert;
@@ -23,7 +22,7 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -35,7 +34,7 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
 
     private final ClientDetailsService clientService;
     private final ScopeRegistry scopeRegistry;
-    private UserTranslatorService userTranslatorService;
+    private UserService userService;
 
     public ScopeApprovalHandler(ScopeRegistry scopeRegistry, ClientDetailsService clientService) {
         Assert.notNull(scopeRegistry, "scope registry is required");
@@ -44,8 +43,8 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
         this.clientService = clientService;
     }
 
-    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
-        this.userTranslatorService = userTranslatorService;
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     @Override
@@ -141,83 +140,83 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
     }
 
     private User translateUser(UserDetails userDetails, String realm) {
-        if (userTranslatorService != null) {
-            return userTranslatorService.translate(userDetails, realm);
+        if (userService != null) {
+            return userService.getUser(userDetails, realm);
         }
 
         return new User(userDetails);
     }
 
-    protected Set<String> validateScopes(OAuth2Authentication authentication, ClientDetails client,
-            Set<String> scopes) {
-
-        if (clientService == null || scopeRegistry == null || userTranslatorService == null) {
-            return scopes;
-        } else {
-            try {
-                // fetch client
-                it.smartcommunitylab.aac.core.ClientDetails clientDetails = clientService
-                        .loadClient(client.getClientId());
-                UserDetails userDetails = null;
-
-                // check if userAuth is present
-                Authentication userAuth = authentication.getUserAuthentication();
-                if (userAuth != null && userAuth instanceof UserAuthenticationToken) {
-                    userDetails = ((UserAuthenticationToken) userAuth).getUser();
-                }
-
-                Set<String> approvedScopes = new HashSet<>();
-
-                for (String s : scopes) {
-                    try {
-                        Scope scope = scopeRegistry.getScope(s);
-                        ScopeApprover sa = scopeRegistry.getScopeApprover(s);
-                        if (sa == null) {
-                            // this scope is undecided so skip
-                            continue;
-                        }
-
-                        Approval approval = null;
-                        if (ScopeType.CLIENT == scope.getType()) {
-                            approval = sa.approveClientScope(s, clientDetails, scopes);
-                        }
-                        if (ScopeType.USER == scope.getType() && userDetails != null) {
-                            approval = sa.approveUserScope(s,
-                                    userTranslatorService.translate(userDetails, sa.getRealm()), clientDetails,
-                                    scopes);
-                        }
-                        if (ScopeType.GENERIC == scope.getType()) {
-                            if (userDetails != null) {
-                                approval = sa.approveUserScope(s,
-                                        userTranslatorService.translate(userDetails, sa.getRealm()),
-                                        clientDetails, scopes);
-                            } else {
-                                approval = sa.approveClientScope(s, clientDetails, scopes);
-                            }
-                        }
-
-                        if (approval != null) {
-                            if (!approval.isApproved()) {
-                                // deny the request
-                                throw new InvalidClientException("Unauthorized client for scope: " + s);
-                            } else {
-                                approvedScopes.add(s);
-                            }
-                        }
-
-                    } catch (NoSuchScopeException | SystemException | InvalidDefinitionException e) {
-                        // ignore
-                    }
-
-                }
-
-                return approvedScopes;
-
-            } catch (NoSuchClientException e) {
-                throw new InvalidClientException("Invalid or unauthorized client");
-            }
-        }
-
-    }
+//    protected Set<String> validateScopes(OAuth2Authentication authentication, ClientDetails client,
+//            Set<String> scopes) {
+//
+//        if (clientService == null || scopeRegistry == null || userService == null) {
+//            return scopes;
+//        } else {
+//            try {
+//                // fetch client
+//                it.smartcommunitylab.aac.core.ClientDetails clientDetails = clientService
+//                        .loadClient(client.getClientId());
+//                UserDetails userDetails = null;
+//
+//                // check if userAuth is present
+//                Authentication userAuth = authentication.getUserAuthentication();
+//                if (userAuth != null && userAuth instanceof UserAuthenticationToken) {
+//                    userDetails = ((UserAuthenticationToken) userAuth).getUser();
+//                }
+//
+//                Set<String> approvedScopes = new HashSet<>();
+//
+//                for (String s : scopes) {
+//                    try {
+//                        Scope scope = scopeRegistry.getScope(s);
+//                        ScopeApprover sa = scopeRegistry.getScopeApprover(s);
+//                        if (sa == null) {
+//                            // this scope is undecided so skip
+//                            continue;
+//                        }
+//
+//                        Approval approval = null;
+//                        if (ScopeType.CLIENT == scope.getType()) {
+//                            approval = sa.approveClientScope(s, clientDetails, scopes);
+//                        }
+//                        if (ScopeType.USER == scope.getType() && userDetails != null) {
+//                            approval = sa.approveUserScope(s,
+//                                    userTranslatorService.translate(userDetails, sa.getRealm()), clientDetails,
+//                                    scopes);
+//                        }
+//                        if (ScopeType.GENERIC == scope.getType()) {
+//                            if (userDetails != null) {
+//                                approval = sa.approveUserScope(s,
+//                                        userTranslatorService.translate(userDetails, sa.getRealm()),
+//                                        clientDetails, scopes);
+//                            } else {
+//                                approval = sa.approveClientScope(s, clientDetails, scopes);
+//                            }
+//                        }
+//
+//                        if (approval != null) {
+//                            if (!approval.isApproved()) {
+//                                // deny the request
+//                                throw new InvalidClientException("Unauthorized client for scope: " + s);
+//                            } else {
+//                                approvedScopes.add(s);
+//                            }
+//                        }
+//
+//                    } catch (NoSuchScopeException | SystemException | InvalidDefinitionException e) {
+//                        // ignore
+//                    }
+//
+//                }
+//
+//                return approvedScopes;
+//
+//            } catch (NoSuchClientException e) {
+//                throw new InvalidClientException("Invalid or unauthorized client");
+//            }
+//        }
+//
+//    }
 
 }

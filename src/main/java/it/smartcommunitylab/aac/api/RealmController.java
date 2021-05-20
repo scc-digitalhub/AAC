@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.AdminRealmsScope;
+import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
+import it.smartcommunitylab.aac.api.scopes.ApiRealmScope;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.model.Realm;
@@ -33,27 +36,31 @@ public class RealmController {
     private RealmManager realmManager;
 
     @GetMapping("")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')  and hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE + "')")
     public Collection<Realm> getRealms(@RequestParam(required = false) String q) {
         return realmManager.searchRealms(q);
     }
 
-    @GetMapping("{slug}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public Realm getRealm(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug) throws NoSuchRealmException {
-        return realmManager.getRealm(slug);
-    }
-
     @PostMapping
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')  and hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE + "')")
     public Realm addRealm(
             @RequestBody @Valid Realm r) {
         return realmManager.addRealm(r);
     }
 
+    @GetMapping("{slug}")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and (hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE
+            + "') or hasAuthority('SCOPE_" + ApiRealmScope.SCOPE + "'))")
+    public Realm getRealm(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug) throws NoSuchRealmException {
+        return realmManager.getRealm(slug);
+    }
+
     @PutMapping("{slug}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and (hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE
+            + "') or hasAuthority('SCOPE_" + ApiRealmScope.SCOPE + "'))")
     public Realm updateRealm(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
             @RequestBody @Valid Realm r) throws NoSuchRealmException {
@@ -61,7 +68,9 @@ public class RealmController {
     }
 
     @DeleteMapping("{slug}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and (hasAuthority('SCOPE_" + AdminRealmsScope.SCOPE
+            + "') or hasAuthority('SCOPE_" + ApiRealmScope.SCOPE + "'))")
     public void deleteRealm(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
             @RequestParam(required = false, defaultValue = "false") boolean cleanup) throws NoSuchRealmException {

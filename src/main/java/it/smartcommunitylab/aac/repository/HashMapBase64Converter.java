@@ -25,7 +25,7 @@ public class HashMapBase64Converter implements AttributeConverter<Map<String, St
             Map<String, String> encoded = map.entrySet().stream()
                     .filter(e -> StringUtils.hasText(e.getValue()))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                        return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
+                        return Base64.getEncoder().encodeToString(e.getValue().getBytes());
                     }));
 
             try {
@@ -49,7 +49,7 @@ public class HashMapBase64Converter implements AttributeConverter<Map<String, St
                 map = encoded.entrySet().stream()
                         .filter(e -> StringUtils.hasText(e.getValue()))
                         .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                            return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                            return new String(Base64.getDecoder().decode(e.getValue()));
                         }));
 
             } catch (final IOException e) {

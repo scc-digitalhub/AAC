@@ -25,10 +25,10 @@
               </div>
               <p class="pl-4 text-monospace text-muted">{{realm.slug}} </p>              
             </li>
-            <li>
+             <li ng-if="(realmAdmin || realmDeveloper)">
               <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.dashboard">Dashboard</a>
             </li>
-            <li ng-if="realmAdmin && !realmImmutable">
+            <li ng-if="(realmAdmin || realmDeveloper) && !realmImmutable">
               <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.apps">Client Applications</a>
             </li>
             <li ng-if="realmAdmin">
@@ -37,7 +37,7 @@
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.providers">Identity Providers</a>
             </li>
-            <li ng-if="realmAdmin">
+            <li ng-if="(realmAdmin || realmDeveloper)">
               <a class="list-item medium" href ui-sref-active="active" ui-sref="realm.services">Custom Services</a>
             </li>
             <li ng-if="realmAdmin && !realmImmutable">

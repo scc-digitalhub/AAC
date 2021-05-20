@@ -1,16 +1,22 @@
 package it.smartcommunitylab.aac.services;
 
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
+import org.springframework.util.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -36,6 +42,7 @@ public class Service {
     @Pattern(regexp = SystemKeys.NAMESPACE_PATTERN)
     private String namespace;
 
+    @JsonIgnore
     private Map<String, String> claimMapping = new HashMap<>();
 
     private Collection<ServiceScope> scopes = Collections.emptyList();
@@ -103,6 +110,29 @@ public class Service {
 
     public void setClaims(Collection<ServiceClaim> claims) {
         this.claims = claims;
+    }
+
+    @JsonProperty("claimMapping")
+    public Map<String, String> getClaimMappingBase64() {
+        if (claimMapping == null) {
+            return null;
+        }
+        return claimMapping.entrySet().stream()
+                .filter(e -> StringUtils.hasText(e.getValue()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                    return Base64.getEncoder().encodeToString(e.getValue().getBytes());
+                }));
+    }
+
+    @JsonProperty("claimMapping")
+    public void setClaimMappingBase64(Map<String, String> claimMapping) {
+        if (claimMapping != null) {
+            this.claimMapping = claimMapping.entrySet().stream()
+                    .filter(e -> StringUtils.hasText(e.getValue()))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
+                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                    }));
+        }
     }
 
     @JsonIgnore

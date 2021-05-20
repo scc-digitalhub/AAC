@@ -24,12 +24,10 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
@@ -49,7 +47,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
 
     private final OAuth2ClientDetailsService clientDetailsService;
     private FlowExtensionsService flowExtensionsService;
-    private UserTranslatorService userTranslatorService;
+    private UserService userService;
     private ScopeRegistry scopeRegistry;
 
     private AuthenticationHelper authenticationHelper = new DefaultSecurityContextAuthenticationHelper();
@@ -71,8 +69,8 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         this.flowExtensionsService = flowExtensionsService;
     }
 
-    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
-        this.userTranslatorService = userTranslatorService;
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     /*
@@ -108,8 +106,8 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
                 OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
                 if (ext != null) {
                     User user = new User(userAuth.getUser());
-                    if (userTranslatorService != null) {
-                        user = userTranslatorService.translate(userAuth.getUser(), clientDetails.getRealm());
+                    if (userService != null) {
+                        user = userService.getUser(userAuth.getUser(), clientDetails.getRealm());
                     }
 
                     Map<String, String> parameters = ext.onBeforeUserApproval(authorizationParameters, user,

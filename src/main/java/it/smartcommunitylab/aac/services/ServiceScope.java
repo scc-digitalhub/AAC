@@ -1,13 +1,16 @@
 package it.smartcommunitylab.aac.services;
 
+import java.util.Base64;
 import java.util.Set;
 
 import javax.validation.Valid;
 
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -24,6 +27,7 @@ public class ServiceScope extends Scope {
     private Set<String> claims;
     private Set<String> approvalRoles;
     private Set<String> approvalSpaceRoles;
+    @JsonIgnore
     private String approvalFunction;
 
     private boolean approvalRequired = false;
@@ -67,6 +71,22 @@ public class ServiceScope extends Scope {
 
     public void setApprovalFunction(String approvalFunction) {
         this.approvalFunction = approvalFunction;
+    }
+
+    @JsonProperty("approvalFunction")
+    public String getApprovalFunctionBase64() {
+        if (approvalFunction == null) {
+            return null;
+        }
+
+        return Base64.getEncoder().encodeToString(approvalFunction.getBytes());
+    }
+
+    @JsonProperty("approvalFunction")
+    public void setApprovalFunctionBase64(String approvalFunction) {
+        if (approvalFunction != null) {
+            this.approvalFunction = new String(Base64.getDecoder().decode(approvalFunction.getBytes()));
+        }
     }
 
     public boolean isApprovalRequired() {

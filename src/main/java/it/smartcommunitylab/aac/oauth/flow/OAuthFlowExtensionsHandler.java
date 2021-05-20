@@ -12,12 +12,9 @@ import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -27,7 +24,7 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
 
     private final FlowExtensionsService flowExtensionsService;
     private final OAuth2ClientDetailsService clientService;
-    private UserTranslatorService userTranslatorService;
+    private UserService userService;
 
     public OAuthFlowExtensionsHandler(FlowExtensionsService flowExtensionsService,
             OAuth2ClientDetailsService clientService) {
@@ -37,8 +34,8 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
         this.clientService = clientService;
     }
 
-    public void setUserTranslatorService(UserTranslatorService userTranslatorService) {
-        this.userTranslatorService = userTranslatorService;
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     @Override
@@ -60,8 +57,8 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
             // check if userAuth is present
             if (userAuth != null && userAuth instanceof UserAuthenticationToken) {
                 userDetails = ((UserAuthenticationToken) userAuth).getUser();
-                if (userTranslatorService != null) {
-                    user = userTranslatorService.translate(userDetails, realm);
+                if (userService != null) {
+                    user = userService.getUser(userDetails, realm);
                 } else {
                     user = new User(userDetails);
                 }

@@ -186,7 +186,7 @@ public class ClientApp {
         return hookFunctions.entrySet().stream()
                 .filter(e -> StringUtils.hasText(e.getValue()))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                    return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
+                    return Base64.getEncoder().encodeToString(e.getValue().getBytes());
                 }));
     }
 

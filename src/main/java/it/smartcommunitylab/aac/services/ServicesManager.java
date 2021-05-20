@@ -34,7 +34,6 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -77,9 +76,6 @@ public class ServicesManager implements InitializingBean {
     @Autowired
     private ScriptExecutionService executionService;
 
-//    @Autowired
-//    private UserTranslatorService userTranslatorService;
-
     private ServiceResourceClaimsExtractorProvider resourceClaimsExtractorProvider;
 
     public ServicesManager() {
@@ -90,7 +86,6 @@ public class ServicesManager implements InitializingBean {
         // build and register the claims extractor
         resourceClaimsExtractorProvider = new ServiceResourceClaimsExtractorProvider(serviceService);
         resourceClaimsExtractorProvider.setExecutionService(executionService);
-//        resourceClaimsExtractorProvider.setUserTranslatorService(userTranslatorService);
 
         extractorsRegistry.registerExtractorProvider(resourceClaimsExtractorProvider);
 
@@ -520,9 +515,9 @@ public class ServicesManager implements InitializingBean {
 
             // add approvers where needed
             for (ServiceScope scs : serviceScopes) {
-                ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), sc);
+                ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), scs);
                 if (approver != null) {
-                    sp.addApprover(sc.getScope(), approver);
+                    sp.addApprover(scs.getScope(), approver);
                 }
             }
 
@@ -599,9 +594,9 @@ public class ServicesManager implements InitializingBean {
 
             // add approvers where needed
             for (ServiceScope scs : serviceScopes) {
-                ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), sc);
+                ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), scs);
                 if (approver != null) {
-                    sp.addApprover(sc.getScope(), approver);
+                    sp.addApprover(scs.getScope(), approver);
                 }
             }
 
@@ -642,6 +637,29 @@ public class ServicesManager implements InitializingBean {
                 Collection<Approval> approvals = approvalStore.findScopeApprovals(scope);
                 approvalStore.revokeApprovals(approvals);
             } catch (Exception e) {
+            }
+
+            // remove
+            serviceService.deleteScope(serviceId, scope);
+
+            // refresh service
+            List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
+            service.setScopes(serviceScopes);
+
+            // build provider
+            if (!serviceScopes.isEmpty()) {
+                ServiceScopeProvider sp = new ServiceScopeProvider(service);
+
+                // add approvers where needed
+                for (ServiceScope scs : serviceScopes) {
+                    ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), scs);
+                    if (approver != null) {
+                        sp.addApprover(scs.getScope(), approver);
+                    }
+                }
+
+                // register
+                scopeRegistry.registerScopeProvider(sp);
             }
 
         }

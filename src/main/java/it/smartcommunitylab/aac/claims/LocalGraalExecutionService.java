@@ -80,13 +80,17 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append("data = ");
             mapper.writeValue(writer, input);
             writer.append(";");
+            writer.append("\n");
             writer.append(function);
             writer.append(";");
+            writer.append("\n");
             writer.append("result = JSON.stringify("
                     + name
                     + "(data))");
 
-            sandbox.eval(writer.toString());
+            
+            String code = writer.toString();
+            sandbox.eval(code);
             String output = (String) sandbox.get("result");
 
             Map<String, Serializable> result = mapper.readValue(output, typeRef);

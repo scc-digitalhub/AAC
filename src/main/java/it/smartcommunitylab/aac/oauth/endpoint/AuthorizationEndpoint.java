@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
@@ -36,6 +38,8 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
 @SessionAttributes({ AuthorizationEndpoint.AUTHORIZATION_REQUEST_ATTR_NAME,
         AuthorizationEndpoint.ORIGINAL_AUTHORIZATION_REQUEST_ATTR_NAME })
 public class AuthorizationEndpoint {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     public static final String AUTHORIZATION_URL = "/oauth/authorize";
 
     static final String AUTHORIZATION_REQUEST_ATTR_NAME = "authorizationRequest";
@@ -99,6 +103,8 @@ public class AuthorizationEndpoint {
 
     @ExceptionHandler(OAuth2Exception.class)
     public ModelAndView handleOAuth2Exception(OAuth2Exception e, ServletWebRequest webRequest) throws Exception {
+        logger.error("error requesting authorization: " + e.getMessage());
+        logger.trace(e.getStackTrace().toString());
         return authEndpoint.handleOAuth2Exception(e, webRequest);
     }
 

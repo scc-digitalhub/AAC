@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.ApiAuditScope;
 import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -29,7 +30,8 @@ public class AuditController {
     private AuditManager auditManager;
 
     @GetMapping("/audit/{realm}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiAuditScope.SCOPE + "')")
     public Collection<RealmAuditEvent> findEvents(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, name = "type") Optional<String> type,

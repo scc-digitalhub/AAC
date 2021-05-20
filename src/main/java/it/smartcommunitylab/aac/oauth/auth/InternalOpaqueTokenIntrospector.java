@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.security.core.Authentication;
@@ -20,13 +22,18 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.ApiScope;
+import it.smartcommunitylab.aac.api.scopes.ApiScopeProvider;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 
 /*
  * A token inspector which resolves by looking via tokenStore.
@@ -38,6 +45,8 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
     private final TokenStore tokenStore;
     private UserEntityService userService;
     private ClientEntityService clientService;
+
+    private ApiScopeProvider apiProvider = new ApiScopeProvider();
 
     public InternalOpaqueTokenIntrospector(
             TokenStore tokenStore) {
@@ -53,6 +62,10 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
         this.clientService = clientService;
     }
 
+    public void setApiProvider(ApiScopeProvider apiProvider) {
+        this.apiProvider = apiProvider;
+    }
+
     public OAuth2AuthenticatedPrincipal introspect(String tokenValue) {
 
         OAuth2AccessToken token = tokenStore.readAccessToken(tokenValue);
@@ -64,13 +77,28 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
             throw new BadOpaqueTokenException("Provided token isn't active");
         }
 
+        // we support only our tokens, we need full info
+        if (!(token instanceof AACOAuth2AccessToken)) {
+            throw new BadOpaqueTokenException("Provided token isn't active");
+        }
+
+        AACOAuth2AccessToken accessToken = (AACOAuth2AccessToken) token;
+        String realm = accessToken.getRealm();
+
         OAuth2Authentication auth = tokenStore.readAuthentication(tokenValue);
         if (auth == null) {
             throw new BadOpaqueTokenException("Provided token isn't active");
         }
 
         try {
-            String principal = auth.getName();
+            // principal is the authorized party, since we can't know who is the token
+            // carrier
+            String principal = accessToken.getAuthorizedParty();
+            if (!StringUtils.hasText(principal)) {
+                // fallback to subject, which is the entity issuing the token
+                principal = accessToken.getSubject();
+            }
+
             Set<GrantedAuthority> authorities = new HashSet<>();
 
             // add scopes as authorities
@@ -78,10 +106,13 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
                 authorities.add(new SimpleGrantedAuthority("SCOPE_" + scope));
             }
 
-            // refresh auth for either user or client
+            // we need a way to discover which authorities are delegated via the token,
+            // for example via scopes. For now we add all roles and use scopes to check
+            // note this is ONLY for core API access, where we explicitly check for scopes
 
             Authentication userAuth = auth.getUserAuthentication();
-            if (userAuth != null) {
+            if (userAuth != null && userAuth.getName().equals(accessToken.getSubject())) {
+                // user grant, if user exists we delegate authorities
                 // we fetch again authorities for the given user
                 String subjectId = userAuth.getName();
                 principal = subjectId;
@@ -103,10 +134,10 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
                     authorities.addAll(userAuth.getAuthorities());
                 }
 
-            } else {
-                // this is a client auth
+            } else if (auth.getName().equals(accessToken.getSubject())
+                    && accessToken.getSubject().equals(accessToken.getAuthorizedParty())) {
+                // self issued, ie client credentials
                 String clientId = auth.getName();
-
                 if (clientService != null) {
                     List<ClientRoleEntity> roles = clientService.getRoles(clientId);
 
@@ -123,11 +154,14 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
                     // use stale info from saved token
                     authorities.addAll(auth.getAuthorities());
                 }
-
             }
 
+            Map<String, Object> params = new HashMap<>();
+            params.put("sub", accessToken.getSubject());
+            params.put("scopes", token.getScope());
+
             return new DefaultOAuth2AuthenticatedPrincipal(
-                    principal, Collections.singletonMap("scopes", token.getScope()), authorities);
+                    principal, params, authorities);
 
         } catch (NoSuchClientException | NoSuchUserException e) {
             throw new BadOpaqueTokenException("Provided token isn't active");
