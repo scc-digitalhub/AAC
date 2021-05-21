@@ -129,6 +129,7 @@ public class Config {
     /* api scopes */
     public static final String SCOPE_ACCOUNT_PROFILE_ALL = "profile.accountprofile.all";
     public static final String SCOPE_BASIC_PROFILE_ALL = "profile.basicprofile.all";
+    public static final String SCOPE_OPENID_PROFILE_ALL = "profile.openid.all";
 
     /** Predefined scope for user creation and management */
     public static final String SCOPE_USERMANAGEMENT = "usermanagement";

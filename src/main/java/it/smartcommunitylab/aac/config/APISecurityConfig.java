@@ -65,7 +65,8 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
                 // TODO remap as /profile/basic etc..
                 new AntPathRequestMatcher("/basicprofile/**"),
                 new AntPathRequestMatcher("/accountprofile/**"),
-                new AntPathRequestMatcher("openidprofile/**"));
+                new AntPathRequestMatcher("/openidprofile/**"),
+                new AntPathRequestMatcher("/userroles/**"));
 
     }
 

@@ -56,6 +56,7 @@ import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.roles.RoleManager;
 
 /**
  * Application controller for user UI: account
@@ -85,6 +86,9 @@ public class UserAccountController {
 
     @Autowired
     private ProviderManager providerManager;
+    
+    @Autowired
+    private RoleManager roleManager;
 
     // TODO MANAGE accounts: add/merge, delete
 
@@ -114,7 +118,7 @@ public class UserAccountController {
     }
     @GetMapping("/account/profile/roles")
     public ResponseEntity<Collection<SpaceRole>> mySpaceRoles() throws InvalidDefinitionException, NoSuchUserException, NoSuchRealmException {
-        return ResponseEntity.ok(userManager.getMyRoles());
+        return ResponseEntity.ok(roleManager.curUserRoles());
 
     }
 

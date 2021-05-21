@@ -83,6 +83,7 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.RoleManager;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.Service;
@@ -112,7 +113,9 @@ public class DevController {
     private ServicesManager serviceManager;
     @Autowired
     private AuditManager auditManager;
-
+    @Autowired
+    private RoleManager roleManager;
+    
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
@@ -1019,7 +1022,7 @@ public class DevController {
         if (invalidOwner(context, space)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(userManager.getContextRoles(context, space, q, pageRequest));
+        return ResponseEntity.ok(roleManager.getContextRoles(context, space, q, pageRequest));
     }
 
     @PostMapping("/console/dev/rolespaces/users")
@@ -1028,13 +1031,13 @@ public class DevController {
         if (invalidOwner(roles.getContext(), roles.getSpace())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(userManager.saveContextRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
+        return ResponseEntity.ok(roleManager.saveContextRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
                 roles.getRoles()));
     }
 
     private boolean invalidOwner(String context, String space) throws NoSuchUserException, NoSuchRealmException {
         // current user should be owner of the space or of the parent
-        Collection<SpaceRole> myRoles = userManager.getMyRoles();
+        Collection<SpaceRole> myRoles = roleManager.curUserRoles();
         SpaceRole spaceOwner = new SpaceRole(context, space, Config.R_PROVIDER);
         SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
         return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));

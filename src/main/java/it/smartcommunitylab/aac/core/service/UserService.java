@@ -259,15 +259,16 @@ public class UserService {
     }
 
     /**
-	 * @param realm
-	 * @return
-	 */
-	public Long countUsers(String realm) {
-		// TODO Auto-generated method stub
-		return userService.countUsers(realm);
-	}
-	protected List<User> convertUsers(String realm, List<UserEntity> users) {
-		List<User> realmUsers = users.stream()
+     * @param realm
+     * @return
+     */
+    public Long countUsers(String realm) {
+        // TODO Auto-generated method stub
+        return userService.countUsers(realm);
+    }
+
+    protected List<User> convertUsers(String realm, List<UserEntity> users) {
+        List<User> realmUsers = users.stream()
                 .map(u -> {
                     try {
                         return getUser(u.getUuid(), realm);
@@ -283,20 +284,20 @@ public class UserService {
 
         // TODO translate resulting users
         return realmUsers;
-	}
+    }
 
+    /**
+     * Update realm roles for the specified user
+     * 
+     * @param slug
+     * @param subjectId
+     * @param roles
+     * @throws NoSuchUserException
+     */
+    public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
+        userService.updateRoles(subjectId, slug, roles);
+    }
 
-	/**
-	 * Update realm roles for the specified user
-	 * @param slug
-	 * @param subjectId
-	 * @param roles
-	 * @throws NoSuchUserException 
-	 */
-	public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
-		userService.updateRoles(subjectId, slug, roles);
-	}
-	
     /**
      * Remove a user from the given realm
      *
@@ -318,8 +319,8 @@ public class UserService {
         } else {
             // fetch accessible
             // TODO decide policy + implement
-        	// CURRENTLY ONLY DROP REALM ROLES
-        	updateRealmAuthorities(realm, subjectId, Collections.emptyList());
+            // CURRENTLY ONLY DROP REALM ROLES
+            updateRealmAuthorities(realm, subjectId, Collections.emptyList());
         }
 
     }
@@ -389,61 +390,18 @@ public class UserService {
         return roleService.getRoles(subjectId);
     }
 
-	/**
-	 * @param realm
-	 * @param keywords
-	 * @param pageRequest
-	 * @return
-	 */
-	public Page<User> searchUsers(String realm, String q, Pageable pageRequest) {
-		Page<UserEntity> page = userService.searchUsers(realm, q, pageRequest);
+    /**
+     * @param realm
+     * @param keywords
+     * @param pageRequest
+     * @return
+     */
+    public Page<User> searchUsers(String realm, String q, Pageable pageRequest) {
+        Page<UserEntity> page = userService.searchUsers(realm, q, pageRequest);
         return PageableExecutionUtils.getPage(
-        		convertUsers(realm, page.getContent()),
+                convertUsers(realm, page.getContent()),
                 pageRequest,
                 () -> page.getTotalElements());
-	}
-
-	/**
-	 * @param realm
-	 * @param subjectId
-	 * @return
-	 * @throws NoSuchUserException 
-	 */
-	public Collection<SpaceRole> getUserRoles(String realm, String subjectId) throws NoSuchUserException {
-		return fetchUserSpaceRoles(subjectId, realm);
-	}
-
-	/**
-	 * @param context
-	 * @param space
-	 * @param q
-	 * @param pageRequest
-	 * @return
-	 */
-	public Page<SpaceRoles> getContextRoles(String context, String space, String q, Pageable pageRequest) {
-		return roleService.getContextRoles(context, space, q, pageRequest);
-	}
-
-	/**
-	 * @param subject
-	 * @param context
-	 * @param space
-	 * @param roles
-	 * @return
-	 */
-	public SpaceRoles saveContextRoles(String subject, String context, String space, List<String> roles) {
-		Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r)).collect(Collectors.toList());
-		
-		Set<SpaceRole> oldRoles = roleService.getRoles(subject, context, space);
-		roleService.removeRoles(subject, oldRoles);
-		roleService.addRoles(subject, spaceRoles);
-		
-		SpaceRoles res = new SpaceRoles();
-		res.setSubject(subject);
-		res.setSpace(space);
-		res.setContext(space);
-		res.setRoles(roles);
-		return res;
-	}
+    }
 
 }

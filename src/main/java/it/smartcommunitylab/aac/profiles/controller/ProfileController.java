@@ -49,6 +49,7 @@ import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiAuditScope;
+import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -178,6 +179,9 @@ public class ProfileController {
      * Api operations
      */
     @ApiOperation(value = "Get basic profile of a user")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE_ALL
+            + "')")
     @GetMapping(value = "/api/profiles/{realm}/basicprofile/{userId}")
     public @ResponseBody BasicProfile getBasicProfile(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -187,6 +191,9 @@ public class ProfileController {
     }
 
     @ApiOperation(value = "Get openid profile of a user")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_OPENID_PROFILE_ALL
+            + "')")
     @GetMapping(value = "/api/profiles/{realm}/openidprofile/{userId}")
     public @ResponseBody OpenIdProfile getOpenIdProfile(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -196,6 +203,9 @@ public class ProfileController {
     }
 
     @ApiOperation(value = "Get account profiles of a user")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE_ALL
+            + "')")
     @GetMapping(value = "/api/profiles/{realm}/accountprofile/{userId}")
     public @ResponseBody Collection<AccountProfile> getAccountProfiles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

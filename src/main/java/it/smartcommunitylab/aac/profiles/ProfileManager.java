@@ -45,8 +45,6 @@ public class ProfileManager {
 
     /*
      * Users from db
-     * 
-     * TODO add authorization
      */
 
     public BasicProfile getBasicProfile(String realm, String subjectId)

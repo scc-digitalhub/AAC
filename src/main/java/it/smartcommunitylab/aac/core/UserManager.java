@@ -484,44 +484,44 @@ public class UserManager {
 
     }
 
-	/**
-	 * @param subjectId
-	 * @return
-	 * @throws NoSuchUserException 
-	 * @throws NoSuchRealmException 
-	 */
-	public Collection<SpaceRole> getMyRoles() throws NoSuchUserException, NoSuchRealmException {
-        UserDetails user = authHelper.getUserDetails();
-        if (user == null) {
-        	throw new NoSuchUserException();
-        }
-        Collection<SpaceRole> roles = new HashSet<>(userService.getUserRoles(user.getRealm(), user.getSubjectId()));
-        if (user.isSystemAdmin()) {
-        	roles.add(new SpaceRole(null, null, Config.R_PROVIDER));
-        }
-        return roles;
-	}
+//	/**
+//	 * @param subjectId
+//	 * @return
+//	 * @throws NoSuchUserException 
+//	 * @throws NoSuchRealmException 
+//	 */
+//	public Collection<SpaceRole> getMyRoles() throws NoSuchUserException, NoSuchRealmException {
+//        UserDetails user = authHelper.getUserDetails();
+//        if (user == null) {
+//        	throw new NoSuchUserException();
+//        }
+//        Collection<SpaceRole> roles = new HashSet<>(userService.getUserRoles(user.getRealm(), user.getSubjectId()));
+//        if (user.isSystemAdmin()) {
+//        	roles.add(new SpaceRole(null, null, Config.R_PROVIDER));
+//        }
+//        return roles;
+//	}
 
-	/**
-	 * @param context
-	 * @param q
-	 * @param pageRequest
-	 * @return
-	 */
-	public Page<SpaceRoles> getContextRoles(String context, String space, String q, Pageable pageRequest) {
-		return userService.getContextRoles(context, space, q, pageRequest);
-	}
-
-	/**
-	 * @param subject
-	 * @param context
-	 * @param space
-	 * @param roles
-	 * @return
-	 */
-	public SpaceRoles saveContextRoles(String subject, String context, String space, List<String> roles) {
-		return userService.saveContextRoles(subject, context, space, roles);
-	}
+//	/**
+//	 * @param context
+//	 * @param q
+//	 * @param pageRequest
+//	 * @return
+//	 */
+//	public Page<SpaceRoles> getContextRoles(String context, String space, String q, Pageable pageRequest) {
+//		return userService.getContextRoles(context, space, q, pageRequest);
+//	}
+//
+//	/**
+//	 * @param subject
+//	 * @param context
+//	 * @param space
+//	 * @param roles
+//	 * @return
+//	 */
+//	public SpaceRoles saveContextRoles(String subject, String context, String space, List<String> roles) {
+//		return userService.saveContextRoles(subject, context, space, roles);
+//	}
 
 
 

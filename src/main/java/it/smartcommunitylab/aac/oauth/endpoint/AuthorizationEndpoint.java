@@ -29,6 +29,7 @@ import org.springframework.web.servlet.View;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 
 /*
  * Implementation of AuthorizationEndpoint based on spring-security-oauth2.
@@ -51,6 +52,9 @@ public class AuthorizationEndpoint {
 
     @Autowired
     private org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint authEndpoint;
+
+    @Autowired
+    private OAuth2EventPublisher eventPublisher;
 
     @RequestMapping(value = {
             AUTHORIZATION_URL,
@@ -97,7 +101,12 @@ public class AuthorizationEndpoint {
     }
 
     @ExceptionHandler(ClientRegistrationException.class)
-    public ModelAndView handleClientRegistrationException(Exception e, ServletWebRequest webRequest) throws Exception {
+    public ModelAndView handleClientRegistrationException(ClientRegistrationException e, ServletWebRequest webRequest)
+            throws Exception {
+//        if (eventPublisher != null) {
+//            eventPublisher.publishOAuth2Exception(new BadClientCredentialsException(), authHelper.getAuthentication());
+//        }
+
         return authEndpoint.handleClientRegistrationException(e, webRequest);
     }
 
@@ -105,6 +114,9 @@ public class AuthorizationEndpoint {
     public ModelAndView handleOAuth2Exception(OAuth2Exception e, ServletWebRequest webRequest) throws Exception {
         logger.error("error requesting authorization: " + e.getMessage());
         logger.trace(e.getStackTrace().toString());
+//        if (eventPublisher != null) {
+//            eventPublisher.publishOAuth2Exception(e, null);
+//        }
         return authEndpoint.handleOAuth2Exception(e, webRequest);
     }
 

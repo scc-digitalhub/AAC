@@ -18,11 +18,13 @@ import org.springframework.security.authentication.event.AbstractAuthenticationE
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.event.OAuth2Event;
+import it.smartcommunitylab.aac.oauth.event.OAuth2ExceptionEvent;
 import it.smartcommunitylab.aac.oauth.event.TokenGrantEvent;
 
 public class OAuth2EventListener
@@ -30,7 +32,7 @@ public class OAuth2EventListener
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public static final String TOKEN_GRANT = "TOKEN_GRANT";
+    public static final String TOKEN_GRANT = "OAUTH2_TOKEN_GRANT";
 
     private ApplicationEventPublisher publisher;
 
@@ -46,6 +48,42 @@ public class OAuth2EventListener
     public void onApplicationEvent(OAuth2Event event) {
         if (event instanceof TokenGrantEvent) {
             onTokenGrantEvent((TokenGrantEvent) event);
+        } else if (event instanceof OAuth2ExceptionEvent) {
+            onExceptionEvent((OAuth2ExceptionEvent) event);
+        }
+
+    }
+
+    private void onExceptionEvent(OAuth2ExceptionEvent event) {
+        logger.debug("exception event " + event.toString());
+
+        OAuth2Exception exception = (OAuth2Exception) event.getException();
+        OAuth2Authentication auth = event.getAuthentication();
+
+        String principal = auth != null ? auth.getName() : "";
+        String realm = event.getRealm();
+
+        String errorCode = exception.getOAuth2ErrorCode();
+        String type = "OAUTH2_" + errorCode.toUpperCase();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("error", errorCode);
+        data.put("summary", exception.getSummary());
+        data.put("message", exception.getMessage());
+        data.put("info", exception.getAdditionalInformation());
+
+        AuditEvent audit = null;
+
+        // build audit
+        if (StringUtils.hasText(realm)) {
+            audit = new RealmAuditEvent(realm, Instant.now(), principal, type, data);
+        } else {
+            audit = new AuditEvent(Instant.now(), principal, type, data);
+        }
+
+        if (audit != null) {
+            // publish as event, listener will persist to store
+            publish(audit);
         }
 
     }

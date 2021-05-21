@@ -13,6 +13,7 @@ import org.springframework.security.authentication.event.AbstractAuthenticationF
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
@@ -71,7 +72,7 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
         AuthenticationException ex = event.getException();
         Authentication auth = event.getAuthentication();
-        String principal = auth.getName();
+        String principal = "";
         Object details = auth.getDetails();
         String eventType = AUTHENTICATION_FAILURE;
 
@@ -89,6 +90,13 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
             ClientAuthenticationToken token = (ClientAuthenticationToken) auth;
             eventType = CLIENT_AUTHENTICATION_FAILURE;
             details = token.getWebAuthenticationDetails();
+        }
+
+        if (auth instanceof BearerTokenAuthenticationToken) {
+            // principal is token, we ignore for now
+            // we could store in data to support reuse detection etc
+            // but JWT are large (>4k) and expensive
+            principal = "";
         }
 
         // build data
