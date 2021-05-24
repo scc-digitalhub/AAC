@@ -2,6 +2,7 @@
   <div class="row mb-3">
     <div class="col col-md-6 p-3">
       <h3>Services</h3>
+      <p>Register and manage custom services for APIs.</p>
     </div>
     <div class="col col-md-6 text-right">
       <button class="btn btn-primary text-right" type="button" ng-click="newService()">
@@ -15,9 +16,13 @@
   <div  ng-if="services && services.length > 0">
     <table class="table table-hover border-bottom">
       <tr ng-repeat="service in services"  >
-        <td class="align-middle"><strong>{{service.name}}</strong> <br>{{service.namespace}}<br> <span class="small">{{service.description}}</span></td>
+       <td class="align-middle">
+         <span class="h6">{{service.name}}</span> 
+         <br> <small class="text-muted"> {{service.namespace}} </small>
+         <p>{{service.description}}</p>
+       </td>
        <td class="text-right">
-         <button class="btn btn-success btn-sm" ng-click="serviceApprovals(service)">Approvals</button>
+         <button class="btn btn-secondary btn-sm" ng-click="serviceApprovals(service)">Approvals</button>
          <button class="btn btn-primary btn-sm" ng-click="switchService(service)">Details</button>
        </td>
       </tr>    
@@ -43,8 +48,9 @@
           <div class="modal-body">
               <form name="importServiceForm" enctype="multipart/form-data" class="needs-validation was-validated"
                   novalidate>
+                  <p>Upload a valid YAML file with the full custom service definition.</p>                        
+                  
                   <div class="form-group col pt-4 mb-2">
-
                       <label for="file">File*</label>
                       <input type="file" name="file" class="form-control form-control-sm upload" id="file"
                           file-model="importFile" required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />

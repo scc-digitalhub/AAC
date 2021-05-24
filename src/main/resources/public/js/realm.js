@@ -7,38 +7,95 @@ angular.module('aac.controllers.realm', [])
     var slug = $stateParams.realmId;
     var toDashboard = false;
 
+
+    var init = function () {
+      RealmData.getMyRealms()
+        .then(function (data) {
+          $scope.realms = data;
+          if (!slug) {
+            var stored = localStorage.getItem('realm') || null;
+            var idx = stored ? data.findIndex(r => r.slug == slug) : 0;
+            if (idx < 0) idx = 0;
+            slug = data[idx].slug;
+            toDashboard = true;
+          }
+
+          return data;
+        })
+        .then(function (realms) {
+          RealmData.getRealm(slug)
+            .then(function (data) {
+              $scope.load(data);
+            });
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load realms: ' + err.data.message);
+        });
+    }
+
     $scope.selectRealm = function (r) {
       localStorage.setItem('realm', r.slug);
       $scope.realm = r;
       $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
     }
 
-    RealmData.getMyRealms()
-      .then(function (data) {
-        $scope.realms = data;
-        if (!slug) {
-          var stored = localStorage.getItem('realm') || null;
-          var idx = stored ? data.findIndex(r => r.slug == slug) : 0;
-          if (idx < 0) idx = 0;
-          slug = data[idx].slug;
-          toDashboard = true;
-        }
-        RealmData.getRealm(slug)
-          .then(function (data) {
-            $scope.realm = data;
-            // global admin or realm admin
-            $scope.realmAdmin = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN' }) >= 0;
-            // realm admin or developer
-            $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER' }) >= 0 || $scope.realmAdmin;
-            $scope.realmImmutable = $scope.realm.slug == 'system' || data.slug == '';
-            if (toDashboard) {
-              $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
-            }
-          });
-      })
-      .catch(function (err) {
-        Utils.showError('Failed to load realms: ' + err.data.message);
-      });
+    $scope.load = function (data) {
+      $scope.realm = data;
+      // global admin or realm admin
+      $scope.realmAdmin = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN' }) >= 0;
+      // realm admin or developer
+      $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER' }) >= 0 || $scope.realmAdmin;
+      $scope.realmImmutable = $scope.realm.slug == 'system' || data.slug == '';
+      if (toDashboard) {
+        $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
+      }
+    }
+
+    $scope.refresh = function () {
+      RealmData.getMyRealms()
+        .then(function (data) {
+          $scope.realms = data;
+          return data;
+        })
+        .then(function (realms) {
+          RealmData.getRealm(slug)
+            .then(function (data) {
+              $scope.load(data);
+            });
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load realms: ' + err.data.message);
+        });
+    }
+
+   init();
+
+    // RealmData.getMyRealms()
+    //   .then(function (data) {
+    //     $scope.realms = data;
+    //     if (!slug) {
+    //       var stored = localStorage.getItem('realm') || null;
+    //       var idx = stored ? data.findIndex(r => r.slug == slug) : 0;
+    //       if (idx < 0) idx = 0;
+    //       slug = data[idx].slug;
+    //       toDashboard = true;
+    //     }
+    //     RealmData.getRealm(slug)
+    //       .then(function (data) {
+    //         $scope.realm = data;
+    //         // global admin or realm admin
+    //         $scope.realmAdmin = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN' }) >= 0;
+    //         // realm admin or developer
+    //         $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER' }) >= 0 || $scope.realmAdmin;
+    //         $scope.realmImmutable = $scope.realm.slug == 'system' || data.slug == '';
+    //         if (toDashboard) {
+    //           $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
+    //         }
+    //       });
+    //   })
+    //   .catch(function (err) {
+    //     Utils.showError('Failed to load realms: ' + err.data.message);
+    //   });
   })
 
   .controller('RealmDashboardController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
@@ -361,4 +418,49 @@ angular.module('aac.controllers.realm', [])
     };
 
     init();
-  });
+  })
+
+  .controller('RealmSettingsController', function ($scope, $stateParams, RealmData, Utils) {
+    var slug = $stateParams.realmId;
+
+
+    var init = function () {
+      RealmData.getRealm(slug)
+        .then(function (data) {
+          $scope.load(data);
+          return data;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load realm : ' + err.data.message);
+        });
+    };
+
+    $scope.load = function (data) {
+      $scope.realmSettings = data;
+      Utils.refreshFormBS(300);
+    };
+
+    $scope.saveRealmSettings = function () {
+      var data = $scope.realmSettings;
+
+      RealmData.updateRealm($scope.realm.slug, data)
+        .then(function (res) {
+          $scope.load(res);
+          $scope['$parent'].refresh();
+          Utils.showSuccess();
+        })
+        .catch(function (err) {
+          Utils.showError(err.data.message);
+        });
+
+    }
+
+    $scope.exportRealm = function () {
+      window.open('console/dev/realms/' + $scope.realm.slug + '/export');
+    };
+
+    init();
+  })
+
+
+  ;

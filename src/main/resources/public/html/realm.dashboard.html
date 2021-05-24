@@ -1,20 +1,138 @@
 <div class="pb-3 pt-3">
-  <div class="row mb-3">
-    <div class="col col-md-6 p-3">
-      <h3>{{stats.realm.name}}</h3>
-    </div>
-  </div>
-  
-  <div class="row mb-3">
-     <div class="col">Number of client applications: <span class="font-weight-bold">{{stats.apps}}</span></div>
-  </div>
-  <div class="row mb-3">
-     <div class="col">Number of users: <span class="font-weight-bold">{{stats.users}}</span></div>
-  </div>
-  <div class="row mb-3">
-     <div class="col">Number of Identity Providers: <span class="font-weight-bold">{{stats.providers}}</span></div>
-  </div>
-  <div class="row mb-3">
-     <div class="col">Number of Custom Services: <span class="font-weight-bold">{{stats.services}}</span></div>
-  </div>
+   <div class="row mb-3">
+      <div class="col col-md-6 mt-3">
+         <h2>{{stats.realm.name}}</h2>
+         <p class="text-muted">{{stats.realm.slug}} ({{stats.realm.public ? 'public realm' : 'private realm'}})</p>
+         <p>{{stats.realm.description}}</p>
+      </div>
+   </div>
+
+   <div class="row">
+      <div class="col-md-3">
+         <div class="card-wrapper card-space">
+            <div class="card  card-bg  border-bottom-card">
+               <div class="card-body px-5 pt-3 pb-2">
+                  <div class="categoryicon-top mb-2">
+                     <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                        <use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use>
+                     </svg> <span class="text">Apps</span>
+                  </div>
+                  <h5 class=" h1">{{stats.apps}}</h5>
+                  <p class="small mb-2">Number of client applications</p>
+                  <a class="read-more" href ui-sref-active="active" ui-sref="realm.apps">Manage »</a>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="col-md-3" ng-if="realmAdmin">
+         <div class="card-wrapper card-space">
+            <div class="card  card-bg  border-bottom-card">
+               <div class="card-body px-5 pt-3 pb-2">
+                  <div class="categoryicon-top mb-2">
+                     <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                        <use xlink:href="./italia/svg/sprite.svg#it-user"></use>
+                     </svg> <span class="text">Users</span>
+                  </div>
+                  <h5 class=" h1">{{stats.users}}</h5>
+                  <p class="small mb-2">Number of users</p>
+                  <a class="read-more" href ui-sref-active="active" ui-sref="realm.users">Manage »</a>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div class="col-md-3" ng-if="realmAdmin">
+         <div class="card-wrapper card-space">
+            <div class="card  card-bg  border-bottom-card">
+               <div class="card-body px-5 pt-3 pb-2">
+                  <div class="categoryicon-top mb-2">
+                     <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                        <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                     </svg> <span class="text">IdP</span>
+                  </div>
+                  <h5 class=" h1">{{stats.providersActive}}/{{stats.providers}}</h5>
+                  <p class="small mb-2">Number of (active) providers</p>
+                  <a class="read-more" href ui-sref-active="active" ui-sref="realm.providers">Manage »</a>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+      <div class="col-md-3">
+         <div class="card-wrapper card-space">
+            <div class="card  card-bg  border-bottom-card">
+               <div class="card-body px-5 pt-3 pb-2">
+                  <div class="categoryicon-top mb-2">
+                     <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                        <use xlink:href="./italia/svg/sprite.svg#it-plug"></use>
+                     </svg> <span class="text">APIs</span>
+                  </div>
+                  <h5 class=" h1">{{stats.services}}</h5>
+                  <p class="small mb-2">Number of custom services</p>
+                  <a class="read-more" href ui-sref-active="active" ui-sref="realm.services">Manage »</a>
+               </div>
+            </div>
+         </div>
+      </div>
+
+
+   </div>
+
+   <div class="row mb-3" ng-if="realmAdmin">
+      <div class="col-md-12" >
+         <div class="card-wrapper card-space">
+            <div class="card">
+               <div class="card-body px-5">
+                  <div class="categoryicon-top mb-2">
+                     <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                        <use xlink:href="./italia/svg/sprite.svg#it-note"></use>
+                     </svg> <span class="text">Audit</span>
+                  </div>
+                  
+                  
+                  <div class="row mb-3">
+                     <div class="col-md-4">
+                        <h5 class=" h1">{{stats.loginCount}}</h5>
+                        <p class="small mb-2">User login events over the last 7 days</p>              
+                     </div>
+                     <div class="col-md-8">
+                        <h5>Last logins</h5>
+                        <p ng-if="!stats.loginEvents || stats.loginEvents.length == 0"> No events</p>
+                        <table class="table" ng-if="stats.loginEvents && stats.loginEvents.length > 0">
+                           <tr ng-repeat="item in stats.loginEvents">
+                               <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}</td>
+                               <td class="align-middle">{{item.principal}}</td>
+                           </tr>
+                       </table>                  
+                     </div>
+                  </div>
+
+                  <div class="row mb-3 mt-4">
+                     <div class="col-md-4">
+                        <h5 class=" h1">{{stats.registrationCount}}</h5>
+                        <p class="small mb-2">User registration events over the last 7 days</p>              
+                     </div>
+                     <div class="col-md-8">
+                        <h5>Last registrations</h5>
+                        <p ng-if="!stats.registrationEvents || stats.registrationEvents.length == 0"> No events</p>                        
+                        <table class="table" ng-if="stats.registrationEvents && stats.registrationEvents.length > 0">
+                           <tr ng-repeat="item in stats.registrationEvents">
+                               <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}</td>
+                               <td class="align-middle">{{item.principal}}</td>
+                           </tr>
+                       </table>                  
+                     </div>
+                  </div>
+
+                  <a class="read-more" href ui-sref-active="active" ui-sref="realm.audit">View »</a>   
+               </div>
+            </div>
+         </div>
+      </div>
+   
+   </div>
+   
+
 </div>

@@ -81,6 +81,12 @@ angular.module('aac.controllers.realmapps', [])
             });
         }
 
+        raService.getOAuth2Metadata = function (slug, clientId) {
+            return $http.get('console/dev/realms/' + slug + '/well-known/oauth2').then(function (data) {
+                return data.data;
+            });
+        }
+
         return raService;
 
     })
@@ -650,6 +656,194 @@ angular.module('aac.controllers.realmapps', [])
                 $scope.claimMapping.errors = [err.data.message];
             });
         }
+
+
+        init();
+    })
+    .controller('RealmAppStartController', function ($scope, $stateParams, $state, RealmAppsData, Utils) {
+        var slug = $stateParams.realmId;
+        var clientId = $stateParams.clientId;
+        $scope.clientView = '';
+
+        $scope.aceOption = {
+            mode: 'javascript',
+            theme: 'monokai',
+            showGutter: false,
+            maxLines: 30,
+            minLines: 6
+        };
+
+
+        /**
+       * Initialize the app: load list of apps
+       */
+        var init = function () {
+            RealmAppsData.getOAuth2Metadata(slug, clientId)
+                .then(function (metadata) {
+                    $scope.oauth2Metadata = metadata;
+                })
+                .then(function () {
+                    return RealmAppsData.getClientApp(slug, clientId);
+                })
+                .then(function (data) {
+                    $scope.load(data);                   
+                    return data;
+                })
+                .then(function (data) {
+                  var quickstarters = [];
+                    if (data.type == 'oauth2') {
+                        
+                     
+                        var oauth2Tokens = {};
+
+                        $scope.oauth2GrantTypes.forEach(function (gt) {
+                           quickstarters.push(
+                              {
+                                 'key': 'oauth2.'+gt,
+                                 'name': gt
+                              }
+                              );
+                            if ("authorization_code" == gt || "implicit" == gt || "client_credentials" == gt) {
+                                oauth2Tokens[gt] = {
+                                    token: null
+                                }
+                            }
+                        });
+
+                        $scope.oauth2Tokens = oauth2Tokens;
+                    }
+                    $scope.quickstart = {
+                     'name': '',
+                     'view': ''
+                  };
+                    $scope.quickstarters = quickstarters;
+
+return data;
+                })
+                .then(function (data) {
+                  $scope.clientView = 'quickstart.' + data.type;
+                  $scope.reloadQuickstart();
+               })
+                .catch(function (err) {
+                    Utils.showError('Failed to load realm client app: ' + err.data.message);
+                });
+
+
+        };
+
+        $scope.load = function (data) {
+            //set
+            $scope.app = data;
+            $scope.appname = data.name;
+
+            // process scopes scopes
+            var scopes = [];
+            if (data.scopes) {
+                data.scopes.forEach(function (s) {
+                    scopes.push({ 'text': s });
+                });
+            }
+            $scope.appScopes = scopes;
+
+            if (data.type == 'oauth2') {
+                $scope.initConfiguration(data.type, data.configuration, data.schema);
+            }
+
+            return;
+        }
+
+        $scope.initConfiguration = function (type, config, schema) {
+
+            if (type === 'oauth2') {
+                // grantTypes
+                var grantTypes = [];
+                if (config.authorizedGrantTypes) {
+                    config.authorizedGrantTypes.forEach(function (gt) {
+                        if (!!gt) {
+                            grantTypes.push(gt);
+                        }
+                    });
+                }
+                $scope.oauth2GrantTypes = grantTypes;
+                console.log($scope.oauth2GrantTypes)
+     
+                // authMethods
+                $scope.oauth2AuthenticationMethods = config.authenticationMethods;
+
+                // redirects
+                var redirectUris = [];
+                if (config.redirectUris) {
+                    config.redirectUris.forEach(function (u) {
+                        if (u && u.trim()) {
+                            redirectUris.push({ 'text': u });
+                        }
+                    });
+                }
+                $scope.oauth2RedirectUris = redirectUris;
+
+            }
+
+
+        }
+
+
+
+
+        $scope.activeClientView = function (view) {
+            return view == $scope.clientView ? 'active' : '';
+        };
+
+        $scope.switchClientView = function (view) {
+         console.log("switch to "+view)
+            $scope.clientView = view;
+            Utils.refreshFormBS(300);
+        }
+
+
+
+        $scope.reloadQuickstart = function () {
+            if (!!$scope.quickstart.view) {
+                $scope.quickstartView = $scope.quickstart.view;
+            } else {
+                $scope.quickstartView = null;
+            }
+            $scope.curStep = 1;
+        }
+        
+        $scope.prevStep = function() {
+            $scope.curStep--; 
+        }
+         $scope.nextStep = function() {
+            $scope.curStep++; 
+        }
+     $scope.setStep = function(s) {
+            $scope.curStep = s; 
+        }        
+
+        $scope.copyText = function (txt) {
+            var textField = document.createElement('textarea');
+            textField.innerText = txt;
+            document.body.appendChild(textField);
+            textField.select();
+            document.execCommand('copy');
+            textField.remove();
+        }
+
+        $scope.testOAuth2ClientApp = function (grantType) {
+
+            if (!$scope.app.type == 'oauth2') {
+                Utils.showError("invalid app type");
+                return;
+            }
+
+            RealmAppsData.testOAuth2ClientApp($scope.realm.slug, $scope.app.clientId, grantType).then(function (token) {
+                $scope.oauth2Tokens[grantType].token = token.access_token;
+            }).catch(function (err) {
+                Utils.showError(err.data.message);
+            });
+        }
+
+
 
 
         init();

@@ -2,6 +2,7 @@
   <div class="row mb-3">
     <div class="col col-md-6 p-3">
       <h3>Users</h3>
+      <p>View and manage user and roles</p>
     </div>
     <div class="col col-md-6 text-right">
       <button class="btn btn-primary text-right" type="button" ng-click="inviteUser()">
@@ -25,7 +26,7 @@
         <td class="align-middle">{{item.username}}</td>
         <td class="align-middle small"><div ng-repeat="a in item._authorities">{{a}}</div></td>        
   	    <td class="text-right">
-         <button class="btn btn-success btn-sm"  ng-click="editRoles(item)">Roles</button>
+         <button class="btn btn-secondary btn-sm"  ng-click="editRoles(item)">Roles</button>
   	     <button class="btn btn-danger btn-sm"  ng-click="deleteUserDlg(item)">Delete</button>
   	    </td>
 	    </tr>

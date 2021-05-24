@@ -16,14 +16,27 @@ public class AuditManager {
     @Autowired
     private AuditEventStore auditStore;
 
-    public List<RealmAuditEvent> listRealmEvents(String realm, String type, Date after, Date before) {
+    public long countRealmEvents(String realm, String type, Date after, Date before) {
+        Instant a = after == null ? null : after.toInstant();
+        Instant b = before == null ? null : before.toInstant();
+
+        return auditStore.countByRealm(realm, a, b, type);
+    }
+
+    public long countPrincipalEvents(String principal, String type, Date after, Date before) {
+        Instant a = after == null ? null : after.toInstant();
+        Instant b = before == null ? null : before.toInstant();
+        return auditStore.countByPrincipal(principal, a, b, type);
+    }
+
+    public List<RealmAuditEvent> findRealmEvents(String realm, String type, Date after, Date before) {
         Instant a = after == null ? null : after.toInstant();
         Instant b = before == null ? null : before.toInstant();
 
         return auditStore.findByRealm(realm, a, b, type);
     }
 
-    public List<AuditEvent> listPrincipalEvents(String principal, String type, Date after, Date before) {
+    public List<AuditEvent> findPrincipalEvents(String principal, String type, Date after, Date before) {
         Instant a = after == null ? null : after.toInstant();
         Instant b = before == null ? null : before.toInstant();
         return auditStore.findByPrincipal(principal, a, b, type);

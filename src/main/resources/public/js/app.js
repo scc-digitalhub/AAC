@@ -76,6 +76,11 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/realm.app.html',
             controller: 'RealmAppController',
         })
+        .state('realm.appstart', {
+            url: '/app.start?clientId',
+            templateUrl: 'html/realm.app.start.html',
+            controller: 'RealmAppStartController',
+        })        
         .state('realm.services', {
             url: '/services',
             templateUrl: 'html/realm.services.html',
@@ -101,6 +106,11 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/realm.audit.html',
             controller: 'RealmAuditController',
         })
+        .state('realm.settings', {
+            url: '/settings',
+            templateUrl: 'html/realm.settings.html',
+            controller: 'RealmSettingsController',
+        })        
         .state('rolespaces', {
             url: '/rolespaces',
             templateUrl: 'html/rolespaces.html',

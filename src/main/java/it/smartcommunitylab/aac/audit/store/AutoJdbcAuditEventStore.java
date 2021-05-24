@@ -37,6 +37,9 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT = "select `time`, `principal`, `realm` , `type`, `event` from `audit` where principal = ?";
     private static final String DEFAULT_SELECT_REALM_STATEMENT = "select `time`, `principal`, `realm` , `type`, `event` from `audit` where realm = ?";
 
+    private static final String DEFAULT_COUNT_PRINCIPAL_STATEMENT = "select count(*) from `audit` where principal = ?";
+    private static final String DEFAULT_COUNT_REALM_STATEMENT = "select count(*) from `audit` where realm = ?";
+
     private static final String TIME_AFTER_CONDITION = "`time` >= ?";
     private static final String TIME_BETWEEN_CONDITION = "`time` between ? and ? ";
     private static final String TYPE_CONDITION = "`type` = ?";
@@ -45,8 +48,11 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
     private String createAuditTableSql = DEFAULT_CREATE_TABLE_STATEMENT;
     private String insertAuditEventSql = DEFAULT_INSERT_STATEMENT;
+
     private String selectByPrincipalAuditEvent = DEFAULT_SELECT_PRINCIPAL_STATEMENT;
     private String selectByRealmAuditEvent = DEFAULT_SELECT_REALM_STATEMENT;
+    private String countByPrincipalAuditEvent = DEFAULT_COUNT_PRINCIPAL_STATEMENT;
+    private String countByRealmAuditEvent = DEFAULT_COUNT_REALM_STATEMENT;
 
     private String timeAfterCondition = TIME_AFTER_CONDITION;
     private String timeBetweenCondition = TIME_BETWEEN_CONDITION;
@@ -105,6 +111,35 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         query.append(" ").append(orderBy);
 
         return jdbcTemplate.query(query.toString(), params.toArray(new Object[0]), rowMapper);
+    }
+
+    @Override
+    public long countByRealm(String realm, Instant after, Instant before, String type) {
+        StringBuilder query = new StringBuilder();
+        query.append(countByRealmAuditEvent);
+
+        List<Object> params = new LinkedList<>();
+        params.add(realm);
+
+        if (StringUtils.hasText(type)) {
+            query.append(" AND ").append(typeCondition);
+            params.add(type);
+        }
+
+        if (after != null) {
+            if (before != null) {
+                query.append(" AND ").append(timeBetweenCondition);
+                params.add(new java.sql.Timestamp(after.toEpochMilli()));
+                params.add(new java.sql.Timestamp(before.toEpochMilli()));
+            } else {
+                query.append(" AND ").append(timeAfterCondition);
+                params.add(new java.sql.Timestamp(after.toEpochMilli()));
+            }
+        }
+
+        query.append(" ").append(orderBy);
+
+        return jdbcTemplate.queryForObject(query.toString(), params.toArray(new Object[0]), Long.class);
     }
 
     @Override
@@ -170,6 +205,35 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         return jdbcTemplate.query(query.toString(), params.toArray(new Object[0]), rowMapper);
     }
 
+    @Override
+    public long countByPrincipal(String principal, Instant after, Instant before, String type) {
+        StringBuilder query = new StringBuilder();
+        query.append(countByPrincipalAuditEvent);
+
+        List<Object> params = new LinkedList<>();
+        params.add(principal);
+
+        if (StringUtils.hasText(type)) {
+            query.append(" AND ").append(typeCondition);
+            params.add(type);
+        }
+
+        if (after != null) {
+            if (before != null) {
+                query.append(" AND ").append(timeBetweenCondition);
+                params.add(new java.sql.Timestamp(after.toEpochMilli()));
+                params.add(new java.sql.Timestamp(before.toEpochMilli()));
+            } else {
+                query.append(" AND ").append(timeAfterCondition);
+                params.add(new java.sql.Timestamp(after.toEpochMilli()));
+            }
+        }
+
+        query.append(" ").append(orderBy);
+
+        return jdbcTemplate.queryForObject(query.toString(), params.toArray(new Object[0]), Long.class);
+    }
+
     public void setCreateAuditTableSql(String createAuditTableSql) {
         this.createAuditTableSql = createAuditTableSql;
     }
@@ -184,6 +248,14 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
     public void setSelectByRealmAuditEvent(String selectByRealmAuditEvent) {
         this.selectByRealmAuditEvent = selectByRealmAuditEvent;
+    }
+
+    public void setCountByPrincipalAuditEvent(String countByPrincipalAuditEvent) {
+        this.countByPrincipalAuditEvent = countByPrincipalAuditEvent;
+    }
+
+    public void setCountByRealmAuditEvent(String countByRealmAuditEvent) {
+        this.countByRealmAuditEvent = countByRealmAuditEvent;
     }
 
     public void setTimeAfterCondition(String timeAfterCondition) {

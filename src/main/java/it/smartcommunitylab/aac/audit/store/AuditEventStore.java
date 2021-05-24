@@ -10,6 +10,11 @@ import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 
 public interface AuditEventStore extends AuditEventRepository {
 
+    public long countByRealm(String realm, Instant after, Instant before,
+            String type);
+
+    public long countByPrincipal(String principal, Instant after, Instant before, String type);
+
     public List<RealmAuditEvent> findByRealm(String realm, Instant after, Instant before,
             String type);
 

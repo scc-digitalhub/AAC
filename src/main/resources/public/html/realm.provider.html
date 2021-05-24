@@ -4,7 +4,7 @@
             <h6><a ui-sref="realm.providers({realmId:idp.realm})">Identity providers
                     &raquo;</a></h6>
             <h3>{{providerName}}</h3>
-            <p class="text-monospace">{{idp.provider}}</p>
+            <p class="text-monospace">{{idp.authority }}:{{idp.provider}}</p>
         </div>
         <div class="col col-md-6 text-right">
             <button class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(idp)">

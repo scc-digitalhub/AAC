@@ -2,6 +2,9 @@ package it.smartcommunitylab.aac.controller;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.DateFormat.Field;
+import java.time.Instant;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -83,6 +86,7 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
 import it.smartcommunitylab.aac.roles.RoleManager;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -115,13 +119,16 @@ public class DevController {
     private AuditManager auditManager;
     @Autowired
     private RoleManager roleManager;
-    
+
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
 
     @Autowired
     private ServletContext servletContext;
+
+    @Autowired
+    private OAuth2MetadataEndpoint oauth2MetadataEndpoint;
 
     @RequestMapping("/dev")
     public ModelAndView developer() {
@@ -158,22 +165,78 @@ public class DevController {
         return ResponseEntity.ok(realms);
     }
 
+    @GetMapping("/console/dev/realms/{realm:.*}/well-known/oauth2")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Map<String, Object>> getRealmOAuth2Metadata(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+        // hack
+        // TODO render proper per realm meta
+        Map<String, Object> metadata = oauth2MetadataEndpoint.getAuthServerMetadata();
+        return ResponseEntity.ok(metadata);
+
+    }
+
     @GetMapping("/console/dev/realms/{realm:.*}/stats")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<RealmStatsBean> getRealmStats(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         RealmStatsBean bean = new RealmStatsBean();
+
         Realm realmObj = realmManager.getRealm(realm);
         bean.setRealm(realmObj);
+
         Long userCount = userManager.countUsers(realm);
         bean.setUsers(userCount);
+
         Collection<ConfigurableProvider> providers = providerManager
                 .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY);
         bean.setProviders(providers.size());
+
+        int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(p)).count();
+        bean.setProvidersActive(activeProviders);
+
         Collection<ClientApp> apps = clientManager.listClientApps(realm);
         bean.setApps(apps.size());
+
         bean.setServices(serviceManager.listServices(realm).size());
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -7);
+        Date after = cal.getTime();
+
+        bean.setEvents(auditManager.countRealmEvents(realm, null, after, null));
+
+        bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
+        List<RealmAuditEvent> loginEvents = auditManager
+                .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null).stream()
+                .limit(5)
+                .map(e -> {
+                    // clear event details
+                    Map<String, Object> d = new HashMap<>(e.getData());
+                    d.remove("details");
+
+                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                })
+                .collect(Collectors.toList());
+
+        bean.setLoginEvents(loginEvents);
+
+        bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
+        List<RealmAuditEvent> registrationEvents = auditManager
+                .findRealmEvents(realm, "USER_REGISTRATION", after, null).stream()
+                .limit(5)
+                .map(e -> {
+                    // clear event details
+                    Map<String, Object> d = new HashMap<>(e.getData());
+                    d.remove("details");
+
+                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                })
+                .collect(Collectors.toList());
+        bean.setRegistrationEvents(registrationEvents);
+
         return ResponseEntity.ok(bean);
     }
 
@@ -1057,7 +1120,7 @@ public class DevController {
             throws NoSuchRealmException {
 
         return ResponseEntity
-                .ok(auditManager.listRealmEvents(realm,
+                .ok(auditManager.findRealmEvents(realm,
                         type.orElse(null), after.orElse(null), before.orElse(null)));
 
     }

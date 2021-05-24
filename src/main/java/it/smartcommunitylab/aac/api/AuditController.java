@@ -39,7 +39,7 @@ public class AuditController {
             @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> before)
             throws NoSuchRealmException {
 
-        return auditManager.listRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null));
+        return auditManager.findRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null));
 
     }
 

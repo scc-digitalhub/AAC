@@ -2,6 +2,7 @@
     <div class="row mb-3">
         <div class="col col-md-6 p-3">
             <h3>Client Applications</h3>
+            <p>Manage web, mobile, server and IoT applications</p>
         </div>
         <div class="col col-md-6 text-right">
             <button class="btn btn-primary text-right" type="button" ng-click="createClientAppDlg()">
@@ -17,22 +18,19 @@
 <div class="accordion" id="apps">
     <div ng-if="apps && apps.length > 0">
         <table class="table table-hover border-bottom">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Id</th>
-                    <th></th>
-                </tr>
-            </thead>
             <tr ng-repeat="item in apps">
-                <td class="align-middle">{{item.name}}</td>
-                <td class="align-middle">{{item.type | uppercase}}</td>
+                <td class="align-middle">
+                    <span class="h6">{{item.name}}</span> <br>
+                    <small class="text-muted"> {{item.type }}</small>
+                    <p>{{item.description}}</p>
+                </td>
                 <td class="align-middle">
                     <span class="small">{{item.clientId}}</span>
                 </td>
                 <td class="text-right">
-                    <button class="btn btn-success btn-sm"
+                    <button class="btn btn-secondary btn-sm"
+                        ui-sref="realm.appstart({realmId:item.realm, clientId:item.clientId})">Use</button>
+                    <button class="btn btn-primary btn-sm"
                         ui-sref="realm.app({realmId:item.realm, clientId:item.clientId})">Edit</button>
                     <button class="btn btn-danger btn-sm" ng-click="deleteClientAppDlg(item)">Delete</button>
                 </td>
@@ -118,11 +116,13 @@
             <div class="modal-body">
                 <form name="importAppForm" enctype="multipart/form-data" class="needs-validation was-validated"
                     novalidate>
-                    <div class="form-group col pt-4 mb-2">
+                    <p>Upload a valid YAML file with the full client definition.</p>
 
+                    <div class="form-group col pt-4 mb-2">
                         <label for="file">File*</label>
                         <input type="file" name="file" class="form-control form-control-sm upload" id="file"
-                            file-model="importFile" required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+                            file-model="importFile" required
+                            accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
                         <ul class="upload-file-list">
                             <li class="upload-file success" ng-if="importFile != null">
                                 <p>

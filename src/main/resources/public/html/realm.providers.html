@@ -2,6 +2,7 @@
   <div class="row mb-3">
     <div class="col col-md-6 p-3">
       <h3>Identity Providers</h3>
+      <p>Register and manage identity providers</p>
     </div>
     <div class="col col-md-6 text-right">
       <button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
@@ -32,23 +33,14 @@
 <div class="accordion" id="providers">
   <div ng-if="providers && providers.length > 0">
     <table class="table table-hover border-bottom">
-      <thead>
-        <tr>
-          <th>Provider</th>
-          <th>Authority</th>
-          <th>Enabled</th>
-          <th>Active</th>
-          <th></th>
-        </tr>
-      </thead>
       <tr ng-repeat="item in providers">
-        <td class="align-middle">{{item.name}}</td>
-        <td class="align-middle">{{item.authority | uppercase}}</td>
-        <td class="align-middle">
-          <div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}" type="checkbox"
-              ng-checked="item.enabled" ng-model="item.enabled" ng-change="toggleProviderState(item)"><label
-              ng-attr-for="{{item.provider}}"></label>
-          </div>
+        <td class="align-middle {{item.registered ? '' : 'text-muted'}}">
+         <span class="h6">{{item.name}}</span> 
+         <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3"><use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use></svg>
+         <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3"><use xlink:href="./italia/svg/sprite.svg#it-error"></use></svg>
+         <svg ng-if="!item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3"><use xlink:href="./italia/svg/sprite.svg#it-ban"></use></svg>         
+         <br><small class=""> {{item.authority }}:{{item.provider}}</small>
+         <p>{{item.description}}</p>
         </td>
         <td class="align-middle">
           <div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}-registered" type="checkbox"
@@ -57,7 +49,11 @@
           </div>
         </td>
         <td class="text-right">
-          <button class="btn btn-success btn-sm"
+          <button class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(item, !item.enabled)">
+             <span ng-if="item.enabled">Disable</span> 
+             <span ng-if="!item.enabled">Enable</span> 
+          </button>              
+          <button class="btn btn-primary btn-sm"
             ui-sref="realm.provider({realmId:item.realm, providerId:item.provider})">Edit</button>
           <button class="btn btn-danger btn-sm" ng-disabled="item.enabled"
             ng-click="deleteProviderDlg(item)">Delete</button>
@@ -111,8 +107,9 @@
       </div>
       <div class="modal-body">
         <form name="importProviderForm" enctype="multipart/form-data" class="needs-validation was-validated" novalidate>
+           <p>Upload a valid YAML file with the full provider definition.</p>                        
+          
           <div class="form-group col pt-4 mb-2">
-
             <label for="file">File*</label>
             <input type="file" name="file" class="form-control form-control-sm upload" id="file" file-model="importFile"
               required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
