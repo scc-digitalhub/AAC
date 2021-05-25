@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -129,19 +130,32 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
         String clientId = (String) basicRequest.getPrincipal();
         String clientSecret = (String) basicRequest.getCredentials();
 
+        if (!StringUtils.hasText(clientId)) {
+            throw new BadCredentialsException("No client credentials presented");
+        }
+
         clientId = clientId.trim();
 
         if (clientSecret == null) {
             clientSecret = "";
         }
 
-        if (!StringUtils.hasText(clientId)) {
-            throw new BadCredentialsException("No client credentials presented");
-        }
-
         // convert to our authRequest
-        OAuth2ClientSecretAuthenticationToken authRequest = new OAuth2ClientSecretAuthenticationToken(clientId,
+        AbstractAuthenticationToken authRequest = new OAuth2ClientSecretAuthenticationToken(clientId,
                 clientSecret, AuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+
+        // PKCE requests can avoid secret, let's check
+        if (!StringUtils.hasText(clientSecret)) {
+            String grantType = request.getParameter("grant_type");
+            if ("authorization_code".equals(grantType)
+                    && request.getParameterMap().containsKey("code_verifier")) {
+                String code = request.getParameter("code");
+                String verifier = request.getParameter("code_verifier");
+                // replace request
+                authRequest = new OAuth2ClientPKCEAuthenticationToken(clientId, code, verifier,
+                        AuthenticationMethod.CLIENT_SECRET_POST.getValue());
+            }
+        }
 
         // collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);

@@ -103,7 +103,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // TODO consolidate basicFilter for all endpoints
         ClientBasicAuthFilter basicTokenEndpointFilter = new ClientBasicAuthFilter("/oauth/token");
-        basicTokenEndpointFilter.setAuthenticationManager(authManager);
+        basicTokenEndpointFilter.setAuthenticationManager(pkceAuthManager);
 
         ClientBasicAuthFilter basicTokenIntrospectFilter = new ClientBasicAuthFilter("/oauth/introspect");
         basicTokenIntrospectFilter.setAuthenticationManager(authManager);

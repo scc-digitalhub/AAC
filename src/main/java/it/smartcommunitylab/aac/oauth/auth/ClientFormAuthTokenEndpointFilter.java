@@ -103,7 +103,7 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
             return authentication;
         }
 
-        if (clientId == null) {
+        if (!StringUtils.hasText(clientId)) {
             throw new BadCredentialsException("No client credentials presented");
         }
 
@@ -118,7 +118,8 @@ public class ClientFormAuthTokenEndpointFilter extends AbstractAuthenticationPro
         // PKCE requests can avoid secret, let's check
         if (!StringUtils.hasText(clientSecret)) {
             String grantType = request.getParameter("grant_type");
-            if ("authorization_code".equals(grantType)) {
+            if ("authorization_code".equals(grantType)
+                    && request.getParameterMap().containsKey("code_verifier")) {
                 String code = request.getParameter("code");
                 String verifier = request.getParameter("code_verifier");
                 // replace request
