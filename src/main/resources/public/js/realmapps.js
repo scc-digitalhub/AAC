@@ -233,7 +233,8 @@ angular.module('aac.controllers.realmapps', [])
                         $scope.oauth2GrantTypes.forEach(function (gt) {
                             if ("authorization_code" == gt.key || "implicit" == gt.key || "client_credentials" == gt.key) {
                                 oauth2Tokens[gt.key] = {
-                                    token: null
+                                    token: null,
+                                    decoded: null
                                 }
                             }
                         });
@@ -613,6 +614,18 @@ angular.module('aac.controllers.realmapps', [])
                 Utils.showError(err.data.message);
             });
         }
+        
+        $scope.decodeJwt = function (grantType) {
+            var token = $scope.oauth2Tokens[grantType].token;
+            var d = '';
+            try {
+                d = JSON.parse(atob(token.split('.')[1]));
+            } catch (e) {
+                d = '';
+            }
+
+            $scope.oauth2Tokens[grantType].decoded = d;
+        }        
 
         $scope.toggleClientAppClaimMapping = function () {
             var claimMapping = $scope.claimMapping;
@@ -663,7 +676,7 @@ angular.module('aac.controllers.realmapps', [])
     .controller('RealmAppStartController', function ($scope, $stateParams, $state, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
-        $scope.clientView = '';
+        $scope.clientView = 'quickstart.oauth2';
 
         $scope.aceOption = {
             mode: 'javascript',
@@ -686,44 +699,69 @@ angular.module('aac.controllers.realmapps', [])
                     return RealmAppsData.getClientApp(slug, clientId);
                 })
                 .then(function (data) {
-                    $scope.load(data);                   
+                    $scope.load(data);
                     return data;
                 })
                 .then(function (data) {
-                  var quickstarters = [];
+                    var quickstarters = [];
                     if (data.type == 'oauth2') {
-                        
-                     
+
+
                         var oauth2Tokens = {};
 
                         $scope.oauth2GrantTypes.forEach(function (gt) {
-                           quickstarters.push(
-                              {
-                                 'key': 'oauth2.'+gt,
-                                 'name': gt
-                              }
-                              );
-                            if ("authorization_code" == gt || "implicit" == gt || "client_credentials" == gt) {
-                                oauth2Tokens[gt] = {
+                            quickstarters.push(
+                                {
+                                    'key': 'oauth2.' + gt.key,
+                                    'name': gt.key
+                                }
+                            );
+                            if ("authorization_code" == gt.key) {
+                                quickstarters.push(
+                                    {
+                                        'key': 'oauth2.authorization_code_pkce',
+                                        'name': 'authorization_code_pkce'
+                                    }
+                                );
+                            }
+
+                            if ("authorization_code" == gt.key || "implicit" == gt.key || "client_credentials" == gt.key) {
+                                oauth2Tokens[gt.key] = {
                                     token: null
                                 }
                             }
                         });
 
                         $scope.oauth2Tokens = oauth2Tokens;
+
+                        $scope.oauth2AccessToken = "ACCESS_TOKEN";
+                        $scope.oauth2RefreshToken = "REFRESH_TOKEN";
+                        $scope.oauth2IdToken = "ID_TOKEN";
+                        $scope.oauth2Username = "USERNAME";
+                        $scope.oauth2Password = "PASSWORD";
+                        $scope.oauth2TestEndpoint = "ENDPOINT";
+                        $scope.oauth2RedirectUrl = "REDIRECT_URL";
+                        $scope.oauth2State = Math.random().toString(36).substr(2, 5);
+                        $scope.oauth2Nonce = Math.random().toString(36).substr(2, 5);
+                        $scope.oauth2Scopes = data.scopes.join(' ');
+                        $scope.oauth2Code = 'CODE';
+                        $scope.oauth2PKCEVerifier = 'Ux9otAaZ0NwI7nYsWrE-DTgDA4AecMOf3bn9bNNQnmk';
+                        $scope.oauth2PKCEChallenge = '-uE-LdYx2fzfr9CuTZ9LO-Xe5ZkugIvlYQdrNT9kKXY';
+
+
                     }
                     $scope.quickstart = {
-                     'name': '',
-                     'view': ''
-                  };
+                        'name': '',
+                        'view': ''
+                    };
                     $scope.quickstarters = quickstarters;
 
-return data;
+                    return data;
                 })
                 .then(function (data) {
-                  $scope.clientView = 'quickstart.' + data.type;
-                  $scope.reloadQuickstart();
-               })
+                    $scope.clientView = 'quickstart.' + data.type;
+                    $scope.reloadQuickstart();
+                })
                 .catch(function (err) {
                     Utils.showError('Failed to load realm client app: ' + err.data.message);
                 });
@@ -747,6 +785,8 @@ return data;
 
             if (data.type == 'oauth2') {
                 $scope.initConfiguration(data.type, data.configuration, data.schema);
+                //auth header
+                $scope.oauth2AuthHeader = btoa(data.clientId + ':' + data.configuration.clientSecret);
             }
 
             return;
@@ -760,13 +800,16 @@ return data;
                 if (config.authorizedGrantTypes) {
                     config.authorizedGrantTypes.forEach(function (gt) {
                         if (!!gt) {
-                            grantTypes.push(gt);
+                            grantTypes.push({
+                                "key": gt,
+                                "value": true
+                            })
                         }
                     });
                 }
+
                 $scope.oauth2GrantTypes = grantTypes;
-                console.log($scope.oauth2GrantTypes)
-     
+
                 // authMethods
                 $scope.oauth2AuthenticationMethods = config.authenticationMethods;
 
@@ -781,6 +824,8 @@ return data;
                 }
                 $scope.oauth2RedirectUris = redirectUris;
 
+
+
             }
 
 
@@ -794,7 +839,7 @@ return data;
         };
 
         $scope.switchClientView = function (view) {
-         console.log("switch to "+view)
+            console.log("switch to " + view)
             $scope.clientView = view;
             Utils.refreshFormBS(300);
         }
@@ -809,16 +854,16 @@ return data;
             }
             $scope.curStep = 1;
         }
-        
-        $scope.prevStep = function() {
-            $scope.curStep--; 
+
+        $scope.prevStep = function () {
+            $scope.curStep--;
         }
-         $scope.nextStep = function() {
-            $scope.curStep++; 
+        $scope.nextStep = function () {
+            $scope.curStep++;
         }
-     $scope.setStep = function(s) {
-            $scope.curStep = s; 
-        }        
+        $scope.setStep = function (s) {
+            $scope.curStep = s;
+        }
 
         $scope.copyText = function (txt) {
             var textField = document.createElement('textarea');
@@ -844,7 +889,17 @@ return data;
         }
 
 
+        $scope.decodeJwt = function (grantType) {
+            var token = $scope.oauth2Tokens[grantType].token;
+            var d = '';
+            try {
+                d = JSON.parse(atob(token.split('.')[1]));
+            } catch (e) {
+                d = '';
+            }
 
+            $scope.oauth2Tokens[grantType].decoded = d;
+        }
 
         init();
     })

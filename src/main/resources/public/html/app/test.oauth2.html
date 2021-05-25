@@ -6,20 +6,42 @@
         <div class="form-group">
 
             <div ng-repeat="gt in oauth2GrantTypes">
-                <div class="form-group" ng-if="gt.value">
+                <div class="form-group" ng-if="gt.value && !!oauth2Tokens[gt.key]">
                     <h5>{{gt.key}}</h5>
-                    <p>description + instructions</p>
-                    <div class="form-group mt-5" ng-if="oauth2Tokens.hasOwnProperty(gt.key)">
+                    <p>Get a valid token for this flow using the current client configuration.</p>
+                    <div class="form-group mt-5">
                         <div class="input-group">
                             <label class="active"><strong>{{gt.key}}</strong></label>
                             <input class="form-control" type="text" ng-model="oauth2Tokens[gt.key].token" disabled>
-                                                
+
                             <div class="input-group-append">
+                                <button class="btn btn-primary btn-sm  text-right"
+                                    ng-click="copyText(oauth2Tokens[gt.key].token)"
+                                    ng-disabled="!oauth2Tokens[gt.key].token">
+                                    <svg class="icon icon-sm icon-white">
+                                        <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                                    </svg>
+                                </button>
                                 <button class="btn btn-secondary btn-sm  text-right"
                                     ng-click="testOAuth2ClientApp(gt.key)">Test</button>
                             </div>
                         </div>
                     </div>
+
+                    <div class="form-group mt-5" ng-if="app.configuration.tokenType =='jwt' && !!oauth2Tokens[gt.key].token">
+                        <p>Token is JWT. Try to <a href ng-click="decodeJwt(gt.key)">decode
+                                payload</a></p>
+                        <figure class="p-2 mb-1 neutral-1-bg text-white" ng-if="!!oauth2Tokens[gt.key].decoded">
+                            <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+   {{oauth2Tokens[gt.key].decoded | json:4}}
+</code>
+                </pre>
+                        </figure>
+                    </div>
+
+
+
                 </div>
             </div>
         </div>

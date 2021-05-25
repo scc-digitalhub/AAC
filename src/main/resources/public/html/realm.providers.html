@@ -35,12 +35,18 @@
     <table class="table table-hover border-bottom">
       <tr ng-repeat="item in providers">
         <td class="align-middle {{item.registered ? '' : 'text-muted'}}">
-         <span class="h6">{{item.name}}</span> 
-         <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3"><use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use></svg>
-         <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3"><use xlink:href="./italia/svg/sprite.svg#it-error"></use></svg>
-         <svg ng-if="!item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3"><use xlink:href="./italia/svg/sprite.svg#it-ban"></use></svg>         
-         <br><small class=""> {{item.authority }}:{{item.provider}}</small>
-         <p>{{item.description}}</p>
+          <span class="h6">{{item.name}}</span>
+          <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+            <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+          </svg>
+          <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
+            <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
+          </svg>
+          <svg ng-if="!item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
+            <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+          </svg>
+          <br><small class=""> {{item.authority }}:{{item.provider}}</small>
+          <p>{{item.description}}</p>
         </td>
         <td class="align-middle">
           <div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}-registered" type="checkbox"
@@ -50,9 +56,9 @@
         </td>
         <td class="text-right">
           <button class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(item, !item.enabled)">
-             <span ng-if="item.enabled">Disable</span> 
-             <span ng-if="!item.enabled">Enable</span> 
-          </button>              
+            <span ng-if="item.enabled">Disable</span>
+            <span ng-if="!item.enabled">Enable</span>
+          </button>
           <button class="btn btn-primary btn-sm"
             ui-sref="realm.provider({realmId:item.realm, providerId:item.provider})">Edit</button>
           <button class="btn btn-danger btn-sm" ng-disabled="item.enabled"
@@ -107,8 +113,8 @@
       </div>
       <div class="modal-body">
         <form name="importProviderForm" enctype="multipart/form-data" class="needs-validation was-validated" novalidate>
-           <p>Upload a valid YAML file with the full provider definition.</p>                        
-          
+          <p>Upload a valid YAML file with the full provider definition.</p>
+
           <div class="form-group col pt-4 mb-2">
             <label for="file">File*</label>
             <input type="file" name="file" class="form-control form-control-sm upload" id="file" file-model="importFile"

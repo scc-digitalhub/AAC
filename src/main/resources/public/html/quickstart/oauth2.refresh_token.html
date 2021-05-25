@@ -1,5 +1,5 @@
 <fieldset>
-    <legend class="mb-4">Client credentials</legend>
+    <legend class="mb-4">Refresh token</legend>
 
 
     <div class="steppers">
@@ -8,7 +8,7 @@
                 Get credentials
             </li>
             <li class="{{curStep == 2 ? 'active' : ''}}" ng-click="setStep(2)"><span class="steppers-number">2</span>
-                Retrieve a token
+                Refresh a token
             </li>
             <li class="{{curStep == 3 ? 'active' : ''}}" ng-click="setStep(3)"><span class="steppers-number">3</span>
                 Call a protected
@@ -62,25 +62,26 @@
                 <p>Keep client secret confidential!</p>
             </div>
 
-            <p>Also review the scopes enabled for the current client: only scopes of type client will be available for
-                this flow.</p>
-            <div class="form-group">
-                <div class="input-group">
-                    <label for="clientid" class="active">Scopes</label>
-                    <input type="text" class="form-control" id="clientid" value="{{app.scopes.join(' ')}}" readonly>
-                    <div class="input-group-append">
-                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(app.scopes.join(' '))">
-                            <svg class="icon icon-sm icon-white">
-                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
-                            </svg>
-                        </button>
-                    </div>
 
-                </div>
-            </div>
+
         </div>
         <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 2">
-            <p>Call the token endpoint by providing authentication and sending the requested scopes as parameters</p>
+            <p>Call the token endpoint by providing authentication and sending a valid refresh token as parameter.</p>
+
+            <div class="callout note">
+                <div class="callout-title"><svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-info-circle"></use>
+                    </svg>Note</div>
+                <p>Refresh tokens can be fetched along with access tokens via the <span
+                        class="neutral-2-bg text-monospace p-1 small">authorization_code</span> flow.</p>
+            </div>
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="refreshToken" class="active">Refresh Token</label>
+                    <input type="text" class="form-control" id="refreshToken" ng-model="oauth2RefreshToken">
+                </div>
+            </div>
 
 
             <div class="form-group mt-4">
@@ -88,7 +89,8 @@
                     <label for="scopes" class="active">Scopes</label>
                     <input type="text" class="form-control" id="scopes" ng-model="oauth2Scopes">
                 </div>
-            </div>     
+            </div>
+
 
             <figure class="p-2 mb-1 neutral-1-bg text-white pl-4">
                 <pre class="pre">
@@ -96,7 +98,8 @@
 curl --request POST \
 --url '{{oauth2Metadata.token_endpoint}}' \
 --header 'content-type: application/x-www-form-urlencoded' \
---data grant_type=client_credentials \
+--data grant_type=refresh_token \
+--data refresh_token={{oauth2RefreshToken}} \
 --data client_id={{app.clientId}} \
 --data client_secret={{app.configuration.clientSecret}} \
 --data scope='{{oauth2Scopes}}'
@@ -108,7 +111,12 @@ curl --request POST \
             <table class="table table-bordered">
                 <tr>
                     <td><span class="neutral-2-bg text-monospace p-1 small">grant_type</span></td>
-                    <td>set to <span class="neutral-2-bg text-monospace p-1 small">client_credentials</span></td>
+                    <td>set to <span class="neutral-2-bg text-monospace p-1 small">refresh_token</span></td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">refresh_token</span></td>
+                    <td>a valid (not expired and assigned to the current client) <span
+                            class="neutral-2-bg text-monospace p-1 small">refresh_token</span></td>
                 </tr>
                 <tr>
                     <td><span class="neutral-2-bg text-monospace p-1 small">client_id</span></td>
@@ -121,7 +129,8 @@ curl --request POST \
                 </tr>
                 <tr>
                     <td><span class="neutral-2-bg text-monospace p-1 small">scope</span></td>
-                    <td>The list of requested scopes, among those enabled for the client. Space separated.</td>
+                    <td>Optional, if provided the list of scopes, among those previously authorized for the already
+                        possessed tokens. Used to narrow down scopes.</td>
                 </tr>
             </table>
 
@@ -136,7 +145,8 @@ curl --request POST \
 --url '{{oauth2Metadata.token_endpoint}}' \
 --header 'content-type: application/x-www-form-urlencoded' \
 --header 'Authorization: Basic {{oauth2AuthHeader}}' \
---data grant_type=client_credentials \
+--data grant_type=refresh_token \
+--data refresh_token={{oauth2RefreshToken}} \
 --data scope='{{oauth2Scopes}}'
 </code>
                 </pre>
@@ -152,8 +162,8 @@ curl --request POST \
                     enabled for the current client.</p>
             </div>
 
-            <p>On successful requests the response will contain an access token along with expiration information, for
-                example</p>
+            <p>On successful requests the response will contain a new access token along with expiration information,
+                and optionally a new refresh token if the currently used is close to the expiration date.</p>
 
             <figure class="p-2 mb-1 neutral-1-bg text-white">
                 <pre class="pre">
@@ -161,6 +171,7 @@ curl --request POST \
    {
       "token_type":"bearer",
       "access_token": "eyJraWQiOiJ0ZXN...",
+      "refresh_token": "atTsaO*@398V...",
       "expires_in":300,
       "scope": "..."
    }
@@ -168,10 +179,21 @@ curl --request POST \
                 </pre>
             </figure>
 
+            <div class="callout warning">
+                <div class="callout-title">
+                    <svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-help-circle"></use>
+                    </svg>Warning
+                </div>
+                <p>When using a refresh_token to obtain a new access token, the previously issued tokens may be revoked
+                    by the authorization server.
+                    Do not use previously obtained tokens after a successful refresh.
+                </p>
+            </div>
 
         </div>
         <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 3">
-            <p>Use the bearer token to call a protected resource.</p>
+            <p>Use the access token to call a protected resource, keep the refresh token secure and private.</p>
 
             <div class="form-group mt-4">
                 <div class="input-group">
@@ -198,7 +220,20 @@ curl --request GET \
                 </pre>
             </figure>
 
+            <p>When the access token expires repeat the refresh flow to obtain a new token. As long as the user doesn't
+                revoke the authorization or the refresh token doesn't expire the authorization server will deliver new
+                tokens.</p>
 
+            <div class="callout warning">
+                <div class="callout-title">
+                    <svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-help-circle"></use>
+                    </svg>Warning
+                </div>
+                <p>Refresh tokens can have an expiration. In order to keep a token fresh applications should
+                    periodically renew tokens before the expiration date.
+                </p>
+            </div>
 
         </div>
 

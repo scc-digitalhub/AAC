@@ -7,6 +7,8 @@
             <p class="text-monospace">{{app.clientId}}</p>
         </div>
         <div class="col col-md-6 text-right">
+         <button class="btn btn-secondary btn-sm"
+                ui-sref="realm.appstart({realmId:app.realm, clientId:app.clientId})">Use</button>        
             <button class="btn btn-primary btn-sm  text-right" ng-click="saveClientApp(app)" >Save</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="exportClientApp(app)">Export</button>
             <button class="btn btn-danger btn-sm  text-right" ng-click="deleteClientAppDlg(app)">Delete</button>
