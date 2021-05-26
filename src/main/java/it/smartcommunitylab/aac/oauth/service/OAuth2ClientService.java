@@ -67,6 +67,7 @@ public class OAuth2ClientService implements ClientService {
         Set<AuthenticationMethod> s = new HashSet<>();
         s.add(AuthenticationMethod.CLIENT_SECRET_BASIC);
         s.add(AuthenticationMethod.CLIENT_SECRET_POST);
+        s.add(AuthenticationMethod.NONE);
         VALID_AUTH_METHODS = Collections.unmodifiableSet(s);
 
     }

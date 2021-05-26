@@ -45,6 +45,7 @@ import org.springframework.web.bind.support.DefaultSessionAttributeStore;
 import org.springframework.web.bind.support.SessionAttributeStore;
 import org.springframework.web.filter.CompositeFilter;
 
+import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
@@ -460,6 +461,11 @@ public class OAuth2Config {
         introspector.setClientService(clientService);
 
         return introspector;
+    }
+
+    @Bean
+    public OAuth2EventListener oauth2EventListener(OAuth2ClientDetailsService clientDetailsService) {
+        return new OAuth2EventListener(clientDetailsService);
     }
 
 }

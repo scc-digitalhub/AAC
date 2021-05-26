@@ -64,11 +64,6 @@ public class AuditConfig {
     }
 
     @Bean
-    public OAuth2EventListener oauth2EventListener() {
-        return new OAuth2EventListener();
-    }
-
-    @Bean
     public AuthorizationEventListener authorizationEventListener() {
         return new AuthorizationEventListener();
     }

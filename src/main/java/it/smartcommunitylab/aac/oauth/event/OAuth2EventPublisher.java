@@ -6,7 +6,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.TokenRequest;
 
 public class OAuth2EventPublisher implements ApplicationEventPublisherAware {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -32,10 +34,19 @@ public class OAuth2EventPublisher implements ApplicationEventPublisherAware {
         }
     }
 
-    public void publishOAuth2Exception(OAuth2Exception exception, OAuth2Authentication authentication) {
+    public void publishOAuth2AuthorizationException(AuthorizationRequest request, OAuth2Exception exception,
+            OAuth2Authentication authentication) {
         if (this.applicationEventPublisher != null) {
-            this.applicationEventPublisher.publishEvent(new OAuth2ExceptionEvent(exception, authentication));
+            this.applicationEventPublisher
+                    .publishEvent(new OAuth2AuthorizationExceptionEvent(request, exception, authentication));
         }
     }
 
+    public void publishOAuth2TokenException(TokenRequest request, OAuth2Exception exception,
+            OAuth2Authentication authentication) {
+        if (this.applicationEventPublisher != null) {
+            this.applicationEventPublisher
+                    .publishEvent(new OAuth2TokenExceptionEvent(request, exception, authentication));
+        }
+    }
 }
