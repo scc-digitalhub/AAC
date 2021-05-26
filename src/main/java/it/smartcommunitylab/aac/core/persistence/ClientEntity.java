@@ -11,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -20,7 +21,7 @@ import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
-@Table(name = "clients")
+@Table(name = "clients", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "name" }))
 @EntityListeners(AuditingEntityListener.class)
 public class ClientEntity {
 

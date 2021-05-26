@@ -113,6 +113,22 @@ public class OAuth2ClientService implements ClientService {
 
     }
 
+    @Transactional(readOnly = true)
+    public OAuth2Client findClient(String realm, String name) {
+        ClientEntity client = clientService.findClient(realm, name);
+        if (client == null) {
+            return null;
+        }
+
+        OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(client.getClientId());
+        if (oauth == null) {
+            return null;
+        }
+
+        return OAuth2Client.from(client, oauth);
+
+    }
+
 //    @Override
     @Transactional(readOnly = true)
     public Collection<BaseClient> listClients() {

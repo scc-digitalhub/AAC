@@ -341,7 +341,7 @@ public class OAuth2Config {
             OAuth2RequestFactory oAuth2RequestFactory,
             it.smartcommunitylab.aac.core.service.ClientDetailsService clientService,
             ScopeRegistry scopeRegistry,
-            UserTranslatorService userTranslatorService,
+            UserService userService,
             FlowExtensionsService flowExtensionsService,
             OAuth2EventPublisher oauth2EventPublisher) {
 
@@ -388,6 +388,8 @@ public class OAuth2Config {
         }
         clientCredentialsTokenGranter.setFlowExtensionsService(flowExtensionsService);
         clientCredentialsTokenGranter.setEventPublisher(oauth2EventPublisher);
+        clientCredentialsTokenGranter.setScopeRegistry(scopeRegistry);
+        clientCredentialsTokenGranter.setClientService(clientService);
         granters.add(clientCredentialsTokenGranter);
 
         // resource owner password
@@ -400,6 +402,9 @@ public class OAuth2Config {
             }
             passwordTokenGranter.setFlowExtensionsService(flowExtensionsService);
             passwordTokenGranter.setEventPublisher(oauth2EventPublisher);
+            passwordTokenGranter.setScopeRegistry(scopeRegistry);
+            passwordTokenGranter.setClientService(clientService);
+            passwordTokenGranter.setUserService(userService);
             granters.add(passwordTokenGranter);
         }
 

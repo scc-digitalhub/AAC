@@ -100,6 +100,11 @@ public class ClientEntityService {
     }
 
     @Transactional(readOnly = true)
+    public ClientEntity findClient(String realm, String name) {
+        return clientRepository.findByRealmAndName(realm, name);
+    }
+
+    @Transactional(readOnly = true)
     public Collection<ClientEntity> listClients() {
         return clientRepository.findAll();
     }

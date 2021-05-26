@@ -1,12 +1,13 @@
 package it.smartcommunitylab.aac.oauth.token;
 
 import java.util.Collection;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
+import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
@@ -19,6 +20,7 @@ import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 public abstract class AbstractTokenGranter implements TokenGranter {
 
@@ -30,9 +32,11 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
     private final OAuth2RequestFactory requestFactory;
 
-    private FlowExtensionsService flowExtensionsService;
+    protected ScopeRegistry scopeRegistry;
 
-    private OAuth2EventPublisher eventPublisher = new OAuth2EventPublisher();
+    protected FlowExtensionsService flowExtensionsService;
+
+    protected OAuth2EventPublisher eventPublisher = new OAuth2EventPublisher();
 
     private final String grantType;
 
@@ -51,13 +55,20 @@ public abstract class AbstractTokenGranter implements TokenGranter {
         }
 
         String clientId = tokenRequest.getClientId();
-        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
-        validateGrantType(grantType, client);
-//        tokenRequest.setScope(
-//                validateScopes(getOAuth2Authentication(client, tokenRequest), client, tokenRequest.getScope()));
-
         logger.debug("Getting access token for: " + clientId);
+
+        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
+
+        // check this grant type is available for this client
+        validateGrantType(grantType, client);
+
+        // fetch authentication
         OAuth2Authentication authentication = getOAuth2Authentication(client, tokenRequest);
+
+        // validate scopes, checks approval if required
+        validateScope(tokenRequest.getScope(), authentication);
+
+        // get token via granter
         OAuth2AccessToken accessToken = getAccessToken(client, tokenRequest, authentication);
 
         // audit
@@ -93,8 +104,12 @@ public abstract class AbstractTokenGranter implements TokenGranter {
         Collection<String> authorizedGrantTypes = clientDetails.getAuthorizedGrantTypes();
         if (authorizedGrantTypes == null || authorizedGrantTypes.isEmpty()
                 || !authorizedGrantTypes.contains(grantType)) {
-            throw new InvalidClientException("Unauthorized grant type: " + grantType);
+            throw new UnsupportedGrantTypeException("Unauthorized grant type: " + grantType);
         }
+    }
+
+    protected void validateScope(Set<String> scope, OAuth2Authentication authentication) {
+
     }
 
     protected AuthorizationServerTokenServices getTokenServices() {
@@ -117,6 +132,8 @@ public abstract class AbstractTokenGranter implements TokenGranter {
         this.eventPublisher = eventPublisher;
     }
 
-    
-    
+    public void setScopeRegistry(ScopeRegistry scopeRegistry) {
+        this.scopeRegistry = scopeRegistry;
+    }
+
 }

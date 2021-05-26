@@ -221,6 +221,15 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
 //        this.additionalInformation = additionalInformation;
 //    }
 
+    @JsonIgnore
+    public OAuth2ClientConfigMap getConfigMap() {
+        return configMap;
+    }
+
+    public void setConfigMap(OAuth2ClientConfigMap configMap) {
+        this.configMap = configMap;
+    }
+
     @Override
     public Map<String, Serializable> getConfiguration() {
         Map<String, Serializable> map = configMap.getConfiguration();

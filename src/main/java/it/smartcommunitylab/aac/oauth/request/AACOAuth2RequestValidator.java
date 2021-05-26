@@ -28,6 +28,8 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2RequestValidator;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 /**

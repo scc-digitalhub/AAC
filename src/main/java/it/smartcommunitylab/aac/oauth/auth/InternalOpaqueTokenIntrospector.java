@@ -11,7 +11,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.DefaultOAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
@@ -160,8 +159,9 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
             params.put("sub", accessToken.getSubject());
             params.put("scopes", token.getScope());
             params.put("realm", realm);
+            params.putAll(accessToken.getClaims());
 
-            return new DefaultOAuth2AuthenticatedPrincipal(
+            return new DefaultOAuth2AuthenticatedPrincipal(realm,
                     principal, params, authorities);
 
         } catch (NoSuchClientException | NoSuchUserException e) {
