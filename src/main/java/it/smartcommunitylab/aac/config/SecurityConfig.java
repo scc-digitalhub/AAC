@@ -331,6 +331,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .rememberMeServices(rememberMeServices())
 //                .and()
                 .csrf()
+//                .disable()
                 .ignoringAntMatchers("/logout", "/console/**", "/account/**", "/auth/oidc/**", "/auth/saml/**")
                 .and()
 //                .disable()
@@ -350,7 +351,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // we always want a session here
         http.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 
 //        http
 ////		.anonymous().disable()

@@ -130,7 +130,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         String password = request.getParameter("password");
 
         if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
-            throw new NotRegisteredException();
+            throw new BadCredentialsException("invalid user or password");
         }
 
         // fetch account
