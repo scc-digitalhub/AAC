@@ -103,7 +103,7 @@ public class OAuth2ClientEntity {
      * (realm idp, realm identity, realm service etc) matching a list of scopes
      */
     @Column(name = "first_party")
-    private boolean firstParty;
+    private boolean firstParty = false;
 
     @Column(name = "autoapprove_scopes")
     private String autoApproveScopes;
@@ -111,6 +111,9 @@ public class OAuth2ClientEntity {
     // TODO evaluate registering resourceIds to be able to validate requests
     @Column(name = "resource_ids")
     private String resourceIds;
+
+    @Column(name = "id_token_claims")
+    private boolean idTokenClaims = false;
 
     public Long getId() {
         return id;
@@ -254,6 +257,14 @@ public class OAuth2ClientEntity {
 
     public void setAutoApproveScopes(String autoApproveScopes) {
         this.autoApproveScopes = autoApproveScopes;
+    }
+
+    public boolean isIdTokenClaims() {
+        return idTokenClaims;
+    }
+
+    public void setIdTokenClaims(boolean idTokenClaims) {
+        this.idTokenClaims = idTokenClaims;
     }
 
 }

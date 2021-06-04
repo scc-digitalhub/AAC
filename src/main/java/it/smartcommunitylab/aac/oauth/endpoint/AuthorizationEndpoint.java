@@ -56,6 +56,8 @@ public class AuthorizationEndpoint {
     @Autowired
     private OAuth2EventPublisher eventPublisher;
 
+    // TODO support POST requests for auth endpoint as per
+    // https://datatracker.ietf.org/doc/html/rfc6749#section-3.1
     @RequestMapping(value = {
             AUTHORIZATION_URL,
             "/-/{realm}" + AUTHORIZATION_URL })
@@ -81,6 +83,7 @@ public class AuthorizationEndpoint {
         return authEndpoint.authorize(model, params, sessionStatus, principal);
     }
 
+    // TODO move to /approve
     @RequestMapping(value = {
             AUTHORIZATION_URL,
             "/-/{realm}" + AUTHORIZATION_URL }, method = RequestMethod.POST, params = OAuth2Utils.USER_OAUTH_APPROVAL)

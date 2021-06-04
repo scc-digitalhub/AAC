@@ -18,6 +18,8 @@ public class OAuth2ClientDetails extends BaseClientDetails {
 
     private Set<String> authenticationMethods = Collections.emptySet();
 
+    private boolean idTokenClaims = false;
+
     private boolean firstParty = false;
 
     private String jwks;
@@ -105,6 +107,14 @@ public class OAuth2ClientDetails extends BaseClientDetails {
 
     public void setJwtEncMethod(String jwtEncMethod) {
         this.jwtEncMethod = jwtEncMethod;
+    }
+
+    public boolean isIdTokenClaims() {
+        return idTokenClaims;
+    }
+
+    public void setIdTokenClaims(boolean idTokenClaims) {
+        this.idTokenClaims = idTokenClaims;
     }
 
     public boolean isFirstParty() {

@@ -76,16 +76,26 @@
 	                <label>First party</label>
 	            </div>
 	        </div>
-	        <div class="form-group col">
-	            <div class="bootstrap-select-wrapper border-bottom-0">
-	                <label class="active" for="clientName">Token type</label>
-	                <select id="clientName" ng-model="app.configuration.tokenType">
-	                    <option value="jwt" ng-selected="app.configuration.tokenType =='jwt'">JWT</option>
-	                    <option value="opaque" ng-selected="app.configuration.tokenType == 'opaque'">Opaque</option>
-	                </select>
-	            </div>
-	
-	        </div>
+           <div class="form-group col">
+               <div class="form-check form-check-inline"
+                   ng-click="app.configuration.idTokenClaims = !app.configuration.idTokenClaims">
+                   <input class="form-check-input" type="checkbox" ng-model="app.configuration.idTokenClaims">
+                   <label>IdToken custom claims</label>
+               </div>
+           </div>
+        </div>
+
+        <div class="row">
+           <div class="form-group col">
+               <div class="bootstrap-select-wrapper border-bottom-0">
+                   <label class="active" for="clientName">Token type</label>
+                   <select id="clientName" ng-model="app.configuration.tokenType">
+                       <option value="jwt" ng-selected="app.configuration.tokenType =='jwt'">JWT</option>
+                       <option value="opaque" ng-selected="app.configuration.tokenType == 'opaque'">Opaque</option>
+                   </select>
+               </div>
+   
+           </div>
         </div>
         
         <div class="row">

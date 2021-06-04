@@ -374,7 +374,7 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
                 .collect(Collectors.toSet()));
 
         c.configMap.setRedirectUris(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
-
+        c.configMap.setIdTokenClaims(oauth.isIdTokenClaims());
         c.configMap.setFirstParty(oauth.isFirstParty());
         c.configMap.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
 

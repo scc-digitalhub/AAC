@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.oauth.flow;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,14 +22,22 @@ public class FlowExtensionsService implements InitializingBean {
 
     public OAuthFlowExtensions getOAuthFlowExtensions(OAuth2ClientDetails clientDetails) {
 
-        // TODO write delegateFlowExtensions to support multiple extensions
+        // always use delegateFlowExtensions to support multiple extensions
+        List<OAuthFlowExtensions> extensions = new ArrayList<>();
+
+        // first hook is script
         if (scriptFlowExtensions != null && clientDetails.getHookFunctions() != null
                 && !clientDetails.getHookFunctions().isEmpty()) {
-            return scriptFlowExtensions;
+            extensions.add(scriptFlowExtensions);
         }
 
+        // then process webHook
         if (clientDetails.getHookWebUrls() != null && !clientDetails.getHookWebUrls().isEmpty()) {
-            return webhookFlowExtensions;
+            extensions.add(webhookFlowExtensions);
+        }
+
+        if (!extensions.isEmpty()) {
+            return new DelegateOAuthFlowExtensions(extensions);
         }
 
         return null;

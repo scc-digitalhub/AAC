@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,8 @@ import com.google.common.base.Strings;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsService;
@@ -53,6 +56,9 @@ import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
 
 public class OIDCTokenEnhancer implements TokenEnhancer {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static final Set<String> REGISTERED_CLAIM_NAMES = JWTClaimsSet.getRegisteredNames();
+    private static final Set<String> STANDARD_CLAIM_NAMES = IDTokenClaimsSet.getStandardClaimNames();
 
     public static final String MAX_AGE = "max_age";
     public static final String NONCE = "nonce";
@@ -164,6 +170,18 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
 
         User user = new User(userDetails);
         Map<String, Serializable> userClaims = new HashMap<>();
+
+        // check if client wants all claims from accessToken in idTokens
+        if (oauth2ClientDetails.isIdTokenClaims() && accessToken instanceof AACOAuth2AccessToken) {
+            // keep claims not overlapping reserved
+            Map<String, Serializable> accessTokenClaims = ((AACOAuth2AccessToken) accessToken).getClaims()
+                    .entrySet().stream()
+                    .filter(e -> (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                            !STANDARD_CLAIM_NAMES.contains(e.getKey())))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            userClaims.putAll(accessTokenClaims);
+        }
+
         List<Claim> claimss = new ArrayList<>();
         for (String scope : scopes) {
             if (claimsExtractorProvider.getScopes().contains(scope)) {

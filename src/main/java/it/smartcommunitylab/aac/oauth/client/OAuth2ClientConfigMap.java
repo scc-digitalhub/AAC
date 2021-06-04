@@ -41,6 +41,7 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
     private TokenType tokenType;
     private Set<AuthenticationMethod> authenticationMethods;
 
+    private Boolean idTokenClaims;
     private Boolean firstParty;
     private Set<String> autoApproveScopes;
 
@@ -105,6 +106,14 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
 
     public void setAuthenticationMethods(Set<AuthenticationMethod> authenticationMethods) {
         this.authenticationMethods = authenticationMethods;
+    }
+
+    public Boolean getIdTokenClaims() {
+        return idTokenClaims;
+    }
+
+    public void setIdTokenClaims(Boolean idTokenClaims) {
+        this.idTokenClaims = idTokenClaims;
     }
 
     public Boolean getFirstParty() {
@@ -208,6 +217,7 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
         this.tokenType = map.getTokenType();
         this.authenticationMethods = map.getAuthenticationMethods();
 
+        this.idTokenClaims = map.getIdTokenClaims();
         this.firstParty = map.getFirstParty();
         this.autoApproveScopes = map.getAutoApproveScopes();
 

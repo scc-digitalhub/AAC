@@ -53,13 +53,20 @@ public class RolesClaimsExtractor implements ScopeClaimsExtractor {
 
         SerializableClaim roleClaim = new SerializableClaim("roles");
         List<String> rolesClaims = roles.stream().map(r -> r.getAuthority()).collect(Collectors.toList());
-        roleClaim.setValue(new ArrayList<>(rolesClaims));
-        claims.add(roleClaim);
+//        roleClaim.setValue(new ArrayList<>(rolesClaims));
+//        claims.add(roleClaim);
 
         SerializableClaim authClaim = new SerializableClaim("authorities");
         List<String> authsClaims = authorities.stream().map(r -> r.getAuthority()).collect(Collectors.toList());
         authClaim.setValue(new ArrayList<>(authsClaims));
         claims.add(authClaim);
+
+        // merge realm authorities in roles claims under realms/
+        authsClaims.forEach(a -> {
+            rolesClaims.add("realms/" + a);
+        });
+        roleClaim.setValue(new ArrayList<>(rolesClaims));
+        claims.add(roleClaim);
 
         // build a claimsSet
         DefaultClaimsSet claimsSet = new DefaultClaimsSet();

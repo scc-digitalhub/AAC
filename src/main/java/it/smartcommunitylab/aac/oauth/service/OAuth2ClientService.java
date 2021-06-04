@@ -240,7 +240,7 @@ public class OAuth2ClientService implements ClientService {
     public OAuth2Client addClient(String realm, String clientId, String name) {
         return this.addClient(realm, clientId, name,
                 null, null, null, null, null, null,
-                null, null, null,
+                null, null, null, null,
                 null, null, null, null, null,
                 null, null, null, null, null, null, null);
     }
@@ -256,6 +256,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<String> redirectUris,
             TokenType tokenType,
             Collection<AuthenticationMethod> authenticationMethods,
+            Boolean idTokenClaims,
             Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
@@ -277,6 +278,7 @@ public class OAuth2ClientService implements ClientService {
                 authorizedGrantTypes,
                 redirectUris,
                 tokenType, authenticationMethods,
+                idTokenClaims,
                 firstParty, autoApproveScopes,
                 accessTokenValidity, refreshTokenValidity,
                 jwtSignAlgorithm,
@@ -297,6 +299,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<String> redirectUris,
             TokenType tokenType,
             Collection<AuthenticationMethod> authenticationMethods,
+            Boolean idTokenClaims,
             Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
@@ -364,6 +367,7 @@ public class OAuth2ClientService implements ClientService {
             }
         }
 
+        boolean copyIdTokenClaims = idTokenClaims != null ? idTokenClaims.booleanValue() : false;
         boolean isFirstParty = firstParty != null ? firstParty.booleanValue() : false;
 
         String jwtSignAlgorithmName = null;
@@ -401,6 +405,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
         oauth.setAuthenticationMethods(StringUtils.collectionToCommaDelimitedString(authenticationMethods));
+        oauth.setIdTokenClaims(copyIdTokenClaims);
         oauth.setFirstParty(isFirstParty);
         oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
         oauth.setAccessTokenValidity(accessTokenValidity);
@@ -428,6 +433,7 @@ public class OAuth2ClientService implements ClientService {
             Collection<String> redirectUris,
             TokenType tokenType,
             Collection<AuthenticationMethod> authenticationMethods,
+            Boolean idTokenClaims,
             Boolean firstParty, Collection<String> autoApproveScopes,
             Integer accessTokenValidity, Integer refreshTokenValidity,
             JWSAlgorithm jwtSignAlgorithm,
@@ -468,6 +474,7 @@ public class OAuth2ClientService implements ClientService {
             tokenType = null;
         }
 
+        boolean copyIdTokenClaims = idTokenClaims != null ? idTokenClaims.booleanValue() : false;
         boolean isFirstParty = firstParty != null ? firstParty.booleanValue() : false;
 
         String jwtSignAlgorithmName = null;
@@ -504,6 +511,7 @@ public class OAuth2ClientService implements ClientService {
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
         oauth.setTokenType(tokenTypeValue);
         oauth.setAuthenticationMethods(StringUtils.collectionToCommaDelimitedString(authenticationMethods));
+        oauth.setIdTokenClaims(copyIdTokenClaims);
         oauth.setFirstParty(isFirstParty);
         oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
         oauth.setAccessTokenValidity(accessTokenValidity);
