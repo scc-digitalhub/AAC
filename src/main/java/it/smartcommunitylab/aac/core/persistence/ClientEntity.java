@@ -44,8 +44,10 @@ public class ClientEntity {
     @Column(name = "client_type")
     private String type;
 
+    @Lob
     private String scopes;
 
+    @Lob
     @Column(name = "resource_ids")
     private String resourceIds;
 
