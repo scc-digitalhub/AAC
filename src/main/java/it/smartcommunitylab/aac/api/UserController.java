@@ -5,6 +5,8 @@ import java.util.Collection;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -30,6 +31,7 @@ import it.smartcommunitylab.aac.model.User;
 @RestController
 @RequestMapping("api/users")
 public class UserController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private UserManager userManager;
@@ -40,6 +42,7 @@ public class UserController {
     public Collection<User> listUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         // list users owned or accessible by this realm
+        logger.debug("list users for realm " + String.valueOf(realm));
         return userManager.listUsers(realm);
     }
 
@@ -51,6 +54,7 @@ public class UserController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
         // get the user as visible from the given realm
+        logger.debug("get user " + String.valueOf(userId) + " for realm " + String.valueOf(realm));
         return userManager.getUser(realm, userId);
     }
 
@@ -62,6 +66,7 @@ public class UserController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
         // remove user for this realm, will delete if owned
+        logger.debug("delete user " + String.valueOf(userId) + " for realm " + String.valueOf(realm));
         userManager.removeUser(realm, userId);
     }
 
@@ -75,6 +80,11 @@ public class UserController {
     public User registerUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid UserAccount account) throws NoSuchRealmException {
+        logger.debug("register user for realm " + String.valueOf(realm));
+        if (logger.isTraceEnabled()) {
+            logger.trace("registration bean " + String.valueOf(account));
+        }
+
         return null;
     }
 
@@ -86,6 +96,7 @@ public class UserController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestBody @Valid UserAccount account) throws NoSuchClientException, NoSuchRealmException {
+        logger.debug("update user " + String.valueOf(userId) + " for realm " + String.valueOf(realm));
         return null;
     }
 

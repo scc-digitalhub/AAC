@@ -1,19 +1,18 @@
 package it.smartcommunitylab.aac.api;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.util.WebUtils;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,8 +24,8 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 
 @ControllerAdvice(basePackages = "it.smartcommunitylab.aac.api")
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
-    
-    
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     @ExceptionHandler(value = { AccessDeniedException.class })
     public final ResponseEntity<Object> handleAccessDenied(Exception ex, WebRequest request) throws Exception {
         HttpHeaders headers = new HttpHeaders();
@@ -74,6 +73,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private Map<String, Object> buildResponse(WebRequest request, Exception ex, HttpStatus status, Object body) {
+        logger.debug("build response for error: " + ex.getMessage());
+
         Map<String, Object> response = new HashMap<>();
 //        response.put("timestamp", new Date())
         response.put("status", status.value());

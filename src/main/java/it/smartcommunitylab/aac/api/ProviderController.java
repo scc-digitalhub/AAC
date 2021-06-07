@@ -32,7 +32,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiAuditScope;
 import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -62,7 +61,7 @@ public class ProviderController {
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public Collection<ConfigurableProvider> listTemplates(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
-
+        logger.debug("list idp templates for realm " + String.valueOf(realm));
         return providerManager.listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
     }
 
@@ -71,6 +70,7 @@ public class ProviderController {
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public Collection<ConfigurableProvider> listIdps(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+        logger.debug("list idp for realm " + String.valueOf(realm));
 
         return providerManager.listProviders(realm, ConfigurableProvider.TYPE_IDENTITY)
                 .stream()
@@ -87,6 +87,9 @@ public class ProviderController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
+
+        logger.debug("get idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+
         ConfigurableProvider provider = providerManager.getProvider(realm, ConfigurableProvider.TYPE_IDENTITY,
                 providerId);
 
@@ -113,6 +116,8 @@ public class ProviderController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @Valid @RequestBody ConfigurableProvider registration) throws NoSuchRealmException {
 
+        logger.debug("add idp to realm " + String.valueOf(realm));
+
         // unpack and build model
         String id = registration.getProvider();
         String authority = registration.getAuthority();
@@ -130,6 +135,10 @@ public class ProviderController {
         provider.setPersistence(persistence);
         provider.setConfiguration(configuration);
 
+        if (logger.isTraceEnabled()) {
+            logger.trace("idp bean: " + String.valueOf(provider));
+        }
+
         provider = providerManager.addProvider(realm, provider);
 
         return provider;
@@ -144,6 +153,7 @@ public class ProviderController {
             @Valid @RequestBody ConfigurableProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
             throws NoSuchRealmException, NoSuchProviderException {
+        logger.debug("update idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
 
@@ -168,9 +178,13 @@ public class ProviderController {
         provider.setEnabled(enabled);
         provider.setHookFunctions(hookFunctions);
 
+        if (logger.isTraceEnabled()) {
+            logger.trace("idp bean: " + String.valueOf(provider));
+        }
+
         provider = providerManager.updateProvider(realm, providerId, provider);
 
-        // if force and flah enable try to register
+        // if force and enabled try to register
         if (forceRegistration && provider.isEnabled()) {
             try {
                 provider = providerManager.registerProvider(realm, providerId);
@@ -193,7 +207,7 @@ public class ProviderController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-
+        logger.debug("delete idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
         providerManager.deleteProvider(realm, providerId);
 
     }
@@ -204,6 +218,8 @@ public class ProviderController {
     public ConfigurableProvider importProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+        logger.debug("import idp to realm " + String.valueOf(realm));
+
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
@@ -236,12 +252,16 @@ public class ProviderController {
             provider.setConfiguration(configuration);
             provider.setHookFunctions(hookFunctions);
 
+            if (logger.isTraceEnabled()) {
+                logger.trace("idp bean: " + String.valueOf(provider));
+            }
+
             provider = providerManager.addProvider(realm, provider);
 
             return provider;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("import idp error: " + e.getMessage());
             throw e;
         }
 
@@ -258,6 +278,7 @@ public class ProviderController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
+        logger.debug("register idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
         provider = providerManager.registerProvider(realm, providerId);
@@ -276,6 +297,7 @@ public class ProviderController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
+        logger.debug("unregister idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
         ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
         provider = providerManager.unregisterProvider(realm, providerId);
@@ -293,8 +315,11 @@ public class ProviderController {
      */
     @GetMapping("/idp_schema/{type}/{authority}")
     public JsonSchema getConfigurationSchema(
-            @PathVariable(required = true) String type, @PathVariable(required = true) String authority)
+            @PathVariable(required = true) @Valid @NotBlank String type,
+            @PathVariable(required = true) @Valid @NotBlank String authority)
             throws IllegalArgumentException {
+        logger.debug("get idp config schema for type " + String.valueOf(type) + " for authority "
+                + String.valueOf(authority));
 
         return providerManager.getConfigurationSchema(type, authority);
     }

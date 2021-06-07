@@ -92,7 +92,7 @@ public class TokenIntrospectionEndpoint {
 
         if (!(authentication instanceof OAuth2ClientAuthenticationToken)) {
             throw new InsufficientAuthenticationException(
-                    "There is no client authentication. Try adding an appropriate authentication filter.");
+                    "Invalid client authentication");
         }
 
         // clientAuth should be available

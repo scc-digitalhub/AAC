@@ -2,11 +2,8 @@ package it.smartcommunitylab.aac.core;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
@@ -18,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -38,6 +33,8 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 @Service
 public class RealmManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private int minLength = 3;
 
     @Autowired
     private RealmService realmService;
@@ -67,6 +64,7 @@ public class RealmManager {
 
     @Transactional(readOnly = false)
     public Realm addRealm(Realm r) throws AlreadyRegisteredException {
+        logger.debug("add realm");
         r.setSlug(r.getSlug().toLowerCase());
 
         // cleanup input
@@ -75,13 +73,28 @@ public class RealmManager {
 
         if (StringUtils.hasText(slug)) {
             slug = Jsoup.clean(slug, Whitelist.none());
-        }
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            slug = slug.trim().toLowerCase();
         }
 
-        if (!StringUtils.hasText(name.trim())) {
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Whitelist.none());
+            name = name.trim();
+        }
+
+        if (!StringUtils.hasText(slug)) {
+            throw new RegistrationException("slug cannot be empty");
+        }
+
+        if (!StringUtils.hasText(name)) {
             throw new RegistrationException("name cannot be empty");
+        }
+
+        if (slug.length() < minLength) {
+            throw new RegistrationException("slug min length is " + String.valueOf(minLength));
+        }
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("realm: " + slug + " name " + String.valueOf(name));
         }
 
         return realmService.addRealm(slug, name, r.isEditable(), r.isPublic());
@@ -89,14 +102,16 @@ public class RealmManager {
 
     @Transactional(readOnly = false)
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
-        slug = slug.trim().toLowerCase();
+        logger.debug("update realm " + String.valueOf(slug));
+
         r.setSlug(slug);
 
         String name = r.getName();
         if (StringUtils.hasText(name)) {
             name = Jsoup.clean(name, Whitelist.none());
+            name = name.trim();
         }
-        if (!StringUtils.hasText(name.trim())) {
+        if (!StringUtils.hasText(name)) {
             throw new RegistrationException("name cannot be empty");
         }
 
@@ -140,39 +155,52 @@ public class RealmManager {
 
     @Transactional(readOnly = true)
     public Realm findRealm(String slug) {
+        logger.debug("find realm " + String.valueOf(slug));
+
         return realmService.findRealm(slug);
     }
 
     @Transactional(readOnly = true)
     public Realm getRealm(String slug) throws NoSuchRealmException {
+        logger.debug("get realm " + String.valueOf(slug));
+
         return realmService.getRealm(slug);
     }
 
     @Transactional(readOnly = true)
     public Collection<Realm> listRealms() {
+        logger.debug("list realms");
+
         return realmService.listRealms();
     }
 
     @Transactional(readOnly = true)
     public Collection<Realm> listRealms(boolean isPublic) {
+        logger.debug("list realms with public " + String.valueOf(isPublic));
+
         return realmService.listRealms(isPublic);
     }
 
     @Transactional(readOnly = true)
     public Collection<Realm> searchRealms(String keywords) {
+        logger.debug("search realms with query " + String.valueOf(keywords));
+
         return realmService.searchRealms(keywords);
     }
 
     @Transactional(readOnly = true)
     public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
+        logger.debug("search realms with query " + String.valueOf(keywords));
+
         return realmService.searchRealms(keywords, pageRequest);
     }
 
     @Transactional(readOnly = false)
     public void deleteRealm(String slug, boolean cleanup) throws NoSuchRealmException {
+        logger.debug("delete realm " + String.valueOf(slug));
         Realm realm = realmService.getRealm(slug);
 
-        if (cleanup) {
+        if (realm != null && cleanup) {
             // remove all providers, will also invalidate sessions for idps
             Collection<ConfigurableProvider> providers = providerManager.listProviders(slug);
             for (ConfigurableProvider provider : providers) {

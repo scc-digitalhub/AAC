@@ -152,6 +152,27 @@ public class UserService {
         return u.getRealm();
     }
 
+    public User findUser(String subjectId) {
+        UserEntity u = userService.findUser(subjectId);
+        if (u == null) {
+            return null;
+        }
+
+        String realm = u.getRealm();
+
+        User user = new User(subjectId, u.getRealm());
+
+        // add authorities
+        try {
+            user.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+        } catch (NoSuchUserException e) {
+            // ignore
+        }
+
+        // no identities, attributes etc
+        return user;
+    }
+
     public User getUser(String subjectId) throws NoSuchUserException {
         // resolve subject
         UserEntity u = userService.getUser(subjectId);

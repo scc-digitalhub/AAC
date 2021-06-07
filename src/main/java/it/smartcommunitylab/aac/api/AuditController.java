@@ -7,6 +7,8 @@ import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,8 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 @RestController
 @RequestMapping("api")
 public class AuditController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     @Autowired
     private AuditManager auditManager;
 
@@ -38,7 +42,7 @@ public class AuditController {
             @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> after,
             @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> before)
             throws NoSuchRealmException {
-
+        logger.debug("find audit events for realm " + String.valueOf(realm));
         return auditManager.findRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null));
 
     }

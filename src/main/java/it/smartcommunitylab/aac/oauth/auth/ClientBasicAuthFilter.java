@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -139,6 +140,11 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
         if (clientSecret == null) {
             clientSecret = "";
         }
+
+        // basic auth fields are urlencoded
+        // as per https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1
+        clientId = URLDecoder.decode(clientId, "UTF-8");
+        clientSecret = URLDecoder.decode(clientSecret, "UTF-8");
 
         // convert to our authRequest
         AbstractAuthenticationToken authRequest = new OAuth2ClientSecretAuthenticationToken(clientId,

@@ -144,7 +144,27 @@ public class OAuth2Config {
     }
 
     @Bean
-    public AACOAuth2RequestFactory getOAuth2RequestFactory(
+    public it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory getOAuth2RequestFactory(
+            FlowExtensionsService flowExtensionsService,
+            ScopeRegistry scopeRegistry)
+            throws PropertyVetoException {
+
+        it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory requestFactory = new it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory();
+        requestFactory.setFlowExtensionsService(flowExtensionsService);
+        requestFactory.setScopeRegistry(scopeRegistry);
+        return requestFactory;
+    }
+
+    @Bean
+    public it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator getOAuth2RequestValidator(
+            ScopeRegistry scopeRegistry) {
+        it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator requestValidator = new it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator();
+        requestValidator.setScopeRegistry(scopeRegistry);
+        return requestValidator;
+    }
+
+    @Bean
+    public AACOAuth2RequestFactory getAACOAuth2RequestFactory(
             OAuth2ClientDetailsService clientDetailsService,
             UserService userService,
             FlowExtensionsService flowExtensionsService,
@@ -161,7 +181,7 @@ public class OAuth2Config {
     }
 
     @Bean
-    public OAuth2RequestValidator getOAuth2RequestValidator(ScopeRegistry scopeRegistry) {
+    public AACOAuth2RequestValidator getAACOAuth2RequestValidator(ScopeRegistry scopeRegistry) {
         AACOAuth2RequestValidator requestValidator = new AACOAuth2RequestValidator();
         requestValidator.setScopeRegistry(scopeRegistry);
         return requestValidator;
@@ -420,8 +440,8 @@ public class OAuth2Config {
             RedirectResolver redirectResolver,
             UserApprovalHandler userApprovalHandler,
             SessionAttributeStore sessionAttributeStore,
-            OAuth2RequestFactory oAuth2RequestFactory,
-            OAuth2RequestValidator oauth2RequestValidator) {
+            AACOAuth2RequestFactory oAuth2RequestFactory,
+            AACOAuth2RequestValidator oauth2RequestValidator) {
         AuthorizationEndpoint authEndpoint = new AuthorizationEndpoint();
         authEndpoint.setClientDetailsService(clientDetailsService);
         authEndpoint.setAuthorizationCodeServices(authorizationCodeServices);
@@ -435,23 +455,23 @@ public class OAuth2Config {
         return authEndpoint;
     }
 
-    @Bean
-    public TokenEndpoint getTokenEndpoint(
-            ClientDetailsService clientDetailsService,
-            TokenGranter tokenGranter,
-            RedirectResolver redirectResolver,
-            UserApprovalHandler userApprovalHandler,
-            SessionAttributeStore sessionAttributeStore,
-            OAuth2RequestFactory oAuth2RequestFactory,
-            OAuth2RequestValidator oauth2RequestValidator) {
-        TokenEndpoint tokenEndpoint = new TokenEndpoint();
-        tokenEndpoint.setClientDetailsService(clientDetailsService);
-        tokenEndpoint.setTokenGranter(tokenGranter);
-        tokenEndpoint.setOAuth2RequestFactory(oAuth2RequestFactory);
-        tokenEndpoint.setOAuth2RequestValidator(oauth2RequestValidator);
-
-        return tokenEndpoint;
-    }
+//    @Bean
+//    public TokenEndpoint getTokenEndpoint(
+//            ClientDetailsService clientDetailsService,
+//            TokenGranter tokenGranter,
+//            RedirectResolver redirectResolver,
+//            UserApprovalHandler userApprovalHandler,
+//            SessionAttributeStore sessionAttributeStore,
+//            OAuth2RequestFactory oAuth2RequestFactory,
+//            OAuth2RequestValidator oauth2RequestValidator) {
+//        TokenEndpoint tokenEndpoint = new TokenEndpoint();
+//        tokenEndpoint.setClientDetailsService(clientDetailsService);
+//        tokenEndpoint.setTokenGranter(tokenGranter);
+//        tokenEndpoint.setOAuth2RequestFactory(oAuth2RequestFactory);
+//        tokenEndpoint.setOAuth2RequestValidator(oauth2RequestValidator);
+//
+//        return tokenEndpoint;
+//    }
 
     @Bean
     public InternalOpaqueTokenIntrospector tokenIntrospector(ExtTokenStore tokenStore,
