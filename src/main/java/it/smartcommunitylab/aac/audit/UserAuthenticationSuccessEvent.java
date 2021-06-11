@@ -3,7 +3,7 @@ package it.smartcommunitylab.aac.audit;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 
 public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
@@ -14,7 +14,7 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
 
     public UserAuthenticationSuccessEvent(
             String authority, String provider, String realm,
-            UserAuthenticationToken auth) {
+            UserAuthentication auth) {
         super(auth);
         Assert.hasText(authority, "authority is required");
         Assert.notNull(provider, "provider is required");
@@ -26,8 +26,8 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
 
     }
 
-    public UserAuthenticationToken getAuthenticationToken() {
-        return (UserAuthenticationToken) super.getAuthentication();
+    public UserAuthentication getAuthenticationToken() {
+        return (UserAuthentication) super.getAuthentication();
     }
 
     public String getAuthority() {

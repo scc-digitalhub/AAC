@@ -4,9 +4,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,19 +15,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.Subject;
 
-/**
- *
- */
-public class UserAuthenticationToken extends AbstractAuthenticationToken {
-
-    private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
-
-    // auth principal is the subject
-    private final Subject principal;
-
-    // the token is bound to a single realm, since we can match identities only over
-    // same realm by design
-    private final String realm;
+public class DefaultUserAuthenticationToken extends UserAuthentication {
 
     // subject userDetails with multiple identities bound
     private UserDetails details;
@@ -46,7 +33,7 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     // audit
     // TODO
 
-    public UserAuthenticationToken(
+    public DefaultUserAuthenticationToken(
             Subject principal, String realm,
             ExtendedAuthenticationToken auth,
             UserIdentity identity,
@@ -54,43 +41,30 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
             Collection<? extends GrantedAuthority> authorities) {
         // we set authorities via super
         // we don't support null authorities list
-        super(authorities);
-
-        Assert.notEmpty(authorities, "authorities can not be empty");
-        Assert.notNull(principal, "principal is required");
+        super(principal, realm, authorities, auth != null ? auth.isAuthenticated() : false);
         Assert.notNull(auth, "auth token for identity is required");
         Assert.notNull(identity, "identity is required");
-        Assert.notNull(realm, "realm is required");
 
-        this.principal = principal;
-        this.realm = realm;
         this.details = new UserDetails(principal.getSubjectId(), realm, identity, attributeSets, authorities);
 
         this.tokens = new HashSet<>();
         this.tokens.add(auth);
-        boolean isAuthenticated = auth.isAuthenticated();
-
-        super.setAuthenticated(isAuthenticated); // must use super, as we override
     }
 
-    public UserAuthenticationToken(
+    public DefaultUserAuthenticationToken(
             Subject principal, String realm,
             Collection<? extends GrantedAuthority> authorities,
-            UserAuthenticationToken... authenticationTokens) {
-        super(authorities);
+            UserAuthentication... authenticationTokens) {
+        super(principal, realm, authorities,
+                authenticationTokens.length > 0 ? authenticationTokens[0].isAuthenticated() : false);
 
         Assert.notEmpty(authorities, "authorities can not be empty");
-        Assert.notNull(principal, "principal is required");
         Assert.notEmpty(authenticationTokens, "at least one authentication token is required");
-        Assert.notNull(realm, "realm is required");
 
-        this.principal = principal;
-        this.realm = realm;
         this.tokens = new HashSet<>();
 
         // use first token as base
-        UserAuthenticationToken token = authenticationTokens[0];
-        boolean isAuthenticated = token.isAuthenticated();
+        UserAuthentication token = authenticationTokens[0];
         this.details = new UserDetails(principal.getSubjectId(), realm, token.getUser().getIdentities(),
                 token.getUser().getAttributeSets(), authorities);
 
@@ -113,72 +87,16 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
             tokens.addAll(t.getAuthentications());
         });
 
-        super.setAuthenticated(isAuthenticated); // must use super, as we override
-
     }
 
-    /**
-     * Private constructor for JPA and other serialization tools.
-     * 
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-    @SuppressWarnings("unused")
-    private UserAuthenticationToken() {
-        this(null, null, null, null, null, null);
-    }
-
-    @Override
-    public Object getCredentials() {
-        // no credentials here, we expect those handled at account level
-        return null;
-    }
-
-    @Override
-    public Object getPrincipal() {
-        return principal;
-    }
-
-    @Override
-    public String getName() {
-        return principal.getSubjectId();
-    }
-    
     @Override
     public Object getDetails() {
         return details;
     }
 
     @JsonIgnore
-    public Subject getSubject() {
-        return principal;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public String getSubjectId() {
-        return principal.getSubjectId();
-    }
-
-    @JsonIgnore
     public UserDetails getUser() {
         return details;
-    }
-
-    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-        if (isAuthenticated) {
-            throw new IllegalArgumentException(
-                    "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
-        }
-
-        super.setAuthenticated(false);
-    }
-
-    @Override
-    public void eraseCredentials() {
-        super.eraseCredentials();
     }
 
     /*
@@ -242,5 +160,4 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
     public String toString() {
         return "UserAuthenticationToken [principal=" + principal + ", details=" + details + ", tokens=" + tokens + "]";
     }
-
 }

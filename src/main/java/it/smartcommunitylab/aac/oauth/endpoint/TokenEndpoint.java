@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -43,7 +45,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -56,21 +58,22 @@ public class TokenEndpoint implements InitializingBean {
 
     public static final String TOKEN_URL = "/oauth/token";
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     @Autowired
     private TokenGranter tokenGranter;
 
     @Autowired
-    OAuth2TokenRequestFactory oauth2RequestFactory;
+    private OAuth2TokenRequestFactory oauth2RequestFactory;
 
     @Autowired
-    OAuth2TokenRequestValidator oauth2RequestValidator;
+    private OAuth2TokenRequestValidator oauth2RequestValidator;
 
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(tokenGranter, "token granter is required");
         Assert.notNull(oauth2RequestFactory, "token request factory is required");
         Assert.notNull(oauth2RequestValidator, "token request validator is required");
-
     }
 
     @RequestMapping(value = {
@@ -82,7 +85,7 @@ public class TokenEndpoint implements InitializingBean {
             Authentication authentication)
             throws ClientRegistrationException, OAuth2Exception, SystemException {
 
-        if (!(authentication instanceof OAuth2ClientAuthenticationToken)) {
+        if (!(authentication instanceof OAuth2ClientAuthenticationToken) || !authentication.isAuthenticated()) {
             throw new InsufficientAuthenticationException("Invalid client authentication");
         }
 
@@ -184,6 +187,8 @@ public class TokenEndpoint implements InitializingBean {
     }
 
     private ResponseEntity<OAuth2Exception> buildResponse(OAuth2Exception e) throws IOException {
+        logger.error("Error: " + e.getMessage());
+
         HttpStatus status = HttpStatus.valueOf(e.getHttpErrorCode());
 
         HttpHeaders headers = new HttpHeaders();

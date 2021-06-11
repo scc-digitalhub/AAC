@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.provider.approval.UserApprovalHandler
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -55,8 +55,8 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
             User user = null;
 
             // check if userAuth is present
-            if (userAuth != null && userAuth instanceof UserAuthenticationToken) {
-                userDetails = ((UserAuthenticationToken) userAuth).getUser();
+            if (userAuth != null && userAuth instanceof UserAuthentication) {
+                userDetails = ((UserAuthentication) userAuth).getUser();
                 if (userService != null) {
                     user = userService.getUser(userDetails, realm);
                 } else {

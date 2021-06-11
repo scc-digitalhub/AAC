@@ -17,12 +17,12 @@ public class ComposedAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = -2640624036104536421L;
 
-    private final UserAuthenticationToken userAuthentication;
-    private final ClientAuthenticationToken clientAuthentication;
+    private final UserAuthentication userAuthentication;
+    private final ClientAuthentication clientAuthentication;
 
     public ComposedAuthenticationToken(
-            UserAuthenticationToken userAuthentication,
-            ClientAuthenticationToken clientAuthentication) {
+            UserAuthentication userAuthentication,
+            ClientAuthentication clientAuthentication) {
         super(buildAuthorities(userAuthentication, clientAuthentication));
         Assert.notNull(userAuthentication, "user authentication can not be null");
         Assert.notNull(clientAuthentication, "client authentication can not be null");
@@ -33,11 +33,11 @@ public class ComposedAuthenticationToken extends AbstractAuthenticationToken {
         super.setAuthenticated(userAuthentication.isAuthenticated() && clientAuthentication.isAuthenticated());
     }
 
-    public UserAuthenticationToken getUserAuthentication() {
+    public UserAuthentication getUserAuthentication() {
         return userAuthentication;
     }
 
-    public ClientAuthenticationToken getClientAuthentication() {
+    public ClientAuthentication getClientAuthentication() {
         return clientAuthentication;
     }
 
@@ -59,8 +59,8 @@ public class ComposedAuthenticationToken extends AbstractAuthenticationToken {
         return this.userAuthentication.getPrincipal();
     }
 
-    private static Collection<? extends GrantedAuthority> buildAuthorities(UserAuthenticationToken userAuthentication,
-            ClientAuthenticationToken clientAuthentication) {
+    private static Collection<? extends GrantedAuthority> buildAuthorities(UserAuthentication userAuthentication,
+            ClientAuthentication clientAuthentication) {
         // build an immutable set of authorities
         Set<GrantedAuthority> authorities = new HashSet<>();
         if (userAuthentication != null && userAuthentication.isAuthenticated()) {

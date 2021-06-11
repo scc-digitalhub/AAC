@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.SpaceRole;
@@ -49,11 +49,11 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
     public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest,
             Authentication userAuth) {
 
-        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+        if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
 
         // fetch details
         String clientId = authorizationRequest.getClientId();
@@ -98,11 +98,11 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
         String spaceSelection = authorizationRequest.getApprovalParameters().get("space_selection");
         if (StringUtils.hasText(spaceSelection)) {
             // we want to validate the selection
-            if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+            if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
                 throw new InvalidRequestException("approval requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
 
             // fetch details
             String clientId = authorizationRequest.getClientId();
@@ -143,11 +143,11 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
         Map<String, Object> model = new HashMap<String, Object>();
 
         // space selection, we need to check again
-        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+        if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
 
         // fetch details
         String clientId = authorizationRequest.getClientId();
@@ -160,14 +160,15 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
         }
 
         // see if the user has to perform the space selection
-        model.put("spaces", Collections.emptyList());
+        Set<String> spaces = Collections.emptySet();
         String uniqueSpaces = clientDetails.getHookUniqueSpaces();
         if (StringUtils.hasText(uniqueSpaces)) {
             // fetch spaces list from context
-            Set<String> spaces = getUniqueSpaces(userDetails, uniqueSpaces);
-            if (!spaces.isEmpty()) {
-                model.put("spaces", spaces);
-            }
+            spaces = getUniqueSpaces(userDetails, uniqueSpaces);
+        }
+
+        if (!spaces.isEmpty()) {
+            model.put("spaces", StringUtils.collectionToDelimitedString(spaces, " "));
         }
 
         return model;

@@ -46,8 +46,8 @@ public class ExtendedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler 
         }
 
         // fallback to login page
-        if (authentication != null && authentication instanceof UserAuthenticationToken) {
-            UserAuthenticationToken userAuth = (UserAuthenticationToken) authentication;
+        if (authentication != null && authentication instanceof UserAuthentication) {
+            UserAuthentication userAuth = (UserAuthentication) authentication;
             String realm = userAuth.getRealm();
 
             return buildLoginUrl(request, realm);

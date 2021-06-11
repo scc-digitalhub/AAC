@@ -23,7 +23,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
@@ -79,8 +79,8 @@ public class JwtTokenConverter implements TokenEnhancer {
             UserDetails userDetails = null;
             logger.debug("fetch user via authentication");
             Authentication userAuth = authentication.getUserAuthentication();
-            if (userAuth != null && (userAuth instanceof UserAuthenticationToken)) {
-                userDetails = ((UserAuthenticationToken) userAuth).getUser();
+            if (userAuth != null && (userAuth instanceof UserAuthentication)) {
+                userDetails = ((UserAuthentication) userAuth).getUser();
             }
 
             JWT jwt = buildJWT(request, token, userDetails, clientDetails);

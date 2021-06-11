@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -63,8 +63,8 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
             UserDetails userDetails = null;
 
             // check if userAuth is present
-            if (userAuth != null && userAuth instanceof UserAuthenticationToken) {
-                userDetails = ((UserAuthenticationToken) userAuth).getUser();
+            if (userAuth != null && userAuth instanceof UserAuthentication) {
+                userDetails = ((UserAuthentication) userAuth).getUser();
             }
 
             logger.debug("process scopes for client " + clientDetails.getClientId() + ": " + scopes);

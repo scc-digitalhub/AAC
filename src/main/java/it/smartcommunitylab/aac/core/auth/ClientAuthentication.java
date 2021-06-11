@@ -9,31 +9,23 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
-public abstract class ClientAuthenticationToken extends AbstractAuthenticationToken {
+public abstract class ClientAuthentication extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = -2640624036104536421L;
 
     // clientId is principal
-    private final String principal;
+    protected final String principal;
 
     // keep realm separated to support clients authentication in different realms
     protected String realm;
 
-    // client details
-    protected ClientDetails details;
-
-    // web authentication details
-    protected WebAuthenticationDetails webAuthenticationDetails;
-
-    protected String authenticationMethod;
-
-    public ClientAuthenticationToken(String clientId) {
+    public ClientAuthentication(String clientId) {
         super(null);
         this.principal = clientId;
         setAuthenticated(false);
     }
 
-    public ClientAuthenticationToken(String clientId,
+    public ClientAuthentication(String clientId,
             Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = clientId;
@@ -51,17 +43,8 @@ public abstract class ClientAuthenticationToken extends AbstractAuthenticationTo
     }
 
     @Override
-    public Object getDetails() {
-        return details;
-    }
-
-    @Override
     public String getName() {
         return principal;
-    }
-
-    public ClientDetails getClient() {
-        return details;
     }
 
     public String getClientId() {
@@ -72,8 +55,8 @@ public abstract class ClientAuthenticationToken extends AbstractAuthenticationTo
         return realm;
     }
 
-    public String getAuthenticationMethod() {
-        return authenticationMethod;
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
@@ -90,24 +73,10 @@ public abstract class ClientAuthenticationToken extends AbstractAuthenticationTo
         // nothing to do
     }
 
-    public WebAuthenticationDetails getWebAuthenticationDetails() {
-        return webAuthenticationDetails;
-    }
+    public abstract ClientDetails getClient();
 
-    public void setWebAuthenticationDetails(WebAuthenticationDetails webAuthenticationDetails) {
-        this.webAuthenticationDetails = webAuthenticationDetails;
-    }
+    public abstract String getAuthenticationMethod();
 
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    public void setDetails(ClientDetails details) {
-        this.details = details;
-    }
-
-    public void setAuthenticationMethod(String authenticationMethod) {
-        this.authenticationMethod = authenticationMethod;
-    }
+    public abstract WebAuthenticationDetails getWebAuthenticationDetails();
 
 }

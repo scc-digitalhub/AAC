@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.InternalUserManager;
@@ -243,7 +243,7 @@ public class InternalLoginController {
             Authentication authResponse = authManager.authenticate(wrappedAuthRequest);
 
             // we got a userAuthToken
-            UserAuthenticationToken authentication = (UserAuthenticationToken) authResponse;
+            UserAuthentication authentication = (UserAuthentication) authResponse;
 
 ////            // replace in session
 //            sessionManager.setSession(authentication);

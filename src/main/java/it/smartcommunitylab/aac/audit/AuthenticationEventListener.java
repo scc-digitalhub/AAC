@@ -15,8 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 
 public class AuthenticationEventListener extends AbstractAuthenticationAuditListener {
@@ -43,7 +43,7 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
     }
 
     private void onUserAuthenticationSuccessEvent(UserAuthenticationSuccessEvent event) {
-        UserAuthenticationToken auth = event.getAuthenticationToken();
+        UserAuthentication auth = event.getAuthenticationToken();
         String principal = auth.getSubjectId();
         String authority = event.getAuthority();
         String provider = event.getProvider();
@@ -86,8 +86,8 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
         }
 
-        if (auth instanceof ClientAuthenticationToken) {
-            ClientAuthenticationToken token = (ClientAuthenticationToken) auth;
+        if (auth instanceof ClientAuthentication) {
+            ClientAuthentication token = (ClientAuthentication) auth;
             eventType = CLIENT_AUTHENTICATION_FAILURE;
             details = token.getWebAuthenticationDetails();
         }
@@ -133,14 +133,14 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
         }
 
         // check if user auth
-        if (auth instanceof UserAuthenticationToken) {
-            UserAuthenticationToken token = (UserAuthenticationToken) auth;
+        if (auth instanceof UserAuthentication) {
+            UserAuthentication token = (UserAuthentication) auth;
             eventType = USER_AUTHENTICATION_SUCCESS;
             data.put("realm", token.getRealm());
             // TODO get last provider from tokens, needs ordering or dedicated field
         }
-        if (auth instanceof ClientAuthenticationToken) {
-            ClientAuthenticationToken token = (ClientAuthenticationToken) auth;
+        if (auth instanceof ClientAuthentication) {
+            ClientAuthentication token = (ClientAuthentication) auth;
             eventType = CLIENT_AUTHENTICATION_SUCCESS;
             details = token.getWebAuthenticationDetails();
             data.put("realm", token.getRealm());

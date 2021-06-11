@@ -9,7 +9,7 @@ import org.springframework.security.authentication.DefaultAuthenticationEventPub
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 
 public class ExtendedAuthenticationEventPublisher
         implements AuthenticationEventPublisher, ApplicationEventPublisherAware {
@@ -37,7 +37,7 @@ public class ExtendedAuthenticationEventPublisher
 
     public void publishUserAuthenticationSuccess(
             String authority, String provider, String realm,
-            UserAuthenticationToken authentication) {
+            UserAuthentication authentication) {
         if (this.applicationEventPublisher != null) {
             UserAuthenticationSuccessEvent event = new UserAuthenticationSuccessEvent(authority, provider, realm,
                     authentication);

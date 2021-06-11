@@ -60,7 +60,7 @@
 
 					
 						<form id="confirmationForm" name="confirmationForm" th:action="${formAction}" method="post">
-
+                     <input type="hidden" name="key" id="key" th:value="${key}">
 							<div class="error"
 								th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null and !(session.SPRING_SECURITY_LAST_EXCEPTION instanceof org.springframework.security.oauth2.common.exceptions.UnapprovedClientAuthenticationException)}">
 								<h2 th:text="#{lbl_approval_error_title}">Error title</h2>

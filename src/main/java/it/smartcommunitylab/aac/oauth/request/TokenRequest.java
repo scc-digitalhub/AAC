@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.request;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +27,11 @@ public class TokenRequest extends org.springframework.security.oauth2.provider.T
 
     private Set<String> resourceIds = new HashSet<>();
 
+    /*
+     * Extensions map for additional params
+     */
+    protected Map<String, Serializable> extensions = new HashMap<>();
+
     public TokenRequest(
             Map<String, String> requestParameters,
             String clientId, String grantType,
@@ -41,6 +47,7 @@ public class TokenRequest extends org.springframework.security.oauth2.provider.T
             this.audience = new HashSet<>(audience);
         }
 
+        extensions = new HashMap<>();
     }
 
     public Set<String> getResourceIds() {
@@ -57,6 +64,14 @@ public class TokenRequest extends org.springframework.security.oauth2.provider.T
 
     public void setAudience(Set<String> audience) {
         this.audience = audience;
+    }
+
+    public Map<String, Serializable> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(Map<String, Serializable> extensions) {
+        this.extensions = extensions;
     }
 
     @Override

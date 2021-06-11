@@ -1,10 +1,14 @@
 package it.smartcommunitylab.aac.oauth.request;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 
@@ -14,8 +18,7 @@ public class AuthorizationCodeTokenRequest extends TokenRequest {
     private String code;
     private String redirectUri;
 
-    // TODO add field for authorizationRequest
-//    private AuthorizationRequest authorizationRequest;
+    private AuthorizationRequest authorizationRequest;
 
     public AuthorizationCodeTokenRequest(
             Map<String, String> requestParameters,
@@ -46,6 +49,28 @@ public class AuthorizationCodeTokenRequest extends TokenRequest {
 
     public void setRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
+    }
+
+    public AuthorizationRequest getAuthorizationRequest() {
+        return authorizationRequest;
+    }
+
+    public void setAuthorizationRequest(AuthorizationRequest authorizationRequest) {
+        this.authorizationRequest = authorizationRequest;
+        // also update params from authorizationRequest
+        setScope(authorizationRequest.getScope());
+        setResourceIds(authorizationRequest.getResourceIds());
+        setRedirectUri(authorizationRequest.getRedirectUri());
+
+        // extensions
+        Map<String, Serializable> extensions = authorizationRequest.getExtensions();
+        if (extensions.containsKey("audience")) {
+            Set<String> audience = StringUtils.commaDelimitedListToSet((String) extensions.get("audience"));
+            setAudience(audience);
+        }
+        if (extensions.containsKey("nonce")) {
+            getExtensions().put("nonce", extensions.get("nonce"));
+        }
     }
 
 }

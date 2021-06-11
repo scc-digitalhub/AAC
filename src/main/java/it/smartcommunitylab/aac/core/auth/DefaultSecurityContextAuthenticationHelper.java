@@ -35,10 +35,10 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
     }
 
     @Override
-    public UserAuthenticationToken getUserAuthentication() {
+    public UserAuthentication getUserAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof UserAuthenticationToken) {
-            return (UserAuthenticationToken) auth;
+        if (auth instanceof UserAuthentication) {
+            return (UserAuthentication) auth;
         }
         if (auth instanceof ComposedAuthenticationToken) {
             return ((ComposedAuthenticationToken) auth).getUserAuthentication();
@@ -50,7 +50,7 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
 
     @Override
     public UserDetails getUserDetails() {
-        UserAuthenticationToken auth = getUserAuthentication();
+        UserAuthentication auth = getUserAuthentication();
         if (auth == null) {
             return null;
         }
@@ -60,7 +60,7 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
 
     @Override
     public boolean isUser() {
-        UserAuthenticationToken auth = getUserAuthentication();
+        UserAuthentication auth = getUserAuthentication();
         return auth != null;
     }
 
@@ -75,10 +75,10 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
     }
 
     @Override
-    public ClientAuthenticationToken getClientAuthentication() {
+    public ClientAuthentication getClientAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof ClientAuthenticationToken) {
-            return (ClientAuthenticationToken) auth;
+        if (auth instanceof ClientAuthentication) {
+            return (ClientAuthentication) auth;
         } else if (auth instanceof ComposedAuthenticationToken) {
             return ((ComposedAuthenticationToken) auth).getClientAuthentication();
         } else {
@@ -89,7 +89,7 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
 
     @Override
     public ClientDetails getClientDetails() {
-        ClientAuthenticationToken auth = getClientAuthentication();
+        ClientAuthentication auth = getClientAuthentication();
         if (auth == null) {
             return null;
         }

@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -43,6 +45,7 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.support.DefaultSessionAttributeStore;
 import org.springframework.web.bind.support.SessionAttributeStore;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CompositeFilter;
 
 import it.smartcommunitylab.aac.audit.OAuth2EventListener;
@@ -80,6 +83,8 @@ import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvide
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
 import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestFactory;
 import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestValidator;
+import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestRepository;
+import it.smartcommunitylab.aac.oauth.service.InMemoryAuthorizationRequestRepository;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.token.AbstractTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.AuthorizationCodeTokenGranter;
@@ -433,27 +438,34 @@ public class OAuth2Config {
     }
 
     @Bean
-    public AuthorizationEndpoint getAuthorizationEndpoint(
-            ClientDetailsService clientDetailsService,
-            AuthorizationCodeServices authorizationCodeServices,
-            TokenGranter tokenGranter,
-            RedirectResolver redirectResolver,
-            UserApprovalHandler userApprovalHandler,
-            SessionAttributeStore sessionAttributeStore,
-            AACOAuth2RequestFactory oAuth2RequestFactory,
-            AACOAuth2RequestValidator oauth2RequestValidator) {
-        AuthorizationEndpoint authEndpoint = new AuthorizationEndpoint();
-        authEndpoint.setClientDetailsService(clientDetailsService);
-        authEndpoint.setAuthorizationCodeServices(authorizationCodeServices);
-        authEndpoint.setTokenGranter(tokenGranter);
-        authEndpoint.setRedirectResolver(redirectResolver);
-        authEndpoint.setUserApprovalHandler(userApprovalHandler);
-        authEndpoint.setSessionAttributeStore(sessionAttributeStore);
-        authEndpoint.setOAuth2RequestFactory(oAuth2RequestFactory);
-        authEndpoint.setOAuth2RequestValidator(oauth2RequestValidator);
-
-        return authEndpoint;
+    @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
+    public OAuth2AuthorizationRequestRepository authorizationRequestRepository() {
+        // used as session scoped proxy, we need this for in flight requests
+        return new InMemoryAuthorizationRequestRepository();
     }
+
+//    @Bean
+//    public AuthorizationEndpoint getAuthorizationEndpoint(
+//            ClientDetailsService clientDetailsService,
+//            AuthorizationCodeServices authorizationCodeServices,
+//            TokenGranter tokenGranter,
+//            RedirectResolver redirectResolver,
+//            UserApprovalHandler userApprovalHandler,
+//            SessionAttributeStore sessionAttributeStore,
+//            AACOAuth2RequestFactory oAuth2RequestFactory,
+//            AACOAuth2RequestValidator oauth2RequestValidator) {
+//        AuthorizationEndpoint authEndpoint = new AuthorizationEndpoint();
+//        authEndpoint.setClientDetailsService(clientDetailsService);
+//        authEndpoint.setAuthorizationCodeServices(authorizationCodeServices);
+//        authEndpoint.setTokenGranter(tokenGranter);
+//        authEndpoint.setRedirectResolver(redirectResolver);
+//        authEndpoint.setUserApprovalHandler(userApprovalHandler);
+//        authEndpoint.setSessionAttributeStore(sessionAttributeStore);
+//        authEndpoint.setOAuth2RequestFactory(oAuth2RequestFactory);
+//        authEndpoint.setOAuth2RequestValidator(oauth2RequestValidator);
+//
+//        return authEndpoint;
+//    }
 
 //    @Bean
 //    public TokenEndpoint getTokenEndpoint(

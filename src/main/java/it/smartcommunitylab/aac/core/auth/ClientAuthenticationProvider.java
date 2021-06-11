@@ -7,7 +7,7 @@ import org.springframework.security.core.AuthenticationException;
 public abstract class ClientAuthenticationProvider implements AuthenticationProvider {
 
     @Override
-    public abstract ClientAuthenticationToken authenticate(Authentication authentication)
+    public abstract ClientAuthentication authenticate(Authentication authentication)
             throws AuthenticationException;
 
 }

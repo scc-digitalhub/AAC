@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
@@ -176,7 +176,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);
 
         // authenticate via extended authManager
-        UserAuthenticationToken userAuthentication = (UserAuthenticationToken) getAuthenticationManager()
+        UserAuthentication userAuthentication = (UserAuthentication) getAuthenticationManager()
                 .authenticate(wrappedAuthRequest);
 
         // return authentication to be set in security context

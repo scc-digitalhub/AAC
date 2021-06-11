@@ -35,7 +35,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -86,7 +86,7 @@ public class EndSessionEndpoint {
             Authentication auth, Model model) throws IOException, ServletException {
 
         // get userAuth
-        UserAuthenticationToken userAuth = authHelper.getUserAuthentication();
+        UserAuthentication userAuth = authHelper.getUserAuthentication();
 
         if (StringUtils.hasText(postLogoutRedirectUri)) {
             session.setAttribute(REDIRECT_URI_KEY, postLogoutRedirectUri);

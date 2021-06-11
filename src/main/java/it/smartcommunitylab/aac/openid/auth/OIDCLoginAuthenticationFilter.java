@@ -37,7 +37,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
@@ -211,7 +211,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         wrappedAuthRequest.setAuthenticationDetails(webAuthenticationDetails);
 
         // authenticate via extended authManager
-        UserAuthenticationToken userAuthentication = (UserAuthenticationToken) getAuthenticationManager()
+        UserAuthentication userAuthentication = (UserAuthentication) getAuthenticationManager()
                 .authenticate(wrappedAuthRequest);
 
         // return authentication to be set in security context

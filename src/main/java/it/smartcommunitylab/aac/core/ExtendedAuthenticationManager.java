@@ -32,13 +32,14 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -177,7 +178,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                     }
                 }
 
-                UserAuthenticationToken result = null;
+                UserAuthentication result = null;
 
                 // TODO rework loop
                 for (IdentityProvider idp : providers) {
@@ -211,7 +212,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
     /*
      * Attemp authentication, returns null if request is not supported or if invalid
      */
-    protected UserAuthenticationToken attempAuthenticate(WrappedAuthenticationToken request,
+    protected UserAuthentication attempAuthenticate(WrappedAuthenticationToken request,
             ExtendedAuthenticationProvider provider) throws AuthenticationException {
         /*
          * Extended authentication:
@@ -246,7 +247,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
     /*
      * Perform authentication, throws error
      */
-    protected UserAuthenticationToken doAuthenticate(WrappedAuthenticationToken request,
+    protected UserAuthentication doAuthenticate(WrappedAuthenticationToken request,
             ExtendedAuthenticationProvider provider) throws AuthenticationException {
 
         /*
@@ -277,7 +278,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
     }
 
-    protected UserAuthenticationToken createSuccessAuthentication(WrappedAuthenticationToken request,
+    protected UserAuthentication createSuccessAuthentication(WrappedAuthenticationToken request,
             ExtendedAuthenticationToken auth) throws AuthenticationException {
         logger.trace("auth token is " + auth.toString());
         WebAuthenticationDetails webAuthDetails = request.getAuthenticationDetails();
@@ -355,10 +356,10 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         }
 
         // check current authenticated session for match subject
-        UserAuthenticationToken currentAuth = null;
+        UserAuthentication currentAuth = null;
         Authentication currentSession = SecurityContextHolder.getContext().getAuthentication();
-        if (currentSession != null && currentSession instanceof UserAuthenticationToken) {
-            currentAuth = (UserAuthenticationToken) currentSession;
+        if (currentSession != null && currentSession instanceof UserAuthentication) {
+            currentAuth = (UserAuthentication) currentSession;
             // also enforce realm match on subject
             if (!subjectId.equals(currentAuth.getSubject().getSubjectId()) ||
                     !realm.equals((currentAuth.getRealm()))) {
@@ -449,7 +450,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             identity.eraseCredentials();
 
             // we can build the user authentication
-            UserAuthenticationToken userAuth = new UserAuthenticationToken(
+            DefaultUserAuthenticationToken userAuth = new DefaultUserAuthenticationToken(
                     subject, realm,
                     auth,
                     identity, attributeSets,
@@ -459,7 +460,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             logger.trace("userAuthentication is " + userAuth.toString());
 
             // merge userAuth from session here, filters won't have the context
-            UserAuthenticationToken result = userAuth;
+            DefaultUserAuthenticationToken result = userAuth;
             // merge only same realm authorities
             if (currentAuth != null && realm.equals(currentAuth.getRealm())) {
                 // merge authorities
@@ -468,7 +469,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                 grantedAuthorities.addAll(userAuth.getAuthorities());
 
                 // current authentication is first, new extends
-                result = new UserAuthenticationToken(subject, realm, grantedAuthorities, currentAuth, userAuth);
+                result = new DefaultUserAuthenticationToken(subject, realm, grantedAuthorities, currentAuth, userAuth);
 
             }
 
@@ -545,7 +546,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         }
     }
 
-    private void auditSuccess(UserAuthenticationToken auth) {
+    private void auditSuccess(UserAuthentication auth) {
         if (eventPublisher != null) {
             // publish as is, listener will resolve realm
             eventPublisher.publishAuthenticationSuccess(auth);

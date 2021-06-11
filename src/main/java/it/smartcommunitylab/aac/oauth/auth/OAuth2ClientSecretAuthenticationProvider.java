@@ -12,7 +12,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -35,7 +35,7 @@ public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticati
     }
 
     @Override
-    public ClientAuthenticationToken authenticate(Authentication authentication) throws AuthenticationException {
+    public ClientAuthentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(OAuth2ClientSecretAuthenticationToken.class, authentication,
                 "Only ClientSecretAuthenticationToken is supported");
 

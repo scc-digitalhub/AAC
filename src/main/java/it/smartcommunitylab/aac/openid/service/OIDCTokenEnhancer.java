@@ -40,7 +40,7 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.model.AttributeType;
@@ -123,11 +123,11 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
             logger.debug("fetch user via authentication");
 
             Authentication userAuth = authentication.getUserAuthentication();
-            if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+            if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
 
             JWT idToken = createIdToken(request, accessToken, userDetails, clientDetails, oauth2ClientDetails);
 

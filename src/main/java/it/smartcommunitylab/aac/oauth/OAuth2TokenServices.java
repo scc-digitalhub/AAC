@@ -44,7 +44,7 @@ import com.nimbusds.oauth2.sdk.ParseException;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -177,7 +177,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
 
         // check if userAuth is present
         Authentication userAuth = authentication.getUserAuthentication();
-        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+        if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("refresh requires a valid user authentication");
         }
 

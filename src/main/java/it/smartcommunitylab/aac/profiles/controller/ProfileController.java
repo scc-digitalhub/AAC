@@ -54,7 +54,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
@@ -152,15 +152,15 @@ public class ProfileController {
 
     @RolesAllowed("ROLE_USER")
     @GetMapping(value = "/whoami")
-    public @ResponseBody UserAuthenticationToken debug(Authentication auth, HttpServletResponse response)
+    public @ResponseBody UserAuthentication debug(Authentication auth, HttpServletResponse response)
             throws IOException {
 
         // authentication should be a user authentication
-        if (!(auth instanceof UserAuthenticationToken)) {
+        if (!(auth instanceof UserAuthentication)) {
             throw new InsufficientAuthenticationException("not a user authentication");
         }
 
-        UserAuthenticationToken token = (UserAuthenticationToken) auth;
+        UserAuthentication token = (UserAuthentication) auth;
 
         return token;
 

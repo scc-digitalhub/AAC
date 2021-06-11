@@ -57,7 +57,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
@@ -103,7 +103,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     public AuthorizationRequest checkForPreApproval(AuthorizationRequest request,
             Authentication userAuth) {
 
-        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+        if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
@@ -117,7 +117,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             request.setApproved(true);
         }
 
-        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
         String subjectId = userDetails.getSubjectId();
 
         OAuth2ClientDetails clientDetails;
@@ -314,7 +314,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     public Map<String, Object> getUserApprovalRequest(AuthorizationRequest request,
             Authentication userAuth) {
 
-        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+        if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
@@ -322,7 +322,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         String clientId = request.getClientId();
         Set<String> requestedScopes = request.getScope();
 
-        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
         OAuth2ClientDetails clientDetails;
         try {
             clientDetails = oauthClientDetailsService.loadClientByClientId(clientId);
@@ -337,25 +337,45 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         Set<String> userApprovedScopes = getUserApproved(userDetails, clientDetails);
 
         // check if all requested scopes are already approved
-        Set<String> approvedScopes = new HashSet<>();
-        approvedScopes.addAll(autoApprovedScopes);
-        approvedScopes.addAll(userApprovedScopes);
+        Set<String> allApprovedScopes = new HashSet<>();
+        allApprovedScopes.addAll(autoApprovedScopes);
+        allApprovedScopes.addAll(userApprovedScopes);
 
         // build view model
         Map<String, Object> model = new HashMap<String, Object>();
         model.putAll(request.getRequestParameters());
 
-        Map<String, String> scopes = new LinkedHashMap<String, String>();
+//        Map<String, String> scopes = new LinkedHashMap<String, String>();
+//        for (String scope : requestedScopes) {
+//            // set all scopes according to status
+//            if (approvedScopes.contains(scope)) {
+//                scopes.put(SCOPE_PREFIX + scope, "true");
+//            } else {
+//                scopes.put(SCOPE_PREFIX + scope, "false");
+//            }
+//
+//        }
+        Set<String> approvalScopes = new HashSet<>();
+        Set<String> approvedScopes = new HashSet<>();
+
         for (String scope : requestedScopes) {
             // set all scopes according to status
-            if (approvedScopes.contains(scope)) {
-                scopes.put(SCOPE_PREFIX + scope, "true");
+            if (allApprovedScopes.contains(scope)) {
+                approvedScopes.add(scope);
             } else {
-                scopes.put(SCOPE_PREFIX + scope, "false");
+                approvalScopes.add(scope);
             }
 
         }
-        model.put("scopes", scopes);
+
+        // set as oauth2 scope params
+        model.put("approval.scope", StringUtils.collectionToDelimitedString(approvedScopes, " "));
+        model.put("approved.scope", StringUtils.collectionToDelimitedString(approvedScopes, " "));
+
+        // ensure model contains all scopes from request
+        if (!model.containsKey("scope")) {
+            model.put("scope", StringUtils.collectionToDelimitedString(requestedScopes, " "));
+        }
 
         // the returned model will be accessible via sessionAttributes as model,
         // or via requestAttributes for additional properties
@@ -366,11 +386,11 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     private AuthorizationRequest updateScopeApprovals(AuthorizationRequest authorizationRequest,
             Authentication userAuth) {
 
-        if (userAuth == null || !(userAuth instanceof UserAuthenticationToken)) {
+        if (userAuth == null || !(userAuth instanceof UserAuthentication)) {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthenticationToken) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
         String subjectId = userDetails.getSubjectId();
 
         // Get the approved scopes

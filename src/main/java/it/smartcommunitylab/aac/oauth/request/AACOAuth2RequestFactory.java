@@ -26,7 +26,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
@@ -95,7 +95,7 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
             OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
 
             // also validate that user has an identity in the asked realm
-            UserAuthenticationToken userAuth = authenticationHelper.getUserAuthentication();
+            UserAuthentication userAuth = authenticationHelper.getUserAuthentication();
             if (userAuth == null) {
                 // this should not happen
                 throw new UnauthorizedUserException("missing user auth");

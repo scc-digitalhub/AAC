@@ -19,7 +19,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -44,7 +44,7 @@ public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthentication
     }
 
     @Override
-    public ClientAuthenticationToken authenticate(Authentication authentication) throws AuthenticationException {
+    public ClientAuthentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(OAuth2ClientPKCEAuthenticationToken.class, authentication,
                 "Only ClientPKCEAuthenticationToken is supported");
 

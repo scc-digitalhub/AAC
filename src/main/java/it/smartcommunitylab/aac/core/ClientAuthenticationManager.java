@@ -18,7 +18,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 
 /*
@@ -49,13 +49,13 @@ public class ClientAuthenticationManager implements AuthenticationManager, Initi
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         logger.debug("process authentication for " + authentication.getName());
 
-        if (!(authentication instanceof ClientAuthenticationToken)) {
+        if (!(authentication instanceof ClientAuthentication)) {
             logger.error("invalid authentication class: " + authentication.getClass().getName());
             throw new AuthenticationServiceException("invalid request");
         }
 
         // fetch first non null response
-        ClientAuthenticationToken auth = null;
+        ClientAuthentication auth = null;
         for (ClientAuthenticationProvider provider : providers) {
             if (!provider.supports(authentication.getClass())) {
                 continue;

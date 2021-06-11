@@ -3,6 +3,10 @@ package it.smartcommunitylab.aac.oauth.common;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 
 public class ServerErrorException extends OAuth2Exception {
+    
+    public ServerErrorException(String msg) {
+        super(msg);
+    }
 
     public ServerErrorException(String msg, Throwable t) {
         super(msg, t);

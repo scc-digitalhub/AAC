@@ -18,7 +18,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import it.smartcommunitylab.aac.core.auth.ComposedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 
@@ -48,7 +48,7 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
 
         if (requestMatcher.matches(request) && requiresProcessing(request)) {
 
-            UserAuthenticationToken userAuth = getUserAuthentication();
+            UserAuthentication userAuth = getUserAuthentication();
             String clientId = request.getParameter("client_id");
 
             // load client
@@ -89,10 +89,10 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
         return hasParam && hasAuth;
     }
 
-    private UserAuthenticationToken getUserAuthentication() {
+    private UserAuthentication getUserAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof UserAuthenticationToken) {
-            return (UserAuthenticationToken) auth;
+        if (auth instanceof UserAuthentication) {
+            return (UserAuthentication) auth;
         }
         if (auth instanceof ComposedAuthenticationToken) {
             return ((ComposedAuthenticationToken) auth).getUserAuthentication();

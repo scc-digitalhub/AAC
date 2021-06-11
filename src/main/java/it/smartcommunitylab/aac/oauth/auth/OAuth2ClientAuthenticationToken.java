@@ -5,11 +5,12 @@ import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.core.auth.DefaultClientAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
-public abstract class OAuth2ClientAuthenticationToken extends ClientAuthenticationToken {
+public abstract class OAuth2ClientAuthenticationToken extends DefaultClientAuthenticationToken {
 
     private static final long serialVersionUID = -2640624036104536421L;
 

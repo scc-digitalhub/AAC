@@ -44,7 +44,7 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserService;
@@ -429,7 +429,7 @@ public class DevManager {
     public OAuth2AccessToken testOAuth2Flow(String realm, String clientId, String grantType)
             throws NoSuchClientException {
         // TODO evaluate mock userDetails for testing
-        UserAuthenticationToken userAuth = authHelper.getUserAuthentication();
+        UserAuthentication userAuth = authHelper.getUserAuthentication();
         if (userAuth == null) {
             throw new InsufficientAuthenticationException("invalid or missing user authentication");
         }
@@ -496,7 +496,7 @@ public class DevManager {
 
     }
 
-    private OAuth2AccessToken testOAuth2AuthorizationFlow(String realm, UserAuthenticationToken userAuth,
+    private OAuth2AccessToken testOAuth2AuthorizationFlow(String realm, UserAuthentication userAuth,
             OAuth2ClientDetails clientDetails,
             Map<String, String> authorizationParams) {
 

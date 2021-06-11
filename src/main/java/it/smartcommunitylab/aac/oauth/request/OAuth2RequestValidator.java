@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
@@ -106,14 +107,15 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
         Set<String> requestScopes = tokenRequest.getScope();
         Set<String> clientScopes = client.getScope();
+        boolean isClient = CLIENT_CREDENTIALS.getValue().equals(tokenRequest.getGrantType());
 
         if (requestScopes != null && !requestScopes.isEmpty()) {
-            validateScope(requestScopes, clientScopes, tokenRequest.getGrantType());
+            validateScope(requestScopes, clientScopes, isClient);
         }
     }
 
     @Override
-    public void validate(AuthorizationRequest authorizationRequest, OAuth2ClientDetails clientDetails)
+    public void validate(AuthorizationRequest authorizationRequest, OAuth2ClientDetails clientDetails, User user)
             throws InvalidRequestException {
 
         Set<String> responseType = authorizationRequest.getResponseTypes();
@@ -124,15 +126,25 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         Set<ResponseType> responseTypes = responseType.stream().map(r -> ResponseType.parse(r))
                 .collect(Collectors.toSet());
 
+        String responseMode = (String) authorizationRequest.getExtensions().get("response_mode");
+
         // valid combinations only
         // TODO check specific combinations
-        if (!responseTypes.contains(ResponseType.CODE)) {
-            throw new UnsupportedResponseTypeException("response type code is missing");
-        }
-
         if (responseTypes.contains(ResponseType.ID_TOKEN) && !authorizationRequest.getScope().contains("openid")) {
             // openid is required to obtain an id token
             throw new InvalidRequestException("missing openid scope");
+        }
+
+        if (StringUtils.hasText(responseMode)) {
+            if ((responseTypes.contains(ResponseType.TOKEN) || responseTypes.contains(ResponseType.ID_TOKEN))
+                    && "query".equals(responseMode)) {
+                throw new InvalidRequestException("query response mode is incompatible with token, use fragment");
+            }
+        }
+
+        if (responseTypes.contains(ResponseType.ID_TOKEN)
+                && !authorizationRequest.getExtensions().containsKey("nonce")) {
+            throw new InvalidRequestException("nonce is required for implicit and hybrid flows");
         }
 
         // require exact match for redirectUri to registered (when provided)
@@ -152,7 +164,7 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         Set<String> clientScopes = client.getScope();
 
         if (requestScopes != null && !requestScopes.isEmpty()) {
-            validateScope(requestScopes, clientScopes, AUTHORIZATION_CODE.getValue());
+            validateScope(requestScopes, clientScopes, false);
         }
 
     }
@@ -169,7 +181,7 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         }
     }
 
-    private void validateScope(Set<String> requestScopes, Set<String> clientScopes, String grantType) {
+    private void validateScope(Set<String> requestScopes, Set<String> clientScopes, boolean isClient) {
 
         logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
                 + " against client " + String.valueOf(clientScopes.toString()));
@@ -194,7 +206,7 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
         if (scopeRegistry != null) {
             // also check that type matches grant
-            ScopeType type = (grantType == CLIENT_CREDENTIALS.getValue() ? ScopeType.CLIENT : ScopeType.USER);
+            ScopeType type = isClient ? ScopeType.CLIENT : ScopeType.USER;
             Set<String> matchingScopes = clientScopes.stream().filter(
                     s -> {
                         Scope sc = scopeRegistry.findScope(s);
