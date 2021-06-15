@@ -1,18 +1,16 @@
-package it.smartcommunitylab.aac.profiles.scope;
+package it.smartcommunitylab.aac.openid.scope;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 
-//TODO move to dedicated package
-public class OpenIdProfileScope extends Scope {
+public class OfflineAccessScope extends Scope {
 
-    public static final String SCOPE = Config.SCOPE_OPENID;
+    public static final String SCOPE = Config.SCOPE_OFFLINE_ACCESS;
 
     @Override
     public String getResourceId() {
-        return ProfileClaimsSet.RESOURCE_ID;
+        return OpenIdResource.RESOURCE_ID;
     }
 
     @Override
@@ -28,12 +26,12 @@ public class OpenIdProfileScope extends Scope {
     // TODO replace with keys for i18n
     @Override
     public String getName() {
-        return "OpenId";
+        return "Offline access";
     }
 
     @Override
     public String getDescription() {
-        return "User identity information (username and identifier). Read access only.";
+        return "Offline access for obtaining refresh tokens";
     }
 
 }

@@ -5,6 +5,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
@@ -198,6 +200,12 @@ public class TokenEndpoint implements InitializingBean {
         TokenResponse response = new TokenResponse(accessToken);
         if (idToken != null) {
             response.setIdToken(idToken.getValue());
+        }
+
+        // enforce offline_access scope for refresh_token
+        Set<String> scopes = accessToken.getScope();
+        if (!scopes.contains(Config.SCOPE_OFFLINE_ACCESS) && response.getRefreshToken() != null) {
+            response.setRefreshToken(null);
         }
 
         return new ResponseEntity<TokenResponse>(response, headers, HttpStatus.OK);

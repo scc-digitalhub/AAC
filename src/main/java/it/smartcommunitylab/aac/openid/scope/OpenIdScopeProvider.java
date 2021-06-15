@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.scope;
+package it.smartcommunitylab.aac.openid.scope;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -9,31 +9,23 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 
-/*
- * A simple scope provider which return profile scopes
- */
 @Component
-public class ProfileScopeProvider implements ScopeProvider {
+public class OpenIdScopeProvider implements ScopeProvider {
 
-    private static final ProfileResource resource = new ProfileResource();
+    private static final OpenIdResource resource = new OpenIdResource();
     private static final Set<Scope> scopes;
     public static final Map<String, WhitelistScopeApprover> approvers;
 
     static {
         Set<Scope> s = new HashSet<>();
-        s.add(new BasicProfileScope());
-        s.add(new AccountProfileScope());
-        s.add(new OpenIdEmailScope());
-        s.add(new OpenIdDefaultScope());
-        s.add(new OpenIdAddressScope());
-        s.add(new OpenIdPhoneScope());
+        s.add(new OpenIdScope());
+        s.add(new OfflineAccessScope());
 
         scopes = Collections.unmodifiableSet(s);
         resource.setScopes(scopes);
@@ -48,7 +40,7 @@ public class ProfileScopeProvider implements ScopeProvider {
 
     @Override
     public String getResourceId() {
-        return ProfileClaimsSet.RESOURCE_ID;
+        return OpenIdResource.RESOURCE_ID;
     }
 
     @Override

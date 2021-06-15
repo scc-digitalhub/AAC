@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
@@ -26,7 +25,6 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.common.exceptions.RedirectMismatchException;
 import org.springframework.security.oauth2.common.exceptions.UnapprovedClientAuthenticationException;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
-import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.common.exceptions.UserDeniedAuthorizationException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -35,7 +33,6 @@ import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
-import org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -50,12 +47,13 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.ScopesController;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationResponse;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -71,7 +69,14 @@ import it.smartcommunitylab.aac.openid.common.IdToken;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 
 /*
- * Implementation of AuthorizationEndpoint based on spring-security-oauth2.
+ * Implementation of AuthorizationEndpoint 
+ * 
+ * supports
+ * https://datatracker.ietf.org/doc/html/rfc6749
+ * https://datatracker.ietf.org/doc/html/rfc7636
+ * https://openid.net/specs/openid-connect-core-1_0.html
+ * https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+ * 
 */
 
 @Controller
@@ -227,6 +232,13 @@ public class AuthorizationEndpoint implements InitializingBean {
                     Set<String> prompt = StringUtils
                             .commaDelimitedListToSet((String) authorizationRequest.getExtensions().get("prompt"));
                     promptConsent = prompt.contains("consent");
+                }
+
+                // check for offline_access, clients should always ask consent
+                // we'll enforce it to complain with spec
+                Set<String> scopes = authorizationRequest.getScope();
+                if (scopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
+                    promptConsent = true;
                 }
 
                 // store request in repository for later use

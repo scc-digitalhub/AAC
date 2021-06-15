@@ -483,8 +483,11 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
             return false;
         }
 
-        // validate scope offline_access?
-        // TODO only for some flows
+        // validate scope offline_access
+        Set<String> scopes = request.getScope();
+        if (!scopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
+            return false;
+        }
 
         // validate userAuth, without there is no reason to release refresh tokens
         if (authentication.isClientOnly()) {

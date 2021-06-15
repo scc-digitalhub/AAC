@@ -17,6 +17,6 @@ public class ProfileResource extends Resource {
 
     @Override
     public String getDescription() {
-        return "Access user profile: openid, basic, account";
+        return "Access user profile: basic, account";
     }
 }
