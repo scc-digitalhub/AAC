@@ -29,13 +29,13 @@ import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.ClientService;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientInfo;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
-import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
-import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
-import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
+import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
@@ -240,8 +240,8 @@ public class OAuth2ClientService implements ClientService {
     public OAuth2Client addClient(String realm, String clientId, String name) {
         return this.addClient(realm, clientId, name,
                 null, null, null, null, null, null,
-                null, null, null, null,
-                null, null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, null,
                 null, null, null, null, null, null, null);
     }
 
@@ -254,15 +254,14 @@ public class OAuth2ClientService implements ClientService {
             String clientSecret,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
-            TokenType tokenType,
+            ApplicationType applicationType, TokenType tokenType, SubjectType subjectType,
             Collection<AuthenticationMethod> authenticationMethods,
-            Boolean idTokenClaims,
-            Boolean firstParty, Collection<String> autoApproveScopes,
-            Integer accessTokenValidity, Integer refreshTokenValidity,
-            JWSAlgorithm jwtSignAlgorithm,
-            EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
+            Boolean idTokenClaims, Boolean firstParty,
+            Integer accessTokenValidity, Integer refreshTokenValidity, Integer idTokenValidity,
             JWKSet jwks, String jwksUri,
-            OAuth2ClientInfo additionalInfo) throws IllegalArgumentException {
+            OAuth2ClientAdditionalConfig additionalConfig,
+            OAuth2ClientInfo additionalInfo)
+            throws IllegalArgumentException {
 
         // generate a clientId and then add
         ClientEntity client = clientService.createClient();
@@ -277,13 +276,12 @@ public class OAuth2ClientService implements ClientService {
                 clientSecret,
                 authorizedGrantTypes,
                 redirectUris,
-                tokenType, authenticationMethods,
-                idTokenClaims,
-                firstParty, autoApproveScopes,
-                accessTokenValidity, refreshTokenValidity,
-                jwtSignAlgorithm,
-                jwtEncMethod, jwtEncAlgorithm,
+                applicationType, tokenType, subjectType,
+                authenticationMethods,
+                idTokenClaims, firstParty,
+                accessTokenValidity, refreshTokenValidity, idTokenValidity,
                 jwks, jwksUri,
+                additionalConfig,
                 additionalInfo);
 
     }
@@ -297,14 +295,12 @@ public class OAuth2ClientService implements ClientService {
             String clientSecret,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
-            TokenType tokenType,
+            ApplicationType applicationType, TokenType tokenType, SubjectType subjectType,
             Collection<AuthenticationMethod> authenticationMethods,
-            Boolean idTokenClaims,
-            Boolean firstParty, Collection<String> autoApproveScopes,
-            Integer accessTokenValidity, Integer refreshTokenValidity,
-            JWSAlgorithm jwtSignAlgorithm,
-            EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
+            Boolean idTokenClaims, Boolean firstParty,
+            Integer accessTokenValidity, Integer refreshTokenValidity, Integer idTokenValidity,
             JWKSet jwks, String jwksUri,
+            OAuth2ClientAdditionalConfig additionalConfig,
             OAuth2ClientInfo additionalInfo) throws IllegalArgumentException {
 
         // TODO add custom validator for class
@@ -337,6 +333,18 @@ public class OAuth2ClientService implements ClientService {
             authorizedGrantTypes = Collections.emptySet();
         }
 
+        String applicationTypeValue = null;
+        if (applicationType != null) {
+            if (!ArrayUtils.contains(ApplicationType.values(), applicationType)) {
+                throw new IllegalArgumentException("Invalid application type");
+            }
+
+            applicationTypeValue = applicationType.getValue();
+        } else {
+            // default is web
+            applicationType = ApplicationType.WEB;
+        }
+
         String tokenTypeValue = null;
         if (tokenType != null) {
             if (!ArrayUtils.contains(TokenType.values(), tokenType)) {
@@ -347,6 +355,19 @@ public class OAuth2ClientService implements ClientService {
         } else {
             // default is null, will use system default
             tokenType = null;
+        }
+
+        String subjectTypeValue = null;
+        if (subjectType != null) {
+            if (!ArrayUtils.contains(SubjectType.values(), subjectType)) {
+                throw new IllegalArgumentException("Invalid subject type");
+            }
+
+            subjectTypeValue = subjectType.getValue();
+        } else {
+            // default is public
+            // TODO switch to pairwise when supported
+            subjectType = SubjectType.PUBLIC;
         }
 
         if (authenticationMethods != null) {
@@ -370,21 +391,6 @@ public class OAuth2ClientService implements ClientService {
         boolean copyIdTokenClaims = idTokenClaims != null ? idTokenClaims.booleanValue() : false;
         boolean isFirstParty = firstParty != null ? firstParty.booleanValue() : false;
 
-        String jwtSignAlgorithmName = null;
-        if (jwtSignAlgorithm != null) {
-            jwtSignAlgorithmName = jwtSignAlgorithm.getValue();
-        }
-
-        String jwtEncMethodName = null;
-        if (jwtEncMethod != null) {
-            jwtEncMethodName = jwtEncMethod.getValue();
-        }
-
-        String jwtEncAlgorithmName = null;
-        if (jwtEncAlgorithm != null) {
-            jwtEncAlgorithmName = jwtEncAlgorithm.getValue();
-        }
-
         String jwksSet = null;
         if (jwks != null) {
             jwksSet = jwks.toString();
@@ -403,18 +409,24 @@ public class OAuth2ClientService implements ClientService {
         oauth.setClientSecret(clientSecret);
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
+
+        oauth.setApplicationType(applicationTypeValue);
         oauth.setTokenType(tokenTypeValue);
+        oauth.setSubjectType(subjectTypeValue);
+
         oauth.setAuthenticationMethods(StringUtils.collectionToCommaDelimitedString(authenticationMethods));
         oauth.setIdTokenClaims(copyIdTokenClaims);
         oauth.setFirstParty(isFirstParty);
-        oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
+
+        oauth.setIdTokenValidity(idTokenValidity);
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
-        oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);
-        oauth.setJwtEncMethod(jwtEncMethodName);
-        oauth.setJwtEncAlgorithm(jwtEncAlgorithmName);
+
         oauth.setJwks(jwksSet);
         oauth.setJwksUri(jwksUri);
+        if (additionalConfig != null) {
+            oauth.setAdditionalConfiguration(additionalConfig.toMap());
+        }
         if (additionalInfo != null) {
             oauth.setAdditionalInformation(additionalInfo.toMap());
         }
@@ -431,14 +443,12 @@ public class OAuth2ClientService implements ClientService {
             Map<String, String> hookFunctions, Map<String, String> hookWebUrls, String hookUniqueSpaces,
             Collection<AuthorizationGrantType> authorizedGrantTypes,
             Collection<String> redirectUris,
-            TokenType tokenType,
+            ApplicationType applicationType, TokenType tokenType, SubjectType subjectType,
             Collection<AuthenticationMethod> authenticationMethods,
-            Boolean idTokenClaims,
-            Boolean firstParty, Collection<String> autoApproveScopes,
-            Integer accessTokenValidity, Integer refreshTokenValidity,
-            JWSAlgorithm jwtSignAlgorithm,
-            EncryptionMethod jwtEncMethod, JWEAlgorithm jwtEncAlgorithm,
+            Boolean idTokenClaims, Boolean firstParty,
+            Integer accessTokenValidity, Integer refreshTokenValidity, Integer idTokenValidity,
             JWKSet jwks, String jwksUri,
+            OAuth2ClientAdditionalConfig additionalConfig,
             OAuth2ClientInfo additionalInfo) throws NoSuchClientException, IllegalArgumentException {
 
         // TODO add custom validator for class
@@ -462,6 +472,18 @@ public class OAuth2ClientService implements ClientService {
             }
         }
 
+        String applicationTypeValue = null;
+        if (applicationType != null) {
+            if (!ArrayUtils.contains(ApplicationType.values(), applicationType)) {
+                throw new IllegalArgumentException("Invalid application type");
+            }
+
+            applicationTypeValue = applicationType.getValue();
+        } else {
+            // default is web
+            applicationType = ApplicationType.WEB;
+        }
+
         String tokenTypeValue = null;
         if (tokenType != null) {
             if (!ArrayUtils.contains(TokenType.values(), tokenType)) {
@@ -474,23 +496,21 @@ public class OAuth2ClientService implements ClientService {
             tokenType = null;
         }
 
+        String subjectTypeValue = null;
+        if (subjectType != null) {
+            if (!ArrayUtils.contains(SubjectType.values(), subjectType)) {
+                throw new IllegalArgumentException("Invalid subject type");
+            }
+
+            subjectTypeValue = subjectType.getValue();
+        } else {
+            // default is public
+            // TODO switch to pairwise when supported
+            subjectType = SubjectType.PUBLIC;
+        }
+
         boolean copyIdTokenClaims = idTokenClaims != null ? idTokenClaims.booleanValue() : false;
         boolean isFirstParty = firstParty != null ? firstParty.booleanValue() : false;
-
-        String jwtSignAlgorithmName = null;
-        if (jwtSignAlgorithm != null) {
-            jwtSignAlgorithmName = jwtSignAlgorithm.getValue();
-        }
-
-        String jwtEncMethodName = null;
-        if (jwtEncMethod != null) {
-            jwtEncMethodName = jwtEncMethod.getValue();
-        }
-
-        String jwtEncAlgorithmName = null;
-        if (jwtEncAlgorithm != null) {
-            jwtEncAlgorithmName = jwtEncAlgorithm.getValue();
-        }
 
         String jwksSet = null;
         if (jwks != null) {
@@ -509,18 +529,24 @@ public class OAuth2ClientService implements ClientService {
 
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));
+
+        oauth.setApplicationType(applicationTypeValue);
         oauth.setTokenType(tokenTypeValue);
+        oauth.setSubjectType(subjectTypeValue);
+
         oauth.setAuthenticationMethods(StringUtils.collectionToCommaDelimitedString(authenticationMethods));
         oauth.setIdTokenClaims(copyIdTokenClaims);
         oauth.setFirstParty(isFirstParty);
-        oauth.setAutoApproveScopes(StringUtils.collectionToCommaDelimitedString(autoApproveScopes));
+
+        oauth.setIdTokenValidity(idTokenValidity);
         oauth.setAccessTokenValidity(accessTokenValidity);
         oauth.setRefreshTokenValidity(refreshTokenValidity);
-        oauth.setJwtSignAlgorithm(jwtSignAlgorithmName);
-        oauth.setJwtEncMethod(jwtEncMethodName);
-        oauth.setJwtEncAlgorithm(jwtEncAlgorithmName);
+
         oauth.setJwks(jwksSet);
         oauth.setJwksUri(jwksUri);
+        if (additionalConfig != null) {
+            oauth.setAdditionalConfiguration(additionalConfig.toMap());
+        }
         if (additionalInfo != null) {
             oauth.setAdditionalInformation(additionalInfo.toMap());
         }

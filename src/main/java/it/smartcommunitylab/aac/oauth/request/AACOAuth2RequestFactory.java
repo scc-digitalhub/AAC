@@ -101,30 +101,30 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
                 throw new UnauthorizedUserException("missing user auth");
             }
 
-            // check extensions and integrate modifications
-            if (flowExtensionsService != null) {
-                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
-                if (ext != null) {
-                    User user = new User(userAuth.getUser());
-                    if (userService != null) {
-                        user = userService.getUser(userAuth.getUser(), clientDetails.getRealm());
-                    }
-
-                    Map<String, String> parameters = ext.onBeforeUserApproval(authorizationParameters, user,
-                            clientDetails);
-                    if (parameters != null) {
-                        // merge parameters into request params
-                        authorizationParameters.putAll(parameters);
-                        // enforce base params consistency
-                        // TODO rewrite with proper merge with exclusion list
-                        authorizationParameters.put(OAuth2Utils.CLIENT_ID, clientId);
-                        authorizationParameters.put(OAuth2Utils.STATE, state);
-                        authorizationParameters.put(OAuth2Utils.RESPONSE_TYPE,
-                                OAuth2Utils.formatParameterList(responseTypes));
-                        authorizationParameters.put("realm", realm);
-                    }
-                }
-            }
+//            // check extensions and integrate modifications
+//            if (flowExtensionsService != null) {
+//                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
+//                if (ext != null) {
+//                    User user = new User(userAuth.getUser());
+//                    if (userService != null) {
+//                        user = userService.getUser(userAuth.getUser(), clientDetails.getRealm());
+//                    }
+//
+//                    Map<String, String> parameters = ext.onBeforeUserApproval(authorizationParameters, user,
+//                            clientDetails);
+//                    if (parameters != null) {
+//                        // merge parameters into request params
+//                        authorizationParameters.putAll(parameters);
+//                        // enforce base params consistency
+//                        // TODO rewrite with proper merge with exclusion list
+//                        authorizationParameters.put(OAuth2Utils.CLIENT_ID, clientId);
+//                        authorizationParameters.put(OAuth2Utils.STATE, state);
+//                        authorizationParameters.put(OAuth2Utils.RESPONSE_TYPE,
+//                                OAuth2Utils.formatParameterList(responseTypes));
+//                        authorizationParameters.put("realm", realm);
+//                    }
+//                }
+//            }
 
             String redirectUri = authorizationParameters.get(OAuth2Utils.REDIRECT_URI);
             Set<String> scopes = extractScopes(
@@ -236,23 +236,23 @@ public class AACOAuth2RequestFactory implements OAuth2RequestFactory {
         try {
             OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
 
-            // check extensions and integrate modifications
-            if (flowExtensionsService != null) {
-                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
-                if (ext != null) {
-
-                    Map<String, String> parameters = ext.onBeforeTokenGrant(requestParameters, clientDetails);
-                    if (parameters != null) {
-                        // merge parameters into request params
-                        requestParameters.putAll(parameters);
-                        // enforce base params consistency
-                        // TODO rewrite with proper merge with exclusion list
-                        requestParameters.put(OAuth2Utils.CLIENT_ID, clientId);
-                        requestParameters.put(OAuth2Utils.GRANT_TYPE, grantType);
-                        requestParameters.put("realm", realm);
-                    }
-                }
-            }
+//            // check extensions and integrate modifications
+//            if (flowExtensionsService != null) {
+//                OAuthFlowExtensions ext = flowExtensionsService.getOAuthFlowExtensions(clientDetails);
+//                if (ext != null) {
+//
+//                    Map<String, String> parameters = ext.onBeforeTokenGrant(requestParameters, clientDetails);
+//                    if (parameters != null) {
+//                        // merge parameters into request params
+//                        requestParameters.putAll(parameters);
+//                        // enforce base params consistency
+//                        // TODO rewrite with proper merge with exclusion list
+//                        requestParameters.put(OAuth2Utils.CLIENT_ID, clientId);
+//                        requestParameters.put(OAuth2Utils.GRANT_TYPE, grantType);
+//                        requestParameters.put("realm", realm);
+//                    }
+//                }
+//            }
 
             Set<String> scopes = new HashSet<>();
             // check grantType and act accordingly to parse scopes

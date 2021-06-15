@@ -57,7 +57,9 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationResponse;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestFactory;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestRepository;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestValidator;
@@ -65,6 +67,8 @@ import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestValidator;
 import it.smartcommunitylab.aac.oauth.request.TokenRequest;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.openid.common.IdToken;
+import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 
 /*
  * Implementation of AuthorizationEndpoint based on spring-security-oauth2.
@@ -76,13 +80,16 @@ public class AuthorizationEndpoint implements InitializingBean {
 
     public static final String AUTHORIZATION_URL = "/oauth/authorize";
     public static final String AUTHORIZED_URL = "/oauth/authorized";
+    public static final String FORM_POST_URL = "/oauth/authorized_post";
 
     public static final String AUTHORIZATION_REQUEST_ATTR_NAME = "authorizationRequest";
     public static final String ORIGINAL_AUTHORIZATION_REQUEST_ATTR_NAME = "org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint.ORIGINAL_AUTHORIZATION_REQUEST";
 
-    private static final String userApprovalPage = "forward:" + UserApprovalEndpoint.ACCESS_CONFIRMATION_URL;
-    private static final String errorPage = "forward:" + ErrorEndpoint.ERROR_URL;
-    private static final String responsePage = "forward:" + AUTHORIZED_URL;
+    private static final String userApprovalView = "forward:" + UserApprovalEndpoint.ACCESS_CONFIRMATION_URL;
+    private static final String errorView = "forward:" + ErrorEndpoint.ERROR_URL;
+    private static final String responseView = "forward:" + AUTHORIZED_URL;
+    private static final String formView = "forward:" + FORM_POST_URL;
+    private static final String formPage = "oauth_form_post.html";
 
     @Autowired
     private OAuth2AuthorizationRequestFactory oauth2AuthorizationRequestFactory;
@@ -113,6 +120,9 @@ public class AuthorizationEndpoint implements InitializingBean {
 
     @Autowired
     private TokenGranter tokenGranter;
+
+    @Autowired
+    private IdTokenServices idTokenServices;
 
     @Autowired
     private UserService userService;
@@ -227,12 +237,19 @@ public class AuthorizationEndpoint implements InitializingBean {
                 // check if request is fully approved or send to approval page
                 if (authorizationRequest.isApproved() && !promptConsent) {
 
-                    // process as authorized
-                    return new ModelAndView(responsePage + "?key=" + key);
+                    // check if response is requested via post
+                    String responseMode = (String) authorizationRequest.getExtensions().get("response_mode");
+                    if (ResponseMode.FORM_POST.getValue().equals(responseMode)) {
+                        // process as authorized via form post
+                        return new ModelAndView(formView + "?key=" + key);
+                    }
+
+                    // process as authorized via redirect
+                    return new ModelAndView(responseView + "?key=" + key);
                 }
 
                 // send to user approval
-                return new ModelAndView(userApprovalPage + "?key=" + key);
+                return new ModelAndView(userApprovalView + "?key=" + key);
             } catch (OAuth2Exception e) {
                 logger.error("OAuth2 error " + e.getMessage());
                 throw e;
@@ -243,6 +260,7 @@ public class AuthorizationEndpoint implements InitializingBean {
         } catch (OAuth2Exception e) {
             // try to build a error response
             String state = parameters.get("state");
+            String responseMode = parameters.get("response_mode");
             String redirectUri = parameters.get("redirect_uri");
             String resolvedRedirectUri = null;
             try {
@@ -256,6 +274,12 @@ public class AuthorizationEndpoint implements InitializingBean {
                 // will show generic error page
                 throw new IllegalArgumentException("Requested redirect_uri " + String.valueOf(redirectUri)
                         + " is not a valid redirect for this request");
+            }
+
+            if (ResponseMode.FORM_POST.getValue().equals(responseMode)) {
+                // send form post with error
+                Map<String, Object> model = buildErrorPost(resolvedRedirectUri, state, e);
+                return new ModelAndView(formPage, model);
             }
 
             // send redirect with error
@@ -273,7 +297,7 @@ public class AuthorizationEndpoint implements InitializingBean {
             Map<String, Serializable> model = new HashMap<>();
             model.put("error", e.getMessage());
 
-            return new ModelAndView(errorPage, model);
+            return new ModelAndView(errorView, model);
         }
     }
 
@@ -323,82 +347,13 @@ public class AuthorizationEndpoint implements InitializingBean {
 
             OAuth2ClientDetails clientDetails = oauth2ClientDetailsService.loadClientByClientId(clientId);
 
-            // fetch all response types
-            Set<String> responseTypes = authorizationRequest.getResponseTypes();
-
             // build response
             try {
-                OAuth2AccessToken token = null;
-                Map<String, Serializable> params = new HashMap<>();
-
-                if (responseTypes.contains("code")) {
-                    // convert request to a serializable model
-                    OAuth2Request oauth2Request = oauth2AuthorizationRequestFactory
-                            .createOAuth2Request(authorizationRequest, clientDetails);
-                    OAuth2Authentication oauth2Authentication = new OAuth2Authentication(oauth2Request, authentication);
-
-                    // generate code and store binded to request
-                    String code = authorizationCodeServices.createAuthorizationCode(oauth2Authentication);
-                    if (code == null) {
-                        throw new UnsupportedGrantTypeException("Grant type not supported: authorization_code");
-                    }
-
-                    params.put("code", code);
-                }
-
-                if (responseTypes.contains("token")) {
-                    // translate to tokenRequest
-                    TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(authorizationRequest,
-                            "implicit");
-
-                    // validate
-                    oauth2TokenRequestValidator.validate(tokenRequest, clientDetails);
-
-                    OAuth2Request oauth2Request = oauth2AuthorizationRequestFactory
-                            .createOAuth2Request(authorizationRequest, clientDetails);
-
-                    // build request
-                    // TODO update granters
-                    org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest implicitTokenRequet = new org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest(
-                            tokenRequest,
-                            oauth2Request);
-
-                    // get token from granter, if flow is unsupported result will be null
-                    token = tokenGranter.grant(implicitTokenRequet.getGrantType(), implicitTokenRequet);
-                    if (token == null) {
-                        throw new UnsupportedGrantTypeException("Grant type not supported: implicit");
-                    }
-
-                    params.put("access_token", token.getValue());
-                    params.put("token_type", token.getTokenType());
-                    params.put("scope", StringUtils.collectionToDelimitedString(token.getScope(), " "));
-
-                    if (token instanceof AACOAuth2AccessToken) {
-                        params.put("expires_in", ((AACOAuth2AccessToken) token).getExpiresIn());
-                    }
-                }
-
-                if (responseTypes.contains("id_token")) {
-                    // TODO
-
-                }
-
-                // check if all are satisfied
-                for (String responseType : responseTypes) {
-                    if (!params.containsKey(responseTypeResult(responseType))) {
-                        throw new ServerErrorException("Unable to build response");
-                    }
-                }
-
-                // append state params as per spec if provided
-                // note: we append state even when empty
-                if (authorizationRequest.getState() != null) {
-                    params.put("state", authorizationRequest.getState());
-                }
+                AuthorizationResponse authorizationResponse = buildResponse(authorizationRequest, clientDetails,
+                        authentication);
 
                 // send redirect with success
-                // TODO implement form response
-                String successRedirect = buildSuccessRedirect(authorizationRequest, params, asFragment);
+                String successRedirect = buildSuccessRedirect(authorizationRequest, authorizationResponse, asFragment);
 
                 logger.trace("send success redirect to " + successRedirect);
                 RedirectView redirectView = new RedirectView(successRedirect);
@@ -436,9 +391,189 @@ public class AuthorizationEndpoint implements InitializingBean {
         }
     }
 
+    @RequestMapping(value = FORM_POST_URL)
+    public ModelAndView authorizedFormPost(@RequestParam String key,
+            Authentication authentication) {
+
+        if (!(authentication instanceof UserAuthentication) || !authentication.isAuthenticated()) {
+            throw new InsufficientAuthenticationException("Invalid user authentication");
+        }
+
+        if (!StringUtils.hasText(key)) {
+            // send to errorPage
+            Map<String, Serializable> model = new HashMap<>();
+            model.put("error", "invalid_key");
+            return new ModelAndView(errorView, model);
+        }
+
+        // ensure single use
+        try {
+            AuthorizationRequest authorizationRequest = oauth2AuthorizationRequestRepository.find(key);
+            if (authorizationRequest == null) {
+                throw new IllegalArgumentException("Missing or invalid request");
+            }
+
+            // check if response is requested via post
+            String responseMode = (String) authorizationRequest.getExtensions().get("response_mode");
+            if (!ResponseMode.FORM_POST.getValue().equals(responseMode)) {
+                // send to errorPage
+                Map<String, Serializable> model = new HashMap<>();
+                model.put("error", "invalid_request");
+                return new ModelAndView(errorView, model);
+            }
+
+            // evaluate if approved
+            if (!authorizationRequest.isApproved()) {
+                // send form with error
+                Map<String, Object> model = buildErrorPost(authorizationRequest,
+                        new UserDeniedAuthorizationException("Access denied"));
+                return new ModelAndView(formPage, model);
+            }
+
+            // load client
+            String clientId = authorizationRequest.getClientId();
+            if (!StringUtils.hasText(clientId)) {
+                throw new InvalidClientException("A valid client id is required");
+            }
+
+            OAuth2ClientDetails clientDetails = oauth2ClientDetailsService.loadClientByClientId(clientId);
+
+            // build response
+            try {
+                AuthorizationResponse authorizationResponse = buildResponse(authorizationRequest, clientDetails,
+                        authentication);
+
+                // send form with success
+                Map<String, Object> model = buildSuccessPost(authorizationRequest, authorizationResponse);
+
+                logger.trace("send success post to " + String.valueOf(authorizationRequest.getRedirectUri()));
+                return new ModelAndView(formPage, model);
+            } catch (OAuth2Exception e) {
+                // bubble up state in params
+                if (authorizationRequest.getState() != null) {
+                    e.addAdditionalInformation("state", authorizationRequest.getState());
+                }
+
+                throw e;
+
+            }
+        } catch (OAuth2Exception e) {
+            // try to build a error response
+            AuthorizationRequest authorizationRequest = oauth2AuthorizationRequestRepository.find(key);
+            if (authorizationRequest == null) {
+                throw new IllegalArgumentException("Missing or invalid request");
+            }
+
+            // send form with error
+            Map<String, Object> model = buildErrorPost(authorizationRequest, e);
+
+            logger.trace("send error post to " + String.valueOf(authorizationRequest.getRedirectUri()));
+            return new ModelAndView(formPage, model);
+        } finally {
+            // remove from repo, response is final
+            oauth2AuthorizationRequestRepository.remove(key);
+        }
+    }
+
     /*
      * Request handling
      */
+
+    private AuthorizationResponse buildResponse(AuthorizationRequest authorizationRequest,
+            OAuth2ClientDetails clientDetails, Authentication authentication) {
+        String code = null;
+        OAuth2AccessToken accessToken = null;
+        IdToken idToken = null;
+
+        // fetch all response types
+        Set<String> responseTypes = authorizationRequest.getResponseTypes();
+
+        if (responseTypes.contains("code")) {
+            // convert request to a serializable model
+            OAuth2Request oauth2Request = oauth2AuthorizationRequestFactory
+                    .createOAuth2Request(authorizationRequest, clientDetails);
+            OAuth2Authentication oauth2Authentication = new OAuth2Authentication(oauth2Request, authentication);
+
+            // generate code and store binded to request
+            code = authorizationCodeServices.createAuthorizationCode(oauth2Authentication);
+            if (code == null) {
+                throw new ServerErrorException("Unable to build response");
+            }
+
+        }
+
+        if (responseTypes.contains("token")) {
+            // translate to tokenRequest
+            TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(authorizationRequest,
+                    "implicit");
+
+            // validate
+            oauth2TokenRequestValidator.validate(tokenRequest, clientDetails);
+
+            OAuth2Request oauth2Request = oauth2AuthorizationRequestFactory
+                    .createOAuth2Request(authorizationRequest, clientDetails);
+
+            // build request
+            // TODO update granters
+            org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest implicitTokenRequet = new org.springframework.security.oauth2.provider.implicit.ImplicitTokenRequest(
+                    tokenRequest,
+                    oauth2Request);
+
+            // get token from granter, if flow is unsupported result will be null
+            accessToken = tokenGranter.grant(implicitTokenRequet.getGrantType(), implicitTokenRequet);
+            if (accessToken == null) {
+                throw new ServerErrorException("Unable to build response");
+            }
+
+        }
+
+        if (responseTypes.contains("id_token")) {
+            // validate scope openid
+            if (!authorizationRequest.getScope().contains("openid")) {
+                throw new InvalidRequestException("openid scope is required to obtain an id_token");
+            }
+            // convert request to a serializable model
+            OAuth2Request oauth2Request = oauth2AuthorizationRequestFactory
+                    .createOAuth2Request(authorizationRequest, clientDetails);
+            OAuth2Authentication oauth2Authentication = new OAuth2Authentication(oauth2Request, authentication);
+
+            if (code != null && accessToken != null) {
+                idToken = idTokenServices.createIdToken(oauth2Authentication, accessToken, code);
+            } else if (code != null && accessToken == null) {
+                idToken = idTokenServices.createIdToken(oauth2Authentication, code);
+            } else if (accessToken != null && code == null) {
+                idToken = idTokenServices.createIdToken(oauth2Authentication, accessToken);
+            } else {
+                idToken = idTokenServices.createIdToken(oauth2Authentication);
+            }
+
+            if (idToken == null) {
+                throw new ServerErrorException("Unable to build response");
+            }
+
+        }
+
+        AuthorizationResponse response = new AuthorizationResponse();
+        if (accessToken != null) {
+            response = new AuthorizationResponse(accessToken);
+        }
+
+        if (code != null) {
+            response.setCode(code);
+        }
+
+        if (idToken != null) {
+            response.setIdToken(idToken.getValue());
+        }
+
+        // append state params as per spec if provided
+        // note: we append state even when empty
+        if (authorizationRequest.getState() != null) {
+            response.setState(authorizationRequest.getState());
+        }
+
+        return response;
+    }
 
     private String responseTypeResult(String responseType) {
         if ("code".equals(responseType)) {
@@ -485,7 +620,8 @@ public class AuthorizationEndpoint implements InitializingBean {
         return false;
     }
 
-    private String buildSuccessRedirect(AuthorizationRequest authorizationRequest, Map<String, Serializable> params,
+    private String buildSuccessRedirect(AuthorizationRequest authorizationRequest,
+            AuthorizationResponse authorizationResponse,
             boolean asFragment) {
 
         if (authorizationRequest == null || authorizationRequest.getRedirectUri() == null) {
@@ -494,6 +630,31 @@ public class AuthorizationEndpoint implements InitializingBean {
         }
 
         String redirectUri = authorizationRequest.getRedirectUri();
+
+        // extract response as params for uri
+        Map<String, Serializable> params = new HashMap<>();
+        if (authorizationResponse.getCode() != null) {
+            params.put("code", authorizationResponse.getCode());
+        }
+        if (authorizationResponse.getState() != null) {
+            params.put("state", authorizationResponse.getState());
+        }
+        if (authorizationResponse.getAccessToken() != null) {
+            params.put("access_token", authorizationResponse.getAccessToken());
+        }
+        if (authorizationResponse.getIdToken() != null) {
+            params.put("id_token", authorizationResponse.getIdToken());
+        }
+        if (authorizationResponse.getTokenType() != null) {
+            params.put("token_type", authorizationResponse.getTokenType());
+        }
+        if (authorizationResponse.getExpiresIn() != null) {
+            params.put("expires_in", authorizationResponse.getExpiresIn());
+        }
+        if (authorizationResponse.getScope() != null) {
+            String scope = StringUtils.collectionToDelimitedString(authorizationResponse.getScope(), " ");
+            params.put("scope", scope);
+        }
 
         return buildUri(redirectUri, params, asFragment);
 
@@ -595,6 +756,88 @@ public class AuthorizationEndpoint implements InitializingBean {
 
     }
 
+    private Map<String, Object> buildSuccessPost(AuthorizationRequest authorizationRequest,
+            AuthorizationResponse authorizationResponse) {
+
+        if (authorizationRequest == null || authorizationRequest.getRedirectUri() == null) {
+            // no redirect, we'll show an exception to final user
+            throw new UnapprovedClientAuthenticationException("Authorization request error.");
+        }
+
+        String redirectUri = authorizationRequest.getRedirectUri();
+
+        // extract response as params for post
+        Map<String, Serializable> params = new HashMap<>();
+        if (authorizationResponse.getCode() != null) {
+            params.put("code", authorizationResponse.getCode());
+        }
+        if (authorizationResponse.getState() != null) {
+            params.put("state", authorizationResponse.getState());
+        }
+        if (authorizationResponse.getAccessToken() != null) {
+            params.put("access_token", authorizationResponse.getAccessToken());
+        }
+        if (authorizationResponse.getIdToken() != null) {
+            params.put("id_token", authorizationResponse.getIdToken());
+        }
+        if (authorizationResponse.getTokenType() != null) {
+            params.put("token_type", authorizationResponse.getTokenType());
+        }
+        if (authorizationResponse.getExpiresIn() != null) {
+            params.put("expires_in", authorizationResponse.getExpiresIn());
+        }
+        if (authorizationResponse.getScope() != null) {
+            String scope = StringUtils.collectionToDelimitedString(authorizationResponse.getScope(), " ");
+            params.put("scope", scope);
+        }
+
+        return buildPost(redirectUri, params);
+
+    }
+
+    private Map<String, Object> buildErrorPost(AuthorizationRequest authorizationRequest, OAuth2Exception ex) {
+        if (authorizationRequest == null || authorizationRequest.getRedirectUri() == null) {
+            // no redirect, we'll show an exception to final user
+            throw new UnapprovedClientAuthenticationException("Authorization request error.", ex);
+        }
+
+        return buildErrorPost(authorizationRequest.getRedirectUri(), authorizationRequest.getState(),
+                ex);
+    }
+
+    private Map<String, Object> buildErrorPost(String redirectUri, String state, OAuth2Exception ex) {
+
+        // translate error, mimic oauth2Exception serializer
+        Map<String, Serializable> params = new HashMap<>();
+        params.put("error", ex.getOAuth2ErrorCode());
+        params.put("error_description", ex.getMessage());
+
+        if (ex.getAdditionalInformation() != null) {
+            for (Map.Entry<String, String> info : ex.getAdditionalInformation().entrySet()) {
+                params.put(info.getKey(), info.getValue());
+            }
+        }
+
+        // append state params as per spec if provided
+        // note: we append state even when empty
+        if (state != null) {
+            params.put("state", state);
+        }
+
+        return buildPost(redirectUri, params);
+
+    }
+
+    private Map<String, Object> buildPost(String redirectUri, Map<String, Serializable> params) {
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("redirectUri", redirectUri);
+        model.putAll(params);
+
+        return model;
+
+    }
+
     /*
      * Exceptions
      */
@@ -604,7 +847,7 @@ public class AuthorizationEndpoint implements InitializingBean {
         Map<String, Serializable> model = new HashMap<>();
         model.put("error", e.getMessage());
 
-        return new ModelAndView(errorPage, model);
+        return new ModelAndView(errorView, model);
     }
 
     @ExceptionHandler(OAuth2Exception.class)
@@ -613,7 +856,7 @@ public class AuthorizationEndpoint implements InitializingBean {
         Map<String, Serializable> model = new HashMap<>();
         model.put("error", e);
 
-        return new ModelAndView(errorPage, model);
+        return new ModelAndView(errorView, model);
     }
 
 }

@@ -128,17 +128,28 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
         String responseMode = (String) authorizationRequest.getExtensions().get("response_mode");
 
-        // valid combinations only
-        // TODO check specific combinations
         if (responseTypes.contains(ResponseType.ID_TOKEN) && !authorizationRequest.getScope().contains("openid")) {
             // openid is required to obtain an id token
             throw new InvalidRequestException("missing openid scope");
         }
 
-        if (StringUtils.hasText(responseMode)) {
-            if ((responseTypes.contains(ResponseType.TOKEN) || responseTypes.contains(ResponseType.ID_TOKEN))
-                    && "query".equals(responseMode)) {
-                throw new InvalidRequestException("query response mode is incompatible with token, use fragment");
+        // ensure valid combinations only
+        // TODO evaluate dedicated validator
+        if (responseTypes.size() == 1 && responseTypes.contains(ResponseType.CODE)) {
+            // authCode flow
+        } else if (responseTypes.size() == 1 && responseTypes.contains(ResponseType.TOKEN)) {
+            // implicit flow oauth2, no idtoken
+        } else if (responseTypes.size() == 1 && responseTypes.contains(ResponseType.ID_TOKEN)) {
+            // implicit flow only idToken
+        } else if (responseTypes.contains(ResponseType.TOKEN) && responseTypes.contains(ResponseType.CODE)) {
+            if (StringUtils.hasText(responseMode) && "query".equals(responseMode)) {
+                throw new InvalidRequestException(
+                        "query response_mode is incompatible with response_type token, use fragment or form_post");
+            }
+        } else if (responseTypes.size() > 1 && responseTypes.contains(ResponseType.ID_TOKEN)) {
+            if (StringUtils.hasText(responseMode) && "query".equals(responseMode)) {
+                throw new InvalidRequestException(
+                        "query response_mode is incompatible with hybrid flow, use fragment or form_post");
             }
         }
 

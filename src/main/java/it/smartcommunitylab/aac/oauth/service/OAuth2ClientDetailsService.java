@@ -1,13 +1,7 @@
 package it.smartcommunitylab.aac.oauth.service;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.NoSuchClientException;
@@ -15,11 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
@@ -64,28 +56,50 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         clientDetails.setResourceIds(StringUtils.commaDelimitedListToSet(client.getResourceIds()));
 
         clientDetails.setAuthorizedGrantTypes(StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes()));
-        clientDetails.setRegisteredRedirectUri(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
+        clientDetails.setRegisteredRedirectUris(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
         clientDetails.setAuthenticationMethods(StringUtils.commaDelimitedListToSet(oauth.getAuthenticationMethods()));
 
         clientDetails.setIdTokenClaims(oauth.isIdTokenClaims());
         clientDetails.setFirstParty(oauth.isFirstParty());
-        clientDetails.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
+//        clientDetails.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
 
         // token settings
+        clientDetails.setApplicationType(oauth.getApplicationType());
         clientDetails.setTokenType(oauth.getTokenType());
+        clientDetails.setSubjectType(oauth.getSubjectType());
+
+        clientDetails.setIdTokenValiditySeconds(oauth.getIdTokenValidity());
         clientDetails.setAccessTokenValiditySeconds(oauth.getAccessTokenValidity());
         clientDetails.setRefreshTokenValiditySeconds(oauth.getRefreshTokenValidity());
 
         // JWT config
         clientDetails.setJwks(oauth.getJwks());
         clientDetails.setJwksUri(oauth.getJwksUri());
-        clientDetails.setJwtSignAlgorithm(oauth.getJwtSignAlgorithm());
-        clientDetails.setJwtEncMethod(oauth.getJwtEncMethod());
-        clientDetails.setJwtEncAlgorithm(oauth.getJwtEncAlgorithm());
+
+        if (oauth.getAdditionalConfiguration() != null) {
+            try {
+                OAuth2ClientAdditionalConfig config = OAuth2ClientAdditionalConfig
+                        .convert(oauth.getAdditionalConfiguration());
+
+                // TODO handle all response config as per openid DCR
+                if (config.getJwtSignAlgorithm() != null) {
+                    clientDetails.setJwtSignAlgorithm(config.getJwtSignAlgorithm().getValue());
+                }
+                if (config.getJwtEncAlgorithm() != null) {
+                    clientDetails.setJwtEncMethod(config.getJwtEncAlgorithm().getValue());
+                }
+                if (config.getJwtEncMethod() != null) {
+                    clientDetails.setJwtEncAlgorithm(config.getJwtEncMethod().getValue());
+                }
+            } catch (Exception e) {
+                // ignore additional config
+            }
+        }
 
         // map additional info
         if (oauth.getAdditionalInformation() != null) {
-            clientDetails.setAdditionalInformation(oauth.getAdditionalInformation());
+            Map<String, Object> additionalInfo = new HashMap<>(oauth.getAdditionalInformation());
+            clientDetails.setAdditionalInformation(additionalInfo);
         }
 
         // map hooks
@@ -93,27 +107,27 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         clientDetails.setHookWebUrls(client.getHookWebUrls());
         clientDetails.setHookUniqueSpaces(client.getHookUniqueSpaces());
 
-        // always grant role_client
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
-        try {
-            List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
+//        // always grant role_client
+//        Set<GrantedAuthority> authorities = new HashSet<>();
+//        authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
+//        try {
+//            List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
+//
+//            authorities.addAll(clientRoles.stream()
+//                    .filter(r -> !StringUtils.hasText(r.getRealm()))
+//                    .map(r -> new SimpleGrantedAuthority(r.getRole()))
+//                    .collect(Collectors.toSet()));
+//
+//            authorities.addAll(clientRoles.stream()
+//                    .filter(r -> StringUtils.hasText(r.getRealm()))
+//                    .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
+//                    .collect(Collectors.toSet()));
+//
+//        } catch (it.smartcommunitylab.aac.common.NoSuchClientException e) {
+////            throw new NoSuchClientException("No client with requested id: " + clientId);
+//        }
 
-            authorities.addAll(clientRoles.stream()
-                    .filter(r -> !StringUtils.hasText(r.getRealm()))
-                    .map(r -> new SimpleGrantedAuthority(r.getRole()))
-                    .collect(Collectors.toSet()));
-
-            authorities.addAll(clientRoles.stream()
-                    .filter(r -> StringUtils.hasText(r.getRealm()))
-                    .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
-                    .collect(Collectors.toSet()));
-
-        } catch (it.smartcommunitylab.aac.common.NoSuchClientException e) {
-//            throw new NoSuchClientException("No client with requested id: " + clientId);
-        }
-
-        clientDetails.setAuthorities(Collections.unmodifiableCollection(authorities));
+//        clientDetails.setAuthorities(Collections.unmodifiableCollection(authorities));
 
         return clientDetails;
     }

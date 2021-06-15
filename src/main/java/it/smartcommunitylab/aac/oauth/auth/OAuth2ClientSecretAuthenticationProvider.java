@@ -1,17 +1,24 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
+import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
@@ -19,7 +26,7 @@ import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 
-public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticationProvider {
+public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticationProvider implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OAuth2ClientDetailsService clientDetailsService;
@@ -32,6 +39,11 @@ public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticati
         // build a plaintext password encoder, secrets are plaintext in oauth2
         passwordEncoder = PlaintextPasswordEncoder.getInstance();
 
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(clientService, "client service is required");
     }
 
     @Override
@@ -66,12 +78,21 @@ public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticati
             throw new BadCredentialsException("invalid authentication");
         }
 
+        // load authorities from clientService
+        Collection<GrantedAuthority> authorities;
+        try {
+            ClientDetails clientDetails = clientService.loadClient(clientId);
+            authorities = clientDetails.getAuthorities();
+        } catch (NoSuchClientException e) {
+            throw new ClientRegistrationException("invalid client");
+        }
+
         // result contains credentials, someone later on will need to call
         // eraseCredentials
         OAuth2ClientSecretAuthenticationToken result = new OAuth2ClientSecretAuthenticationToken(
                 clientId, clientSecret,
                 authenticationMethod,
-                client.getAuthorities());
+                authorities);
 
         // save details
         // TODO add ClientDetails in addition to oauth2ClientDetails

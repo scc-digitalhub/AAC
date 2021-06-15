@@ -94,6 +94,8 @@ import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
+import it.smartcommunitylab.aac.openid.service.OIDCTokenServices;
+import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
@@ -293,17 +295,17 @@ public class OAuth2Config {
         return new ClaimsTokenEnhancer(claimsService, clientDetailsService);
     }
 
-    @Bean
-    public OIDCTokenEnhancer oidcTokenEnhancer(JWTService jwtService,
-            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
-            OAuth2ClientDetailsService oauth2ClientDetailsService,
-            OpenIdClaimsExtractorProvider openidClaimsExtractorProvider) {
-//            ClaimsService claimsService) {
-
-        return new OIDCTokenEnhancer(issuer, jwtService, clientDetailsService, oauth2ClientDetailsService,
-//                claimsService);
-                openidClaimsExtractorProvider);
-    }
+//    @Bean
+//    public OIDCTokenEnhancer oidcTokenEnhancer(JWTService jwtService,
+//            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
+//            OAuth2ClientDetailsService oauth2ClientDetailsService,
+//            OpenIdClaimsExtractorProvider openidClaimsExtractorProvider) {
+////            ClaimsService claimsService) {
+//
+//        return new OIDCTokenEnhancer(issuer, jwtService, clientDetailsService, oauth2ClientDetailsService,
+////                claimsService);
+//                openidClaimsExtractorProvider);
+//    }
 
     @Bean
     public JwtTokenConverter jwtTokenEnhancer(JWTService jwtService,
@@ -316,11 +318,11 @@ public class OAuth2Config {
 
     @Bean
     public AACTokenEnhancer aacTokenEnhancer(ClaimsTokenEnhancer claimsEnhancer,
-            OIDCTokenEnhancer oidcEnhancer,
+//            OIDCTokenEnhancer oidcEnhancer,
             JwtTokenConverter tokenConverter) {
         AACTokenEnhancer enhancer = new AACTokenEnhancer();
         enhancer.setClaimsEnhancer(claimsEnhancer);
-        enhancer.setOidcEnhancer(oidcEnhancer);
+//        enhancer.setOidcEnhancer(oidcEnhancer);
         enhancer.setTokenConverter(tokenConverter);
 
         return enhancer;
@@ -484,6 +486,23 @@ public class OAuth2Config {
 //
 //        return tokenEndpoint;
 //    }
+
+    @Bean
+    public IdTokenServices idTokenServices(
+            OpenIdClaimsExtractorProvider claimsExtractorProvider,
+            JWTService jwtService,
+            OAuth2ClientDetailsService clientDetailsService,
+            it.smartcommunitylab.aac.core.service.ClientDetailsService clientService) {
+
+        OIDCTokenServices idTokenServices = new OIDCTokenServices(issuer, claimsExtractorProvider,
+                jwtService);
+
+        idTokenServices.setClientService(clientService);
+        idTokenServices.setClientDetailsService(clientDetailsService);
+
+        return idTokenServices;
+
+    }
 
     @Bean
     public InternalOpaqueTokenIntrospector tokenIntrospector(ExtTokenStore tokenStore,

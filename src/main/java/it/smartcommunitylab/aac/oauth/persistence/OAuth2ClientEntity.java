@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.persistence;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import javax.persistence.Column;
@@ -63,29 +64,34 @@ public class OAuth2ClientEntity {
     @Column(name = "authentication_methods")
     private String authenticationMethods;
 
+    @Column(name = "application_type")
+    private String applicationType;
+
+    @Column(name = "subject_type")
+    private String subjectType;
+
+    @Column(name = "token_type")
+    private String tokenType;
+
+    @Column(name = "id_token_claims")
+    private boolean idTokenClaims = false;
+
     /*
      * OAuth2 flows - related info
      * 
      * we persist these here to feed the clientDetailsService without the need to
      * access additionalInfo
+     * 
+     * TODO re-evaluate after dropping legacy compatibility
      */
+    @Column(name = "id_token_validity")
+    private Integer idTokenValidity;
+
     @Column(name = "access_token_validity")
     private Integer accessTokenValidity;
 
     @Column(name = "refresh_token_validity")
     private Integer refreshTokenValidity;
-
-    @Column(name = "token_type")
-    private String tokenType;
-
-    @Column(name = "jwt_sign_algo")
-    private String jwtSignAlgorithm;
-
-    @Column(name = "jwt_enc_algo")
-    private String jwtEncAlgorithm;
-
-    @Column(name = "jwt_enc_method")
-    private String jwtEncMethod;
 
     @Column(name = "jwks")
     private String jwks;
@@ -94,7 +100,12 @@ public class OAuth2ClientEntity {
     private String jwksUri;
 
     @Lob
-    @Column(name = "configuration_map")
+    @Column(name = "additional_configuration")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Serializable> additionalConfiguration;
+
+    @Lob
+    @Column(name = "additional_information")
     @Convert(converter = HashMapConverter.class)
     private Map<String, String> additionalInformation;
 
@@ -105,15 +116,10 @@ public class OAuth2ClientEntity {
     @Column(name = "first_party")
     private boolean firstParty = false;
 
-    @Column(name = "autoapprove_scopes")
-    private String autoApproveScopes;
-
-    // TODO evaluate registering resourceIds to be able to validate requests
+    // TODO drop resourceids (which exist only in resource server) in favor of
+    // audience which indicates the resource servers
     @Column(name = "resource_ids")
     private String resourceIds;
-
-    @Column(name = "id_token_claims")
-    private boolean idTokenClaims = false;
 
     public Long getId() {
         return id;
@@ -155,6 +161,14 @@ public class OAuth2ClientEntity {
         this.redirectUris = redirectUris;
     }
 
+    public Integer getIdTokenValidity() {
+        return idTokenValidity;
+    }
+
+    public void setIdTokenValidity(Integer idTokenValidity) {
+        this.idTokenValidity = idTokenValidity;
+    }
+
     public Integer getAccessTokenValidity() {
         return accessTokenValidity;
     }
@@ -187,36 +201,28 @@ public class OAuth2ClientEntity {
         this.resourceIds = resourceIds;
     }
 
+    public String getApplicationType() {
+        return applicationType;
+    }
+
+    public void setApplicationType(String applicationType) {
+        this.applicationType = applicationType;
+    }
+
+    public String getSubjectType() {
+        return subjectType;
+    }
+
+    public void setSubjectType(String subjectType) {
+        this.subjectType = subjectType;
+    }
+
     public String getTokenType() {
         return tokenType;
     }
 
     public void setTokenType(String tokenType) {
         this.tokenType = tokenType;
-    }
-
-    public String getJwtSignAlgorithm() {
-        return jwtSignAlgorithm;
-    }
-
-    public void setJwtSignAlgorithm(String jwtSignAlgorithm) {
-        this.jwtSignAlgorithm = jwtSignAlgorithm;
-    }
-
-    public String getJwtEncAlgorithm() {
-        return jwtEncAlgorithm;
-    }
-
-    public void setJwtEncAlgorithm(String jwtEncAlgorithm) {
-        this.jwtEncAlgorithm = jwtEncAlgorithm;
-    }
-
-    public String getJwtEncMethod() {
-        return jwtEncMethod;
-    }
-
-    public void setJwtEncMethod(String jwtEncMethod) {
-        this.jwtEncMethod = jwtEncMethod;
     }
 
     public String getJwks() {
@@ -235,6 +241,14 @@ public class OAuth2ClientEntity {
         this.jwksUri = jwksUri;
     }
 
+    public Map<String, Serializable> getAdditionalConfiguration() {
+        return additionalConfiguration;
+    }
+
+    public void setAdditionalConfiguration(Map<String, Serializable> additionalConfiguration) {
+        this.additionalConfiguration = additionalConfiguration;
+    }
+
     public Map<String, String> getAdditionalInformation() {
         return additionalInformation;
     }
@@ -249,14 +263,6 @@ public class OAuth2ClientEntity {
 
     public void setFirstParty(boolean firstParty) {
         this.firstParty = firstParty;
-    }
-
-    public String getAutoApproveScopes() {
-        return autoApproveScopes;
-    }
-
-    public void setAutoApproveScopes(String autoApproveScopes) {
-        this.autoApproveScopes = autoApproveScopes;
     }
 
     public boolean isIdTokenClaims() {

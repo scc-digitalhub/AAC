@@ -3,7 +3,10 @@ package it.smartcommunitylab.aac.oauth.client;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -12,12 +15,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * Stores extra information about oauth2 clients
  */
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuth2ClientInfo {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
     // only string properties, otherwise change method signatures to accept
     // serializable objects
+    @JsonProperty("display_name")
     private String displayName;
 
     // TODO add extra configuration

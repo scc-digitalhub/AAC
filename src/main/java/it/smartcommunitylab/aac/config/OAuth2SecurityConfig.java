@@ -86,8 +86,10 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         // build auth providers for oauth2 clients
         OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
                 clientDetailsService, authCodeServices);
+        pkceAuthProvider.setClientService(clientService);
         OAuth2ClientSecretAuthenticationProvider secretAuthProvider = new OAuth2ClientSecretAuthenticationProvider(
                 clientDetailsService);
+        secretAuthProvider.setClientService(clientService);
 
         ClientAuthenticationManager authManager = new ClientAuthenticationManager(secretAuthProvider);
         authManager.setClientService(clientService);

@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
@@ -129,13 +130,12 @@ public class APIMProviderService {
                 null, null, null,
                 authorizedGrantTypes,
                 Arrays.asList(redirectUris),
-                TokenType.TOKEN_TYPE_JWT,
+                ApplicationType.WEB, TokenType.JWT, null,
                 authenticationMethods,
-                false, false, null,
+                false, false,
                 null, null,
                 null,
-                null, null,
-                null, null,
+                null, null, null,
                 null);
 
         return APIMClient.from(client);
@@ -196,13 +196,13 @@ public class APIMProviderService {
                 providers,
                 client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
                 authorizedGrantTypes, configMap.getRedirectUris(),
-                configMap.getTokenType(), configMap.getAuthenticationMethods(),
-                configMap.getIdTokenClaims(),
-                configMap.getFirstParty(), configMap.getAutoApproveScopes(),
+                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(), configMap.getFirstParty(),
                 configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
-                configMap.getJwtSignAlgorithm(),
-                configMap.getJwtEncMethod(), configMap.getJwtEncAlgorithm(),
+                configMap.getIdTokenValidity(),
                 configMap.getJwks(), configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
                 configMap.getAdditionalInformation());
 
         return APIMClient.from(client);
@@ -228,13 +228,13 @@ public class APIMProviderService {
                 client.getProviders(),
                 client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
                 configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                configMap.getTokenType(), configMap.getAuthenticationMethods(),
-                configMap.getIdTokenClaims(),
-                configMap.getFirstParty(), configMap.getAutoApproveScopes(),
+                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(), configMap.getFirstParty(),
                 validity, configMap.getRefreshTokenValidity(),
-                configMap.getJwtSignAlgorithm(),
-                configMap.getJwtEncMethod(), configMap.getJwtEncAlgorithm(),
+                validity,
                 configMap.getJwks(), configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
                 configMap.getAdditionalInformation());
 
         return APIMClient.from(client);
@@ -263,13 +263,14 @@ public class APIMProviderService {
                 client.getProviders(),
                 client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
                 configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                configMap.getTokenType(), configMap.getAuthenticationMethods(),
+                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
                 configMap.getIdTokenClaims(),
-                configMap.getFirstParty(), configMap.getAutoApproveScopes(),
+                configMap.getFirstParty(),
                 configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
-                configMap.getJwtSignAlgorithm(),
-                configMap.getJwtEncMethod(), configMap.getJwtEncAlgorithm(),
+                configMap.getIdTokenValidity(),
                 configMap.getJwks(), configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
                 configMap.getAdditionalInformation());
 
         return APIMClient.from(client);

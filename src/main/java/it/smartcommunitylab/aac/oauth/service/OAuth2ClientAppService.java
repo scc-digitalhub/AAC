@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -102,8 +101,8 @@ public class OAuth2ClientAppService implements ClientAppService {
                     app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),
                     null,
                     null, null,
-                    null, null,
-                    null, null,
+                    null, null, null,
+                    null,
                     null, null,
                     null, null,
                     null, null,
@@ -132,13 +131,13 @@ public class OAuth2ClientAppService implements ClientAppService {
                     app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),
                     clientSecret,
                     configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                    configMap.getTokenType(), configMap.getAuthenticationMethods(),
-                    configMap.getIdTokenClaims(),
-                    configMap.getFirstParty(), configMap.getAutoApproveScopes(),
+                    configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                    configMap.getAuthenticationMethods(),
+                    configMap.getIdTokenClaims(), configMap.getFirstParty(),
                     configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
-                    configMap.getJwtSignAlgorithm(),
-                    configMap.getJwtEncMethod(), configMap.getJwtEncAlgorithm(),
+                    configMap.getIdTokenValidity(),
                     configMap.getJwks(), configMap.getJwksUri(),
+                    configMap.getAdditionalConfig(),
                     configMap.getAdditionalInformation());
 
             return toApp(client);
@@ -172,13 +171,13 @@ public class OAuth2ClientAppService implements ClientAppService {
                 Arrays.asList(app.getProviders()),
                 app.getHookFunctions(), app.getHookWebUrls(), app.getHookUniqueSpaces(),
                 configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
-                configMap.getTokenType(), configMap.getAuthenticationMethods(),
-                configMap.getIdTokenClaims(),
-                configMap.getFirstParty(), configMap.getAutoApproveScopes(),
+                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(), configMap.getFirstParty(),
                 configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
-                configMap.getJwtSignAlgorithm(),
-                configMap.getJwtEncMethod(), configMap.getJwtEncAlgorithm(),
+                configMap.getIdTokenValidity(),
                 configMap.getJwks(), configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
                 configMap.getAdditionalInformation());
 
         return toApp(client);

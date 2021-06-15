@@ -130,6 +130,19 @@ public class JWTService implements InitializingBean {
     /*
      * Exported methods: hash
      */
+    public Base64URL hashCode(OAuth2ClientDetails clientDetails, String value) {
+        // check if client has custom algo defined
+        String signAlg = clientDetails.getJwtSignAlgorithm();
+        if (!StringUtils.hasText(signAlg)) {
+            // fallback
+            signAlg = defaultSignService.getDefaultSigningAlgorithm().getName();
+        }
+
+        JWSAlgorithm signingAlg = JWSAlgorithm.parse(signAlg);
+
+        Base64URL at_hash = IdTokenHashUtils.getCodeHash(signingAlg, value);
+        return at_hash;
+    }
 
     public Base64URL hashAccessToken(OAuth2ClientDetails clientDetails, String value) {
         // check if client has custom algo defined
@@ -142,7 +155,6 @@ public class JWTService implements InitializingBean {
         JWSAlgorithm signingAlg = JWSAlgorithm.parse(signAlg);
 
         Base64URL at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg, value);
-
         return at_hash;
     }
 

@@ -29,12 +29,15 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.jwt.JWTConfig;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
+import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
@@ -358,8 +361,13 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         // map attributes
         c.clientSecret = (oauth.getClientSecret() != null ? new ClientSecret(oauth.getClientSecret()) : null);
 
+        // oauth2 config map
         c.configMap = new OAuth2ClientConfigMap();
+
+        c.configMap.setApplicationType(
+                (oauth.getApplicationType() != null ? ApplicationType.parse(oauth.getApplicationType()) : null));
         c.configMap.setTokenType((oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : null));
+        c.configMap.setSubjectType((oauth.getSubjectType() != null ? SubjectType.parse(oauth.getSubjectType()) : null));
 
         Set<String> authorizedGrantTypes = StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes());
         c.configMap.setAuthorizedGrantTypes(authorizedGrantTypes.stream()
@@ -376,25 +384,38 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         c.configMap.setRedirectUris(StringUtils.commaDelimitedListToSet(oauth.getRedirectUris()));
         c.configMap.setIdTokenClaims(oauth.isIdTokenClaims());
         c.configMap.setFirstParty(oauth.isFirstParty());
-        c.configMap.setAutoApproveScopes(StringUtils.commaDelimitedListToSet(oauth.getAutoApproveScopes()));
 
+        c.configMap.setIdTokenValidity(oauth.getIdTokenValidity());
         c.configMap.setAccessTokenValidity(oauth.getAccessTokenValidity());
         c.configMap.setRefreshTokenValidity(oauth.getRefreshTokenValidity());
 
-        c.configMap.setJwtSignAlgorithm(
-                oauth.getJwtSignAlgorithm() != null ? JWSAlgorithm.parse(oauth.getJwtSignAlgorithm())
-                        : null);
-        c.configMap
-                .setJwtEncAlgorithm(oauth.getJwtEncAlgorithm() != null ? JWEAlgorithm.parse(oauth.getJwtEncAlgorithm())
-                        : null);
-        c.configMap.setJwtEncMethod(
-                oauth.getJwtEncMethod() != null ? EncryptionMethod.parse(oauth.getJwtEncMethod()) : null);
+//        if (oauth.getConfigurationMap() != null) {
+//            Map<String, Serializable> configMap = oauth.getConfigurationMap();
+//
+//            String jwtSignAlgorithm = (String) configMap.get("jwt_sign_alg");
+//            String jwtEncAlgorithm = (String) configMap.get("jwt_enc_alg");
+//            String jwtEncMethod = (String) configMap.get("jwt_enc_method");
+//
+//            JWTConfig jwtConfig = new JWTConfig();
+//
+//            jwtConfig.setSignAlgorithm(jwtSignAlgorithm != null ? JWSAlgorithm.parse(jwtSignAlgorithm)
+//                    : null);
+//            jwtConfig.setEncAlgorithm(jwtEncAlgorithm != null ? JWEAlgorithm.parse(jwtEncAlgorithm)
+//                    : null);
+//            jwtConfig.setEncMethod(jwtEncMethod != null ? EncryptionMethod.parse(jwtEncMethod) : null);
+//        }
+
         try {
             c.configMap.setJwks(StringUtils.hasText(oauth.getJwks()) ? JWKSet.parse(oauth.getJwks()) : null);
         } catch (ParseException e) {
             c.configMap.setJwks(null);
         }
         c.configMap.setJwksUri(oauth.getJwksUri());
+
+        Map<String, Serializable> additionalConfig = oauth.getAdditionalConfiguration();
+        if (additionalConfig != null) {
+            c.configMap.setAdditionalConfig(OAuth2ClientAdditionalConfig.convert(additionalConfig));
+        }
 
 //        c.tokenType = (oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : null);
 //
@@ -431,9 +452,9 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
 //        }
 //        c.jwksUri = oauth.getJwksUri();
 
-        Map<String, String> map = oauth.getAdditionalInformation();
-        if (map != null) {
-            c.configMap.setAdditionalInformation(OAuth2ClientInfo.convert(map));
+        Map<String, String> additionalInfo = oauth.getAdditionalInformation();
+        if (additionalInfo != null) {
+            c.configMap.setAdditionalInformation(OAuth2ClientInfo.convert(additionalInfo));
 //            c.additionalInformation = OAuth2ClientInfo.convert(map);
         }
 

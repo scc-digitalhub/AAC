@@ -37,7 +37,7 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     private String[] audience;
 
-    private String responseType = TokenType.TOKEN_TYPE_OPAQUE.getValue();
+    private String responseType = TokenType.OPAQUE.getValue();
 
     private String realm;
 

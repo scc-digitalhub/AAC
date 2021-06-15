@@ -4,13 +4,13 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum TokenType {
-    OPAQUE("opaque"),
-    JWT("jwt");
+public enum ApplicationType {
+    NATIVE("native"),
+    WEB("web");
 
     private final String value;
 
-    TokenType(String value) {
+    ApplicationType(String value) {
         Assert.hasText(value, "value cannot be empty");
         this.value = value;
     }
@@ -24,8 +24,8 @@ public enum TokenType {
         return value;
     }
 
-    public static TokenType parse(String value) {
-        for (TokenType t : TokenType.values()) {
+    public static ApplicationType parse(String value) {
+        for (ApplicationType t : ApplicationType.values()) {
             if (t.value.equalsIgnoreCase(value)) {
                 return t;
             }

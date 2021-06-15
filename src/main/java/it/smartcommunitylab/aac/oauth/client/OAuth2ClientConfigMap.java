@@ -20,11 +20,14 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.jwt.JWTConfig;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
+import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 
 @Valid
@@ -38,21 +41,25 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
     private Set<AuthorizationGrantType> authorizedGrantTypes;
     private Set<String> redirectUris;
 
+    private ApplicationType applicationType;
     private TokenType tokenType;
     private Set<AuthenticationMethod> authenticationMethods;
 
+    private SubjectType subjectType;
+
     private Boolean idTokenClaims;
     private Boolean firstParty;
-    private Set<String> autoApproveScopes;
 
+    private Integer idTokenValidity;
     private Integer accessTokenValidity;
     private Integer refreshTokenValidity;
 
-    private JWSAlgorithm jwtSignAlgorithm;
-    private JWEAlgorithm jwtEncAlgorithm;
-    private EncryptionMethod jwtEncMethod;
     private JWKSet jwks;
     private String jwksUri;
+
+    // additional configuration
+    @JsonUnwrapped
+    private OAuth2ClientAdditionalConfig additionalConfig;
 
     @JsonUnwrapped
     private OAuth2ClientInfo additionalInformation;
@@ -61,17 +68,18 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
         authorizedGrantTypes = new HashSet<>();
         redirectUris = new HashSet<>();
         authenticationMethods = new HashSet<>();
-        autoApproveScopes = new HashSet<>();
-        tokenType = TokenType.TOKEN_TYPE_JWT;
-
+        tokenType = TokenType.JWT;
+        applicationType = ApplicationType.WEB;
+        subjectType = SubjectType.PUBLIC;
     }
 
     public OAuth2ClientConfigMap(Map<String, Serializable> props) {
         authorizedGrantTypes = new HashSet<>();
         redirectUris = new HashSet<>();
         authenticationMethods = new HashSet<>();
-        autoApproveScopes = new HashSet<>();
-        tokenType = TokenType.TOKEN_TYPE_JWT;
+        tokenType = TokenType.JWT;
+        applicationType = ApplicationType.WEB;
+        subjectType = SubjectType.PUBLIC;
 
         setConfiguration(props);
     }
@@ -92,12 +100,28 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
         this.redirectUris = redirectUris;
     }
 
+    public ApplicationType getApplicationType() {
+        return applicationType;
+    }
+
+    public void setApplicationType(ApplicationType applicationType) {
+        this.applicationType = applicationType;
+    }
+
     public TokenType getTokenType() {
         return tokenType;
     }
 
     public void setTokenType(TokenType tokenType) {
         this.tokenType = tokenType;
+    }
+
+    public SubjectType getSubjectType() {
+        return subjectType;
+    }
+
+    public void setSubjectType(SubjectType subjectType) {
+        this.subjectType = subjectType;
     }
 
     public Set<AuthenticationMethod> getAuthenticationMethods() {
@@ -124,14 +148,6 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
         this.firstParty = firstParty;
     }
 
-    public Set<String> getAutoApproveScopes() {
-        return autoApproveScopes;
-    }
-
-    public void setAutoApproveScopes(Set<String> autoApproveScopes) {
-        this.autoApproveScopes = autoApproveScopes;
-    }
-
     public Integer getAccessTokenValidity() {
         return accessTokenValidity;
     }
@@ -148,28 +164,12 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
         this.refreshTokenValidity = refreshTokenValidity;
     }
 
-    public JWSAlgorithm getJwtSignAlgorithm() {
-        return jwtSignAlgorithm;
+    public Integer getIdTokenValidity() {
+        return idTokenValidity;
     }
 
-    public void setJwtSignAlgorithm(JWSAlgorithm jwtSignAlgorithm) {
-        this.jwtSignAlgorithm = jwtSignAlgorithm;
-    }
-
-    public JWEAlgorithm getJwtEncAlgorithm() {
-        return jwtEncAlgorithm;
-    }
-
-    public void setJwtEncAlgorithm(JWEAlgorithm jwtEncAlgorithm) {
-        this.jwtEncAlgorithm = jwtEncAlgorithm;
-    }
-
-    public EncryptionMethod getJwtEncMethod() {
-        return jwtEncMethod;
-    }
-
-    public void setJwtEncMethod(EncryptionMethod jwtEncMethod) {
-        this.jwtEncMethod = jwtEncMethod;
+    public void setIdTokenValidity(Integer idTokenValidity) {
+        this.idTokenValidity = idTokenValidity;
     }
 
     public JWKSet getJwks() {
@@ -186,6 +186,15 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
 
     public void setJwksUri(String jwksUri) {
         this.jwksUri = jwksUri;
+    }
+
+    @JsonIgnore
+    public OAuth2ClientAdditionalConfig getAdditionalConfig() {
+        return additionalConfig;
+    }
+
+    public void setAdditionalConfig(OAuth2ClientAdditionalConfig additionalConfig) {
+        this.additionalConfig = additionalConfig;
     }
 
     @JsonIgnore
@@ -214,23 +223,26 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties {
         this.authorizedGrantTypes = map.getAuthorizedGrantTypes();
         this.redirectUris = map.getRedirectUris();
 
+        this.applicationType = map.getApplicationType();
         this.tokenType = map.getTokenType();
+        this.subjectType = map.getSubjectType();
+
         this.authenticationMethods = map.getAuthenticationMethods();
 
         this.idTokenClaims = map.getIdTokenClaims();
         this.firstParty = map.getFirstParty();
-        this.autoApproveScopes = map.getAutoApproveScopes();
 
+        this.idTokenValidity = map.getIdTokenValidity();
         this.accessTokenValidity = map.getAccessTokenValidity();
         this.refreshTokenValidity = map.getRefreshTokenValidity();
 
-        this.jwtSignAlgorithm = map.getJwtSignAlgorithm();
-        this.jwtEncAlgorithm = map.getJwtEncAlgorithm();
-        this.jwtEncMethod = map.getJwtEncMethod();
         this.jwks = map.getJwks();
         this.jwksUri = map.getJwksUri();
 
         // handle additional props
+        if (map.getAdditionalConfig() != null) {
+            this.additionalConfig = map.getAdditionalConfig();
+        }
         if (map.getAdditionalInformation() != null) {
             this.additionalInformation = map.getAdditionalInformation();
         }

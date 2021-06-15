@@ -1,0 +1,42 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+   <meta charset="utf-8" />
+   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+   <meta http-equiv="Pragma" content="no-cache" />
+   <meta http-equiv="Expires" content="-1" />
+   <title>OAuth2 Authorization</title>
+</head>
+
+<body onload="document.forms[0].submit()">
+   <noscript>
+      <p>
+         <strong>Note:</strong> Since your browser does not support JavaScript,
+         you must press the Continue button once to proceed.
+      </p>
+   </noscript>
+
+   <form th:action="${redirectUri}" method="post">
+      <div>
+         <input type="hidden" name="code" th:value="${code}" th:if="${code != null}">
+         <input type="hidden" name="access_token" th:value="${access_token}" th:if="${access_token != null}">
+         <input type="hidden" name="refresh_token" th:value="${refresh_token}" th:if="${refresh_token != null}">
+         <input type="hidden" name="id_token" th:value="${id_token}" th:if="${id_token != null}">
+         <input type="hidden" name="expires_in" th:value="${expires_in}" th:if="${expires_in != null}">
+         <input type="hidden" name="token_type" th:value="${token_type}" th:if="${token_type != null}">
+         <input type="hidden" name="scope" th:value="${scope}" th:if="${scope != null}">
+         <input type="hidden" name="state" th:value="${state}" th:if="${state != null}">
+
+
+      </div>
+      <noscript>
+         <div>
+            <input type="submit" value="Continue" />
+         </div>
+      </noscript>
+   </form>
+
+</body>
+
+</html>

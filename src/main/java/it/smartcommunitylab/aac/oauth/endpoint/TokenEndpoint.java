@@ -27,10 +27,14 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.OAuth2RequestValidator;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.TokenRequest;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -46,12 +50,16 @@ import org.springframework.web.servlet.ModelAndView;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.TokenResponse;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestValidator;
+import it.smartcommunitylab.aac.openid.common.IdToken;
+import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 
 @Controller
 public class TokenEndpoint implements InitializingBean {
@@ -69,6 +77,12 @@ public class TokenEndpoint implements InitializingBean {
     @Autowired
     private OAuth2TokenRequestValidator oauth2RequestValidator;
 
+    @Autowired
+    private IdTokenServices idTokenServices;
+
+    @Autowired
+    private ResourceServerTokenServices tokenServices;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(tokenGranter, "token granter is required");
@@ -79,7 +93,7 @@ public class TokenEndpoint implements InitializingBean {
     @RequestMapping(value = {
             TOKEN_URL,
             "/-/{realm}" + TOKEN_URL }, method = RequestMethod.POST)
-    public ResponseEntity<OAuth2AccessToken> postAccessToken(
+    public ResponseEntity<TokenResponse> postAccessToken(
             @RequestParam Map<String, String> parameters,
             @PathVariable("realm") Optional<String> realmKey,
             Authentication authentication)
@@ -145,21 +159,48 @@ public class TokenEndpoint implements InitializingBean {
             throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
         }
 
+        IdToken idToken = null;
+        // TODO check scopes in tokenrequest, but we need to fetch authorizationRequest
+        // via factory
+        // otherwise for authcode scope will be empty
+        if (authorizationGrantType == AuthorizationGrantType.AUTHORIZATION_CODE
+                && token.getScope().contains("openid")) {
+            // we build id token independently of response_type
+            // TODO make sure idToken is a match for the one returned in
+            // authorizationResponse, except at_hash
+            // note that for code id_token token response we will build 2 idtoken bounded to
+            // 2 different accesstokens, spec is not clear...
+
+            // read back authentication used for token
+            // TODO rewrite from scratch tokenGranter interfaces, tokenServices should call
+            // them not the other way around..
+            OAuth2Authentication oauth2Authentication = tokenServices.loadAuthentication(token.getValue());
+
+            idToken = idTokenServices.createIdToken(oauth2Authentication, token);
+
+        }
+
         // invalidate session now
         // this should be meaningless since we expect this endpoint to live under a
         // sessionless context
         SecurityContextHolder.getContext().setAuthentication(null);
 
-        return buildResponse(token);
+        return buildResponse(token, idToken);
     }
 
-    private ResponseEntity<OAuth2AccessToken> buildResponse(OAuth2AccessToken accessToken) {
+    private ResponseEntity<TokenResponse> buildResponse(OAuth2AccessToken accessToken, IdToken idToken) {
         // build a proper response, as per rfc6749
         HttpHeaders headers = new HttpHeaders();
         headers.set("Cache-Control", "no-store");
         headers.set("Pragma", "no-cache");
         headers.set("Content-Type", "application/json;charset=UTF-8");
-        return new ResponseEntity<OAuth2AccessToken>(accessToken, headers, HttpStatus.OK);
+
+        TokenResponse response = new TokenResponse(accessToken);
+        if (idToken != null) {
+            response.setIdToken(idToken.getValue());
+        }
+
+        return new ResponseEntity<TokenResponse>(response, headers, HttpStatus.OK);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

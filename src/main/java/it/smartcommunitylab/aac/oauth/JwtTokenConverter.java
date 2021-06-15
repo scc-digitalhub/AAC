@@ -69,7 +69,7 @@ public class JwtTokenConverter implements TokenEnhancer {
 
             // client requested JWT?
             TokenType tokenType = TokenType.parse(clientDetails.getTokenType());
-            boolean requireJwt = (tokenType != null ? TokenType.TOKEN_TYPE_JWT == tokenType : useJwtByDefault);
+            boolean requireJwt = (tokenType != null ? TokenType.JWT == tokenType : useJwtByDefault);
 
             if (!requireJwt) {
                 // nothing to do, return opaque
@@ -95,7 +95,7 @@ public class JwtTokenConverter implements TokenEnhancer {
 
             // replace value
             token.setValue(result);
-            token.setResponseType(TokenType.TOKEN_TYPE_JWT.getValue());
+            token.setResponseType(TokenType.JWT.getValue());
 
             return token;
 

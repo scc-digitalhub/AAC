@@ -131,7 +131,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         // we have 2 sets of approved scopes
         // firstParty handling: autoApprove for same realm user with autoApprove scopes
         // TODO handle mixed user scopes + client scopes
-        Set<String> autoApprovedScopes = getAutoApproved(userDetails, clientDetails);
+        Set<String> autoApprovedScopes = getAutoApproved(requestedScopes, userDetails, clientDetails);
         Set<String> userApprovedScopes = getUserApproved(userDetails, clientDetails);
 
         // persist autoApproved so we'll be able to check for refreshToken
@@ -333,7 +333,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         // build the list of scopes requiring user approval
         // we have 2 sets of pre-approved scopes
-        Set<String> autoApprovedScopes = getAutoApproved(userDetails, clientDetails);
+        Set<String> autoApprovedScopes = getAutoApproved(requestedScopes, userDetails, clientDetails);
         Set<String> userApprovedScopes = getUserApproved(userDetails, clientDetails);
 
         // check if all requested scopes are already approved
@@ -452,17 +452,16 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         return authorizationRequest;
     }
 
-    private Set<String> getAutoApproved(UserDetails userDetails, OAuth2ClientDetails clientDetails) {
+    private Set<String> getAutoApproved(Set<String> requestedScopes, UserDetails userDetails,
+            OAuth2ClientDetails clientDetails) {
         Set<String> autoApprovedScopes = new HashSet<>();
 
         // build autoapproved only if client is firstParty same realm
         // TODO evaluate checking request realm
         if (clientDetails.isFirstParty()
                 && userDetails.getRealm().equals(clientDetails.getRealm())) {
-            // get from config
-            if (clientDetails.getAutoApproveScopes() != null) {
-                autoApprovedScopes.addAll(clientDetails.getAutoApproveScopes());
-            }
+            // get from registry
+            // TODO
         }
 
         return autoApprovedScopes;
