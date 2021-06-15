@@ -58,7 +58,7 @@ oauth2:
       matchsubdomains: ${REDIRECT_MATCH_SUBDOMAINS:true}
    jwt: ${ENABLE_JWT:true}
    introspection:
-      permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:true}
+      permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:false}
    pkce:
       allowRefresh: true
    clientCredentials:

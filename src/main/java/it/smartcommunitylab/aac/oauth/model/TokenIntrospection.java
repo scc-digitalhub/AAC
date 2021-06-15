@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.oauth.model;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,10 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
@@ -62,9 +67,13 @@ public class TokenIntrospection {
     }
 
     private final boolean active;
+
+    @JsonProperty("jti")
     private String jti;
 
-    private String scope;
+    @JsonProperty("scope")
+    @JsonSerialize(using = StringOrArraySerializer.class)
+    private Set<String> scope;
 
     @JsonProperty("client_id")
     private String clientId;
@@ -88,7 +97,8 @@ public class TokenIntrospection {
     private String issuer;
 
     @JsonProperty("aud")
-    private String[] audience;
+    @JsonSerialize(using = StringOrArraySerializer.class)
+    private Set<String> audience;
 
     @JsonProperty("azp")
     private String authorizedParty;
@@ -109,11 +119,11 @@ public class TokenIntrospection {
         this.jti = jti;
     }
 
-    public String getScope() {
+    public Set<String> getScope() {
         return scope;
     }
 
-    public void setScope(String scope) {
+    public void setScope(Set<String> scope) {
         this.scope = scope;
     }
 
@@ -173,12 +183,16 @@ public class TokenIntrospection {
         this.issuer = issuer;
     }
 
-    public String[] getAudience() {
+    public Set<String> getAudience() {
         return audience;
     }
 
-    public void setAudience(String[] audience) {
-        this.audience = audience;
+    public void setAudience(Collection<String> audience) {
+        this.audience = new HashSet<>(audience);
+    }
+
+    public void setAudience(String audience) {
+        this.audience = Collections.singleton(audience);
     }
 
     public String getAuthorizedParty() {

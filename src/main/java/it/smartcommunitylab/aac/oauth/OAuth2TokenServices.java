@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth;
 
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -386,9 +387,9 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         // https://tools.ietf.org/html/rfc6749#section-10.10
         // 160bit = a buffer of 20 random bytes
         String value = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
-
+        Date exp = Date.from(Instant.now().plusSeconds(validitySeconds));
         ExpiringOAuth2RefreshToken refreshToken = new DefaultExpiringOAuth2RefreshToken(value,
-                new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
+                exp);
         return refreshToken;
     }
 
@@ -419,10 +420,11 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         // https://tools.ietf.org/html/rfc6749#section-10.10
         // 160bit = a buffer of 20 random bytes
         String value = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+        Date exp = Date.from(Instant.now().plusSeconds(validitySeconds));
         AACOAuth2AccessToken token = new AACOAuth2AccessToken(value);
         token.setSubject(subjectId);
         token.setAuthorizedParty(clientId);
-        token.setExpiration(new Date(System.currentTimeMillis() + (validitySeconds * 1000L)));
+        token.setExpiration(exp);
         token.setScope(scopes);
         token.setAudience(audience.toArray(new String[0]));
 
