@@ -59,12 +59,12 @@ import it.smartcommunitylab.aac.oauth.model.AuthorizationResponse;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestFactory;
-import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestRepository;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestValidator;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestValidator;
 import it.smartcommunitylab.aac.oauth.request.TokenRequest;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.openid.common.IdToken;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 
@@ -109,7 +109,7 @@ public class AuthorizationEndpoint implements InitializingBean {
     private OAuth2TokenRequestValidator oauth2TokenRequestValidator;
 
     @Autowired
-    private OAuth2AuthorizationRequestRepository oauth2AuthorizationRequestRepository;
+    private AuthorizationRequestStore oauth2AuthorizationRequestRepository;
 
     @Autowired
     private OAuth2ClientDetailsService oauth2ClientDetailsService;

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.store.jdbc;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,6 +29,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.store.ExtendedAuthenticationKeyGenerator;
 
 /**
  * Token store with DB tables creation on startup.

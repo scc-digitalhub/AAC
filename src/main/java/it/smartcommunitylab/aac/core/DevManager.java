@@ -17,6 +17,7 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenGranter;
@@ -53,10 +54,10 @@ import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.RealmAuthorizationRequest;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestFactory;
+import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestFactory;
+import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
@@ -89,7 +90,10 @@ public class DevManager {
     private ProviderManager providerManager;
 
     @Autowired
-    private AACOAuth2RequestFactory oauth2RequestFactory;
+    private OAuth2AuthorizationRequestFactory oauth2AuthorizationRequestFactory;
+
+    @Autowired
+    private OAuth2TokenRequestFactory oauth2TokenRequestFactory;
 
     @Autowired
     private OAuth2ClientDetailsService oauth2ClientDetailsService;
@@ -500,11 +504,13 @@ public class DevManager {
             OAuth2ClientDetails clientDetails,
             Map<String, String> authorizationParams) {
 
+        UserDetails userDetails = userAuth.getUser();
+        User user = userService.getUser(userDetails, realm);
+
         // build request, temporary replace realm to enable access to all users
         authorizationParams.put("realm", "common");
-        RealmAuthorizationRequest authorizationRequest = oauth2RequestFactory
-                .createAuthorizationRequest(authorizationParams);
-        authorizationRequest.setRealm(realm);
+        AuthorizationRequest authorizationRequest = oauth2AuthorizationRequestFactory
+                .createAuthorizationRequest(authorizationParams, clientDetails, user);
 
         // set approved for test, we override approval stage because we
         // are sure scopes are allowed
@@ -514,8 +520,10 @@ public class DevManager {
         if (responseTypes.contains("token")) {
             // fetch implicit token
             String grantType = AuthorizationGrantType.IMPLICIT.getValue();
-            TokenRequest tokenRequest = oauth2RequestFactory.createTokenRequest(authorizationRequest, grantType);
-            OAuth2Request storedOAuth2Request = oauth2RequestFactory.createOAuth2Request(authorizationRequest);
+            TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(authorizationRequest, grantType);
+            OAuth2Request storedOAuth2Request = oauth2AuthorizationRequestFactory.createOAuth2Request(
+                    authorizationRequest,
+                    clientDetails);
             ImplicitTokenRequest implicitRequest = new ImplicitTokenRequest(tokenRequest, storedOAuth2Request);
             OAuth2AccessToken accessToken = oauth2TokenGranter.grant(grantType, implicitRequest);
 
@@ -523,7 +531,8 @@ public class DevManager {
         } else {
             // fetch code and exchange
             String grantType = AuthorizationGrantType.AUTHORIZATION_CODE.getValue();
-            OAuth2Request storedOAuth2Request = oauth2RequestFactory.createOAuth2Request(authorizationRequest);
+            OAuth2Request storedOAuth2Request = oauth2AuthorizationRequestFactory
+                    .createOAuth2Request(authorizationRequest, clientDetails);
 
             OAuth2Authentication combinedAuth = new OAuth2Authentication(storedOAuth2Request, userAuth);
             String code = authorizationCodeServices.createAuthorizationCode(combinedAuth);
@@ -538,7 +547,7 @@ public class DevManager {
             tokenParams.put("code", code);
             tokenParams.put("redirect_uri", authorizationParams.get("redirect_uri"));
 
-            TokenRequest tokenRequest = oauth2RequestFactory.createTokenRequest(tokenParams, clientDetails);
+            TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(tokenParams, clientDetails);
             OAuth2AccessToken accessToken = oauth2TokenGranter.grant(grantType, tokenRequest);
 
             return accessToken;
@@ -552,7 +561,7 @@ public class DevManager {
             Map<String, String> tokenParams) {
 
         // build request
-        TokenRequest tokenRequest = oauth2RequestFactory.createTokenRequest(tokenParams, clientDetails);
+        TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(tokenParams, clientDetails);
         OAuth2AccessToken accessToken = oauth2TokenGranter.grant(tokenRequest.getGrantType(), tokenRequest);
 
         return accessToken;

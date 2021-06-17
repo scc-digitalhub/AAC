@@ -24,11 +24,11 @@ import org.springframework.web.filter.CompositeFilter;
 
 import it.smartcommunitylab.aac.core.ClientAuthenticationManager;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 /*

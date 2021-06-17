@@ -45,8 +45,8 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestRepository;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import springfox.documentation.annotations.ApiIgnore;
@@ -66,7 +66,7 @@ public class UserApprovalEndpoint implements InitializingBean {
 //    private static final String SCOPE_PREFIX = OAuth2Utils.SCOPE_PREFIX;
 
     @Autowired
-    private OAuth2AuthorizationRequestRepository oauth2AuthorizationRequestRepository;
+    private AuthorizationRequestStore oauth2AuthorizationRequestRepository;
 
     @Autowired
     private UserApprovalHandler userApprovalHandler;

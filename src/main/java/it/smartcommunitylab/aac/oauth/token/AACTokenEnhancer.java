@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.token;
 
 import java.nio.charset.Charset;
 
@@ -26,6 +26,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 
 /**

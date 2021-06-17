@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth.approval;
+package it.smartcommunitylab.aac.oauth.store;
 
 import java.util.Collection;
 

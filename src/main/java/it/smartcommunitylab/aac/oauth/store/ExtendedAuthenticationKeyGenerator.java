@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.store;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map;

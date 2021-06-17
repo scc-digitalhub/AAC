@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.token;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 
 public class ClaimsTokenEnhancer implements TokenEnhancer {
     private final Logger logger = LoggerFactory.getLogger(getClass());

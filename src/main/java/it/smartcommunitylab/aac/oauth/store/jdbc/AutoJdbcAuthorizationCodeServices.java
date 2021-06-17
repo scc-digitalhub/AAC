@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.store.jdbc;
 
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
@@ -23,20 +23,21 @@ import java.sql.Types;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
-import org.springframework.security.crypto.keygen.BytesKeyGenerator;
-import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.util.Assert;
+
+import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.store.HumanStringKeyGenerator;
 
 /**
  * Authorization code services with DB table creation on startup. Also supports
@@ -50,8 +51,7 @@ import org.springframework.util.Assert;
 public class AutoJdbcAuthorizationCodeServices
         implements AuthorizationCodeServices, PeekableAuthorizationCodeServices {
 
-    private static final BytesKeyGenerator TOKEN_GENERATOR = KeyGenerators.secureRandom(6);
-    private static final Charset ENCODE_CHARSET = Charset.forName("US-ASCII");
+    private static final StringKeyGenerator TOKEN_GENERATOR = new HumanStringKeyGenerator(6);
     private static final int DEFAULT_CODE_VALIDITY_SECONDS = 10 * 60;
 
     private static final String DEFAULT_CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), client_id VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);";
@@ -65,7 +65,7 @@ public class AutoJdbcAuthorizationCodeServices
     private String deleteAuthenticationSql = DEFAULT_DELETE_STATEMENT;
 
     private JdbcTemplate jdbcTemplate;
-    private BytesKeyGenerator tokenGenerator;
+    private StringKeyGenerator tokenGenerator;
     private int codeValidityMillis = DEFAULT_CODE_VALIDITY_SECONDS * 1000;
 
     /**
@@ -89,7 +89,7 @@ public class AutoJdbcAuthorizationCodeServices
 
     public String createAuthorizationCode(OAuth2Authentication authentication) {
         // build a secure random code and store
-        String code = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+        String code = tokenGenerator.generateKey();
         store(code, authentication);
 
         return code;
@@ -199,7 +199,7 @@ public class AutoJdbcAuthorizationCodeServices
         this.deleteAuthenticationSql = deleteAuthenticationSql;
     }
 
-    public void setTokenGenerator(BytesKeyGenerator tokenGenerator) {
+    public void setTokenGenerator(StringKeyGenerator tokenGenerator) {
         this.tokenGenerator = tokenGenerator;
     }
 

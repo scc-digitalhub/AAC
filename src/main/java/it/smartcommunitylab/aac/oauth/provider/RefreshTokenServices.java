@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.provider;
 
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;

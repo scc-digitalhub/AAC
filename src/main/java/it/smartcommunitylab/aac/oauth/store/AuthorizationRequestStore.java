@@ -1,10 +1,10 @@
-package it.smartcommunitylab.aac.oauth.request;
+package it.smartcommunitylab.aac.oauth.store;
 
 import java.util.Collection;
 
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 
-public interface OAuth2AuthorizationRequestRepository {
+public interface AuthorizationRequestStore {
 
     public AuthorizationRequest find(String key);
 

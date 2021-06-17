@@ -26,9 +26,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import it.smartcommunitylab.aac.oauth.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 
 /**
  * OAuth2.0 Token Revocation controller as of RFC7009:

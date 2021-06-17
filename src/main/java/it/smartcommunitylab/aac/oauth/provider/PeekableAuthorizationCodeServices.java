@@ -1,6 +1,5 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.provider;
 
-import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 public interface PeekableAuthorizationCodeServices {

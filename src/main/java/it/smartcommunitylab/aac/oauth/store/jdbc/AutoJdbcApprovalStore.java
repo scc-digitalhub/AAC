@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.store.jdbc;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,7 +14,7 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 
-import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
+import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 
 public class AutoJdbcApprovalStore extends JdbcApprovalStore implements SearchableApprovalStore {
 

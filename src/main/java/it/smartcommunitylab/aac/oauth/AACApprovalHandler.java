@@ -8,6 +8,8 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.oauth.approval.ScopeApprovalHandler;
+import it.smartcommunitylab.aac.oauth.approval.SpacesApprovalHandler;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
 

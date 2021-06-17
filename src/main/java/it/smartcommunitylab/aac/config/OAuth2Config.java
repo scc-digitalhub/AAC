@@ -2,11 +2,7 @@ package it.smartcommunitylab.aac.config;
 
 import java.beans.PropertyVetoException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.Filter;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,83 +13,52 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.CompositeTokenGranter;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
-import org.springframework.security.oauth2.provider.OAuth2RequestValidator;
 import org.springframework.security.oauth2.provider.SecurityContextAccessor;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
-import org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler;
-import org.springframework.security.oauth2.provider.approval.JdbcApprovalStore;
-import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
-import org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
-import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
-import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.support.DefaultSessionAttributeStore;
 import org.springframework.web.bind.support.SessionAttributeStore;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.filter.CompositeFilter;
-
 import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.claims.ClaimsService;
-import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACApprovalHandler;
-import it.smartcommunitylab.aac.oauth.AACTokenEnhancer;
-import it.smartcommunitylab.aac.oauth.ApprovalStoreUserApprovalHandler;
-import it.smartcommunitylab.aac.oauth.AutoJdbcApprovalStore;
-import it.smartcommunitylab.aac.oauth.AutoJdbcAuthorizationCodeServices;
-import it.smartcommunitylab.aac.oauth.AutoJdbcTokenStore;
-import it.smartcommunitylab.aac.oauth.ClaimsTokenEnhancer;
-import it.smartcommunitylab.aac.oauth.ExtRedirectResolver;
-import it.smartcommunitylab.aac.oauth.ExtTokenStore;
-import it.smartcommunitylab.aac.oauth.JwtTokenConverter;
-import it.smartcommunitylab.aac.oauth.NonRemovingTokenServices;
 import it.smartcommunitylab.aac.oauth.OAuth2TokenServices;
-import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
-import it.smartcommunitylab.aac.oauth.ScopeApprovalHandler;
-import it.smartcommunitylab.aac.oauth.SpacesApprovalHandler;
-import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
-import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
+import it.smartcommunitylab.aac.oauth.approval.ApprovalStoreUserApprovalHandler;
+import it.smartcommunitylab.aac.oauth.approval.ScopeApprovalHandler;
+import it.smartcommunitylab.aac.oauth.approval.SpacesApprovalHandler;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
-import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestFactory;
-import it.smartcommunitylab.aac.oauth.request.AACOAuth2RequestValidator;
-import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestRepository;
-import it.smartcommunitylab.aac.oauth.service.InMemoryAuthorizationRequestRepository;
+import it.smartcommunitylab.aac.oauth.request.ExtRedirectResolver;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.store.InMemoryAuthorizationRequestStore;
+import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
+import it.smartcommunitylab.aac.oauth.store.jdbc.AutoJdbcApprovalStore;
+import it.smartcommunitylab.aac.oauth.store.jdbc.AutoJdbcAuthorizationCodeServices;
+import it.smartcommunitylab.aac.oauth.store.jdbc.AutoJdbcTokenStore;
+import it.smartcommunitylab.aac.oauth.token.AACTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.token.AbstractTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.AuthorizationCodeTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.token.ClientCredentialsTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ImplicitTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.JwtTokenConverter;
 import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.RefreshTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
-import it.smartcommunitylab.aac.openid.service.OIDCTokenEnhancer;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenServices;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
@@ -171,30 +136,6 @@ public class OAuth2Config {
     }
 
     @Bean
-    public AACOAuth2RequestFactory getAACOAuth2RequestFactory(
-            OAuth2ClientDetailsService clientDetailsService,
-            UserService userService,
-            FlowExtensionsService flowExtensionsService,
-            ScopeRegistry scopeRegistry,
-            AuthenticationHelper authenticationHelper)
-            throws PropertyVetoException {
-
-        AACOAuth2RequestFactory requestFactory = new AACOAuth2RequestFactory(clientDetailsService);
-        requestFactory.setFlowExtensionsService(flowExtensionsService);
-        requestFactory.setUserService(userService);
-        requestFactory.setScopeRegistry(scopeRegistry);
-        requestFactory.setAuthenticationHelper(authenticationHelper);
-        return requestFactory;
-    }
-
-    @Bean
-    public AACOAuth2RequestValidator getAACOAuth2RequestValidator(ScopeRegistry scopeRegistry) {
-        AACOAuth2RequestValidator requestValidator = new AACOAuth2RequestValidator();
-        requestValidator.setScopeRegistry(scopeRegistry);
-        return requestValidator;
-    }
-
-    @Bean
     public RedirectResolver getRedirectResolver() {
         ExtRedirectResolver redirectResolver = new ExtRedirectResolver(applicationURL, redirectMatchPorts,
                 redirectMatchSubDomains);
@@ -211,18 +152,6 @@ public class OAuth2Config {
             OAuth2ClientEntityRepository clientRepository) throws PropertyVetoException {
         return new OAuth2ClientDetailsService(clientService, clientRepository);
     }
-
-//    // TODO remove class
-//    @Bean
-//    public OAuth2ClientUserDetailsService getClientUserDetailsService(OAuth2ClientEntityRepository clientRepository) {
-//        return new OAuth2ClientUserDetailsService(clientRepository);
-//    }
-
-//    @Bean
-//    public UserApprovalHandler getUserApprovalHandler() {
-////        // TODO replace our handler
-//        return new DefaultUserApprovalHandler();
-//    }
 
     @Bean
     public SessionAttributeStore getLocalSessionAttributeStore() {
@@ -295,18 +224,6 @@ public class OAuth2Config {
         return new ClaimsTokenEnhancer(claimsService, clientDetailsService);
     }
 
-//    @Bean
-//    public OIDCTokenEnhancer oidcTokenEnhancer(JWTService jwtService,
-//            it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
-//            OAuth2ClientDetailsService oauth2ClientDetailsService,
-//            OpenIdClaimsExtractorProvider openidClaimsExtractorProvider) {
-////            ClaimsService claimsService) {
-//
-//        return new OIDCTokenEnhancer(issuer, jwtService, clientDetailsService, oauth2ClientDetailsService,
-////                claimsService);
-//                openidClaimsExtractorProvider);
-//    }
-
     @Bean
     public JwtTokenConverter jwtTokenEnhancer(JWTService jwtService,
             OAuth2ClientDetailsService oauth2ClientDetailsService) {
@@ -327,24 +244,6 @@ public class OAuth2Config {
 
         return enhancer;
     }
-//
-//    @Bean
-//    public AuthorizationServerTokenServices getTokenServices(
-//            ClientDetailsService clientDetailsService,
-//            TokenStore tokenStore,
-//            AACTokenEnhancer tokenEnhancer) throws PropertyVetoException {
-//        NonRemovingTokenServices tokenServices = new NonRemovingTokenServices();
-//        tokenServices.setAuthenticationManager(authManager);
-//        tokenServices.setClientDetailsService(clientDetailsService);
-//        tokenServices.setTokenStore(tokenStore);
-//        tokenServices.setSupportRefreshToken(true);
-//        tokenServices.setReuseRefreshToken(true);
-//        tokenServices.setAccessTokenValiditySeconds(accessTokenValidity);
-//        tokenServices.setRefreshTokenValiditySeconds(refreshTokenValidity);
-//        tokenServices.setTokenEnhancer(tokenEnhancer);
-//
-//        return tokenServices;
-//    }
 
     @Bean
     public OAuth2TokenServices getTokenServices(
@@ -441,51 +340,10 @@ public class OAuth2Config {
 
     @Bean
     @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
-    public OAuth2AuthorizationRequestRepository authorizationRequestRepository() {
+    public AuthorizationRequestStore authorizationRequestRepository() {
         // used as session scoped proxy, we need this for in flight requests
-        return new InMemoryAuthorizationRequestRepository();
+        return new InMemoryAuthorizationRequestStore();
     }
-
-//    @Bean
-//    public AuthorizationEndpoint getAuthorizationEndpoint(
-//            ClientDetailsService clientDetailsService,
-//            AuthorizationCodeServices authorizationCodeServices,
-//            TokenGranter tokenGranter,
-//            RedirectResolver redirectResolver,
-//            UserApprovalHandler userApprovalHandler,
-//            SessionAttributeStore sessionAttributeStore,
-//            AACOAuth2RequestFactory oAuth2RequestFactory,
-//            AACOAuth2RequestValidator oauth2RequestValidator) {
-//        AuthorizationEndpoint authEndpoint = new AuthorizationEndpoint();
-//        authEndpoint.setClientDetailsService(clientDetailsService);
-//        authEndpoint.setAuthorizationCodeServices(authorizationCodeServices);
-//        authEndpoint.setTokenGranter(tokenGranter);
-//        authEndpoint.setRedirectResolver(redirectResolver);
-//        authEndpoint.setUserApprovalHandler(userApprovalHandler);
-//        authEndpoint.setSessionAttributeStore(sessionAttributeStore);
-//        authEndpoint.setOAuth2RequestFactory(oAuth2RequestFactory);
-//        authEndpoint.setOAuth2RequestValidator(oauth2RequestValidator);
-//
-//        return authEndpoint;
-//    }
-
-//    @Bean
-//    public TokenEndpoint getTokenEndpoint(
-//            ClientDetailsService clientDetailsService,
-//            TokenGranter tokenGranter,
-//            RedirectResolver redirectResolver,
-//            UserApprovalHandler userApprovalHandler,
-//            SessionAttributeStore sessionAttributeStore,
-//            OAuth2RequestFactory oAuth2RequestFactory,
-//            OAuth2RequestValidator oauth2RequestValidator) {
-//        TokenEndpoint tokenEndpoint = new TokenEndpoint();
-//        tokenEndpoint.setClientDetailsService(clientDetailsService);
-//        tokenEndpoint.setTokenGranter(tokenGranter);
-//        tokenEndpoint.setOAuth2RequestFactory(oAuth2RequestFactory);
-//        tokenEndpoint.setOAuth2RequestValidator(oauth2RequestValidator);
-//
-//        return tokenEndpoint;
-//    }
 
     @Bean
     public IdTokenServices idTokenServices(

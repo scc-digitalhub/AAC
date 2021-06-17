@@ -26,8 +26,8 @@ import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.oauth.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
 

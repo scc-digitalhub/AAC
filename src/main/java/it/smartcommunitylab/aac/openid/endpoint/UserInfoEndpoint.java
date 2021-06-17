@@ -52,10 +52,10 @@ import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.oauth.ClaimsTokenEnhancer;
-import it.smartcommunitylab.aac.oauth.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
 
 /**
  * @author raman

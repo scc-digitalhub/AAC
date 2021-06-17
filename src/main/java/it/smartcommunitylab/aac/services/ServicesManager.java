@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
+import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
 import it.smartcommunitylab.aac.scope.CombinedScopeApprover;
 import it.smartcommunitylab.aac.scope.DelegateScopeApprover;

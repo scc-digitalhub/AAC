@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth;
+package it.smartcommunitylab.aac.oauth.approval;
 
 import java.io.Serializable;
 import java.util.Collections;

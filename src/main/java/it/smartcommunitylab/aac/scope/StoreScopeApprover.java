@@ -10,7 +10,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.oauth.approval.SearchableApprovalStore;
+import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 
 public class StoreScopeApprover implements ScopeApprover {
 
