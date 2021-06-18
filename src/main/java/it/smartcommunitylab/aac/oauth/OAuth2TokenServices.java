@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.oauth;
 
-import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
@@ -8,21 +7,18 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.keygen.BytesKeyGenerator;
-import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.common.DefaultExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
-import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
@@ -44,8 +40,8 @@ import com.nimbusds.oauth2.sdk.GrantType;
 import com.nimbusds.oauth2.sdk.ParseException;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -66,8 +62,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
     private static final Logger traceUserLogger = LoggerFactory.getLogger("traceUserToken");
 
     // static config
-    private static final BytesKeyGenerator TOKEN_GENERATOR = KeyGenerators.secureRandom(20);
-    private static final Charset ENCODE_CHARSET = Charset.forName("US-ASCII");
+    private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(20);
 
     // default token duration
     public static final int DEFAULT_ACCESS_TOKEN_VALIDITY = 60 * 60 * 6; // 6 hours
@@ -82,7 +77,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
     private OAuth2ClientDetailsService clientDetailsService;
 
     // configurable properties
-    private BytesKeyGenerator tokenGenerator;
+    private StringKeyGenerator tokenGenerator;
     private int refreshTokenValiditySeconds;
     private int accessTokenValiditySeconds;
     private int refreshTokenRenewalWindowSeconds;
@@ -388,7 +383,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         // use a secure string as value to respect requirement
         // https://tools.ietf.org/html/rfc6749#section-10.10
         // 160bit = a buffer of 20 random bytes
-        String value = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+        String value = tokenGenerator.generateKey();
         Date exp = Date.from(Instant.now().plusSeconds(validitySeconds));
         ExpiringOAuth2RefreshToken refreshToken = new DefaultExpiringOAuth2RefreshToken(value,
                 exp);
@@ -421,7 +416,8 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         // use a secure string as value to respect requirement
         // https://tools.ietf.org/html/rfc6749#section-10.10
         // 160bit = a buffer of 20 random bytes
-        String value = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+        String value = tokenGenerator.generateKey();
+
         Date exp = Date.from(Instant.now().plusSeconds(validitySeconds));
         AACOAuth2AccessToken token = new AACOAuth2AccessToken(value);
         token.setSubject(subjectId);
@@ -552,7 +548,7 @@ public class OAuth2TokenServices implements AuthorizationServerTokenServices, Co
         this.refreshTokenRenewalWindowSeconds = refreshTokenRenewalWindowSeconds;
     }
 
-    public void setTokenGenerator(BytesKeyGenerator tokenGenerator) {
+    public void setTokenGenerator(StringKeyGenerator tokenGenerator) {
         this.tokenGenerator = tokenGenerator;
     }
 

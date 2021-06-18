@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.oauth.store;
+package it.smartcommunitylab.aac.oauth.common;
 
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;

@@ -3,8 +3,8 @@ package it.smartcommunitylab.aac.oauth.token;
 import java.util.Collection;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 public abstract class AbstractTokenGranter implements TokenGranter {
 
-    protected final Log logger = LogFactory.getLog(getClass());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AuthorizationServerTokenServices tokenServices;
 

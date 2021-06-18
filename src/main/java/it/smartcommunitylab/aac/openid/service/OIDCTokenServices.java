@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -19,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
 import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
@@ -47,6 +47,7 @@ import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -62,7 +63,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
 
     // static config
     public static final int DEFAULT_ID_TOKEN_VALIDITY = 60 * 60; // 1 hour
-    private static final BytesKeyGenerator TOKEN_GENERATOR = KeyGenerators.secureRandom(20);
+    private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(20);
     private static final Charset ENCODE_CHARSET = Charset.forName("US-ASCII");
 
     private final String issuer;
@@ -74,7 +75,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
     // TODO remove generic client service, use only oauth2
     private ClientDetailsService clientService;
     private OAuth2ClientDetailsService clientDetailsService;
-    private BytesKeyGenerator tokenGenerator;
+    private StringKeyGenerator tokenGenerator;
 
     public OIDCTokenServices(String issuer, OpenIdClaimsExtractorProvider claimsExtractorProvider,
             JWTService jwtService) {
@@ -98,7 +99,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         this.clientDetailsService = clientDetailsService;
     }
 
-    public void setTokenGenerator(BytesKeyGenerator tokenGenerator) {
+    public void setTokenGenerator(StringKeyGenerator tokenGenerator) {
         this.tokenGenerator = tokenGenerator;
     }
 
@@ -145,7 +146,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             String[] audience = new String[] { clientId };
 
             // build jti via secure generator
-            String jti = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+            String jti = tokenGenerator.generateKey();
 
             Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails, null,
                     null);
@@ -216,7 +217,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             String[] audience = new String[] { clientId };
 
             // build jti via secure generator
-            String jti = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+            String jti = tokenGenerator.generateKey();
 
             Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails,
                     accessToken, null);
@@ -285,7 +286,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             String[] audience = new String[] { clientId };
 
             // build jti via secure generator
-            String jti = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+            String jti = tokenGenerator.generateKey();
 
             Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails, null,
                     code);
@@ -359,7 +360,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             String[] audience = new String[] { clientId };
 
             // build jti via secure generator
-            String jti = new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+            String jti = tokenGenerator.generateKey();
 
             Map<String, Object> claims = buildClaims(authentication, request, userDetails, oauth2ClientDetails,
                     accessToken, code);

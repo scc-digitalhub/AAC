@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.oauth.service;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -10,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
 import org.springframework.security.crypto.keygen.KeyGenerators;
@@ -578,10 +578,10 @@ public class OAuth2ClientService implements ClientService {
      * @return
      */
     private synchronized String generateClientSecret() {
-        return new String(Base64.encodeBase64URLSafe(tokenGenerator.generateKey()), ENCODE_CHARSET);
+        return new String(Base64.getUrlEncoder().encode(tokenGenerator.generateKey()), ENCODE_CHARSET);
     }
 
     private static final BytesKeyGenerator tokenGenerator = KeyGenerators.secureRandom(20);
-    private static final Charset ENCODE_CHARSET = Charset.forName("US-ASCII");
+    private static final Charset ENCODE_CHARSET = Charset.forName("UTF-8");
 
 }

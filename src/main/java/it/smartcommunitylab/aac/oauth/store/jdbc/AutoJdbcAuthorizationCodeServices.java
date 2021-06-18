@@ -36,8 +36,8 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.oauth.common.HumanStringKeyGenerator;
 import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
-import it.smartcommunitylab.aac.oauth.store.HumanStringKeyGenerator;
 
 /**
  * Authorization code services with DB table creation on startup. Also supports
