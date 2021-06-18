@@ -10,6 +10,7 @@ import org.springframework.util.Assert;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryAttributeStore implements AttributeStore {
 
@@ -24,7 +25,7 @@ public class InMemoryAttributeStore implements AttributeStore {
         this.authority = authority;
         this.provider = provider;
 
-        this.attributes = new HashMap<>();
+        this.attributes = new ConcurrentHashMap<>();
     }
 
     @Override

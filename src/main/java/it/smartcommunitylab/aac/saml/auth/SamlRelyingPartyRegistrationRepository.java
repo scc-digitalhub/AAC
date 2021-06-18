@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.saml.auth;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
@@ -14,7 +14,7 @@ public class SamlRelyingPartyRegistrationRepository
     private final Map<String, RelyingPartyRegistration> registrations;
 
     public SamlRelyingPartyRegistrationRepository() {
-        this.registrations = new HashMap<>();
+        this.registrations = new ConcurrentHashMap<>();
     }
 
     /*

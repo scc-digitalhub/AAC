@@ -118,8 +118,9 @@ public class AACBootstrap {
         // load all realm providers from storage
         Collection<Realm> realms = realmManager.listRealms();
 
-        // we iterate by realm to load consistently
-        for (Realm realm : realms) {
+        // we iterate by realm to load consistently each realm
+        // we use parallel to leverage default threadpool, loading should be thread-safe
+        realms.parallelStream().forEach(realm -> {
             try {
                 Collection<ConfigurableProvider> idps = providerManager.listProviders(realm.getSlug(),
                         SystemKeys.RESOURCE_IDENTITY);
@@ -149,7 +150,7 @@ public class AACBootstrap {
             } catch (NoSuchRealmException e1) {
                 logger.error("error, missing realm " + String.valueOf(realm.getSlug()));
             }
-        }
+        });
 
     }
 
