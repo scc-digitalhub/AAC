@@ -166,27 +166,28 @@ public class ProviderManager {
             }
         }
 
-        // now load all realm providers from storage
-        // we iterate by authority to load consistently
-        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<ConfigurableProvider> storeProviders = listProvidersByAuthority(ia.getAuthorityId());
-            for (ConfigurableProvider provider : storeProviders) {
-                // check match
-                if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-                    continue;
-                }
-
-                // try register
-                if (provider.isEnabled()) {
-                    try {
-                        ia.registerIdentityProvider(provider);
-                    } catch (Exception e) {
-                        logger.error("error registering provider " + provider.getProvider() + " for realm "
-                                + provider.getRealm() + ": " + e.getMessage());
-                    }
-                }
-            }
-        }
+//        // now load all realm providers from storage
+//        // we iterate by authority to load consistently
+//        // disabled, move to bootstrap thread not on init
+//        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
+//            List<ConfigurableProvider> storeProviders = listProvidersByAuthority(ia.getAuthorityId());
+//            for (ConfigurableProvider provider : storeProviders) {
+//                // check match
+//                if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
+//                    continue;
+//                }
+//
+//                // try register
+//                if (provider.isEnabled()) {
+//                    try {
+//                        ia.registerIdentityProvider(provider);
+//                    } catch (Exception e) {
+//                        logger.error("error registering provider " + provider.getProvider() + " for realm "
+//                                + provider.getRealm() + ": " + e.getMessage());
+//                    }
+//                }
+//            }
+//        }
 
     }
 

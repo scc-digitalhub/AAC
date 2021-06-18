@@ -1,13 +1,9 @@
 package it.smartcommunitylab.aac.bootstrap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +19,14 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -37,7 +35,6 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesManager;
 
@@ -66,6 +63,9 @@ public class AACBootstrap {
     private BootstrapConfig config;
 
     @Autowired
+    private AuthorityManager authorityManager;
+
+    @Autowired
     private RealmManager realmManager;
 
     @Autowired
@@ -86,7 +86,6 @@ public class AACBootstrap {
     @Autowired
     private InternalUserAccountService internalUserService;
 
-    // TODO rework with dedicated bootstrappers *per-manager*
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
@@ -94,10 +93,14 @@ public class AACBootstrap {
             logger.debug("application init");
             initServices();
 
+            // bootstrap providers
+            // TODO use a dedicated thread, or a multithread
+            bootstrapProviders();
+
             // custom bootstrap
             if (apply) {
                 logger.debug("application bootstrap");
-                bootstrap();
+                bootstrapConfig();
             } else {
                 logger.debug("bootstrap disabled by config");
             }
@@ -108,8 +111,50 @@ public class AACBootstrap {
         }
     }
 
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void bootstrap() throws Exception {
+    private void bootstrapProviders() {
+        Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+
+        // load all realm providers from storage
+        Collection<Realm> realms = realmManager.listRealms();
+
+        // we iterate by realm to load consistently
+        for (Realm realm : realms) {
+            try {
+                Collection<ConfigurableProvider> idps = providerManager.listProviders(realm.getSlug(),
+                        SystemKeys.RESOURCE_IDENTITY);
+
+                for (ConfigurableProvider idp : idps) {
+                    // try register
+                    if (idp.isEnabled()) {
+                        try {
+                            IdentityAuthority ia = ias.get(idp.getAuthority());
+                            if (ia == null) {
+                                throw new IllegalArgumentException(
+                                        "no authority for " + String.valueOf(idp.getAuthority()));
+                            }
+
+                            ia.registerIdentityProvider(idp);
+                        } catch (Exception e) {
+                            logger.error("error registering provider " + idp.getProvider() + " for realm "
+                                    + idp.getRealm() + ": " + e.getMessage());
+
+                            if (logger.isTraceEnabled()) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+
+            } catch (NoSuchRealmException e1) {
+                logger.error("error, missing realm " + String.valueOf(realm.getSlug()));
+            }
+        }
+
+    }
+
+    // @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void bootstrapConfig() throws Exception {
 
         // read configuration
         Resource res = resourceLoader.getResource(source);
