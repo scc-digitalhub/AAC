@@ -12,9 +12,12 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -24,16 +27,27 @@ import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
-public class OAuth2RequestFactory implements OAuth2TokenRequestFactory, OAuth2AuthorizationRequestFactory {
+public class OAuth2RequestFactory
+        implements OAuth2TokenRequestFactory, OAuth2AuthorizationRequestFactory, InitializingBean,
+        org.springframework.security.oauth2.provider.OAuth2RequestFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private FlowExtensionsService flowExtensionsService;
     private ScopeRegistry scopeRegistry;
 
+    // TODO remove, needed only for legacy
+    private OAuth2ClientDetailsService clientDetailsService;
+
     public OAuth2RequestFactory() {
+
+    }
+
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(clientDetailsService, "client details service is mandatory");
 
     }
 
@@ -43,6 +57,10 @@ public class OAuth2RequestFactory implements OAuth2TokenRequestFactory, OAuth2Au
 
     public void setFlowExtensionsService(FlowExtensionsService flowExtensionsService) {
         this.flowExtensionsService = flowExtensionsService;
+    }
+
+    public void setClientDetailsService(OAuth2ClientDetailsService clientDetailsService) {
+        this.clientDetailsService = clientDetailsService;
     }
 
     @Override
@@ -381,5 +399,39 @@ public class OAuth2RequestFactory implements OAuth2TokenRequestFactory, OAuth2Au
     private final static AuthorizationGrantType CLIENT_CREDENTIALS = AuthorizationGrantType.CLIENT_CREDENTIALS;
     private final static AuthorizationGrantType PASSWORD = AuthorizationGrantType.PASSWORD;
     private final static AuthorizationGrantType REFRESH_TOKEN = AuthorizationGrantType.REFRESH_TOKEN;
+
+    /*
+     * Legacy factory
+     * 
+     * TODO remove after updating token granters and rewrite properly as
+     * tokenservices..
+     */
+
+    @Override
+    public AuthorizationRequest createAuthorizationRequest(Map<String, String> authorizationParameters) {
+        String clientId = authorizationParameters.get("client_id");
+        OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
+        return createAuthorizationRequest(authorizationParameters, clientDetails, null);
+    }
+
+    @Override
+    public OAuth2Request createOAuth2Request(AuthorizationRequest request) {
+        return request.createOAuth2Request();
+    }
+
+    @Override
+    public OAuth2Request createOAuth2Request(ClientDetails client,
+            org.springframework.security.oauth2.provider.TokenRequest tokenRequest) {
+        OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(client.getClientId());
+        return tokenRequest.createOAuth2Request(clientDetails);
+    }
+
+    @Override
+    public org.springframework.security.oauth2.provider.TokenRequest createTokenRequest(
+            Map<String, String> requestParameters, ClientDetails authenticatedClient) {
+        String clientId = requestParameters.get("client_id");
+        OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
+        return createTokenRequest(requestParameters, clientDetails);
+    }
 
 }

@@ -117,6 +117,7 @@ public class OAuth2Config {
 
     @Bean
     public it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory getOAuth2RequestFactory(
+            OAuth2ClientDetailsService oauthClientDetailsService,
             FlowExtensionsService flowExtensionsService,
             ScopeRegistry scopeRegistry)
             throws PropertyVetoException {
@@ -124,6 +125,7 @@ public class OAuth2Config {
         it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory requestFactory = new it.smartcommunitylab.aac.oauth.request.OAuth2RequestFactory();
         requestFactory.setFlowExtensionsService(flowExtensionsService);
         requestFactory.setScopeRegistry(scopeRegistry);
+        requestFactory.setClientDetailsService(oauthClientDetailsService);
         return requestFactory;
     }
 

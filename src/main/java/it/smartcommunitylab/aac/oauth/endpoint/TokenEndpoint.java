@@ -1,8 +1,6 @@
 package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.io.IOException;
-import java.security.Principal;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -21,7 +19,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
-import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
@@ -29,30 +26,19 @@ import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientE
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
-import org.springframework.security.oauth2.provider.OAuth2RequestValidator;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.TokenRequest;
-import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.servlet.ModelAndView;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -237,6 +223,9 @@ public class TokenEndpoint implements InitializingBean {
 
     private ResponseEntity<OAuth2Exception> buildResponse(OAuth2Exception e) throws IOException {
         logger.error("Error: " + e.getMessage());
+        if (logger.isTraceEnabled()) {
+            e.printStackTrace();
+        }
 
         HttpStatus status = HttpStatus.valueOf(e.getHttpErrorCode());
 

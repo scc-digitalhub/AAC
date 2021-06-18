@@ -855,6 +855,11 @@ public class AuthorizationEndpoint implements InitializingBean {
      */
     @ExceptionHandler(RuntimeException.class)
     public ModelAndView handleRuntimeException(RuntimeException e) throws Exception {
+        logger.error("Error: " + e.getMessage());
+        if (logger.isTraceEnabled()) {
+            e.printStackTrace();
+        }
+
         // send to error page
         Map<String, Serializable> model = new HashMap<>();
         model.put("error", e.getMessage());
@@ -864,6 +869,11 @@ public class AuthorizationEndpoint implements InitializingBean {
 
     @ExceptionHandler(OAuth2Exception.class)
     public ModelAndView handleOAuth2Exception(OAuth2Exception e) throws Exception {
+        logger.error("Error: " + e.getMessage());
+        if (logger.isTraceEnabled()) {
+            e.printStackTrace();
+        }
+
         // send to error page
         Map<String, Serializable> model = new HashMap<>();
         model.put("error", e);
