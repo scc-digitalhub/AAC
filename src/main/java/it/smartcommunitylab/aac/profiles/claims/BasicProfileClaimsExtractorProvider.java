@@ -27,10 +27,10 @@ public class BasicProfileClaimsExtractorProvider implements ScopeClaimsExtractor
         return extractor.getScopes();
     }
 
-    @Override
-    public Collection<ScopeClaimsExtractor> getExtractors() {
-        return Collections.singleton(extractor);
-    }
+//    @Override
+//    public Collection<ScopeClaimsExtractor> getExtractors() {
+//        return Collections.singleton(extractor);
+//    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {

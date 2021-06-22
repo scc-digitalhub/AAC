@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
+import it.smartcommunitylab.aac.oauth.model.ResponseType;
 
 /*
  * Additional configuration holder
@@ -25,6 +26,9 @@ import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuth2ClientAdditionalConfig {
     private static ObjectMapper mapper = new ObjectMapper();
+
+    @JsonProperty("response_types")
+    private Set<ResponseType> responseTypes;
 
     // access token jwt config
     @JsonProperty("jwt_sign_alg")
@@ -92,6 +96,14 @@ public class OAuth2ClientAdditionalConfig {
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage());
         }
+    }
+
+    public Set<ResponseType> getResponseTypes() {
+        return responseTypes;
+    }
+
+    public void setResponseTypes(Set<ResponseType> responseTypes) {
+        this.responseTypes = responseTypes;
     }
 
     public JWSAlgorithm getJwtSignAlgorithm() {

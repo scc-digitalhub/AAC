@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
@@ -82,17 +83,21 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
                             config,
                             config.getRealm());
 
+                    idp.setExecutionService(executionService);
                     return idp;
 
                 }
             });
 
+    // oauth shared services
+    private final OIDCClientRegistrationRepository clientRegistrationRepository;
+
     // configuration templates
     private ProvidersProperties providerProperties;
     private final Map<String, OIDCIdentityProviderConfig> templates = new HashMap<>();
 
-    // oauth shared services
-    private final OIDCClientRegistrationRepository clientRegistrationRepository;
+    // execution service for custom attributes mapping
+    private ScriptExecutionService executionService;
 
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
@@ -128,6 +133,11 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     @Autowired
     public void setProviderProperties(ProvidersProperties providerProperties) {
         this.providerProperties = providerProperties;
+    }
+
+    @Autowired
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.executionService = executionService;
     }
 
     @Override

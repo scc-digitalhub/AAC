@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
-import org.springframework.security.oauth2.common.exceptions.UnsupportedResponseTypeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.util.StringUtils;
@@ -16,12 +15,14 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
-public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAuth2AuthorizationRequestValidator {
+public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAuth2AuthorizationRequestValidator,
+        OAuth2RegistrationRequestValidator {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private ScopeRegistry scopeRegistry;
@@ -176,6 +177,39 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
         if (requestScopes != null && !requestScopes.isEmpty()) {
             validateScope(requestScopes, clientScopes, false);
+        }
+
+    }
+
+    @Override
+    public void validate(ClientRegistrationRequest registrationRequest) throws InvalidRequestException {
+        // no required fields from spec, check consistency of config
+        ClientRegistration registration = registrationRequest.getRegistration();
+
+        // check scopes
+        if (registration.getScope() != null && scopeRegistry != null) {
+            Set<String> invalidScopes = registration.getScope().stream().filter(s -> {
+                Scope sc = scopeRegistry.findScope(s);
+                return sc == null;
+            }).collect(Collectors.toSet());
+
+            if (!invalidScopes.isEmpty()) {
+                throw new InvalidScopeException("Invalid scope: " + invalidScopes, Collections.emptySet());
+            }
+        }
+
+        // check type
+        Set<String> grantType = registration.getGrantType();
+        Set<AuthorizationGrantType> grantTypes = grantType.stream().map(r -> AuthorizationGrantType.parse(r))
+                .collect(Collectors.toSet());
+        if (grantTypes.contains(null)) {
+            throw new InvalidRequestException("unsupported grant_type");
+        }
+
+        if (grantTypes.contains(AUTHORIZATION_CODE) || grantTypes.contains(IMPLICIT)) {
+            if (registration.getRedirectUris() == null || registration.getRedirectUris().isEmpty()) {
+                throw new InvalidRequestException("redirect_uri is mandatory");
+            }
         }
 
     }

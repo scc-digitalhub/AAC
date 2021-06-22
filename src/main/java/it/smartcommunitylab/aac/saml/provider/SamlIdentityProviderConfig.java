@@ -1,14 +1,26 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPrivateKey;
 import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.openssl.PEMException;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.core.Saml2X509Credential.Saml2X509CredentialType;
@@ -37,7 +49,7 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     private SamlIdentityProviderConfigMap configMap;
     private RelyingPartyRegistration relyingPartyRegistration;
 
-    protected SamlIdentityProviderConfig(String provider, String realm) {
+    public SamlIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
         this.relyingPartyRegistration = null;
         this.configMap = new SamlIdentityProviderConfigMap();
@@ -94,7 +106,7 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     public void setConfiguration(Map<String, Serializable> props) {
         configMap = new SamlIdentityProviderConfigMap();
         configMap.setConfiguration(props);
-        
+
         configMap.setMetadataUrl(DEFAULT_METADATA_URL);
         configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
 
@@ -102,14 +114,18 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public RelyingPartyRegistration getRelyingPartyRegistration() {
         if (relyingPartyRegistration == null) {
-            relyingPartyRegistration = toRelyingPartyRegistration();
+            try {
+                relyingPartyRegistration = toRelyingPartyRegistration();
+            } catch (IOException | CertificateException e) {
+                throw new RuntimeException("error building registration: " + e.getMessage());
+            }
         }
 
         return relyingPartyRegistration;
     }
 
     // TODO throws exception if configuration is invalid
-    private RelyingPartyRegistration toRelyingPartyRegistration() {
+    private RelyingPartyRegistration toRelyingPartyRegistration() throws IOException, CertificateException {
         // set base parameters
         String entityId = DEFAULT_METADATA_URL;
         String assertionConsumerServiceLocation = DEFAULT_CONSUMER_URL;
@@ -171,9 +187,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
         // check if sign credentials are provided
         if (StringUtils.hasText(signingKey) && StringUtils.hasText(signingCertificate)) {
-            // cleanup pem
-            signingKey = cleanupPem("PRIVATE KEY", signingKey);
-            signingCertificate = cleanupPem("CERTIFICATE", signingCertificate);
+//            // cleanup pem
+//            signingCertificate = cleanupPem("CERTIFICATE", signingCertificate);
 
             Saml2X509Credential signingCredentials = getCredentials(signingKey, signingCertificate,
                     Saml2X509CredentialType.SIGNING, Saml2X509CredentialType.DECRYPTION);
@@ -186,8 +201,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
         if (StringUtils.hasText(cryptKey) && StringUtils.hasText(cryptCertificate)) {
             // cleanup spaces, base64 encoding certs are expected
-            cryptKey = cleanupPem("PRIVATE KEY", cryptKey);
-            cryptCertificate = cleanupPem("CERTIFICATE", cryptCertificate);
+//            cryptKey = cleanupPem("PRIVATE KEY", cryptKey);
+//            cryptCertificate = cleanupPem("CERTIFICATE", cryptCertificate);
 
             Saml2X509Credential cryptCredentials = getCredentials(cryptKey, cryptCertificate,
                     Saml2X509CredentialType.ENCRYPTION, Saml2X509CredentialType.DECRYPTION);
@@ -202,26 +217,60 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
     }
 
-    private Saml2X509Credential getVerificationCertificate(String certificate) {
+    private Saml2X509Credential getVerificationCertificate(String certificate)
+            throws CertificateException, IOException {
         return new Saml2X509Credential(
-                x509Certificate(certificate),
+                parseX509Certificate(certificate),
                 Saml2X509CredentialType.VERIFICATION);
     }
 
-    private Saml2X509Credential getCredentials(String key, String certificate, Saml2X509CredentialType... keyUse) {
-        PrivateKey pk = RsaKeyConverters.pkcs8().convert(new ByteArrayInputStream(key.getBytes()));
-        X509Certificate cert = x509Certificate(certificate);
+    private Saml2X509Credential getCredentials(String key, String certificate, Saml2X509CredentialType... keyUse)
+            throws IOException, CertificateException {
+//        PrivateKey pk = RsaKeyConverters.pkcs8().convert(new ByteArrayInputStream(key.getBytes()));
+        PrivateKey pk = parsePrivateKey(key);
+        X509Certificate cert = parseX509Certificate(certificate);
         return new Saml2X509Credential(pk, cert, keyUse);
     }
 
-    private X509Certificate x509Certificate(String source) {
-        try {
-            final CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            return (X509Certificate) factory.generateCertificate(
-                    new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
+    private PrivateKey parsePrivateKey(String key) throws IOException {
+        StringReader sr = new StringReader(key);
+        PEMParser pr = new PEMParser(sr);
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+        Object pem = pr.readObject();
+        sr.close();
+
+        if (pem instanceof PEMKeyPair) {
+            PrivateKeyInfo privateKeyInfo = ((PEMKeyPair) pem).getPrivateKeyInfo();
+            return converter.getPrivateKey(privateKeyInfo);
+        } else if (pem instanceof PrivateKeyInfo) {
+            return converter.getPrivateKey((PrivateKeyInfo) pem);
         }
+
+       throw new IllegalArgumentException("invalid private key");
+    }
+
+//    private X509Certificate parseX509Certificate(String source) {
+//        try {
+//            final CertificateFactory factory = CertificateFactory.getInstance("X.509");
+//            return (X509Certificate) factory.generateCertificate(
+//                    new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)));
+//        } catch (Exception e) {
+//            throw new IllegalArgumentException(e);
+//        }
+//    }
+
+    private X509Certificate parseX509Certificate(String source) throws IOException, CertificateException {
+        StringReader sr = new StringReader(source);
+        PEMParser pr = new PEMParser(sr);
+        JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
+        Object pem = pr.readObject();
+        sr.close();
+
+        if (pem instanceof X509CertificateHolder) {
+            return converter.getCertificate((X509CertificateHolder) pem);
+        }
+
+        throw new IllegalArgumentException("invalid certificate");
     }
 
     private Saml2MessageBinding getServiceBinding(String value) {
@@ -233,40 +282,40 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         return ssoServiceBinding;
     }
 
-    // TODO rewrite with proper parser
-    private String cleanupPem(String kind, String value) {
-        // build headers
-        // we set a fixed length separator because spring rsaKeyConverter checks for
-        // this specific amount of dashes..
-        String sep = "-----";
-        String header = "BEGIN " + kind;
-        String footer = "END " + kind;
-
-        String[] lines = value.split("\\R");
-        String[] keyLines = lines;
-
-        if (lines.length > 2) {
-            // headers?
-            String headerLine = lines[0];
-            String footerLine = lines[lines.length - 1];
-
-            if (headerLine.contains(header)) {
-                // extract key
-                keyLines = new String[lines.length - 2];
-                System.arraycopy(lines, 1, keyLines, 0, keyLines.length);
-            }
-        }
-
-        // cleanup and rebuild string
-        StringBuilder sb = new StringBuilder();
-        sb.append(sep).append(header).append(sep).append("\n");
-        for (int c = 0; c < keyLines.length; c++) {
-            sb.append(keyLines[c].trim()).append("\n");
-        }
-
-        sb.append(sep).append(footer).append(sep);
-        return sb.toString();
-    }
+//    // TODO rewrite with proper parser
+//    private String cleanupPem(String kind, String value) {
+//        // build headers
+//        // we set a fixed length separator because spring rsaKeyConverter checks for
+//        // this specific amount of dashes..
+//        String sep = "-----";
+//        String header = "BEGIN " + kind;
+//        String footer = "END " + kind;
+//
+//        String[] lines = value.split("\\R");
+//        String[] keyLines = lines;
+//
+//        if (lines.length > 2) {
+//            // headers?
+//            String headerLine = lines[0];
+//            String footerLine = lines[lines.length - 1];
+//
+//            if (headerLine.contains(header)) {
+//                // extract key
+//                keyLines = new String[lines.length - 2];
+//                System.arraycopy(lines, 1, keyLines, 0, keyLines.length);
+//            }
+//        }
+//
+//        // cleanup and rebuild string
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(sep).append(header).append(sep).append("\n");
+//        for (int c = 0; c < keyLines.length; c++) {
+//            sb.append(keyLines[c].trim()).append("\n");
+//        }
+//
+//        sb.append(sep).append(footer).append(sep);
+//        return sb.toString();
+//    }
 
     /*
      * builders

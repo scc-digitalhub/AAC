@@ -27,6 +27,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
@@ -113,5 +114,17 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
         }
 
         return accessToken;
+    }
+
+    @Override
+    public OAuth2RefreshToken readRefreshTokenForAccessToken(String tokenValue) {
+        // first we read access token and then extract refresh
+        OAuth2AccessToken accessToken = readAccessToken(tokenValue);
+        if (accessToken == null) {
+            return null;
+        }
+
+        return accessToken.getRefreshToken();
+
     }
 }

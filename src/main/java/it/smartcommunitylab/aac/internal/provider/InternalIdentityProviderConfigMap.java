@@ -26,6 +26,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
+    private int maxSessionDuration = 24 * 60 * 60; // 24h
+
     private boolean enableRegistration = true;
     private boolean enableDelete = true;
     private boolean enableUpdate = true;
@@ -161,6 +163,14 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         this.passwordSupportWhitespace = passwordSupportWhitespace;
     }
 
+    public int getMaxSessionDuration() {
+        return maxSessionDuration;
+    }
+
+    public void setMaxSessionDuration(int maxSessionDuration) {
+        this.maxSessionDuration = maxSessionDuration;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -175,6 +185,8 @@ public class InternalIdentityProviderConfigMap implements ConfigurableProperties
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         InternalIdentityProviderConfigMap map = mapper.convertValue(props, InternalIdentityProviderConfigMap.class);
+
+        this.maxSessionDuration = map.getMaxSessionDuration();
 
         this.confirmationRequired = map.isConfirmationRequired();
         this.enableRegistration = map.isEnableRegistration();

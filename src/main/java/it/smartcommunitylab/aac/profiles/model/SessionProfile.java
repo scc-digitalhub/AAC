@@ -2,7 +2,11 @@ package it.smartcommunitylab.aac.profiles.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import it.smartcommunitylab.aac.Config;
+
 public class SessionProfile extends AbstractProfile {
+
+    public static final String IDENTIFIER = "profile.session.me";
 
     // a composite key for the idp (authority+providerId) responsible for the last
     // authentication
@@ -45,4 +49,8 @@ public class SessionProfile extends AbstractProfile {
     // loa1+, otherwise we keep loa0
     private int acr = 0;
 
+    @Override
+    public String getProfileId() {
+        return IDENTIFIER;
+    }
 }

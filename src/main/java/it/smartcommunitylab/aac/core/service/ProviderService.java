@@ -78,7 +78,7 @@ public class ProviderService {
             String realm,
             String type,
             String name, String description,
-            String persistence,
+            String persistence, String events,
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) {
 
@@ -92,6 +92,7 @@ public class ProviderService {
         p.setName(name);
         p.setDescription(description);
         p.setPersistence(persistence);
+        p.setEvents(events);
         p.setConfigurationMap(configurationMap);
         p.setHookFunctions(hookFunctions);
 
@@ -104,7 +105,7 @@ public class ProviderService {
             String providerId,
             boolean enabled,
             String name, String description,
-            String persistence,
+            String persistence, String events,
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) throws NoSuchProviderException {
 
@@ -117,6 +118,7 @@ public class ProviderService {
         p.setName(name);
         p.setDescription(description);
         p.setPersistence(persistence);
+        p.setEvents(events);
         p.setHookFunctions(hookFunctions);
 
         // we update both status and configuration at the same time

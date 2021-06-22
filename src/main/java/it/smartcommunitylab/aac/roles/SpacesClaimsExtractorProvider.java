@@ -27,10 +27,10 @@ public class SpacesClaimsExtractorProvider implements ScopeClaimsExtractorProvid
         return Collections.singleton(Config.SCOPE_SPACES);
     }
 
-    @Override
-    public Collection<ScopeClaimsExtractor> getExtractors() {
-        return Collections.singleton(extractor);
-    }
+//    @Override
+//    public Collection<ScopeClaimsExtractor> getExtractors() {
+//        return Collections.singleton(extractor);
+//    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {

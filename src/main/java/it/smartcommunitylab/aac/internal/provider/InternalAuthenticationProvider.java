@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.internal.provider;
 
+import java.time.Instant;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
@@ -26,6 +29,9 @@ import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 public class InternalAuthenticationProvider extends ExtendedAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    // provider configuration
+    private final InternalIdentityProviderConfigMap config;
+
     private final InternalUserAccountService userAccountService;
     private final InternalUserDetailsService userDetailsService;
     private final DaoAuthenticationProvider authProvider;
@@ -35,9 +41,11 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
     public InternalAuthenticationProvider(String providerId,
             InternalUserAccountService userAccountService,
             InternalAccountService accountService, InternalPasswordService passwordService,
-            String realm) {
+            String realm, InternalIdentityProviderConfigMap configMap) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
+        Assert.notNull(configMap, "config map is mandatory");
+        this.config = configMap;
         this.userAccountService = userAccountService;
         // build a userDetails service
         userDetailsService = new InternalUserDetailsService(userAccountService, realm);
@@ -114,4 +122,9 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
         return user;
     }
 
+    @Override
+    protected Instant expiresAt(Authentication auth) {
+        // build expiration with maxAge
+        return Instant.now().plusSeconds(config.getMaxSessionDuration());
+    }
 }

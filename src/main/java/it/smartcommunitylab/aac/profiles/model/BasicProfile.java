@@ -17,7 +17,11 @@ package it.smartcommunitylab.aac.profiles.model;
 
 import java.io.Serializable;
 
+import it.smartcommunitylab.aac.Config;
+
 public class BasicProfile extends AbstractProfile {
+
+    public static final String IDENTIFIER = Config.SCOPE_BASIC_PROFILE;
 
     private String name;
     private String surname;
@@ -32,6 +36,11 @@ public class BasicProfile extends AbstractProfile {
         surname = bp.getSurname();
         username = bp.getUsername();
         email = bp.getEmail();
+    }
+
+    @Override
+    public String getProfileId() {
+        return IDENTIFIER;
     }
 
     public String getName() {

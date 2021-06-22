@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -19,6 +20,9 @@ public abstract class AbstractProfile implements Serializable {
     static {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
     }
+
+    @JsonIgnore
+    public abstract String getProfileId();
 
     /*
      * Convert profile, subclasses can override

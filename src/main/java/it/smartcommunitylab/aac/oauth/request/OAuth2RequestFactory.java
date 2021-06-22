@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -20,21 +22,31 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.SignedJWT;
+
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
-import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 public class OAuth2RequestFactory
-        implements OAuth2TokenRequestFactory, OAuth2AuthorizationRequestFactory, InitializingBean,
+        implements OAuth2TokenRequestFactory, OAuth2AuthorizationRequestFactory,
+        OAuth2RegistrationRequestFactory,
+        InitializingBean,
         org.springframework.security.oauth2.provider.OAuth2RequestFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static ObjectMapper mapper = new ObjectMapper();
+    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
+    };
 
     private FlowExtensionsService flowExtensionsService;
     private ScopeRegistry scopeRegistry;
@@ -289,6 +301,36 @@ public class OAuth2RequestFactory
     @Override
     public OAuth2Request createOAuth2Request(AuthorizationRequest request, OAuth2ClientDetails clientDetails) {
         return request.createOAuth2Request();
+    }
+
+    @Override
+    public ClientRegistrationRequest createClientRegistrationRequest(Map<String, Serializable> registrationParameters) {
+        ClientRegistration registration = null;
+        SignedJWT jwt = null;
+
+        // use mapper to convert to model
+        try {
+            registration = mapper.convertValue(registrationParameters, ClientRegistration.class);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException("invalid registration");
+        }
+
+        // check if software statement is provided
+        try {
+            String softwareStatement = (String) registrationParameters.get("software_statement");
+            if (StringUtils.hasText(softwareStatement)) {
+                // try to parse as JWT or error
+
+                jwt = SignedJWT.parse(softwareStatement);
+
+            }
+        } catch (Exception e) {
+            throw new InvalidRequestException("invalid software_statement");
+        }
+
+        ClientRegistrationRequest registrationRequest = new ClientRegistrationRequest(registration, jwt);
+
+        return registrationRequest;
     }
 
     private Set<String> extractScopes(Set<String> scopes, Collection<String> clientScopes, boolean isClient) {

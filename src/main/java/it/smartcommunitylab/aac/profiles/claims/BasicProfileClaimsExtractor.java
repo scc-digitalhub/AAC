@@ -29,7 +29,7 @@ public class BasicProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
-    protected AbstractProfile buildUserProfile(User user, Collection<String> scopes)
+    protected BasicProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException {
 
         BasicProfile profile = extractor.extractUserProfile(user);

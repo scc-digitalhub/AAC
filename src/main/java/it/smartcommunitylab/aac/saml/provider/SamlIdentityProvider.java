@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
@@ -38,6 +39,8 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     // services
     private final SamlUserAccountRepository accountRepository;
     private final AttributeStore attributeStore;
+    private ScriptExecutionService executionService;
+
 
     private final SamlIdentityProviderConfig providerConfig;
 
@@ -78,6 +81,10 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, realm);
         this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, realm);
 
+    }
+    
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.executionService = executionService;
     }
 
     @Override

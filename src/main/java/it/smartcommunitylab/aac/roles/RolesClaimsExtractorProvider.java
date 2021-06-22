@@ -27,10 +27,10 @@ public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvide
         return Collections.singleton(Config.SCOPE_ROLE);
     }
 
-    @Override
-    public Collection<ScopeClaimsExtractor> getExtractors() {
-        return Collections.singleton(extractor);
-    }
+//    @Override
+//    public Collection<ScopeClaimsExtractor> getExtractors() {
+//        return Collections.singleton(extractor);
+//    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {

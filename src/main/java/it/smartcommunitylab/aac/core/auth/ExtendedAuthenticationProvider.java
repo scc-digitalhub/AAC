@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import java.time.Instant;
+
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -45,6 +47,11 @@ public abstract class ExtendedAuthenticationProvider extends AbstractProvider
 
     protected abstract UserAuthenticatedPrincipal createUserPrincipal(Object principal);
 
+    protected Instant expiresAt(Authentication authentication) {
+        // default to not expiration set
+        return null;
+    }
+
     protected ExtendedAuthenticationToken createExtendedAuthentication(UserAuthenticatedPrincipal principal,
             Authentication authentication) {
         // build the token with both the extracted userPrincipal and the original auth
@@ -54,8 +61,8 @@ public abstract class ExtendedAuthenticationProvider extends AbstractProvider
         // those on subject
         return new ExtendedAuthenticationToken(
                 getAuthority(), getProvider(), getRealm(),
-                principal,
-                authentication);
+                principal, authentication,
+                expiresAt(authentication));
     }
 
 }

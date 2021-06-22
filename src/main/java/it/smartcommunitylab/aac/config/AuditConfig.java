@@ -15,6 +15,7 @@ import it.smartcommunitylab.aac.audit.AuthorizationEventListener;
 import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
 import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.audit.store.AutoJdbcAuditEventStore;
+import it.smartcommunitylab.aac.core.service.ProviderService;
 import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 
 /*
@@ -59,8 +60,11 @@ public class AuditConfig {
     }
 
     @Bean
-    public AuthenticationEventListener authenticationEventListener() {
-        return new AuthenticationEventListener();
+    public AuthenticationEventListener authenticationEventListener(ProviderService providerService) {
+        AuthenticationEventListener listener = new AuthenticationEventListener();
+        listener.setProviderService(providerService);
+
+        return listener;
     }
 
     @Bean

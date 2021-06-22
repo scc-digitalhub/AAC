@@ -36,10 +36,10 @@ public class OpenIdClaimsExtractorProvider implements ScopeClaimsExtractorProvid
         return extractors.keySet();
     }
 
-    @Override
-    public Collection<ScopeClaimsExtractor> getExtractors() {
-        return extractors.values();
-    }
+//    @Override
+//    public Collection<ScopeClaimsExtractor> getExtractors() {
+//        return extractors.values();
+//    }
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {

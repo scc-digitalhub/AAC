@@ -134,6 +134,14 @@ public class ProviderManager {
                         }
                         provider.setPersistence(persistenceLevel);
 
+                        // set default event level
+                        String eventsLevel = SystemKeys.EVENTS_LEVEL_DETAILS;
+                        if (StringUtils.hasText(providerConfig.getEvents())) {
+                            // set persistence level
+                            eventsLevel = providerConfig.getEvents();
+                        }
+                        provider.setEvents(eventsLevel);
+
                         // register
                         IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
                         IdentityProvider idp = ia.registerIdentityProvider(provider);
@@ -338,6 +346,18 @@ public class ProviderManager {
             throw new RegistrationException("invalid persistence level");
         }
 
+        String events = provider.getEvents();
+        if (!StringUtils.hasText(events)) {
+            events = SystemKeys.EVENTS_LEVEL_DETAILS;
+        }
+
+        if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
+                && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
+                && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
+                && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
+            throw new RegistrationException("invalid events level");
+        }
+
         Map<String, Serializable> configuration = null;
         if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
 
@@ -365,7 +385,7 @@ public class ProviderManager {
         ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(),
                 type,
                 name, description,
-                persistence,
+                persistence, events,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -446,6 +466,18 @@ public class ProviderManager {
             throw new RegistrationException("invalid persistence level");
         }
 
+        String events = provider.getEvents();
+        if (!StringUtils.hasText(events)) {
+            events = SystemKeys.EVENTS_LEVEL_DETAILS;
+        }
+
+        if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
+                && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
+                && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
+                && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
+            throw new RegistrationException("invalid events level");
+        }
+
         boolean enabled = provider.isEnabled();
         Map<String, Serializable> configuration = null;
 
@@ -477,7 +509,7 @@ public class ProviderManager {
         // update: even when enabled this provider won't be active until registration
         pe = providerService.updateProvider(providerId, enabled,
                 name, description,
-                persistence,
+                persistence, events,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -526,7 +558,7 @@ public class ProviderManager {
         if (!pe.isEnabled()) {
             pe = providerService.updateProvider(providerId, true,
                     pe.getName(), pe.getDescription(),
-                    pe.getPersistence(),
+                    pe.getPersistence(), pe.getEvents(),
                     pe.getConfigurationMap(), pe.getHookFunctions());
         }
 
@@ -561,7 +593,7 @@ public class ProviderManager {
         if (pe.isEnabled()) {
             pe = providerService.updateProvider(providerId, false,
                     pe.getName(), pe.getDescription(),
-                    pe.getPersistence(),
+                    pe.getPersistence(), pe.getEvents(),
                     pe.getConfigurationMap(), pe.getHookFunctions());
         }
 
@@ -968,6 +1000,7 @@ public class ProviderManager {
         cp.setConfiguration(pe.getConfigurationMap());
         cp.setEnabled(pe.isEnabled());
         cp.setPersistence(pe.getPersistence());
+        cp.setEvents(pe.getEvents());
         cp.setHookFunctions(pe.getHookFunctions() != null ? pe.getHookFunctions() : Collections.emptyMap());
 
         cp.setName(pe.getName());

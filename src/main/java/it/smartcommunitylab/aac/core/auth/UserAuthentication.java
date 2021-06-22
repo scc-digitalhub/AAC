@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.core.auth;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Set;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -26,6 +28,9 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
     // same realm by design
     protected final String realm;
 
+    // the token is created at the given time
+    protected final Instant createdAt;
+
     public UserAuthentication(
             Subject principal, String realm,
             Collection<? extends GrantedAuthority> authorities,
@@ -40,6 +45,8 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
 
         this.principal = principal;
         this.realm = realm;
+
+        this.createdAt = Instant.now();
 
         super.setAuthenticated(isAuthenticated); // must use super, as we override
     }
@@ -90,6 +97,14 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
     @JsonIgnore
     public abstract UserDetails getUser();
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public long getAge() {
+        return Duration.between(createdAt, Instant.now()).toSeconds();
+    }
+
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         if (isAuthenticated) {
@@ -117,6 +132,11 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
     public abstract void eraseAuthentication(ExtendedAuthenticationToken auth);
 
     public abstract Set<ExtendedAuthenticationToken> getAuthentications();
+
+    public boolean isExpired() {
+        // check if any token is valid
+        return !getAuthentications().stream().filter(a -> !a.isExpired()).findFirst().isPresent();
+    }
 
     /*
      * web auth details

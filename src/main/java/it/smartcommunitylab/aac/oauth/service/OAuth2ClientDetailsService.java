@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.oauth.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.NoSuchClientException;
@@ -81,6 +83,11 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
                 OAuth2ClientAdditionalConfig config = OAuth2ClientAdditionalConfig
                         .convert(oauth.getAdditionalConfiguration());
 
+                if (config.getResponseTypes() != null) {
+                    clientDetails.setResponseTypes(
+                            config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet()));
+                }
+
                 // TODO handle all response config as per openid DCR
                 if (config.getJwtSignAlgorithm() != null) {
                     clientDetails.setJwtSignAlgorithm(config.getJwtSignAlgorithm().getValue());
@@ -91,6 +98,7 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
                 if (config.getJwtEncMethod() != null) {
                     clientDetails.setJwtEncAlgorithm(config.getJwtEncMethod().getValue());
                 }
+
             } catch (Exception e) {
                 // ignore additional config
             }

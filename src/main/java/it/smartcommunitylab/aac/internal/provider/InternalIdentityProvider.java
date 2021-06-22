@@ -82,7 +82,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         // TODO attributeService to feed attribute provider
         this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
         this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
-                passwordService, realm);
+                passwordService, realm, this.config.getConfigMap());
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, realm);
 
     }

@@ -424,6 +424,7 @@ public class DevController {
         String name = registration.getName();
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
+        String events = registration.getEvents();
         Map<String, Serializable> configuration = registration.getConfiguration();
 
         ConfigurableProvider provider = new ConfigurableProvider(authority, null, realm);
@@ -432,6 +433,7 @@ public class DevController {
         provider.setType(type);
         provider.setEnabled(false);
         provider.setPersistence(persistence);
+        provider.setEvents(events);
         provider.setConfiguration(configuration);
 
         provider = providerManager.addProvider(realm, provider);
@@ -457,12 +459,14 @@ public class DevController {
         String name = registration.getName();
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
+        String events = registration.getEvents();
         Map<String, Serializable> configuration = registration.getConfiguration();
         Map<String, String> hookFunctions = registration.getHookFunctions();
 
         provider.setName(name);
         provider.setDescription(description);
         provider.setPersistence(persistence);
+        provider.setEvents(events);
         provider.setConfiguration(configuration);
         provider.setHookFunctions(hookFunctions);
 
@@ -553,6 +557,7 @@ public class DevController {
             String name = registration.getName();
             String description = registration.getDescription();
             String persistence = registration.getPersistence();
+            String events = registration.getEvents();
             Map<String, Serializable> configuration = registration.getConfiguration();
             Map<String, String> hookFunctions = registration.getHookFunctions();
 
@@ -562,6 +567,7 @@ public class DevController {
             provider.setType(type);
             provider.setEnabled(false);
             provider.setPersistence(persistence);
+            provider.setEvents(events);
             provider.setConfiguration(configuration);
             provider.setHookFunctions(hookFunctions);
 

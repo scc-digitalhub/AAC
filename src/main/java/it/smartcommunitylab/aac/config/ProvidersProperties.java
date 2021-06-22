@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 
 public class ProvidersProperties {
 
@@ -65,6 +66,8 @@ public class ProvidersProperties {
         private String realm;
 
         private String persistence;
+
+        private String events;
 
         private String name;
 
@@ -122,6 +125,14 @@ public class ProvidersProperties {
             this.persistence = persistence;
         }
 
+        public String getEvents() {
+            return events;
+        }
+
+        public void setEvents(String events) {
+            this.events = events;
+        }
+
         public String getName() {
             return name;
         }
@@ -142,8 +153,8 @@ public class ProvidersProperties {
         @NestedConfigurationProperty
         private List<OIDCIdentityProviderConfigMap> oidc;
 
-//        @NestedConfigurationProperty
-//        private List<OIDCIdentityProviderConfigMap> saml;
+        @NestedConfigurationProperty
+        private List<SamlIdentityProviderConfigMap> saml;
 
         @NestedConfigurationProperty
         private List<InternalIdentityProviderConfigMap> internal;
@@ -154,6 +165,14 @@ public class ProvidersProperties {
 
         public void setOidc(List<OIDCIdentityProviderConfigMap> oidc) {
             this.oidc = oidc;
+        }
+
+        public List<SamlIdentityProviderConfigMap> getSaml() {
+            return saml;
+        }
+
+        public void setSaml(List<SamlIdentityProviderConfigMap> saml) {
+            this.saml = saml;
         }
 
         public List<InternalIdentityProviderConfigMap> getInternal() {

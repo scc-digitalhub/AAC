@@ -41,9 +41,7 @@ public class OAuth2ClientDetails implements ClientDetails {
     @JsonSerialize(using = StringOrArraySerializer.class)
     private Set<String> resourceIds = Collections.emptySet();
 
-    @JsonProperty("authorized_grant_types")
-    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonProperty("grant_types")
     private Set<String> authorizedGrantTypes = Collections.emptySet();
 
     @JsonProperty("token_endpoint_auth_method")
@@ -52,8 +50,6 @@ public class OAuth2ClientDetails implements ClientDetails {
     private Set<String> authenticationMethods = Collections.emptySet();
 
     @JsonProperty("redirect_uris")
-    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
-    @JsonSerialize(using = StringOrArraySerializer.class)
     private Set<String> registeredRedirectUris = Collections.emptySet();
 
     @JsonProperty("access_token_validity")
@@ -71,15 +67,6 @@ public class OAuth2ClientDetails implements ClientDetails {
     @JsonProperty("jwks_uri")
     private String jwksUri;
 
-    @JsonProperty("token_endpoint_auth_method")
-    private String jwtSignAlgorithm;
-
-    @JsonProperty("token_endpoint_auth_method")
-    private String jwtEncAlgorithm;
-
-    @JsonProperty("token_endpoint_auth_method")
-    private String jwtEncMethod;
-
     @JsonProperty("application_type")
     private String applicationType;
 
@@ -88,6 +75,48 @@ public class OAuth2ClientDetails implements ClientDetails {
 
     @JsonProperty("token_type")
     private String tokenType;
+
+    @JsonProperty("response_types")
+    private Set<String> responseTypes = Collections.emptySet();
+
+    @JsonProperty("jwt_signed_response_alg")
+    private String jwtSignAlgorithm;
+
+    @JsonProperty("jwt_encrypted_response_alg")
+    private String jwtEncAlgorithm;
+
+    @JsonProperty("jwt_encrypted_response_method")
+    private String jwtEncMethod;
+
+    @JsonProperty("userinfo_signed_response_alg")
+    private String userinfoSignAlgorithm;
+
+    @JsonProperty("userinfo_encrypted_response_alg")
+    private String userinfoEncAlgorithm;
+
+    @JsonProperty("userinfo_encrypted_response_method")
+    private String userinfoEncMethod;
+
+    @JsonProperty("id_token_signed_response_alg")
+    private String idTokenSignAlgorithm;
+
+    @JsonProperty("id_token_encrypted_response_alg")
+    private String idTokenEncAlgorithm;
+
+    @JsonProperty("id_token_encrypted_response_method")
+    private String idTokenEncMethod;
+
+    @JsonProperty("request_signed_response_alg")
+    private String requestSignAlgorithm;
+
+    @JsonProperty("request_encrypted_response_alg")
+    private String requestEncAlgorithm;
+
+    @JsonProperty("request_encrypted_response_method")
+    private String requestEncMethod;
+
+    @JsonProperty("token_endpoint_auth_signing_alg")
+    private String tokenEndpointAuthSignAlgorithm;
 
     @JsonIgnore
     private String realm;
@@ -292,6 +321,14 @@ public class OAuth2ClientDetails implements ClientDetails {
 
     public void setFirstParty(boolean firstParty) {
         this.firstParty = firstParty;
+    }
+
+    public Set<String> getResponseTypes() {
+        return responseTypes;
+    }
+
+    public void setResponseTypes(Set<String> responseTypes) {
+        this.responseTypes = responseTypes;
     }
 
     public Map<String, Object> getAdditionalInformation() {

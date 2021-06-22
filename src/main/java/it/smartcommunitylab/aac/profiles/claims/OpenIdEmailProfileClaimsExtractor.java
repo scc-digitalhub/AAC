@@ -30,7 +30,7 @@ public class OpenIdEmailProfileClaimsExtractor extends ProfileClaimsExtractor {
     }
 
     @Override
-    protected AbstractProfile buildUserProfile(User user, Collection<String> scopes)
+    protected OpenIdProfile buildUserProfile(User user, Collection<String> scopes)
             throws InvalidDefinitionException {
 
         if (!scopes.contains(Config.SCOPE_OPENID)) {

@@ -1,15 +1,13 @@
 package it.smartcommunitylab.aac.core.auth;
 
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
-
 
 /*
  * An authenticationToken holding both the provider token and a resolved identity
@@ -28,9 +26,9 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     private Authentication token;
 
-    // audit
-    private final Date issueTime;
-    // TODO add expire date and validity checks
+    private final Instant issuedAt;
+    private final Instant expiresAt;
+    // TODO add validity checks
 
     public ExtendedAuthenticationToken(String authority, String provider, String realm,
             UserAuthenticatedPrincipal principal,
@@ -42,8 +40,26 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         this.provider = provider;
         this.realm = realm;
         // set creation time
-        this.issueTime = Calendar.getInstance().getTime();
+        this.issuedAt = Instant.now();
+        this.expiresAt = null;
+    }
 
+    public ExtendedAuthenticationToken(String authority, String provider, String realm,
+            UserAuthenticatedPrincipal principal,
+            Authentication token, Instant expiresAt) {
+        super(Collections.emptyList());
+        this.token = token;
+        this.principal = principal;
+        this.authority = authority;
+        this.provider = provider;
+        this.realm = realm;
+        // set creation time
+        this.issuedAt = Instant.now();
+        this.expiresAt = expiresAt;
+
+        if (expiresAt != null && expiresAt.isBefore(issuedAt)) {
+            throw new IllegalArgumentException("expired authentication");
+        }
     }
 
     public ExtendedAuthenticationToken(String authority, String provider, String realm,
@@ -57,8 +73,27 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         this.provider = provider;
         this.realm = realm;
         // set creation time
-        this.issueTime = Calendar.getInstance().getTime();
+        this.issuedAt = Instant.now();
+        this.expiresAt = null;
+    }
 
+    public ExtendedAuthenticationToken(String authority, String provider, String realm,
+            UserAuthenticatedPrincipal principal,
+            Authentication token, Instant expiresAt,
+            Collection<GrantedAuthority> authorities) {
+        super(authorities);
+        this.token = token;
+        this.principal = principal;
+        this.authority = authority;
+        this.provider = provider;
+        this.realm = realm;
+        // set creation time
+        this.issuedAt = Instant.now();
+        this.expiresAt = expiresAt;
+
+        if (expiresAt != null && expiresAt.isBefore(issuedAt)) {
+            throw new IllegalArgumentException("expired authentication");
+        }
     }
 
     public Authentication getToken() {
@@ -76,7 +111,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
-    public Collection<GrantedAuthority> getAuthorities() {        
+    public Collection<GrantedAuthority> getAuthorities() {
         return super.getAuthorities();
     }
 
@@ -115,8 +150,24 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         return realm;
     }
 
-    public Date getIssueTime() {
-        return issueTime;
+    public Instant getIssuedAt() {
+        return issuedAt;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public long getAge() {
+        return Duration.between(issuedAt, Instant.now()).toSeconds();
+    }
+
+    public boolean isExpired() {
+        if (expiresAt == null) {
+            return false;
+        }
+
+        return expiresAt.isBefore(Instant.now());
     }
 
     @Override

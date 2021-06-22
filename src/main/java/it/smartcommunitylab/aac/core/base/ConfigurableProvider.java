@@ -39,6 +39,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
     private String type;
     private boolean enabled;
     private String persistence;
+    private String events;
 
     private String name;
     private String description;
@@ -57,6 +58,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
         this.provider = provider;
         this.configuration = new HashMap<>();
         this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
+        this.events = SystemKeys.EVENTS_LEVEL_DETAILS;
         this.name = provider;
 //        this.registered = false;
         this.enabled = true;
@@ -119,6 +121,14 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setPersistence(String persistence) {
         this.persistence = persistence;
+    }
+
+    public String getEvents() {
+        return events;
+    }
+
+    public void setEvents(String events) {
+        this.events = events;
     }
 
     public String getName() {

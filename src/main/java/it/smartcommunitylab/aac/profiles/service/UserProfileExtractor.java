@@ -1,12 +1,10 @@
 package it.smartcommunitylab.aac.profiles.service;
 
-import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.Attribute;
@@ -50,8 +48,12 @@ public abstract class UserProfileExtractor {
 
     // lookup an attribute in multiple sets, return first match
     protected Attribute getAttribute(Collection<UserAttributes> attributes, String key, String... identifier) {
+        return getAttribute(attributes, key, Arrays.asList(identifier));
+    }
+
+    protected Attribute getAttribute(Collection<UserAttributes> attributes, String key, Collection<String> identifier) {
         Set<UserAttributes> sets = attributes.stream()
-                .filter(a -> ArrayUtils.contains(identifier, a.getIdentifier()))
+                .filter(a -> identifier.contains(a.getIdentifier()))
                 .collect(Collectors.toSet());
 
         for (UserAttributes uattr : sets) {

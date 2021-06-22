@@ -107,6 +107,7 @@ providers:
   attributes:
   templates:
     internal:
+    saml:
     oidc:
       - clientName: Google
         clientAuthenticationMethod: client_secret_basic

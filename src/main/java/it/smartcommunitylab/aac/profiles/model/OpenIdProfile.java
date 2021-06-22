@@ -10,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class OpenIdProfile extends AbstractProfile {
 
+    public static final String IDENTIFIER = "profile.openid.me";
+
     private String name;
 
     @JsonProperty("given_name")
@@ -75,6 +77,11 @@ public class OpenIdProfile extends AbstractProfile {
         this.familyName = basic.getSurname();
         this.username = basic.getUsername();
         this.email = basic.getEmail();
+    }
+
+    @Override
+    public String getProfileId() {
+        return IDENTIFIER;
     }
 
     /*

@@ -401,6 +401,7 @@ angular.module('aac.controllers.realmproviders', [])
                 description: provider.description,
                 enabled: provider.enabled,
                 persistence: provider.persistence,
+                events: provider.events,
                 configuration: configuration,
                 hookFunctions: hookFunctions
             }

@@ -71,6 +71,7 @@ import org.yaml.snakeyaml.Yaml;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.auth.ExpiredUserAuthenticationFilter;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
@@ -289,7 +290,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/endsession").permitAll()
                 // whitelist auth providers pages (login,registration etc)
                 .antMatchers("/auth/**").permitAll()
-                //whitelist public
+                // whitelist public
                 .antMatchers("/.well-known/**").permitAll()
                 .antMatchers("/jwk").permitAll()
                 // whitelist assets
@@ -347,7 +348,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(
                         getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
                         BasicAuthenticationFilter.class)
-                .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService), BasicAuthenticationFilter.class);
+                .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService), BasicAuthenticationFilter.class)
+                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
 
         // we always want a session here
         http.sessionManagement()

@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.openid.provider;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -21,6 +22,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExchange;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -125,6 +127,28 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
         user.setPrincipal(oauthDetails);
 
         return user;
+    }
+
+    @Override
+    protected Instant expiresAt(Authentication auth) {
+        // build expiration from tokens
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        OAuth2User user = token.getPrincipal();
+        if (user instanceof OidcUser) {
+            // check for id token
+            Instant exp = ((OidcUser) user).getExpiresAt();
+            if (exp != null) {
+                return exp;
+            }
+        }
+
+        OAuth2AccessToken accessToken = token.getAccessToken();
+        if (accessToken != null) {
+            return accessToken.getExpiresAt();
+        }
+
+        return null;
+
     }
 
     private final GrantedAuthoritiesMapper nullAuthoritiesMapper = (authorities -> Collections.emptyList());

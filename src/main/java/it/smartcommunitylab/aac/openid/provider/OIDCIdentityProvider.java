@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +20,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
@@ -176,7 +172,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
         // let hook process custom mapping
-        if (providerConfig.getHookFunctions() != null
+        if (executionService != null && providerConfig.getHookFunctions() != null
                 && StringUtils.hasText(providerConfig.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
 
             try {

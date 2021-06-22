@@ -22,6 +22,17 @@
                     </select>
                 </div>
             </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="events">Audit events*</label>
+                    <select id="events" ng-model="idp.events">
+                        <option value="none" ng-selected="idp.events=='none'">None</option>
+                        <option value="minimal" ng-selected="idp.events=='minimal'">Minimal</option>
+                        <option value="details" ng-selected="idp.events=='details'">Details</option>
+                        <option value="full" ng-selected="idp.events=='full'">Full</option>
+                    </select>
+                </div>
+            </div>            
         </fieldset>
 
 

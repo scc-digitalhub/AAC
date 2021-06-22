@@ -47,6 +47,9 @@ public class ProviderEntity {
     @Column(name = "persistence_level")
     private String persistence;
 
+    @Column(name = "event_level")
+    private String events;
+
     // key-based configuration for persistence
     // converts to json via custom converter
     @Lob
@@ -137,6 +140,14 @@ public class ProviderEntity {
 
     public void setPersistence(String persistence) {
         this.persistence = persistence;
+    }
+
+    public String getEvents() {
+        return events;
+    }
+
+    public void setEvents(String events) {
+        this.events = events;
     }
 
     public Map<String, Serializable> getConfigurationMap() {

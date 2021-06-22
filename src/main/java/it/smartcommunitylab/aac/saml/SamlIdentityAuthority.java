@@ -1,13 +1,16 @@
 package it.smartcommunitylab.aac.saml;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -24,8 +27,10 @@ import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.NullAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.PersistentAttributeStore;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
@@ -35,9 +40,10 @@ import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
+import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 
 @Service
-public class SamlIdentityAuthority implements IdentityAuthority {
+public class SamlIdentityAuthority implements IdentityAuthority, InitializingBean {
 
     // TODO make consistent with global config
     public static final String AUTHORITY_URL = "/auth/saml/";
@@ -68,7 +74,7 @@ public class SamlIdentityAuthority implements IdentityAuthority {
                             id,
                             accountRepository, attributeStore,
                             config, config.getRealm());
-
+                    idp.setExecutionService(executionService);
                     return idp;
 
                 }
@@ -76,6 +82,13 @@ public class SamlIdentityAuthority implements IdentityAuthority {
 
     // saml sp services
     private final SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+
+    // configuration templates
+    private ProvidersProperties providerProperties;
+    private final Map<String, SamlIdentityProviderConfig> templates = new HashMap<>();
+
+    // execution service for custom attributes mapping
+    private ScriptExecutionService executionService;
 
     @Override
     public String getAuthorityId() {
@@ -96,6 +109,39 @@ public class SamlIdentityAuthority implements IdentityAuthority {
         this.jdbcAttributeStore = jdbcAttributeStore;
         this.registrationRepository = registrationRepository;
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
+    }
+
+    @Autowired
+    public void setProviderProperties(ProvidersProperties providerProperties) {
+        this.providerProperties = providerProperties;
+    }
+
+    @Autowired
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.executionService = executionService;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        // build templates
+        if (providerProperties != null && providerProperties.getTemplates() != null) {
+            List<SamlIdentityProviderConfigMap> templateConfigs = providerProperties.getTemplates().getSaml();
+            for (SamlIdentityProviderConfigMap configMap : templateConfigs) {
+                try {
+                    String key = StringUtils.hasText(configMap.getIdpEntityId()) ? configMap.getIdpEntityId()
+                            : configMap.getIdpMetadataUrl();
+                    String templateId = "saml." + key.toLowerCase();
+                    SamlIdentityProviderConfig template = new SamlIdentityProviderConfig(templateId, null);
+                    template.setConfigMap(configMap);
+                    template.setName(key);
+
+                    templates.put(templateId, template);
+                } catch (Exception e) {
+                    // skip
+                }
+            }
+        }
+
     }
 
     @Override
@@ -264,12 +310,17 @@ public class SamlIdentityAuthority implements IdentityAuthority {
 
     @Override
     public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
-        return Collections.emptyList();
+        return templates.values().stream().map(c -> SamlIdentityProviderConfig.toConfigurableProvider(c))
+                .collect(Collectors.toList());
     }
 
     @Override
     public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
+        if (templates.containsKey(templateId)) {
+            return SamlIdentityProviderConfig.toConfigurableProvider(templates.get(templateId));
+        }
+
         throw new NoSuchProviderException("no templates available");
     }
 

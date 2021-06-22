@@ -27,6 +27,8 @@ import java.util.Map;
  */
 public class AccountProfile extends AbstractProfile {
 
+    public static final String IDENTIFIER = "profile.accountprofile.me";
+
     private String authority;
     private String provider;
     private String realm;
@@ -40,6 +42,11 @@ public class AccountProfile extends AbstractProfile {
     private Map<String, String> attributes;
 
     public AccountProfile() {
+    }
+
+    @Override
+    public String getProfileId() {
+        return IDENTIFIER;
     }
 
     public String getAuthority() {

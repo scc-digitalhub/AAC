@@ -15,9 +15,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
+import it.smartcommunitylab.aac.core.service.ProviderService;
 
 public class AuthenticationEventListener extends AbstractAuthenticationAuditListener {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -30,6 +33,12 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
     public static final String CLIENT_AUTHENTICATION_FAILURE = "CLIENT_AUTHENTICATION_FAILURE";
     public static final String CLIENT_AUTHENTICATION_SUCCESS = "CLIENT_AUTHENTICATION_SUCCESS";
+
+    private ProviderService providerService;
+
+    public void setProviderService(ProviderService providerService) {
+        this.providerService = providerService;
+    }
 
     @Override
     public void onApplicationEvent(AbstractAuthenticationEvent event) {
@@ -49,16 +58,33 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
         String provider = event.getProvider();
         String realm = event.getRealm();
 
+        String level = SystemKeys.EVENTS_LEVEL_DETAILS;
         String eventType = USER_AUTHENTICATION_SUCCESS;
+
+        if (providerService != null) {
+            ProviderEntity p = providerService.findProvider(provider);
+            if (p != null && p.getEvents() != null) {
+                level = p.getEvents();
+            }
+        }
 
         Map<String, Object> data = new HashMap<>();
         data.put("authority", authority);
         data.put("provider", provider);
         data.put("realm", realm);
 
-        // persist web details, should be safe to store
-        if (auth.getWebAuthenticationDetails() != null) {
-            data.put("details", auth.getWebAuthenticationDetails());
+        if (SystemKeys.EVENTS_LEVEL_DETAILS.equals(level) || SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
+
+            // persist web details, should be safe to store
+            if (auth.getWebAuthenticationDetails() != null) {
+                data.put("details", auth.getWebAuthenticationDetails());
+            }
+
+        }
+
+        if (SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
+            // persist full authentication token
+            data.put("authentication", auth);
         }
 
         // build audit

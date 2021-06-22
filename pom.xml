@@ -15,8 +15,7 @@
 
 	<properties>
 		<java.version>1.11</java.version>
-		<!-- <jasperreports.version>4.7.0</jasperreports.version> -->
-		<!-- <tomcat.version>7.0.75</tomcat.version> -->
+		<bouncycastle.version>1.69</bouncycastle.version>
 		<profile.authorization />
 	</properties>
 
@@ -97,9 +96,9 @@
 		</dependency>
 
 		<dependency>
-		   <groupId>org.springframework.security.oauth</groupId>
-		   <artifactId>spring-security-oauth2</artifactId>
-		   <version>2.6.0.SNAPSHOT</version>
+			<groupId>org.springframework.security.oauth</groupId>
+			<artifactId>spring-security-oauth2</artifactId>
+			<version>2.6.0.SNAPSHOT</version>
 		</dependency>
 		<!-- Google authentication -->
 		<!-- <dependency> -->
@@ -127,8 +126,8 @@
 			<artifactId>jackson-module-jsonSchema</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>com.fasterxml.jackson.dataformat</groupId>
-		    <artifactId>jackson-dataformat-yaml</artifactId>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
 		</dependency>
 
 		<dependency>
@@ -224,11 +223,23 @@
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
 		</dependency>
-      <dependency>
-          <groupId>org.jsoup</groupId>
-          <artifactId>jsoup</artifactId>
-          <version>1.13.1</version>
-      </dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.13.1</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>${bouncycastle.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<version>${bouncycastle.version}</version>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bctls-jdk15on -->
 		<!-- <dependency> -->
@@ -373,10 +384,10 @@
 			<id>SmartCommunity</id>
 			<url>https://repository.smartcommunitylab.it/content/groups/public</url>
 		</repository>
-<!-- 		<repository> -->
-<!--          <id>SmartCommunity snapshots</id> -->
-<!--          <url>http://repository.smartcommunitylab.it/content/repositories/snapshots</url> -->
-<!--       </repository> -->
+		<!-- <repository> -->
+		<!-- <id>SmartCommunity snapshots</id> -->
+		<!-- <url>http://repository.smartcommunitylab.it/content/repositories/snapshots</url> -->
+		<!-- </repository> -->
 		<!-- <repository> -->
 		<!-- <id>spring-milestone</id> -->
 		<!-- <name>Spring Maven MILESTONE Repository</name> -->
