@@ -19,8 +19,12 @@
         <div class="link-list-wrapper">
           <ul class="link-list">
             <li><a class="list-item" href="" ng-click="internalProviderDlg()"><span>Internal</span></a></li>
+            <li ng-repeat="template in providerTemplates">
+              <a class="list-item" href="" ng-click="createProviderDlg(template.authority, template.name)"><span>{{template.name}}</span></a>
+            </li>            
             <li><a class="list-item" href="" ng-click="oidcProviderDlg()"><span>OpenID Connect</span></a></li>
             <li><a class="list-item" href="" ng-click="samlProviderDlg()"><span>SAML</span></a></li>
+
           </ul>
         </div>
       </div>
@@ -134,6 +138,36 @@
         <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
         <button class="btn btn-primary" type="button" ng-click="importProvider()"
           ng-disabled="importFile == null">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createProviderDlg">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create provider </h5>
+      </div>
+      <div class="modal-body">
+        <form name="createProviderForm" class="needs-validation was-validated" novalidate>
+          <div class="form-group col pt-4 mb-3">
+            <label for="name">Provider Name*</label>
+            <input type="text" name="name" class="form-control form-control-sm" id="name" required
+              ng-model="modProvider.name">
+          </div>         
+          <div class="form-group col pt-4 mb-2">
+            <label for="authority">Authority</label>
+            <input type="text" name="authority" class="form-control form-control-sm" id="authority" readonly
+              ng-model="modProvider.authority">
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="createProvider()"
+          ng-disabled="createProviderForm.$invalid">Create</button>
       </div>
     </div>
   </div>

@@ -365,9 +365,9 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         c.configMap = new OAuth2ClientConfigMap();
 
         c.configMap.setApplicationType(
-                (oauth.getApplicationType() != null ? ApplicationType.parse(oauth.getApplicationType()) : null));
-        c.configMap.setTokenType((oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : null));
-        c.configMap.setSubjectType((oauth.getSubjectType() != null ? SubjectType.parse(oauth.getSubjectType()) : null));
+                (oauth.getApplicationType() != null ? ApplicationType.parse(oauth.getApplicationType()) : ApplicationType.WEB));
+        c.configMap.setTokenType((oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : TokenType.JWT));
+        c.configMap.setSubjectType((oauth.getSubjectType() != null ? SubjectType.parse(oauth.getSubjectType()) : SubjectType.PUBLIC));
 
         Set<String> authorizedGrantTypes = StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes());
         c.configMap.setAuthorizedGrantTypes(authorizedGrantTypes.stream()

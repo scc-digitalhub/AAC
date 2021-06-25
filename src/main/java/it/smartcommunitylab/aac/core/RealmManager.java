@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -148,7 +149,13 @@ public class RealmManager {
             }
         }
 
-        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), customizationMap);
+        Map<String, Serializable> oauth2ConfigMap = null;
+        if (r.getOAuthConfiguration() != null) {
+            oauth2ConfigMap = r.getOAuthConfiguration().getConfiguration();
+        }
+
+        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap,
+                customizationMap);
 
         return realm;
     }

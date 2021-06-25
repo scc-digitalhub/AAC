@@ -159,7 +159,10 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public long getAge() {
-        return Duration.between(issuedAt, Instant.now()).toSeconds();
+        if (issuedAt != null) {
+            return Duration.between(issuedAt, Instant.now()).toSeconds();
+        }
+        return -1;
     }
 
     public boolean isExpired() {

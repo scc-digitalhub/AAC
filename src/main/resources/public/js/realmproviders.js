@@ -73,6 +73,7 @@ angular.module('aac.controllers.realmproviders', [])
             RealmProviders.getIdentityProviders(slug)
                 .then(function (data) {
                     $scope.providers = data;
+                    return data;
                 })
                 .catch(function (err) {
                     Utils.showError('Failed to load realm providers: ' + err.data.message);
@@ -85,8 +86,8 @@ angular.module('aac.controllers.realmproviders', [])
         var init = function () {
             RealmProviders.getIdentityProviderTemplates(slug)
                 .then(function (data) {
-                    $scope.providerTemplates = data;
-                });
+                    $scope.providerTemplates = data.filter(function (pt) { return pt.authority != 'internal' });
+                })
             $scope.load();
         };
 
@@ -120,6 +121,52 @@ angular.module('aac.controllers.realmproviders', [])
                 $scope.samlProviderDlg(provider);
             }
         }
+
+        $scope.createProviderDlg = function (authority, name) {
+            provider = {
+                type: 'identity',
+                name: '',
+                authority: authority,
+                realm: slug,
+                configuration: {}
+            };
+            if (name) {
+                var ptIdx = $scope.providerTemplates.findIndex(function (pt) { return pt.name === name });
+                if (ptIdx >= 0) {
+                    var template = $scope.providerTemplates[ptIdx];
+                    provider.name = name;
+                    provider.configuration = Object.assign({}, template.configuration);
+                }
+            }
+
+            $scope.modProvider = provider;
+
+            $('#createProviderDlg').modal({ keyboard: false });
+            Utils.refreshFormBS();
+        }
+
+        $scope.createProvider = function () {
+            $('#createProviderDlg').modal('hide');
+            var data = $scope.modProvider
+            // HOOK: OIDC contains scopes to be converted to string
+            if (data.authority === 'oidc' && data.scope) {
+                data.scope = data.scope.map(function (s) { return s.text }).join(',');
+            }
+
+            data.realm = slug;
+
+            RealmProviders.saveIdentityProvider(slug, data)
+                .then(function () {
+                    $scope.load();
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+
+
+        }
+
 
         var toChips = function (str) {
             return str.split(',').map(function (e) { return e.trim() }).filter(function (e) { return !!e });
@@ -184,17 +231,17 @@ angular.module('aac.controllers.realmproviders', [])
                 });
         }
 
-//        $scope.toggleProviderState = function (item) {
-//            RealmProviders.changeIdentityProviderState($scope.realm.slug, item.provider, item)
-//                .then(function () {
-//                    Utils.showSuccess();
-//                })
-//                .catch(function (err) {
-//                    Utils.showError(err.data.message);
-//                });
-//
-//        }
-        
+        //        $scope.toggleProviderState = function (item) {
+        //            RealmProviders.changeIdentityProviderState($scope.realm.slug, item.provider, item)
+        //                .then(function () {
+        //                    Utils.showSuccess();
+        //                })
+        //                .catch(function (err) {
+        //                    Utils.showError(err.data.message);
+        //                });
+        //
+        //        }
+
         $scope.toggleProviderState = function (provider) {
 
             RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
@@ -207,8 +254,8 @@ angular.module('aac.controllers.realmproviders', [])
                     Utils.showError(err.data.message);
                 });
 
-        }        
-        
+        }
+
         $scope.toggleProviderState = function (provider, state) {
 
             provider.enabled = state;
@@ -223,7 +270,7 @@ angular.module('aac.controllers.realmproviders', [])
                     Utils.showError(err.data.message);
                 });
 
-        }         
+        }
 
         $scope.updateProviderType = function () {
             if ($scope.provider.clientName) {

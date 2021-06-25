@@ -46,6 +46,7 @@ public class AACTokenEnhancer implements TokenEnhancer, InitializingBean {
     private ClaimsTokenEnhancer claimsEnhancer;
     private OIDCTokenEnhancer oidcEnhancer;
     private JwtTokenConverter tokenConverter;
+    private DCRTokenEnhancer dcrTokenEnhancer;
     // TODO refresh token should be made here if needed
 
     @Override
@@ -77,6 +78,11 @@ public class AACTokenEnhancer implements TokenEnhancer, InitializingBean {
         // then build id_token to calculate correct at_hash
         if (accessToken.getScope().contains(Config.SCOPE_OPENID) && oidcEnhancer != null) {
             token = oidcEnhancer.enhance(token, authentication);
+        }
+
+        // modify dcr tokens
+        if (dcrTokenEnhancer != null) {
+            token = dcrTokenEnhancer.enhance(token, authentication);
         }
 
         // validate result
@@ -116,6 +122,10 @@ public class AACTokenEnhancer implements TokenEnhancer, InitializingBean {
 
     public void setTokenConverter(JwtTokenConverter tokenConverter) {
         this.tokenConverter = tokenConverter;
+    }
+
+    public void setDcrTokenEnhancer(DCRTokenEnhancer dcrTokenEnhancer) {
+        this.dcrTokenEnhancer = dcrTokenEnhancer;
     }
 
     public int getMaxHttpHeaderSize() {

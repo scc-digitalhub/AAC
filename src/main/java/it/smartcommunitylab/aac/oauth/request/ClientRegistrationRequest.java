@@ -18,11 +18,6 @@ public class ClientRegistrationRequest {
      */
     private final SignedJWT softwareStatement;
 
-    /*
-     * Optional realm
-     */
-    private String realm;
-
     public ClientRegistrationRequest(ClientRegistration registration) {
         this(registration, null);
     }
@@ -39,14 +34,6 @@ public class ClientRegistrationRequest {
 
     public SignedJWT getSoftwareStatement() {
         return softwareStatement;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
     }
 
 }

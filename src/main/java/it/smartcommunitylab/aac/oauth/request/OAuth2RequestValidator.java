@@ -199,17 +199,36 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         }
 
         // check type
-        Set<String> grantType = registration.getGrantType();
-        Set<AuthorizationGrantType> grantTypes = grantType.stream().map(r -> AuthorizationGrantType.parse(r))
-                .collect(Collectors.toSet());
-        if (grantTypes.contains(null)) {
-            throw new InvalidRequestException("unsupported grant_type");
+        if (registration.getGrantType() != null) {
+            Set<String> grantType = registration.getGrantType();
+            Set<AuthorizationGrantType> grantTypes = grantType.stream().map(r -> AuthorizationGrantType.parse(r))
+                    .collect(Collectors.toSet());
+            if (grantTypes.contains(null)) {
+                throw new InvalidRequestException("unsupported grant_type");
+            }
+
+            if (grantTypes.contains(AUTHORIZATION_CODE) || grantTypes.contains(IMPLICIT)) {
+                if (registration.getRedirectUris() == null || registration.getRedirectUris().isEmpty()) {
+                    throw new InvalidRequestException("redirect_uri is mandatory");
+                }
+            }
+        } else {
+            throw new InvalidRequestException("at least one grant_type is required");
+
         }
 
-        if (grantTypes.contains(AUTHORIZATION_CODE) || grantTypes.contains(IMPLICIT)) {
-            if (registration.getRedirectUris() == null || registration.getRedirectUris().isEmpty()) {
-                throw new InvalidRequestException("redirect_uri is mandatory");
-            }
+        // check auth methods
+        if (registration.getAuthenticationMethods() == null) {
+            throw new InvalidRequestException("at least one authentication method is required");
+        }
+
+        if (!StringUtils.hasText(registration.getApplicationType())) {
+            throw new InvalidRequestException("application type is required");
+        }
+
+        // require a valid name
+        if (!StringUtils.hasText(registration.getName())) {
+            throw new InvalidRequestException("client_name is required");
         }
 
     }

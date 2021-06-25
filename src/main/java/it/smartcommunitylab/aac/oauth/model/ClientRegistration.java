@@ -24,13 +24,17 @@ public class ClientRegistration {
     private String clientSecret;
 
     @JsonProperty("client_id_issued_at")
-    private Date clientIdIssuedAt;
+    private long clientIdIssuedAt;
 
     @JsonProperty("client_secret_expires_at")
-    private Date clientSecretExpiresAt;
+    private long clientSecretExpiresAt;
 
     @JsonProperty("client_name")
     private String name;
+
+    @JsonProperty("redirect_uris")
+    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
+    private Set<String> redirectUris;
 
     @JsonProperty("scope")
     @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
@@ -60,9 +64,6 @@ public class ClientRegistration {
 
     @JsonProperty("token_endpoint_auth_signing_alg")
     private String tokenEndpointAuthSignAlgorithm;
-
-    @JsonProperty("redirect_uris")
-    private Set<String> redirectUris;
 
     @JsonProperty("access_token_validity")
     private Integer accessTokenValiditySeconds;
@@ -158,19 +159,19 @@ public class ClientRegistration {
         this.clientSecret = clientSecret;
     }
 
-    public Date getClientIdIssuedAt() {
+    public long getClientIdIssuedAt() {
         return clientIdIssuedAt;
     }
 
-    public void setClientIdIssuedAt(Date clientIdIssuedAt) {
+    public void setClientIdIssuedAt(long clientIdIssuedAt) {
         this.clientIdIssuedAt = clientIdIssuedAt;
     }
 
-    public Date getClientSecretExpiresAt() {
+    public long getClientSecretExpiresAt() {
         return clientSecretExpiresAt;
     }
 
-    public void setClientSecretExpiresAt(Date clientSecretExpiresAt) {
+    public void setClientSecretExpiresAt(long clientSecretExpiresAt) {
         this.clientSecretExpiresAt = clientSecretExpiresAt;
     }
 

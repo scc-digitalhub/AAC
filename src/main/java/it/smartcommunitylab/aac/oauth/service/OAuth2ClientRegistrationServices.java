@@ -1,12 +1,14 @@
 package it.smartcommunitylab.aac.oauth.service;
 
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -19,6 +21,7 @@ import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientInfo;
+import it.smartcommunitylab.aac.oauth.common.HumanStringKeyGenerator;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -34,16 +37,24 @@ import it.smartcommunitylab.aac.oauth.request.ClientRegistrationRequest;
 
 public class OAuth2ClientRegistrationServices implements ClientRegistrationServices, InitializingBean {
 
+    private static final StringKeyGenerator NAME_GENERATOR = new HumanStringKeyGenerator(4);
+
     private final OAuth2ClientService clientService;
     private ProviderService providerService;
+    private StringKeyGenerator nameGenerator;
 
     public OAuth2ClientRegistrationServices(OAuth2ClientService clientService) {
         Assert.notNull(clientService, "client service is mandatory");
         this.clientService = clientService;
+        this.nameGenerator = NAME_GENERATOR;
     }
 
     public void setProviderService(ProviderService providerService) {
         this.providerService = providerService;
+    }
+
+    public void setNameGenerator(StringKeyGenerator nameGenerator) {
+        this.nameGenerator = nameGenerator;
     }
 
     @Override
@@ -62,8 +73,8 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
     }
 
     @Override
-    public ClientRegistration addRegistration(ClientRegistrationRequest request) throws ClientRegistrationException {
-        String realm = request.getRealm();
+    public ClientRegistration addRegistration(String realm, ClientRegistrationRequest request)
+            throws ClientRegistrationException {
         if (!StringUtils.hasText(realm)) {
             throw new IllegalArgumentException("missing or invalid realm");
         }
@@ -74,6 +85,9 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
         if (StringUtils.hasText(name)) {
             name = Jsoup.clean(name, Whitelist.none());
+        } else {
+            // generate random
+            name = nameGenerator.generateKey();
         }
         if (StringUtils.hasText(description)) {
             description = Jsoup.clean(description, Whitelist.none());
@@ -112,29 +126,33 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             throw new ClientRegistrationException("registration error");
         }
 
-        return toRegistration(client);
+        ClientRegistration result = toRegistration(client);
+        // set issuedAt to now
+        result.setClientIdIssuedAt(Instant.now().getEpochSecond());
+        // client secret does not expire if set
+        if (result.getClientSecret() != null) {
+            result.setClientSecretExpiresAt(0);
+        }
 
+        return result;
     }
 
     @Override
     public ClientRegistration updateRegistration(String clientId, ClientRegistrationRequest request)
             throws ClientRegistrationException {
-        String realm = request.getRealm();
-        if (!StringUtils.hasText(realm)) {
-            throw new IllegalArgumentException("missing or invalid realm");
-        }
 
         if (!StringUtils.hasText(clientId)) {
+            throw new IllegalArgumentException("missing or invalid clientId");
+        }
+
+        if (!clientId.equals(request.getRegistration().getClientId())) {
             throw new IllegalArgumentException("missing or invalid clientId");
         }
 
         // fetch client and then replace config
         try {
             OAuth2Client client = clientService.getClient(clientId);
-
-            if (!client.getRealm().equals(realm)) {
-                throw new IllegalArgumentException("realm mismatch");
-            }
+            String realm = client.getRealm();
 
             ClientRegistration registration = request.getRegistration();
             String name = registration.getName();
@@ -142,7 +160,11 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
             if (StringUtils.hasText(name)) {
                 name = Jsoup.clean(name, Whitelist.none());
+            } else {
+                // keep existing or generate
+                name = StringUtils.hasText(client.getName()) ? client.getName() : nameGenerator.generateKey();
             }
+
             if (StringUtils.hasText(description)) {
                 description = Jsoup.clean(description, Whitelist.none());
             }
@@ -173,7 +195,14 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
                     configMap.getAdditionalConfig(),
                     configMap.getAdditionalInformation());
 
-            return toRegistration(client);
+            ClientRegistration result = toRegistration(client);
+
+            // client secret does not expire if set
+            if (result.getClientSecret() != null) {
+                result.setClientSecretExpiresAt(0);
+            }
+
+            return result;
         } catch (NoSuchClientException e) {
             throw new ClientRegistrationException("No client with requested id: " + clientId);
         }

@@ -69,8 +69,7 @@ import it.smartcommunitylab.aac.openid.common.IdToken;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 
 /*
- * Implementation of AuthorizationEndpoint 
- * 
+ * OAuth2/OIDC 
  * supports
  * https://datatracker.ietf.org/doc/html/rfc6749
  * https://datatracker.ietf.org/doc/html/rfc7636

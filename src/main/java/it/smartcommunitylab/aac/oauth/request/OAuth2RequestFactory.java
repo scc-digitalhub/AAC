@@ -30,9 +30,12 @@ import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
@@ -313,6 +316,23 @@ public class OAuth2RequestFactory
             registration = mapper.convertValue(registrationParameters, ClientRegistration.class);
         } catch (IllegalArgumentException e) {
             throw new InvalidRequestException("invalid registration");
+        }
+
+        // set defaults if missing
+        if (registration.getResponseTypes() == null) {
+            registration.setResponseTypes(Collections.singleton(ResponseType.CODE.getValue()));
+        }
+        if (registration.getGrantType() == null) {
+            registration.setGrantType(Collections.singleton(AUTHORIZATION_CODE.getValue()));
+        }
+
+        if (registration.getApplicationType() == null) {
+            registration.setApplicationType(ApplicationType.WEB.getValue());
+        }
+
+        if (registration.getAuthenticationMethods() == null) {
+            registration.setAuthenticationMethods(
+                    Collections.singleton(AuthenticationMethod.CLIENT_SECRET_BASIC.getValue()));
         }
 
         // check if software statement is provided

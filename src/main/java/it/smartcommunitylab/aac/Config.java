@@ -161,6 +161,8 @@ public class Config {
     /** scopes for authorization */
     public static final String SCOPE_AUTH_MANAGE = "authorization.manage";
     public static final String SCOPE_AUTH_SCHEMA_MANAGE = "authorization.schema.manage";
+    
+    public static final String SCOPE_DYNAMIC_CLIENT_REGISTRATION = "dcr";
 
 //	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
 //	public static final String CLIENT_PARAM_ENCRYPTED_RESPONSE_ALG = "encrypted_response_alg";

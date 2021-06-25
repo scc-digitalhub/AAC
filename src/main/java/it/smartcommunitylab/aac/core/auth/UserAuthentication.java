@@ -102,7 +102,10 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
     }
 
     public long getAge() {
-        return Duration.between(createdAt, Instant.now()).toSeconds();
+        if (createdAt != null) {
+            return Duration.between(createdAt, Instant.now()).toSeconds();
+        }
+        return -1;
     }
 
     @Override

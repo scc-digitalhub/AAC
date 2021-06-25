@@ -24,7 +24,8 @@
           <div ng-if="item.source == realm.slug"><div ng-repeat="p in item._providers">{{p}}</div></div>
         </td>
         <td class="align-middle">{{item.username}}</td>
-        <td class="align-middle small"><div ng-repeat="a in item._authorities">{{a}}</div></td>        
+        <td class="align-middle small">        
+        <span ng-repeat="a in item._authorities"><span class="badge badge-secondary">{{a}}</span> </span> </td>        
   	    <td class="text-right">
          <button class="btn btn-secondary btn-sm"  ng-click="editRoles(item)">Roles</button>
   	     <button class="btn btn-danger btn-sm"  ng-click="deleteUserDlg(item)">Delete</button>

@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.dto.CustomizationBean;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
@@ -28,14 +29,19 @@ public class Realm {
 
     private List<CustomizationBean> customization;
 
+    private OAuth2ConfigurationMap oauthConfiguration;
+
     public Realm() {
         this.customization = Collections.emptyList();
+        this.oauthConfiguration = new OAuth2ConfigurationMap();
     }
 
     public Realm(String slug, String name) {
         this.name = name;
         this.slug = slug;
         this.customization = Collections.emptyList();
+        this.oauthConfiguration = new OAuth2ConfigurationMap();
+
     }
 
     public String getName() {
@@ -84,6 +90,14 @@ public class Realm {
         }
 
         return customization.stream().filter(c -> c.getIdentifier().equals(key)).findFirst().orElse(null);
+    }
+
+    public OAuth2ConfigurationMap getOAuthConfiguration() {
+        return oauthConfiguration;
+    }
+
+    public void setOAuthConfiguration(OAuth2ConfigurationMap oauthConfiguration) {
+        this.oauthConfiguration = oauthConfiguration;
     }
 
 }

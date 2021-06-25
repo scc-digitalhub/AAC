@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.core.service.ProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.jwt.JWTService;
@@ -41,8 +42,11 @@ import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensionsHandler;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntityRepository;
+import it.smartcommunitylab.aac.oauth.provider.ClientRegistrationServices;
 import it.smartcommunitylab.aac.oauth.request.ExtRedirectResolver;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientRegistrationServices;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.InMemoryAuthorizationRequestStore;
 import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
@@ -54,6 +58,7 @@ import it.smartcommunitylab.aac.oauth.token.AbstractTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.AuthorizationCodeTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.token.ClientCredentialsTokenGranter;
+import it.smartcommunitylab.aac.oauth.token.DCRTokenEnhancer;
 import it.smartcommunitylab.aac.oauth.token.ImplicitTokenGranter;
 import it.smartcommunitylab.aac.oauth.token.JwtTokenConverter;
 import it.smartcommunitylab.aac.oauth.token.PKCEAwareTokenGranter;
@@ -236,12 +241,19 @@ public class OAuth2Config {
     }
 
     @Bean
+    public DCRTokenEnhancer dcrTokenEnhancer() {
+        return new DCRTokenEnhancer();
+    }
+
+    @Bean
     public AACTokenEnhancer aacTokenEnhancer(ClaimsTokenEnhancer claimsEnhancer,
-//            OIDCTokenEnhancer oidcEnhancer,
+//            OIDCTokenEnhancer oidcEnhancer, 
+            DCRTokenEnhancer dcrTokenEnhancer,
             JwtTokenConverter tokenConverter) {
         AACTokenEnhancer enhancer = new AACTokenEnhancer();
         enhancer.setClaimsEnhancer(claimsEnhancer);
 //        enhancer.setOidcEnhancer(oidcEnhancer);
+        enhancer.setDcrTokenEnhancer(dcrTokenEnhancer);
         enhancer.setTokenConverter(tokenConverter);
 
         return enhancer;
@@ -362,6 +374,16 @@ public class OAuth2Config {
 
         return idTokenServices;
 
+    }
+
+    @Bean
+    public ClientRegistrationServices clientRegistrationServices(
+            OAuth2ClientService clientService,
+            ProviderService providerService) {
+        OAuth2ClientRegistrationServices dcrServices = new OAuth2ClientRegistrationServices(clientService);
+        dcrServices.setProviderService(providerService);
+
+        return dcrServices;
     }
 
     @Bean

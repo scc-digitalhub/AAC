@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.core.persistence.RealmEntity;
 import it.smartcommunitylab.aac.core.persistence.RealmEntityRepository;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 
 @Service
 @Transactional
@@ -135,6 +136,7 @@ public class RealmService implements InitializingBean {
     }
 
     public Realm updateRealm(String slug, String name, boolean isEditable, boolean isPublic,
+            Map<String, Serializable> oauthConfigurationMap,
             Map<String, Map<String, String>> customizations)
             throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
@@ -166,7 +168,7 @@ public class RealmService implements InitializingBean {
             }
         }
         r.setCustomizations(customMap);
-
+        r.setOAuthConfigurationMap(oauthConfigurationMap);
         r = realmRepository.save(r);
 
         return toRealm(r);
@@ -222,6 +224,12 @@ public class RealmService implements InitializingBean {
         Realm r = new Realm(re.getSlug(), re.getName());
         r.setEditable(re.isEditable());
         r.setPublic(re.isPublic());
+
+        OAuth2ConfigurationMap oauth2ConfigMap = new OAuth2ConfigurationMap();
+        if (re.getOAuthConfigurationMap() != null) {
+            oauth2ConfigMap.setConfiguration(re.getOAuthConfigurationMap());
+        }
+        r.setOAuthConfiguration(oauth2ConfigMap);
 
         // build a template customization map
         Map<String, CustomizationBean> map = new HashMap<>();

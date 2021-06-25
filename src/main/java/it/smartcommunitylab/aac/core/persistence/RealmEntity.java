@@ -50,6 +50,11 @@ public class RealmEntity {
     private boolean isPublic;
 
     @Lob
+    @Column(name = "oauth_configuration_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Serializable> oauthConfigurationMap;
+
+    @Lob
     @Column(name = "customizations")
     @Convert(converter = NestedMapConverter.class)
     private Map<String, Map<String, String>> customizations;
@@ -100,6 +105,14 @@ public class RealmEntity {
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public Map<String, Serializable> getOAuthConfigurationMap() {
+        return oauthConfigurationMap;
+    }
+
+    public void setOAuthConfigurationMap(Map<String, Serializable> oauthConfigurationMap) {
+        this.oauthConfigurationMap = oauthConfigurationMap;
     }
 
     public Map<String, Map<String, String>> getCustomizations() {

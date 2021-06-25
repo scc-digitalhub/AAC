@@ -31,7 +31,7 @@ public class SecureStringKeyGenerator implements StringKeyGenerator {
     @Override
     public String generateKey() {
         byte[] key = generator.generateKey();
-        byte[] encoded = Base64.getUrlEncoder().encode(key);
+        byte[] encoded = Base64.getUrlEncoder().withoutPadding().encode(key);
         return new String(encoded, charset);
     }
 

@@ -54,7 +54,8 @@ import it.smartcommunitylab.aac.oauth.token.AACTokenEnhancer;
  * Each request will result in a new token
  */
 
-public class OAuth2TokenServices implements AuthorizationServerTokenServices, ConsumerTokenServices,
+public class OAuth2TokenServices
+        implements AuthorizationServerTokenServices, ConsumerTokenServices,
         ResourceServerTokenServices, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

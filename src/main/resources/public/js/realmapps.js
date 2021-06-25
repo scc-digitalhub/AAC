@@ -254,7 +254,9 @@ angular.module('aac.controllers.realmapps', [])
             //set
             $scope.app = data;
             $scope.appname = data.name;
-
+            $scope.configurationMap = data.configuration;
+            $scope.configurationSchema = data.schema;
+            
             // process idps
             var idps = [];
 
@@ -353,22 +355,22 @@ angular.module('aac.controllers.realmapps', [])
             var conf = config;
 
             if (type === 'oauth2') {
-                // extract grantTypes
-                var grantTypes = [];
-                for (var gt of $scope.oauth2GrantTypes) {
-                    if (gt.value) {
-                        grantTypes.push(gt.key);
-                    }
-                }
-                conf.authorizedGrantTypes = grantTypes;
-
-                var authMethods = [];
-                for (var am of $scope.oauth2AuthenticationMethods) {
-                    if (am.value) {
-                        authMethods.push(am.key);
-                    }
-                }
-                conf.authenticationMethods = authMethods;
+//                // extract grantTypes
+//                var grantTypes = [];
+//                for (var gt of $scope.oauth2GrantTypes) {
+//                    if (gt.value) {
+//                        grantTypes.push(gt.key);
+//                    }
+//                }
+//                conf.authorizedGrantTypes = grantTypes;
+//
+//                var authMethods = [];
+//                for (var am of $scope.oauth2AuthenticationMethods) {
+//                    if (am.value) {
+//                        authMethods.push(am.key);
+//                    }
+//                }
+//                conf.authenticationMethods = authMethods;
 
                 var redirectUris = $scope.oauth2RedirectUris.map(function (r) {
                     if (r.hasOwnProperty('text')) {

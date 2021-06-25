@@ -424,6 +424,25 @@ angular.module('aac.controllers.realm', [])
     var slug = $stateParams.realmId;
 
 
+    $scope.formView = 'basic';
+
+    $scope.aceOption = {
+      mode: 'html',
+      theme: 'monokai',
+      maxLines: 30,
+      minLines: 12,
+    };
+
+    $scope.activeView = function (view) {
+      return view == $scope.formView ? 'active' : '';
+    };
+
+    $scope.switchView = function (view) {
+      $scope.formView = view;
+      Utils.refreshFormBS(300);
+    }
+
+
     var init = function () {
       RealmData.getRealm(slug)
         .then(function (data) {
