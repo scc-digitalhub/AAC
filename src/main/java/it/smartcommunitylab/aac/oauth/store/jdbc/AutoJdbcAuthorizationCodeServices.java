@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.oauth.store.jdbc;
 
-import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -36,7 +35,7 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.oauth.common.HumanStringKeyGenerator;
+import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 
 /**
@@ -51,7 +50,9 @@ import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices
 public class AutoJdbcAuthorizationCodeServices
         implements AuthorizationCodeServices, PeekableAuthorizationCodeServices {
 
-    private static final StringKeyGenerator TOKEN_GENERATOR = new HumanStringKeyGenerator(6);
+//    private static final StringKeyGenerator TOKEN_GENERATOR = new HumanStringKeyGenerator(6);
+    private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(16);
+
     private static final int DEFAULT_CODE_VALIDITY_SECONDS = 10 * 60;
 
     private static final String DEFAULT_CREATE_TABLE_STATEMENT = "CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), client_id VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);";
