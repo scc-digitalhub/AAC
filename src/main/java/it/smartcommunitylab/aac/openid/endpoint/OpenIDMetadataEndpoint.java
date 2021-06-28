@@ -17,10 +17,12 @@
 package it.smartcommunitylab.aac.openid.endpoint;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,13 +34,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
@@ -46,59 +41,66 @@ import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.TokenEndpoint;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.ResponseMode;
+import it.smartcommunitylab.aac.oauth.model.ResponseType;
+import it.smartcommunitylab.aac.oauth.model.SubjectType;
+import it.smartcommunitylab.aac.openid.scope.OpenIdScopeProvider;
+import it.smartcommunitylab.aac.profiles.scope.ProfileScopeProvider;
 
 /**
-*
-* Handle OpenID Connect Discovery.
-*
-* @author jricher
-*
-*/
+ *
+ * Handle OpenID Connect Discovery.
+ *
+ * @author jricher
+ *
+ */
 @Controller
 @Api(tags = { "OpenID Connect Discovery" })
 public class OpenIDMetadataEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	public static final String OPENID_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/openid-configuration";
-	public static final String WEBFINGER_URL = Config.WELL_KNOWN_URL + "/webfinger";
+    public static final String OPENID_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/openid-configuration";
+    public static final String WEBFINGER_URL = Config.WELL_KNOWN_URL + "/webfinger";
 
-	private static Map<String, Object> configuration;
-	
-	@Value("${application.url}")
-	private String applicationURL;
+    private static Map<String, Object> configuration;
 
-	@Value("${jwt.issuer}")
-	private String issuer;
+    @Value("${application.url}")
+    private String applicationURL;
 
-	@Autowired
-	private JWTSigningAndValidationService signService;
+    @Value("${jwt.issuer}")
+    private String issuer;
 
-	@Autowired
-	private JWTEncryptionAndDecryptionService encService;
+    @Autowired
+    private JWTSigningAndValidationService signService;
 
-    @ApiOperation(value="Get OpenID provider configuration information")
-	@RequestMapping(method=RequestMethod.GET, value=OPENID_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody Map<String, Object> providerConfiguration() {
-		return getConfiguration();
-	}
+    @Autowired
+    private JWTEncryptionAndDecryptionService encService;
 
-	/**
-	 * @return
-	 */
-	private Map<String, Object> getConfiguration() {
-		if (configuration == null) {
-		    //provider metadata
-			Map<String, Object> m = getDiscoveryMetadata();
-			//session metadata
-			m.putAll(getSessionMetadata());
-			//cache
-			configuration = m;
-		}
-		return configuration;
-	}
+    @ApiOperation(value = "Get OpenID provider configuration information")
+    @RequestMapping(method = RequestMethod.GET, value = OPENID_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody Map<String, Object> providerConfiguration() {
+        return getConfiguration();
+    }
 
-	   
-	public Map<String, Object> getDiscoveryMetadata() {
+    /**
+     * @return
+     */
+    private Map<String, Object> getConfiguration() {
+        if (configuration == null) {
+            // provider metadata
+            Map<String, Object> m = getDiscoveryMetadata();
+            // session metadata
+            m.putAll(getSessionMetadata());
+            // cache
+            configuration = m;
+        }
+        return configuration;
+    }
+
+    public Map<String, Object> getDiscoveryMetadata() {
+        //@formatter:off
         /*
          * OpenID Provider Metadata
          * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
@@ -209,96 +211,124 @@ public class OpenIDMetadataEndpoint {
             require_request_uri_registration
                 OPTIONAL. Boolean value specifying whether the OP requires any request_uri values used to be pre-registered using
                 the request_uris registration parameter. Pre-registration is REQUIRED when the value is true. If omitted, the default value is false.
-            op_policy_uri
-                OPTIONAL. URL that the OpenID Provider provides to the person registering the Client to read about the OP's requirements on
-                how the Relying Party can use the data provided by the OP. The registration process SHOULD display this URL to the person registering
-                the Client if it is given.
-            op_tos_uri
-                OPTIONAL. URL that the OpenID Provider provides to the person registering the Client to read about OpenID Provider's terms of service.
-                The registration process SHOULD display this URL to the person registering the Client if it is given.
-            */
+            op_policy_uri OPTIONAL. URL that the OpenID Provider provides
+         * to the person registering the Client to read about the OP's requirements on
+         * how the Relying Party can use the data provided by the OP. The registration
+         * process SHOULD display this URL to the person registering the Client if it is
+         * given. op_tos_uri OPTIONAL. URL that the OpenID Provider provides to the
+         * person registering the Client to read about OpenID Provider's terms of
+         * service. The registration process SHOULD display this URL to the person
+         * registering the Client if it is given.
+         */
+        //@formatter:on
 
         String baseUrl = getBaseUrl();
-
-        signService.getAllSigningAlgsSupported();
-        Lists.newArrayList(JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512);
-        Collection<JWSAlgorithm> clientSymmetricAndAsymmetricSigningAlgs = Lists.newArrayList(JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
-                JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
-                JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512);
-        Collection<Algorithm> clientSymmetricAndAsymmetricSigningAlgsWithNone = Lists.newArrayList(JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
-                JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
-                JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512,
-                Algorithm.NONE);
-        ArrayList<String> grantTypes = Lists.newArrayList("authorization_code", "implicit", "urn:ietf:params:oauth:grant-type:jwt-bearer", "client_credentials", "urn:ietf:params:oauth:grant_type:redelegate", "urn:ietf:params:oauth:grant-type:device_code");
-
         Map<String, Object> m = new HashMap<>();
+
         m.put("issuer", issuer);
-        m.put("authorization_endpoint", baseUrl + AuthorizationEndpoint.AUTHORIZATION_URL); 
-        m.put("token_endpoint", baseUrl + TokenEndpoint.TOKEN_URL); 
+        m.put("authorization_endpoint", baseUrl + AuthorizationEndpoint.AUTHORIZATION_URL);
+        m.put("token_endpoint", baseUrl + TokenEndpoint.TOKEN_URL);
         m.put("userinfo_endpoint", baseUrl + UserInfoEndpoint.USERINFO_URL);
         m.put("jwks_uri", baseUrl + JWKSetPublishingEndpoint.JWKS_URL);
-//	          m.put("registration_endpoint", baseUrl + DynamicClientRegistrationEndpoint.URL); //not implemented
-        m.put("scopes_supported", getAvailableScopes()); // these are the scopes that you can dynamically register for, which is what matters for discovery
-        m.put("response_types_supported", Lists.newArrayList("code", "token", "id_token", "id_token token"));
-        m.put("response_modes_supported", Lists.newArrayList("query", "fragment")); //default values, we don't really support it 
+
+        List<String> scopes = new ArrayList<>();
+        scopes.addAll(OpenIdScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
+        scopes.addAll(ProfileScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
+        m.put("scopes_supported", scopes);
+
+        List<String> responseTypes = Stream.of(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)
+                .map(t -> t.getValue()).collect(Collectors.toList());
+        m.put("response_types_supported", responseTypes);
+
+        List<String> responseModes = Stream.of(ResponseMode.QUERY, ResponseMode.FRAGMENT, ResponseMode.FORM_POST)
+                .map(t -> t.getValue()).collect(Collectors.toList());
+        m.put("response_modes_supported", responseModes);
+
+        List<String> grantTypes = Stream
+                .of(AuthorizationGrantType.AUTHORIZATION_CODE, AuthorizationGrantType.IMPLICIT,
+                        AuthorizationGrantType.PASSWORD, AuthorizationGrantType.CLIENT_CREDENTIALS,
+                        AuthorizationGrantType.REFRESH_TOKEN)
+                .map(t -> t.getValue()).collect(Collectors.toList());
         m.put("grant_types_supported", grantTypes);
-//	          m.put("acr_values_supported", ""); //not implemented
-        m.put("subject_types_supported", Lists.newArrayList("public", "pairwise"));
-        m.put("id_token_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgsWithNone, toAlgorithmName));
-        m.put("id_token_encryption_alg_values_supported", Collections2.transform(encService.getAllEncryptionAlgsSupported(), toAlgorithmName));
-        m.put("id_token_encryption_enc_values_supported", Collections2.transform(encService.getAllEncryptionEncsSupported(), toAlgorithmName));             
-        m.put("userinfo_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
-        m.put("userinfo_encryption_alg_values_supported", Collections2.transform(encService.getAllEncryptionAlgsSupported(), toAlgorithmName));
-        m.put("userinfo_encryption_enc_values_supported", Collections2.transform(encService.getAllEncryptionEncsSupported(), toAlgorithmName));
-        m.put("request_object_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
-        m.put("request_object_encryption_alg_values_supported", Collections2.transform(encService.getAllEncryptionAlgsSupported(), toAlgorithmName));
-        m.put("request_object_encryption_enc_values_supported", Collections2.transform(encService.getAllEncryptionEncsSupported(), toAlgorithmName));
-        m.put("token_endpoint_auth_methods_supported", Lists.newArrayList("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none"));
-        m.put("token_endpoint_auth_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
-//	          m.put("display_types_supported",""); //not supported
-        m.put("claim_types_supported", Lists.newArrayList("normal" /*, "aggregated", "distributed"*/));
-        //TODO match list to ClaimManager openid claims?
-        m.put("claims_supported", Lists.newArrayList(
-                "sub",
-                "iss",
-                "aud",
-                "name",
+
+        // unsupported
+//      m.put("acr_values_supported", ""); 
+
+        List<String> subjectTypes = Stream.of(SubjectType.PUBLIC, SubjectType.PAIRWISE)
+                .map(t -> t.getValue()).collect(Collectors.toList());
+        m.put("subject_types_supported", subjectTypes);
+
+        List<String> signAlgorithms = signService.getAllSigningAlgsSupported().stream()
+                .map(a -> a.getName()).collect(Collectors.toList());
+        List<String> encAlgorithms = encService.getAllEncryptionAlgsSupported().stream()
+                .map(a -> a.getName()).collect(Collectors.toList());
+        List<String> encMethods = encService.getAllEncryptionEncsSupported().stream()
+                .map(a -> a.getName()).collect(Collectors.toList());
+
+        m.put("id_token_signing_alg_values_supported", signAlgorithms);
+        m.put("id_token_encryption_alg_values_supported", encAlgorithms);
+        m.put("id_token_encryption_enc_values_supported", encMethods);
+
+        // unsupported
+//        m.put("userinfo_signing_alg_values_supported",signAlgorithms);
+//        m.put("userinfo_encryption_alg_values_supported",encAlgorithms);
+//        m.put("userinfo_encryption_enc_values_supported",encMethods);
+
+        // unsupported
+//        m.put("request_object_signing_alg_values_supported",signAlgorithms);
+//        m.put("request_object_encryption_alg_values_supported",encAlgorithms);
+//        m.put("request_object_encryption_enc_values_supported",encMethods);
+
+        List<String> authMethods = Stream
+                .of(AuthenticationMethod.CLIENT_SECRET_BASIC,
+                        AuthenticationMethod.CLIENT_SECRET_POST,
+                        AuthenticationMethod.NONE)
+                .map(t -> t.getValue()).collect(Collectors.toList());
+        m.put("token_endpoint_auth_methods_supported", authMethods);
+
+        // unsupported
+//        m.put("token_endpoint_auth_signing_alg_values_supported",signAlgorithms);
+
+        m.put("display_types_supported", Collections.singleton("page"));
+        m.put("claim_types_supported", Collections.singleton("normal"));
+
+        // TODO export claim names from providers
+        List<String> claimsSupported = Stream.of("sub", "iss", "auth_time",
+                "name", "given_name", "family_name",
                 "preferred_username",
-                "given_name",
-                "family_name",
-                "email"
-                ));
+                "email", "email_verified",
+                "locale", "zoneinfo").collect(Collectors.toList());
+        m.put("claims_supported", claimsSupported);
 //	          m.put("service_documentation",""); //not supported
 //	          m.put("claims_locales_supported",""); //not supported
 //	          m.put("ui_locales_supported",""); //not supported           
         m.put("claims_parameter_supported", false);
-        m.put("request_parameter_supported", true); //TODO check support
-        m.put("request_uri_parameter_supported", false); //TODO check support
+        m.put("request_parameter_supported", false);
+        m.put("request_uri_parameter_supported", false);
         m.put("require_request_uri_registration", false);
 //	          m.put("op_policy_uri",""); //not supported
 //	          m.put("op_tos_uri",""); //not supported
-        
-        //NOTE these are OAuth2 endpoint
+
+        // NOTE these are OAuth2 endpoint
 //        m.put("revocation_endpoint", baseUrl + "eauth/revoke"); // token revocation endpoint
 
         return m;
     }
-	
-    public Map<String, Object> getSessionMetadata() {         
+
+    public Map<String, Object> getSessionMetadata() {
+        //@formatter:off
         /*
          * OpenID Provider Discovery Metadata
          * https://openid.net/specs/openid-connect-session-1_0.html#OPMetadata
          * 
-            check_session_iframe
-                OPTIONAL. URL of an OP endpoint that provides a page to support cross-origin communications for session state information with
-                the RP Client, using the HTML5 postMessage API. The page is loaded from an invisible iframe embedded in an RP page so that
-                it can run in the OP's security context. See [OpenID.Session].
-            end_session_endpoint
-                OPTIONAL. URL of the OP's endpoint that initiates logging out the End-User. See [OpenID.Session].                   
+         * check_session_iframe OPTIONAL. URL of an OP endpoint that provides a page to
+         * support cross-origin communications for session state information with the RP
+         * Client, using the HTML5 postMessage API. The page is loaded from an invisible
+         * iframe embedded in an RP page so that it can run in the OP's security
+         * context. See [OpenID.Session]. end_session_endpoint OPTIONAL. URL of the OP's
+         * endpoint that initiates logging out the End-User. See [OpenID.Session].
          */
-    
+        //@formatter:on
         String baseUrl = getBaseUrl();
         Map<String, Object> m = new HashMap<>();
 
@@ -306,20 +336,8 @@ public class OpenIDMetadataEndpoint {
         m.put("end_session_endpoint", baseUrl + EndSessionEndpoint.END_SESSION_URL);
 
         return m;
-    } 
-	
-    // used to map JWA algorithms objects to strings
-    private Function<Algorithm, String> toAlgorithmName = new Function<Algorithm, String>() {
-        @Override
-        public String apply(Algorithm alg) {
-            if (alg == null) {
-                return null;
-            } else {
-                return alg.getName();
-            }
-        }
-    };
-    
+    }
+
     private String getBaseUrl() {
         String baseUrl = applicationURL;
 
@@ -329,12 +347,5 @@ public class OpenIDMetadataEndpoint {
 //        }
         return baseUrl;
     }
-    
-	/**
-	 * @return
-	 */
-	private Set<String> getAvailableScopes() {
-		return Sets.newHashSet(Config.SCOPE_OPENID,Config.SCOPE_PROFILE, Config.SCOPE_EMAIL, Config.SCOPE_BASIC_PROFILE, Config.SCOPE_ACCOUNT_PROFILE);
-	}
 
 }

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,8 +17,6 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.util.Assert;
-
-import com.google.common.collect.Sets;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
@@ -289,7 +288,7 @@ public class UserDetails implements org.springframework.security.core.userdetail
     }
 
     public boolean hasAnyAuthority(String... auth) {
-        Set<String> set = Sets.newHashSet(auth);
+        List<String> set = Arrays.asList(auth);
         return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> set.contains(a.getAuthority()));
     }
 
@@ -305,9 +304,11 @@ public class UserDetails implements org.springframework.security.core.userdetail
         return getAuthorities() != null && getAuthorities().stream().anyMatch(
                 a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN));
     }
+
     public boolean isSystemAdmin() {
         // TODO check if can do better at the level of user
-        return getAuthorities() != null && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()));
+        return getAuthorities() != null
+                && getAuthorities().stream().anyMatch(a -> Config.R_ADMIN.equals(a.getAuthority()));
     }
 
     public Collection<String> getRealms() {

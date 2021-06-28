@@ -1,23 +1,16 @@
 package it.smartcommunitylab.aac.config;
 
-import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collection;
-import java.util.Map;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
@@ -28,28 +21,22 @@ import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.google.common.collect.Maps;
-
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
-import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.core.service.UserTranslatorService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;

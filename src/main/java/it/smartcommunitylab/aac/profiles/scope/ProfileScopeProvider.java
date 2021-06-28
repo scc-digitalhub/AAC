@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 public class ProfileScopeProvider implements ScopeProvider {
 
     private static final ProfileResource resource = new ProfileResource();
-    private static final Set<Scope> scopes;
+    public static final Set<Scope> scopes;
     public static final Map<String, WhitelistScopeApprover> approvers;
 
     static {

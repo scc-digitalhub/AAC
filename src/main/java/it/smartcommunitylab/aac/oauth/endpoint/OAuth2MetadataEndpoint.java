@@ -1,7 +1,10 @@
 package it.smartcommunitylab.aac.oauth.endpoint;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,15 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
 
 /*
@@ -30,7 +29,7 @@ import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
  */
 @Controller
 @Api(tags = { "OAuth 2.0 Authorization Server Metadata" })
-public class OAuth2MetadataEndpoint  {
+public class OAuth2MetadataEndpoint {
 
     public static final String OAUTH2_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/oauth-authorization-server";
 
@@ -38,23 +37,26 @@ public class OAuth2MetadataEndpoint  {
 
     @Value("${application.url}")
     private String applicationURL;
-    
+
     @Autowired
     OpenIDMetadataEndpoint oidcMetadataEndpoint;
 
-    @ApiOperation(value="Get authorization server metadata")
-    @RequestMapping(method=RequestMethod.GET, value=OAUTH2_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Autowired
+    private JWTSigningAndValidationService signService;
+
+    @ApiOperation(value = "Get authorization server metadata")
+    @RequestMapping(method = RequestMethod.GET, value = OAUTH2_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody Map<String, Object> serverMetadata() {
         return getConfiguration();
     }
-    
+
     private Map<String, Object> getConfiguration() {
         if (configuration == null) {
-            //auth server metadata
+            // auth server metadata
             Map<String, Object> m = getAuthServerMetadata();
-            //add session metadata
+            // add session metadata
             m.putAll(oidcMetadataEndpoint.getSessionMetadata());
-            //cache
+            // cache
             configuration = m;
         }
         return configuration;
@@ -66,7 +68,7 @@ public class OAuth2MetadataEndpoint  {
         // fetch oidc provider metadata
         // oauth2 metadata are an extension compatible with OIDC
         Map<String, Object> m = oidcMetadataEndpoint.getDiscoveryMetadata();
-
+        //@formatter:off
         /**
          * extend metadata for oauth2 from OIDC Provider Metadata
          * 
@@ -94,34 +96,29 @@ public class OAuth2MetadataEndpoint  {
                      Exchange (PKCE) [RFC7636] code challenge methods supported by this
                      authorization server.
          */
-        //load all signing alg
-        //TODO check support
-        Collection<JWSAlgorithm> clientSymmetricAndAsymmetricSigningAlgs = Lists.newArrayList(JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
-                JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
-                JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512);
-        
-        m.put("revocation_endpoint", baseUrl + TokenRevocationEndpoint.TOKEN_REVOCATION_URL); // token revocation endpoint
-        m.put("revocation_endpoint_auth_methods_supported",  Lists.newArrayList("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none"));
-        m.put("revocation_endpoint_auth_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
-        
+        //@formatter:on
+        // load all signing alg
+        // TODO check support
+
+        List<String> signAlgorithms = signService.getAllSigningAlgsSupported().stream()
+                .map(a -> a.getName()).collect(Collectors.toList());
+
+        m.put("revocation_endpoint", baseUrl + TokenRevocationEndpoint.TOKEN_REVOCATION_URL);
+
+        List<String> authMethods = Stream.of(AuthenticationMethod.CLIENT_SECRET_BASIC,
+                AuthenticationMethod.CLIENT_SECRET_POST)
+                .map(t -> t.getValue()).collect(Collectors.toList());
+
+        m.put("revocation_endpoint", baseUrl + TokenRevocationEndpoint.TOKEN_REVOCATION_URL);
+        m.put("revocation_endpoint_auth_methods_supported", authMethods);
+        m.put("revocation_endpoint_auth_signing_alg_values_supported", signAlgorithms);
+
         m.put("introspection_endpoint", baseUrl + TokenIntrospectionEndpoint.TOKEN_INTROSPECTION_URL);
-        m.put("introspection_endpoint_auth_methods_supported",  Lists.newArrayList("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none"));
-        m.put("introspection_endpoint_auth_signing_alg_values_supported", Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName));
-        
-        m.put("code_challenge_methods_supported", Lists.newArrayList("S256")); //as per spec do not expose plain
+        m.put("introspection_endpoint_auth_methods_supported", authMethods);
+        m.put("introspection_endpoint_auth_signing_alg_values_supported", signAlgorithms);
+
+        m.put("code_challenge_methods_supported", Collections.singleton("S256")); // as per spec do not expose plain
         return m;
     }
-    
-    // used to map JWA algorithms objects to strings
-    private Function<Algorithm, String> toAlgorithmName = new Function<Algorithm, String>() {
-        @Override
-        public String apply(Algorithm alg) {
-            if (alg == null) {
-                return null;
-            } else {
-                return alg.getName();
-            }
-        }
-    };
+
 }

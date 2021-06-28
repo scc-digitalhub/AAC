@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 public class OpenIdScopeProvider implements ScopeProvider {
 
     private static final OpenIdResource resource = new OpenIdResource();
-    private static final Set<Scope> scopes;
+    public static final Set<Scope> scopes;
     public static final Map<String, WhitelistScopeApprover> approvers;
 
     static {

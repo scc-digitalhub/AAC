@@ -23,8 +23,8 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-import com.google.common.base.Strings;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -32,7 +32,6 @@ import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.Claim;
-import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -43,7 +42,6 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.jwt.JWTService;
-import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -241,7 +239,7 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         idClaims.claim("azp", clientId);
 
         String nonce = (String) request.getExtensions().get(NONCE);
-        if (!Strings.isNullOrEmpty(nonce)) {
+        if (StringUtils.hasText(nonce)) {
             idClaims.claim("nonce", nonce);
         }
 

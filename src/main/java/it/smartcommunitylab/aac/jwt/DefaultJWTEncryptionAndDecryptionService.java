@@ -12,8 +12,8 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
-import com.google.common.base.Strings;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -83,7 +83,7 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
         // convert all keys in the keystore to a map based on key id
         for (JWK key : keyStore.getKeys()) {
             if (key.getKeyUse() == null || key.getKeyUse().equals(KeyUse.ENCRYPTION)) {
-                if (!Strings.isNullOrEmpty(key.getKeyID())) {
+                if (StringUtils.hasText(key.getKeyID())) {
                     this.keys.put(key.getKeyID(), key);
                 } else {
                     throw new IllegalArgumentException(
