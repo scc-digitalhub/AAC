@@ -373,6 +373,17 @@ angular.module('aac.controllers.realmproviders', [])
                 });
                 $scope.idpOidcScope = scopes;
             }
+
+            if (authority == 'saml') {
+                var authnContextClasses = [];
+                if (config.authnContextClasses) {
+                    config.authnContextClasses.forEach(function (s) {
+                        authnContextClasses.push({ 'text': s });
+                    });
+                }
+
+                $scope.samlAuthnContextClasses = authnContextClasses;
+            }
         }
 
         var extractConfiguration = function (authority, config) {
@@ -384,6 +395,20 @@ angular.module('aac.controllers.realmproviders', [])
                     return s;
                 });
                 config.scope = scopes.join(',');
+            }
+            if (authority == 'saml') {
+                var authnContextClasses = $scope.samlAuthnContextClasses.map(function (s) {
+                    if (s.hasOwnProperty('text')) {
+                        return s.text;
+                    }
+                    return s;
+                });
+                if (authnContextClasses && authnContextClasses.length) {
+                    config.authnContextClasses = authnContextClasses;
+                } else {
+                    config.authnContextClasses = null;
+                }
+
             }
 
             return config;

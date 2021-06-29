@@ -519,6 +519,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         // build filters
         SamlWebSsoAuthenticationRequestFilter requestFilter = new SamlWebSsoAuthenticationRequestFilter(
+                providerRepository,
                 relyingPartyRegistrationRepository);
 
         SamlWebSsoAuthenticationFilter ssoFilter = new SamlWebSsoAuthenticationFilter(

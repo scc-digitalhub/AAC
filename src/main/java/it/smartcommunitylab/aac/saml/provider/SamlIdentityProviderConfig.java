@@ -11,6 +11,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -21,6 +22,7 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.io.pem.PemReader;
+import org.opensaml.saml.saml2.core.AuthnContextClassRef;
 import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.core.Saml2X509Credential.Saml2X509CredentialType;
@@ -217,6 +219,32 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
     }
 
+    // export additional properties not supported by stock model
+    public Boolean getRelyingPartyRegistrationIsForceAuthn() {
+        return configMap.getForceAuthn();
+    }
+
+    public Boolean getRelyingPartyRegistrationIsPassive() {
+        return configMap.getIsPassive();
+    }
+
+    public String getRelyingPartyRegistrationNameIdFormat() {
+        return configMap.getNameIDFormat();
+    }
+
+    public Boolean getRelyingPartyRegistrationNameIdAllowCreate() {
+        return configMap.getNameIDAllowCreate();
+    }
+
+    public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {
+        return configMap.getAuthnContextClasses();
+    }
+
+    public String getRelyingPartyRegistrationAuthnContextComparison() {
+        return configMap.getAuthnContextComparison();
+    }
+
+    //
     private Saml2X509Credential getVerificationCertificate(String certificate)
             throws CertificateException, IOException {
         return new Saml2X509Credential(
@@ -227,9 +255,22 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     private Saml2X509Credential getCredentials(String key, String certificate, Saml2X509CredentialType... keyUse)
             throws IOException, CertificateException {
 //        PrivateKey pk = RsaKeyConverters.pkcs8().convert(new ByteArrayInputStream(key.getBytes()));
-        PrivateKey pk = parsePrivateKey(key);
+        PrivateKey pk = parsePrivateKeyFallback(key);
         X509Certificate cert = parseX509Certificate(certificate);
         return new Saml2X509Credential(pk, cert, keyUse);
+    }
+
+    private PrivateKey parsePrivateKeyFallback(String key) throws IOException {
+        // first try as rsa
+        PrivateKey pk = null;
+        try {
+            pk = parsePrivateKey(fixPem(key, "RSA PRIVATE KEY"));
+        } catch (IllegalArgumentException | IOException e) {
+            // fallback as private
+            pk = parsePrivateKey(fixPem(key, "PRIVATE KEY"));
+        }
+
+        return pk;
     }
 
     private PrivateKey parsePrivateKey(String key) throws IOException {
@@ -246,7 +287,7 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
             return converter.getPrivateKey((PrivateKeyInfo) pem);
         }
 
-       throw new IllegalArgumentException("invalid private key");
+        throw new IllegalArgumentException("invalid private key");
     }
 
 //    private X509Certificate parseX509Certificate(String source) {
@@ -260,7 +301,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 //    }
 
     private X509Certificate parseX509Certificate(String source) throws IOException, CertificateException {
-        StringReader sr = new StringReader(source);
+        String src = fixPem(source, "CERTIFICATE");
+        StringReader sr = new StringReader(src);
         PEMParser pr = new PEMParser(sr);
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
         Object pem = pr.readObject();
@@ -316,6 +358,37 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 //        sb.append(sep).append(footer).append(sep);
 //        return sb.toString();
 //    }
+
+    private String fixPem(String value, String kind) {
+        String sep = "-----";
+        String begin = "BEGIN " + kind;
+        String end = "END " + kind;
+
+        String header = sep + begin + sep;
+        String footer = sep + end + sep;
+
+        String[] lines = value.split("\\R");
+
+        if (lines.length > 2) {
+            // headers?
+            String headerLine = lines[0];
+            String footerLine = lines[lines.length - 1];
+
+            if (headerLine.startsWith(sep) && footerLine.startsWith(sep)) {
+                // return unchanged, don't mess with content
+                return value;
+            }
+        }
+
+        // rewrite
+        StringBuilder sb = new StringBuilder();
+        sb.append(header).append("\n");
+        for (int c = 0; c < lines.length; c++) {
+            sb.append(lines[c].trim()).append("\n");
+        }
+        sb.append(footer);
+        return sb.toString();
+    }
 
     /*
      * builders

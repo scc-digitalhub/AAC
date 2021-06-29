@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.saml.provider;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -42,6 +43,14 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
     private Boolean signAuthNRequest;
     private String verificationCertificate;
     private String ssoServiceBinding;
+
+    // advanced
+    private String nameIDFormat;
+    private Boolean nameIDAllowCreate;
+    private Boolean forceAuthn;
+    private Boolean isPassive;
+    private Set<String> authnContextClasses;
+    private String authnContextComparison;
 
     // not editable
     private String metadataUrl;
@@ -164,6 +173,54 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
         this.assertionConsumerServiceUrl = assertionConsumerServiceUrl;
     }
 
+    public String getNameIDFormat() {
+        return nameIDFormat;
+    }
+
+    public void setNameIDFormat(String nameIDFormat) {
+        this.nameIDFormat = nameIDFormat;
+    }
+
+    public Boolean getNameIDAllowCreate() {
+        return nameIDAllowCreate;
+    }
+
+    public void setNameIDAllowCreate(Boolean nameIDAllowCreate) {
+        this.nameIDAllowCreate = nameIDAllowCreate;
+    }
+
+    public Set<String> getAuthnContextClasses() {
+        return authnContextClasses;
+    }
+
+    public void setAuthnContextClasses(Set<String> authnContextClasses) {
+        this.authnContextClasses = authnContextClasses;
+    }
+
+    public String getAuthnContextComparison() {
+        return authnContextComparison;
+    }
+
+    public void setAuthnContextComparison(String authnContextComparison) {
+        this.authnContextComparison = authnContextComparison;
+    }
+
+    public Boolean getForceAuthn() {
+        return forceAuthn;
+    }
+
+    public void setForceAuthn(Boolean forceAuthn) {
+        this.forceAuthn = forceAuthn;
+    }
+
+    public Boolean getIsPassive() {
+        return isPassive;
+    }
+
+    public void setIsPassive(Boolean isPassive) {
+        this.isPassive = isPassive;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -192,6 +249,13 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
         this.signAuthNRequest = map.getSignAuthNRequest();
         this.verificationCertificate = map.getVerificationCertificate();
         this.ssoServiceBinding = map.getSsoServiceBinding();
+
+        this.nameIDFormat = map.getNameIDFormat();
+        this.nameIDAllowCreate = map.getNameIDAllowCreate();
+        this.forceAuthn = map.getForceAuthn();
+        this.isPassive = map.getIsPassive();
+        this.authnContextClasses = map.getAuthnContextClasses();
+        this.authnContextComparison = map.getAuthnContextComparison();
 
         this.entityId = map.getEntityId();
 
