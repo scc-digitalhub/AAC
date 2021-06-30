@@ -370,6 +370,11 @@ angular.module('aac.services', [])
       return data.data;
     });
   }
+  rService.getRealmUser = function(slug, subject) {
+    return $http.get('console/dev/realms/' + slug +'/users/' + subject).then(function(data) {
+      return data.data;
+    });
+  }
   
   rService.removeUser = function(slug, user) {
     return $http.delete('console/dev/realms/' + slug +'/users/' + user.subjectId).then(function(data) {

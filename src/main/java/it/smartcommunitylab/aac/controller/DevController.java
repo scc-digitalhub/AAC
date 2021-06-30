@@ -301,6 +301,16 @@ public class DevController {
         return ResponseEntity.ok(userManager.searchUsers(realm, q, pageRequest));
     }
 
+    @GetMapping("/console/dev/realms/{realm}/users/{subjectId:.*}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<User> getRealmUser(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        User user = userManager.getUser(realm, subjectId);
+        return ResponseEntity.ok(user);
+    }
+
     @DeleteMapping("/console/dev/realms/{realm}/users/{subjectId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> deleteRealmUser(

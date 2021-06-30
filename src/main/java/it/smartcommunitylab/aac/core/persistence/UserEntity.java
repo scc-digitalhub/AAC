@@ -35,7 +35,23 @@ public class UserEntity {
     @NotNull
     private String realm;
 
-    // audit
+    /*
+     * user status
+     */
+    // locked means no login
+    @Column(name = "is_locked")
+    private Boolean locked;
+
+    // blocked means no login + revoke all tokens/sessions
+    @Column(name = "is_blocked")
+    private Boolean blocked;
+
+    @Column(name = "expiration_date")
+    private Date expirationDate;
+
+    /*
+     * audit
+     */
     @CreatedDate
     @Column(name = "created_date")
     private Date createDate;
@@ -94,6 +110,30 @@ public class UserEntity {
         this.realm = realm;
     }
 
+    public Boolean getLocked() {
+        return locked;
+    }
+
+    public void setLocked(Boolean locked) {
+        this.locked = locked;
+    }
+
+    public Boolean getBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(Boolean blocked) {
+        this.blocked = blocked;
+    }
+
+    public Date getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(Date expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
     public Date getCreateDate() {
         return createDate;
     }
@@ -132,6 +172,31 @@ public class UserEntity {
 
     public void setLoginProvider(String loginProvider) {
         this.loginProvider = loginProvider;
+    }
+
+    public boolean isLocked() {
+        if (this.locked != null) {
+            return this.locked.booleanValue();
+        }
+
+        return false;
+    }
+
+    public boolean isBlocked() {
+        if (this.blocked != null) {
+            return this.blocked.booleanValue();
+        }
+
+        return false;
+    }
+
+    public boolean isExpired() {
+        if (this.expirationDate != null) {
+            Date now = new Date();
+            return this.expirationDate.after(now);
+        }
+
+        return false;
     }
 
 }

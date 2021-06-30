@@ -2,15 +2,20 @@ package it.smartcommunitylab.aac.model;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.core.UserDetails;
@@ -43,6 +48,23 @@ public class User {
 
     // basic profile
     private String username;
+
+    // user status
+    private boolean blocked;
+    private boolean locked;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date expirationDate;
+
+    // audit
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date createDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date modifiedDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date loginDate;
+    private String loginIp;
+    private String loginProvider;
 
 //    // could be empty
 //    private String name;
@@ -168,6 +190,70 @@ public class User {
 //    public void setEmail(String email) {
 //        this.email = email;
 //    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    public Date getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(Date expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public Date getLoginDate() {
+        return loginDate;
+    }
+
+    public void setLoginDate(Date loginDate) {
+        this.loginDate = loginDate;
+    }
+
+    public String getLoginIp() {
+        return loginIp;
+    }
+
+    public void setLoginIp(String loginIp) {
+        this.loginIp = loginIp;
+    }
+
+    public String getLoginProvider() {
+        return loginProvider;
+    }
+
+    public void setLoginProvider(String loginProvider) {
+        this.loginProvider = loginProvider;
+    }
 
     public Set<UserIdentity> getIdentities() {
         return identities;

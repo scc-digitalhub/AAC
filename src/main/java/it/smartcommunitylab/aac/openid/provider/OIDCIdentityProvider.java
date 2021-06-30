@@ -52,6 +52,8 @@ import it.smartcommunitylab.aac.profiles.OpenIdProfileAttributesSet;
 
 public class OIDCIdentityProvider extends AbstractProvider implements IdentityService {
 
+    private final String providerName;
+
     // services
     private final OIDCUserAccountRepository accountRepository;
     private final AttributeStore attributeStore;
@@ -66,13 +68,15 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     private final OIDCSubjectResolver subjectResolver;
 
     public OIDCIdentityProvider(
-            String providerId,
+            String providerId, String providerName,
             OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
+
+        this.providerName = StringUtils.hasText(providerName) ? providerName : providerId;
 
         // internal data repositories
         this.accountRepository = accountRepository;
@@ -267,10 +271,13 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
                 .filter(e -> !ArrayUtils.contains(JWT_ATTRIBUTES, e.getKey()) &&
                         !ArrayUtils.contains(ACCOUNT_ATTRIBUTES, e.getKey()))
                 .collect(Collectors.toSet());
-        // build an additional attributeSet for additional attributes
+        // build an additional attributeSet for additional attributes, specific for this
+        // provider
+        // TODO build via attribute provider and record fields to keep an attributeSet
+        // model
         DefaultUserAttributesImpl attributeSet = new DefaultUserAttributesImpl(getAuthority(), getProvider(),
                 getRealm(),
-                "profile");
+                providerName);
         attributeSet.setUserId(exportInternalId(userId));
 
         Set<Entry<String, Serializable>> storeAttributes = new HashSet<>();

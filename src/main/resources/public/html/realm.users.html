@@ -28,6 +28,7 @@
         <span ng-repeat="a in item._authorities"><span class="badge badge-secondary">{{a}}</span> </span> </td>        
   	    <td class="text-right">
          <button class="btn btn-secondary btn-sm"  ng-click="editRoles(item)">Roles</button>
+         <button class="btn btn-secondary btn-sm"  ng-click="jsonUserDlg(item)">Inspect</button>
   	     <button class="btn btn-danger btn-sm"  ng-click="deleteUserDlg(item)">Delete</button>
   	    </td>
 	    </tr>
@@ -80,5 +81,31 @@
             <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
           </div>
       </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade bs-modal-lg" id="userJsonModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">User json</h3>
+            </div>
+            <div class="modal-body" id="modal-body">
+                
+                <h6>Raw JSON</h6>                
+                <figure class="neutral-2-bg p-2 mb-0">
+                    <pre>
+<code class="language-json" data-lang="json">
+{{modUser | json:4}}
+</code>
+                </pre>
+                </figure>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>

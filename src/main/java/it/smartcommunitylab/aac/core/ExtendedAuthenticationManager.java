@@ -14,10 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -353,6 +356,17 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // providers misbehave
             logger.error("resolved subject does not exists");
             throw new AuthenticationServiceException("error processing request");
+        }
+
+        // check user status
+        if (user.isBlocked()) {
+            throw new DisabledException("subject is blocked");
+        }
+        if (user.isLocked()) {
+            throw new LockedException("subject is locked");
+        }
+        if (user.isExpired()) {
+            throw new AccountExpiredException("subject account is expired");
         }
 
         // check current authenticated session for match subject

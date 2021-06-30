@@ -117,7 +117,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.createClientAppDlg = function () {
             $scope.modClientApp = {
                 name: '',
-                type: '',
+                type: 'oauth2',
                 realm: slug
             };
 

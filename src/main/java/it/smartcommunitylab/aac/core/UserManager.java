@@ -37,6 +37,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -66,6 +67,9 @@ public class UserManager {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserEntityService userEntityService;
 
 //    @Autowired
 //    private RoleService roleService;
@@ -312,6 +316,70 @@ public class UserManager {
             }
             updateRealmAuthorities(realm, subjectId, roles);
         }
+    }
+
+    @Transactional(readOnly = false)
+    public User blockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("block user " + String.valueOf(subjectId) + " from realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get user source realm
+        String source = userService.getUserRealm(subjectId);
+        if (source.equals(r.getSlug())) {
+            // lock account
+            userEntityService.blockUser(subjectId);
+        }
+
+        return userService.getUser(subjectId, realm);
+    }
+
+    @Transactional(readOnly = false)
+    public User unblockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("block user " + String.valueOf(subjectId) + " from realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get user source realm
+        String source = userService.getUserRealm(subjectId);
+        if (source.equals(r.getSlug())) {
+            // lock account
+            userEntityService.unblockUser(subjectId);
+        }
+
+        return userService.getUser(subjectId, realm);
+    }
+
+    @Transactional(readOnly = false)
+    public User lockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("lock user " + String.valueOf(subjectId) + " from realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get user source realm
+        String source = userService.getUserRealm(subjectId);
+        if (source.equals(r.getSlug())) {
+            // lock account
+            userEntityService.lockUser(subjectId);
+        }
+
+        return userService.getUser(subjectId, realm);
+    }
+
+    @Transactional(readOnly = false)
+    public User unlockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("lock user " + String.valueOf(subjectId) + " from realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get user source realm
+        String source = userService.getUserRealm(subjectId);
+        if (source.equals(r.getSlug())) {
+            // lock account
+            userEntityService.unlockUser(subjectId);
+        }
+
+        return userService.getUser(subjectId, realm);
     }
 
 //    /*

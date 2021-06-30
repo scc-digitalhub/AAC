@@ -78,7 +78,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
                     AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
                     OIDCIdentityProvider idp = new OIDCIdentityProvider(
-                            id,
+                            id, config.getName(),
                             accountRepository, attributeStore,
                             config,
                             config.getRealm());

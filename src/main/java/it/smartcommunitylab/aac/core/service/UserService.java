@@ -67,8 +67,16 @@ public class UserService {
 
         User u = new User(userDetails);
 
-        // refresh attributes
         try {
+            UserEntity ue = userService.getUser(subjectId);
+            // refresh attributes
+            u.setExpirationDate(ue.getExpirationDate());
+            u.setCreateDate(ue.getCreateDate());
+            u.setModifiedDate(ue.getModifiedDate());
+            u.setLoginDate(ue.getLoginDate());
+            u.setLoginIp(ue.getLoginIp());
+            u.setLoginProvider(ue.getLoginProvider());
+
             // refresh authorities
             u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
 
@@ -77,6 +85,7 @@ public class UserService {
 
             // refresh space roles
             u.setRoles(fetchUserSpaceRoles(subjectId, realm));
+
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -96,8 +105,16 @@ public class UserService {
         // this will support per-realm translators and fine-grained policies
         User u = translator.translate(userDetails, realm);
 
-        // refresh attributes
         try {
+            UserEntity ue = userService.getUser(subjectId);
+            // refresh attributes
+            u.setExpirationDate(ue.getExpirationDate());
+            u.setCreateDate(ue.getCreateDate());
+            u.setModifiedDate(ue.getModifiedDate());
+            u.setLoginDate(ue.getLoginDate());
+            u.setLoginIp(ue.getLoginIp());
+            u.setLoginProvider(ue.getLoginProvider());
+
             // refresh authorities
             u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
 
@@ -126,8 +143,16 @@ public class UserService {
         // this will support per-realm translators and fine-grained policies
         User u = translator.translate(user, realm);
 
-        // refresh attributes
         try {
+            UserEntity ue = userService.getUser(subjectId);
+            // refresh attributes
+            u.setExpirationDate(ue.getExpirationDate());
+            u.setCreateDate(ue.getCreateDate());
+            u.setModifiedDate(ue.getModifiedDate());
+            u.setLoginDate(ue.getLoginDate());
+            u.setLoginIp(ue.getLoginIp());
+            u.setLoginProvider(ue.getLoginProvider());
+
             // refresh authorities
             u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
 
@@ -175,10 +200,20 @@ public class UserService {
 
     public User getUser(String subjectId) throws NoSuchUserException {
         // resolve subject
-        UserEntity u = userService.getUser(subjectId);
-        String realm = u.getRealm();
+        UserEntity ue = userService.getUser(subjectId);
+        String realm = ue.getRealm();
 
-        User user = new User(subjectId, u.getRealm());
+        User u = new User(subjectId, ue.getRealm());
+        u.setUsername(u.getUsername());
+
+        // fetch attributes
+        u.setExpirationDate(ue.getExpirationDate());
+        u.setCreateDate(ue.getCreateDate());
+        u.setModifiedDate(ue.getModifiedDate());
+        u.setLoginDate(ue.getLoginDate());
+        u.setLoginIp(ue.getLoginIp());
+        u.setLoginProvider(ue.getLoginProvider());
+
         Set<UserIdentity> identities = new HashSet<>();
 
         // same realm, fetch all idps
@@ -191,19 +226,19 @@ public class UserService {
         }
 
         for (UserIdentity identity : identities) {
-            user.addIdentity(identity);
+            u.addIdentity(identity);
         }
 
         // add authorities
-        user.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+        u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
 
         // add user attributes
-        user.setAttributes(fetchUserAttributes(subjectId, realm));
+        u.setAttributes(fetchUserAttributes(subjectId, realm));
 
         // add space roles
-        user.setRoles(fetchUserSpaceRoles(subjectId, realm));
+        u.setRoles(fetchUserSpaceRoles(subjectId, realm));
 
-        return user;
+        return u;
 
     }
 
@@ -215,11 +250,20 @@ public class UserService {
      */
     public User getUser(String subjectId, String realm) throws NoSuchUserException {
         // resolve subject
-        UserEntity u = userService.getUser(subjectId);
-        String source = u.getRealm();
+        UserEntity ue = userService.getUser(subjectId);
+        String source = ue.getRealm();
 
-        User user = new User(subjectId, u.getRealm());
-        user.setUsername(u.getUsername());
+        User u = new User(subjectId, ue.getRealm());
+        u.setUsername(u.getUsername());
+
+        // fetch attributes
+        u.setExpirationDate(ue.getExpirationDate());
+        u.setCreateDate(ue.getCreateDate());
+        u.setModifiedDate(ue.getModifiedDate());
+        u.setLoginDate(ue.getLoginDate());
+        u.setLoginIp(ue.getLoginIp());
+        u.setLoginProvider(ue.getLoginProvider());
+
         Set<UserIdentity> identities = new HashSet<>();
 
         // fetch all identities from source realm
@@ -242,26 +286,26 @@ public class UserService {
         }
 
         for (UserIdentity identity : identities) {
-            user.addIdentity(identity);
+            u.addIdentity(identity);
         }
 
         // TODO evaluate loading source realm attributes to feed translator?
 
         if (!source.equals(realm)) {
             // let translator filter content according to policy
-            user = translator.translate(user, realm);
+            u = translator.translate(u, realm);
         }
 
         // add authorities
-        user.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+        u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
 
         // add user attributes
-        user.setAttributes(fetchUserAttributes(subjectId, realm));
+        u.setAttributes(fetchUserAttributes(subjectId, realm));
 
         // add space roles
-        user.setRoles(fetchUserSpaceRoles(subjectId, realm));
+        u.setRoles(fetchUserSpaceRoles(subjectId, realm));
 
-        return user;
+        return u;
 
     }
 

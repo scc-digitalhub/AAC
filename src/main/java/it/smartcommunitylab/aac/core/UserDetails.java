@@ -67,8 +67,9 @@ public class UserDetails implements org.springframework.security.core.userdetail
     // TODO remove, should be left in token, we keep for interface compatibiilty
     private final Set<? extends GrantedAuthority> authorities;
 
-    // we don't support account enabled/disabled
+    // we support account status
     private final boolean enabled;
+    private final boolean locked;
 
     public UserDetails(
             String subjectId, String realm,
@@ -99,8 +100,9 @@ public class UserDetails implements org.springframework.security.core.userdetail
         // authorities are immutable
         this.authorities = Collections.unmodifiableSet(sortAuthorities(authorities));
 
-        // always enabled
+        // always enabled at login
         this.enabled = true;
+        this.locked = true;
     }
 
     public UserDetails(
@@ -131,8 +133,9 @@ public class UserDetails implements org.springframework.security.core.userdetail
         // authorities are immutable
         this.authorities = Collections.unmodifiableSet(sortAuthorities(authorities));
 
-        // always enabled
+        // always enabled at login
         this.enabled = true;
+        this.locked = true;
     }
 
     @Override
@@ -392,6 +395,10 @@ public class UserDetails implements org.springframework.security.core.userdetail
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean isLocked() {
+        return locked;
     }
 
     @Override

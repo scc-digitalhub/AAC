@@ -78,6 +78,10 @@ public class UserEntityService {
 
         u = new UserEntity(uuid, realm);
         u.setUsername(username);
+        // ensure user is active
+        u.setLocked(false);
+        u.setBlocked(false);
+
         u = userRepository.save(u);
         return u;
     }
@@ -103,6 +107,9 @@ public class UserEntityService {
 
         u = new UserEntity(uuid, realm);
         u.setUsername(username);
+        // ensure user is active
+        u.setLocked(false);
+        u.setBlocked(false);
         u = userRepository.save(u);
         for (String role : roles) {
             UserRoleEntity r = new UserRoleEntity(uuid);
@@ -241,6 +248,47 @@ public class UserEntityService {
         u.setLoginProvider(provider);
         u.setLoginDate(loginDate);
         u.setLoginIp(loginIp);
+        u = userRepository.save(u);
+        return u;
+
+    }
+
+    public UserEntity blockUser(String uuid) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+
+        u.setBlocked(true);
+        u = userRepository.save(u);
+        return u;
+    }
+
+    public UserEntity unblockUser(String uuid) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+
+        u.setBlocked(false);
+        u = userRepository.save(u);
+        return u;
+    }
+
+    public UserEntity lockUser(String uuid) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+
+        u.setLocked(true);
+        u = userRepository.save(u);
+        return u;
+    }
+
+    public UserEntity unlockUser(String uuid) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+
+        u.setLocked(false);
+        u = userRepository.save(u);
+        return u;
+    }
+
+    public UserEntity updateExpiration(String uuid, Date exp) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+
+        u.setExpirationDate(exp);
         u = userRepository.save(u);
         return u;
 

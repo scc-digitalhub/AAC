@@ -175,6 +175,12 @@ angular.module('aac.controllers.realm', [])
       });
     }
 
+     $scope.jsonUserDlg = function(user) {
+         $scope.modUser = user;
+         $('#userJsonModal').modal({ keyboard: false });
+
+     }
+
     $scope.setPage = function (page) {
       $scope.query.page = page;
       $scope.load();
