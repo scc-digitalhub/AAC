@@ -48,6 +48,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
@@ -107,11 +108,13 @@ import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlMetadataFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
+import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.utils.Utils;
 
 /*
@@ -517,15 +520,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public CompositeFilter getSamlAuthorityFilters(AuthenticationManager authManager,
             ProviderRepository<SamlIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+
+        // request repository
+        Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+
         // build filters
         SamlWebSsoAuthenticationRequestFilter requestFilter = new SamlWebSsoAuthenticationRequestFilter(
                 providerRepository,
                 relyingPartyRegistrationRepository);
+        requestFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
 
         SamlWebSsoAuthenticationFilter ssoFilter = new SamlWebSsoAuthenticationFilter(
                 providerRepository,
                 relyingPartyRegistrationRepository);
         ssoFilter.setAuthenticationManager(authManager);
+        ssoFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
 
         SamlMetadataFilter metadataFilter = new SamlMetadataFilter(relyingPartyRegistrationRepository);
 

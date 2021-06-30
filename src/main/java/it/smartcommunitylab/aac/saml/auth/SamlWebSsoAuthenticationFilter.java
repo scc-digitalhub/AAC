@@ -12,6 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
@@ -35,6 +36,7 @@ import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
+import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 
 public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -44,6 +46,9 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
     private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
     private final Saml2AuthenticationTokenConverter authenticationConverter;
+
+    private Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+
     private AuthenticationEntryPoint authenticationEntryPoint;
 
     public SamlWebSsoAuthenticationFilter(
@@ -138,16 +143,29 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
             throw new Saml2AuthenticationException(saml2Error);
         }
 
-        // fetch rp registration
-        RelyingPartyRegistration registration = authenticationRequest.getRelyingPartyRegistration();
-        String registrationId = registration.getRegistrationId();
-
-        if (!registrationId.equals(providerId)) {
+        // fetch request, we handle only responses to locally initiated sessions
+        Saml2AuthenticationRequestContext authenticationContext = authenticationRequestRepository
+                .loadAuthenticationRequest(request);
+        if (authenticationContext == null) {
             // response doesn't belong here...
             Saml2Error saml2Error = new Saml2Error(Saml2ErrorCodes.INVALID_DESTINATION,
                     "Wrong destination for response");
             throw new Saml2AuthenticationException(saml2Error);
         }
+        String registrationId = authenticationContext.getRelyingPartyRegistration().getRegistrationId();
+
+        // fetch rp registration
+        RelyingPartyRegistration registration = authenticationRequest.getRelyingPartyRegistration();
+
+        if (!registrationId.equals(providerId) || !registration.getRegistrationId().equals(registrationId)) {
+            // response doesn't belong here...
+            Saml2Error saml2Error = new Saml2Error(Saml2ErrorCodes.INVALID_DESTINATION,
+                    "Wrong destination for response");
+            throw new Saml2AuthenticationException(saml2Error);
+        }
+
+        // TODO add extended validation for inresponseTo, authClassesRef, NameIdFormat
+        // etc..
 
         // collect info for webauth as additional details
 //        Object authenticationDetails = this.authenticationDetailsSource.buildDetails(request);
@@ -176,6 +194,11 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
     public void setAuthenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
+    }
+
+    public void setAuthenticationRequestRepository(
+            Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository) {
+        this.authenticationRequestRepository = authenticationRequestRepository;
     }
 
 }
