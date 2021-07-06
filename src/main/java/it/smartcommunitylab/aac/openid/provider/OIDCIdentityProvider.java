@@ -1,12 +1,11 @@
 package it.smartcommunitylab.aac.openid.provider;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +21,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
+import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
+import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
@@ -34,12 +38,12 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountService;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
@@ -48,7 +52,6 @@ import it.smartcommunitylab.aac.openid.OIDCUserIdentity;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
-import it.smartcommunitylab.aac.profiles.OpenIdProfileAttributesSet;
 
 public class OIDCIdentityProvider extends AbstractProvider implements IdentityService {
 
@@ -57,7 +60,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     // services
     private final OIDCUserAccountRepository accountRepository;
     private final AttributeStore attributeStore;
-    private ScriptExecutionService executionService;
 
     private final OIDCIdentityProviderConfig providerConfig;
 
@@ -66,6 +68,10 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     private final OIDCAttributeProvider attributeProvider;
     private final OIDCAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
+
+    // attributes
+    private final OpenIdAttributesMapper openidMapper;
+    private ScriptExecutionService executionService;
 
     public OIDCIdentityProvider(
             String providerId, String providerName,
@@ -89,11 +95,13 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         this.providerConfig = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, realm);
+        this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, config, realm);
         this.attributeProvider = new OIDCAttributeProvider(providerId, accountRepository, attributeStore, realm);
-        this.authenticationProvider = new OIDCAuthenticationProvider(providerId, accountRepository, realm);
-        this.subjectResolver = new OIDCSubjectResolver(providerId, accountRepository, realm);
+        this.authenticationProvider = new OIDCAuthenticationProvider(providerId, accountRepository, config, realm);
+        this.subjectResolver = new OIDCSubjectResolver(providerId, accountRepository, config, realm);
 
+        // attributes
+        openidMapper = new OpenIdAttributesMapper();
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
@@ -115,10 +123,10 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         return accountProvider;
     }
 
-    @Override
-    public AttributeProvider getAttributeProvider() {
-        return attributeProvider;
-    }
+//    @Override
+//    public AttributeProvider getAttributeProvider() {
+//        return attributeProvider;
+//    }
 
     @Override
     public SubjectResolver getSubjectResolver() {
@@ -131,7 +139,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
             throws NoSuchUserException {
         // we expect an instance of our model
         OIDCAuthenticatedPrincipal user = (OIDCAuthenticatedPrincipal) principal;
-        // we use internal id for accounts
+        // we use upstream id for accounts
         String userId = parseResourceId(user.getUserId());
         String realm = getRealm();
         String provider = getProvider();
@@ -187,71 +195,34 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
                         functionCode, principalAttributes);
 
                 // update map
-                // TODO handle non string
-                attributes = customAttributes.entrySet().stream()
-                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+                if (customAttributes != null) {
+                    // replace map
+                    principalAttributes = customAttributes;
 
+                    // TODO handle non string
+                    attributes = customAttributes.entrySet().stream()
+                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+                }
             } catch (SystemException | InvalidDefinitionException ex) {
 //                logger.error(ex.getMessage());
             }
 
         }
 
-        // update base attributes
-        // we build only openid profile, it supersedes basic
-        OpenIdProfileAttributesSet openIdAttributeSet = new OpenIdProfileAttributesSet(SystemKeys.AUTHORITY_OIDC,
-                provider, realm, exportInternalId(userId));
-
-        // fetch from principal attributes
+        // update account attributes
+        // fetch from principal attributes - exact match only
         String username = user.getName();
-        String name = attributes.get(OpenIdProfileAttributesSet.NAME);
-        String familyName = attributes.get(OpenIdProfileAttributesSet.FAMILY_NAME);
-        String givenName = attributes.get(OpenIdProfileAttributesSet.GIVEN_NAME);
-        String email = attributes.get(OpenIdProfileAttributesSet.EMAIL);
-        boolean emailVerified = StringUtils.hasText(attributes.get(OpenIdProfileAttributesSet.EMAIL_VERIFIED))
-                ? Boolean.parseBoolean(attributes.get(OpenIdProfileAttributesSet.EMAIL_VERIFIED))
-                : false;
-        String phone = attributes.get(OpenIdProfileAttributesSet.PHONE_NUMBER);
-        boolean phoneVerified = StringUtils.hasText(attributes.get(OpenIdProfileAttributesSet.PHONE_NUMBER_VERIFIED))
-                ? Boolean.parseBoolean(attributes.get(OpenIdProfileAttributesSet.PHONE_NUMBER_VERIFIED))
+        String name = attributes.get(OpenIdAttributesSet.NAME);
+        String familyName = attributes.get(OpenIdAttributesSet.FAMILY_NAME);
+        String givenName = attributes.get(OpenIdAttributesSet.GIVEN_NAME);
+        String email = attributes.get(OpenIdAttributesSet.EMAIL);
+        boolean emailVerified = StringUtils.hasText(attributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
+                ? Boolean.parseBoolean(attributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
                 : false;
 
-        String picture = attributes.get(OpenIdProfileAttributesSet.PICTURE);
-        String profile = attributes.get(OpenIdProfileAttributesSet.PROFILE);
-        String website = attributes.get(OpenIdProfileAttributesSet.WEBSITE);
-        String gender = attributes.get(OpenIdProfileAttributesSet.GENDER);
-
-        String lang = attributes.get(OpenIdProfileAttributesSet.LOCALE);
-
-        Date birthdate = null;
-        if (StringUtils.hasText(attributes.get(OpenIdProfileAttributesSet.BIRTHDATE))) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            try {
-                birthdate = sdf.parse(attributes.get(OpenIdProfileAttributesSet.BIRTHDATE));
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-
-        // set in profile
-        openIdAttributeSet.setPreferredUsername(username);
-        openIdAttributeSet.setName(name);
-        openIdAttributeSet.setFamilyName(familyName);
-        openIdAttributeSet.setGivenName(givenName);
-        if (StringUtils.hasText(email)) {
-            openIdAttributeSet.setEmail(email);
-            openIdAttributeSet.setEmailVerified(emailVerified);
-        }
-        if (StringUtils.hasText(phone)) {
-            openIdAttributeSet.setPhoneNumber(phone);
-            openIdAttributeSet.setPhoneVerified(phoneVerified);
-        }
-        openIdAttributeSet.setPicture(picture);
-        openIdAttributeSet.setProfile(profile);
-        openIdAttributeSet.setWebsite(website);
-        openIdAttributeSet.setGender(gender);
-        openIdAttributeSet.setLocale(lang);
-        openIdAttributeSet.setBirthdate(birthdate);
+        String lang = attributes.get(OpenIdAttributesSet.LOCALE);
+        // TODO evaluate how to handle external pictureURI
+        String picture = attributes.get(OpenIdAttributesSet.PICTURE);
 
         // we override these every time
         account.setUsername(username);
@@ -260,33 +231,21 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         account.setGivenName(givenName);
         account.setEmail(email);
         account.setEmailVerified(emailVerified);
-        account.setPictureUri(picture);
-        account.setProfileUri(profile);
         account.setLang(lang);
+        account.setPicture(picture);
 
         account = accountRepository.saveAndFlush(account);
 
         // update additional attributes in store, remove stale
-        Set<Entry<String, String>> userAttributes = attributes.entrySet().stream()
+        Set<Entry<String, Serializable>> userAttributes = principalAttributes.entrySet().stream()
                 .filter(e -> !ArrayUtils.contains(JWT_ATTRIBUTES, e.getKey()) &&
                         !ArrayUtils.contains(ACCOUNT_ATTRIBUTES, e.getKey()))
                 .collect(Collectors.toSet());
-        // build an additional attributeSet for additional attributes, specific for this
-        // provider
-        // TODO build via attribute provider and record fields to keep an attributeSet
-        // model
-        DefaultUserAttributesImpl attributeSet = new DefaultUserAttributesImpl(getAuthority(), getProvider(),
-                getRealm(),
-                providerName);
-        attributeSet.setUserId(exportInternalId(userId));
 
         Set<Entry<String, Serializable>> storeAttributes = new HashSet<>();
-        for (Entry<String, String> e : userAttributes) {
+        for (Entry<String, Serializable> e : userAttributes) {
             Entry<String, Serializable> es = new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue());
             storeAttributes.add(es);
-
-            attributeSet.addAttribute(new StringAttribute(e.getKey(), e.getValue()));
-
         }
 
         attributeStore.setAttributes(userId, storeAttributes);
@@ -298,9 +257,8 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         // export userId
         account.setUserId(exportInternalId(userId));
 
-        List<UserAttributes> identityAttributes = new ArrayList<>();
-        identityAttributes.add(openIdAttributeSet);
-        identityAttributes.add(attributeSet);
+        // convert attribute sets
+        List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
 
         // write custom model
         OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm(), user);
@@ -308,6 +266,63 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         identity.setAttributes(identityAttributes);
 
         return identity;
+    }
+
+    // TODO move to (idp) attributeProvider
+    private List<UserAttributes> extractUserAttributes(OIDCUserAccount account,
+            Map<String, Serializable> principalAttributes) {
+        List<UserAttributes> attributes = new ArrayList<>();
+        String userId = exportInternalId(account.getUserId());
+
+        // build base
+        BasicAttributesSet basicset = new BasicAttributesSet();
+        String name = account.getName() != null ? account.getName() : account.getGivenName();
+        basicset.setName(name);
+        basicset.setSurname(account.getFamilyName());
+        basicset.setEmail(account.getEmail());
+        basicset.setUsername(account.getUsername());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                basicset));
+
+        // account
+        AccountAttributesSet accountset = new AccountAttributesSet();
+        accountset.setUsername(account.getUsername());
+        accountset.setUserId(account.getUserId());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                accountset));
+        // email
+        EmailAttributesSet emailset = new EmailAttributesSet();
+        emailset.setEmail(account.getEmail());
+        emailset.setEmailVerified(account.getEmailVerified());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                emailset));
+
+        if (principalAttributes != null) {
+            // openid via mapper
+            AttributeSet openidset = openidMapper.mapAttributes(principalAttributes);
+            attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                    openidset));
+
+            // build an additional attributeSet for additional attributes, specific for this
+            // provider
+            // TODO build via attribute provider and record fields to keep an attributeSet
+            // model
+            DefaultUserAttributesImpl idpset = new DefaultUserAttributesImpl(getAuthority(), getProvider(),
+                    getRealm(), userId, "idp." + providerName);
+            // store everything as string
+            for (Map.Entry<String, Serializable> e : principalAttributes.entrySet()) {
+                try {
+                    idpset.addAttribute(new StringAttribute(e.getKey(), StringAttribute.parseValue(e.getValue())));
+                } catch (ParseException e1) {
+                }
+            }
+            attributes.add(idpset);
+
+            // TODO build additional user-defined attribute sets via mappers
+
+        }
+
+        return attributes;
     }
 
     @Override
@@ -319,25 +334,17 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
             throw new NoSuchUserException();
         }
 
-        // we build only openid profile, it supersedes basic
-        OpenIdProfileAttributesSet openIdAttributeSet = new OpenIdProfileAttributesSet(SystemKeys.AUTHORITY_OIDC,
-                getProvider(), getRealm(), userId);
+        // fetch stored principal attributes if present
+        String id = parseResourceId(userId);
+        Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
 
-        // set only account properties
-        openIdAttributeSet.setPreferredUsername(account.getUsername());
-        openIdAttributeSet.setName(account.getName());
-        openIdAttributeSet.setFamilyName(account.getFamilyName());
-        openIdAttributeSet.setGivenName(account.getGivenName());
-        openIdAttributeSet.setEmail(account.getEmail());
-        openIdAttributeSet.setEmailVerified(account.getEmailVerified());
-        openIdAttributeSet.setPicture(account.getPictureUri());
-        openIdAttributeSet.setProfile(account.getProfileUri());
-        openIdAttributeSet.setLocale(account.getLang());
+        // convert attribute sets
+        List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
 
         // write custom model
         OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm());
         identity.setAccount(account);
-        identity.setAttributes(Collections.singleton(openIdAttributeSet));
+        identity.setAttributes(identityAttributes);
         return identity;
 
     }
@@ -346,14 +353,19 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     @Transactional(readOnly = true)
     public OIDCUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
             throws NoSuchUserException {
-        OIDCUserIdentity identity = getIdentity(subject, userId);
 
         if (fetchAttributes) {
-            // load all attributes from store and map
-            // TODO integrate openId set
-            // TODO build additional set
+            return getIdentity(subject, userId);
+        }
+        OIDCUserAccount account = accountProvider.getAccount(userId);
+
+        if (!account.getSubject().equals(subject)) {
+            throw new NoSuchUserException();
         }
 
+        // write custom model
+        OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm());
+        identity.setAccount(account);
         return identity;
     }
 
@@ -486,13 +498,13 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
     public static String[] ACCOUNT_ATTRIBUTES = {
             "username",
-            OpenIdProfileAttributesSet.NAME,
-            OpenIdProfileAttributesSet.FAMILY_NAME,
-            OpenIdProfileAttributesSet.GIVEN_NAME,
-            OpenIdProfileAttributesSet.EMAIL,
-            OpenIdProfileAttributesSet.EMAIL_VERIFIED,
-            OpenIdProfileAttributesSet.PICTURE,
-            OpenIdProfileAttributesSet.LOCALE
+            OpenIdAttributesSet.NAME,
+            OpenIdAttributesSet.FAMILY_NAME,
+            OpenIdAttributesSet.GIVEN_NAME,
+            OpenIdAttributesSet.EMAIL,
+            OpenIdAttributesSet.EMAIL_VERIFIED,
+            OpenIdAttributesSet.PICTURE,
+            OpenIdAttributesSet.LOCALE
     };
 
 //    private final static ObjectMapper mapper = new ObjectMapper();

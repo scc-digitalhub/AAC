@@ -1,40 +1,34 @@
-package it.smartcommunitylab.aac.profiles;
+package it.smartcommunitylab.aac.attributes;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.core.base.BaseAttributes;
 import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 
-public class BasicProfileAttributesSet extends BaseAttributes {
-    public static final String IDENTIFIER = "profile.basicprofile.me";
+public class BasicAttributesSet implements AttributeSet {
+    public static final String IDENTIFIER = "aac.basic";
+    public static final List<String> keys;
 
-    private final String userId;
     private Map<String, Attribute> attributes;
 
-    public BasicProfileAttributesSet(String authority, String provider, String realm, String userId) {
-        super(authority, provider, realm, IDENTIFIER);
-        Assert.hasText(userId, "userId can not be null or blank");
-        this.userId = userId;
+    public BasicAttributesSet() {
         this.attributes = new HashMap<>();
     }
 
     @Override
-    public String getUserId() {
-        return userId;
-    }
-
-    @Override
-    public String getAttributesId() {
-        return IDENTIFIER + ":" + userId;
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 
     @Override
     public Collection<String> getKeys() {
-        return attributes.keySet();
+        return keys;
     }
 
     @Override
@@ -91,9 +85,28 @@ public class BasicProfileAttributesSet extends BaseAttributes {
         attributes.put(EMAIL, attr);
     }
 
+    @Override
+    public String getName() {
+        // TODO i18n
+        return "User base attributes";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Base information about user";
+    }
+
     public static final String USERNAME = "username";
     public static final String NAME = "name";
     public static final String SURNAME = "surname";
     public static final String EMAIL = "email";
 
+    static {
+        List<String> k = new ArrayList<>();
+        k.add(USERNAME);
+        k.add(NAME);
+        k.add(SURNAME);
+        k.add(EMAIL);
+        keys = Collections.unmodifiableList(k);
+    }
 }

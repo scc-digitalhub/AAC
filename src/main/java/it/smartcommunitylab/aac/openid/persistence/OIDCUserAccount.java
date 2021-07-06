@@ -55,19 +55,15 @@ public class OIDCUserAccount implements UserAccount {
     private Boolean emailVerified;
 
     private String name;
-    
+
     @Column(name = "given_name")
     private String givenName;
-    
+
     @Column(name = "family_name")
     private String familyName;
 
-    @Column(name = "profile_uri")
-    private String profileUri;
-    @Column(name = "picture_uri")
-    private String pictureUri;
-
     private String lang;
+    private String picture;
 
     // audit
     @CreatedDate
@@ -185,22 +181,6 @@ public class OIDCUserAccount implements UserAccount {
         this.familyName = familyName;
     }
 
-    public String getProfileUri() {
-        return profileUri;
-    }
-
-    public void setProfileUri(String profileUri) {
-        this.profileUri = profileUri;
-    }
-
-    public String getPictureUri() {
-        return pictureUri;
-    }
-
-    public void setPictureUri(String pictureUri) {
-        this.pictureUri = pictureUri;
-    }
-
     public String getLang() {
         return lang;
     }
@@ -237,17 +217,25 @@ public class OIDCUserAccount implements UserAccount {
         this.username = username;
     }
 
-//    @Override
-    public AccountProfile toProfile() {
-        OIDCAccountProfile profile = new OIDCAccountProfile();
-        profile.setAuthority(getAuthority());
-        profile.setProvider(getProvider());
-        profile.setRealm(getRealm());
-        profile.setUsername(getUsername());
-        profile.setUserId(getUserId());
+////    @Override
+//    public AccountProfile toProfile() {
+//        OIDCAccountProfile profile = new OIDCAccountProfile();
+//        profile.setAuthority(getAuthority());
+//        profile.setProvider(getProvider());
+//        profile.setRealm(getRealm());
+//        profile.setUsername(getUsername());
+//        profile.setUserId(getUserId());
+//
+//        profile.setIssuer(getIssuer());
+//        return profile;
+//    }
 
-        profile.setIssuer(getIssuer());
-        return profile;
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override
@@ -255,22 +243,22 @@ public class OIDCUserAccount implements UserAccount {
         return "OIDCUserAccount [id=" + id + ", subject=" + subject + ", provider=" + provider + ", realm=" + realm
                 + ", username=" + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified="
                 + emailVerified + ", name=" + name + ", givenName=" + givenName + ", familyName=" + familyName
-                + ", profileUri=" + profileUri + ", pictureUri=" + pictureUri + ", lang=" + lang + ", createDate="
+                + ", lang=" + lang + ", createDate="
                 + createDate + ", modifiedDate=" + modifiedDate + "]";
     }
 
-    public class OIDCAccountProfile extends AccountProfile {
-
-        private String issuer;
-
-        public String getIssuer() {
-            return issuer;
-        }
-
-        public void setIssuer(String issuer) {
-            this.issuer = issuer;
-        }
-
-    }
+//    public class OIDCAccountProfile extends AccountProfile {
+//
+//        private String issuer;
+//
+//        public String getIssuer() {
+//            return issuer;
+//        }
+//
+//        public void setIssuer(String issuer) {
+//            this.issuer = issuer;
+//        }
+//
+//    }
 
 }

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.service;
+package it.smartcommunitylab.aac.profiles.extractor;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -7,17 +7,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.profiles.AccountProfileAttributesSet;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
-import it.smartcommunitylab.aac.profiles.scope.AccountProfileScope;
 
-public class AccountProfileExtractor extends UserProfileExtractor {
+public class AccountProfileExtractor extends AbstractUserProfileExtractor {
 
     @Override
     public AccountProfile extractUserProfile(User user)
@@ -71,12 +70,12 @@ public class AccountProfileExtractor extends UserProfileExtractor {
         // look for accountProfile extra attributes
         Map<String, String> extra = new HashMap<>();
         Optional<UserAttributes> attrs = attributes.stream()
-                .filter(a -> a.getIdentifier().equals(AccountProfileAttributesSet.IDENTIFIER)).findFirst();
+                .filter(a -> a.getIdentifier().equals(AccountAttributesSet.IDENTIFIER)).findFirst();
         if (attrs.isPresent()) {
             // add every extra property
             attrs.get().getAttributes().forEach(attr -> {
-                if (!AccountProfileAttributesSet.USER_ID.equals(attr.getKey()) &&
-                        !AccountProfileAttributesSet.USERNAME.equals(attr.getKey()) &&
+                if (!AccountAttributesSet.USER_ID.equals(attr.getKey()) &&
+                        !AccountAttributesSet.USERNAME.equals(attr.getKey()) &&
                         attr.getType() == AttributeType.STRING) {
                     extra.put(attr.getKey(), attr.getValue().toString());
                 }

@@ -89,20 +89,25 @@
     <fieldset>
         <legend class="mb-4">SAML2 Advanced Configuration</legend>
         <div class="row">
-            <div class="col-md-6 ">
+            <div class="col-md-4 ">
                 <div class="form-check">
                     <input class="form-check-input" name="forceAuthn" id="forceAuthn" type="checkbox"
                         ng-model="idp.configuration.forceAuthn">
                     <label for="forceAuthn">ForceAuthn</label>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="form-check">
                     <input class="form-check-input" name="isPassive" id="isPassive" type="checkbox"
                         ng-model="idp.configuration.isPassive">
                     <label for="isPassive">isPassive</label>
                 </div>
             </div>
+            <div class="form-group col ">
+                 <label for="userNameAttributeName">Username attribute*</label>
+                 <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
+                     id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
+             </div>
         </div>
         <div class="row mt-3">
             <div class="form-group col ">

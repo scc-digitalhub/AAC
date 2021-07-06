@@ -1,8 +1,11 @@
 package it.smartcommunitylab.aac.core.provider;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -42,15 +45,15 @@ public interface AttributeProvider extends ResourceProvider {
 
     public Collection<String> listCustomAttributes(String setId);
 
-    /*
-     * these are the global sets this provider supports.
-     * 
-     * do note only *system* providers should support global sets, user defined
-     * should only return their namespaced attributes.
-     */
-    public boolean canProvide(String globalSetId);
-
-    public UserAttributes provideAttributes(UserIdentity identity, String globalSetId);
+//    /*
+//     * these are the global sets this provider supports.
+//     * 
+//     * do note only *system* providers should support global sets, user defined
+//     * should only return their namespaced attributes.
+//     */
+//    public boolean canProvide(String globalSetId);
+//
+//    public UserAttributes provideAttributes(UserIdentity identity, String globalSetId);
 
     /*
      * User attributes
@@ -73,11 +76,11 @@ public interface AttributeProvider extends ResourceProvider {
      * Sets returned from identity conversion are *always* used for token claims
      */
 
-    public Collection<UserAttributes> convertAttributes(UserIdentity identity);
+    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal);
 
-    public Collection<UserAttributes> convertAttributes(Collection<UserAttributes> attributes);
+    public Collection<UserAttributes> convertAttributes(Map<String, Serializable> attributes);
 
-    public UserAttributes convertAttributes(UserAttributes attributes);
+//    public UserAttributes convertAttributes(UserAttributes attributes);
 
     /*
      * Fetch attributes for users

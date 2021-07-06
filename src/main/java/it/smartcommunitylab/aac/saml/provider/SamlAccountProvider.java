@@ -20,10 +20,16 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 public class SamlAccountProvider extends AbstractProvider implements AccountProvider {
 
     private final SamlUserAccountRepository accountRepository;
+    private final SamlIdentityProviderConfig providerConfig;
 
-    protected SamlAccountProvider(String providerId, SamlUserAccountRepository accountRepository, String realm) {
+    protected SamlAccountProvider(String providerId, SamlUserAccountRepository accountRepository,
+            SamlIdentityProviderConfig config,
+            String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
+
+        this.providerConfig = config;
         this.accountRepository = accountRepository;
     }
 

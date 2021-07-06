@@ -21,6 +21,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
 
     private String name;
     private String description;
+    private Boolean linkable;
 
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
@@ -53,6 +54,22 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getLinkable() {
+        return linkable;
+    }
+
+    public void setLinkable(Boolean linkable) {
+        this.linkable = linkable;
+    }
+
+    public boolean isLinkable() {
+        if (linkable != null) {
+            return linkable.booleanValue();
+        }
+
+        return true;
     }
 
     public void setConfigMap(InternalIdentityProviderConfigMap configMap) {
@@ -95,6 +112,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
         cp.setDescription(ip.getDescription());
 
         cp.setEnabled(true);
+        cp.setLinkable(ip.isLinkable());
         cp.setConfiguration(ip.getConfigMap().getConfiguration());
         cp.setHookFunctions(ip.getHookFunctions());
 
@@ -108,6 +126,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
 
         ip.name = cp.getName();
         ip.description = cp.getDescription();
+        ip.linkable = cp.isLinkable();
         ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return ip;

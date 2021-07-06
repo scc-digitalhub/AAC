@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 @Transactional
-public class OIDCAttributeProvider extends AbstractProvider implements AttributeProvider {
+public class OIDCAttributeProvider extends AbstractProvider {
 
     private final OIDCUserAccountRepository accountRepository;
     private final AttributeService attributeService;
@@ -37,62 +37,62 @@ public class OIDCAttributeProvider extends AbstractProvider implements Attribute
         return SystemKeys.RESOURCE_ATTRIBUTES;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Collection<AttributeSet> listCustomAttributeSets() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Collection<String> listCustomAttributes(String setId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public boolean canProvide(String globalSetId) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public UserAttributes provideAttributes(UserIdentity identity, String globalSetId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<UserAttributes> convertAttributes(UserIdentity identity) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Collection<UserAttributes> convertAttributes(Collection<UserAttributes> attributes) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public UserAttributes convertAttributes(UserAttributes attributes) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Collection<UserAttributes> getUserAttributes(String userId) throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException {
-        // TODO Auto-generated method stub
-        return null;
-    }
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Collection<AttributeSet> listCustomAttributeSets() {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Collection<String> listCustomAttributes(String setId) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public boolean canProvide(String globalSetId) {
+//        // TODO Auto-generated method stub
+//        return false;
+//    }
+//
+//    @Override
+//    public UserAttributes provideAttributes(UserIdentity identity, String globalSetId) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public Collection<UserAttributes> convertAttributes(UserIdentity identity) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public Collection<UserAttributes> convertAttributes(Collection<UserAttributes> attributes) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    public UserAttributes convertAttributes(UserAttributes attributes) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Collection<UserAttributes> getUserAttributes(String userId) throws NoSuchUserException {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
 
 }

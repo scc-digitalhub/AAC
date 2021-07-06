@@ -4,42 +4,43 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import it.smartcommunitylab.aac.model.AttributeType;
 
-public class DateAttribute extends AbstractAttribute {
+public class DateTimeAttribute extends AbstractAttribute {
 
-    private LocalDate value;
+    private LocalDateTime value;
 
-    public DateAttribute(String key) {
+    public DateTimeAttribute(String key) {
         this.key = key;
     }
 
-    public DateAttribute(String key, LocalDate date) {
+    public DateTimeAttribute(String key, LocalDateTime date) {
         this.key = key;
         this.value = date;
     }
 
     @Override
     public AttributeType getType() {
-        return AttributeType.DATE;
+        return AttributeType.DATETIME;
     }
 
     @Override
-    public LocalDate getValue() {
+    public LocalDateTime getValue() {
         return value;
     }
 
-    public void setValue(LocalDate value) {
+    public void setValue(LocalDateTime value) {
         this.value = value;
     }
 
-    public static LocalDate parseValue(Serializable value) throws ParseException {
-        if (value instanceof LocalDate) {
-            return (LocalDate) value;
+    public static LocalDateTime parseValue(Serializable value) throws ParseException {
+        if (value instanceof LocalDateTime) {
+            return (LocalDateTime) value;
         }
 
         String stringValue = String.valueOf(value);
@@ -47,7 +48,7 @@ public class DateAttribute extends AbstractAttribute {
         Collection<DateTimeFormatter> formatters = getFormatters();
         for (final DateTimeFormatter df : formatters) {
             try {
-                LocalDate date = LocalDate.parse(stringValue, df);
+                LocalDateTime date = LocalDateTime.parse(stringValue, df);
                 if (date != null) {
                     return date;
                 }
@@ -58,18 +59,18 @@ public class DateAttribute extends AbstractAttribute {
         throw new ParseException("Unable to parse the date", 0);
     }
 
-    public static LocalDate parseIsoValue(String value) {
+    public static LocalDateTime parseIsoValue(String value) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
-            return LocalDate.parse(value, formatter);
+            return LocalDateTime.parse(value, formatter);
         } catch (DateTimeParseException e) {
             return null;
         }
     }
 
-    public static LocalDate parseInstantValue(String value) {
+    public static LocalDateTime parseInstantValue(String value) {
         try {
-            return LocalDate.from(Instant.parse(value));
+            return LocalDateTime.from(Instant.parse(value));
         } catch (DateTimeParseException e) {
             return null;
         }
@@ -77,15 +78,17 @@ public class DateAttribute extends AbstractAttribute {
 
     private static Collection<DateTimeFormatter> getFormatters() {
         Collection<DateTimeFormatter> formatters = new ArrayList<>();
-        formatters.add(DateTimeFormatter.ISO_DATE);
-        formatters.add(DateTimeFormatter.BASIC_ISO_DATE);
-        formatters.add(DateTimeFormatter.ISO_LOCAL_DATE);
-        formatters.add(DateTimeFormatter.ofPattern("dd-MM-YYYY"));
         formatters.add(DateTimeFormatter.ISO_DATE_TIME);
         formatters.add(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         formatters.add(DateTimeFormatter.ISO_INSTANT);
 
         formatters.add(DateTimeFormatter.RFC_1123_DATE_TIME);
+
+        // fallback to date only
+        formatters.add(DateTimeFormatter.ISO_DATE);
+        formatters.add(DateTimeFormatter.BASIC_ISO_DATE);
+        formatters.add(DateTimeFormatter.ISO_LOCAL_DATE);
+        formatters.add(DateTimeFormatter.ofPattern("dd-MM-YYYY"));
         return formatters;
     }
 

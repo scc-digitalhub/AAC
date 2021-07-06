@@ -34,13 +34,19 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OIDCAccountProvider accountProvider;
+    private final OIDCIdentityProviderConfig providerConfig;
 
-    protected OIDCSubjectResolver(String providerId, OIDCUserAccountRepository accountRepository, String realm) {
+    protected OIDCSubjectResolver(String providerId, OIDCUserAccountRepository accountRepository,
+            OIDCIdentityProviderConfig config,
+            String realm) {
         super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
+
+        this.providerConfig = config;
 
         // build an internal provider bound to repository
-        this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, realm);
+        this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, config, realm);
     }
 
     @Override
@@ -98,6 +104,10 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     @Transactional(readOnly = true)
     public Subject resolveByLinkingAttributes(Map<String, String> attributes) {
 
+        if (!providerConfig.isLinkable()) {
+            return null;
+        }
+
         if (attributes.keySet().containsAll(Arrays.asList("realm", "email"))
                 && getRealm().equals((attributes.get("realm")))) {
             // ensure we don't use additional params
@@ -121,6 +131,10 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
 
 //    @Override
     public Collection<String> getLinkingAttributes() {
+        if (!providerConfig.isLinkable()) {
+            return null;
+        }
+
         // only realm+email
         // We don't want global linking with only email
         // Security risk: if we let users link cross domain accounts, a bogus realm
@@ -146,6 +160,10 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
 
     @Override
     public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal) {
+        if (!providerConfig.isLinkable()) {
+            return null;
+        }
+
         if (!(principal instanceof OIDCAuthenticatedPrincipal)) {
             return null;
         }

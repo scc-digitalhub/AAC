@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.core;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -338,7 +339,21 @@ public class UserDetails implements org.springframework.security.core.userdetail
     }
 
     public Collection<UserAttributes> getAttributeSets() {
-        return Collections.unmodifiableCollection(attributes.values());
+        List<UserAttributes> attrs = new ArrayList<>();
+        attrs.addAll(attributes.values());
+        identities.values().forEach(i -> {
+            attrs.addAll(i.getAttributes());
+        });
+
+        return Collections.unmodifiableCollection(attrs);
+    }
+
+    public Collection<UserAttributes> getAttributeSets(boolean excludeIdentities) {
+        if (excludeIdentities) {
+            return Collections.unmodifiableCollection(attributes.values());
+        } else {
+            return getAttributeSets();
+        }
     }
 
     public Collection<UserAttributes> getAttributeSets(String authority) {
@@ -348,7 +363,7 @@ public class UserDetails implements org.springframework.security.core.userdetail
     }
 
     public Collection<UserAttributes> getAttributeSets(String authority, String provider) {
-        return Collections.unmodifiableList(attributes.values().stream()
+        return Collections.unmodifiableList(getAttributeSets().stream()
                 .filter(u -> (authority.equals(u.getAuthority())
                         && provider.equals(u.getProvider())))
                 .collect(Collectors.toList()));

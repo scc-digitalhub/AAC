@@ -10,16 +10,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
-import it.smartcommunitylab.aac.core.persistence.AttributeEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.UserAttributeEntity;
+import it.smartcommunitylab.aac.core.persistence.UserAttributeEntityRepository;
 
 @Service
 @Transactional
-public class AttributeEntityService {
+public class UserAttributeEntityService {
 
-    private final AttributeEntityRepository attributeRepository;
+    private final UserAttributeEntityRepository attributeRepository;
 
-    public AttributeEntityService(AttributeEntityRepository attributeRepository) {
+    public UserAttributeEntityService(UserAttributeEntityRepository attributeRepository) {
         Assert.notNull(attributeRepository, "attribute repository is mandatory");
         this.attributeRepository = attributeRepository;
     }
@@ -28,21 +28,21 @@ public class AttributeEntityService {
      * crud
      */
 
-    public List<AttributeEntity> setAttributes(
+    public List<UserAttributeEntity> setAttributes(
             String authority, String provider,
             String userId,
             Set<Map.Entry<String, String>> attributesMap) {
-        List<AttributeEntity> attributes = new ArrayList<>();
+        List<UserAttributeEntity> attributes = new ArrayList<>();
 
         // we sync attributes with those received by deleting missing
-        List<AttributeEntity> oldAttributes = attributeRepository.findByAuthorityAndProviderAndUserId(authority,
+        List<UserAttributeEntity> oldAttributes = attributeRepository.findByAuthorityAndProviderAndUserId(authority,
                 provider, userId);
 
-        List<AttributeEntity> toRemove = new ArrayList<>();
+        List<UserAttributeEntity> toRemove = new ArrayList<>();
         toRemove.addAll(oldAttributes);
 
         for (Map.Entry<String, String> attr : attributesMap) {
-            AttributeEntity a = addOrUpdateAttribute(authority, provider,
+            UserAttributeEntity a = addOrUpdateAttribute(authority, provider,
                     userId, attr.getKey(), attr.getValue());
             attributes.add(a);
             if (toRemove.contains(a)) {
@@ -57,14 +57,14 @@ public class AttributeEntityService {
 
     }
 
-    public AttributeEntity addOrUpdateAttribute(
+    public UserAttributeEntity addOrUpdateAttribute(
             String authority, String provider,
             String userId,
             String key, String value) {
-        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+        UserAttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
                 key);
         if (a == null) {
-            a = new AttributeEntity();
+            a = new UserAttributeEntity();
             a.setAuthority(authority);
             a.setProvider(provider);
             a.setUserId(userId);
@@ -77,18 +77,18 @@ public class AttributeEntityService {
         return a;
     }
 
-    public AttributeEntity addAttribute(
+    public UserAttributeEntity addAttribute(
             String authority, String provider,
             String userId,
             String key, String value) {
 
-        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+        UserAttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
                 key);
         if (a != null) {
             throw new IllegalArgumentException("duplicate key");
         }
 
-        a = new AttributeEntity();
+        a = new UserAttributeEntity();
         a.setAuthority(authority);
         a.setProvider(provider);
         a.setUserId(userId);
@@ -101,11 +101,11 @@ public class AttributeEntityService {
 
     }
 
-    public AttributeEntity updateAttribute(
+    public UserAttributeEntity updateAttribute(
             String authority, String provider,
             String userId,
             String key, String value) {
-        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+        UserAttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
                 key);
         if (a == null) {
             throw new NoSuchElementException();
@@ -122,7 +122,7 @@ public class AttributeEntityService {
             String userId,
             String key) {
 
-        AttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
+        UserAttributeEntity a = attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
                 key);
         if (a != null) {
             attributeRepository.delete(a);
@@ -131,18 +131,18 @@ public class AttributeEntityService {
     }
 
     @Transactional(readOnly = true)
-    public AttributeEntity getAttribute(String authority, String provider, String userId, String key) {
+    public UserAttributeEntity getAttribute(String authority, String provider, String userId, String key) {
         return attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId,
                 key);
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeEntity> findAttributes(String authority, String provider) {
+    public List<UserAttributeEntity> findAttributes(String authority, String provider) {
         return findByAuthorityAndProvider(authority, provider);
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeEntity> findAttributes(String authority, String provider, String userId) {
+    public List<UserAttributeEntity> findAttributes(String authority, String provider, String userId) {
         return findByAuthorityAndProviderAndUserId(authority, provider, userId);
     }
 
@@ -153,27 +153,27 @@ public class AttributeEntityService {
      */
 
     @Transactional(readOnly = true)
-    public List<AttributeEntity> findByAuthority(String authority) {
+    public List<UserAttributeEntity> findByAuthority(String authority) {
         return attributeRepository.findByAuthority(authority);
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeEntity> findByAuthorityAndUserId(String authority, String userId) {
+    public List<UserAttributeEntity> findByAuthorityAndUserId(String authority, String userId) {
         return attributeRepository.findByAuthorityAndUserId(authority, userId);
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeEntity> findByAuthorityAndProvider(String authority, String provider) {
+    public List<UserAttributeEntity> findByAuthorityAndProvider(String authority, String provider) {
         return attributeRepository.findByAuthorityAndProvider(authority, provider);
     }
 
     @Transactional(readOnly = true)
-    public List<AttributeEntity> findByAuthorityAndProviderAndUserId(String authority, String provider, String userId) {
+    public List<UserAttributeEntity> findByAuthorityAndProviderAndUserId(String authority, String provider, String userId) {
         return attributeRepository.findByAuthorityAndProviderAndUserId(authority, provider, userId);
     }
 
     @Transactional(readOnly = true)
-    public AttributeEntity findByAuthorityAndProviderAndUserIdAndKey(String authority, String provider, String userId,
+    public UserAttributeEntity findByAuthorityAndProviderAndUserIdAndKey(String authority, String provider, String userId,
             String key) {
         return attributeRepository.findByAuthorityAndProviderAndUserIdAndKey(authority, provider, userId, key);
     }

@@ -32,13 +32,19 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final SamlAccountProvider accountProvider;
+    private final SamlIdentityProviderConfig providerConfig;
 
-    protected SamlSubjectResolver(String providerId, SamlUserAccountRepository accountRepository, String realm) {
+    protected SamlSubjectResolver(String providerId, SamlUserAccountRepository accountRepository,
+            SamlIdentityProviderConfig config,
+            String realm) {
         super(SystemKeys.AUTHORITY_SAML, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
+
+        this.providerConfig = config;
 
         // build an internal provider bound to repository
-        this.accountProvider = new SamlAccountProvider(providerId, accountRepository, realm);
+        this.accountProvider = new SamlAccountProvider(providerId, accountRepository, config, realm);
     }
 
     @Override
@@ -95,6 +101,9 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
     @Override
     @Transactional(readOnly = true)
     public Subject resolveByLinkingAttributes(Map<String, String> attributes) {
+        if (!providerConfig.isLinkable()) {
+            return null;
+        }
 
         if (attributes.keySet().containsAll(Arrays.asList("realm", "email"))
                 && getRealm().equals((attributes.get("realm")))) {
@@ -119,6 +128,10 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
 
 //    @Override
     public Collection<String> getLinkingAttributes() {
+        if (!providerConfig.isLinkable()) {
+            return null;
+        }
+
         // only realm+email
         // We don't want global linking with only email
         // Security risk: if we let users link cross domain accounts, a bogus realm
@@ -144,6 +157,10 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
 
     @Override
     public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal) {
+        if (!providerConfig.isLinkable()) {
+            return null;
+        }
+
         if (!(principal instanceof SamlAuthenticatedPrincipal)) {
             return null;
         }

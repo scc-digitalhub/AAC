@@ -39,15 +39,20 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OIDCUserAccountRepository accountRepository;
+    private final OIDCIdentityProviderConfig providerConfig;
 
     private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
     private final OAuth2LoginAuthenticationProvider oauthProvider;
 
     public OIDCAuthenticationProvider(String providerId,
             OIDCUserAccountRepository accountRepository,
+            OIDCIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
+
+        this.providerConfig = config;
         this.accountRepository = accountRepository;
 
         // we support only authCode login
@@ -110,9 +115,10 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
         OAuth2User oauthDetails = (OAuth2User) principal;
 
         // name is always available, is mapped via provider configuration
-        String userId = oauthDetails.getName();
-        String username = StringUtils.hasText(oauthDetails.getAttribute("email")) ? oauthDetails.getAttribute("email")
-                : userId;
+        String username = oauthDetails.getName();
+        // prefer upstream subject identifier as userId where available
+        String userId = StringUtils.hasText(oauthDetails.getAttribute("sub")) ? oauthDetails.getAttribute("sub")
+                : oauthDetails.getName();
 
         // rebuild details to clear authorities
         // by default they contain the response body, ie. the full accessToken +

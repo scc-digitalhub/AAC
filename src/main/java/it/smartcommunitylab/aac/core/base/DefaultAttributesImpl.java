@@ -26,6 +26,9 @@ public class DefaultAttributesImpl implements AttributeSet {
 
     private final String identifier;
 
+    private String name;
+    private String description;
+
     private Set<String> keys;
 
     private Set<Attribute> attributes;
@@ -50,8 +53,33 @@ public class DefaultAttributesImpl implements AttributeSet {
 
     }
 
+    public DefaultAttributesImpl(String identifier, Collection<Attribute> attributes) {
+        Assert.hasText(identifier, "a valid identifier is required");
+        this.identifier = identifier;
+        this.keys = new HashSet<>();
+        this.attributes = new HashSet<>();
+        this.isMutable = true;
+        this.addAttributes(attributes);
+    }
+
     public String getIdentifier() {
         return identifier;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Collection<String> getKeys() {

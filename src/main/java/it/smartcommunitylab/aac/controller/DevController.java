@@ -435,6 +435,8 @@ public class DevController {
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
         String events = registration.getEvents();
+        boolean linkable = registration.isLinkable();
+
         Map<String, Serializable> configuration = registration.getConfiguration();
 
         ConfigurableProvider provider = new ConfigurableProvider(authority, null, realm);
@@ -443,6 +445,7 @@ public class DevController {
         provider.setType(type);
         provider.setEnabled(false);
         provider.setPersistence(persistence);
+        provider.setLinkable(linkable);
         provider.setEvents(events);
         provider.setConfiguration(configuration);
 
@@ -470,12 +473,16 @@ public class DevController {
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
         String events = registration.getEvents();
+        boolean linkable = registration.isLinkable();
+
         Map<String, Serializable> configuration = registration.getConfiguration();
         Map<String, String> hookFunctions = registration.getHookFunctions();
 
         provider.setName(name);
         provider.setDescription(description);
         provider.setPersistence(persistence);
+        provider.setLinkable(linkable);
+
         provider.setEvents(events);
         provider.setConfiguration(configuration);
         provider.setHookFunctions(hookFunctions);

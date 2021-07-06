@@ -9,8 +9,8 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "attribute_entities", uniqueConstraints = @UniqueConstraint(columnNames = { "attribute_set", "attr_key" }))
-public class AttributeEntity {
+@Table(name = "attribute_sets", uniqueConstraints = @UniqueConstraint(columnNames = { "attribute_set" }))
+public class AttributeSetEntity {
 
     @Id
     @GeneratedValue
@@ -20,22 +20,8 @@ public class AttributeEntity {
     @Column(name = "attribute_set")
     private String set;
 
-    @NotNull
-    @Column(name = "attr_key")
-    private String key;
-
-    @NotNull
-    @Column(name = "attr_type")
-    private String type;
-
     private String name;
     private String description;
-
-    /**
-     * If claim type is multiple
-     */
-    @Column(name = "is_multiple")
-    private boolean multiple;
 
     public Long getId() {
         return id;
@@ -51,30 +37,6 @@ public class AttributeEntity {
 
     public void setSet(String set) {
         this.set = set;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public boolean isMultiple() {
-        return multiple;
-    }
-
-    public void setMultiple(boolean multiple) {
-        this.multiple = multiple;
     }
 
     public String getName() {

@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.attributes.model;
 
+import java.io.Serializable;
+import java.text.ParseException;
+
 import it.smartcommunitylab.aac.model.AttributeType;
 
 public class StringAttribute extends AbstractAttribute {
@@ -27,6 +30,14 @@ public class StringAttribute extends AbstractAttribute {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public static String parseValue(Serializable value) throws ParseException {
+        if (value instanceof String) {
+            return (String) value;
+        }
+
+        return String.valueOf(value);
     }
 
 }

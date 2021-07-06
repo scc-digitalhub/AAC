@@ -220,7 +220,16 @@ angular.module('aac.controllers.realmproviders', [])
             var persistence = $scope.provider.persistence;
             delete $scope.provider.persistence;
 
-            var data = { realm: $scope.realm.slug, name: name, persistence: persistence, configuration: $scope.provider, authority: $scope.providerAuthority, type: 'identity', provider: $scope.providerId };
+            var data = {
+                realm: $scope.realm.slug,
+                name: name,
+                persistence: persistence,
+                linkable: true,
+                configuration: $scope.provider,
+                authority: $scope.providerAuthority,
+                type: 'identity',
+                provider: $scope.providerId
+            };
             RealmProviders.saveIdentityProvider($scope.realm.slug, data)
                 .then(function () {
                     $scope.load();
@@ -473,6 +482,7 @@ angular.module('aac.controllers.realmproviders', [])
                 description: provider.description,
                 enabled: provider.enabled,
                 persistence: provider.persistence,
+                linkable: provider.linkable,
                 events: provider.events,
                 configuration: configuration,
                 hookFunctions: hookFunctions

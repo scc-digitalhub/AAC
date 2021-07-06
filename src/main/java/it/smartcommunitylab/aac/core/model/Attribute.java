@@ -19,4 +19,7 @@ public interface Attribute {
 
     public Serializable getValue();
 
+    public String getName();
+
+    public String getDescription();
 }

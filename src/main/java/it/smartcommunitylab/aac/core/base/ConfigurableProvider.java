@@ -38,6 +38,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
     @NotBlank
     private String type;
     private boolean enabled;
+    private boolean linkable;
     private String persistence;
     private String events;
 
@@ -62,6 +63,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
         this.name = provider;
 //        this.registered = false;
         this.enabled = true;
+        this.linkable = true;
     }
 
     /**
@@ -113,6 +115,14 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isLinkable() {
+        return linkable;
+    }
+
+    public void setLinkable(boolean linkable) {
+        this.linkable = linkable;
     }
 
     public String getPersistence() {

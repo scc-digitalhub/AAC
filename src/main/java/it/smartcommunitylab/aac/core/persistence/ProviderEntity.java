@@ -44,6 +44,10 @@ public class ProviderEntity {
     private String name;
     private String description;
 
+    @NotNull
+    @Column(name = "linkable")
+    private boolean linkable = true;
+
     @Column(name = "persistence_level")
     private String persistence;
 
@@ -116,6 +120,14 @@ public class ProviderEntity {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isLinkable() {
+        return linkable;
+    }
+
+    public void setLinkable(boolean linkable) {
+        this.linkable = linkable;
     }
 
     public String getName() {
