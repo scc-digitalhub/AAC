@@ -27,10 +27,10 @@ variables:
 maven-build:
   image: maven:3-openjdk-8
   stage: build
-  only:
-    refs:
-      - dev
-      - master
+  # only:
+  #   refs:
+  #     - dev
+  #     - master
   script:
     - mvn -DskipTests=true clean package
 
@@ -42,8 +42,8 @@ backend-container-build:
     - docker login -u $DHUB_USER -p $DHUB_PASS
     - DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $CONTAINER_IMAGE .
     - docker push $CONTAINER_IMAGE
-  only:
-    - adc-aac-test
+  # only:
+  #   - adc-aac-test
 
 include:
   - template: Security/Container-Scanning.gitlab-ci.yml
@@ -58,16 +58,16 @@ container_scanning:
     GIT_STRATEGY: fetch
     DOCKER_USER: ""
     DOCKER_PASSWORD: ""
-  rules:
-    - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
-
-gemnasium-dependency_scanning:
-  rules:
-    - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
-
-spotbugs-sast:
-  rules:
-    - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+#
+# gemnasium-dependency_scanning:
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+#
+# spotbugs-sast:
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
 
 deploy:
   stage: deploy
