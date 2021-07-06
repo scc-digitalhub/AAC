@@ -15,7 +15,7 @@ variables:
   DS_JAVA_VERSION: 11
   DOCKER_DRIVER: overlay
   CONTAINER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-  MAVEN_CLI_OPTS: -DskipTests --batch-mode
+  # MAVEN_CLI_OPTS: -DskipTests --batch-mode
   SAST_JAVA_VERSION: 11
 
 # maven-test:
@@ -24,15 +24,15 @@ variables:
 #   script:
 #     - mvn $MAVEN_REPO test
 
-# maven-build:
-#   image: maven:3-openjdk-8
-#   stage: build
-#   only:
-#     refs:
-#       - dev
-#       - master
-#   script:
-#     - mvn -DskipTests=true clean package
+maven-build:
+  image: maven:3-openjdk-8
+  stage: build
+  only:
+    refs:
+      - dev
+      - master
+  script:
+    - mvn -DskipTests=true clean package
 
 backend-container-build:
   stage: container-build
