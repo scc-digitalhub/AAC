@@ -40,7 +40,7 @@ backend-container-build:
     name: $CI_COMMIT_REF_NAME
   script:
     - docker login -u $DHUB_USER -p $DHUB_PASS
-    - DOCKER_BUILDKIT=1 docker build -f back-end/Dockerfile -t $CONTAINER_IMAGE .
+    - DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $CONTAINER_IMAGE .
     - docker push $CONTAINER_IMAGE
   only:
     - adc-aac-test
