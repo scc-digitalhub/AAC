@@ -1,35 +1,28 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import java.util.Collection;
-
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.store.AttributeService;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 @Transactional
 public class SamlAttributeProvider extends AbstractProvider {
 
     private final SamlUserAccountRepository accountRepository;
-    private final AttributeService attributeService;
+//    private final AttributeService attributeService;
 
     protected SamlAttributeProvider(String provider, SamlUserAccountRepository accountRepository,
-            AttributeService attributeService, String realm) {
+//            AttributeService attributeService, 
+            String realm) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
 
         Assert.notNull(accountRepository, "accountRepository is mandatory");
 //        Assert.notNull(attributeService, "attribute service is mandatory");
 
         this.accountRepository = accountRepository;
-        this.attributeService = attributeService;
+//        this.attributeService = attributeService;
     }
 
     @Override

@@ -12,7 +12,6 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 
 public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
 
@@ -47,7 +46,12 @@ public abstract class ProfileClaimsExtractor implements ScopeClaimsExtractor {
         claimsSet.setKey(key);
 
         // by default profile claims are top level
-        claimsSet.setNamespace(null);
+        // if custom profiles enforce namespace as resourceId
+        if (getResourceId().startsWith("aac.")) {
+            claimsSet.setNamespace(null);
+        } else {
+            claimsSet.setNamespace(getResourceId());
+        }
 
         // set profile
         claimsSet.setUser(isUser);

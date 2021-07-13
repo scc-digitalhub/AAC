@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.attributes.service;
 
 import java.util.List;
 
@@ -7,12 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
+import it.smartcommunitylab.aac.attributes.persistence.AttributeEntityRepository;
+import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
+import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntityRepository;
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
-import it.smartcommunitylab.aac.core.persistence.AttributeEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.AttributeSetEntity;
-import it.smartcommunitylab.aac.core.persistence.AttributeSetEntityRepository;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 @Service
@@ -42,13 +42,18 @@ public class AttributeService {
     }
 
     @Transactional(readOnly = true)
+    public List<AttributeSetEntity> listAttributeSets(String realm) {
+        return attributeSetRepository.findByRealm(realm);
+    }
+
+    @Transactional(readOnly = true)
     public AttributeSetEntity findAttributeSet(String identifier) {
-        return attributeSetRepository.findBySet(identifier);
+        return attributeSetRepository.findByIdentifier(identifier);
     }
 
     @Transactional(readOnly = true)
     public AttributeSetEntity getAttributeSet(String identifier) throws NoSuchAttributeSetException {
-        AttributeSetEntity set = attributeSetRepository.findBySet(identifier);
+        AttributeSetEntity set = attributeSetRepository.findByIdentifier(identifier);
         if (set == null) {
             throw new NoSuchAttributeSetException();
         }
@@ -57,19 +62,21 @@ public class AttributeService {
     }
 
     public AttributeSetEntity addAttributeSet(
-            String identifier,
+            String realm,
+            String identifier, 
             String name, String description) {
         if (!StringUtils.hasText(identifier)) {
             throw new IllegalArgumentException("empty set identifier");
         }
 
-        AttributeSetEntity set = attributeSetRepository.findBySet(identifier);
+        AttributeSetEntity set = attributeSetRepository.findByIdentifier(identifier);
         if (set != null) {
             throw new IllegalArgumentException("set identifier not unique");
         }
 
         set = new AttributeSetEntity();
-        set.setSet(identifier);
+        set.setRealm(realm);
+        set.setIdentifier(identifier);
         set.setName(name);
         set.setDescription(description);
 
@@ -84,7 +91,7 @@ public class AttributeService {
             throw new IllegalArgumentException("empty set identifier");
         }
 
-        AttributeSetEntity set = attributeSetRepository.findBySet(identifier);
+        AttributeSetEntity set = attributeSetRepository.findByIdentifier(identifier);
         if (set == null) {
             throw new NoSuchAttributeSetException();
         }
@@ -97,7 +104,7 @@ public class AttributeService {
     }
 
     public AttributeSetEntity deleteAttributeSet(String identifier) {
-        AttributeSetEntity set = attributeSetRepository.findBySet(identifier);
+        AttributeSetEntity set = attributeSetRepository.findByIdentifier(identifier);
         if (set != null) {
             List<AttributeEntity> attributes = attributeRepository.findBySet(identifier);
             attributeRepository.deleteAll(attributes);
@@ -150,7 +157,7 @@ public class AttributeService {
         }
 
         a = new AttributeEntity();
-        a.setSet(as.getSet());
+        a.setSet(as.getIdentifier());
         a.setKey(key);
         a.setType(attrType);
         a.setMultiple(multiple);

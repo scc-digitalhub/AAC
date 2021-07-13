@@ -284,7 +284,7 @@ public class AuthorizationEndpoint implements InitializingBean {
             if (!StringUtils.hasText(resolvedRedirectUri)) {
                 // will show generic error page
                 throw new IllegalArgumentException("Requested redirect_uri " + String.valueOf(redirectUri)
-                        + " is not a valid redirect for this request");
+                        + " is not a valid redirect");
             }
 
             if (ResponseMode.FORM_POST.getValue().equals(responseMode)) {
@@ -306,7 +306,7 @@ public class AuthorizationEndpoint implements InitializingBean {
         } catch (RuntimeException e) {
             // send to error page
             Map<String, Serializable> model = new HashMap<>();
-            model.put("error", e.getMessage());
+            model.put("error", e);
 
             return new ModelAndView(errorView, model);
         }
@@ -861,7 +861,7 @@ public class AuthorizationEndpoint implements InitializingBean {
 
         // send to error page
         Map<String, Serializable> model = new HashMap<>();
-        model.put("error", e.getMessage());
+        model.put("error", e);
 
         return new ModelAndView(errorView, model);
     }

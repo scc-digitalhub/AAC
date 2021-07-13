@@ -1,0 +1,55 @@
+<div class="pb-3 pt-3">
+    <div>
+        <div class="row">
+            <div class="col col-md-9">
+                <h6><a ui-sref="realm.attributesets({realmId:attributeSet.realm})">Attribute Sets
+                        &raquo;</a></h6>
+                <h3>{{attributeSet.name}}</h3>
+                <p class="text-monospace">{{attributeSet.identifier}}</p>
+            </div>
+            <div class="col col-md-3 text-right">
+                <button class="btn btn-primary" type="button" ng-click="saveAttributeSet()">Save</button>
+                <button class="btn btn-info" type="button" ng-click="exportAttributeSet()">Export</button>
+                <button class="btn btn-danger" type="button" ng-click="removeAttributeSet()">Delete</button>
+            </div>
+        </div>
+
+        <p>{{attributeSet.description}}</p>
+
+
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm table-hover border-bottom"
+                    ng-if="attributeSet.attributes && attributeSet.attributes.length > 0">
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Type</th>
+                        <th></th>
+                    </tr>
+                    <tr ng-repeat="attr in attributeSet.attributes">
+                        <td>
+                            <strong>{{attr.key}}</strong>
+                            <br><span class="small">{{attr.name}}</span>
+                        </td>
+                        <td>
+                            {{attr.multiple ? ('[' + attr.type +']'): attr.type}}
+                        </td>
+                        <td class="text-right">
+                            <a class="btn btn-xs  btn-danger btn-icon pull-right" ng-click="removeAttribute(attr)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-minus"></use>
+                                </svg></span></a>
+                            <a class="btn btn-xs btn-primary btn-icon  pull-right" ng-click="editAttribute(attr)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                                </svg></a>
+                        </td>
+                    </tr>
+                </table>
+                <p ng-if="!attributeSet.attributes || attributeSet.attributes.length == 0">No attributes defined</p>
+
+            </div>
+        </div>
+
+    </div>
+</div>

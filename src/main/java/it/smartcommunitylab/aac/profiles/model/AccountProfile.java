@@ -19,15 +19,19 @@ package it.smartcommunitylab.aac.profiles.model;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * User registration information (different account of the registered user)
  * 
  * @author raman
  *
  */
+@JsonInclude(Include.NON_EMPTY)
 public class AccountProfile extends AbstractProfile {
 
-    public static final String IDENTIFIER = "profile.accountprofile.me";
+    public static final String IDENTIFIER = "accountprofile";
 
     private String authority;
     private String provider;
@@ -45,7 +49,7 @@ public class AccountProfile extends AbstractProfile {
     }
 
     @Override
-    public String getProfileId() {
+    public String getIdentifier() {
         return IDENTIFIER;
     }
 

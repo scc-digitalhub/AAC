@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.attributes.persistence;
 
 import java.util.List;
 

@@ -7,11 +7,14 @@ import java.util.Date;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(Include.NON_EMPTY)
 public class OpenIdProfile extends AbstractProfile {
 
-    public static final String IDENTIFIER = "profile.openid.me";
+    public static final String IDENTIFIER = "openid";
 
     private String name;
 
@@ -81,7 +84,7 @@ public class OpenIdProfile extends AbstractProfile {
     }
 
     @Override
-    public String getProfileId() {
+    public String getIdentifier() {
         return IDENTIFIER;
     }
 

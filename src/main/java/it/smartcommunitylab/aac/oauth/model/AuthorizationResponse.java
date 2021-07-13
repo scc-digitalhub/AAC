@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
 
 @JsonInclude(Include.NON_NULL)
 public class AuthorizationResponse {
@@ -29,7 +29,7 @@ public class AuthorizationResponse {
     private String idToken;
 
     @JsonProperty("scope")
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope;
 
     @JsonProperty("token_type")

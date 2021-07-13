@@ -63,7 +63,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
     // internal providers
     private final SamlAccountProvider accountProvider;
-    private final SamlAttributeProvider attributeProvider;
+//    private final SamlAttributeProvider attributeProvider;
     private final SamlAuthenticationProvider authenticationProvider;
     private final SamlSubjectResolver subjectResolver;
 
@@ -99,7 +99,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SamlAccountProvider(providerId, accountRepository, config, realm);
-        this.attributeProvider = new SamlAttributeProvider(providerId, accountRepository, attributeStore, realm);
+//        this.attributeProvider = new SamlAttributeProvider(providerId, accountRepository, attributeStore, realm);
         this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, config, realm);
         this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, config, realm);
 
@@ -312,35 +312,13 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     @Override
     @Transactional(readOnly = true)
     public SamlUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-        SamlUserAccount account = accountProvider.getAccount(userId);
-
-        if (!account.getSubject().equals(subject)) {
-            throw new NoSuchUserException();
-        }
-
-        // fetch stored principal attributes if present
-        String id = parseResourceId(userId);
-        Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
-
-        // convert attribute sets
-        List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
-
-        // write custom model
-        SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm());
-        identity.setAccount(account);
-        identity.setAttributes(identityAttributes);
-        return identity;
-
+        return getIdentity(subject, userId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
     public SamlUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
             throws NoSuchUserException {
-        if (fetchAttributes) {
-            return getIdentity(subject, userId);
-        }
-
         SamlUserAccount account = accountProvider.getAccount(userId);
 
         if (!account.getSubject().equals(subject)) {
@@ -350,14 +328,31 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         // write custom model
         SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm());
         identity.setAccount(account);
+
+        if (fetchAttributes) {
+            // fetch stored principal attributes if present
+            String id = parseResourceId(userId);
+            Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
+
+            // convert attribute sets
+            List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
+            identity.setAttributes(identityAttributes);
+        }
+
         return identity;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<UserIdentity> listIdentities(String subject) {
+    public Collection<SamlUserIdentity> listIdentities(String subject) {
+        return listIdentities(subject, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<SamlUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
         // TODO handle not persisted configuration
-        List<UserIdentity> identities = new ArrayList<>();
+        List<SamlUserIdentity> identities = new ArrayList<>();
 
         Collection<SamlUserAccount> accounts = accountProvider.listAccounts(subject);
 
@@ -365,7 +360,17 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
             // write custom model
             SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm());
             identity.setAccount(account);
-            identity.setAttributes(Collections.emptyList());
+
+            if (fetchAttributes) {
+                // fetch stored principal attributes if present
+                String id = parseResourceId(account.getUserId());
+                Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
+
+                // convert attribute sets
+                List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
+                identity.setAttributes(identityAttributes);
+            }
+
             identities.add(identity);
         }
 

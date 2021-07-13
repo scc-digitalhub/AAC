@@ -22,9 +22,13 @@ import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.common.exceptions.RedirectMismatchException;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
+import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * {@link RedirectResolver} implementation with a hook to allow redirects to the
@@ -37,7 +41,7 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
 //    private static final String URL_TEST = "/testtoken";
-    private static final String[] LOCALHOST = { "http://localhost", "http://127.0.0.1" };
+    private static final String LOCALHOST = "http://localhost";
 
 //    @Value("${security.redirects.matchports}")
 //    private boolean configMatchPorts;
@@ -48,7 +52,7 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 //    @Value("${application.url}")
     private final String applicationURL;
 
-    private static WhiteboxRedirectResolver localResolver;
+    private static LocalhostRedirectResolver localResolver;
 
     /**
      * @param context
@@ -59,62 +63,40 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
             boolean configMatchSubDomains) {
         super();
         this.applicationURL = applicationURL;
-//		path = testTokenPath(context);
         this.setMatchPorts(configMatchPorts);
         this.setMatchSubdomains(configMatchSubDomains);
 
-        // localhost resolver with relaxed check
-        localResolver = new WhiteboxRedirectResolver();
-        localResolver.setMatchPorts(false);
-
-    }
-
-//	public static String testTokenPath(ServletContext ctx) {
-//		return ctx.getContextPath() + URL_TEST;
-//	}
-
-//    public static String testTokenPath(String baseURL) {
-//        return baseURL + URL_TEST;
-//    }
-
-    public static boolean isLocalRedirect(String requestedRedirect, String baseURL) {
-        //TODO either remove localhost or put behind flag global or in client
-        //we don't want an open redirect for implicit flows
-//        Set<String> redirectUris = new HashSet<>(Arrays.asList(LOCALHOST));
-//        redirectUris.add(baseURL);
-
-        return localResolver.matchingRedirect(Collections.singleton(baseURL), requestedRedirect);
+        // localhost resolver with relaxed check on ports
+        localResolver = new LocalhostRedirectResolver();
     }
 
     @Override
     public String resolveRedirect(String requestedRedirect, ClientDetails client) throws OAuth2Exception {
-        logger.trace("check " + requestedRedirect + " against local resolver");
-        // match absolute uri for test token
-        if (requestedRedirect != null && isLocalRedirect(requestedRedirect, applicationURL)) {
-            return requestedRedirect;
+        logger.trace("check " + requestedRedirect + " against localhost resolver");
+        // match localhost first
+        try {
+            return localResolver.resolveRedirect(requestedRedirect, client);
+        } catch (RedirectMismatchException e) {
         }
 
         logger.trace("check " + requestedRedirect + " against client redirects");
         return super.resolveRedirect(requestedRedirect, client);
     }
 
-//	@Override
-//	protected boolean redirectMatches(String requestedRedirect, String redirectUri) {
-//	    //DEPRECATED match path for test token
-////		return super.redirectMatches(requestedRedirect, redirectUri) || path.equals(requestedRedirect);
-//	    //match absolute uri for test token
-//	    return super.redirectMatches(requestedRedirect, redirectUri) || super.redirectMatches(requestedRedirect, path);
-//	}
+    public static class LocalhostRedirectResolver extends DefaultRedirectResolver {
+        public LocalhostRedirectResolver() {
+            super();
+            setMatchPorts(false);
+            setMatchSubdomains(true);
+        }
 
-    public static class WhiteboxRedirectResolver extends DefaultRedirectResolver {
-        public boolean matchingRedirect(Collection<String> redirectUris, String requestedRedirect) {
-            for (String redirectUri : redirectUris) {
-                if (requestedRedirect != null && redirectMatches(requestedRedirect, redirectUri)) {
-                    return true;
-                }
+        protected boolean redirectMatches(String requestedRedirect, String redirectUri) {
+            if (StringUtils.startsWithIgnoreCase(redirectUri, LOCALHOST)) {
+                return super.redirectMatches(requestedRedirect, redirectUri);
             }
 
             return false;
         }
+
     }
 }

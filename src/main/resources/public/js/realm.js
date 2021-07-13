@@ -68,7 +68,7 @@ angular.module('aac.controllers.realm', [])
         });
     }
 
-   init();
+    init();
 
     // RealmData.getMyRealms()
     //   .then(function (data) {
@@ -175,11 +175,11 @@ angular.module('aac.controllers.realm', [])
       });
     }
 
-     $scope.jsonUserDlg = function(user) {
-         $scope.modUser = user;
-         $('#userJsonModal').modal({ keyboard: false });
+    $scope.jsonUserDlg = function (user) {
+      $scope.modUser = user;
+      $('#userJsonModal').modal({ keyboard: false });
 
-     }
+    }
 
     $scope.setPage = function (page) {
       $scope.query.page = page;
@@ -487,5 +487,56 @@ angular.module('aac.controllers.realm', [])
     init();
   })
 
+  .controller('RealmScopesController', function ($scope, $stateParams, RealmData, Utils) {
+    var slug = $stateParams.realmId;
 
+
+    var init = function () {
+      RealmData.getResources(slug)
+        .then(function (data) {
+          $scope.load(data);
+          return data;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load realm : ' + err.data.message);
+        });
+    };
+
+    $scope.load = function (data) {
+      $scope.resources = data;
+      var scopes = [];
+      data.forEach(r => {
+        var ss = r.scopes.map(s => { return { ...s, 'resource': r } });
+        scopes.push(...ss)
+      });
+      $scope.scopes = scopes;
+      $scope.results = null;
+      $scope.search = null;
+      Utils.refreshFormBS(300);
+    };
+
+
+    $scope.scopesDlg = function (resource) {
+      $scope.scopeResource = resource;
+      $('#scopesModal').modal({ backdrop: 'static', focus: true })
+      Utils.refreshFormBS();
+    }
+
+    $scope.doSearch = function () {
+      var keywords = $scope.search;
+      var results = null;
+      if (keywords) {
+        results = $scope.scopes
+          .filter(s => {
+            return s.scope.includes(keywords.toLowerCase())
+              || s.name.toLowerCase().includes(keywords.toLowerCase())
+              || s.resource.name.toLowerCase().includes(keywords.toLowerCase());
+          });
+      }
+      $scope.results = results;
+    }
+
+
+    init();
+  })
   ;

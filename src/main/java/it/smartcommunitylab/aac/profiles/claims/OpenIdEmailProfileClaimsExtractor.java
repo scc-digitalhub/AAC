@@ -39,7 +39,7 @@ public class OpenIdEmailProfileClaimsExtractor extends ProfileClaimsExtractor {
 
         OpenIdProfile profile = extractor.extractUserProfile(user);
 
-        // narrow down
+        // narrow down to dedicated profile
         return profile.toEmailProfile();
     }
 

@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.profiles;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +14,10 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.profiles.model.EmailProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.profiles.service.ProfileService;
 
@@ -28,40 +32,43 @@ public class ProfileManager {
     private AuthenticationHelper authHelper;
 
     /*
-     * Current user, from context
+     * Current user, from context - shortcuts
      */
 
     public BasicProfile curBasicProfile() throws InvalidDefinitionException {
-        return profileService.getBasicProfile(curUserDetails());
+        return (BasicProfile) profileService.getProfile(curUserDetails(), BasicProfile.IDENTIFIER);
     }
 
     public OpenIdProfile curOpenIdProfile() throws InvalidDefinitionException {
-        return profileService.getOpenIdProfile(curUserDetails());
+        return (OpenIdProfile) profileService.getProfile(curUserDetails(), OpenIdProfile.IDENTIFIER);
+    }
+
+    public EmailProfile curEmailProfile() throws InvalidDefinitionException {
+        return (EmailProfile) profileService.getProfile(curUserDetails(), EmailProfile.IDENTIFIER);
     }
 
     public Collection<AccountProfile> curAccountProfiles() throws InvalidDefinitionException {
-        return profileService.getAccountProfiles(curUserDetails());
+        Collection<AccountProfile> profiles = profileService.getProfiles(curUserDetails(), AccountProfile.IDENTIFIER)
+                .stream().map(a -> (AccountProfile) a).collect(Collectors.toList());
+
+        return profiles;
+
     }
 
     /*
      * Users from db
      */
 
-    public BasicProfile getBasicProfile(String realm, String subjectId)
+    public AbstractProfile getProfile(String realm, String subjectId, String identifier)
             throws NoSuchUserException, InvalidDefinitionException {
-        return profileService.getBasicProfile(realm, subjectId);
+        return profileService.getProfile(realm, subjectId, identifier);
     }
 
-    public OpenIdProfile getOpenIdProfile(String realm, String subjectId)
+    public Collection<AbstractProfile> getProfiles(String realm, String subjectId, String identifier)
             throws NoSuchUserException, InvalidDefinitionException {
-        return profileService.getOpenIdProfile(realm, subjectId);
-
-    }
-
-    public Collection<AccountProfile> getAccountProfiles(String realm, String subjectId)
-            throws NoSuchUserException, InvalidDefinitionException {
-        return profileService.getAccountProfiles(realm, subjectId);
-
+        Collection<AbstractProfile> profiles = new ArrayList<>();
+        profiles.addAll(profileService.getProfiles(realm, subjectId, identifier));
+        return profiles;
     }
 
     /*

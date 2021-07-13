@@ -59,10 +59,12 @@
           </div>
         </td>
         <td class="text-right">
-          <button class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(item, !item.enabled)">
-            <span ng-if="item.enabled">Disable</span>
-            <span ng-if="!item.enabled">Enable</span>
-          </button>
+          <button ng-if="!item.enabled" class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(item, !item.enabled)">
+            Enable
+          </button>     
+          <button ng-if="item.enabled" class="btn btn-warning btn-sm  text-right" ng-click="toggleProviderState(item, !item.enabled)">
+            Disable
+          </button>  
           <button class="btn btn-primary btn-sm"
             ui-sref="realm.provider({realmId:item.realm, providerId:item.provider})">Edit</button>
           <button class="btn btn-danger btn-sm" ng-disabled="item.enabled"

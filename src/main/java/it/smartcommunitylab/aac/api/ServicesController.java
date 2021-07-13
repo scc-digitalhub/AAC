@@ -149,7 +149,7 @@ public class ServicesController {
             return serviceManager.addService(realm, s);
 
         } catch (Exception e) {
-            logger.error("import idp error: " + e.getMessage());
+            logger.error("import service error: " + e.getMessage());
             throw e;
         }
 

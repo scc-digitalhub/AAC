@@ -33,6 +33,11 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
     }
 
     @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
     public CustomProfile extractUserProfile(UserIdentity identity) throws InvalidDefinitionException {
         if (identity == null) {
             return null;

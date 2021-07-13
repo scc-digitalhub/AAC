@@ -1,6 +1,6 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
+import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Resource;
 
 public class ProfileResource extends Resource {
@@ -17,6 +17,6 @@ public class ProfileResource extends Resource {
 
     @Override
     public String getDescription() {
-        return "Access user profile: basic, account";
+        return "Access user profile: basic, account, custom";
     }
 }

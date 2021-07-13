@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.attributes.persistence;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,16 +9,18 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "attribute_sets", uniqueConstraints = @UniqueConstraint(columnNames = { "attribute_set" }))
+@Table(name = "attribute_sets", uniqueConstraints = @UniqueConstraint(columnNames = { "identifier" }))
 public class AttributeSetEntity {
 
     @Id
     @GeneratedValue
     private Long id;
 
+    private String realm;
+
     @NotNull
-    @Column(name = "attribute_set")
-    private String set;
+    @Column(name = "identifier")
+    private String identifier;
 
     private String name;
     private String description;
@@ -31,12 +33,12 @@ public class AttributeSetEntity {
         this.id = id;
     }
 
-    public String getSet() {
-        return set;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public void setSet(String set) {
-        this.set = set;
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
     public String getName() {
@@ -53,6 +55,14 @@ public class AttributeSetEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
 }

@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.profiles.model;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -22,12 +20,13 @@ public abstract class AbstractProfile implements Serializable {
     }
 
     @JsonIgnore
-    public abstract String getProfileId();
+    public abstract String getIdentifier();
 
     /*
      * Convert profile, subclasses can override
      */
 
+    @JsonIgnore
     public String toJson() throws IllegalArgumentException {
         try {
             return mapper.writeValueAsString(this);
@@ -36,6 +35,7 @@ public abstract class AbstractProfile implements Serializable {
         }
     }
 
+    @JsonIgnore
     public HashMap<String, Serializable> toMap() throws IllegalArgumentException {
         try {
             return mapper.convertValue(this, typeRef);

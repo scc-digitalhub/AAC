@@ -1,28 +1,8 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.store.AttributeService;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 
 /*
@@ -35,17 +15,18 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 public class InternalAttributeProvider extends AbstractProvider {
 
     private final InternalUserAccountService userAccountService;
-    private final AttributeService attributeService;
+//    private final AttributeService attributeService;
 
     public InternalAttributeProvider(String providerId, InternalUserAccountService userAccountService,
-            AttributeService attributeService, String realm) {
+//            AttributeService attributeService,
+            String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
 
         Assert.notNull(userAccountService, "userAccountService is mandatory");
 //        Assert.notNull(attributeService, "attribute service is mandatory");
 
         this.userAccountService = userAccountService;
-        this.attributeService = attributeService;
+//        this.attributeService = attributeService;
     }
 
     @Override

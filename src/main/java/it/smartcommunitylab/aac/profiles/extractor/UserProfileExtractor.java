@@ -14,10 +14,18 @@ import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
  * Do note that not all method are required, implementations could choose to return one or more.
  */
 public interface UserProfileExtractor {
+
+    /*
+     * Profile identifier, assumed to be also a scope in the form
+     * profile.<identifier>.me
+     */
+
+    public String getIdentifier();
+
     /*
      * Get the profile from the given identity, where possible
      */
-    public abstract AbstractProfile extractUserProfile(UserIdentity identity)
+    public AbstractProfile extractUserProfile(UserIdentity identity)
             throws InvalidDefinitionException;
 
     /*
@@ -27,7 +35,7 @@ public interface UserProfileExtractor {
      * 
      * This method is *required* to return a valid profile.
      */
-    public abstract AbstractProfile extractUserProfile(User user)
+    public AbstractProfile extractUserProfile(User user)
             throws InvalidDefinitionException;
 
     /*
@@ -35,6 +43,6 @@ public interface UserProfileExtractor {
      * one. For example in case of multiple identities.
      */
 
-    public abstract Collection<? extends AbstractProfile> extractUserProfiles(User user)
+    public Collection<? extends AbstractProfile> extractUserProfiles(User user)
             throws InvalidDefinitionException;
 }

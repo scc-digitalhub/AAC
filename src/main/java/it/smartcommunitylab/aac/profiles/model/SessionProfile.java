@@ -1,12 +1,13 @@
 package it.smartcommunitylab.aac.profiles.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import it.smartcommunitylab.aac.Config;
-
+@JsonInclude(Include.NON_EMPTY)
 public class SessionProfile extends AbstractProfile {
 
-    public static final String IDENTIFIER = "profile.session.me";
+    public static final String IDENTIFIER = "session";
 
     // a composite key for the idp (authority+providerId) responsible for the last
     // authentication
@@ -22,12 +23,12 @@ public class SessionProfile extends AbstractProfile {
     // defines if authentication is current or fetched from store
     // for example for refreshed tokens
     @JsonProperty("active")
-    private boolean active;
+    private Boolean active;
 
     // describes when authentication userDetails is refreshed before token
     // generation
     @JsonProperty("refreshed")
-    private boolean refreshed;
+    private Boolean refreshed;
 
     /*
      * Authentication context info.
@@ -47,10 +48,67 @@ public class SessionProfile extends AbstractProfile {
     // authentication context class reference:
     // level of assurance is related to provider: spid/cie etc can produce a
     // loa1+, otherwise we keep loa0
-    private int acr = 0;
+    private Integer acr = 0;
 
     @Override
-    public String getProfileId() {
+    public String getIdentifier() {
         return IDENTIFIER;
     }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public long getLoginAt() {
+        return loginAt;
+    }
+
+    public void setLoginAt(long loginAt) {
+        this.loginAt = loginAt;
+    }
+
+    public String getRemoteAddress() {
+        return remoteAddress;
+    }
+
+    public void setRemoteAddress(String remoteAddress) {
+        this.remoteAddress = remoteAddress;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Boolean getRefreshed() {
+        return refreshed;
+    }
+
+    public void setRefreshed(Boolean refreshed) {
+        this.refreshed = refreshed;
+    }
+
+    public String getAmr() {
+        return amr;
+    }
+
+    public void setAmr(String amr) {
+        this.amr = amr;
+    }
+
+    public Integer getAcr() {
+        return acr;
+    }
+
+    public void setAcr(Integer acr) {
+        this.acr = acr;
+    }
+
 }

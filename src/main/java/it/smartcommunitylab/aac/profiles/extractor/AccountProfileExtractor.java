@@ -15,9 +15,16 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
 public class AccountProfileExtractor extends AbstractUserProfileExtractor {
 
+    @Override
+    public String getIdentifier() {
+        return AccountProfile.IDENTIFIER;
+    }
+
+    
     @Override
     public AccountProfile extractUserProfile(User user)
             throws InvalidDefinitionException {

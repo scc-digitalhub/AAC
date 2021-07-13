@@ -2,14 +2,14 @@
     <div class="row mb-3">
         <div class="col col-md-6 p-3">
             <h6><a ui-sref="realm.apps({realmId:app.realm})">Client applications
-                &raquo;</a></h6>            
+                    &raquo;</a></h6>
             <h3>{{appname}}</h3>
             <p class="text-monospace">{{app.clientId}}</p>
         </div>
         <div class="col col-md-6 text-right">
-         <button class="btn btn-secondary btn-sm"
-                ui-sref="realm.appstart({realmId:app.realm, clientId:app.clientId})">Use</button>        
-            <button class="btn btn-primary btn-sm  text-right" ng-click="saveClientApp(app)" >Save</button>
+            <button class="btn btn-secondary btn-sm"
+                ui-sref="realm.appstart({realmId:app.realm, clientId:app.clientId})">Use</button>
+            <button class="btn btn-primary btn-sm  text-right" ng-click="saveClientApp(app)">Save</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="exportClientApp(app)">Export</button>
             <button class="btn btn-danger btn-sm  text-right" ng-click="deleteClientAppDlg(app)">Delete</button>
         </div>
@@ -38,7 +38,7 @@
         <li class="nav-item">
             <a class="nav-link  {{activeClientView('scopes')}}" href ng-click="switchClientView('scopes')">API
                 Access</a>
-        </li>        
+        </li>
         <li class="nav-item">
             <a class="nav-link  {{activeClientView('claims')}}" href ng-click="switchClientView('claims')">Hooks &
                 Claims</a>
@@ -46,10 +46,10 @@
     </ul>
     <div class="tab-content pt-3">
         <div class="tab-pane fade show active">
-			<form role="form" name="appForm"	class="needs-validation was-validated" novalidate>
-				<div ng-include="'./html/app/'+clientView+'.html'"></div>
-			</form>
-		</div>
+            <form role="form" name="appForm" class="needs-validation was-validated" novalidate>
+                <div ng-include="'./html/app/'+clientView+'.html'"></div>
+            </form>
+        </div>
     </div>
 
 

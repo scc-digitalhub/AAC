@@ -289,6 +289,10 @@ public class User {
         }
     }
 
+    public void addAttributes(Collection<UserAttributes> attributes) {
+        this.attributes.addAll(attributes);
+    }
+
     public void addAttributes(UserAttributes attributes) {
         this.attributes.add(attributes);
     }

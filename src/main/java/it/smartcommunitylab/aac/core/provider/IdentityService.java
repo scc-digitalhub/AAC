@@ -56,6 +56,8 @@ public interface IdentityService extends IdentityProvider {
 
     public Collection<? extends UserIdentity> listIdentities(String subject);
 
+    public Collection<? extends UserIdentity> listIdentities(String subject, boolean fetchAttributes);
+
     /*
      * Manage identities from this provider
      * 

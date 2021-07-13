@@ -19,7 +19,6 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.AccountProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 
 public class AccountProfileClaimsExtractor implements ScopeClaimsExtractor {
 

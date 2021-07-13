@@ -22,8 +22,11 @@ public class StringOrArraySerializer extends StdSerializer<Set<String>> {
             if (value.size() == 1) {
                 gen.writeString(value.iterator().next());
             } else {
-                String values = StringUtils.collectionToDelimitedString(value, " ");
-                gen.writeString(values);
+                gen.writeStartArray();
+                for (String s : value) {
+                    gen.writeString(s);
+                }
+                gen.writeEndArray();
             }
 
         }

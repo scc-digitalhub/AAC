@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.attributes;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,14 +18,14 @@ import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
 import it.smartcommunitylab.aac.attributes.model.SerializableAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
+import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
+import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.base.DefaultAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.persistence.AttributeEntity;
-import it.smartcommunitylab.aac.core.persistence.AttributeSetEntity;
-import it.smartcommunitylab.aac.core.service.AttributeService;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 /*
@@ -47,22 +47,30 @@ public class AttributeManager {
     /*
      * Attribute sets
      */
-    public AttributeSet getAttributeSet(String identifier) throws NoSuchAttributeSetException {
+    public AttributeSet getAttributeSet(String realm, String identifier) throws NoSuchAttributeSetException {
         logger.debug("get attribute set for id " + identifier);
 
         AttributeSetEntity se = attributeService.getAttributeSet(identifier);
+        if (!realm.equals(se.getRealm())) {
+            throw new IllegalArgumentException("set does not match realm");
+        }
+
         List<AttributeEntity> attributes = attributeService.listAttributes(identifier);
 
         return toSet(se, attributes);
 
     }
 
-    public AttributeSet findAttributeSet(String identifier) {
+    public AttributeSet findAttributeSet(String realm, String identifier) {
         logger.debug("find attribute set for id " + identifier);
 
         AttributeSetEntity se = attributeService.findAttributeSet(identifier);
         if (se == null) {
             return null;
+        }
+
+        if (!realm.equals(se.getRealm())) {
+            throw new IllegalArgumentException("set does not match realm");
         }
 
         Set<String> keys = Collections.emptySet();
@@ -71,20 +79,20 @@ public class AttributeManager {
             keys = attributes.stream().map(a -> a.getKey()).collect(Collectors.toSet());
         } catch (NoSuchAttributeSetException e) {
         }
-        DefaultAttributesImpl a = toSet(se);
-        a.setKeys(keys);
+        DefaultAttributesSet a = toSet(se);
+//        a.setKeys(keys);
 
         return a;
     }
 
-    public Collection<AttributeSet> listAttributeSets() {
+    public Collection<AttributeSet> listAttributeSets(String realm) {
         logger.debug("list attribute sets");
 
         // TODO add static (internal) attribute sets to list
-        return attributeService.listAttributeSets().stream().map(s -> {
-            DefaultAttributesImpl a = toSet(s);
+        return attributeService.listAttributeSets(realm).stream().map(s -> {
+            DefaultAttributesSet a = toSet(s);
             try {
-                a.setAttributes(listAttributes(s.getSet()));
+                a.addAttributes(listAttributes(realm, s.getIdentifier()));
             } catch (NoSuchAttributeSetException e) {
             }
             return a;
@@ -93,7 +101,7 @@ public class AttributeManager {
 
     }
 
-    public AttributeSet addAttributeSet(AttributeSet set) {
+    public AttributeSet addAttributeSet(String realm, AttributeSet set) {
 
         String identifier = set.getIdentifier();
         if (!StringUtils.hasText(identifier) || isReserved(identifier)) {
@@ -101,7 +109,8 @@ public class AttributeManager {
         }
 
         logger.debug("add attribute set " + identifier);
-        AttributeSetEntity se = attributeService.addAttributeSet(identifier, set.getName(), set.getDescription());
+        AttributeSetEntity se = attributeService.addAttributeSet(realm, identifier, set.getName(),
+                set.getDescription());
         List<Attribute> attrs = new ArrayList<>();
         if (set.getAttributes() != null) {
             try {
@@ -117,20 +126,24 @@ public class AttributeManager {
             }
         }
 
-        DefaultAttributesImpl a = toSet(se);
-        a.setAttributes(attrs);
+        DefaultAttributesSet a = toSet(se);
+        a.addAttributes(attrs);
 
         return a;
 
     }
 
-    public AttributeSet updateAttributeSet(String identifier, AttributeSet set) throws NoSuchAttributeSetException {
+    public AttributeSet updateAttributeSet(String realm, String identifier, AttributeSet set)
+            throws NoSuchAttributeSetException {
 
         logger.debug("update attribute set " + identifier);
 
         AttributeSetEntity se = attributeService.findAttributeSet(identifier);
         if (se == null) {
             throw new NoSuchAttributeSetException();
+        }
+        if (!realm.equals(se.getRealm())) {
+            throw new IllegalArgumentException("set does not match realm");
         }
 
         se = attributeService.updateAttributeSet(identifier, set.getName(), set.getDescription());
@@ -171,17 +184,20 @@ public class AttributeManager {
 
         }
 
-        DefaultAttributesImpl a = toSet(se);
-        a.setAttributes(attrs);
+        DefaultAttributesSet a = toSet(se);
+        a.addAttributes(attrs);
 
         return a;
 
     }
 
-    public void deleteAttributeSet(String identifier) throws NoSuchAttributeSetException {
+    public void deleteAttributeSet(String realm, String identifier) throws NoSuchAttributeSetException {
         AttributeSetEntity se = attributeService.findAttributeSet(identifier);
         if (se == null) {
             throw new NoSuchAttributeSetException();
+        }
+        if (!realm.equals(se.getRealm())) {
+            throw new IllegalArgumentException("set does not match realm");
         }
 
         attributeService.deleteAttributeSet(identifier);
@@ -191,8 +207,12 @@ public class AttributeManager {
     /*
      * Attributes
      */
-    public List<Attribute> listAttributes(String identifier) throws NoSuchAttributeSetException {
+    public List<Attribute> listAttributes(String realm, String identifier) throws NoSuchAttributeSetException {
         AttributeSetEntity se = attributeService.getAttributeSet(identifier);
+        if (!realm.equals(se.getRealm())) {
+            throw new IllegalArgumentException("set does not match realm");
+        }
+
         List<AttributeEntity> attributes = attributeService.listAttributes(identifier);
 
         return attributes.stream().map(a -> toAttribute(a)).collect(Collectors.toList());
@@ -202,19 +222,21 @@ public class AttributeManager {
     /*
      * Builders
      */
-    private DefaultAttributesImpl toSet(AttributeSetEntity se) {
-        DefaultAttributesImpl s = new DefaultAttributesImpl(se.getSet());
+    private DefaultAttributesSet toSet(AttributeSetEntity se) {
+        DefaultAttributesSet s = new DefaultAttributesSet();
+        s.setIdentifier(se.getIdentifier());
+        s.setRealm(se.getRealm());
         s.setName(se.getName());
         s.setDescription(se.getDescription());
         return s;
     }
 
-    private DefaultAttributesImpl toSet(AttributeSetEntity se, List<AttributeEntity> attributes) {
-        DefaultAttributesImpl s = toSet(se);
+    private DefaultAttributesSet toSet(AttributeSetEntity se, List<AttributeEntity> attributes) {
+        DefaultAttributesSet s = toSet(se);
 
         if (attributes != null) {
             attributes.forEach(ae -> s.addAttribute(toAttribute(ae)));
-            // TODO add field to describle attribute is multiple
+            // TODO add field to describe attribute is multiple
         }
 
         return s;

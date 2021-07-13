@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.attributes.persistence;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,7 +9,8 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "attribute_entities", uniqueConstraints = @UniqueConstraint(columnNames = { "attribute_set", "attr_key" }))
+@Table(name = "attribute_entities", uniqueConstraints = @UniqueConstraint(columnNames = { "attribute_set",
+        "attr_key" }))
 public class AttributeEntity {
 
     @Id
@@ -32,7 +33,7 @@ public class AttributeEntity {
     private String description;
 
     /**
-     * If claim type is multiple
+     * If attribute is multiple
      */
     @Column(name = "is_multiple")
     private boolean multiple;

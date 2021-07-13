@@ -1,7 +1,7 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
+import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Scope;
 
 public abstract class AbstractProfileScope extends Scope {

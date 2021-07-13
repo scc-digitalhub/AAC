@@ -52,7 +52,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     // providers
     private final InternalAccountProvider accountProvider;
-    private final InternalAttributeProvider attributeProvider;
+//    private final InternalAttributeProvider attributeProvider;
     private final InternalAuthenticationProvider authenticationProvider;
     private final InternalSubjectResolver subjectResolver;
     private final InternalAccountService accountService;
@@ -86,7 +86,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
                 this.config.getConfigMap());
 
         // TODO attributeService to feed attribute provider
-        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
+//        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
         this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
                 passwordService, realm, this.config.getConfigMap());
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, realm);
@@ -233,8 +233,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     @Override
     @Transactional(readOnly = true)
     public InternalUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-
-        return getIdentity(subject, userId, false);
+        return getIdentity(subject, userId, true);
     }
 
     @Override
@@ -260,10 +259,11 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
         // use builder to properly map attributes
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
-
-        // TODO consolidate *all* attribute sets logic in attributeProvider
-        identity.setAttributes(extractUserAttributes(account));
-
+        if (fetchAttributes) {
+            // TODO consolidate *all* attribute sets logic in attributeProvider
+            identity.setAttributes(extractUserAttributes(account));
+        }
+        
         // do note returned identity has credentials populated
         // we erase here
         identity.eraseCredentials();
@@ -274,6 +274,12 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     @Override
     @Transactional(readOnly = true)
     public Collection<InternalUserIdentity> listIdentities(String subject) {
+        return listIdentities(subject, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<InternalUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
         // lookup for matching accounts
         List<InternalUserAccount> accounts = accountProvider.listAccounts(subject);
         if (accounts.isEmpty()) {
@@ -289,9 +295,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
             // use builder to properly map attributes
             InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
-
-            // TODO consolidate *all* attribute sets logic in attributeProvider
-            identity.setAttributes(extractUserAttributes(account));
+            if (fetchAttributes) {
+                // TODO consolidate *all* attribute sets logic in attributeProvider
+                identity.setAttributes(extractUserAttributes(account));
+            }
 
             // do note returned identity has credentials populated
             // we erase here

@@ -65,7 +65,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
     // internal providers
     private final OIDCAccountProvider accountProvider;
-    private final OIDCAttributeProvider attributeProvider;
+//    private final OIDCAttributeProvider attributeProvider;
     private final OIDCAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
 
@@ -96,7 +96,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, config, realm);
-        this.attributeProvider = new OIDCAttributeProvider(providerId, accountRepository, attributeStore, realm);
+//        this.attributeProvider = new OIDCAttributeProvider(providerId, accountRepository, attributeStore, realm);
         this.authenticationProvider = new OIDCAuthenticationProvider(providerId, accountRepository, config, realm);
         this.subjectResolver = new OIDCSubjectResolver(providerId, accountRepository, config, realm);
 
@@ -328,35 +328,13 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     @Override
     @Transactional(readOnly = true)
     public OIDCUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-        OIDCUserAccount account = accountProvider.getAccount(userId);
-
-        if (!account.getSubject().equals(subject)) {
-            throw new NoSuchUserException();
-        }
-
-        // fetch stored principal attributes if present
-        String id = parseResourceId(userId);
-        Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
-
-        // convert attribute sets
-        List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
-
-        // write custom model
-        OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm());
-        identity.setAccount(account);
-        identity.setAttributes(identityAttributes);
-        return identity;
-
+        return getIdentity(subject, userId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
     public OIDCUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
             throws NoSuchUserException {
-
-        if (fetchAttributes) {
-            return getIdentity(subject, userId);
-        }
         OIDCUserAccount account = accountProvider.getAccount(userId);
 
         if (!account.getSubject().equals(subject)) {
@@ -366,14 +344,31 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
         // write custom model
         OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm());
         identity.setAccount(account);
+
+        if (fetchAttributes) {
+            // fetch stored principal attributes if present
+            String id = parseResourceId(userId);
+            Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
+
+            // convert attribute sets
+            List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
+            identity.setAttributes(identityAttributes);
+        }
+
         return identity;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<UserIdentity> listIdentities(String subject) {
+    public Collection<OIDCUserIdentity> listIdentities(String subject) {
+        return listIdentities(subject, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<OIDCUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
         // TODO handle not persisted configuration
-        List<UserIdentity> identities = new ArrayList<>();
+        List<OIDCUserIdentity> identities = new ArrayList<>();
 
         Collection<OIDCUserAccount> accounts = accountProvider.listAccounts(subject);
 
@@ -381,7 +376,17 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
             // write custom model
             OIDCUserIdentity identity = new OIDCUserIdentity(getProvider(), getRealm());
             identity.setAccount(account);
-            identity.setAttributes(Collections.emptyList());
+
+            if (fetchAttributes) {
+                // fetch stored principal attributes if present
+                String id = parseResourceId(account.getUserId());
+                Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
+
+                // convert attribute sets
+                List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
+                identity.setAttributes(identityAttributes);
+            }
+
             identities.add(identity);
         }
 
