@@ -137,20 +137,23 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
 
     @Override
     protected Instant expiresAt(Authentication auth) {
-        // build expiration from tokens
-        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-        OAuth2User user = token.getPrincipal();
-        if (user instanceof OidcUser) {
-            // check for id token
-            Instant exp = ((OidcUser) user).getExpiresAt();
-            if (exp != null) {
-                return exp;
+        // if enabled bind session duration to token expiration
+        if (Boolean.TRUE.equals(providerConfig.getConfigMap().getRespectTokenExpiration())) {
+            // build expiration from tokens
+            OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+            OAuth2User user = token.getPrincipal();
+            if (user instanceof OidcUser) {
+                // check for id token
+                Instant exp = ((OidcUser) user).getExpiresAt();
+                if (exp != null) {
+                    return exp;
+                }
             }
-        }
 
-        OAuth2AccessToken accessToken = token.getAccessToken();
-        if (accessToken != null) {
-            return accessToken.getExpiresAt();
+            OAuth2AccessToken accessToken = token.getAccessToken();
+            if (accessToken != null) {
+                return accessToken.getExpiresAt();
+            }
         }
 
         return null;

@@ -3,6 +3,9 @@
         <div class="col col-md-6 p-3">
             <h3>Attribute Sets</h3>
             <p>Register and manage custom attribute sets for users.</p>
+            <p>Each custom attribute set will be available as custom profile for consumption both via profiles api and
+                via token claims, with an associated scope
+                <span class="small text-monospace">profile.<i>setidentifier</i>.me </span>
         </div>
         <div class="col col-md-6 text-right">
             <button class="btn btn-primary text-right" type="button" ng-click="createAttributeSetDlg()">

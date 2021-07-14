@@ -38,8 +38,28 @@
         </table>
     </div>
 
-    <div ng-if="apps == null || apps.length == 0">
-        <h5>No data</h5>
+    <div ng-if="apps && apps.length == 0">
+        <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="it-hero-text-wrapper bg-dark">
+                            <h1 class="no_toc">No client registered.</h1>
+                            <p class="d-none d-lg-block">Add a client application to start using OAuth2/OIDC.</p>
+                            <div class="it-btn-container">
+                                <button class="btn btn-primary text-right" type="button"
+                                    ng-click="createClientAppDlg()">
+                                    <svg class="icon icon-sm ">
+                                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                                    </svg>
+                                    Add Client
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>

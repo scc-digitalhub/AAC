@@ -23,7 +23,7 @@ angular.module('aac.controllers.realmattributesets', [])
         }
 
         rService.saveAttributeSet = function (slug, attributeSet) {
-            if (attributeSet.id) {
+            if (attributeSet.identifier) {
                 return $http.put('console/dev/realms/' + slug + '/attributeset/' + attributeSet.identifier, attributeSet).then(function (data) {
                     return data.data;
                 });
@@ -147,8 +147,104 @@ angular.module('aac.controllers.realmattributesets', [])
             $scope.attributeSetName = data.name;
         }
 
-        $scope.exportAttributeSet = function () {
-            window.open('console/dev/realms/' + slug + '/attributeset/' + setId + '/yaml');
+        $scope.exportAttributeSet = function (attributeSet) {
+            window.open('console/dev/realms/' + slug + '/attributeset/' + attributeSet.identifier + '/yaml');
+        };
+
+
+        $scope.saveAttributeSet = function (attributeSet) {
+
+            var data = {
+                ...attributeSet,
+                realm: slug
+            };
+
+            RealmAttributeSets.saveAttributeSet(slug, data)
+                .then(function (res) {
+                    $scope.load(res);
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+
+        }
+
+        $scope.editAttributeSetDlg = function (attributeSet) {
+            $scope.modAttributeSet = Object.assign({}, attributeSet);
+            $('#editAttributeSetDlg').modal({ keyboard: false });
+        }
+
+        $scope.editAttributeSet = function () {
+            $('#editAttributeSetDlg').modal('hide');
+            var set = $scope.modAttributeSet;
+            if (set) {
+               var data = $scope.attributeSet;
+               data.name = set.name;
+               data.description = set.description;
+               $scope.saveAttributeSet(data);
+            }
+        }
+
+
+        $scope.deleteAttributeSetDlg = function (attributeSet) {
+            $scope.modAttributeSet = attributeSet;
+            //add confirm field
+            $scope.modAttributeSet.confirmId = '';
+            $('#deleteAttributeSetConfirm').modal({ keyboard: false });
+        }
+
+        $scope.deleteAttributeSet = function () {
+            $('#deleteAttributeSetConfirm').modal('hide');
+            if ($scope.modAttributeSet.identifier === $scope.modAttributeSet.confirmId) {
+                RealmAttributeSets.removeAttributeSet(slug, $scope.modAttributeSet.identifier).then(function () {
+                    $state.go('realm.attributesets', { realmId: $stateParams.realmId });
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+            } else {
+                Utils.showError("confirmId not valid");
+            }
+        }
+
+        $scope.removeAttribute = function (attr) {
+            if (attr) {
+                var attributes = $scope.attributeSet.attributes;
+                $scope.attributeSet.attributes = attributes.filter(at => at.key !== attr.key);
+            }
+        };
+
+        $scope.editAttribute = function (attr) {
+            if (attr) {
+                $scope.modAttr = Object.assign({}, attr);
+            } else {
+                $scope.modAttr = {};
+            }
+            $('#editAttrModal').modal({ keyboard: false });
+            Utils.refreshFormBS();
+        };
+
+
+        $scope.saveAttribute = function () {
+            $('#editAttrModal').modal('hide');
+            var attr = $scope.modAttr;
+            var attributes = $scope.attributeSet.attributes;
+            if (attr) {
+                //check if update or add, key is unique
+                var a = attributes.find(at => at.key == attr.key);
+                if (!!a) {
+                    //update
+                    a.type = attr.type;
+                    a.multiple = attr.multiple;
+                    a.name = attr.name;
+                    a.description = attr.description;
+                } else {
+                    attributes.push(attr);
+                }
+            }
+
+            $scope.attributeSet.attributes = attributes;
         };
 
         init();

@@ -57,6 +57,7 @@ import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationResponse;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestFactory;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestValidator;
@@ -230,7 +231,7 @@ public class AuthorizationEndpoint implements InitializingBean {
                 if (authorizationRequest.getExtensions().containsKey("prompt")) {
                     Set<String> prompt = StringUtils
                             .commaDelimitedListToSet((String) authorizationRequest.getExtensions().get("prompt"));
-                    promptConsent = prompt.contains("consent");
+                    promptConsent = prompt.contains(PromptMode.CONSENT.getValue());
                 }
 
                 // check for offline_access, clients should always ask consent

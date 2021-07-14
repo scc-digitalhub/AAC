@@ -100,14 +100,48 @@ angular.module('aac.controllers.realm', [])
 
   .controller('RealmDashboardController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
     var slug = $stateParams.realmId;
-    if (slug) {
-      RealmData.getRealmStats(slug).then(function (stats) {
-        $scope.stats = stats;
-      })
+    $scope.curStep = 1
+    var init = function () {
+      RealmData.getRealmStats(slug)
+        .then(function (stats) {
+          $scope.load(stats);
+        })
         .catch(function (err) {
           Utils.showError('Failed to load realm: ' + err.data.message);
         });
+    };
+
+    $scope.load = function (stats) {
+      $scope.stats = stats;
+      $scope.showAddIdp = !(stats.providers);
+      $scope.showAddApp = !(stats.apps);
+      $scope.showAddService = !(stats.services);
+      $scope.showAddUser = !(stats.users);
+      $scope.showStart = $scope.showAddIdp || $scope.showAddApp || $scope.showAddService || $scope.showAddUser;
+      $scope.showAudit = (stats.loginCount > 0 || stats.registrationCount > 0);
+      $scope.curStep = 0;
+      if ($scope.showAddIdp) {
+        $scope.curStep = 1;
+      } else if ($scope.showAddApp) {
+        $scope.curStep = 2;
+      } else if ($scope.showAddService) {
+        $scope.curStep = 3;
+      } else if ($scope.showAddUser) {
+        $scope.curStep = 4;
+      }
+    };
+
+    $scope.prevStep = function () {
+      $scope.curStep--;
     }
+    $scope.nextStep = function () {
+      $scope.curStep++;
+    }
+    $scope.setStep = function (s) {
+      $scope.curStep = s;
+    }
+
+    init();
 
   })
 

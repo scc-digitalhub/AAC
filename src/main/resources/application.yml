@@ -117,7 +117,7 @@ providers:
         jwkSetUri: https://www.googleapis.com/oauth2/v3/certs
         issuerUri: https://accounts.google.com
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
-        userNameAttributeName: sub
+        userNameAttributeName: email
       - clientName: Facebook
         clientAuthenticationMethod: client_secret_post      
         scope: public_profile,email

@@ -3,6 +3,8 @@ package it.smartcommunitylab.aac.openid.provider;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
@@ -17,6 +19,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.PromptMode;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,6 +46,12 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
 
     // autoconfiguration support from well-known
     private String issuerUri;
+
+    // session control
+    private Boolean propagateEndSession;
+    private Boolean respectTokenExpiration;
+    private Set<PromptMode> promptMode;
+    
 
     public OIDCIdentityProviderConfigMap() {
         // set default
@@ -139,6 +148,30 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
         this.issuerUri = issuerUri;
     }
 
+    public Boolean getPropagateEndSession() {
+        return propagateEndSession;
+    }
+
+    public void setPropagateEndSession(Boolean propagateEndSession) {
+        this.propagateEndSession = propagateEndSession;
+    }
+
+    public Boolean getRespectTokenExpiration() {
+        return respectTokenExpiration;
+    }
+
+    public void setRespectTokenExpiration(Boolean respectTokenExpiration) {
+        this.respectTokenExpiration = respectTokenExpiration;
+    }
+
+    public Set<PromptMode> getPromptMode() {
+        return promptMode;
+    }
+
+    public void setPromptMode(Set<PromptMode> promptMode) {
+        this.promptMode = promptMode;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -181,6 +214,11 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
 
         // autoconfiguration support from well-known
         this.issuerUri = map.getIssuerUri();
+
+        // session
+        this.propagateEndSession = map.getPropagateEndSession();
+        this.respectTokenExpiration = map.getRespectTokenExpiration();
+        this.promptMode = map.getPromptMode();
 
     }
 

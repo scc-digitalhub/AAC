@@ -31,10 +31,27 @@
     </table>
   </div>
 
-  <div ng-if="services == null || services.length == 0">
-    <h5>No data</h5>
+  <div ng-if="services && services.length == 0">
+    <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="it-hero-text-wrapper bg-dark">
+              <h1 class="no_toc">No custom services registered.</h1>
+              <p class="d-none d-lg-block">Register an API to define scopes and claims.</p>
+              <div class="it-btn-container">
+                <button class="btn btn-primary text-right" type="button" ng-click="newService()">
+                  <svg class="icon icon-sm">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                  </svg>
+                  New Service</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
 </div>
 
 <div ng-include="'./html/realm.services.modal.html'"></div>
