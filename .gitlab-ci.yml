@@ -25,7 +25,7 @@ variables:
 #     - mvn $MAVEN_REPO test
 
 maven-build:
-  image: maven:3-openjdk-8
+  image: maven:3-openjdk-11
   stage: build
   # only:
   #   refs:
