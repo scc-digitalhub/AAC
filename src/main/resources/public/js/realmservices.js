@@ -1,6 +1,6 @@
 angular.module('aac.controllers.realmservices', [])
 
-  .service('RealmServicesData', function ($q, $http, $rootScope) {
+  .service('RealmServicesData', function ($q, $http) {
     var rsService = {};
 
     rsService.getServices = function (realm) {
@@ -191,7 +191,7 @@ angular.module('aac.controllers.realmservices', [])
         if (!data) {
           $scope.nsError = false;
         }
-        if ($scope.nsChecking = oldCheck) $scope.nsChecking = null;
+        if ($scope.nsChecking == oldCheck) $scope.nsChecking = null;
       });
     }
 

@@ -2,7 +2,7 @@ angular.module('aac.controllers.realmproviders', [])
     /**
       * Realm Data Services
       */
-    .service('RealmProviders', function ($q, $http, $httpParamSerializer) {
+    .service('RealmProviders', function ($q, $http) {
         var rService = {};
         rService.getIdentityProvider = function (slug, providerId) {
             return $http.get('console/dev/realms/' + slug + '/providers/' + providerId).then(function (data) {
@@ -123,7 +123,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.createProviderDlg = function (authority, name) {
-            provider = {
+            var provider = {
                 type: 'identity',
                 name: '',
                 authority: authority,
@@ -131,9 +131,8 @@ angular.module('aac.controllers.realmproviders', [])
                 configuration: {}
             };
             if (name) {
-                var ptIdx = $scope.providerTemplates.findIndex(function (pt) { return pt.name === name });
-                if (ptIdx >= 0) {
-                    var template = $scope.providerTemplates[ptIdx];
+                var template = $scope.providerTemplates.find(pt => pt.name === name);
+                if (template) {
                     provider.name = name;
                     provider.configuration = Object.assign({}, template.configuration);
                 }
@@ -283,15 +282,16 @@ angular.module('aac.controllers.realmproviders', [])
 
         $scope.updateProviderType = function () {
             if ($scope.provider.clientName) {
-                var ptIdx = $scope.oidcProviderTemplates.findIndex(function (pt) { return pt.name === $scope.provider.clientName });
-                if (ptIdx >= 0) {
-                    var pt = Object.assign({}, $scope.oidcProviderTemplates[ptIdx].configuration);
+                var template = $scope.providerTemplates.find(pt => pt.name === $scope.provider.clientName);
+                if (template) {
+                    var pt = Object.assign({}, template.configuration);
                     pt.name = $scope.provider.name;
                     pt.clientId = $scope.provider.clientId;
                     pt.clientSecret = $scope.provider.clientSecret;
                     pt.scope = toChips(pt.scope);
                     $scope.provider = pt;
                 }
+
             }
             Utils.refreshFormBS();
         }
@@ -398,7 +398,7 @@ angular.module('aac.controllers.realmproviders', [])
         var extractConfiguration = function (authority, config) {
             if (authority == 'oidc') {
                 var scopes = $scope.idpOidcScope.map(function (s) {
-                    if (s.hasOwnProperty('text')) {
+                    if ('text' in s) {
                         return s.text;
                     }
                     return s;
@@ -407,7 +407,7 @@ angular.module('aac.controllers.realmproviders', [])
             }
             if (authority == 'saml') {
                 var authnContextClasses = $scope.samlAuthnContextClasses.map(function (s) {
-                    if (s.hasOwnProperty('text')) {
+                    if ('text' in s) {
                         return s.text;
                     }
                     return s;
@@ -439,7 +439,7 @@ angular.module('aac.controllers.realmproviders', [])
                 result: null,
                 error: null
             };
-            if (data.hookFunctions.hasOwnProperty("attributeMapping")) {
+            if ("attributeMapping" in data.hookFunctions) {
                 attributeMapping.enabled = true;
                 attributeMapping.code = atob(data.hookFunctions["attributeMapping"]);
             }
@@ -520,10 +520,10 @@ angular.module('aac.controllers.realmproviders', [])
         $scope.applyProviderTemplate = function () {
             var configuration = $scope.idp.configuration;
             if (configuration.clientName) {
-                var ptIdx = $scope.oidcProviderTemplates.findIndex(function (pt) { return pt.name === configuration.clientName });
-                if (ptIdx >= 0) {
-                    var pt = Object.assign({}, $scope.oidcProviderTemplates[ptIdx].configuration);
-                    ptScopes = [];
+                var template = $scope.providerTemplates.find(pt => pt.name === configuration.clientName);
+                if (template) {
+                    var pt = Object.assign({}, template.configuration);
+                    var ptScopes = [];
                     toChips(pt.scope).forEach(function (s) {
                         ptScopes.push({ 'text': s });
                     });

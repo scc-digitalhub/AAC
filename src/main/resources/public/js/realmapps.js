@@ -15,7 +15,7 @@ angular.module('aac.controllers.realmapps', [])
     /**
       * Realm Data Services
       */
-    .service('RealmAppsData', function ($q, $http, $httpParamSerializer) {
+    .service('RealmAppsData', function ($q, $http) {
         var raService = {};
 
         raService.getClientApps = function (slug) {
@@ -187,7 +187,7 @@ angular.module('aac.controllers.realmapps', [])
 
         init();
     })
-    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, RealmProviders, Utils) {
+    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, RealmProviders, Utils, $window) {
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
         $scope.clientView = 'overview';
@@ -256,9 +256,9 @@ angular.module('aac.controllers.realmapps', [])
             $scope.appname = data.name;
             $scope.configurationMap = data.configuration;
             $scope.configurationSchema = data.schema;
-            
+
             // process idps
-            var idps = [];
+            // var idps = [];
 
             // process scopes scopes
             var scopes = [];
@@ -284,7 +284,7 @@ angular.module('aac.controllers.realmapps', [])
                 error: null,
                 context: '{}'
             };
-            if (data.hookFunctions != null && data.hookFunctions.hasOwnProperty("claimMapping")) {
+            if (data.hookFunctions != null && "claimMapping" in data.hookFunctions) {
                 claimMapping.enabled = true;
                 claimMapping.code = atob(data.hookFunctions["claimMapping"]);
             }
@@ -297,8 +297,8 @@ angular.module('aac.controllers.realmapps', [])
                 "afterTokenGrant": null
             }
             if (data.hookWebUrls != null) {
-                for (h in data.hookWebUrls) {
-                    if (webHooks.hasOwnProperty(h)) {
+                for (var h in data.hookWebUrls) {
+                    if (h in webHooks) {
                         webHooks[h] = data.hookWebUrls[h];
                     }
                 }
@@ -350,30 +350,30 @@ angular.module('aac.controllers.realmapps', [])
 
 
 
-        extractConfiguration = function (type, config) {
+        let extractConfiguration = function (type, config) {
 
             var conf = config;
 
             if (type === 'oauth2') {
-//                // extract grantTypes
-//                var grantTypes = [];
-//                for (var gt of $scope.oauth2GrantTypes) {
-//                    if (gt.value) {
-//                        grantTypes.push(gt.key);
-//                    }
-//                }
-//                conf.authorizedGrantTypes = grantTypes;
-//
-//                var authMethods = [];
-//                for (var am of $scope.oauth2AuthenticationMethods) {
-//                    if (am.value) {
-//                        authMethods.push(am.key);
-//                    }
-//                }
-//                conf.authenticationMethods = authMethods;
+                //                // extract grantTypes
+                //                var grantTypes = [];
+                //                for (var gt of $scope.oauth2GrantTypes) {
+                //                    if (gt.value) {
+                //                        grantTypes.push(gt.key);
+                //                    }
+                //                }
+                //                conf.authorizedGrantTypes = grantTypes;
+                //
+                //                var authMethods = [];
+                //                for (var am of $scope.oauth2AuthenticationMethods) {
+                //                    if (am.value) {
+                //                        authMethods.push(am.key);
+                //                    }
+                //                }
+                //                conf.authenticationMethods = authMethods;
 
                 var redirectUris = $scope.oauth2RedirectUris.map(function (r) {
-                    if (r.hasOwnProperty('text')) {
+                    if ('text' in r) {
                         return r.text;
                     }
                     return r;
@@ -393,7 +393,7 @@ angular.module('aac.controllers.realmapps', [])
             var configuration = extractConfiguration(clientApp.type, clientApp.configuration);
 
             var scopes = $scope.appScopes.map(function (s) {
-                if (s.hasOwnProperty('text')) {
+                if ('text' in s) {
                     return s.text;
                 }
                 return s;
@@ -414,7 +414,7 @@ angular.module('aac.controllers.realmapps', [])
             }
 
             var hookWebUrls = clientApp.hookWebUrls != null ? clientApp.hookWebUrls : {};
-            for (h in $scope.webHooks) {
+            for (var h in $scope.webHooks) {
                 if ($scope.webHooks[h] != null && $scope.webHooks[h] != '') {
                     hookWebUrls[h] = $scope.webHooks[h];
                 } else {
@@ -481,7 +481,7 @@ angular.module('aac.controllers.realmapps', [])
 
 
         $scope.exportClientApp = function (clientApp) {
-            window.open('console/dev/realms/' + clientApp.realm + '/apps/' + clientApp.clientId + '/export');
+            $window.open('console/dev/realms/' + clientApp.realm + '/apps/' + clientApp.clientId + '/export');
         };
 
         $scope.activeClientView = function (view) {
@@ -548,7 +548,7 @@ angular.module('aac.controllers.realmapps', [])
                 });
 
             var scopes = $scope.appScopes.map(function (s) {
-                if (s.hasOwnProperty('text')) {
+                if ('text' in s) {
                     return s.text;
                 }
                 return s;
@@ -572,7 +572,7 @@ angular.module('aac.controllers.realmapps', [])
 
         $scope.scopesDlg = function (resource) {
             var scopes = $scope.appScopes.map(function (s) {
-                if (s.hasOwnProperty('text')) {
+                if ('text' in s) {
                     return s.text;
                 }
                 return s;
@@ -616,7 +616,7 @@ angular.module('aac.controllers.realmapps', [])
                 Utils.showError(err.data.message);
             });
         }
-        
+
         $scope.decodeJwt = function (grantType) {
             var token = $scope.oauth2Tokens[grantType].token;
             var d = '';
@@ -627,7 +627,7 @@ angular.module('aac.controllers.realmapps', [])
             }
 
             $scope.oauth2Tokens[grantType].decoded = d;
-        }        
+        }
 
         $scope.toggleClientAppClaimMapping = function () {
             var claimMapping = $scope.claimMapping;
@@ -661,15 +661,16 @@ angular.module('aac.controllers.realmapps', [])
                 scopes: $scope.claimMapping.scopes.map(function (s) { return s.text })
             }
 
-            RealmAppsData.testClientAppClaimMapping($scope.realm.slug, $scope.app.clientId, data).then(function (res) {
-                $scope.claimMapping.result = res.result;
-                $scope.claimMapping.errors = res.errors;
-                $scope.claimMapping.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
-            }).catch(function (err) {
-                $scope.claimMapping.result = null;
-                $scope.claimMapping.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
-                $scope.claimMapping.errors = [err.data.message];
-            });
+            RealmAppsData.testClientAppClaimMapping($scope.realm.slug, $scope.app.clientId, data)
+                .then(function (res) {
+                    $scope.claimMapping.result = res.result;
+                    $scope.claimMapping.errors = res.errors;
+                    $scope.claimMapping.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
+                }).catch(function (err) {
+                    $scope.claimMapping.result = null;
+                    $scope.claimMapping.context = (err.context ? JSON.stringify(err.context, null, 4) : '{}');
+                    $scope.claimMapping.errors = [err.data.message];
+                });
         }
 
 
@@ -801,7 +802,7 @@ angular.module('aac.controllers.realmapps', [])
                 var grantTypes = [];
                 if (config.authorizedGrantTypes) {
                     config.authorizedGrantTypes.forEach(function (gt) {
-                        if (!!gt) {
+                        if (gt) {
                             grantTypes.push({
                                 "key": gt,
                                 "value": true
@@ -849,7 +850,7 @@ angular.module('aac.controllers.realmapps', [])
 
 
         $scope.reloadQuickstart = function () {
-            if (!!$scope.quickstart.view) {
+            if ($scope.quickstart.view) {
                 $scope.quickstartView = $scope.quickstart.view;
             } else {
                 $scope.quickstartView = null;
