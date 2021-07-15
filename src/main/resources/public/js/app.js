@@ -66,7 +66,7 @@ app.config(function ($stateProvider) {
             url: '/provider?providerId',
             templateUrl: 'html/realm.provider.html',
             controller: 'RealmProviderController',
-        })        
+        })
         .state('realm.apps', {
             url: '/apps',
             templateUrl: 'html/realm.apps.html',
@@ -81,7 +81,7 @@ app.config(function ($stateProvider) {
             url: '/app.start?clientId',
             templateUrl: 'html/realm.app.start.html',
             controller: 'RealmAppStartController',
-        })        
+        })
         .state('realm.services', {
             url: '/services',
             templateUrl: 'html/realm.services.html',
@@ -101,7 +101,7 @@ app.config(function ($stateProvider) {
             url: '/scopes',
             templateUrl: 'html/realm.scopes.html',
             controller: 'RealmScopesController',
-        })        
+        })
         .state('realm.custom', {
             url: '/custom',
             templateUrl: 'html/realm.custom.html',
@@ -116,7 +116,7 @@ app.config(function ($stateProvider) {
             url: '/settings',
             templateUrl: 'html/realm.settings.html',
             controller: 'RealmSettingsController',
-        })        
+        })
         .state('realm.attributesets', {
             url: '/attributesets',
             templateUrl: 'html/realm.attributesets.html',
@@ -126,7 +126,7 @@ app.config(function ($stateProvider) {
             url: '/attributeset?setId',
             templateUrl: 'html/realm.attributeset.html',
             controller: 'RealmAttributeSetController',
-        })           
+        })
         .state('rolespaces', {
             url: '/rolespaces',
             templateUrl: 'html/rolespaces.html',
@@ -222,7 +222,7 @@ app.factory('loadingHttpInterceptor', function ($q, $window, usSpinnerService) {
     };
 })
 
-app.factory('accessDeniedInterceptor', function ($q, $location, $window) {
+app.factory('accessDeniedInterceptor', function ($q, $location) {
     return {
         request: function (config) {
             config.headers = config.headers || {};
@@ -230,13 +230,13 @@ app.factory('accessDeniedInterceptor', function ($q, $location, $window) {
         },
         response: function (response) {
             if (response.data.code == 401) {
-                window.document.location = "./logout";
+                $location = "./logout";
             }
             return response || $q.when(response);
         },
         responseError: function (error) {
             if (error.status == 401) {
-                window.document.location = "./logout";
+                $location = "./logout";
             }
             return $q.reject(error);
         }
@@ -246,16 +246,16 @@ app.factory('accessDeniedInterceptor', function ($q, $location, $window) {
 
     ;
 
-/**
- * Parse authentication parameters obtained from implicit flow authorization request 
- * @param input
- * @returns
- */
-function processAuthParams(input) {
-    var params = {}, queryString = input;
-    var regex = /([^&=]+)=([^&]*)/g;
-    while (m = regex.exec(queryString)) {
-        params[m[1]] = m[2];
-    }
-    return params.access_token;
-}
+// /**
+//  * Parse authentication parameters obtained from implicit flow authorization request 
+//  * @param input
+//  * @returns
+//  */
+// function processAuthParams(input) {
+//     var params = {}, queryString = input;
+//     var regex = /([^&=]+)=([^&]*)/g;
+//     while (m = regex.exec(queryString)) {
+//         params[m[1]] = m[2];
+//     }
+//     return params.access_token;
+// }

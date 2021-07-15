@@ -13,16 +13,17 @@ angular.module('aac.controllers.realm', [])
         .then(function (data) {
           $scope.realms = data;
           if (!slug) {
-            var stored = localStorage.getItem('realm') || null;
-            var idx = stored ? data.findIndex(r => r.slug == slug) : 0;
-            if (idx < 0) idx = 0;
-            slug = data[idx].slug;
-            toDashboard = true;
+            var stored = localStorage.getItem('realm');
+            slug = data.find(r => r.slug == slug);
+            if (!slug && data.length > 0) {
+              slug = data[0].slug;
+            }
           }
+          toDashboard = true;
 
           return data;
         })
-        .then(function (realms) {
+        .then(function () {
           RealmData.getRealm(slug)
             .then(function (data) {
               $scope.load(data);
@@ -162,12 +163,12 @@ angular.module('aac.controllers.realm', [])
         .then(function (data) {
           $scope.users = data;
           $scope.users.content.forEach(function (u) {
-            if (u.hasOwnProperty('identities')) {
+            if ('identities' in u) {
               u._providers = u.identities.map(function (i) {
                 return $scope.providers[i.provider] ? $scope.providers[i.provider].name : i.provider;
               });
             }
-            if (u.hasOwnProperty('authorities')) {
+            if ('authorities' in u) {
               u._authorities = u.authorities
                 .filter(function (a) { return a.realm === $scope.realm.slug })
                 .map(function (a) { return a.role });
@@ -248,8 +249,17 @@ angular.module('aac.controllers.realm', [])
     $scope.invite = function () {
       $('#inviteModal').modal('hide');
       var roles = [];
-      for (var k in $scope.roles.system_map) if ($scope.roles.system_map[k]) roles.push(k);
-      for (var k in $scope.roles.map) if ($scope.roles.map[k]) roles.push(k);
+      $scope.roles.system_map.foreach(k => {
+        if (k in $scope.roles.system_map) {
+          roles.push(k);
+        }
+      });
+      $scope.roles.map.foreach(k => {
+        if (k in $scope.roles.map) {
+          roles.push(k)
+        }
+      });
+
       RealmData.inviteUser($scope.realm.slug, $scope.invitation, roles).then(function () {
         $scope.load();
       }).catch(function (err) {
@@ -260,16 +270,24 @@ angular.module('aac.controllers.realm', [])
 
     $scope.hasRoles = function (m1, m2) {
       var res = false;
-      for (var r in m1) res |= m1[r];
-      for (var r in m2) res |= m2[r];
+      for (var r1 in m1) res |= m1[r1];
+      for (var r2 in m2) res |= m2[r2];
       return res;
     }
 
     // save roles
     $scope.updateRoles = function () {
       var roles = [];
-      for (var k in $scope.roles.system_map) if ($scope.roles.system_map[k]) roles.push(k);
-      for (var k in $scope.roles.map) if ($scope.roles.map[k]) roles.push(k);
+      $scope.roles.system_map.foreach(k => {
+        if ($scope.roles.system_map[k]) {
+          roles.push(k);
+        }
+      });
+      $scope.roles.map.foreach(k => {
+        if ($scope.roles.map[k]) {
+          roles.push(k)
+        }
+      });
 
       $('#rolesModal').modal('hide');
       RealmData.updateRealmRoles($scope.realm.slug, $scope.modUser, roles)
@@ -362,11 +380,10 @@ angular.module('aac.controllers.realm', [])
       };
 
       if (data.customization != null) {
-        for (cb of data.customization) {
+        for (var cb of data.customization) {
           var k = cb.identifier;
-          for (r in cb.resources) {
+          for (var r in cb.resources) {
             customization[k][r] = cb.resources[r];
-
           }
         }
       }
@@ -386,14 +403,14 @@ angular.module('aac.controllers.realm', [])
       var data = $scope.realm;
       var customization = [];
 
-      for (k in $scope.realmCustom) {
+      for (var k in $scope.realmCustom) {
         var res = {};
         var rs = $scope.realmCustom[k]
           .filter(function (r) {
             return r.value != null;
           });
 
-        for (r of rs) {
+        for (var r of rs) {
           res[r.key] = r.value;
         }
 
@@ -436,7 +453,7 @@ angular.module('aac.controllers.realm', [])
             return r.value != null;
           });
 
-        for (r of rs) {
+        for (var r of rs) {
           res[r.key] = r.value;
         }
 

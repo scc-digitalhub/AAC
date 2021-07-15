@@ -2,20 +2,20 @@ angular.module('aac.controllers.realmaudit', [])
     /**
          * Realm Data Services
          */
-    .service('RealmAudit', function ($q, $http, $httpParamSerializer) {
+    .service('RealmAudit', function ($q, $http) {
         var rService = {};
 
         rService.findEvents = function (slug, type, after, before) {
             var params = {}
-            if (!!type) {
+            if (type) {
                 params.type = type;
             }
 
-            if (!!after) {
+            if (after) {
                 params.after = after.toISOString();
             }
 
-            if (!!before) {
+            if (before) {
                 params.before = before.toISOString();
             }
             console.log(params);
@@ -70,12 +70,12 @@ angular.module('aac.controllers.realmaudit', [])
         $scope.reload = function () {
             var after = $scope.filterAfter;
             var before = $scope.filterBefore;
-            var type = (!!$scope.filterType ? $scope.filterType : null);
+            var type = ($scope.filterType ? $scope.filterType : null);
 
             $scope.load(after, before, type);
         }
 
-        $scope.auditEventDlg = function(item) {
+        $scope.auditEventDlg = function (item) {
             $scope.modEvent = item;
             $('#auditEventModal').modal({ keyboard: false });
 

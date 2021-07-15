@@ -2,7 +2,7 @@ angular.module('aac.controllers.realmattributesets', [])
     /**
       * Realm Data Services
       */
-    .service('RealmAttributeSets', function ($q, $http, $httpParamSerializer) {
+    .service('RealmAttributeSets', function ($q, $http) {
         var rService = {};
         rService.getAttributeSet = function (slug, identifier) {
             return $http.get('console/dev/realms/' + slug + '/attributeset/' + identifier).then(function (data) {
@@ -22,16 +22,16 @@ angular.module('aac.controllers.realmattributesets', [])
             });
         }
 
-        rService.saveAttributeSet = function (slug, attributeSet) {
-            if (attributeSet.identifier) {
-                return $http.put('console/dev/realms/' + slug + '/attributeset/' + attributeSet.identifier, attributeSet).then(function (data) {
-                    return data.data;
-                });
-            } else {
-                return $http.post('console/dev/realms/' + slug + '/attributeset', attributeSet).then(function (data) {
-                    return data.data;
-                });
-            }
+        rService.addAttributeSet = function (slug, attributeSet) {
+            return $http.post('console/dev/realms/' + slug + '/attributeset', attributeSet).then(function (data) {
+                return data.data;
+            });
+        }
+
+        rService.updateAttributeSet = function (slug, identifier, attributeSet) {
+            return $http.put('console/dev/realms/' + slug + '/attributeset/' + attributeSet.identifier, attributeSet).then(function (data) {
+                return data.data;
+            });
         }
 
         rService.importAttributeSet = function (slug, file) {
@@ -84,7 +84,7 @@ angular.module('aac.controllers.realmattributesets', [])
         $scope.createAttributeSet = function () {
             $('#createAttributeSetDlg').modal('hide');
 
-            RealmAttributeSets.saveAttributeSet($scope.realm.slug, $scope.modAttributeSet)
+            RealmAttributeSets.addAttributeSet($scope.realm.slug, $scope.modAttributeSet)
                 .then(function (res) {
                     $state.go('realm.attributeset', { realmId: res.realm, setId: res.identifier });
                     Utils.showSuccess();
@@ -159,7 +159,7 @@ angular.module('aac.controllers.realmattributesets', [])
                 realm: slug
             };
 
-            RealmAttributeSets.saveAttributeSet(slug, data)
+            RealmAttributeSets.updateAttributeSet(slug, data.identifier, data)
                 .then(function (res) {
                     $scope.load(res);
                     Utils.showSuccess();
@@ -179,10 +179,10 @@ angular.module('aac.controllers.realmattributesets', [])
             $('#editAttributeSetDlg').modal('hide');
             var set = $scope.modAttributeSet;
             if (set) {
-               var data = $scope.attributeSet;
-               data.name = set.name;
-               data.description = set.description;
-               $scope.saveAttributeSet(data);
+                var data = $scope.attributeSet;
+                data.name = set.name;
+                data.description = set.description;
+                $scope.saveAttributeSet(data);
             }
         }
 
@@ -233,7 +233,7 @@ angular.module('aac.controllers.realmattributesets', [])
             if (attr) {
                 //check if update or add, key is unique
                 var a = attributes.find(at => at.key == attr.key);
-                if (!!a) {
+                if (a) {
                     //update
                     a.type = attr.type;
                     a.multiple = attr.multiple;
