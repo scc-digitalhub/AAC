@@ -14,12 +14,14 @@ angular.module('aac.controllers.realm', [])
           $scope.realms = data;
           if (!slug) {
             var stored = localStorage.getItem('realm');
-            slug = data.find(r => r.slug == slug);
+            if (stored) {
+              slug = data.find(r => r.slug == stored.slug);
+            }
             if (!slug && data.length > 0) {
               slug = data[0].slug;
             }
+            toDashboard = true;
           }
-          toDashboard = true;
 
           return data;
         })
@@ -58,7 +60,7 @@ angular.module('aac.controllers.realm', [])
           $scope.realms = data;
           return data;
         })
-        .then(function (realms) {
+        .then(function () {
           RealmData.getRealm(slug)
             .then(function (data) {
               $scope.load(data);
@@ -184,6 +186,8 @@ angular.module('aac.controllers.realm', [])
    * Initialize the app: load list of the users
    */
     var init = function () {
+      $scope.systemRoles = ['ROLE_ADMIN', 'ROLE_DEVELOPER'];
+
       RealmProviders.getIdentityProviders(slug)
         .then(function (providers) {
           var pMap = {};
@@ -224,93 +228,116 @@ angular.module('aac.controllers.realm', [])
     init();
 
     $scope.editRoles = function (user) {
-      $scope.modUser = user;
-      var systemRoles = ['ROLE_ADMIN', 'ROLE_DEVELOPER'];
-      $scope.roles = {
-        system_map: {}, map: {}, custom: ''
-      }
-      user._authorities.forEach(function (a) {
-        if (systemRoles.indexOf(a) >= 0) $scope.roles.system_map[a] = true;
-        else $scope.roles.map[a] = true;
+      var systemRoles = $scope.systemRoles.map(r => {
+        return {
+          'text': r,
+          'value': user._authorities.includes(r)
+        };
       });
+
+      var customRoles = user._authorities
+        .filter(a => !$scope.systemRoles.includes(a))
+        .map(r => {
+          return {
+            'text': r
+          };
+        });
+
+      $scope.modUser = {
+        ...user,
+        'systemRoles': systemRoles,
+        'customRoles': customRoles
+      };
+
       $('#rolesModal').modal({ backdrop: 'static', focus: true })
-
-    }
-
-    $scope.inviteUser = function () {
-      $scope.invitation = {
-        external: false
-      }
-      $scope.roles = {
-        system_map: {}, map: {}, custom: ''
-      }
-      $('#inviteModal').modal({ backdrop: 'static', focus: true })
-    }
-    $scope.invite = function () {
-      $('#inviteModal').modal('hide');
-      var roles = [];
-      $scope.roles.system_map.foreach(k => {
-        if (k in $scope.roles.system_map) {
-          roles.push(k);
-        }
-      });
-      $scope.roles.map.foreach(k => {
-        if (k in $scope.roles.map) {
-          roles.push(k)
-        }
-      });
-
-      RealmData.inviteUser($scope.realm.slug, $scope.invitation, roles).then(function () {
-        $scope.load();
-      }).catch(function (err) {
-        Utils.showError(err.data.message);
-      });
-    }
-
-
-    $scope.hasRoles = function (m1, m2) {
-      var res = false;
-      for (var r1 in m1) res |= m1[r1];
-      for (var r2 in m2) res |= m2[r2];
-      return res;
     }
 
     // save roles
     $scope.updateRoles = function () {
-      var roles = [];
-      $scope.roles.system_map.foreach(k => {
-        if ($scope.roles.system_map[k]) {
-          roles.push(k);
-        }
-      });
-      $scope.roles.map.foreach(k => {
-        if ($scope.roles.map[k]) {
-          roles.push(k)
-        }
+      $('#rolesModal').modal('hide');
+
+      if ($scope.modUser) {
+        var systemRoles = $scope.modUser.systemRoles.filter(r => r.value).map(r => r.text);
+        var customRoles = $scope.modUser.customRoles.map(r => r.text);
+
+        var roles = systemRoles.concat(customRoles);
+
+        RealmData.updateRealmRoles($scope.realm.slug, $scope.modUser, roles)
+          .then(function () {
+            $scope.load();
+            Utils.showSuccess();
+          })
+          .catch(function (err) {
+            Utils.showError(err);
+          });
+
+        $scope.modUser = null;
+      }
+    }
+
+    $scope.inviteUser = function () {
+      var systemRoles = $scope.systemRoles.map(r => {
+        return {
+          'text': r,
+          'value': false
+        };
       });
 
-      $('#rolesModal').modal('hide');
-      RealmData.updateRealmRoles($scope.realm.slug, $scope.modUser, roles)
-        .then(function () {
+      $scope.invitation = {
+        'external': false,
+        'username': null,
+        'subjectId': null,
+        'systemRoles': systemRoles,
+        'customRoles': []
+      }
+
+      $('#inviteModal').modal({ backdrop: 'static', focus: true })
+    }
+    $scope.invite = function () {
+      $('#inviteModal').modal('hide');
+
+      if ($scope.invitation) {
+        var systemRoles = $scope.invitation.systemRoles.filter(r => r.value).map(r => r.text);
+        var customRoles = $scope.invitation.customRoles.map(r => r.text);
+
+        var roles = systemRoles.concat(customRoles);
+
+        RealmData.inviteUser($scope.realm.slug, $scope.invitation, roles).then(function () {
           $scope.load();
           Utils.showSuccess();
-        })
-        .catch(function (err) {
-          Utils.showError(err);
+        }).catch(function (err) {
+          Utils.showError(err.data.message);
         });
+
+        $scope.invitation = null;
+      }
+
+
+
     }
+
+
+    // $scope.hasRoles = function (m1, m2) {
+    //   var res = false;
+    //   for (var r1 in m1) res |= m1[r1];
+    //   for (var r2 in m2) res |= m2[r2];
+    //   return res;
+    // }
+
+
+
     $scope.dismiss = function () {
       $('#rolesModal').modal('hide');
     }
 
-    $scope.addRole = function () {
-      $scope.roles.map[$scope.roles.custom] = true;
-      $scope.roles.custom = null;
-    }
+    // $scope.addRole = function () {
+    //   $scope.roles.map[$scope.roles.custom] = true;
+    //   $scope.roles.custom = null;
+    // }
 
-    $scope.invalidRole = function (role) {
-      return !role || !(/^[a-zA-Z0-9_]{3,63}((\.[a-zA-Z0-9_]{2,63})*\.[a-zA-Z]{2,63})?$/g.test(role))
-    }
+    // $scope.invalidRole = function (role) {
+    //   return !role || !(/^[a-zA-Z0-9_]{3,63}((\.[a-zA-Z0-9_]{2,63})*\.[a-zA-Z]{2,63})?$/g.test(role))
+    // }
 
   })
 

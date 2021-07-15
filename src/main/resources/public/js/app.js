@@ -32,7 +32,7 @@ app.config(function ($httpProvider, $translateProvider) {
     lang = (lang.substring(0, lang.indexOf('-'))) || 'en';
     console.log('Detected language', lang);
     $translateProvider.preferredLanguage(lang);
-})
+});
 
 app.config(function ($stateProvider) {
     $stateProvider
@@ -139,68 +139,6 @@ app.config(function ($stateProvider) {
 
 });
 
-/*
-app.run(function($rootScope){
-    $rootScope.$on("$routeChangeStart", function (event, next, current) {
-        if (!next.$$route || !next.$$route.originalPath) return;
-        if (next.$$route.originalPath.indexOf('/apps') == 0)  $rootScope.currentView = 'apps';
-        if (next.$$route.originalPath.indexOf('/apis') == 0)  $rootScope.currentView = 'apis';
-        if (next.$$route.originalPath.indexOf('/tenantusers') == 0)  $rootScope.currentView = 'tenantusers';
-        if (next.$$route.originalPath.indexOf('/tenantowners') == 0)  $rootScope.currentView = 'tenantowners';
-        if (next.$$route.originalPath.indexOf('/services') == 0)  $rootScope.currentView = 'services';
-        if (next.$$route.originalPath.indexOf('/admin') == 0)  $rootScope.currentView = 'admin';
-    });		
-})
-
-app.config(function($routeProvider) {
-    $routeProvider
-    .when("/apps", {
-        controller  : 'AppListController', 
-        templateUrl : "html/apps.html"
-    })
-    .when("/apps/:clientId", {
-        controller  : 'AppController', 
-        templateUrl : "html/app.html"
-    })
-    .when("/admin", {
-        controller  : 'AdminController', 
-        templateUrl : "html/admin.html"
-    })
-    .when("/apis", {
-        controller  : 'APIListController', 
-        templateUrl : "html/apis.html"
-    })
-    .when("/tenantusers", {
-        controller  : 'TenantUsersController', 
-        templateUrl : "html/tenantusers.html"
-    })
-    .when("/tenantowners", {
-        controller  : 'TenantOwnersController', 
-        templateUrl : "html/tenantowners.html"
-    })
-    .when("/services", {
-        controller  : 'ServicesController', 
-        templateUrl : "html/services.html"
-    })
-    .when("/services/new", {
-        controller  : 'ServiceController', 
-        templateUrl : "html/service-form.html"
-    })
-    .when("/services/:serviceId", {
-        controller  : 'ServiceController', 
-        templateUrl : "html/service-form.html"
-    })
-    .when("/realms/:realmId", {
-      controller  : 'RealmController', 
-        templateUrl : "html/realm.html"
-    })
-    .when("/realms", {
-      controller  : 'RealmController', 
-        templateUrl : "html/realm.html"
-    })
-    .otherwise("/realms");
-})
-*/
 
 /**
  * Interceptor adds loading spinner for REST calls
@@ -220,7 +158,7 @@ app.factory('loadingHttpInterceptor', function ($q, $window, usSpinnerService) {
             return $q.reject(error);
         }
     };
-})
+});
 
 app.factory('accessDeniedInterceptor', function ($q, $location) {
     return {
@@ -241,21 +179,6 @@ app.factory('accessDeniedInterceptor', function ($q, $location) {
             return $q.reject(error);
         }
     };
-})
+});
 
 
-    ;
-
-// /**
-//  * Parse authentication parameters obtained from implicit flow authorization request 
-//  * @param input
-//  * @returns
-//  */
-// function processAuthParams(input) {
-//     var params = {}, queryString = input;
-//     var regex = /([^&=]+)=([^&]*)/g;
-//     while (m = regex.exec(queryString)) {
-//         params[m[1]] = m[2];
-//     }
-//     return params.access_token;
-// }
