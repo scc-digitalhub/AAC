@@ -15,6 +15,7 @@ variables:
   DS_JAVA_VERSION: 11
   DOCKER_DRIVER: overlay
   CONTAINER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  CONTAINER_IMAGE_LATEST: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-latest
   # MAVEN_CLI_OPTS: -DskipTests --batch-mode
   SAST_JAVA_VERSION: 11
 
@@ -40,8 +41,9 @@ backend-container-build:
     name: $CI_COMMIT_REF_NAME
   script:
     - docker login -u $DHUB_USER -p $DHUB_PASS
-    - DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $CONTAINER_IMAGE .
+    - DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $CONTAINER_IMAGE -t $CONTAINER_IMAGE_LATEST .
     - docker push $CONTAINER_IMAGE
+    - docker push $CONTAINER_IMAGE_LATEST
   # only:
   #   - adc-aac-test
 
@@ -58,9 +60,9 @@ container_scanning:
     GIT_STRATEGY: fetch
     DOCKER_USER: ""
     DOCKER_PASSWORD: ""
-  # rules:
-  #   - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
-
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+#
 # gemnasium-dependency_scanning:
 #   rules:
 #     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
@@ -78,5 +80,5 @@ deploy:
     - echo "deploy backend"
     - kubectl -n default set image deployments/aac-adc aac=$CONTAINER_IMAGE --record=true
     - kubectl -n default rollout status deployment aac-adc
-  # only:
-  #   - adc-aac-test
+  only:
+    - adc-aac-test
