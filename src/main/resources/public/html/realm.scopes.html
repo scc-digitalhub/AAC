@@ -1,0 +1,83 @@
+<div class="pb-3 pt-3">
+    <div class="row mb-3">
+        <div class="col col-md-6 p-3">
+            <h3>Scopes and resources</h3>
+            <p>View and inspect resources and scopes.</p>
+        </div>
+    </div>
+</div>
+<div class="accordion" id="search">
+
+    <div class="form-group">
+        <input type="search" class="autocomplete" placeholder="search" id="search" ng-model="search"
+            ng-change="doSearch()" autocomplete="off">
+        <span class="autocomplete-icon" aria-hidden="true">
+            <svg class="icon icon-sm">
+                <use xlink:href="./italia/svg/sprite.svg#it-search"></use>
+            </svg>
+        </span>
+        <label for="search" class="sr-only">Search</label>
+    </div>
+    <div ng-if="!!results">
+        <h5>Scopes</h5>
+        <table class="table border-bottom">
+            <tr ng-repeat="res in results">
+                <td class="align-middle">
+                    <strong>
+                        <a href ng-click="scopesDlg(res.resource)">{{res.resource.name}}</a> > {{res.name}}
+                    </strong>
+                    <br>
+                    <small class="form-text"><span class="text-monospace"> {{res.scope}} </span></small>
+                    {{res.description}}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+<div class="accordion" id="resources" ng-if="!results">
+    <h5>Core</h5>
+    <table class="table border-bottom">
+        <tr ng-repeat="item in resources" ng-if="item.resourceId.startsWith('aac.')">
+            <td class="align-middle">
+                <strong>
+                    <a href ng-click="scopesDlg(item)">{{item.name}}</a>
+                </strong> <br>{{item.description}}
+            </td>
+        </tr>
+    </table>
+    <h5>Services</h5>
+    <table class="table border-bottom">
+        <tr ng-repeat="item in resources" ng-if="!item.resourceId.startsWith('aac.')">
+            <td class="align-middle">
+                <strong>
+                    <a href ng-click="scopesDlg(item)">{{item.name}}</a>
+                </strong> <br>{{item.description}}
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<div class="modal fade bs-modal-lg" id="scopesModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header ">
+                <h5 class="modal-title" id="modal-title">{{scopeResource.name}}</h5>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <p class="mb-4">{{scopeResource.description}}</p>
+                <form name="updateAppScopes">
+                    <div class="form-check form-check-group" ng-repeat="s in scopeResource.scopes">
+                        <label><strong>{{s.name}}</strong></label>
+                        <small class="form-text"><span class="text-monospace"> {{s.scope}} </span></small>
+                        <small class="form-text"> {{s.description}}</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

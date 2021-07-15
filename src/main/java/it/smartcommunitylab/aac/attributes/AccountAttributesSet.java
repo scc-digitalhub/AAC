@@ -1,46 +1,34 @@
-package it.smartcommunitylab.aac.profiles;
+package it.smartcommunitylab.aac.attributes;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.core.base.BaseAttributes;
 import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 
-public class AccountProfileAttributesSet extends BaseAttributes {
-    public static final String IDENTIFIER = "profile.accountprofile.me";
+public class AccountAttributesSet implements AttributeSet {
+    public static final String IDENTIFIER = "aac.account";
+    public static final List<String> keys;
 
-    private final String userId;
     private Map<String, Attribute> attributes;
 
-    public AccountProfileAttributesSet(String authority, String provider, String realm, String userId) {
-        super(authority, provider, realm, IDENTIFIER);
-        Assert.hasText(userId, "userId can not be null or blank");
-        this.userId = userId;
+    public AccountAttributesSet() {
         this.attributes = new HashMap<>();
-
-        // build userId
-        StringAttribute attr = new StringAttribute(USER_ID);
-        attr.setValue(userId);
-        attributes.put(USER_ID, attr);
     }
 
     @Override
-    public String getUserId() {
-        return userId;
-    }
-
-    @Override
-    public String getAttributesId() {
-        return IDENTIFIER + ":" + userId;
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 
     @Override
     public Collection<String> getKeys() {
-        return attributes.keySet();
+        return keys;
     }
 
     @Override
@@ -59,6 +47,18 @@ public class AccountProfileAttributesSet extends BaseAttributes {
         attr.setValue(username);
 
         attributes.put(USERNAME, attr);
+    }
+
+    public void setUserId(String userId) {
+        if (userId == null) {
+            attributes.remove(USER_ID);
+            return;
+        }
+
+        StringAttribute attr = new StringAttribute(USER_ID);
+        attr.setValue(userId);
+
+        attributes.put(USER_ID, attr);
     }
 
     // additional attributes
@@ -82,7 +82,24 @@ public class AccountProfileAttributesSet extends BaseAttributes {
 
     }
 
+    @Override
+    public String getName() {
+        // TODO i18n
+        return "User account attributes";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Details about user accounts";
+    }
+
     public static final String USER_ID = "user_id";
     public static final String USERNAME = "username";
 
+    static {
+        List<String> k = new ArrayList<>();
+        k.add(USERNAME);
+        k.add(USER_ID);
+        keys = Collections.unmodifiableList(k);
+    }
 }

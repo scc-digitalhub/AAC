@@ -92,6 +92,7 @@ public class ProviderService {
         p.setName(name);
         p.setDescription(description);
         p.setPersistence(persistence);
+        p.setLinkable(true);
         p.setEvents(events);
         p.setConfigurationMap(configurationMap);
         p.setHookFunctions(hookFunctions);
@@ -103,7 +104,7 @@ public class ProviderService {
 
     public ProviderEntity updateProvider(
             String providerId,
-            boolean enabled,
+            boolean enabled, boolean linkable,
             String name, String description,
             String persistence, String events,
             Map<String, Serializable> configurationMap,
@@ -118,6 +119,7 @@ public class ProviderService {
         p.setName(name);
         p.setDescription(description);
         p.setPersistence(persistence);
+        p.setLinkable(linkable);
         p.setEvents(events);
         p.setHookFunctions(hookFunctions);
 

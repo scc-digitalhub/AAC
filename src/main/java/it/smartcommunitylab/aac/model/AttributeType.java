@@ -5,11 +5,13 @@ import org.springframework.util.Assert;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum AttributeType {
-    
+
     STRING("string"),
     NUMBER("number"),
     BOOLEAN("boolean"),
     DATE("date"),
+    DATETIME("datetime"),
+    TIME("time"),
     OBJECT("object");
 
     private final String value;

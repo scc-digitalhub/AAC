@@ -6,9 +6,9 @@ import java.util.Collections;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.profiles.extractor.OpenIdProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
-import it.smartcommunitylab.aac.profiles.service.OpenIdProfileExtractor;
 
 public class OpenIdEmailProfileClaimsExtractor extends ProfileClaimsExtractor {
 
@@ -39,7 +39,7 @@ public class OpenIdEmailProfileClaimsExtractor extends ProfileClaimsExtractor {
 
         OpenIdProfile profile = extractor.extractUserProfile(user);
 
-        // narrow down
+        // narrow down to dedicated profile
         return profile.toEmailProfile();
     }
 

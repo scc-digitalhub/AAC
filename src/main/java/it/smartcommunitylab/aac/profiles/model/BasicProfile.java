@@ -17,11 +17,15 @@ package it.smartcommunitylab.aac.profiles.model;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import it.smartcommunitylab.aac.Config;
 
+@JsonInclude(Include.NON_EMPTY)
 public class BasicProfile extends AbstractProfile {
 
-    public static final String IDENTIFIER = Config.SCOPE_BASIC_PROFILE;
+    public static final String IDENTIFIER = "basicprofile";
 
     private String name;
     private String surname;
@@ -39,7 +43,7 @@ public class BasicProfile extends AbstractProfile {
     }
 
     @Override
-    public String getProfileId() {
+    public String getIdentifier() {
         return IDENTIFIER;
     }
 

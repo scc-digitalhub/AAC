@@ -1,31 +1,47 @@
 package it.smartcommunitylab.aac.saml.provider;
 
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import java.util.Set;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
+import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
+import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
+import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.core.provider.AccountService;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
@@ -36,19 +52,24 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlIdentityProvider extends AbstractProvider implements IdentityService {
+
+    private final String providerName;
+
     // services
     private final SamlUserAccountRepository accountRepository;
     private final AttributeStore attributeStore;
-    private ScriptExecutionService executionService;
-
 
     private final SamlIdentityProviderConfig providerConfig;
 
     // internal providers
     private final SamlAccountProvider accountProvider;
-    private final SamlAttributeProvider attributeProvider;
+//    private final SamlAttributeProvider attributeProvider;
     private final SamlAuthenticationProvider authenticationProvider;
     private final SamlSubjectResolver subjectResolver;
+
+    // attributes
+    private final OpenIdAttributesMapper openidMapper;
+    private ScriptExecutionService executionService;
 
     @Override
     public String getType() {
@@ -56,7 +77,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     public SamlIdentityProvider(
-            String providerId,
+            String providerId, String providerName,
             SamlUserAccountRepository accountRepository, AttributeStore attributeStore,
             SamlIdentityProviderConfig config,
             String realm) {
@@ -64,11 +85,12 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
+        this.providerName = StringUtils.hasText(providerName) ? providerName : providerId;
+
         // internal data repositories
         this.accountRepository = accountRepository;
         this.attributeStore = attributeStore;
 
-        // translate configuration
         // check configuration
         Assert.isTrue(providerId.equals(config.getProvider()),
                 "configuration does not match this provider");
@@ -76,13 +98,15 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         this.providerConfig = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new SamlAccountProvider(providerId, accountRepository, realm);
-        this.attributeProvider = new SamlAttributeProvider(providerId, accountRepository, attributeStore, realm);
-        this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, realm);
-        this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, realm);
+        this.accountProvider = new SamlAccountProvider(providerId, accountRepository, config, realm);
+//        this.attributeProvider = new SamlAttributeProvider(providerId, accountRepository, attributeStore, realm);
+        this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, config, realm);
+        this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, config, realm);
 
+        // attributes
+        openidMapper = new OpenIdAttributesMapper();
     }
-    
+
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
     }
@@ -97,10 +121,10 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         return accountProvider;
     }
 
-    @Override
-    public AttributeProvider getAttributeProvider() {
-        return attributeProvider;
-    }
+//    @Override
+//    public AttributeProvider getAttributeProvider() {
+//        return attributeProvider;
+//    }
 
     @Override
     public SubjectResolver getSubjectResolver() {
@@ -145,15 +169,47 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
         }
 
-        // update base attributes
-        // TODO
-        String issuer = attributes.get(IdTokenClaimNames.ISS);
+        String issuer = attributes.get("issuer");
         if (!StringUtils.hasText(issuer)) {
             issuer = provider;
         }
         account.setIssuer(issuer);
 
-        // TODO export static map for names
+        // get all attributes from principal except message attrs
+        // TODO handle all attributes not only strings.
+        Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
+                .filter(e -> !ArrayUtils.contains(SAML_ATTRIBUTES, e.getKey()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        // let hook process custom mapping
+        if (executionService != null && providerConfig.getHookFunctions() != null
+                && StringUtils.hasText(providerConfig.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
+
+            try {
+                // execute script
+                String functionCode = providerConfig.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION);
+                Map<String, Serializable> customAttributes = executionService.executeFunction(
+                        ATTRIBUTE_MAPPING_FUNCTION,
+                        functionCode, principalAttributes);
+
+                // update map
+                if (customAttributes != null) {
+                    // replace map
+                    principalAttributes = customAttributes;
+
+                    // TODO handle non string
+                    attributes = customAttributes.entrySet().stream()
+                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+                }
+
+            } catch (SystemException | InvalidDefinitionException ex) {
+//                logger.error(ex.getMessage());
+            }
+
+        }
+
+        // update account attributes
+        // fetch from principal attributes - exact match only
         String username = user.getName();
         String name = attributes.get("name");
         String email = attributes.get("email");
@@ -167,7 +223,19 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
         account = accountRepository.saveAndFlush(account);
 
-        // TODO add additional attributes
+        // update additional attributes in store, remove stale
+        Set<Entry<String, Serializable>> userAttributes = principalAttributes.entrySet().stream()
+                .filter(e -> !ArrayUtils.contains(SAML_ATTRIBUTES, e.getKey()) &&
+                        !ArrayUtils.contains(ACCOUNT_ATTRIBUTES, e.getKey()))
+                .collect(Collectors.toSet());
+
+        Set<Entry<String, Serializable>> storeAttributes = new HashSet<>();
+        for (Entry<String, Serializable> e : userAttributes) {
+            Entry<String, Serializable> es = new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue());
+            storeAttributes.add(es);
+        }
+
+        attributeStore.setAttributes(userId, storeAttributes);
 
         // build identity
         // detach account
@@ -176,17 +244,81 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         // export userId
         account.setUserId(exportInternalId(userId));
 
+        // convert attribute sets
+        List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
+
         // write custom model
         SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm(), user);
         identity.setAccount(account);
-        identity.setAttributes(Collections.emptyList());
+        identity.setAttributes(identityAttributes);
 
         return identity;
+    }
+
+    private List<UserAttributes> extractUserAttributes(SamlUserAccount account,
+            Map<String, Serializable> principalAttributes) {
+        List<UserAttributes> attributes = new ArrayList<>();
+        String userId = exportInternalId(account.getUserId());
+
+        // build base
+        BasicAttributesSet basicset = new BasicAttributesSet();
+        String name = account.getName() != null ? account.getName() : account.getUsername();
+        basicset.setName(name);
+        basicset.setEmail(account.getEmail());
+        basicset.setUsername(account.getUsername());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                basicset));
+
+        // account
+        AccountAttributesSet accountset = new AccountAttributesSet();
+        accountset.setUsername(account.getUsername());
+        accountset.setUserId(account.getUserId());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                accountset));
+        // email
+        EmailAttributesSet emailset = new EmailAttributesSet();
+        emailset.setEmail(account.getEmail());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                emailset));
+
+        if (principalAttributes != null) {
+            // openid via mapper
+            AttributeSet openidset = openidMapper.mapAttributes(principalAttributes);
+            attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                    openidset));
+
+            // build an additional attributeSet for additional attributes, specific for this
+            // provider
+            // TODO build via attribute provider and record fields to keep an attributeSet
+            // model
+            DefaultUserAttributesImpl idpset = new DefaultUserAttributesImpl(getAuthority(), getProvider(),
+                    getRealm(), userId, "idp." + providerName);
+            // store everything as string
+            for (Map.Entry<String, Serializable> e : principalAttributes.entrySet()) {
+                try {
+                    idpset.addAttribute(new StringAttribute(e.getKey(), StringAttribute.parseValue(e.getValue())));
+                } catch (ParseException e1) {
+                }
+            }
+            attributes.add(idpset);
+
+            // TODO build additional user-defined attribute sets via mappers
+
+        }
+
+        return attributes;
     }
 
     @Override
     @Transactional(readOnly = true)
     public SamlUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
+        return getIdentity(subject, userId, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SamlUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
+            throws NoSuchUserException {
         SamlUserAccount account = accountProvider.getAccount(userId);
 
         if (!account.getSubject().equals(subject)) {
@@ -196,24 +328,31 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         // write custom model
         SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm());
         identity.setAccount(account);
-        identity.setAttributes(Collections.emptyList());
+
+        if (fetchAttributes) {
+            // fetch stored principal attributes if present
+            String id = parseResourceId(userId);
+            Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
+
+            // convert attribute sets
+            List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
+            identity.setAttributes(identityAttributes);
+        }
+
         return identity;
-
     }
 
     @Override
     @Transactional(readOnly = true)
-    public SamlUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
-            throws NoSuchUserException {
-        // TODO add attributes load
-        return getIdentity(subject, userId);
+    public Collection<SamlUserIdentity> listIdentities(String subject) {
+        return listIdentities(subject, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<UserIdentity> listIdentities(String subject) {
+    public Collection<SamlUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
         // TODO handle not persisted configuration
-        List<UserIdentity> identities = new ArrayList<>();
+        List<SamlUserIdentity> identities = new ArrayList<>();
 
         Collection<SamlUserAccount> accounts = accountProvider.listAccounts(subject);
 
@@ -221,7 +360,17 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
             // write custom model
             SamlUserIdentity identity = new SamlUserIdentity(getProvider(), getRealm());
             identity.setAccount(account);
-            identity.setAttributes(Collections.emptyList());
+
+            if (fetchAttributes) {
+                // fetch stored principal attributes if present
+                String id = parseResourceId(account.getUserId());
+                Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
+
+                // convert attribute sets
+                List<UserAttributes> identityAttributes = extractUserAttributes(account, principalAttributes);
+                identity.setAttributes(identityAttributes);
+            }
+
             identities.add(identity);
         }
 
@@ -321,4 +470,15 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     public ConfigurableProperties getConfiguration() {
         return providerConfig;
     }
+
+    public static String[] SAML_ATTRIBUTES = {
+            "subject", "issuer", "issueInstant"
+    };
+
+    public static String[] ACCOUNT_ATTRIBUTES = {
+            "username",
+            "name",
+            "email",
+            "locale"
+    };
 }

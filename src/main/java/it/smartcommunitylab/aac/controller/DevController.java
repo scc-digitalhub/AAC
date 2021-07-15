@@ -55,9 +55,13 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.ApiAttributesScope;
+import it.smartcommunitylab.aac.attributes.AttributeManager;
+import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
 import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -76,6 +80,7 @@ import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
@@ -119,6 +124,8 @@ public class DevController {
     private AuditManager auditManager;
     @Autowired
     private RoleManager roleManager;
+    @Autowired
+    private AttributeManager attributeManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -261,7 +268,7 @@ public class DevController {
 
         // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=" + r.getSlug() + ".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=realm-" + r.getSlug() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();
@@ -435,6 +442,8 @@ public class DevController {
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
         String events = registration.getEvents();
+        boolean linkable = registration.isLinkable();
+
         Map<String, Serializable> configuration = registration.getConfiguration();
 
         ConfigurableProvider provider = new ConfigurableProvider(authority, null, realm);
@@ -443,6 +452,7 @@ public class DevController {
         provider.setType(type);
         provider.setEnabled(false);
         provider.setPersistence(persistence);
+        provider.setLinkable(linkable);
         provider.setEvents(events);
         provider.setConfiguration(configuration);
 
@@ -470,12 +480,16 @@ public class DevController {
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
         String events = registration.getEvents();
+        boolean linkable = registration.isLinkable();
+
         Map<String, Serializable> configuration = registration.getConfiguration();
         Map<String, String> hookFunctions = registration.getHookFunctions();
 
         provider.setName(name);
         provider.setDescription(description);
         provider.setPersistence(persistence);
+        provider.setLinkable(linkable);
+
         provider.setEvents(events);
         provider.setConfiguration(configuration);
         provider.setHookFunctions(hookFunctions);
@@ -532,7 +546,7 @@ public class DevController {
 
         // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=" + provider.getName() + ".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=idp-" + provider.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();
@@ -797,7 +811,7 @@ public class DevController {
 
         // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=" + clientApp.getName() + ".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=clientapp-" + clientApp.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();
@@ -876,7 +890,7 @@ public class DevController {
 
         // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=" + service.getName() + ".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=service-" + service.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();
@@ -1139,6 +1153,117 @@ public class DevController {
                 .ok(auditManager.findRealmEvents(realm,
                         type.orElse(null), after.orElse(null), before.orElse(null)));
 
+    }
+
+    /*
+     * Attributes sets
+     */
+
+    @GetMapping("/console/dev/realms/{realm}/attributeset")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public Collection<AttributeSet> listAttributeSets(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+        logger.debug("list attribute sets for realm " + String.valueOf(realm));
+        return attributeManager.listAttributeSets(realm);
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/attributeset/{setId}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public AttributeSet getAttributeSet(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
+            throws NoSuchAttributeSetException, NoSuchRealmException {
+        logger.debug("get attribute set " + String.valueOf(setId) + " for realm " + String.valueOf(realm));
+        return attributeManager.getAttributeSet(realm, setId);
+    }
+
+    @PostMapping("/console/dev/realms/{realm}/attributeset")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public AttributeSet addAttributeSet(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid DefaultAttributesSet s) throws NoSuchRealmException {
+        logger.debug("add attribute set for realm " + String.valueOf(realm));
+        if (logger.isTraceEnabled()) {
+            logger.trace("attribute set bean " + String.valueOf(s));
+        }
+        return attributeManager.addAttributeSet(realm, s);
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/attributeset/{setId}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public AttributeSet updateAttributeSet(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
+            @RequestBody @Valid DefaultAttributesSet s) throws NoSuchAttributeSetException, NoSuchRealmException {
+        logger.debug("update attribute set " + String.valueOf(setId) + " for realm " + String.valueOf(realm));
+        if (logger.isTraceEnabled()) {
+            logger.trace("attribute set bean " + String.valueOf(s));
+        }
+        return attributeManager.updateAttributeSet(realm, setId, s);
+    }
+
+    @DeleteMapping("/console/dev/realms/{realm}/attributeset/{setId}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public void deleteAttributeSet(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
+            throws NoSuchAttributeSetException {
+        logger.debug("delete attribute set " + String.valueOf(setId) + " for realm " + String.valueOf(realm));
+        attributeManager.deleteAttributeSet(realm, setId);
+    }
+
+    @PutMapping("/console/dev/realms/{realm}/attributeset")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public AttributeSet importAttributeSet(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+        logger.debug("import attribute set to realm " + String.valueOf(realm));
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("empty file");
+        }
+
+        if (file.getContentType() != null &&
+                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString()) &&
+                        !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString()))) {
+            throw new IllegalArgumentException("invalid file");
+        }
+        try {
+            DefaultAttributesSet s = yamlObjectMapper.readValue(file.getInputStream(),
+                    DefaultAttributesSet.class);
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("attribute set bean: " + String.valueOf(s));
+            }
+
+            return attributeManager.addAttributeSet(realm, s);
+
+        } catch (Exception e) {
+            logger.error("import attribute set error: " + e.getMessage());
+            throw e;
+        }
+
+    }
+
+    @GetMapping("/console/dev/realms/{realm}/attributeset/{setId}/yaml")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public void exportAttributeSet(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId, HttpServletResponse res)
+            throws NoSuchRealmException, NoSuchAttributeSetException, IOException {
+
+        AttributeSet set = attributeManager.getAttributeSet(realm, setId);
+
+//        String s = yaml.dump(service);
+        String s = yamlObjectMapper.writeValueAsString(set);
+
+        // write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=attributeset-" + set.getIdentifier() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.print(s);
+        out.flush();
+        out.close();
     }
 
     /*

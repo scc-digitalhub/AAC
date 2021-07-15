@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -38,7 +38,7 @@ public class ClientRegistration {
 
     @JsonProperty("scope")
     @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope;
 
     @JsonProperty("resource_ids")

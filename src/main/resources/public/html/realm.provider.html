@@ -7,11 +7,12 @@
             <p class="text-monospace">{{idp.authority }}:{{idp.provider}}</p>
         </div>
         <div class="col col-md-6 text-right">
-            <button class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(idp)">
-                <span ng-if="idp.enabled">Disable</span> 
-                <span ng-if="!idp.enabled">Enable</span> 
+            <button ng-if="!idp.enabled" class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(idp)">
+                Enable
             </button>
-
+            <button ng-if="idp.enabled" class="btn btn-warning btn-sm  text-right" ng-click="toggleProviderState(idp)">
+                Disable 
+            </button>
             <button class="btn btn-primary btn-sm  text-right" ng-click="saveProvider(idp)" ng-disabled="idp.enabled">Save</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="exportProvider(idp)">Export</button>
             <button class="btn btn-danger btn-sm  text-right" ng-click="deleteProviderDlg(idp)" ng-disabled="idp.enabled">Delete</button>

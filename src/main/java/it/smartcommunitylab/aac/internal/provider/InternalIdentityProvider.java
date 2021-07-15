@@ -14,6 +14,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
+import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
+import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -21,6 +26,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -46,7 +52,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     // providers
     private final InternalAccountProvider accountProvider;
-    private final InternalAttributeProvider attributeProvider;
+//    private final InternalAttributeProvider attributeProvider;
     private final InternalAuthenticationProvider authenticationProvider;
     private final InternalSubjectResolver subjectResolver;
     private final InternalAccountService accountService;
@@ -80,7 +86,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
                 this.config.getConfigMap());
 
         // TODO attributeService to feed attribute provider
-        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
+//        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
         this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
                 passwordService, realm, this.config.getConfigMap());
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, realm);
@@ -117,11 +123,11 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     public InternalAccountProvider getAccountProvider() {
         return accountProvider;
     }
-
-    @Override
-    public AttributeProvider getAttributeProvider() {
-        return attributeProvider;
-    }
+//
+//    @Override
+//    public AttributeProvider getAttributeProvider() {
+//        return attributeProvider;
+//    }
 
     @Override
     public SubjectResolver getSubjectResolver() {
@@ -171,8 +177,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         // TODO, we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        // TODO consolidate *all* attribute sets logic in attributeProvider
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account, principal);
+
+        // TODO consolidate *all* attribute sets logic in attributeProvider
+        identity.setAttributes(extractUserAttributes(account));
 
         // do note returned identity has credentials populated
         // consumers will need to eraseCredentials
@@ -181,11 +189,51 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     }
 
+    // TODO move to (idp) attributeProvider
+    private Collection<UserAttributes> extractUserAttributes(InternalUserAccount account) {
+        List<UserAttributes> attributes = new ArrayList<>();
+        String userId = exportInternalId(account.getUserId());
+
+        // build base
+        BasicAttributesSet basicset = new BasicAttributesSet();
+        basicset.setName(account.getName());
+        basicset.setSurname(account.getSurname());
+        basicset.setEmail(account.getEmail());
+        basicset.setUsername(account.getUsername());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                basicset));
+
+        // account
+        AccountAttributesSet accountset = new AccountAttributesSet();
+        accountset.setUsername(account.getUsername());
+        accountset.setUserId(account.getUserId());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                accountset));
+        // email
+        EmailAttributesSet emailset = new EmailAttributesSet();
+        emailset.setEmail(account.getEmail());
+        emailset.setEmailVerified(account.isConfirmed());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                emailset));
+
+        // openid fixed
+        OpenIdAttributesSet openidset = new OpenIdAttributesSet();
+        openidset.setPreferredUsername(account.getUsername());
+        openidset.setName(account.getName());
+        openidset.setGivenName(account.getName());
+        openidset.setFamilyName(account.getSurname());
+        openidset.setEmail(account.getEmail());
+        openidset.setEmailVerified(account.isConfirmed());
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                openidset));
+
+        return attributes;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public InternalUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-
-        return getIdentity(subject, userId, false);
+        return getIdentity(subject, userId, true);
     }
 
     @Override
@@ -210,9 +258,12 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         // TODO, we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        // TODO consolidate *all* attribute sets logic in attributeProvider
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
-
+        if (fetchAttributes) {
+            // TODO consolidate *all* attribute sets logic in attributeProvider
+            identity.setAttributes(extractUserAttributes(account));
+        }
+        
         // do note returned identity has credentials populated
         // we erase here
         identity.eraseCredentials();
@@ -223,6 +274,12 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     @Override
     @Transactional(readOnly = true)
     public Collection<InternalUserIdentity> listIdentities(String subject) {
+        return listIdentities(subject, true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<InternalUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
         // lookup for matching accounts
         List<InternalUserAccount> accounts = accountProvider.listAccounts(subject);
         if (accounts.isEmpty()) {
@@ -237,8 +294,11 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             // TODO, we shouldn't have additional attributes for internal
 
             // use builder to properly map attributes
-            // TODO consolidate *all* attribute sets logic in attributeProvider
             InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+            if (fetchAttributes) {
+                // TODO consolidate *all* attribute sets logic in attributeProvider
+                identity.setAttributes(extractUserAttributes(account));
+            }
 
             // do note returned identity has credentials populated
             // we erase here
@@ -344,8 +404,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             // TODO, we shouldn't have additional attributes for internal
 
             // use builder to properly map attributes
-            // TODO consolidate *all* attribute sets logic in attributeProvider
             InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+
+            // TODO consolidate *all* attribute sets logic in attributeProvider
+            identity.setAttributes(extractUserAttributes(account));
 
             // this identity has credentials
             return identity;
@@ -397,8 +459,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         // TODO, we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
-        // TODO consolidate *all* attribute sets logic in attributeProvider
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+
+        // TODO consolidate *all* attribute sets logic in attributeProvider
+        identity.setAttributes(extractUserAttributes(account));
 
         // this identity has credentials, erase
         identity.eraseCredentials();

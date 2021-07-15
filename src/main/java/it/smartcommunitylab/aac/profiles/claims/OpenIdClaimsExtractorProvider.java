@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
 
 @Component
 public class OpenIdClaimsExtractorProvider implements ScopeClaimsExtractorProvider {

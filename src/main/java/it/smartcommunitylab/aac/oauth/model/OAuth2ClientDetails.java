@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
 
 @JsonInclude(Include.NON_NULL)
 public class OAuth2ClientDetails implements ClientDetails {
@@ -33,12 +33,12 @@ public class OAuth2ClientDetails implements ClientDetails {
 
     @JsonProperty("scope")
     @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope = Collections.emptySet();
 
     @JsonProperty("resource_ids")
     @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> resourceIds = Collections.emptySet();
 
     @JsonProperty("grant_types")
@@ -46,7 +46,7 @@ public class OAuth2ClientDetails implements ClientDetails {
 
     @JsonProperty("token_endpoint_auth_method")
     @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> authenticationMethods = Collections.emptySet();
 
     @JsonProperty("redirect_uris")

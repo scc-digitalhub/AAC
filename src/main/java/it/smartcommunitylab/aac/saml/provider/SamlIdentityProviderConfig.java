@@ -10,6 +10,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,9 +48,13 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     private String name;
     private String description;
     private String persistence;
+    private Boolean linkable;
 
     private SamlIdentityProviderConfigMap configMap;
     private RelyingPartyRegistration relyingPartyRegistration;
+
+    // hook functions
+    private Map<String, String> hookFunctions;
 
     public SamlIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
@@ -59,6 +64,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         this.configMap.setEntityId(DEFAULT_METADATA_URL);
         this.configMap.setMetadataUrl(DEFAULT_METADATA_URL);
         this.configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
+
+        this.hookFunctions = Collections.emptyMap();
 
     }
 
@@ -97,6 +104,30 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public void setPersistence(String persistence) {
         this.persistence = persistence;
+    }
+
+    public Boolean getLinkable() {
+        return linkable;
+    }
+
+    public void setLinkable(Boolean linkable) {
+        this.linkable = linkable;
+    }
+
+    public boolean isLinkable() {
+        if (linkable != null) {
+            return linkable.booleanValue();
+        }
+
+        return true;
+    }
+
+    public Map<String, String> getHookFunctions() {
+        return hookFunctions;
+    }
+
+    public void setHookFunctions(Map<String, String> hookFunctions) {
+        this.hookFunctions = hookFunctions;
     }
 
     @Override
@@ -400,8 +431,10 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
         cp.setName(sp.getName());
         cp.setDescription(sp.getDescription());
+        cp.setHookFunctions(sp.getHookFunctions());
 
         cp.setEnabled(true);
+        cp.setLinkable(sp.isLinkable());
         cp.setConfiguration(sp.getConfiguration());
         return cp;
     }
@@ -413,6 +446,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         sp.name = cp.getName();
         sp.description = cp.getDescription();
         sp.persistence = cp.getPersistence();
+        sp.linkable = cp.isLinkable();
+        sp.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return sp;
 

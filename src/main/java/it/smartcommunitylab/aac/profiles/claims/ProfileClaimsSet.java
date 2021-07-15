@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.model;
+package it.smartcommunitylab.aac.profiles.claims;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 import it.smartcommunitylab.aac.claims.model.StringClaim;
+import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 
 public class ProfileClaimsSet implements ClaimsSet {
 

@@ -140,7 +140,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                 User user = userService.getUser(userDetails, ce.getRealm());
 
                 // filter attribute sets according to scopes
-                if (!scopes.contains(Config.SCOPE_FULL_PROFILE)) {
+                if (!ce.getResourceId().startsWith("aac.") && !scopes.contains(Config.SCOPE_FULL_PROFILE)) {
                     user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
                 }
 
@@ -166,7 +166,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                 User user = userService.getUser(userDetails, ce.getRealm());
 
                 // filter attribute sets according to scopes
-                if (!scopes.contains(Config.SCOPE_FULL_PROFILE)) {
+                if (!ce.getResourceId().startsWith("aac.") && !scopes.contains(Config.SCOPE_FULL_PROFILE)) {
                     user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
                 }
 

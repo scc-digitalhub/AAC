@@ -1,0 +1,139 @@
+<div class="pb-3 pt-3">
+    <div class="row mb-3">
+        <div class="col col-md-6 p-3">
+            <h3>Attribute Sets</h3>
+            <p>Register and manage custom attribute sets for users.</p>
+            <p>Each custom attribute set will be available as custom profile for consumption both via profiles api and
+                via token claims, with an associated scope
+                <span class="small text-monospace">profile.<i>setidentifier</i>.me </span>
+        </div>
+        <div class="col col-md-6 text-right">
+            <button class="btn btn-primary text-right" type="button" ng-click="createAttributeSetDlg()">
+                <svg class="icon icon-sm icon-white">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                </svg>
+                New AttributeSet</button>
+            <button class="btn btn-secondary btn-sm" ng-click="importAttributeSetDlg()">Import</button>
+        </div>
+    </div>
+</div>
+<div class="accordion" id="attributeSets">
+    <div ng-if="attributeSets && attributeSets.length > 0">
+        <table class="table table-hover border-bottom">
+            <tr ng-repeat="attributeSet in attributeSets">
+                <td class="align-middle">
+                    <span class="h6">{{attributeSet.name}}</span>
+                    <br> <small class="text-muted"> {{attributeSet.identifier}} </small>
+                    <p>{{attributeSet.description}}</p>
+                </td>
+                <td class="text-right">
+                    <button class="btn btn-primary btn-sm"
+                        ui-sref="realm.attributeset({realmId:attributeSet.realm, setId:attributeSet.identifier})">Manage</button>
+                    <button class="btn btn-danger btn-sm" ng-click="deleteAttributeSetDlg(attributeSet)">Delete</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div ng-if="attributeSets == null || attributeSets.length == 0">
+        <h5>No data</h5>
+    </div>
+
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createAttributeSetDlg">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create attributeSet </h5>
+            </div>
+            <div class="modal-body">
+                <form name="createAttributeSetForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="name">Set Identifier*</label>
+                        <input type="text" name="name" class="form-control form-control-sm" id="name" required
+                            ng-model="modAttributeSet.identifier">
+                    </div>
+
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="name">Set Name*</label>
+                        <input type="text" name="name" class="form-control form-control-sm" id="name" required
+                            ng-model="modAttributeSet.name">
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="createAttributeSet()"
+                    ng-disabled="createAttributeSetForm.$invalid">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteAttributeSetConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to delete?</p>
+                <p>You are deleting attributeSet <span class="text-monospace">{{modAttributeSet.identifier}}</span>
+                    <br>To
+                    proceed
+                    enter the id
+                </p>
+                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+                <form name="deleteAttributeSetForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col mb-4">
+                        <label for="confirmId">AttributeSet Id*</label>
+                        <input type="text" name="confirmId" class="form-control form-control-sm" id="confirmId" required
+                            ng-model="modAttributeSet.confirmId" ng-pattern="(modAttributeSet.identifier)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="deleteAttributeSet()" type="button"
+                    ng-disabled="deleteAttributeSetForm.$invalid">Delete</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importAttributeSetDlg">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import attributeSet </h5>
+            </div>
+            <div class="modal-body">
+                <form name="importAttributeSetForm" enctype="multipart/form-data" class="needs-validation was-validated"
+                    novalidate>
+                    <p>Upload a valid YAML file with the full custom attributeSet definition.</p>
+
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="file">File*</label>
+                        <input type="file" name="file" class="form-control form-control-sm upload" id="file"
+                            file-model="importFile" required
+                            accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+                        <ul class="upload-file-list">
+                            <li class="upload-file success" ng-if="importFile != null">
+                                <p>
+                                    {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                                </p>
+                            </li>
+                        </ul>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="importAttributeSet()"
+                    ng-disabled="importFile == null">Import</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,9 +1,11 @@
 package it.smartcommunitylab.aac.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,7 +54,7 @@ public class User {
     // user status
     private boolean blocked;
     private boolean locked;
-    
+
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date expirationDate;
 
@@ -95,7 +97,7 @@ public class User {
 
     // additional attributes as UserAttributes collection
     // these attributes should be kept consistent with the context(ie realm)
-    private Set<UserAttributes> attributes;
+    private List<UserAttributes> attributes;
 
     public User(String subjectId, String source) {
         Assert.hasText(subjectId, "subject can not be null or empty");
@@ -107,7 +109,7 @@ public class User {
         this.realm = source;
         this.authorities = Collections.emptySet();
         this.identities = new HashSet<>();
-        this.attributes = new HashSet<>();
+        this.attributes = new ArrayList<>();
         this.roles = new HashSet<>();
     }
 
@@ -122,7 +124,7 @@ public class User {
                 .map(a -> (RealmGrantedAuthority) a)
                 .collect(Collectors.toSet());
         this.identities = new HashSet<>(details.getIdentities());
-        this.attributes = new HashSet<>(details.getAttributeSets());
+        this.attributes = new ArrayList<>(details.getAttributeSets(false));
         this.roles = new HashSet<>();
 
         this.username = details.getUsername();
@@ -255,30 +257,40 @@ public class User {
         this.loginProvider = loginProvider;
     }
 
-    public Set<UserIdentity> getIdentities() {
-        return identities;
+    public Collection<UserIdentity> getIdentities() {
+        return Collections.unmodifiableCollection(identities);
     }
 
     public void setIdentities(Collection<UserIdentity> identities) {
         this.identities = new HashSet<>();
         if (identities != null) {
             this.identities.addAll(identities);
+            // add all attributes
+            identities.forEach(i -> attributes.addAll(i.getAttributes()));
         }
+
     }
 
     public void addIdentity(UserIdentity identity) {
         identities.add(identity);
+
+        // add all attributes
+        identities.forEach(i -> attributes.addAll(i.getAttributes()));
     }
 
-    public Set<UserAttributes> getAttributes() {
-        return attributes;
+    public Collection<UserAttributes> getAttributes() {
+        return Collections.unmodifiableCollection(attributes);
     }
 
     public void setAttributes(Collection<UserAttributes> attributes) {
-        this.attributes = new HashSet<>();
+        this.attributes = new ArrayList<>();
         if (attributes != null) {
             this.attributes.addAll(attributes);
         }
+    }
+
+    public void addAttributes(Collection<UserAttributes> attributes) {
+        this.attributes.addAll(attributes);
     }
 
     public void addAttributes(UserAttributes attributes) {

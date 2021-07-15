@@ -49,12 +49,24 @@
                <span> Identity Providers </span>
               </a>
             </li>
+            <li ng-if="realmAdmin">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.attributesets">
+               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-box"></use></svg>
+               <span> Attribute Sets </span>
+              </a>
+            </li>            
             <li ng-if="(realmAdmin || realmDeveloper)">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.services">
                <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-plug"></use></svg>
                <span> Custom Services </span>
               </a>
             </li>
+            <li ng-if="(realmAdmin || realmDeveloper)">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.scopes">
+               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-code-circle"></use></svg>
+               <span> Scopes </span>
+              </a>
+            </li>            
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.custom">
                <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-pencil"></use></svg>

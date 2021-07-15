@@ -1,33 +1,11 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.security.core.CredentialsContainer;
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.profiles.BasicProfileAttributesSet;
-import it.smartcommunitylab.aac.profiles.OpenIdProfileAttributesSet;
-import it.smartcommunitylab.aac.profiles.model.BasicProfile;
-import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
 /*
  * Default Identity is an instantiable bean which contains account and identity
@@ -71,7 +49,7 @@ public class DefaultIdentityImpl extends BaseIdentity implements CredentialsCont
     }
 
     public void setAttributes(Collection<UserAttributes> attributes) {
-        this.attributes = attributes;
+        this.attributes = Collections.unmodifiableCollection(attributes);
     }
 
     /*

@@ -6,8 +6,134 @@
          <p>{{stats.realm.description}}</p>
       </div>
    </div>
+   <div class="row mb-3" ng-if="realmAdmin">
+      <div class="col-md-12">
+         <p ng-if="showStart">Follow the quickstart to configure the realm. Use AAC as identity provider via OAuth2 or
+            OpenId Connect with multiple identity providers and client applications.</p>
+         <p ng-if="!showStart">The realm is fully configured. Add additional clients and users as needed.</p>
+      </div>
+      <div class="col-md-12">
+         <div class="steppers">
+            <ul class="steppers-header">
+               <li class="{{curStep == 1 ? 'active' : ''}}" ng-click="setStep(1)">
+                  <span ng-if="!showAddIdp" class="steppers-number">
+                     <svg class="icon {{curStep == 1 ? 'icon-white' : ''}} steppers-success">
+                        <use xlink:href="./italia/svg/sprite.svg#it-check"></use>
+                     </svg>
+                  </span>
+                  <span ng-if="showAddIdp" class="steppers-number">1</span>
+                  Add an identity provider
+               </li>
+               <li class="{{curStep == 2 ? 'active' : ''}}" ng-click="setStep(2)">
+                  <span ng-if="!showAddApp" class="steppers-number">
+                     <svg class="icon {{curStep == 2 ? 'icon-white' : ''}} steppers-success">
+                        <use xlink:href="./italia/svg/sprite.svg#it-check"></use>
+                     </svg>
+                  </span>
+                  <span ng-if="showAddApp" class="steppers-number">2</span>
+                  Create an app
+               </li>
+               <li class="{{curStep == 3 ? 'active' : ''}}" ng-click="setStep(3)">
+                  <span ng-if="!showAddService" class="steppers-number">
+                     <svg class="icon {{curStep == 3 ? 'icon-white' : ''}} steppers-success">
+                        <use xlink:href="./italia/svg/sprite.svg#it-check"></use>
+                     </svg>
+                  </span>
+                  <span ng-if="showAddService" class="steppers-number">3</span>
+                  Register a custom service
+               </li>
+               <li class="{{curStep == 4 ? 'active' : ''}}" ng-click="setStep(4)">
+                  <span ng-if="!showAddUser" class="steppers-number">
+                     <svg class="icon {{curStep == 4 ? 'icon-white' : ''}} steppers-success">
+                        <use xlink:href="./italia/svg/sprite.svg#it-check"></use>
+                     </svg>
+                  </span>
+                  <span ng-if="showAddUser" class="steppers-number">4</span>
+                  Register a user
+               </li>
+            </ul>
 
-   <div class="row">
+            <div class="steppers-content" aria-live="polite" ng-if="curStep == 1 && showAddIdp">
+               <div class="card-wrapper card-space">
+                  <div class="card  card-bg  border-bottom-card">
+                     <div class="card-body px-5 pt-3 pb-2">
+                        <div class="categoryicon-top mb-2">
+                           <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                              <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                           </svg> <span class="text">IdP</span>
+                        </div>
+                        <h5 class=" h1">Add an identity provider</h5>
+                        <p class="small mb-2">Register an internal or external IdP to let users sign in the realm</p>
+                        <a class="read-more" href ui-sref-active="active" ui-sref="realm.providers">Add »</a>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="steppers-content" aria-live="polite" ng-if="curStep == 2 && showAddApp">
+               <div class="card-wrapper card-space">
+                  <div class="card  card-bg  border-bottom-card">
+                     <div class="card-body px-5 pt-3 pb-2">
+                        <div class="categoryicon-top mb-2">
+                           <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                              <use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use>
+                           </svg> <span class="text">Apps</span>
+                        </div>
+                        <h5 class=" h1">Create an app</h5>
+                        <p class="small mb-2">Create a client application to start using AAC via OAuth2/OIDC.</p>
+                        <a class="read-more" href ui-sref-active="active" ui-sref="realm.apps">Add »</a>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="steppers-content" aria-live="polite" ng-if="curStep == 3 && showAddService">
+               <div class="card-wrapper card-space">
+                  <div class="card  card-bg  border-bottom-card">
+                     <div class="card-body px-5 pt-3 pb-2">
+                        <div class="categoryicon-top mb-2">
+                           <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                              <use xlink:href="./italia/svg/sprite.svg#it-plug"></use>
+                           </svg> <span class="text">APIs</span>
+                        </div>
+                        <h5 class=" h1">Create a custom service</h5>
+                        <p class="small mb-2">Register an APIs as custom service to manage scopes and access</p>
+                        <a class="read-more" href ui-sref-active="active" ui-sref="realm.services">Add »</a>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+
+            <div class="steppers-content" aria-live="polite" ng-if="curStep == 4 && showAddUser">
+               <div class="card-wrapper card-space">
+                  <div class="card  card-bg  border-bottom-card">
+                     <div class="card-body px-5 pt-3 pb-2">
+                        <div class="categoryicon-top mb-2">
+                           <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                              <use xlink:href="./italia/svg/sprite.svg#it-user"></use>
+                           </svg> <span class="text">Users</span>
+                        </div>
+                        <h5 class=" h1">Register a user</h5>
+                        <p class="small mb-2">Register a user via an active identity provider to obtain OAuth2/OIDC
+                           tokens.</p>
+                        <a class="read-more" href ui-sref-active="active" ui-sref="realm.users">Add »</a>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+         </div>
+      </div>
+
+
+   </div>
+
+
+   <div class="row" ng-if="!showAddIdp || !showAddApp || !showAddService || !showAddUser">
+      <div class="col-md-12">
+         <p>Realm statistics and configuration overview.</p>
+      </div>
       <div class="col-md-3">
          <div class="card-wrapper card-space">
             <div class="card  card-bg  border-bottom-card">
@@ -80,8 +206,10 @@
 
    </div>
 
-   <div class="row mb-3" ng-if="realmAdmin">
-      <div class="col-md-12" >
+
+
+   <div class="row mb-3" ng-if="realmAdmin && showAudit">
+      <div class="col-md-12">
          <div class="card-wrapper card-space">
             <div class="card">
                <div class="card-body px-5">
@@ -90,49 +218,51 @@
                         <use xlink:href="./italia/svg/sprite.svg#it-note"></use>
                      </svg> <span class="text">Audit</span>
                   </div>
-                  
-                  
+
+
                   <div class="row mb-3">
                      <div class="col-md-4">
                         <h5 class=" h1">{{stats.loginCount}}</h5>
-                        <p class="small mb-2">User login events over the last 7 days</p>              
+                        <p class="small mb-2">User login events over the last 7 days</p>
                      </div>
                      <div class="col-md-8">
                         <h5>Last logins</h5>
                         <p ng-if="!stats.loginEvents || stats.loginEvents.length == 0"> No events</p>
                         <table class="table" ng-if="stats.loginEvents && stats.loginEvents.length > 0">
                            <tr ng-repeat="item in stats.loginEvents">
-                               <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}</td>
-                               <td class="align-middle">{{item.principal}}</td>
+                              <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}
+                              </td>
+                              <td class="align-middle">{{item.principal}}</td>
                            </tr>
-                       </table>                  
+                        </table>
                      </div>
                   </div>
 
                   <div class="row mb-3 mt-4">
                      <div class="col-md-4">
                         <h5 class=" h1">{{stats.registrationCount}}</h5>
-                        <p class="small mb-2">User registration events over the last 7 days</p>              
+                        <p class="small mb-2">User registration events over the last 7 days</p>
                      </div>
                      <div class="col-md-8">
                         <h5>Last registrations</h5>
-                        <p ng-if="!stats.registrationEvents || stats.registrationEvents.length == 0"> No events</p>                        
+                        <p ng-if="!stats.registrationEvents || stats.registrationEvents.length == 0"> No events</p>
                         <table class="table" ng-if="stats.registrationEvents && stats.registrationEvents.length > 0">
                            <tr ng-repeat="item in stats.registrationEvents">
-                               <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}</td>
-                               <td class="align-middle">{{item.principal}}</td>
+                              <td class="align-middle">{{item.timestamp.epochSecond * 1000 | date:'yyyy-MM-dd HH:mm'}}
+                              </td>
+                              <td class="align-middle">{{item.principal}}</td>
                            </tr>
-                       </table>                  
+                        </table>
                      </div>
                   </div>
 
-                  <a class="read-more" href ui-sref-active="active" ui-sref="realm.audit">View »</a>   
+                  <a class="read-more" href ui-sref-active="active" ui-sref="realm.audit">View »</a>
                </div>
             </div>
          </div>
       </div>
-   
+
    </div>
-   
+
 
 </div>

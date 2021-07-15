@@ -68,7 +68,7 @@ angular.module('aac.controllers.realm', [])
         });
     }
 
-   init();
+    init();
 
     // RealmData.getMyRealms()
     //   .then(function (data) {
@@ -100,14 +100,48 @@ angular.module('aac.controllers.realm', [])
 
   .controller('RealmDashboardController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
     var slug = $stateParams.realmId;
-    if (slug) {
-      RealmData.getRealmStats(slug).then(function (stats) {
-        $scope.stats = stats;
-      })
+    $scope.curStep = 1
+    var init = function () {
+      RealmData.getRealmStats(slug)
+        .then(function (stats) {
+          $scope.load(stats);
+        })
         .catch(function (err) {
           Utils.showError('Failed to load realm: ' + err.data.message);
         });
+    };
+
+    $scope.load = function (stats) {
+      $scope.stats = stats;
+      $scope.showAddIdp = !(stats.providers);
+      $scope.showAddApp = !(stats.apps);
+      $scope.showAddService = !(stats.services);
+      $scope.showAddUser = !(stats.users);
+      $scope.showStart = $scope.showAddIdp || $scope.showAddApp || $scope.showAddService || $scope.showAddUser;
+      $scope.showAudit = (stats.loginCount > 0 || stats.registrationCount > 0);
+      $scope.curStep = 0;
+      if ($scope.showAddIdp) {
+        $scope.curStep = 1;
+      } else if ($scope.showAddApp) {
+        $scope.curStep = 2;
+      } else if ($scope.showAddService) {
+        $scope.curStep = 3;
+      } else if ($scope.showAddUser) {
+        $scope.curStep = 4;
+      }
+    };
+
+    $scope.prevStep = function () {
+      $scope.curStep--;
     }
+    $scope.nextStep = function () {
+      $scope.curStep++;
+    }
+    $scope.setStep = function (s) {
+      $scope.curStep = s;
+    }
+
+    init();
 
   })
 
@@ -175,11 +209,11 @@ angular.module('aac.controllers.realm', [])
       });
     }
 
-     $scope.jsonUserDlg = function(user) {
-         $scope.modUser = user;
-         $('#userJsonModal').modal({ keyboard: false });
+    $scope.jsonUserDlg = function (user) {
+      $scope.modUser = user;
+      $('#userJsonModal').modal({ keyboard: false });
 
-     }
+    }
 
     $scope.setPage = function (page) {
       $scope.query.page = page;
@@ -487,5 +521,56 @@ angular.module('aac.controllers.realm', [])
     init();
   })
 
+  .controller('RealmScopesController', function ($scope, $stateParams, RealmData, Utils) {
+    var slug = $stateParams.realmId;
 
+
+    var init = function () {
+      RealmData.getResources(slug)
+        .then(function (data) {
+          $scope.load(data);
+          return data;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load realm : ' + err.data.message);
+        });
+    };
+
+    $scope.load = function (data) {
+      $scope.resources = data;
+      var scopes = [];
+      data.forEach(r => {
+        var ss = r.scopes.map(s => { return { ...s, 'resource': r } });
+        scopes.push(...ss)
+      });
+      $scope.scopes = scopes;
+      $scope.results = null;
+      $scope.search = null;
+      Utils.refreshFormBS(300);
+    };
+
+
+    $scope.scopesDlg = function (resource) {
+      $scope.scopeResource = resource;
+      $('#scopesModal').modal({ backdrop: 'static', focus: true })
+      Utils.refreshFormBS();
+    }
+
+    $scope.doSearch = function () {
+      var keywords = $scope.search;
+      var results = null;
+      if (keywords) {
+        results = $scope.scopes
+          .filter(s => {
+            return s.scope.includes(keywords.toLowerCase())
+              || s.name.toLowerCase().includes(keywords.toLowerCase())
+              || s.resource.name.toLowerCase().includes(keywords.toLowerCase());
+          });
+      }
+      $scope.results = results;
+    }
+
+
+    init();
+  })
   ;

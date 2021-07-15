@@ -51,6 +51,7 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
     private Boolean isPassive;
     private Set<String> authnContextClasses;
     private String authnContextComparison;
+    private String userNameAttributeName = "subject";
 
     // not editable
     private String metadataUrl;
@@ -221,6 +222,14 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
         this.isPassive = isPassive;
     }
 
+    public String getUserNameAttributeName() {
+        return userNameAttributeName;
+    }
+
+    public void setUserNameAttributeName(String userNameAttributeName) {
+        this.userNameAttributeName = userNameAttributeName;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -256,6 +265,8 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
         this.isPassive = map.getIsPassive();
         this.authnContextClasses = map.getAuthnContextClasses();
         this.authnContextComparison = map.getAuthnContextComparison();
+
+        this.userNameAttributeName = map.getUserNameAttributeName();
 
         this.entityId = map.getEntityId();
 

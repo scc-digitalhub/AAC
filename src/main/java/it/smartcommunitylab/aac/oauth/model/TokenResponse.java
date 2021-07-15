@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
+import it.smartcommunitylab.aac.repository.StringArraySerializer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -37,7 +37,7 @@ public class TokenResponse {
     private Integer expiresIn;
 
     @JsonProperty("scope")
-    @JsonSerialize(using = StringOrArraySerializer.class)
+    @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope;
 
     @JsonUnwrapped

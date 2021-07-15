@@ -15,13 +15,20 @@ public interface AttributeSet {
     public String getIdentifier();
 
     /*
-     * The set keys
+     * The set keys, as per definition *not content*
      */
     public Collection<String> getKeys();
 
     /*
-     * The attribute list
+     * The attribute list (content)
      */
     public Collection<Attribute> getAttributes();
+
+    /*
+     * Human readable
+     */
+    public String getName();
+
+    public String getDescription();
 
 }

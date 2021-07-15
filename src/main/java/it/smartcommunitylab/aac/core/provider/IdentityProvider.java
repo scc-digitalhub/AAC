@@ -31,7 +31,7 @@ public interface IdentityProvider extends ResourceProvider {
      */
     public AccountProvider getAccountProvider();
 
-    public AttributeProvider getAttributeProvider();
+//    public AttributeProvider getAttributeProvider();
 
     /*
      * subjects are global, we can resolve

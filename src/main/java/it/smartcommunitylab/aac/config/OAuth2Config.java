@@ -136,8 +136,10 @@ public class OAuth2Config {
 
     @Bean
     public it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator getOAuth2RequestValidator(
+            RedirectResolver redirectResolver,
             ScopeRegistry scopeRegistry) {
-        it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator requestValidator = new it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator();
+        it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator requestValidator = new it.smartcommunitylab.aac.oauth.request.OAuth2RequestValidator(
+                redirectResolver);
         requestValidator.setScopeRegistry(scopeRegistry);
         return requestValidator;
     }

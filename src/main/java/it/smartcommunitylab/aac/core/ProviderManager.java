@@ -479,6 +479,8 @@ public class ProviderManager {
         }
 
         boolean enabled = provider.isEnabled();
+        boolean linkable = provider.isLinkable();
+
         Map<String, Serializable> configuration = null;
 
         String type = pe.getType();
@@ -507,7 +509,8 @@ public class ProviderManager {
         Map<String, String> hookFunctions = provider.getHookFunctions();
 
         // update: even when enabled this provider won't be active until registration
-        pe = providerService.updateProvider(providerId, enabled,
+        pe = providerService.updateProvider(providerId,
+                enabled, linkable,
                 name, description,
                 persistence, events,
                 configuration, hookFunctions);
@@ -556,7 +559,8 @@ public class ProviderManager {
 
         // check if already enabled in config, or update
         if (!pe.isEnabled()) {
-            pe = providerService.updateProvider(providerId, true,
+            pe = providerService.updateProvider(providerId,
+                    true, pe.isLinkable(),
                     pe.getName(), pe.getDescription(),
                     pe.getPersistence(), pe.getEvents(),
                     pe.getConfigurationMap(), pe.getHookFunctions());
@@ -591,7 +595,8 @@ public class ProviderManager {
 
         // check if already disabled in config, or update
         if (pe.isEnabled()) {
-            pe = providerService.updateProvider(providerId, false,
+            pe = providerService.updateProvider(providerId,
+                    false, pe.isLinkable(),
                     pe.getName(), pe.getDescription(),
                     pe.getPersistence(), pe.getEvents(),
                     pe.getConfigurationMap(), pe.getHookFunctions());

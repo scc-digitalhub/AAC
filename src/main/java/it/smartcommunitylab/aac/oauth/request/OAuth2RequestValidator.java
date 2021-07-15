@@ -8,8 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
+import org.springframework.security.oauth2.common.exceptions.RedirectMismatchException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.TokenRequest;
+import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -25,7 +28,14 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         OAuth2RegistrationRequestValidator {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final RedirectResolver redirectResolver;
+
     private ScopeRegistry scopeRegistry;
+
+    public OAuth2RequestValidator(RedirectResolver redirectResolver) {
+        Assert.notNull(redirectResolver, "redirect resolver can not be null");
+        this.redirectResolver = redirectResolver;
+    }
 
     public void setScopeRegistry(ScopeRegistry scopeRegistry) {
         this.scopeRegistry = scopeRegistry;
@@ -52,10 +62,9 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
                 // require exact match for redirectUri to registered (when provided)
                 // match with authorizationRequest will be checked in tokenGranter
-                // TODO handle localhost properly
                 String redirectUri = request.getRedirectUri();
                 if (StringUtils.hasText(redirectUri)) {
-                    validateRedirectUri(redirectUri, clientDetails.getRegisteredRedirectUri());
+                    validateRedirectUri(redirectUri, clientDetails);
                 }
             }
         }
@@ -64,10 +73,9 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
             if (tokenRequest instanceof ImplicitTokenRequest) {
                 ImplicitTokenRequest request = (ImplicitTokenRequest) tokenRequest;
                 // require exact match for redirectUri to registered (when provided)
-                // TODO handle localhost properly
                 String redirectUri = request.getRedirectUri();
                 if (StringUtils.hasText(redirectUri)) {
-                    validateRedirectUri(redirectUri, clientDetails.getRegisteredRedirectUri());
+                    validateRedirectUri(redirectUri, clientDetails);
                 }
             }
         }
@@ -160,10 +168,9 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
         }
 
         // require exact match for redirectUri to registered (when provided)
-        // TODO handle localhost properly
         String redirectUri = authorizationRequest.getRedirectUri();
         if (StringUtils.hasText(redirectUri)) {
-            validateRedirectUri(redirectUri, clientDetails.getRegisteredRedirectUri());
+            validateRedirectUri(redirectUri, clientDetails);
         }
 
     }
@@ -233,14 +240,12 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
 
     }
 
-    private void validateRedirectUri(String redirectUri, Set<String> registeredRedirectUris) {
-        // TODO handle as per
+    private void validateRedirectUri(String redirectUri, OAuth2ClientDetails clientDetails) {
+        // handle as per
         // https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.2.3
-        // TODO handle localhost properly
-        // TODO handle queryParam (permitted but not registered)
-        // TODO handle fragments (not permitted)
-        // TODO use a (rewritten) redirectResolver to consolidate logic
-        if (!registeredRedirectUris.contains(redirectUri)) {
+        // use redirectResolver to consolidate logic
+        String resolvedRedirectUri = redirectResolver.resolveRedirect(redirectUri, clientDetails);
+        if (!StringUtils.hasText(resolvedRedirectUri)) {
             throw new InvalidRequestException("invalid redirect_uri");
         }
     }

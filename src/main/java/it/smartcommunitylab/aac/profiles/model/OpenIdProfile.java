@@ -1,16 +1,20 @@
 package it.smartcommunitylab.aac.profiles.model;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(Include.NON_EMPTY)
 public class OpenIdProfile extends AbstractProfile {
 
-    public static final String IDENTIFIER = "profile.openid.me";
+    public static final String IDENTIFIER = "openid";
 
     private String name;
 
@@ -55,7 +59,7 @@ public class OpenIdProfile extends AbstractProfile {
 
     @JsonProperty("birthdate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date birthdate;
+    private LocalDate birthdate;
 
     private String zoneinfo;
     private String locale;
@@ -80,7 +84,7 @@ public class OpenIdProfile extends AbstractProfile {
     }
 
     @Override
-    public String getProfileId() {
+    public String getIdentifier() {
         return IDENTIFIER;
     }
 
@@ -245,11 +249,11 @@ public class OpenIdProfile extends AbstractProfile {
         this.gender = gender;
     }
 
-    public Date getBirthdate() {
+    public LocalDate getBirthdate() {
         return birthdate;
     }
 
-    public void setBirthdate(Date birthdate) {
+    public void setBirthdate(LocalDate birthdate) {
         this.birthdate = birthdate;
     }
 

@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.attributes.model;
 
+import java.io.Serializable;
+import java.text.ParseException;
+
 import it.smartcommunitylab.aac.model.AttributeType;
 
 public class BooleanAttribute extends AbstractAttribute {
@@ -29,4 +32,17 @@ public class BooleanAttribute extends AbstractAttribute {
         this.value = value;
     }
 
+    public static Boolean parseValue(Serializable value) throws ParseException {
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+
+        String stringValue = String.valueOf(value);
+        // check if value is 1/0 in addition to true/false
+        if ("1".equals(stringValue.trim())) {
+            stringValue = "true";
+        }
+
+        return Boolean.valueOf(stringValue);
+    }
 }

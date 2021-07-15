@@ -125,7 +125,11 @@ public class ProviderController {
         String name = registration.getName();
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
+        String events = registration.getEvents();
+        boolean linkable = registration.isLinkable();
+
         Map<String, Serializable> configuration = registration.getConfiguration();
+        Map<String, String> hookFunctions = registration.getHookFunctions();
 
         ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
         provider.setName(name);
@@ -133,7 +137,11 @@ public class ProviderController {
         provider.setType(type);
         provider.setEnabled(false);
         provider.setPersistence(persistence);
+        provider.setLinkable(linkable);
+        provider.setEvents(events);
+
         provider.setConfiguration(configuration);
+        provider.setHookFunctions(hookFunctions);
 
         if (logger.isTraceEnabled()) {
             logger.trace("idp bean: " + String.valueOf(provider));
@@ -168,15 +176,20 @@ public class ProviderController {
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
         boolean enabled = registration.isEnabled();
+        String events = registration.getEvents();
+        boolean linkable = registration.isLinkable();
+
         Map<String, Serializable> configuration = registration.getConfiguration();
         Map<String, String> hookFunctions = registration.getHookFunctions();
 
         provider.setName(name);
         provider.setDescription(description);
-        provider.setPersistence(persistence);
-        provider.setConfiguration(configuration);
         provider.setEnabled(enabled);
+        provider.setPersistence(persistence);
+        provider.setLinkable(linkable);
+        provider.setEvents(events);
         provider.setHookFunctions(hookFunctions);
+        provider.setConfiguration(configuration);
 
         if (logger.isTraceEnabled()) {
             logger.trace("idp bean: " + String.valueOf(provider));
@@ -240,6 +253,9 @@ public class ProviderController {
             String name = registration.getName();
             String description = registration.getDescription();
             String persistence = registration.getPersistence();
+            String events = registration.getEvents();
+            boolean linkable = registration.isLinkable();
+
             Map<String, Serializable> configuration = registration.getConfiguration();
             Map<String, String> hookFunctions = registration.getHookFunctions();
 
@@ -249,6 +265,8 @@ public class ProviderController {
             provider.setType(type);
             provider.setEnabled(false);
             provider.setPersistence(persistence);
+            provider.setLinkable(linkable);
+            provider.setEvents(events);
             provider.setConfiguration(configuration);
             provider.setHookFunctions(hookFunctions);
 

@@ -27,6 +27,7 @@ public class ApiScopeProvider implements ScopeProvider {
         s.put(ApiProviderScope.SCOPE, new ApiProviderScope());
         s.put(ApiServicesScope.SCOPE, new ApiServicesScope());
         s.put(ApiUsersScope.SCOPE, new ApiUsersScope());
+        s.put(ApiAttributesScope.SCOPE, new ApiAttributesScope());       
         s.put(ApiRealmScope.SCOPE, new ApiRealmScope());
 
         scopes = Collections.unmodifiableMap(s);

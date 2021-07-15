@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.service;
+package it.smartcommunitylab.aac.profiles.extractor;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -6,16 +6,22 @@ import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
+import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.profiles.BasicProfileAttributesSet;
-import it.smartcommunitylab.aac.profiles.OpenIdProfileAttributesSet;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
-public class BasicProfileExtractor extends UserProfileExtractor {
+public class BasicProfileExtractor extends AbstractUserProfileExtractor {
+
+    @Override
+    public String getIdentifier() {
+        return BasicProfile.IDENTIFIER;
+    }
 
     @Override
     public BasicProfile extractUserProfile(User user)
@@ -64,32 +70,26 @@ public class BasicProfileExtractor extends UserProfileExtractor {
 
         // lookup attributes with default names in basic profile
         String name = getStringAttribute(
-                getAttribute(attributes, BasicProfileAttributesSet.NAME, BasicProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
+                getAttribute(attributes, BasicAttributesSet.NAME, BasicAttributesSet.IDENTIFIER,
+                        "profile"));
         if (!StringUtils.hasText(name)) {
             // fall back to openid profile
-            name = getStringAttribute(getAttribute(attributes, OpenIdProfileAttributesSet.GIVEN_NAME,
-                    OpenIdProfileAttributesSet.IDENTIFIER,
-                    "profile", "profile.fullprofile.me"));
+            name = getStringAttribute(getAttribute(attributes, OpenIdAttributesSet.GIVEN_NAME,
+                    OpenIdAttributesSet.IDENTIFIER,
+                    "profile"));
         }
-        String surname = getStringAttribute(getAttribute(attributes, BasicProfileAttributesSet.SURNAME,
-                BasicProfileAttributesSet.IDENTIFIER,
-                "profile", "profile.fullprofile.me"));
+        String surname = getStringAttribute(getAttribute(attributes, BasicAttributesSet.SURNAME,
+                BasicAttributesSet.IDENTIFIER,
+                "profile"));
         if (!StringUtils.hasText(surname)) {
             // fall back to openid profile
-            surname = getStringAttribute(getAttribute(attributes, OpenIdProfileAttributesSet.FAMILY_NAME,
-                    OpenIdProfileAttributesSet.IDENTIFIER,
-                    "profile", "profile.fullprofile.me"));
+            surname = getStringAttribute(getAttribute(attributes, OpenIdAttributesSet.FAMILY_NAME,
+                    OpenIdAttributesSet.IDENTIFIER,
+                    "profile"));
         }
         String email = getStringAttribute(
-                getAttribute(attributes, BasicProfileAttributesSet.EMAIL, BasicProfileAttributesSet.IDENTIFIER,
-                        "profile", "profile.fullprofile.me"));
-        if (!StringUtils.hasText(email)) {
-            // fall back to openid profile
-            email = getStringAttribute(
-                    getAttribute(attributes, OpenIdProfileAttributesSet.EMAIL, OpenIdProfileAttributesSet.IDENTIFIER,
-                            "profile", "profile.fullprofile.me"));
-        }
+                getAttribute(attributes, BasicAttributesSet.EMAIL, BasicAttributesSet.IDENTIFIER,
+                        EmailAttributesSet.IDENTIFIER, OpenIdAttributesSet.IDENTIFIER, "profile"));
 
         profile.setName(name);
         profile.setSurname(surname);

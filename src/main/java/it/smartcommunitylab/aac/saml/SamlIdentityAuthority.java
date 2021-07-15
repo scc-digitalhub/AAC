@@ -71,7 +71,7 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
                     AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
                     SamlIdentityProvider idp = new SamlIdentityProvider(
-                            id,
+                            id, config.getName(),
                             accountRepository, attributeStore,
                             config, config.getRealm());
                     idp.setExecutionService(executionService);

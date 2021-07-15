@@ -1,12 +1,9 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
-import it.smartcommunitylab.aac.scope.Scope;
 
 public class BasicProfileScope extends AbstractProfileScope {
-    
+
     public static final String SCOPE = Config.SCOPE_BASIC_PROFILE;
 
     @Override

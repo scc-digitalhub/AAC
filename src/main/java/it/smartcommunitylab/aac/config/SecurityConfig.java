@@ -494,6 +494,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
         OIDCRedirectAuthenticationFilter redirectFilter = new OIDCRedirectAuthenticationFilter(
+                providerRepository,
                 clientRegistrationRepository);
         redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
 

@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @Table(name = "user_attributes", uniqueConstraints = @UniqueConstraint(columnNames = { "authority", "provider",
         "user_id",
         "attr_key" }))
-public class AttributeEntity {
+public class UserAttributeEntity {
 
     @Id
     @GeneratedValue
@@ -101,7 +101,7 @@ public class AttributeEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        AttributeEntity other = (AttributeEntity) obj;
+        UserAttributeEntity other = (UserAttributeEntity) obj;
         if (authority == null) {
             if (other.authority != null)
                 return false;

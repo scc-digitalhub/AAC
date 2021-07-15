@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.internal.model;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.CredentialsContainer;
@@ -34,7 +35,9 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
     // we keep attributes in flat map
     // TODO evaluate drop, we shouldn't have extra attributes
-    private Map<String, String> attributes;
+    private Map<String, String> attributesMap;
+
+    private Map<String, UserAttributes> attributes;
 
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
@@ -42,6 +45,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 //        this.provider = provider;
         this.principal = null;
         this.userId = account.getUserId();
+        this.attributes = new HashMap<>();
     }
 
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
@@ -51,6 +55,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 //        this.provider = provider;
         this.principal = principal;
         this.userId = account.getUserId();
+        this.attributes = new HashMap<>();
 
     }
 
@@ -71,35 +76,42 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
     @Override
     public Collection<UserAttributes> getAttributes() {
-        // manually map attributes into sets
-        List<UserAttributes> attributes = new ArrayList<>();
-        // TODO rework and move to attributeProvider, here we should simly store them
-        DefaultUserAttributesImpl profile = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
-                "profile");
-        profile.setUserId(userId);
-        profile.addAttribute(new StringAttribute("name", account.getName()));
-        profile.addAttribute(new StringAttribute("surname", account.getSurname()));
-        profile.addAttribute(new StringAttribute("email", account.getEmail()));
-        attributes.add(profile);
+//        // manually map attributes into sets
+//        List<UserAttributes> attributes = new ArrayList<>();
+//        // TODO rework and move to attributeProvider, here we should simly store them
+//        DefaultUserAttributesImpl profile = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
+//                "profile");
+//        profile.setUserId(userId);
+//        profile.addAttribute(new StringAttribute("name", account.getName()));
+//        profile.addAttribute(new StringAttribute("surname", account.getSurname()));
+//        profile.addAttribute(new StringAttribute("email", account.getEmail()));
+//        attributes.add(profile);
+//
+//        DefaultUserAttributesImpl email = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
+//                "email");
+//        email.setUserId(userId);
+//        email.addAttribute(new StringAttribute("email", account.getEmail()));
+//        attributes.add(email);
+//
+//        DefaultUserAttributesImpl username = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
+//                "username");
+//        username.setUserId(userId);
+//        username.addAttribute(new StringAttribute("username", account.getUsername()));
+//        attributes.add(username);
 
-        DefaultUserAttributesImpl email = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
-                "email");
-        email.setUserId(userId);
-        email.addAttribute(new StringAttribute("email", account.getEmail()));
-        attributes.add(email);
-
-        DefaultUserAttributesImpl username = new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(),
-                "username");
-        username.setUserId(userId);
-        username.addAttribute(new StringAttribute("username", account.getUsername()));
-        attributes.add(username);
-
-        return attributes;
+        return attributes.values();
     }
 
     /*
      * we want this to be immutable
      */
+
+    public void setAttributes(Collection<UserAttributes> attributes) {
+        this.attributes = new HashMap<>();
+        if (attributes != null) {
+            attributes.forEach(a -> this.attributes.put(a.getIdentifier(), a));
+        }
+    }
 
     public String getUserId() {
         return userId;

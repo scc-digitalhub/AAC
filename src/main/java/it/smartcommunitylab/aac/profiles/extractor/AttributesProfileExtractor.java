@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.profiles.service;
+package it.smartcommunitylab.aac.profiles.extractor;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.CustomProfile;
 
-public class AttributesProfileExtractor extends UserProfileExtractor {
+public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
 
     // profile identifier
     private final String identifier;
@@ -30,6 +30,11 @@ public class AttributesProfileExtractor extends UserProfileExtractor {
         Assert.notNull(mapping, "attributes mapping can not be null");
         this.identifier = identifier;
         this.mapping = Collections.unmodifiableMap(mapping);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return identifier;
     }
 
     @Override

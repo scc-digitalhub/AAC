@@ -58,9 +58,11 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
+import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
+import it.smartcommunitylab.aac.profiles.model.ProfileResponse;
 
 /**
  * @author raman
@@ -85,7 +87,7 @@ public class ProfileController {
     @ApiOperation(value = "Get basic profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE + "')")
     @GetMapping(value = "/basicprofile/me")
-    public @ResponseBody BasicProfile myBasicProfile(BearerTokenAuthentication auth)
+    public @ResponseBody ProfileResponse myBasicProfile(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
@@ -100,13 +102,14 @@ public class ProfileController {
             throw new IllegalArgumentException("invalid authentication");
         }
 
-        return profileManager.getBasicProfile(realm, subject);
+        AbstractProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profile);
     }
 
     @ApiOperation(value = "Get openid profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_PROFILE + "')")
     @GetMapping(value = "/openidprofile/me")
-    public @ResponseBody OpenIdProfile myOpenIdProfile(BearerTokenAuthentication auth)
+    public @ResponseBody ProfileResponse myOpenIdProfile(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
@@ -121,14 +124,15 @@ public class ProfileController {
             throw new IllegalArgumentException("invalid authentication");
         }
 
-        return profileManager.getOpenIdProfile(realm, subject);
+        AbstractProfile profile = profileManager.getProfile(realm, subject, OpenIdProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profile);
     }
 
     @ApiOperation(value = "Get account profiles of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE
             + "')")
     @GetMapping(value = "/accountprofile/me")
-    public @ResponseBody Collection<AccountProfile> myAccountProfiles(BearerTokenAuthentication auth)
+    public @ResponseBody ProfileResponse myAccountProfiles(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
@@ -143,7 +147,32 @@ public class ProfileController {
             throw new IllegalArgumentException("invalid authentication");
         }
 
-        return profileManager.getAccountProfiles(realm, subject);
+        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, AccountProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profiles);
+    }
+
+    @ApiOperation(value = "Get account profiles of the current user")
+    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_profile.#identifier.me')")
+    @GetMapping(value = "/{identifier}/me")
+    public @ResponseBody ProfileResponse myProfiles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
+            BearerTokenAuthentication auth)
+            throws InvalidDefinitionException, NoSuchUserException {
+        if (auth == null) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        String subject = (String) auth.getTokenAttributes().get("sub");
+        String realm = (String) auth.getTokenAttributes().get("realm");
+
+        if (!StringUtils.hasText(subject) || !StringUtils.hasText(realm)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, identifier);
+        return new ProfileResponse(subject, profiles);
     }
 
     /*
@@ -182,36 +211,52 @@ public class ProfileController {
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE_ALL
             + "')")
-    @GetMapping(value = "/api/profiles/{realm}/basicprofile/{userId}")
-    public @ResponseBody BasicProfile getBasicProfile(
+    @GetMapping(value = "/api/profiles/{realm}/basicprofile/{subject}")
+    public @ResponseBody ProfileResponse getBasicProfile(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
-        return profileManager.getBasicProfile(realm, userId);
+        AbstractProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profile);
     }
 
     @ApiOperation(value = "Get openid profile of a user")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_OPENID_PROFILE_ALL
             + "')")
-    @GetMapping(value = "/api/profiles/{realm}/openidprofile/{userId}")
-    public @ResponseBody OpenIdProfile getOpenIdProfile(
+    @GetMapping(value = "/api/profiles/{realm}/openidprofile/{subject}")
+    public @ResponseBody ProfileResponse getOpenIdProfile(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
-        return profileManager.getOpenIdProfile(realm, userId);
+        AbstractProfile profile = profileManager.getProfile(realm, subject, BasicProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profile);
     }
 
     @ApiOperation(value = "Get account profiles of a user")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE_ALL
             + "')")
-    @GetMapping(value = "/api/profiles/{realm}/accountprofile/{userId}")
-    public @ResponseBody Collection<AccountProfile> getAccountProfiles(
+    @GetMapping(value = "/api/profiles/{realm}/accountprofile/{subject}")
+    public @ResponseBody ProfileResponse getAccountProfiles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
-        return profileManager.getAccountProfiles(realm, userId);
+        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, AccountProfile.IDENTIFIER);
+        return new ProfileResponse(subject, profiles);
+    }
+
+    @ApiOperation(value = "Get custom profiles of a user")
+//    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_profile.#identifier.all')")
+    @GetMapping(value = "/api/profiles/{realm}/{identifier}/{subject}")
+    public @ResponseBody ProfileResponse getProfiles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subject)
+            throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
+        Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, identifier);
+        return new ProfileResponse(subject, profiles);
     }
 
     /*
@@ -249,6 +294,13 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public Response processValidationError(IllegalArgumentException ex) {
+        return Response.error(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidDefinitionException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response processInvalidError(InvalidDefinitionException ex) {
         return Response.error(ex.getMessage());
     }
 

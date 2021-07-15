@@ -20,8 +20,9 @@
           <ul class="link-list">
             <li><a class="list-item" href="" ng-click="internalProviderDlg()"><span>Internal</span></a></li>
             <li ng-repeat="template in providerTemplates">
-              <a class="list-item" href="" ng-click="createProviderDlg(template.authority, template.name)"><span>{{template.name}}</span></a>
-            </li>            
+              <a class="list-item" href=""
+                ng-click="createProviderDlg(template.authority, template.name)"><span>{{template.name}}</span></a>
+            </li>
             <li><a class="list-item" href="" ng-click="oidcProviderDlg()"><span>OpenID Connect</span></a></li>
             <li><a class="list-item" href="" ng-click="samlProviderDlg()"><span>SAML</span></a></li>
 
@@ -59,9 +60,13 @@
           </div>
         </td>
         <td class="text-right">
-          <button class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(item, !item.enabled)">
-            <span ng-if="item.enabled">Disable</span>
-            <span ng-if="!item.enabled">Enable</span>
+          <button ng-if="!item.enabled" class="btn btn-success btn-sm  text-right"
+            ng-click="toggleProviderState(item, !item.enabled)">
+            Enable
+          </button>
+          <button ng-if="item.enabled" class="btn btn-warning btn-sm  text-right"
+            ng-click="toggleProviderState(item, !item.enabled)">
+            Disable
           </button>
           <button class="btn btn-primary btn-sm"
             ui-sref="realm.provider({realmId:item.realm, providerId:item.provider})">Edit</button>
@@ -72,8 +77,46 @@
     </table>
   </div>
 
-  <div ng-if="providers == null || providers.length == 0">
-    <h5>No data</h5>
+  <div ng-if="providers && providers.length == 0">
+    <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="it-hero-text-wrapper bg-dark">
+              <h1 class="no_toc">No providers registered.</h1>
+              <p class="d-none d-lg-block">Add an internal or external provider to let users sign into the realm.</p>
+              <div class="it-btn-container">
+                <button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false">
+                  <svg class="icon icon-sm">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                  </svg>
+                  Add Provider
+                  <svg class="icon-expand icon icon-sm">
+                    <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+                  </svg>
+                </button>
+                <div class="dropdown-menu">
+                  <div class="link-list-wrapper">
+                    <ul class="link-list">
+                      <li><a class="list-item" href="" ng-click="internalProviderDlg()">Internal</a></li>
+                      <li ng-repeat="template in providerTemplates">
+                        <a class="list-item" href=""
+                          ng-click="createProviderDlg(template.authority, template.name)">{{template.name}}</a>
+                      </li>
+                      <li><a class="list-item" href="" ng-click="oidcProviderDlg()">OpenID Connect</a></li>
+                      <li><a class="list-item" href="" ng-click="samlProviderDlg()">SAML</a></li>
+
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -155,7 +198,7 @@
             <label for="name">Provider Name*</label>
             <input type="text" name="name" class="form-control form-control-sm" id="name" required
               ng-model="modProvider.name">
-          </div>         
+          </div>
           <div class="form-group col pt-4 mb-2">
             <label for="authority">Authority</label>
             <input type="text" name="authority" class="form-control form-control-sm" id="authority" readonly

@@ -42,22 +42,36 @@
 <body>
    <div class="container">
 
-    <div>
-      <img class="logo d-none d-md-block" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
-      <div class="clear"></div>
-    </div>
+      <div>
+         <img class="logo d-none d-md-block" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
+         <div class="clear"></div>
+      </div>
 
       <div class="row mt-md-0 mt-5 justify-content-center">
          <div class="confirmation-content container-fluid">
             <div class="row justify-content-center">
                <div class="col-md-offset-2 col-md-8">
-                 <h2 th:text="#{lbl_oauth_error}">AAC OAuth2 Error</h2>
-               
-                 <div id="content">
-                  <p th:if="${error != null}"><span th:text="${message}">Error </span> (<span th:text="${error}">Summary</span>)</p>
-                  <p th:text="#{lbl_oauth_text}">Please go back to your client application and try again, or contact the administrator for support</p>
-                 </div>
-                 
+
+                  <div id="content">
+
+                     <div th:if="${error != null}">
+                        <div class="callout danger">
+                           <div class="callout-title">
+                              <svg class="icon">
+                                 <use th:xlink:href="@{/italia/svg/sprite.svg#it-close-circle}"></use>
+                              </svg>
+                              <span th:text="${error}">Error</span>
+                           </div>
+                           <p th:text="${errorSummary}"></p>
+                        </div>
+                     </div>
+                     <h2 th:if="${error == null}" th:text="#{lbl_oauth_error}">AAC OAuth2 Error</h2>
+                     <p class="mb-4" th:text="#{lbl_oauth_text}">Please go back to your client application and try
+                        again, or contact
+                        the administrator for support</p>
+
+                  </div>
+
                </div>
 
             </div>
@@ -69,4 +83,3 @@
 </body>
 
 </html>
-

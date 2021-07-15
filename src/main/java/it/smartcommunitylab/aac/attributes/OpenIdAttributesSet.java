@@ -1,43 +1,44 @@
-package it.smartcommunitylab.aac.profiles;
+package it.smartcommunitylab.aac.attributes;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.core.base.BaseAttributes;
 import it.smartcommunitylab.aac.core.model.Attribute;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 
-public class OpenIdProfileAttributesSet extends BaseAttributes {
-    public static final String IDENTIFIER = "openid";
+public class OpenIdAttributesSet implements AttributeSet {
+    public static final String IDENTIFIER = "aac.openid";
+    public static final List<String> keys;
 
-    private final String userId;
     private Map<String, Attribute> attributes;
 
-    public OpenIdProfileAttributesSet(String authority, String provider, String realm, String userId) {
-        super(authority, provider, realm, IDENTIFIER);
-        Assert.hasText(userId, "userId can not be null or blank");
-        this.userId = userId;
+    public OpenIdAttributesSet() {
         this.attributes = new HashMap<>();
     }
 
-    @Override
-    public String getUserId() {
-        return userId;
+    public OpenIdAttributesSet(Collection<Attribute> attrs) {
+        this.attributes = new HashMap<>();
+        if (attrs != null) {
+            attrs.forEach(a -> this.attributes.put(a.getKey(), a));
+        }
     }
 
     @Override
-    public String getAttributesId() {
-        return IDENTIFIER + ":" + userId;
+    public String getIdentifier() {
+        return IDENTIFIER;
     }
 
     @Override
     public Collection<String> getKeys() {
-        return attributes.keySet();
+        return keys;
     }
 
     @Override
@@ -213,7 +214,7 @@ public class OpenIdProfileAttributesSet extends BaseAttributes {
         attributes.put(GENDER, attr);
     }
 
-    public void setBirthdate(Date birthdate) {
+    public void setBirthdate(LocalDate birthdate) {
         if (birthdate == null) {
             attributes.remove(BIRTHDATE);
             return;
@@ -249,6 +250,17 @@ public class OpenIdProfileAttributesSet extends BaseAttributes {
         attributes.put(LOCALE, attr);
     }
 
+    @Override
+    public String getName() {
+        // TODO i18n
+        return "OpenId user attribute set";
+    }
+
+    @Override
+    public String getDescription() {
+        return "OpenId Connect default user attribute set";
+    }
+
     public static final String NAME = "name";
     public static final String GIVEN_NAME = "given_name";
     public static final String FAMILY_NAME = "family_name";
@@ -266,5 +278,27 @@ public class OpenIdProfileAttributesSet extends BaseAttributes {
     public static final String BIRTHDATE = "birthdate";
     public static final String ZONEINFO = "zoneinfo";
     public static final String LOCALE = "locale";
+
+    static {
+        List<String> k = new ArrayList<>();
+        k.add(NAME);
+        k.add(GIVEN_NAME);
+        k.add(FAMILY_NAME);
+        k.add(MIDDLE_NAME);
+        k.add(NICKNAME);
+        k.add(PREFERRED_USERNAME);
+        k.add(EMAIL);
+        k.add(EMAIL_VERIFIED);
+        k.add(PHONE_NUMBER);
+        k.add(PHONE_NUMBER_VERIFIED);
+        k.add(PROFILE);
+        k.add(PICTURE);
+        k.add(WEBSITE);
+        k.add(GENDER);
+        k.add(BIRTHDATE);
+        k.add(ZONEINFO);
+        k.add(LOCALE);
+        keys = Collections.unmodifiableList(k);
+    }
 
 }

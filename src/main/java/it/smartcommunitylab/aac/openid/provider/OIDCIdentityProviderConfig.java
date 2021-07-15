@@ -28,6 +28,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     private String name;
     private String description;
     private String persistence;
+    private Boolean linkable;
 
     private OIDCIdentityProviderConfigMap configMap;
     private ClientRegistration clientRegistration;
@@ -78,6 +79,22 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public void setPersistence(String persistence) {
         this.persistence = persistence;
+    }
+
+    public Boolean getLinkable() {
+        return linkable;
+    }
+
+    public void setLinkable(Boolean linkable) {
+        this.linkable = linkable;
+    }
+
+    public boolean isLinkable() {
+        if (linkable != null) {
+            return linkable.booleanValue();
+        }
+
+        return true;
     }
 
     public Map<String, String> getHookFunctions() {
@@ -244,6 +261,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         cp.setHookFunctions(op.getHookFunctions());
 
         cp.setEnabled(true);
+        cp.setLinkable(op.isLinkable());
         cp.setConfiguration(op.getConfiguration());
 
         return cp;
@@ -257,6 +275,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         op.name = cp.getName();
         op.description = cp.getDescription();
         op.persistence = cp.getPersistence();
+        op.linkable = cp.isLinkable();
         op.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return op;

@@ -17,9 +17,16 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import org.springframework.web.util.WebUtils;
 import org.springframework.security.access.AccessDeniedException;
 
+import it.smartcommunitylab.aac.common.NoSuchAttributeException;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchClaimException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 
 @ControllerAdvice(basePackages = "it.smartcommunitylab.aac.api")
@@ -34,9 +41,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({
+            NoSuchAttributeException.class,
+            NoSuchAttributeSetException.class,
+            NoSuchClaimException.class,
+            NoSuchClientException.class,
+            NoSuchProviderException.class,
+            NoSuchRealmException.class,
+            NoSuchScopeException.class,
             NoSuchServiceException.class,
             NoSuchUserException.class,
-            NoSuchRealmException.class })
+            NoSuchResourceException.class })
 
     public final ResponseEntity<Object> handleNoSuchException(Exception ex, WebRequest request) throws Exception {
         HttpHeaders headers = new HttpHeaders();

@@ -66,7 +66,7 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
         // use first token as base
         UserAuthentication token = authenticationTokens[0];
         this.details = new UserDetails(principal.getSubjectId(), realm, token.getUser().getIdentities(),
-                token.getUser().getAttributeSets(), authorities);
+                token.getUser().getAttributeSets(true), authorities);
 
         // add auth tokens
         this.tokens.addAll(token.getAuthentications());
@@ -79,7 +79,7 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
             }
 
             // attributes
-            for (UserAttributes ras : t.getUser().getAttributeSets()) {
+            for (UserAttributes ras : t.getUser().getAttributeSets(true)) {
                 details.addAttributeSet(ras);
             }
 

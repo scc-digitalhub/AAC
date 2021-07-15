@@ -6,71 +6,88 @@
     </div>
     <div class="col col-md-6 text-right">
       <button class="btn btn-primary text-right" type="button" ng-click="newService()">
-      <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>
-      New Service</button>
+        <svg class="icon icon-sm icon-white">
+          <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+        </svg>
+        New Service</button>
       <button class="btn btn-secondary btn-sm" ng-click="importServiceDlg()">Import</button>
     </div>
   </div>
 </div>
 <div class="accordion" id="services">
-  <div  ng-if="services && services.length > 0">
+  <div ng-if="services && services.length > 0">
     <table class="table table-hover border-bottom">
-      <tr ng-repeat="service in services"  >
-       <td class="align-middle">
-         <span class="h6">{{service.name}}</span> 
-         <br> <small class="text-muted"> {{service.namespace}} </small>
-         <p>{{service.description}}</p>
-       </td>
-       <td class="text-right">
-         <button class="btn btn-secondary btn-sm" ng-click="serviceApprovals(service)">Approvals</button>
-         <button class="btn btn-primary btn-sm" ng-click="switchService(service)">Details</button>
-       </td>
-      </tr>    
+      <tr ng-repeat="service in services">
+        <td class="align-middle">
+          <span class="h6">{{service.name}}</span>
+          <br> <small class="text-muted"> {{service.namespace}} </small>
+          <p>{{service.description}}</p>
+        </td>
+        <td class="text-right">
+          <button class="btn btn-secondary btn-sm" ng-click="serviceApprovals(service)">Approvals</button>
+          <button class="btn btn-primary btn-sm" ng-click="switchService(service)">Manage</button>
+        </td>
+      </tr>
     </table>
   </div>
-  
-  <div ng-if="services == null || services.length == 0">
-    <h5>No data</h5>
-  </div>   
-  
-</div>  
-  
+
+  <div ng-if="services && services.length == 0">
+    <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="it-hero-text-wrapper bg-dark">
+              <h1 class="no_toc">No custom services registered.</h1>
+              <p class="d-none d-lg-block">Register an API to define scopes and claims.</p>
+              <div class="it-btn-container">
+                <button class="btn btn-primary text-right" type="button" ng-click="newService()">
+                  <svg class="icon icon-sm">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                  </svg>
+                  New Service</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div ng-include="'./html/realm.services.modal.html'"></div>
 
 
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importServiceDlg">
   <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title">Import service </h5>
-          </div>
-          <div class="modal-body">
-              <form name="importServiceForm" enctype="multipart/form-data" class="needs-validation was-validated"
-                  novalidate>
-                  <p>Upload a valid YAML file with the full custom service definition.</p>                        
-                  
-                  <div class="form-group col pt-4 mb-2">
-                      <label for="file">File*</label>
-                      <input type="file" name="file" class="form-control form-control-sm upload" id="file"
-                          file-model="importFile" required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
-                      <ul class="upload-file-list">
-                          <li class="upload-file success" ng-if="importFile != null">
-                              <p>
-                                  {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
-                              </p>
-                          </li>
-                      </ul>
-                  </div>
-
-              </form>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
-              <button class="btn btn-primary" type="button" ng-click="importService()"
-                  ng-disabled="importFile == null">Import</button>
-          </div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Import service </h5>
       </div>
+      <div class="modal-body">
+        <form name="importServiceForm" enctype="multipart/form-data" class="needs-validation was-validated" novalidate>
+          <p>Upload a valid YAML file with the full custom service definition.</p>
+
+          <div class="form-group col pt-4 mb-2">
+            <label for="file">File*</label>
+            <input type="file" name="file" class="form-control form-control-sm upload" id="file" file-model="importFile"
+              required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+            <ul class="upload-file-list">
+              <li class="upload-file success" ng-if="importFile != null">
+                <p>
+                  {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                </p>
+              </li>
+            </ul>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="importService()"
+          ng-disabled="importFile == null">Import</button>
+      </div>
+    </div>
   </div>
 </div>
-  

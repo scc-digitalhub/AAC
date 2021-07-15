@@ -6,63 +6,101 @@
     </div>
     <div class="col col-md-6 text-right">
       <button class="btn btn-primary text-right" type="button" ng-click="inviteUser()">
-      <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>
-      Add / Invite User</button>
+        <svg class="icon icon-sm icon-white">
+          <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+        </svg>
+        Add / Invite User</button>
     </div>
   </div>
 </div>
 <div class="accordion" id="users">
-  <div  ng-if="users && users.content.length > 0">
-	  <table class="table table-hover border-bottom">
-	      <thead>
-	      <tr><th>Name</th><th>Provider</th><th>Username</th><th>Realm Roles</th><th></th></tr>
-	      </thead>
-	    <tr ng-repeat="item in users.content">
+  <div ng-if="users && users.content.length > 0">
+    <table class="table table-hover border-bottom">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Provider</th>
+          <th>Username</th>
+          <th>Realm Roles</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tr ng-repeat="item in users.content">
         <td class="align-middle">{{item.lastName}} {{item.firstName}} <span class="small">{{item.subjectId}}</span></td>
         <td class="align-middle">
           <span ng-if="item.source != realm.slug">Proxy ({{item.source}})</span>
-          <div ng-if="item.source == realm.slug"><div ng-repeat="p in item._providers">{{p}}</div></div>
+          <div ng-if="item.source == realm.slug">
+            <div ng-repeat="p in item._providers">{{p}}</div>
+          </div>
         </td>
         <td class="align-middle">{{item.username}}</td>
-        <td class="align-middle small">        
-        <span ng-repeat="a in item._authorities"><span class="badge badge-secondary">{{a}}</span> </span> </td>        
-  	    <td class="text-right">
-         <button class="btn btn-secondary btn-sm"  ng-click="editRoles(item)">Roles</button>
-         <button class="btn btn-secondary btn-sm"  ng-click="jsonUserDlg(item)">Inspect</button>
-  	     <button class="btn btn-danger btn-sm"  ng-click="deleteUserDlg(item)">Delete</button>
-  	    </td>
-	    </tr>
-	  </table>
+        <td class="align-middle small">
+          <span ng-repeat="a in item._authorities"><span class="badge badge-secondary">{{a}}</span> </span>
+        </td>
+        <td class="text-right">
+          <button class="btn btn-secondary btn-sm" ng-click="editRoles(item)">Roles</button>
+          <button class="btn btn-secondary btn-sm" ng-click="jsonUserDlg(item)">Inspect</button>
+          <button class="btn btn-danger btn-sm" ng-click="deleteUserDlg(item)">Delete</button>
+        </td>
+      </tr>
+    </table>
     <nav class="pagination-wrapper" aria-label="pagination">
       <ul class="pagination">
-        <li class="page-item"  ng-class="{'disabled':users.first}">
+        <li class="page-item" ng-class="{'disabled':users.first}">
           <a class="page-link" ng-click="setPage(query.page - 1)">
-            <svg class="icon icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use></svg>
+            <svg class="icon icon-primary">
+              <use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use>
+            </svg>
             <span class="sr-only">Previous page</span>
           </a>
         </li>
-        <li class="page-item" ng-if="users.pageable.pageNumber - 1 > 0"><a class="page-link"  ng-click="setPage(users.pageable.pageNumber - 2)">{{users.pageable.pageNumber - 1}}</a></li>
-        <li class="page-item" ng-if="users.pageable.pageNumber > 0"><a class="page-link"  ng-click="setPage(users.pageable.pageNumber - 1)">{{users.pageable.pageNumber}}</a></li>
+        <li class="page-item" ng-if="users.pageable.pageNumber - 1 > 0"><a class="page-link"
+            ng-click="setPage(users.pageable.pageNumber - 2)">{{users.pageable.pageNumber - 1}}</a></li>
+        <li class="page-item" ng-if="users.pageable.pageNumber > 0"><a class="page-link"
+            ng-click="setPage(users.pageable.pageNumber - 1)">{{users.pageable.pageNumber}}</a></li>
         <li class="page-item active">
-          <a class="page-link"  aria-current="page"><span class="d-inline-block d-sm-none">Pagina </span>{{users.pageable.pageNumber + 1}}</a>
+          <a class="page-link" aria-current="page"><span class="d-inline-block d-sm-none">Pagina
+            </span>{{users.pageable.pageNumber + 1}}</a>
         </li>
-        <li class="page-item" ng-if="users.pageable.pageNumber + 1 < users.totalPages"><a class="page-link"  ng-click="setPage(users.pageable.pageNumber + 1)">{{users.pageable.pageNumber + 2}}</a></li>
-        <li class="page-item" ng-if="users.pageable.pageNumber + 2 < users.totalPages"><a class="page-link"  ng-click="setPage(users.pageable.pageNumber + 2)">{{users.pageable.pageNumber + 3}}</a></li>
-        <li class="page-item"  ng-class="{'disabled':users.last}">
+        <li class="page-item" ng-if="users.pageable.pageNumber + 1 < users.totalPages"><a class="page-link"
+            ng-click="setPage(users.pageable.pageNumber + 1)">{{users.pageable.pageNumber + 2}}</a></li>
+        <li class="page-item" ng-if="users.pageable.pageNumber + 2 < users.totalPages"><a class="page-link"
+            ng-click="setPage(users.pageable.pageNumber + 2)">{{users.pageable.pageNumber + 3}}</a></li>
+        <li class="page-item" ng-class="{'disabled':users.last}">
           <a class="page-link" ng-click="setPage(query.page + 1)">
             <span class="sr-only">Next page</span>
-            <svg class="icon icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use></svg>
+            <svg class="icon icon-primary">
+              <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+            </svg>
           </a>
         </li>
       </ul>
     </nav>
   </div>
-  
-  <div ng-if="users == null || users.content.length == 0">
-    <h5>No data</h5>
-  </div>   
-  
-</div>    
+
+  <div ng-if="users && users.content.length == 0">
+    <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="it-hero-text-wrapper bg-dark">
+              <h1 class="no_toc">No users registered.</h1>
+              <p class="d-none d-lg-block">Add or invite a user.</p>
+              <div class="it-btn-container">
+                <button class="btn btn-primary text-right" type="button" ng-click="inviteUser()">
+                  <svg class="icon icon-sm">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                  </svg>
+                  Add / Invite User</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 
 
@@ -70,42 +108,42 @@
 <div ng-include="'./html/realm.users.invite.modal.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-body">
-            <p>Are you sure you want to delete?</p>
-            <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-danger btn-sm" ng-click="deleteUser()" type="button">Delete</button>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
-          </div>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+        <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="deleteUser()" type="button">Delete</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
       </div>
     </div>
+  </div>
 </div>
 
 
 
 <div class="modal fade bs-modal-lg" id="userJsonModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h3 class="modal-title" id="modal-title">User json</h3>
-            </div>
-            <div class="modal-body" id="modal-body">
-                
-                <h6>Raw JSON</h6>                
-                <figure class="neutral-2-bg p-2 mb-0">
-                    <pre>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h3 class="modal-title" id="modal-title">User json</h3>
+      </div>
+      <div class="modal-body" id="modal-body">
+
+        <h6>Raw JSON</h6>
+        <figure class="neutral-2-bg p-2 mb-0">
+          <pre>
 <code class="language-json" data-lang="json">
 {{modUser | json:4}}
 </code>
                 </pre>
-                </figure>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
-            </div>
-        </div>
+        </figure>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
+      </div>
     </div>
+  </div>
 </div>

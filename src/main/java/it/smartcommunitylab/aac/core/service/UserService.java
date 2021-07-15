@@ -204,7 +204,7 @@ public class UserService {
         String realm = ue.getRealm();
 
         User u = new User(subjectId, ue.getRealm());
-        u.setUsername(u.getUsername());
+        u.setUsername(ue.getUsername());
 
         // fetch attributes
         u.setExpirationDate(ue.getExpirationDate());
@@ -233,7 +233,7 @@ public class UserService {
         u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
 
         // add user attributes
-        u.setAttributes(fetchUserAttributes(subjectId, realm));
+        u.addAttributes(fetchUserAttributes(subjectId, realm));
 
         // add space roles
         u.setRoles(fetchUserSpaceRoles(subjectId, realm));
@@ -254,7 +254,7 @@ public class UserService {
         String source = ue.getRealm();
 
         User u = new User(subjectId, ue.getRealm());
-        u.setUsername(u.getUsername());
+        u.setUsername(ue.getUsername());
 
         // fetch attributes
         u.setExpirationDate(ue.getExpirationDate());

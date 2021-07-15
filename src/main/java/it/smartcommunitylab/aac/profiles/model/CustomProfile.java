@@ -8,8 +8,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(Include.NON_EMPTY)
 public class CustomProfile extends AbstractProfile {
 
     @JsonIgnore
@@ -31,7 +34,7 @@ public class CustomProfile extends AbstractProfile {
     }
 
     @Override
-    public String getProfileId() {
+    public String getIdentifier() {
         return identifier;
     }
 

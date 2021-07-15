@@ -6,10 +6,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.profiles.model.ProfileClaimsSet;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
+import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
+import it.smartcommunitylab.aac.profiles.extractor.AttributeSetProfileExtractor;
+import it.smartcommunitylab.aac.profiles.extractor.UserProfileExtractor;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
@@ -30,10 +42,6 @@ public class ProfileScopeProvider implements ScopeProvider {
         Set<Scope> s = new HashSet<>();
         s.add(new BasicProfileScope());
         s.add(new AccountProfileScope());
-        s.add(new OpenIdEmailScope());
-        s.add(new OpenIdDefaultScope());
-        s.add(new OpenIdAddressScope());
-        s.add(new OpenIdPhoneScope());
 
         scopes = Collections.unmodifiableSet(s);
         resource.setScopes(scopes);
@@ -46,6 +54,24 @@ public class ProfileScopeProvider implements ScopeProvider {
         approvers = a;
     }
 
+    private final AttributeService attributeService;
+
+    // loading cache for set profile approvers
+    private final LoadingCache<String, WhitelistScopeApprover> setApprovers = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(new CacheLoader<String, WhitelistScopeApprover>() {
+                @Override
+                public WhitelistScopeApprover load(final String scope) throws Exception {
+                    return new WhitelistScopeApprover(null, resource.getResourceId(), scope);
+                }
+            });
+
+    public ProfileScopeProvider(AttributeService attributeService) {
+        Assert.notNull(attributeService, "attribute service is required");
+        this.attributeService = attributeService;
+    }
+
     @Override
     public String getResourceId() {
         return ProfileClaimsSet.RESOURCE_ID;
@@ -53,17 +79,47 @@ public class ProfileScopeProvider implements ScopeProvider {
 
     @Override
     public Resource getResource() {
+        resource.setScopes(getScopes());
         return resource;
     }
 
     @Override
     public Collection<Scope> getScopes() {
-        return scopes;
+        Set<Scope> res = new HashSet<>();
+        res.addAll(scopes);
+
+        attributeService.listAttributeSets().stream().forEach(a -> {
+            res.add(new CustomProfileScope(a.getIdentifier()));
+        });
+
+        return res;
     }
 
     @Override
     public ScopeApprover getApprover(String scope) {
-        return approvers.get(scope);
+        if (approvers.containsKey(scope)) {
+            return approvers.get(scope);
+        }
+
+        // check if scope is a set id
+        String id = extractId(scope);
+        AttributeSetEntity set = attributeService.findAttributeSet(id);
+        if (set != null) {
+            try {
+                return setApprovers.get(scope);
+            } catch (ExecutionException e) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private String extractId(String scope) {
+        if (scope.startsWith("profile.") && scope.endsWith(".me")) {
+            return scope.substring(8, scope.length() - 3);
+        }
+        return scope;
     }
 
 }

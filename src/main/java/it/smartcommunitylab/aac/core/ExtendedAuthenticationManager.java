@@ -329,13 +329,15 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         if (subjectId == null) {
             // account linking via attributes
             Map<String, String> attributes = resolver.getLinkingAttributes(principal);
-            Collection<IdentityProvider> idps = providerManager.fetchIdentityProviders(realm);
-            // first result is ok
-            for (IdentityProvider i : idps) {
-                Subject ss = i.getSubjectResolver().resolveByLinkingAttributes(attributes);
-                if (ss != null) {
-                    subjectId = ss.getSubjectId();
-                    break;
+            if (attributes != null && !attributes.isEmpty()) {
+                Collection<IdentityProvider> idps = providerManager.fetchIdentityProviders(realm);
+                // first result is ok
+                for (IdentityProvider i : idps) {
+                    Subject ss = i.getSubjectResolver().resolveByLinkingAttributes(attributes);
+                    if (ss != null) {
+                        subjectId = ss.getSubjectId();
+                        break;
+                    }
                 }
             }
         }
@@ -403,10 +405,12 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                 throw new AuthenticationServiceException("error processing request");
             }
 
-            // transform attributes
-            // could be a no-op, we expect attributes mapped to the shared schema
-            Collection<UserAttributes> attributeSets = idp.getAttributeProvider()
-                    .convertAttributes(identity.getAttributes());
+            // TODO attribute providers outside idp
+//            // fetch attributes
+//            // could be a no-op, we expect attributes mapped to the shared schema
+//            Collection<UserAttributes> attributeSets = idp.getAttributeProvider()
+//                    .convertAttributes(identity.getAttributes());
+            Collection<UserAttributes> attributeSets = Collections.emptyList();
 
             /*
              * Build complete subject
