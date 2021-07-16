@@ -17,9 +17,20 @@
         <legend class="mb-4">Providers</legend>
         <div class="">
             <label class="active">Identity providers</label>
-            <div class="form-check form-check-group"  ng-repeat="idp in identityProviders" ng-click="idp.value = !idp.value">
+            <div class="form-check form-check-group {{idp.registered ? '' : 'text-muted'}}"  ng-repeat="idp in identityProviders" ng-click="idp.value = !idp.value">
                   <input class="form-check-input" type="checkbox" ng-model="idp.value">
-                  <label><strong>{{idp.name}}</strong></label>                
+                  <label>
+                      <strong class="{{idp.registered ? '' : 'text-muted'}}">{{idp.name}}</strong>
+                      <svg ng-if="idp.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                        <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                      </svg>
+                      <svg ng-if="idp.enabled && !idp.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
+                        <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
+                      </svg>
+                      <svg ng-if="!idp.enabled && !idp.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
+                        <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                      </svg>                  
+                  </label>                
                   <small class="form-text"><span class="text-monospace">{{idp.authority}}</span> <br> {{idp.description}}</small>
             </div>
          </div>

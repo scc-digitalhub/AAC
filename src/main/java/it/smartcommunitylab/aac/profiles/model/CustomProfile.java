@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -18,7 +19,9 @@ public class CustomProfile extends AbstractProfile {
     @JsonIgnore
     private final String identifier;
 
-    @JsonUnwrapped
+    // attributes map should be kept internal, anyGetter will ensure values are
+    // extracted one by one. jsonUnwrapped does not work for convertValue
+    @JsonIgnore
     private final Map<String, Serializable> attributes;
 
     public CustomProfile(String id) {
@@ -38,6 +41,7 @@ public class CustomProfile extends AbstractProfile {
         return identifier;
     }
 
+    @JsonAnyGetter
     public Map<String, Serializable> getAttributes() {
         return attributes;
     }

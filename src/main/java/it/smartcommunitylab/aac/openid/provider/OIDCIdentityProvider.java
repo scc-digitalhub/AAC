@@ -22,9 +22,11 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
+import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.attributes.mapper.DefaultAttributesMapper;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
@@ -72,6 +74,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     // attributes
     private final OpenIdAttributesMapper openidMapper;
     private ScriptExecutionService executionService;
+    private AttributeManager attributeService;
 
     public OIDCIdentityProvider(
             String providerId, String providerName,
@@ -106,6 +109,11 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
+    }
+
+    // TODO remove and move to attributeProvider
+    public void setAttributeService(AttributeManager attributeManager) {
+        this.attributeService = attributeManager;
     }
 
     @Override
@@ -318,7 +326,19 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
             }
             attributes.add(idpset);
 
-            // TODO build additional user-defined attribute sets via mappers
+            // build additional user-defined attribute sets via mappers
+            if (attributeService != null) {
+                Collection<AttributeSet> sets = attributeService.listAttributeSets(getRealm());
+                for (AttributeSet as : sets) {
+                    DefaultAttributesMapper amap = new DefaultAttributesMapper(as);
+                    AttributeSet set = amap.mapAttributes(principalAttributes);
+                    if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
+                        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                                set));
+                    }
+                }
+
+            }
 
         }
 
