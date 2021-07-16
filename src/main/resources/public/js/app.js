@@ -168,13 +168,13 @@ app.factory('accessDeniedInterceptor', function ($q, $location) {
         },
         response: function (response) {
             if (response.data.code == 401) {
-                $location = "./logout";
+                window.location.href = "./logout";
             }
             return response || $q.when(response);
         },
         responseError: function (error) {
             if (error.status == 401) {
-                $location = "./logout";
+                window.location.href = "./logout";
             }
             return $q.reject(error);
         }

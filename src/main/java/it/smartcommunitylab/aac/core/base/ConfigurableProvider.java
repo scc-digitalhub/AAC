@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -23,6 +24,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @ConstructorBinding
 public class ConfigurableProvider implements ConfigurableProperties {
 

@@ -72,9 +72,18 @@ angular.module('aac.controllers.realmproviders', [])
         $scope.load = function () {
             RealmProviders.getIdentityProviders(slug)
                 .then(function (data) {
+                    return data.map(idp => {
+                        return {
+                            ...idp,
+                            'icon': iconProvider(idp)
+                        };
+                    });
+                })
+                .then(function (data) {
                     $scope.providers = data;
                     return data;
                 })
+
                 .catch(function (err) {
                     Utils.showError('Failed to load realm providers: ' + err.data.message);
                 });
@@ -250,25 +259,28 @@ angular.module('aac.controllers.realmproviders', [])
         //
         //        }
 
-        $scope.toggleProviderState = function (provider) {
-
-            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
-                .then(function (res) {
-                    provider.enabled = res.enabled;
-                    provider.registered = res.registered;
-                    Utils.showSuccess();
-                })
-                .catch(function (err) {
-                    Utils.showError(err.data.message);
-                });
-
-        }
+//        $scope.toggleProviderState = function (provider) {  
+//            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
+//                .then(function (res) {
+//                    provider.enabled = res.enabled;
+//                    provider.registered = res.registered;
+//                    Utils.showSuccess();
+//                })
+//                .catch(function (err) {
+//                    Utils.showError(err.data.message);
+//                });
+//
+//        }
 
         $scope.toggleProviderState = function (provider, state) {
+            var data = {
+               'authority': provider.authority,
+               'realm': provider.realm,
+               'provider': provider.provider,
+               'enabled': state               
+            }
 
-            provider.enabled = state;
-
-            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
+            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, data)
                 .then(function (res) {
                     provider.enabled = res.enabled;
                     provider.registered = res.registered;
@@ -323,6 +335,22 @@ angular.module('aac.controllers.realmproviders', [])
                         Utils.showError(err.data.message);
                     });
             }
+        }
+
+        var iconProvider = function (idp) {
+            var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
+            var logo = null;
+            if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
+                if (icons.includes(idp.configuration.clientName.toLowerCase())) {
+                    logo = idp.configuration.clientName.toLowerCase();
+                } else if (icons.includes(idp.name.toLowerCase())) {
+                    logo = idp.name.toLowerCase();
+                }
+            }
+            if (logo) {
+                return './svg/sprite.svg#logo-' + logo;
+            }
+            return './italia/svg/sprite.svg#it-unlocked';
         }
 
         init();
@@ -430,6 +458,7 @@ angular.module('aac.controllers.realmproviders', [])
         $scope.load = function (data) {
             $scope.providerName = data.name != '' ? data.name : data.provider;
             $scope.idp = data;
+            $scope.providerIcon = iconProvider(data);
 
             initConfiguration(data.authority, data.configuration);
 
@@ -551,6 +580,22 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.attributeMapping = attributeMapping;
 
+        }
+
+        var iconProvider = function (idp) {
+            var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
+            var logo = null;
+            if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
+                if (icons.includes(idp.configuration.clientName.toLowerCase())) {
+                    logo = idp.configuration.clientName.toLowerCase();
+                } else if (icons.includes(idp.name.toLowerCase())) {
+                    logo = idp.name.toLowerCase();
+                }
+            }
+            if (logo) {
+                return './svg/sprite.svg#logo-' + logo;
+            }
+            return './italia/svg/sprite.svg#it-unlocked';
         }
 
         init();

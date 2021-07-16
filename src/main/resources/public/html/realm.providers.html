@@ -39,19 +39,31 @@
   <div ng-if="providers && providers.length > 0">
     <table class="table table-hover border-bottom">
       <tr ng-repeat="item in providers">
+
         <td class="align-middle {{item.registered ? '' : 'text-muted'}}">
-          <span class="h6">{{item.name}}</span>
-          <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
-            <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
-          </svg>
-          <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
-            <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
-          </svg>
-          <svg ng-if="!item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
-            <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
-          </svg>
-          <br><small class=""> {{item.authority }}:{{item.provider}}</small>
-          <p>{{item.description}}</p>
+
+          <div class="avatar-wrapper avatar-extra-text">
+            <div class="avatar size-lg">
+              <svg aria-hidden="true" class="icon icon-secondary">
+                <use xlink:href="{{item.icon}}"></use>
+              </svg>                         
+            </div>
+            <div class="extra-text">
+              <span class="h6">{{item.name}}</span>
+              <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+              </svg>
+              <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
+                <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
+              </svg>
+              <svg ng-if="!item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
+                <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+              </svg>
+              <br><small class=""> {{item.authority }}:{{item.provider}}</small>
+              <p>{{item.description}}</p>
+          </div>
+
+
         </td>
         <td class="align-middle">
           <div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}-registered" type="checkbox"

@@ -1,21 +1,32 @@
 <div class="pb-3 pt-3">
-    <div class="row mb-3">
+    <div class="row">
         <div class="col col-md-6 p-3">
             <h6><a ui-sref="realm.providers({realmId:idp.realm})">Identity providers
                     &raquo;</a></h6>
-            <h3>{{providerName}}</h3>
-            <p class="text-monospace">{{idp.authority }}:{{idp.provider}}</p>
         </div>
         <div class="col col-md-6 text-right">
             <button ng-if="!idp.enabled" class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(idp)">
                 Enable
             </button>
             <button ng-if="idp.enabled" class="btn btn-warning btn-sm  text-right" ng-click="toggleProviderState(idp)">
-                Disable 
+                Disable
             </button>
-            <button class="btn btn-primary btn-sm  text-right" ng-click="saveProvider(idp)" ng-disabled="idp.enabled">Save</button>
+            <button class="btn btn-primary btn-sm  text-right" ng-click="saveProvider(idp)"
+                ng-disabled="idp.enabled">Save</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="exportProvider(idp)">Export</button>
-            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteProviderDlg(idp)" ng-disabled="idp.enabled">Delete</button>
+            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteProviderDlg(idp)"
+                ng-disabled="idp.enabled">Delete</button>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-xs-1 p-2">
+            <svg class="icon icon-xl icon-primary left" aria-hidden="true">
+                <use xlink:href="{{providerIcon}}"></use>
+            </svg>
+        </div>
+        <div class="col">
+            <h3>{{providerName}}</h3>
+            <p class="text-monospace">{{idp.authority }}:{{idp.provider}}</p>
         </div>
     </div>
 </div>

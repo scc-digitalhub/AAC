@@ -181,11 +181,12 @@ public class LoginController {
             String key = a.name.trim()
                     .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
             a.cssClass = "provider-" + key;
-            a.icon = "key";
+            a.icon = "it-key";
 
             if (ArrayUtils.contains(icons, key)) {
-                a.icon = key;
+                a.icon = "logo-" + key;
             }
+            a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
 
             if (SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority())) {
                 internal = a;
@@ -234,7 +235,7 @@ public class LoginController {
     }
 
     private String[] icons = {
-            "twitter", "facebook", "github"
+            "google", "facebook", "github", "microsoft", "apple", "instagram"
     };
 
     private class LoginAuthorityBean implements Comparable {
@@ -245,6 +246,7 @@ public class LoginController {
         public String registrationUrl;
         public String resetUrl;
         public String icon;
+        public String iconUrl;
         public String name;
         public String cssClass;
 
