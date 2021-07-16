@@ -6,7 +6,6 @@ import org.springframework.util.StringUtils;
 public class CustomProfileScope extends AbstractProfileScope {
 
     private final String identifier;
-    private String scope;
 
     public CustomProfileScope(String identifier) {
         Assert.hasText(identifier, "identifier can not be null");

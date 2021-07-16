@@ -102,6 +102,8 @@ public class ProfileClaimsSet implements ClaimsSet {
         Map<String, Serializable> map = profile.toMap();
         for (Map.Entry<String, Serializable> e : map.entrySet()) {
             SerializableClaim sc = new SerializableClaim(e.getKey(), e.getValue());
+            // key is namespace
+            sc.setNamespace(getKey());
             claims.add(sc);
         }
 

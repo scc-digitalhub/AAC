@@ -34,7 +34,7 @@ import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 @Component
 public class ProfileScopeProvider implements ScopeProvider {
 
-    private static final ProfileResource resource = new ProfileResource();
+    private final ProfileResource resource = new ProfileResource();
     public static final Set<Scope> scopes;
     public static final Map<String, WhitelistScopeApprover> approvers;
 
@@ -44,7 +44,6 @@ public class ProfileScopeProvider implements ScopeProvider {
         s.add(new AccountProfileScope());
 
         scopes = Collections.unmodifiableSet(s);
-        resource.setScopes(scopes);
 
         Map<String, WhitelistScopeApprover> a = new HashMap<>();
         for (Scope sc : scopes) {

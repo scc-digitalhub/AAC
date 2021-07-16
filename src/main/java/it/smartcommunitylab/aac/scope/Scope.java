@@ -76,7 +76,7 @@ public class Scope {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((scope == null) ? 0 : scope.hashCode());
+        result = prime * result + ((getScope() == null) ? 0 : getScope().hashCode());
         return result;
     }
 
@@ -89,10 +89,10 @@ public class Scope {
         if (getClass() != obj.getClass())
             return false;
         Scope other = (Scope) obj;
-        if (scope == null) {
-            if (other.scope != null)
+        if (getScope() == null) {
+            if (other.getScope() != null)
                 return false;
-        } else if (!scope.equals(other.scope))
+        } else if (!getScope().equals(other.getScope()))
             return false;
         return true;
     }

@@ -215,9 +215,17 @@ angular.module('aac.controllers.realmapps', [])
                     return RealmProviders.getIdentityProviders(slug)
                 })
                 .then(function (providers) {
-                    $scope.identityProviders = providers.filter(p => p.type === 'identity');
-                    return $scope.identityProviders;
+                    return providers.filter(p => p.type === 'identity');
                 })
+                .then(function (providers) {
+                    var activeProviders = providers.filter(p => p.registered);
+                    var inactiveProviders = providers.filter(p => !p.registered);
+                    return activeProviders.concat(inactiveProviders);
+                })    
+                .then(function (providers) {     
+                   $scope.identityProviders = providers;
+                   return providers;   
+                })   
                 .then(function () {
                     return RealmAppsData.getClientApp(slug, clientId);
                 })
@@ -612,6 +620,7 @@ angular.module('aac.controllers.realmapps', [])
 
             RealmAppsData.testOAuth2ClientApp($scope.realm.slug, $scope.app.clientId, grantType).then(function (token) {
                 $scope.oauth2Tokens[grantType].token = token.access_token;
+                $scope.oauth2Tokens[grantType].decoded = null;
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });
@@ -886,6 +895,7 @@ angular.module('aac.controllers.realmapps', [])
 
             RealmAppsData.testOAuth2ClientApp($scope.realm.slug, $scope.app.clientId, grantType).then(function (token) {
                 $scope.oauth2Tokens[grantType].token = token.access_token;
+                oauth2Tokens
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });
