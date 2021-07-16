@@ -298,6 +298,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/jwk").permitAll()
                 // whitelist assets
                 // TODO change path to /assets (and build)
+                .antMatchers("/svg/**").permitAll()
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
