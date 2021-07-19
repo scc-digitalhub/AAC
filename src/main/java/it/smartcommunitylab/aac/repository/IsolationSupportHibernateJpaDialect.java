@@ -61,7 +61,7 @@ public class IsolationSupportHibernateJpaDialect extends HibernateJpaDialect {
         try {
             super.cleanupTransaction(transactionData);
             DataSourceUtils.resetConnectionAfterTransaction(
-                    connectionThreadLocal.get(), originalIsolation.get(), false);
+                    connectionThreadLocal.get(), originalIsolation.get(), true);
         } finally {
             connectionThreadLocal.remove();
             originalIsolation.remove();
