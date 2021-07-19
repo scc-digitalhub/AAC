@@ -24,7 +24,6 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipa
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
 
 public class InternalSubjectResolver extends AbstractProvider
         implements SubjectResolver {

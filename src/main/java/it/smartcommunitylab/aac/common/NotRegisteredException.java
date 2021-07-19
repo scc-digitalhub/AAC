@@ -16,16 +16,18 @@
 
 package it.smartcommunitylab.aac.common;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /**
  * @author raman
  *
  */
 public class NotRegisteredException extends RegistrationException {
-	private static final long serialVersionUID = 3481701175901182216L;
 
-	public NotRegisteredException() {
-		super(NotRegisteredException.class.getSimpleName());
-	}
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
-	
+    public NotRegisteredException() {
+        super(NotRegisteredException.class.getSimpleName());
+    }
+
 }

@@ -14,7 +14,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
  */
 public class InternalAttributeProvider extends AbstractProvider {
 
-    private final InternalUserAccountService userAccountService;
+//    private final InternalUserAccountService userAccountService;
 //    private final AttributeService attributeService;
 
     public InternalAttributeProvider(String providerId, InternalUserAccountService userAccountService,
@@ -25,7 +25,7 @@ public class InternalAttributeProvider extends AbstractProvider {
         Assert.notNull(userAccountService, "userAccountService is mandatory");
 //        Assert.notNull(attributeService, "attribute service is mandatory");
 
-        this.userAccountService = userAccountService;
+//        this.userAccountService = userAccountService;
 //        this.attributeService = attributeService;
     }
 

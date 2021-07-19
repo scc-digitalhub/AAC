@@ -10,6 +10,8 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
  */
 public abstract class AbstractAttributes extends AbstractBaseResource implements UserAttributes {
 
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
     protected AbstractAttributes(String authority, String provider, String realm) {
         super(authority, provider, realm);
     }

@@ -3,7 +3,11 @@ package it.smartcommunitylab.aac.core.base;
 import java.util.Map;
 import java.util.Set;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public abstract class BaseClient extends AbstractClient {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private String name;
 

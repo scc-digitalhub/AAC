@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.controller;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.text.DateFormat.Field;
-import java.time.Instant;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -42,7 +40,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,7 +52,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiAttributesScope;
 import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
 import it.smartcommunitylab.aac.audit.AuditManager;
@@ -81,7 +77,6 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
@@ -137,7 +132,7 @@ public class DevController {
     @Autowired
     private OAuth2MetadataEndpoint oauth2MetadataEndpoint;
 
-    @RequestMapping("/dev")
+    @GetMapping("/dev")
     public ModelAndView developer() {
         UserDetails user = userManager.curUserDetails();
         if (user == null || !user.isRealmDeveloper()) {
@@ -730,7 +725,7 @@ public class DevController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchClientException, NoSuchRealmException {
 
-        ClientCredentials credentials = clientManager.resetClientCredentials(realm, clientId);
+        clientManager.resetClientCredentials(realm, clientId);
 
         // re-read app
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);

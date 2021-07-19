@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.common;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class SystemException extends RuntimeException {
 
-    private static final long serialVersionUID = -8261503971129471437L;
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public SystemException() {
         super();

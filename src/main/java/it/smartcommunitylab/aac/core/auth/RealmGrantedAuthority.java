@@ -3,9 +3,11 @@ package it.smartcommunitylab.aac.core.auth;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class RealmGrantedAuthority implements GrantedAuthority {
 
-    private static final long serialVersionUID = -2199514268126633626L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String realm;
     private final String role;

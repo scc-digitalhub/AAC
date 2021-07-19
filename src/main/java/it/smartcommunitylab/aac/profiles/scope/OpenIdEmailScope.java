@@ -1,9 +1,6 @@
 package it.smartcommunitylab.aac.profiles.scope;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
-import it.smartcommunitylab.aac.scope.Scope;
 
 public class OpenIdEmailScope extends AbstractProfileScope {
 

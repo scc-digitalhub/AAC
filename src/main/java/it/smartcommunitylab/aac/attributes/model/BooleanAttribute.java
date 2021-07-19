@@ -3,9 +3,12 @@ package it.smartcommunitylab.aac.attributes.model;
 import java.io.Serializable;
 import java.text.ParseException;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 public class BooleanAttribute extends AbstractAttribute {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private Boolean value;
 

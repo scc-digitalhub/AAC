@@ -86,6 +86,7 @@ public class HttpSessionSaml2AuthenticationRequestRepository
         return relayState;
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Saml2AuthenticationRequestContext> getAuthenticationRequests(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 

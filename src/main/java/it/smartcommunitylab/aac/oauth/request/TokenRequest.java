@@ -12,7 +12,11 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class TokenRequest extends org.springframework.security.oauth2.provider.TokenRequest {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     /*
      * Audience indicates consumers of this token, i.e. resource servers

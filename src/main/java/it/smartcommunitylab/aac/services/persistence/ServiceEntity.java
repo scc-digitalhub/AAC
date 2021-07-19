@@ -27,7 +27,6 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
-import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 /**
  * @author raman

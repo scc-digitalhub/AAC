@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.attributes.model;
 
 import java.io.Serializable;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 /*
@@ -11,6 +12,8 @@ import it.smartcommunitylab.aac.model.AttributeType;
  * Changing the type will render this attribute opaque for service.
  */
 public class SerializableAttribute extends AbstractAttribute {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private AttributeType type;
 

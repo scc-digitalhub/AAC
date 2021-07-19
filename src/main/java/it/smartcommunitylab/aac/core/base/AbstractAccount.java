@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.core.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 /*
  * Abstract class for user accounts
@@ -11,6 +10,8 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
  */
 
 public abstract class AbstractAccount extends AbstractBaseResource implements UserAccount {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected AbstractAccount(String authority, String provider, String realm) {
         super(authority, provider, realm);

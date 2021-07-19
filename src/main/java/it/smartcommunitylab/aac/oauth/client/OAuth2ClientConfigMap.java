@@ -19,20 +19,19 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.nimbusds.jose.jwk.JWKSet;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
-import it.smartcommunitylab.aac.jwt.JWTConfig;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
-import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
-import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
-import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OAuth2ClientConfigMap implements ConfigurableProperties {
+public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {

@@ -69,8 +69,8 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
     // object mapper
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
-    };
+//    private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
+//    };
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 

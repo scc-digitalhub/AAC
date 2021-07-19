@@ -16,20 +16,21 @@
 
 package it.smartcommunitylab.aac.oauth.flow;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /**
  * @author raman
  *
  */
 public class FlowExecutionException extends RuntimeException {
 
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
-	private static final long serialVersionUID = -3503766183106053795L;
-
-	/**
-	 * @param string
-	 */
-	public FlowExecutionException(String string) {
-		super(string);
-	}
+    /**
+     * @param string
+     */
+    public FlowExecutionException(String string) {
+        super(string);
+    }
 
 }

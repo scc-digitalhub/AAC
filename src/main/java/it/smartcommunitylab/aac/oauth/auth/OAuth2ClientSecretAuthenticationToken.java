@@ -2,15 +2,16 @@ package it.smartcommunitylab.aac.oauth.auth;
 
 import java.util.Collection;
 
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.util.Assert;
+import it.smartcommunitylab.aac.SystemKeys;
 
 /*
  * A usernamePassword auth token to be used for clientId+secret auth
  */
 
 public class OAuth2ClientSecretAuthenticationToken extends OAuth2ClientAuthenticationToken {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private String credentials;
 

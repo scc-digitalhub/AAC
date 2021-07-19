@@ -16,20 +16,10 @@
 
 package it.smartcommunitylab.aac.utils;
 
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 
 /**
  * Common methods and functions

@@ -6,7 +6,11 @@ import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class Subject implements AuthenticatedPrincipal, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private final String subjectId;
     private final String name;

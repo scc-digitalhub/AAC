@@ -17,14 +17,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 @Entity
 @Table(name = "saml_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "provider_id", "user_id" }))
 @EntityListeners(AuditingEntityListener.class)
 public class SamlUserAccount implements UserAccount {
 
-    private static final long serialVersionUID = -1089336824606818125L;
+    private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     @Id
     @GeneratedValue
@@ -183,19 +182,6 @@ public class SamlUserAccount implements UserAccount {
         this.username = username;
     }
 
-//    @Override
-    public AccountProfile toProfile() {
-        SAMLAccountProfile profile = new SAMLAccountProfile();
-        profile.setAuthority(getAuthority());
-        profile.setProvider(getProvider());
-        profile.setRealm(getRealm());
-        profile.setUsername(getUsername());
-        profile.setUserId(getUserId());
-
-        profile.setIssuer(getIssuer());
-        return profile;
-    }
-
     @Override
     public String toString() {
         return "SamlUserAccount [id=" + id + ", subject=" + subject + ", provider=" + provider + ", realm=" + realm
@@ -204,17 +190,4 @@ public class SamlUserAccount implements UserAccount {
                 + "]";
     }
 
-    public class SAMLAccountProfile extends AccountProfile {
-
-        private String issuer;
-
-        public String getIssuer() {
-            return issuer;
-        }
-
-        public void setIssuer(String issuer) {
-            this.issuer = issuer;
-        }
-
-    }
 }

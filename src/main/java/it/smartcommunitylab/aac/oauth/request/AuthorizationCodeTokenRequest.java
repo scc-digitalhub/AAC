@@ -10,9 +10,12 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 
 public class AuthorizationCodeTokenRequest extends TokenRequest {
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
+
     private final static String GRANT_TYPE = AuthorizationGrantType.AUTHORIZATION_CODE.getValue();
 
     private String code;

@@ -4,9 +4,11 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class ProviderWrappedAuthenticationToken extends WrappedAuthenticationToken {
 
-    private static final long serialVersionUID = -1302725087208017064L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String authority;
     private final String provider;

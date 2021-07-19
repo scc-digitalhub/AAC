@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -85,10 +85,10 @@ public class OAuth2ClientAppService implements ClientAppService {
         String description = app.getDescription();
 
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
 
         if (app.getConfiguration() == null) {
@@ -152,10 +152,10 @@ public class OAuth2ClientAppService implements ClientAppService {
         String description = app.getDescription();
 
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
 
         // unpack

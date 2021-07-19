@@ -1,29 +1,21 @@
 package it.smartcommunitylab.aac.internal.model;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.CredentialsContainer;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.BaseIdentity;
-import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
-import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 
 public class InternalUserIdentity extends BaseIdentity implements CredentialsContainer {
 
-    // TODO use a global version as serial uid
-    private static final long serialVersionUID = -2050916229494701678L;
+    // use a global version as serial uid
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final UserAuthenticatedPrincipal principal;
 
@@ -35,7 +27,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
 
     // we keep attributes in flat map
     // TODO evaluate drop, we shouldn't have extra attributes
-    private Map<String, String> attributesMap;
+//    private Map<String, String> attributesMap;
 
     private Map<String, UserAttributes> attributes;
 
@@ -159,24 +151,24 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     /*
      * Helpers
      */
-    private static AbstractMap.SimpleEntry<String, String> createAttribute(String key, String value) {
-        String k = buildAttributeKey(key);
-        return new AbstractMap.SimpleEntry<>(k, value);
-
-    }
-
-    private static String buildAttributeKey(String key) {
-        String k = key;
-        if (StringUtils.hasText(k)) {
-            if (!k.startsWith(ATTRIBUTE_PREFIX)) {
-                k = ATTRIBUTE_PREFIX + key;
-            }
-        }
-
-        return k;
-    }
-
-    private static final String ATTRIBUTE_PREFIX = SystemKeys.AUTHORITY_INTERNAL + ".";
+//    private static AbstractMap.SimpleEntry<String, String> createAttribute(String key, String value) {
+//        String k = buildAttributeKey(key);
+//        return new AbstractMap.SimpleEntry<>(k, value);
+//
+//    }
+//
+//    private static String buildAttributeKey(String key) {
+//        String k = key;
+//        if (StringUtils.hasText(k)) {
+//            if (!k.startsWith(ATTRIBUTE_PREFIX)) {
+//                k = ATTRIBUTE_PREFIX + key;
+//            }
+//        }
+//
+//        return k;
+//    }
+//
+//    private static final String ATTRIBUTE_PREFIX = SystemKeys.AUTHORITY_INTERNAL + ".";
 
 //    @Override
     public BasicProfile toBasicProfile() {
@@ -190,16 +182,16 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     }
 
 //    @Override
-    public OpenIdProfile toOpenIdProfile() {
-        OpenIdProfile profile = new OpenIdProfile();
-        profile.setUsername(account.getUsername());
-        profile.setName(account.getName());
-        profile.setGivenName(account.getName());
-        profile.setFamilyName(account.getSurname());
-        profile.setEmail(account.getEmail());
-
-        return profile;
-    }
+//    public OpenIdProfile toOpenIdProfile() {
+//        OpenIdProfile profile = new OpenIdProfile();
+//        profile.setUsername(account.getUsername());
+//        profile.setName(account.getName());
+//        profile.setGivenName(account.getName());
+//        profile.setFamilyName(account.getSurname());
+//        profile.setEmail(account.getEmail());
+//
+//        return profile;
+//    }
 
     @Override
     public void eraseCredentials() {

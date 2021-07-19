@@ -9,9 +9,11 @@ import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class OIDCAuthenticationToken extends AbstractAuthenticationToken {
 
-    private static final long serialVersionUID = -4725560007454227437L;
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private OAuth2User principal;
 

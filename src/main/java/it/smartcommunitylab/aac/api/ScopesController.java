@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 
 @RestController
-@RequestMapping("api/")
+@RequestMapping("api")
 public class ScopesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -31,26 +31,26 @@ public class ScopesController {
     // TODO evaluate restrict api to {realm} context, enforcing namespace
     // how do we handle permissions??
 
-    @GetMapping("scope")
+    @GetMapping("/scope")
     public Collection<Scope> listScopes() {
         logger.debug("list scopes");
         return scopeManager.listScopes();
     }
 
-    @GetMapping("scope/{scope}")
+    @GetMapping("/scope/{scope}")
     public Scope getScope(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) throws NoSuchScopeException {
         logger.debug("get scope " + String.valueOf(scope));
         return scopeManager.getScope(scope);
     }
 
-    @GetMapping("resources")
+    @GetMapping("/resources")
     public Collection<Resource> listResources() {
         logger.debug("list resources");
         return scopeManager.listResources();
     }
 
-    @GetMapping("resources/{resourceId}")
+    @GetMapping("/resources/{resourceId}")
     public Resource listResources(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
             throws NoSuchResourceException {

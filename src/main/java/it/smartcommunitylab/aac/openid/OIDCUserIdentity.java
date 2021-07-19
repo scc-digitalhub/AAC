@@ -1,28 +1,14 @@
 package it.smartcommunitylab.aac.openid;
 
 import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.base.BaseIdentity;
 import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 
 public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializable {
 
-    private static final long serialVersionUID = 2760694301395978161L;
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private String username;
     private OIDCAuthenticatedPrincipal principal;
@@ -36,6 +22,7 @@ public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializabl
         super(SystemKeys.AUTHORITY_OIDC, provider, realm, principal);
         attributes = Collections.emptySet();
         this.principal = principal;
+        this.username = principal.getName();
     }
 
     @Override

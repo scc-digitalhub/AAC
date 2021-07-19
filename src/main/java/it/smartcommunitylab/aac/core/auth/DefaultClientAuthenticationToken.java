@@ -4,9 +4,12 @@ import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ClientDetails;
 
 public abstract class DefaultClientAuthenticationToken extends ClientAuthentication {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // client details
     protected ClientDetails details;

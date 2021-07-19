@@ -99,8 +99,8 @@ public class APIMProviderService {
             // create
             client = clientService.addClient(realm, clientName);
 
-            // fetch clientSecret, if generated
-            clientSecret = client.getSecret();
+//            // fetch clientSecret, if generated
+//            clientSecret = client.getSecret();
 
         }
 

@@ -1,16 +1,14 @@
 package it.smartcommunitylab.aac.core.auth;
 
-import java.util.Collection;
-
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class RealmWrappedAuthenticationToken extends WrappedAuthenticationToken {
 
-    private static final long serialVersionUID = -1302725087208017064L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String authority;
     private final String realm;

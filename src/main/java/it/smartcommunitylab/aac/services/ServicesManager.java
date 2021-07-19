@@ -15,7 +15,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -159,15 +159,15 @@ public class ServicesManager implements InitializingBean {
         // fetch realm
         Realm re = realmService.getRealm(realm);
         String serviceId = service.getServiceId();
-        String namespace = Jsoup.clean(service.getNamespace().toLowerCase(), Whitelist.none());
+        String namespace = Jsoup.clean(service.getNamespace().toLowerCase(), Safelist.none());
         String name = service.getName();
         String description = service.getDescription();
 
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
         if (!StringUtils.hasText(name)) {
             name = namespace;
@@ -256,10 +256,10 @@ public class ServicesManager implements InitializingBean {
         String description = service.getDescription();
 
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
         if (!StringUtils.hasText(name)) {
             name = namespace;
@@ -470,14 +470,14 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String scope = Jsoup.clean(sc.getScope().toLowerCase(), Whitelist.none());
+        String scope = Jsoup.clean(sc.getScope().toLowerCase(), Safelist.none());
         String name = sc.getName();
         String description = sc.getDescription();
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
         if (!StringUtils.hasText(name)) {
             name = scope;
@@ -553,10 +553,10 @@ public class ServicesManager implements InitializingBean {
         String name = sc.getName();
         String description = sc.getDescription();
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
         if (!StringUtils.hasText(name)) {
             name = scope;
@@ -711,14 +711,14 @@ public class ServicesManager implements InitializingBean {
         }
 
         // explode
-        String key = Jsoup.clean(claim.getKey(), Whitelist.none());
+        String key = Jsoup.clean(claim.getKey(), Safelist.none());
         String name = claim.getName();
         String description = claim.getDescription();
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
         if (!StringUtils.hasText(name)) {
             name = key;
@@ -758,10 +758,10 @@ public class ServicesManager implements InitializingBean {
         String name = claim.getName();
         String description = claim.getDescription();
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
         if (!StringUtils.hasText(name)) {
             name = key;

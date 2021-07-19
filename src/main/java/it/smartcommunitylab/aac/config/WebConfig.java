@@ -17,7 +17,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.SystemKeys;
  */
 @Configuration
 @Order(10)
-public class WebConfig extends WebMvcConfigurerAdapter {
+public class WebConfig implements WebMvcConfigurer {
 
     @Bean
     public CookieLocaleResolver getLocaleResolver() {
@@ -86,7 +86,6 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     /*
      * Yaml support (experimental)
      */
-
 
     @Autowired
     @Qualifier("yamlObjectMapper")

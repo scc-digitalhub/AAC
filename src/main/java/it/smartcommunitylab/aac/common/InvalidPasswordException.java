@@ -16,12 +16,15 @@
 
 package it.smartcommunitylab.aac.common;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /**
  * @author raman
  *
  */
 public class InvalidPasswordException extends RegistrationException {
-    private static final long serialVersionUID = 3481701175901182216L;
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public InvalidPasswordException() {
         super(InvalidPasswordException.class.getSimpleName());

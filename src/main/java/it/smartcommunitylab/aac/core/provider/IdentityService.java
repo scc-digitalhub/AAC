@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
-import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;

@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.common;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class NoSuchClientException extends Exception {
 
-    private static final long serialVersionUID = -7126728527383722454L;
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public NoSuchClientException() {
         super();

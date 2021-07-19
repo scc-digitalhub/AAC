@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
@@ -40,7 +40,7 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     // we do not expect this model to be serialized to disk
     // but this could be shared between nodes
-    private static final long serialVersionUID = 3605707677727615074L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // base attributes
     private final String subjectId;
@@ -444,7 +444,7 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     private static class AuthorityComparator implements Comparator<GrantedAuthority>,
             Serializable {
-        private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
+        private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
         public int compare(GrantedAuthority g1, GrantedAuthority g2) {
             // Neither should ever be null as each entry is checked before adding it to

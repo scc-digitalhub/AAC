@@ -275,24 +275,24 @@ public class APIMClientController {
         return un;
     }
 
-    private String getUserNameAtTenant(String username, String tenantName) {
-        return username + "@" + tenantName;
-    }
-
-    private String[] extractInfoFromTenant(String tenant) {
-        int index = tenant.indexOf('@');
-        int lastIndex = tenant.lastIndexOf('@');
-
-        if (index != lastIndex) {
-            String result[] = new String[2];
-            result[0] = tenant.substring(0, lastIndex);
-            result[1] = tenant.substring(lastIndex + 1, tenant.length());
-            return result;
-        } else if (tenant.endsWith("@carbon.super")) {
-            return tenant.split("@");
-        }
-        return new String[] { tenant, "carbon.super" };
-    }
+//    private String getUserNameAtTenant(String username, String tenantName) {
+//        return username + "@" + tenantName;
+//    }
+//
+//    private String[] extractInfoFromTenant(String tenant) {
+//        int index = tenant.indexOf('@');
+//        int lastIndex = tenant.lastIndexOf('@');
+//
+//        if (index != lastIndex) {
+//            String result[] = new String[2];
+//            result[0] = tenant.substring(0, lastIndex);
+//            result[1] = tenant.substring(lastIndex + 1, tenant.length());
+//            return result;
+//        } else if (tenant.endsWith("@carbon.super")) {
+//            return tenant.split("@");
+//        }
+//        return new String[] { tenant, "carbon.super" };
+//    }
 
     @ExceptionHandler(InvalidDefinitionException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

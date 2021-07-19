@@ -13,7 +13,6 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import it.smartcommunitylab.aac.audit.AuthenticationEventListener;
 import it.smartcommunitylab.aac.audit.AuthorizationEventListener;
 import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
-import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.audit.store.AutoJdbcAuditEventStore;
 import it.smartcommunitylab.aac.core.service.ProviderService;
 import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;

@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,7 +15,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -238,7 +235,7 @@ public class LoginController {
             "google", "facebook", "github", "microsoft", "apple", "instagram"
     };
 
-    private class LoginAuthorityBean implements Comparable {
+    private class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         public String provider;
         public String authority;
         public String realm;
@@ -251,12 +248,8 @@ public class LoginController {
         public String cssClass;
 
         @Override
-        public int compareTo(Object o) {
-            if (o instanceof LoginAuthorityBean) {
-                return name.compareTo(((LoginAuthorityBean) o).name);
-            } else {
-                return 0;
-            }
+        public int compareTo(LoginAuthorityBean o) {
+            return name.compareTo(((LoginAuthorityBean) o).name);
         }
 
     }

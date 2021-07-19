@@ -2,11 +2,13 @@ package it.smartcommunitylab.aac.openid.endpoint;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +18,6 @@ import org.springframework.security.oauth2.common.exceptions.InvalidClientExcept
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -33,6 +33,7 @@ import com.nimbusds.jwt.JWTParser;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
@@ -77,9 +78,10 @@ public class EndSessionEndpoint {
 
     @ApiOperation(value = "Logout with user confirmation")
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
-    public String endSession(@RequestParam(value = "id_token_hint", required = false) String idTokenHint,
-            @RequestParam(value = "post_logout_redirect_uri", required = false) String postLogoutRedirectUri,
-            @RequestParam(value = STATE_KEY, required = false) String state,
+    public String endSession(
+            @RequestParam(value = "id_token_hint", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String idTokenHint,
+            @RequestParam(value = "post_logout_redirect_uri", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String postLogoutRedirectUri,
+            @RequestParam(value = STATE_KEY, required = false) @Pattern(regexp = SystemKeys.SPECIAL_PATTERN) String state,
             HttpServletRequest request,
             HttpServletResponse response,
             HttpSession session,
@@ -220,6 +222,21 @@ public class EndSessionEndpoint {
 
         // let logoutSuccess process request
         logoutSuccessHandler.onLogoutSuccess(request, response, auth);
+
+    }
+
+    private String readParameter(Map<String, String> requestParameters, String key, String pattern)
+            throws IllegalArgumentException {
+        if (!requestParameters.containsKey(key)) {
+            return null;
+        }
+
+        String raw = requestParameters.get(key);
+        if (!raw.matches(pattern)) {
+            throw new IllegalArgumentException(key + " does not match pattern " + String.valueOf(pattern));
+        }
+
+        return raw.trim();
 
     }
 

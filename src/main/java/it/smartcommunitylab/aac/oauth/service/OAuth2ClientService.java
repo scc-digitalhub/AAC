@@ -342,7 +342,7 @@ public class OAuth2ClientService implements ClientService {
             applicationTypeValue = applicationType.getValue();
         } else {
             // default is web
-            applicationType = ApplicationType.WEB;
+            applicationTypeValue = ApplicationType.WEB.getValue();
         }
 
         String tokenTypeValue = null;
@@ -367,7 +367,7 @@ public class OAuth2ClientService implements ClientService {
         } else {
             // default is public
             // TODO switch to pairwise when supported
-            subjectType = SubjectType.PUBLIC;
+            subjectTypeValue = SubjectType.PUBLIC.getValue();
         }
 
         if (authenticationMethods != null) {
@@ -481,7 +481,7 @@ public class OAuth2ClientService implements ClientService {
             applicationTypeValue = applicationType.getValue();
         } else {
             // default is web
-            applicationType = ApplicationType.WEB;
+            applicationTypeValue = ApplicationType.WEB.getValue();
         }
 
         String tokenTypeValue = null;
@@ -506,7 +506,7 @@ public class OAuth2ClientService implements ClientService {
         } else {
             // default is public
             // TODO switch to pairwise when supported
-            subjectType = SubjectType.PUBLIC;
+            subjectTypeValue = SubjectType.PUBLIC.getValue();
         }
 
         boolean copyIdTokenClaims = idTokenClaims != null ? idTokenClaims.booleanValue() : false;

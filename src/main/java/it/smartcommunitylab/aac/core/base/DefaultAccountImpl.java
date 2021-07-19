@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.EditableAccount;
 
 /*
@@ -15,6 +17,8 @@ import it.smartcommunitylab.aac.core.model.EditableAccount;
 
 @JsonInclude(Include.NON_NULL)
 public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     @JsonIgnore
     private String internalUserId;

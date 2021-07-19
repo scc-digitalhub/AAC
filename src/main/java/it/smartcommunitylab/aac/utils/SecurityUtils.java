@@ -1,15 +1,5 @@
 package it.smartcommunitylab.aac.utils;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-//import org.springframework.security.oauth2.provider.OAuth2Authentication;
-
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-
 public class SecurityUtils {
 
 //    /*

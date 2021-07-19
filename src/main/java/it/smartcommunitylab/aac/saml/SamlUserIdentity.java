@@ -6,9 +6,10 @@ import java.util.Collections;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
 public class SamlUserIdentity extends DefaultIdentityImpl implements Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     private String username;
     private SamlAuthenticatedPrincipal principal;
@@ -22,6 +23,7 @@ public class SamlUserIdentity extends DefaultIdentityImpl implements Serializabl
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
         attributes = Collections.emptySet();
         this.principal = principal;
+        this.username = principal.getName();
     }
 
     @Override

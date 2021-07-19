@@ -6,11 +6,11 @@ import java.util.Collection;
 import java.util.Set;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.SpringSecurityCoreVersion;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.model.Subject;
 
@@ -19,7 +19,7 @@ import it.smartcommunitylab.aac.model.Subject;
  */
 public abstract class UserAuthentication extends AbstractAuthenticationToken {
 
-    private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // auth principal is the subject
     protected final Subject principal;
@@ -103,7 +103,7 @@ public abstract class UserAuthentication extends AbstractAuthenticationToken {
 
     public long getAge() {
         if (createdAt != null) {
-            return Duration.between(createdAt, Instant.now()).toSeconds();
+            return Duration.between(createdAt, Instant.now()).getSeconds();
         }
         return -1;
     }

@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class InternalUserAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
 
-    private static final long serialVersionUID = 2908878029105905648L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String provider;
     private final String realm;

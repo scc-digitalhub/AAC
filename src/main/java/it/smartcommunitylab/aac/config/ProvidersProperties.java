@@ -8,7 +8,6 @@ import java.util.Map;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
