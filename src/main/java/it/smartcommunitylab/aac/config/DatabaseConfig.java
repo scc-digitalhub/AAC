@@ -53,6 +53,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.saml.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.oauth.persistence",
+        "it.smartcommunitylab.aac.spid.persistence",
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
 
@@ -64,6 +65,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.saml.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.oauth.persistence",
+        "it.smartcommunitylab.aac.spid.persistence",        
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
         "it.smartcommunitylab.aac.repository",
@@ -140,6 +142,7 @@ public class DatabaseConfig {
                 "it.smartcommunitylab.aac.saml.persistence",
                 "it.smartcommunitylab.aac.roles.persistence",
                 "it.smartcommunitylab.aac.oauth.persistence",
+                "it.smartcommunitylab.aac.spid.persistence",                
                 "it.smartcommunitylab.aac.services.persistence",
                 "it.smartcommunitylab.aac.attributes.persistence");
 //		bean.setPersistenceUnitManager(null);

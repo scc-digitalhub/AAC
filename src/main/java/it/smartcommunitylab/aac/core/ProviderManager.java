@@ -40,6 +40,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 
 @Service
 public class ProviderManager {
@@ -368,6 +369,8 @@ public class ProviderManager {
                 configurable = new OIDCIdentityProviderConfigMap();
             } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
                 configurable = new SamlIdentityProviderConfigMap();
+            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+                configurable = new SpidIdentityProviderConfigMap();
             }
 
             if (configurable == null) {
@@ -494,6 +497,8 @@ public class ProviderManager {
                 configurable = new OIDCIdentityProviderConfigMap();
             } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
                 configurable = new SamlIdentityProviderConfigMap();
+            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+                configurable = new SpidIdentityProviderConfigMap();
             }
 
             if (configurable == null) {
@@ -983,8 +988,9 @@ public class ProviderManager {
                     return OIDCIdentityProviderConfigMap.getConfigurationSchema();
                 } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
                     return SamlIdentityProviderConfigMap.getConfigurationSchema();
+                } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+                    return SpidIdentityProviderConfigMap.getConfigurationSchema();
                 }
-
             }
         } catch (JsonMappingException e) {
             e.printStackTrace();

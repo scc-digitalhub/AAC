@@ -147,41 +147,12 @@ attributesets:
       keys: formatted,street_address,locality,region,postal_code,country
     
 
-oauth-providers:
-  providers:
-    - provider: facebook
-      client:
-        clientId: ${OAUTH_FACEBOOK_CLIENTID:YOUR_FACEBOOK_CLIENT_ID}
-        clientSecret: ${OAUTH_FACEBOOK_CLIENTSECRET:YOUR_FACEBOOK_CLIENT_SECRET}
-        accessTokenUri: https://graph.facebook.com/oauth/access_token
-        userAuthorizationUri: https://www.facebook.com/dialog/oauth
-        preEstablishedRedirectUri: ${application.url}/auth/facebook-oauth/callback
-        useCurrentUri: false
-        tokenName: oauth_token
-        authenticationScheme: query
-        clientAuthenticationScheme: form
-        scope:
-            - openid
-            - email
-            - profile
-    - provider: google
-      client:
-        clientId: ${OAUTH_GOOGLE_CLIENTID:YOUR_GOOGLE_CLIENT_ID}
-        clientSecret: ${OAUTH_GOOGLE_CLIENTSECRET:YOUR_GOOGLE_CLIENT_SECRET}
-        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
-        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
-        preEstablishedRedirectUri: ${application.url}/auth/google-oauth/callback
-        useCurrentUri: false
-        clientAuthenticationScheme: form
-        scope:
-            - openid
-            - email
-            - profile
-      resource:
-        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
-        preferTokenInfo: true
-
-
+spid:
+  idps:
+    - entityId: https://posteid.poste.it
+      entityName: Poste ID
+      metadataUrl: https://posteid.poste.it/jod-fs/metadata/metadata.xml
+      
 # LOGGING CONFIGURATION
 logging:
    level:

@@ -11,6 +11,7 @@ public class SystemKeys {
     public static final long AAC_OAUTH2_SERIAL_VERSION = 400L;
     public static final long AAC_OIDC_SERIAL_VERSION = 400L;
     public static final long AAC_SAML_SERIAL_VERSION = 400L;
+    public static final long AAC_SPID_SERIAL_VERSION = 400L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";
@@ -20,6 +21,8 @@ public class SystemKeys {
     public static final String AUTHORITY_INTERNAL = "internal";
     public static final String AUTHORITY_OIDC = "oidc";
     public static final String AUTHORITY_SAML = "saml";
+    public static final String AUTHORITY_SPID = "spid";
+    public static final String AUTHORITY_CIE = "cie";
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";

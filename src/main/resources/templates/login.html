@@ -119,18 +119,10 @@
             <p th:text="#{lbl_login_providers}">Login with</p>
             <div class="row d-md-flex justify-content-center">
               <div class="col col-md-12 mb-3" th:each="authority: ${externalAuthorities}">
-                <div>
-                  <a class="btn loginbtn btn-block btn-outline-primary" th:classAppend="${authority.cssClass}"
-                    th:href="${authority.loginUrl}">
-                    <span aria-hidden="true" style="margin-right: 10px;"> <svg class="icon icon-primary icon-sm">
-                        <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
-                      </svg>
-                    </span>
-                    <span th:text="${authority.name}"></span>
-                  </a>
-                </div>
+                 <div th:replace="${authority.fragment} :: login"></div>               
               </div>
             </div>
+
           </div>
         </div>
       </div>

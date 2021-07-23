@@ -504,6 +504,11 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     public ConfigurableProperties getConfiguration() {
         return providerConfig;
     }
+    
+    @Override
+    public String getLoginComponent() {
+        return "login/button";
+    }
 
     public static String[] JWT_ATTRIBUTES = {
             IdTokenClaimNames.ACR,

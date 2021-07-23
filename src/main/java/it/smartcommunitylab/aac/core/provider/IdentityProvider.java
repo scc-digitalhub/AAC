@@ -59,4 +59,6 @@ public interface IdentityProvider extends ResourceProvider {
     public String getAuthenticationUrl();
 
     public AuthenticationEntryPoint getAuthenticationEntryPoint();
+    
+    public String getLoginComponent();
 }

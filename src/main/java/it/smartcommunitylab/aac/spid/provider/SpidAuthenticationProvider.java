@@ -1,11 +1,13 @@
-package it.smartcommunitylab.aac.saml.provider;
+package it.smartcommunitylab.aac.spid.provider;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.AuthnStatement;
 import org.opensaml.saml.saml2.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +15,15 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.saml2.core.Saml2Error;
+import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider;
-import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider.ResponseToken;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
+import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider.ResponseToken;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -26,34 +31,39 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthentication;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 
-public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
+public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final static String SUBJECT_ATTRIBUTE = "subject";
 
-    private final SamlUserAccountRepository accountRepository;
-    private final SamlIdentityProviderConfig providerConfig;
+    private final SpidIdentityProviderConfig providerConfig;
     private final String usernameAttributeName;
+    private final boolean useSpidCodeAsNameId;
+
+    private final Set<String> registrationIds;
 
     private final OpenSamlAuthenticationProvider openSamlProvider;
 
-    public SamlAuthenticationProvider(String providerId,
-            SamlUserAccountRepository accountRepository, SamlIdentityProviderConfig config,
+    public SpidAuthenticationProvider(String providerId,
+            SpidIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_SAML, providerId, realm);
-        Assert.notNull(accountRepository, "account repository is mandatory");
+        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(config, "provider config is mandatory");
 
         this.providerConfig = config;
-        this.accountRepository = accountRepository;
 
-        this.usernameAttributeName = StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
-                ? config.getConfigMap().getUserNameAttributeName()
+        this.useSpidCodeAsNameId = config.getConfigMap().getUseSpidCodeAsNameId() != null
+                ? config.getConfigMap().getUseSpidCodeAsNameId().booleanValue()
+                : false;
+        this.usernameAttributeName = config.getConfigMap().getUserNameAttributeName() != null
+                ? config.getConfigMap().getUserNameAttributeName().getValue()
                 : SUBJECT_ATTRIBUTE;
+
+        this.registrationIds = config.getRelyingPartyRegistrationIds();
 
         // build a default saml provider with a clock skew of 5 minutes
         openSamlProvider = new OpenSamlAuthenticationProvider();
@@ -67,7 +77,6 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
                 .createDefaultResponseAuthenticationConverter();
         openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
             Response response = responseToken.getResponse();
-//            Saml2AuthenticationToken token = responseToken.getToken();
             Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
             Saml2Authentication auth = authenticationConverter.convert(responseToken);
 
@@ -80,7 +89,11 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
             if (assertion.getIssueInstant() != null) {
                 attributes.put("issueInstant", Collections.singletonList(assertion.getIssueInstant().toString()));
             }
-
+            AuthnStatement authnStatement = CollectionUtils.firstElement(assertion.getAuthnStatements());
+            if (authnStatement != null) {
+                attributes.put("authnContextClassRef", Collections.singletonList(
+                        authnStatement.getAuthnContext().getAuthnContextClassRef().toString()));
+            }
             attributes.put(SUBJECT_ATTRIBUTE, Collections.singletonList(assertion.getSubject().getNameID().getValue()));
 
             return new SamlAuthentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
@@ -97,7 +110,7 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
         // extract registrationId and check if matches our providerid
         Saml2AuthenticationToken loginAuthenticationToken = (Saml2AuthenticationToken) authentication;
         String registrationId = loginAuthenticationToken.getRelyingPartyRegistration().getRegistrationId();
-        if (!getProvider().equals(registrationId)) {
+        if (!registrationIds.contains(registrationId)) {
             // this login is not for us, let others process it
             return null;
         }
@@ -106,7 +119,7 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
         Authentication token = openSamlProvider.authenticate(authentication);
         SamlAuthentication auth = (SamlAuthentication) token;
 
-        // TODO wrap response token and erase credentials etc
+        // TODO validate as per spid
         return auth;
     }
 
@@ -129,15 +142,25 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
                 ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
                 : samlDetails.getName();
 
+        if (useSpidCodeAsNameId) {
+            String spidCode = samlDetails.getFirstAttribute(SpidAttribute.SPID_CODE.getValue());
+            if (!StringUtils.hasText(spidCode)) {
+                throw new Saml2AuthenticationException(
+                        new Saml2Error(Saml2ErrorCodes.USERNAME_NOT_FOUND, "spidCode not found"));
+            }
+
+            userId = spidCode;
+        }
+
+        String idpName = samlDetails.getFirstAttribute("issuer");
+
         // bind principal to ourselves
-        SamlAuthenticatedPrincipal user = new SamlAuthenticatedPrincipal(getProvider(), getRealm(),
-                exportInternalId(userId));
+        SpidAuthenticatedPrincipal user = new SpidAuthenticatedPrincipal(getProvider(), getRealm(),
+                idpName, exportInternalId(userId));
         user.setName(username);
         user.setPrincipal(samlDetails);
 
         return user;
     }
-
-//    private final GrantedAuthoritiesMapper nullAuthoritiesMapper = (authorities -> Collections.emptyList());
 
 }

@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
@@ -175,6 +176,7 @@ public class LoginController {
             a.loginUrl = idp.getAuthenticationUrl();
 //            a.name = idp.getName();
             a.name = idp.getName();
+            a.description = idp.getDescription();
             String key = a.name.trim()
                     .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
             a.cssClass = "provider-" + key;
@@ -184,6 +186,9 @@ public class LoginController {
                 a.icon = "logo-" + key;
             }
             a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
+
+            a.fragment = idp.getLoginComponent() != null ? idp.getLoginComponent() : "button";
+            a.configuration = idp.getConfiguration();
 
             if (SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority())) {
                 internal = a;
@@ -245,7 +250,10 @@ public class LoginController {
         public String icon;
         public String iconUrl;
         public String name;
+        public String description;
         public String cssClass;
+        public String fragment;
+        public ConfigurableProperties configuration;
 
         @Override
         public int compareTo(LoginAuthorityBean o) {

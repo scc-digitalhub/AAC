@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.saml.provider;
+package it.smartcommunitylab.aac.spid.provider;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,19 +13,19 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
 
 @Transactional
-public class SamlAccountProvider extends AbstractProvider implements AccountProvider {
+public class SpidAccountProvider extends AbstractProvider implements AccountProvider {
 
-    private final SamlUserAccountRepository accountRepository;
-    private final SamlIdentityProviderConfig providerConfig;
+    private final SpidUserAccountRepository accountRepository;
+    private final SpidIdentityProviderConfig providerConfig;
 
-    protected SamlAccountProvider(String providerId, SamlUserAccountRepository accountRepository,
-            SamlIdentityProviderConfig config,
+    protected SpidAccountProvider(String providerId, SpidUserAccountRepository accountRepository,
+            SpidIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_SAML, providerId, realm);
+        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
@@ -39,15 +39,15 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
     }
 
     @Transactional(readOnly = true)
-    public SamlUserAccount getAccount(String userId) throws NoSuchUserException {
+    public SpidUserAccount getAccount(String userId) throws NoSuchUserException {
         String id = parseResourceId(userId);
         String realm = getRealm();
         String provider = getProvider();
 
-        SamlUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, id);
+        SpidUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, id);
         if (account == null) {
             throw new NoSuchUserException(
-                    "Saml user with userId " + id + " does not exist for realm " + realm);
+                    "Spid user with userId " + id + " does not exist for realm " + realm);
         }
 
         // detach the entity, we don't want modifications to be persisted via a
@@ -63,14 +63,14 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
     @Override
     @Transactional(readOnly = true)
-    public SamlUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
+    public SpidUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
         String realm = getRealm();
         String provider = getProvider();
 
         // check if passed map contains at least one valid set and fetch account
         // TODO rewrite less hardcoded
         // note AVOID reflection, we want native image support
-        SamlUserAccount account = null;
+        SpidUserAccount account = null;
         if (attributes.containsKey("userId")) {
             String userId = parseResourceId(attributes.get("userId"));
             account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
@@ -82,13 +82,6 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
                 && provider.equals(attributes.get("provider"))) {
             String userId = parseResourceId(attributes.get("userId"));
             account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
-        }
-
-        if (account == null
-                && attributes.keySet().containsAll(Arrays.asList("realm", "provider", "email"))
-                && realm.equals(attributes.get("realm"))
-                && provider.equals(attributes.get("provider"))) {
-            account = accountRepository.findByRealmAndProviderAndEmail(realm, provider, attributes.get("email"));
         }
 
         // TODO add find by usernameAttribute as set in providerConfig
@@ -110,8 +103,8 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<SamlUserAccount> listAccounts(String subject) {
-        List<SamlUserAccount> accounts = accountRepository.findBySubjectAndRealmAndProvider(subject, getRealm(),
+    public Collection<SpidUserAccount> listAccounts(String subject) {
+        List<SpidUserAccount> accounts = accountRepository.findBySubjectAndRealmAndProvider(subject, getRealm(),
                 getProvider());
 
         // we need to fix ids and detach

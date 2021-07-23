@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -107,7 +108,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private OIDCClientRegistrationRepository clientRegistrationRepository;
 
     @Autowired
-    private SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+    @Qualifier("samlRelyingPartyRegistrationRepository")
+    private SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository;
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
@@ -304,7 +306,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getSamlAuthorityFilters(authManager, samlProviderRepository,
-                                relyingPartyRegistrationRepository),
+                                samlRelyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),

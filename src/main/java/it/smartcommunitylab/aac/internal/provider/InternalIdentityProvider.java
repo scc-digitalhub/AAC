@@ -523,4 +523,8 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         return config;
     }
 
+    @Override
+    public String getLoginComponent() {
+        return "login/form";
+    }
 }

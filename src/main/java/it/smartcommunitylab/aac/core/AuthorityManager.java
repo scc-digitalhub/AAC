@@ -10,6 +10,7 @@ import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
+import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 
 @Service
 public class AuthorityManager {
@@ -27,6 +28,9 @@ public class AuthorityManager {
     @Autowired
     private SamlIdentityAuthority samlAuthority;
 
+    @Autowired
+    private SpidIdentityAuthority spidAuthority;
+
     public IdentityAuthority getIdentityAuthority(String authority) {
         if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
             return internalAuthority;
@@ -34,6 +38,8 @@ public class AuthorityManager {
             return oidcAuthority;
         } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
             return samlAuthority;
+        } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+            return spidAuthority;
         }
         return null;
     }
@@ -43,7 +49,7 @@ public class AuthorityManager {
         result.add(internalAuthority);
         result.add(oidcAuthority);
         result.add(samlAuthority);
-
+        result.add(spidAuthority);
         return result;
     }
 

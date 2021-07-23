@@ -1,0 +1,11 @@
+ <!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+  <body>
+ <div th:fragment="login">
+ spid button for <span th:text="${authority.provider}"></span>
+ <pre th:text="${authority.configuration.getRelyingPartyMetadataUrls().toString()}"></pre>
+ </div>
+  </body>
+</html>
