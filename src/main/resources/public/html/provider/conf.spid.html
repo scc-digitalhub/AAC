@@ -1,45 +1,30 @@
 <div class="pt-3 mb-5">
-
     <fieldset>
-        <legend class="mb-4">SPID IdP Configuration</legend>
-
-        <div class="pt-0 pb-3"> Auto-configuration will enable all idps in the SPID federation, otherwise
-            manually configure asserting parties below. </div>
-        <div class="form-group col">
-            <div class="bootstrap-select-wrapper border-bottom-0">
-                <label>IdP</label>
-                <select title="Select" multiple="true" data-multiple-separator="" ng-model="idp.configuration.idps">
-                </select>
-            </div>
-        </div>
-        <div class="pt-0 pb-3 text-center"> -- OR -- </div>
-        <div class="form-group col ">
-            <label for="idpMetadataUrl">IdP Metadata Discovery URL</label>
-            <input type="text" name="idpMetadataUrl" class="form-control form-control-sm" id="idpMetadataUrl"
-                ng-model="idp.configuration.idpMetadataUrl">
-        </div>
-
+        <legend class="mb-4">SPID SP Configuration</legend>
         <div class="row">
-            <div class="form-group col-md-3">
-                <div class="bootstrap-select-wrapper border-bottom-0">
-                    <label for="ssoServiceBinding">SSO Service Binding</label>
-                    <select required title="Select one" id="ssoServiceBinding"
-                        ng-model="idp.configuration.ssoServiceBinding">
-                        <option value="HTTP-POST" ng-selected="idp.configuration.ssoServiceBinding=='HTTP-POST'">POST
-                        </option>
-                        <option value="HTTP-Redirect"
-                            ng-selected="idp.configuration.ssoServiceBinding=='HTTP-Redirect'">Redirect
-                        </option>
-                    </select>
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="samlMetadataUrl" class="active">Service provider metadata</label>
+                    <input type="text" class="form-control" id="samlMetadataUrl" ng-model="samlMetadataUrl"
+                        readonly>
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(samlMetadataUrl)">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group col ">
+            </div>        
+        </div>
+        <div class="row">
+             <div class="form-group col">
                 <label for="entityId">Entity ID</label>
                 <input type="text" name="entityId" class="form-control form-control-sm" id="entityId"
                     ng-model="idp.configuration.entityId">
             </div>
         </div>
-
         <div class="py-3">Signing</div>
         <div class="row">
             <div class="form-group col ">
@@ -51,7 +36,7 @@
                 <textarea rows="5" id="signingCertificate" name="signingCertificate"
                     ng-model="idp.configuration.signingCertificate"></textarea>
             </div>
-        </div>
+        </div>        
     </fieldset>
     <fieldset>
         <legend class="mb-4">SPID Registration</legend>
@@ -158,6 +143,43 @@
             </div>
         </div>
     </fieldset>
+    <fieldset>
+        <legend class="mb-4">SPID IdP Configuration</legend>
+
+        <div class="pt-0 pb-3"> Auto-configuration will enable all idps in the SPID federation, otherwise
+            manually configure asserting parties below. </div>
+        <div class="form-group col">
+            <div class="bootstrap-select-wrapper border-bottom-0">
+                <label>IdP</label>
+                <select title="Select" multiple="true" data-multiple-separator="" ng-model="idp.configuration.idps">
+                </select>
+            </div>
+        </div>
+        <div class="pt-0 pb-3 text-center"> -- OR -- </div>
+        <div class="form-group col ">
+            <label for="idpMetadataUrl">IdP Metadata Discovery URL</label>
+            <input type="text" name="idpMetadataUrl" class="form-control form-control-sm" id="idpMetadataUrl"
+                ng-model="idp.configuration.idpMetadataUrl">
+        </div>
+
+        <div class="row">
+            <div class="form-group col-md-3">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="ssoServiceBinding">SSO Service Binding</label>
+                    <select required title="Select one" id="ssoServiceBinding"
+                        ng-model="idp.configuration.ssoServiceBinding">
+                        <option value="HTTP-POST" ng-selected="idp.configuration.ssoServiceBinding=='HTTP-POST'">POST
+                        </option>
+                        <option value="HTTP-Redirect"
+                            ng-selected="idp.configuration.ssoServiceBinding=='HTTP-Redirect'">Redirect
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+    </fieldset>    
     <fieldset>
         <legend class="mb-4">SAML Advanced Configuration</legend>
         <div class="row">

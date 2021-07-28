@@ -1,11 +1,45 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 
 <html xmlns:th="http://www.thymeleaf.org">
 
-  <body>
- <div th:fragment="login">
- spid button for <span th:text="${authority.provider}"></span>
- <pre th:text="${authority.configuration.getRelyingPartyMetadataUrls().toString()}"></pre>
- </div>
-  </body>
+
+<body>
+   <div th:fragment="login">
+      <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
+      <!-- AGID - SPID IDP BUTTON MEDIUM "ENTRA CON SPID" * begin * -->
+      <a href="#" class="italia-it-button italia-it-button-size-m button-spid"
+         spid-idp-button="#spid-idp-button-medium-get" aria-haspopup="true" aria-expanded="false">
+         <span class="italia-it-button-icon"><img th:src="@{'/spid/img/spid-ico-circle-bb.svg'}"
+               onerror="this.onerror=null;" alt="" /></span>
+         <span class="italia-it-button-text">Entra con SPID</span>
+      </a>
+      <div id="spid-idp-button-medium-get" class="spid-idp-button spid-idp-button-tip spid-idp-button-relative">
+         <ul id="spid-idp-list-medium-root-get" class="spid-idp-button-menu" aria-labelledby="spid-idp">
+
+            <li class="text-left spid-idp-button-link" th:each="idp: ${authority.configuration.getSpidRegistrations()}"
+               th:data-idp="${idp.getEntityLabel()}">
+               <a th:href="${authority.loginUrl+'-'+authority.configuration.getIdpKey(idp.getMetadataUrl)}">
+                  <span class="spid-sr-only" th:text="${idp.getEntityName()}"></span>
+                  <img th:src="@{/}+${authority.configuration.getIdpIcon(idp.getMetadataUrl)}" style="box-sizing: content-box;">
+               </a>
+            </li>
+
+
+            <li class="text-left spid-idp-support-link">
+               <a href="https://www.spid.gov.it">Maggiori informazioni</a>
+            </li>
+            <li class="text-left spid-idp-support-link">
+               <a href="https://www.spid.gov.it/richiedi-spid">Non hai SPID?</a>
+            </li>
+            <li class="text-left spid-idp-support-link">
+               <a href="https://www.spid.gov.it/serve-aiuto">Serve aiuto?</a>
+            </li>
+         </ul>
+      </div>
+      <script type="text/javascript" th:src="@{'/spid/js/jquery.min.js'}"></script>
+      <script type="text/javascript" th:src="@{'/spid/js/spid-sp-access-button.min.js'}"></script>
+      <!-- AGID - SPID IDP BUTTON MEDIUM "ENTRA CON SPID" * end * -->
+   </div>
+</body>
+
 </html>

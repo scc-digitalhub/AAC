@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.controller;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -45,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.context.WebContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -101,6 +104,9 @@ import springfox.documentation.annotations.ApiIgnore;
 public class DevController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${application.url}")
+    private String applicationUrl;
+    
     @Autowired
     private RealmManager realmManager;
     @Autowired
@@ -175,6 +181,30 @@ public class DevController {
         // hack
         // TODO render proper per realm meta
         Map<String, Object> metadata = oauth2MetadataEndpoint.getAuthServerMetadata();
+        return ResponseEntity.ok(metadata);
+
+    }
+    
+    @GetMapping("/console/dev/realms/{realm:.*}/well-known/url")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Map<String, String>> getRealmBaseUrl(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            HttpServletRequest request) throws NoSuchRealmException {
+        // hack
+        
+        UriComponentsBuilder uri = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
+        URI requestUri = uri.build().toUri();
+        builder.scheme(requestUri.getScheme()).host(requestUri.getHost()).port(requestUri.getPort());
+        String baseUrl = builder.build().toString();
+        
+        // TODO render proper per realm meta
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("applicationUrl", applicationUrl);
+        metadata.put("requestUrl", requestUri.toString());
+        metadata.put("baseUrl", baseUrl);
+
         return ResponseEntity.ok(metadata);
 
     }

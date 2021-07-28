@@ -15,9 +15,18 @@ public class HttpSessionSaml2AuthenticationRequestRepository
         implements Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> {
 
     private static final String DEFAULT_AUTHENTICATION_REQUEST_ATTR_NAME = HttpSessionSaml2AuthenticationRequestRepository.class
-            .getName() + ".AUTHORIZATION_REQUEST";
+            .getName() + ".SAML2_AUTHORIZATION_REQUEST";
 
-    private final String sessionAttributeName = DEFAULT_AUTHENTICATION_REQUEST_ATTR_NAME;
+    private final String sessionAttributeName;
+
+    public HttpSessionSaml2AuthenticationRequestRepository() {
+        this(DEFAULT_AUTHENTICATION_REQUEST_ATTR_NAME);
+    }
+
+    public HttpSessionSaml2AuthenticationRequestRepository(String sessionAttributeName) {
+        Assert.hasText(sessionAttributeName, "session attribute name can not be null or empty");
+        this.sessionAttributeName = sessionAttributeName;
+    }
 
     @Override
     public Saml2AuthenticationRequestContext loadAuthenticationRequest(HttpServletRequest request) {

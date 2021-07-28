@@ -74,6 +74,10 @@ import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
+import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;
+import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
+import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 
 /*
  * Security config for AAC UI
@@ -112,6 +116,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository;
 
     @Autowired
+    @Qualifier("spidRelyingPartyRegistrationRepository")
+    private SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository;
+
+    @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
 
     @Autowired
@@ -137,6 +145,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ProviderRepository<SamlIdentityProviderConfig> samlProviderRepository;
+
+    @Autowired
+    private ProviderRepository<SpidIdentityProviderConfig> spidProviderRepository;
 
 //    @Autowired
 //    private UserRepository userRepository;
@@ -261,6 +272,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
+                .antMatchers("/spid/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 // whitelist swagger
                 .antMatchers("/v2/api-docs",
@@ -296,7 +308,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .and()
                 .csrf()
 //                .disable()
-                .ignoringAntMatchers("/logout", "/console/**", "/account/**", "/auth/oidc/**", "/auth/saml/**")
+                .ignoringAntMatchers("/logout", "/console/**", "/account/**",
+                        "/auth/oidc/**",
+                        "/auth/saml/**",
+                        "/auth/spid/**")
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
@@ -307,6 +322,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(
                         getSamlAuthorityFilters(authManager, samlProviderRepository,
                                 samlRelyingPartyRegistrationRepository),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getSpidAuthorityFilters(authManager, spidProviderRepository,
+                                spidRelyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
@@ -498,6 +517,43 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         ssoFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
 
         SamlMetadataFilter metadataFilter = new SamlMetadataFilter(relyingPartyRegistrationRepository);
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(metadataFilter);
+        filters.add(requestFilter);
+        filters.add(ssoFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    /*
+     * SPID Auth
+     */
+
+    public CompositeFilter getSpidAuthorityFilters(AuthenticationManager authManager,
+            ProviderRepository<SpidIdentityProviderConfig> providerRepository,
+            SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+
+        // request repository
+        Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+
+        // build filters
+        SpidWebSsoAuthenticationRequestFilter requestFilter = new SpidWebSsoAuthenticationRequestFilter(
+                providerRepository,
+                relyingPartyRegistrationRepository);
+        requestFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
+
+        SpidWebSsoAuthenticationFilter ssoFilter = new SpidWebSsoAuthenticationFilter(
+                providerRepository,
+                relyingPartyRegistrationRepository);
+        ssoFilter.setAuthenticationManager(authManager);
+        ssoFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
+
+        SpidMetadataFilter metadataFilter = new SpidMetadataFilter(providerRepository,
+                relyingPartyRegistrationRepository);
 
         List<Filter> filters = new ArrayList<>();
         filters.add(metadataFilter);

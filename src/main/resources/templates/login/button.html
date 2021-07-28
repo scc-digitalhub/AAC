@@ -1,20 +1,24 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 
 <html xmlns:th="http://www.thymeleaf.org">
 
-  <body>
- <div th:fragment="login">
-   <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
-   <a class="btn loginbtn btn-block btn-outline-primary" th:classAppend="${authority.cssClass}"
-     th:href="${authority.loginUrl}">
-     <span aria-hidden="true" style="margin-right: 10px;"> <svg class="icon icon-primary icon-sm">
-         <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
-       </svg>
-     </span>
-     <span th:text="${authority.name}"></span>
-   </a>
- </div>
- 
-  </body>
-  
+<head th:fragment="header">
+
+</head>
+
+<body>
+  <div th:fragment="login">
+    <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
+    <a class="italia-it-button italia-it-button-size-m btn-primary" th:classAppend="${authority.cssClass}"
+      th:href="${authority.loginUrl}">
+      <span class="italia-it-button-icon" aria-hidden="true" style="margin-right: 10px;"> <svg class="icon icon-white icon-sm">
+          <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
+        </svg>
+      </span>
+      <span class="italia-it-button-text" th:text="${authority.name}"></span>
+    </a>
+  </div>
+
+</body>
+
 </html>

@@ -8,10 +8,13 @@ import java.net.URISyntaxException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,17 +24,26 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.opensaml.security.credential.BasicCredential;
+import org.opensaml.security.credential.Credential;
+import org.opensaml.security.credential.CredentialSupport;
+import org.opensaml.security.credential.UsageType;
+import org.springframework.security.saml2.core.Saml2Error;
+import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.core.Saml2X509Credential.Saml2X509CredentialType;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
+import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 
 public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
@@ -173,7 +185,18 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
         Set<String> idpMetadataUrls = getRelyingPartyMetadataUrls();
         return idpMetadataUrls.stream().map(u -> {
             try {
-                return getIdpName(u);
+                return getRelyingPartyRegistrationId(getIdpKey(u));
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("invalid metadata uri " + e.getMessage());
+            }
+        }).collect(Collectors.toSet());
+    }
+
+    public Collection<SpidRegistration> getSpidRegistrations() {
+        Set<String> idpMetadataUrls = getRelyingPartyMetadataUrls();
+        return idpMetadataUrls.stream().map(u -> {
+            try {
+                return getIdp(u);
             } catch (URISyntaxException e) {
                 throw new IllegalArgumentException("invalid metadata uri " + e.getMessage());
             }
@@ -206,6 +229,12 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
         if (registrations.isEmpty()) {
             throw new IllegalArgumentException("invalid configuration");
         }
+
+        // add a global registration for metadata
+        RelyingPartyRegistration meta = RelyingPartyRegistration
+                .withRelyingPartyRegistration(registrations.iterator().next())
+                .registrationId(getProvider()).build();
+        registrations.add(meta);
 
         return registrations;
     }
@@ -240,8 +269,8 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
         // via builder
         // providerId is unique, use as registrationId
         // extract name from url
-        String idpName = getIdpName(idpMetadataUrl);
-        String registrationId = getRelyingPartyRegistrationId(idpName);
+        String idpKey = getIdpKey(idpMetadataUrl);
+        String registrationId = getRelyingPartyRegistrationId(idpKey);
         RelyingPartyRegistration.Builder builder = RelyingPartyRegistration.withRegistrationId(registrationId);
 
         // read metadata to autoconfigure
@@ -265,7 +294,7 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
             // we use these also for decrypt
             builder.decryptionX509Credentials((c) -> c.add(signingCredentials));
         }
-        
+
         // disable encryption
 //        if (StringUtils.hasText(cryptKey) && StringUtils.hasText(cryptCertificate)) {
 //
@@ -282,20 +311,67 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
 
     }
 
-    private String getIdpName(String idpMetadataUrl) throws URISyntaxException {
+    public SpidRegistration getIdp(String idpMetadataUrl) throws URISyntaxException {
+        // check if registration
+        Optional<SpidRegistration> reg = idps.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))
+                .findFirst();
+        if (reg.isPresent()) {
+            return reg.get();
+        }
+
+        // build generic
+        SpidRegistration sreg = new SpidRegistration();
+        sreg.setEntityId(idpMetadataUrl);
+        sreg.setMetadataUrl(idpMetadataUrl);
+
+        // extract name from url
+        URI uri = new URI(idpMetadataUrl);
+        String idpName = uri.getHost();
+        sreg.setEntityName(idpName);
+        sreg.setEntityLabel(idpName);
+
+        return sreg;
+    }
+
+    public String getIdpKey(String idpMetadataUrl) throws URISyntaxException {
+        // check if registration
+        Optional<SpidRegistration> reg = idps.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))
+                .findFirst();
+        if (reg.isPresent()) {
+            return reg.get().getEntityLabel();
+        }
+
         // extract name from url
         URI uri = new URI(idpMetadataUrl);
         return uri.getHost();
     }
 
-    public String getRelyingPartyRegistrationId(String idpName) {
-        return getProvider() + "." + idpName;
+    public String getIdpIcon(String idpMetadataUrl) throws URISyntaxException {
+        // check if registration
+        Optional<SpidRegistration> reg = idps.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))
+                .findFirst();
+        if (reg.isPresent()) {
+            return "spid/img/spid-idp-" + reg.get().getEntityLabel() + ".svg";
+        }
+
+        // generic icon
+        return "spid/img/spid-ico-circle-bb.svg";
+    }
+
+    public String getRelyingPartyRegistrationId(String idpKey) {
+        return getProvider() + "-" + idpKey;
     }
 
 //    // export additional properties not supported by stock model
-//    public Boolean getRelyingPartyRegistrationIsForceAuthn() {
-//        return configMap.getForceAuthn();
-//    }
+    public Boolean getRelyingPartyRegistrationIsForceAuthn() {
+        return SpidAuthnContext.SPID_L2 == configMap.getAuthnContext()
+                || SpidAuthnContext.SPID_L3 == configMap.getAuthnContext();
+    }
+
+    public String getRelyingPartyRegistrationSingleLogoutConsumerServiceLocation() {
+        return DEFAULT_LOGOUT_URL;
+    }
+
 //
 //    public Boolean getRelyingPartyRegistrationIsPassive() {
 //        return configMap.getIsPassive();
@@ -309,9 +385,25 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
 //        return configMap.getNameIDAllowCreate();
 //    }
 //
-//    public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {
-//        return configMap.getAuthnContextClasses();
-//    }
+    public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {
+        return configMap.getAuthnContext() == null ? Collections.emptySet()
+                : Collections.singleton(configMap.getAuthnContext().getValue());
+    }
+
+    public List<Credential> getRelyingPartySigningCredentials() {
+        List<Credential> credentials = new ArrayList<>();
+        RelyingPartyRegistration rp = getRelyingPartyRegistrations().stream().findFirst().orElse(null);
+        for (Saml2X509Credential x509Credential : rp.getSigningX509Credentials()) {
+            X509Certificate certificate = x509Credential.getCertificate();
+            PrivateKey privateKey = x509Credential.getPrivateKey();
+            BasicCredential credential = CredentialSupport.getSimpleCredential(certificate, privateKey);
+            credential.setEntityId(rp.getEntityId());
+            credential.setUsageType(UsageType.SIGNING);
+            credentials.add(credential);
+        }
+        return credentials;
+    }
+
 //
 //    public String getRelyingPartyRegistrationAuthnContextComparison() {
 //        return configMap.getAuthnContextComparison();
@@ -449,6 +541,18 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
 
         return sp;
 
+    }
+
+    public static String getProviderId(String registrationId) {
+        Assert.hasText(registrationId, "registrationId can not be blank");
+
+        // registrationId is providerId+idpkey
+        String[] kp = registrationId.split("-");
+        if (kp.length < 2) {
+            throw new IllegalArgumentException();
+        }
+
+        return kp[0];
     }
 
 }

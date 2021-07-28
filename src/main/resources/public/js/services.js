@@ -398,6 +398,18 @@ angular.module('aac.services', [])
                 return data.data;
             });
         }
+        
+       rService.getUrl = function (slug) {
+            return $http.get('console/dev/realms/' + slug + '/well-known/url').then(function (data) {
+                return data.data;
+            });
+        }  
+        
+        rService.getOAuth2Metadata = function (slug) {
+            return $http.get('console/dev/realms/' + slug + '/well-known/oauth2').then(function (data) {
+                return data.data;
+            });
+        }              
 
         return rService;
 
