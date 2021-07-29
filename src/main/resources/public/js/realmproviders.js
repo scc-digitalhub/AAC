@@ -339,16 +339,21 @@ angular.module('aac.controllers.realmproviders', [])
 
         var iconProvider = function (idp) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
-            var logo = null;
+           
             if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
+                var logo = null;
                 if (icons.includes(idp.configuration.clientName.toLowerCase())) {
                     logo = idp.configuration.clientName.toLowerCase();
                 } else if (icons.includes(idp.name.toLowerCase())) {
                     logo = idp.name.toLowerCase();
                 }
-            }
-            if (logo) {
-                return './svg/sprite.svg#logo-' + logo;
+            
+                if (logo) {
+                   return './svg/sprite.svg#logo-' + logo;
+                }
+            } 
+            if (idp.authority === "spid") {
+               return './spid/sprite.svg#spid-ico-circle-bb';    
             }
             return './italia/svg/sprite.svg#it-unlocked';
         }
@@ -597,16 +602,21 @@ angular.module('aac.controllers.realmproviders', [])
 
         var iconProvider = function (idp) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
-            var logo = null;
+           
             if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
+                var logo = null;
                 if (icons.includes(idp.configuration.clientName.toLowerCase())) {
                     logo = idp.configuration.clientName.toLowerCase();
                 } else if (icons.includes(idp.name.toLowerCase())) {
                     logo = idp.name.toLowerCase();
                 }
-            }
-            if (logo) {
-                return './svg/sprite.svg#logo-' + logo;
+            
+                if (logo) {
+                   return './svg/sprite.svg#logo-' + logo;
+                }
+            } 
+            if (idp.authority === "spid") {
+               return './spid/sprite.svg#spid-ico-circle-bb';    
             }
             return './italia/svg/sprite.svg#it-unlocked';
         }
