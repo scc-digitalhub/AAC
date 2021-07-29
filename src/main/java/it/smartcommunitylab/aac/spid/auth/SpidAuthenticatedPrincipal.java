@@ -62,7 +62,13 @@ public class SpidAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
 
             // map as string attributes
             for (String key : keys) {
-                attributes.put(key, String.valueOf(principal.getFirstAttribute(key)));
+                Object o = principal.getFirstAttribute(key);
+                System.out.println("class of " + key + " " + o.getClass().getName());
+                if (o instanceof String) {
+                    attributes.put(key, (String) o);
+                } else {
+                    attributes.put(key, String.valueOf(o));
+                }
             }
 
         }

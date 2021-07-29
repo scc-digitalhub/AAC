@@ -77,6 +77,7 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
                 .createDefaultResponseAuthenticationConverter();
         openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
             Response response = responseToken.getResponse();
+            Saml2AuthenticationToken token = responseToken.getToken();
             Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
             Saml2Authentication auth = authenticationConverter.convert(responseToken);
 
@@ -92,12 +93,12 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
             AuthnStatement authnStatement = CollectionUtils.firstElement(assertion.getAuthnStatements());
             if (authnStatement != null) {
                 attributes.put("authnContextClassRef", Collections.singletonList(
-                        authnStatement.getAuthnContext().getAuthnContextClassRef().toString()));
+                        authnStatement.getAuthnContext().getAuthnContextClassRef().getAuthnContextClassRef()));
             }
             attributes.put(SUBJECT_ATTRIBUTE, Collections.singletonList(assertion.getSubject().getNameID().getValue()));
 
-            return new SamlAuthentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
-                    responseToken, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+            return new Saml2Authentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
+                    token.getSaml2Response(), Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
         });
 
         // use a custom authorities mapper to cleanup authorities
@@ -117,7 +118,7 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
 
         // delegate to openSaml, and leverage default converter
         Authentication token = openSamlProvider.authenticate(authentication);
-        SamlAuthentication auth = (SamlAuthentication) token;
+        Saml2Authentication auth = (Saml2Authentication) token;
 
         // TODO validate as per spid
         return auth;

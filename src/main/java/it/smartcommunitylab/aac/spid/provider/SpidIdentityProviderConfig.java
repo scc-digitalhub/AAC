@@ -364,8 +364,13 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
 
 //    // export additional properties not supported by stock model
     public Boolean getRelyingPartyRegistrationIsForceAuthn() {
-        return SpidAuthnContext.SPID_L2 == configMap.getAuthnContext()
-                || SpidAuthnContext.SPID_L3 == configMap.getAuthnContext();
+        if (SpidAuthnContext.SPID_L2 == configMap.getAuthnContext()
+                || SpidAuthnContext.SPID_L3 == configMap.getAuthnContext()) {
+            return true;
+        }
+        ;
+        // as per spec, for L1 we do NOT include ForceAuthn at all
+        return null;
     }
 
     public String getRelyingPartyRegistrationSingleLogoutConsumerServiceLocation() {

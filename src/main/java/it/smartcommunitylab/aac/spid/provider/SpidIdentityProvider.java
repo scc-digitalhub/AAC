@@ -56,6 +56,7 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
     // internal providers
     private final SpidAccountProvider accountProvider;
     private final SpidAuthenticationProvider authenticationProvider;
+    private final SpidSubjectResolver subjectResolver;
 
     // attributes
     private final OpenIdAttributesMapper openidMapper;
@@ -91,6 +92,7 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SpidAccountProvider(providerId, accountRepository, config, realm);
         this.authenticationProvider = new SpidAuthenticationProvider(providerId, config, realm);
+        this.subjectResolver = new SpidSubjectResolver(providerId, accountRepository, config, realm);
 
         // attributes
         openidMapper = new OpenIdAttributesMapper();
@@ -133,8 +135,7 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
 
     @Override
     public SubjectResolver getSubjectResolver() {
-        // TODO
-        return null;
+        return subjectResolver;
     }
 
     @Override

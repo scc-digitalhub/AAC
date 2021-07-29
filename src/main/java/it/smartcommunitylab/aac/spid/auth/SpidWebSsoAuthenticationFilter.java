@@ -179,7 +179,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         // providerId is registrationId
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
-                providerId, SystemKeys.AUTHORITY_SAML);
+                providerId, SystemKeys.AUTHORITY_SPID);
 
         // also collect request details
         WebAuthenticationDetails webAuthenticationDetails = new WebAuthenticationDetails(request);
