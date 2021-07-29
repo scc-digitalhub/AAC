@@ -28,6 +28,14 @@ public class InMemoryAttributeStore implements AttributeStore {
         this.attributes = new ConcurrentHashMap<>();
     }
 
+    public String getAuthority() {
+        return authority;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
     @Override
     public Serializable getAttribute(String entityId, String key) {
         if (!attributes.containsKey(entityId)) {

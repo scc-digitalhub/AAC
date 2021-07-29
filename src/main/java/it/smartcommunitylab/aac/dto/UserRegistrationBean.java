@@ -16,27 +16,15 @@
 
 package it.smartcommunitylab.aac.dto;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map.Entry;
-
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * @author raman
  *
  */
-public class UserRegistrationBean implements Serializable {
-
-    private static final long serialVersionUID = 5151437264220742574L;
+public class UserRegistrationBean {
 
     @NotEmpty
     @Email(message = "{validation.email}")

@@ -2,11 +2,6 @@ package it.smartcommunitylab.aac.scope;
 
 import java.util.Collection;
 
-import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.User;
-
 /*
  * Scope provider defines a set of scopes related to a service/implementation etc.
  * 

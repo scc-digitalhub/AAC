@@ -23,7 +23,6 @@ import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.DefaultAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.model.AttributeType;
@@ -73,14 +72,12 @@ public class AttributeManager {
             throw new IllegalArgumentException("set does not match realm");
         }
 
-        Set<String> keys = Collections.emptySet();
+        List<AttributeEntity> attributes = Collections.emptyList();
         try {
-            List<AttributeEntity> attributes = attributeService.listAttributes(identifier);
-            keys = attributes.stream().map(a -> a.getKey()).collect(Collectors.toSet());
+            attributes = attributeService.listAttributes(identifier);
         } catch (NoSuchAttributeSetException e) {
         }
-        DefaultAttributesSet a = toSet(se);
-//        a.setKeys(keys);
+        DefaultAttributesSet a = toSet(se, attributes);
 
         return a;
     }

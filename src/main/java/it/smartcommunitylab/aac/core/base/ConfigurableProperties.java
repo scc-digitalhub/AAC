@@ -3,8 +3,6 @@ package it.smartcommunitylab.aac.core.base;
 import java.io.Serializable;
 import java.util.Map;
 
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 /*
  * A bean for configurable properties, which can convert to/from map and describe a schema
  * 

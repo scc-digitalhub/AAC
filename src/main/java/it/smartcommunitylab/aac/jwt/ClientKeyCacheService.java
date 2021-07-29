@@ -23,7 +23,6 @@ import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.util.Base64URL;
 
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
-import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 
 /**
  *

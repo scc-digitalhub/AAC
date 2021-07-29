@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.core.base;
 
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /*
  * Base class which extracts identifiers from keys
  * 
@@ -9,6 +11,8 @@ import org.springframework.util.Assert;
  */
 
 public abstract class BaseAttributes extends AbstractAttributes {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected final String identifier;
 

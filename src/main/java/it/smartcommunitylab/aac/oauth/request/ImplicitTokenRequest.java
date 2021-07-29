@@ -2,17 +2,19 @@ package it.smartcommunitylab.aac.oauth.request;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 
 public class ImplicitTokenRequest extends TokenRequest {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
+
     private final static String GRANT_TYPE = AuthorizationGrantType.IMPLICIT.getValue();
 
     private String redirectUri;

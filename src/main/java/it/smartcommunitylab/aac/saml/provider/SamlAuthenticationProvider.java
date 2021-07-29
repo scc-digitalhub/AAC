@@ -13,7 +13,6 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider.ResponseToken;
@@ -28,6 +27,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthentication;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
@@ -67,7 +67,7 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
                 .createDefaultResponseAuthenticationConverter();
         openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
             Response response = responseToken.getResponse();
-            Saml2AuthenticationToken token = responseToken.getToken();
+//            Saml2AuthenticationToken token = responseToken.getToken();
             Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
             Saml2Authentication auth = authenticationConverter.convert(responseToken);
 
@@ -83,8 +83,8 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
 
             attributes.put(SUBJECT_ATTRIBUTE, Collections.singletonList(assertion.getSubject().getNameID().getValue()));
 
-            return new Saml2Authentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
-                    token.getSaml2Response(), Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+            return new SamlAuthentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
+                    responseToken, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
         });
 
         // use a custom authorities mapper to cleanup authorities
@@ -104,7 +104,7 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
 
         // delegate to openSaml, and leverage default converter
         Authentication token = openSamlProvider.authenticate(authentication);
-        Saml2Authentication auth = (Saml2Authentication) token;
+        SamlAuthentication auth = (SamlAuthentication) token;
 
         // TODO wrap response token and erase credentials etc
         return auth;

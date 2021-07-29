@@ -5,7 +5,6 @@ import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -504,6 +503,11 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     @Override
     public ConfigurableProperties getConfiguration() {
         return providerConfig;
+    }
+    
+    @Override
+    public String getLoginComponent() {
+        return "login/button";
     }
 
     public static String[] JWT_ATTRIBUTES = {

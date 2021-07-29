@@ -10,6 +10,8 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  */
 public abstract class AbstractIdentity extends AbstractBaseResource implements UserIdentity {
 
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
     protected AbstractIdentity(String authority, String provider, String realm) {
         super(authority, provider, realm);
     }

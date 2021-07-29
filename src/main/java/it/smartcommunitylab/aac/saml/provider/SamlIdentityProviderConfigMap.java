@@ -16,11 +16,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SamlIdentityProviderConfigMap implements ConfigurableProperties {
+public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {

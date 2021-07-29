@@ -1,10 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
-
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.model.Subject;
 

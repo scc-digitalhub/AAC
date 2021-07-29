@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -104,16 +105,16 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
             SamlUserAccountRepository accountRepository,
             AutoJdbcAttributeStore jdbcAttributeStore,
             ProviderRepository<SamlIdentityProviderConfig> registrationRepository,
-            SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+            @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
-        Assert.notNull(relyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
+        Assert.notNull(samlRelyingPartyRegistrationRepository, "relayingParty registration repository is mandatory");
 
         this.accountRepository = accountRepository;
         this.jdbcAttributeStore = jdbcAttributeStore;
         this.registrationRepository = registrationRepository;
-        this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
+        this.relyingPartyRegistrationRepository = samlRelyingPartyRegistrationRepository;
     }
 
     @Autowired

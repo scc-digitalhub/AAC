@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,7 +15,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,6 +28,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
@@ -178,6 +176,7 @@ public class LoginController {
             a.loginUrl = idp.getAuthenticationUrl();
 //            a.name = idp.getName();
             a.name = idp.getName();
+            a.description = idp.getDescription();
             String key = a.name.trim()
                     .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
             a.cssClass = "provider-" + key;
@@ -187,6 +186,9 @@ public class LoginController {
                 a.icon = "logo-" + key;
             }
             a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
+
+            a.fragment = idp.getLoginComponent() != null ? idp.getLoginComponent() : "button";
+            a.configuration = idp.getConfiguration();
 
             if (SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority())) {
                 internal = a;
@@ -238,7 +240,7 @@ public class LoginController {
             "google", "facebook", "github", "microsoft", "apple", "instagram"
     };
 
-    private class LoginAuthorityBean implements Comparable {
+    private class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         public String provider;
         public String authority;
         public String realm;
@@ -248,15 +250,14 @@ public class LoginController {
         public String icon;
         public String iconUrl;
         public String name;
+        public String description;
         public String cssClass;
+        public String fragment;
+        public ConfigurableProperties configuration;
 
         @Override
-        public int compareTo(Object o) {
-            if (o instanceof LoginAuthorityBean) {
-                return name.compareTo(((LoginAuthorityBean) o).name);
-            } else {
-                return 0;
-            }
+        public int compareTo(LoginAuthorityBean o) {
+            return name.compareTo(((LoginAuthorityBean) o).name);
         }
 
     }

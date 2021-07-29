@@ -17,13 +17,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
+public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
@@ -51,7 +54,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
     private Boolean propagateEndSession;
     private Boolean respectTokenExpiration;
     private Set<PromptMode> promptMode;
-    
 
     public OIDCIdentityProviderConfigMap() {
         // set default
@@ -180,7 +182,6 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties {
         return mapper.convertValue(this, typeRef);
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     @JsonIgnore
     public void setConfiguration(Map<String, Serializable> props) {

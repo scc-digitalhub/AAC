@@ -5,7 +5,11 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class OAuth2AuthorizationExceptionEvent extends OAuth2Event {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private final OAuth2Exception exception;
     private final OAuth2Authentication authentication;

@@ -18,8 +18,6 @@ package it.smartcommunitylab.aac.dto;
 
 import java.util.List;
 
-import org.springframework.boot.actuate.audit.AuditEvent;
-
 import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.model.Realm;
 

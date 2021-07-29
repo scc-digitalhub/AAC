@@ -10,12 +10,14 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /*
  * An auth token for authenticated user and client
  */
 public class ComposedAuthenticationToken extends AbstractAuthenticationToken {
 
-    private static final long serialVersionUID = -2640624036104536421L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final UserAuthentication userAuthentication;
     private final ClientAuthentication clientAuthentication;

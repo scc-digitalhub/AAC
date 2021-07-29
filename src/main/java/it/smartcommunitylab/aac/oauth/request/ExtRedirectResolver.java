@@ -16,9 +16,6 @@
 
 package it.smartcommunitylab.aac.oauth.request;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
@@ -27,8 +24,6 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * {@link RedirectResolver} implementation with a hook to allow redirects to the
@@ -50,7 +45,7 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
 //    private boolean configMatchSubDomains;
 
 //    @Value("${application.url}")
-    private final String applicationURL;
+//    private final String applicationURL;
 
     private static LocalhostRedirectResolver localResolver;
 
@@ -58,11 +53,11 @@ public class ExtRedirectResolver extends DefaultRedirectResolver {
      * @param context
      */
     public ExtRedirectResolver(
-            String applicationURL,
+//            String applicationURL,
             boolean configMatchPorts,
             boolean configMatchSubDomains) {
         super();
-        this.applicationURL = applicationURL;
+//        this.applicationURL = applicationURL;
         this.setMatchPorts(configMatchPorts);
         this.setMatchSubdomains(configMatchSubDomains);
 

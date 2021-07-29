@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,6 @@ import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ProviderService;
@@ -41,6 +40,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 
 @Service
 public class ProviderManager {
@@ -58,7 +58,7 @@ public class ProviderManager {
     // key is providerId
     private Map<String, IdentityProvider> systemIdps;
     private Map<String, IdentityService> systemIdss;
-    private Map<String, AttributeProvider> globalAttrps;
+//    private Map<String, AttributeProvider> globalAttrps;
 
     public ProviderManager(
             AuthorityManager authorityManager,
@@ -77,7 +77,7 @@ public class ProviderManager {
 
         this.systemIdps = new HashMap<>();
         this.systemIdss = new HashMap<>();
-        this.globalAttrps = new HashMap<>();
+//        this.globalAttrps = new HashMap<>();
 
         // create system idps
         // these users access administrative contexts, they will have realm=""
@@ -327,10 +327,10 @@ public class ProviderManager {
         String name = provider.getName();
         String description = provider.getDescription();
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
 
         // TODO add enum
@@ -369,6 +369,8 @@ public class ProviderManager {
                 configurable = new OIDCIdentityProviderConfigMap();
             } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
                 configurable = new SamlIdentityProviderConfigMap();
+            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+                configurable = new SpidIdentityProviderConfigMap();
             }
 
             if (configurable == null) {
@@ -447,10 +449,10 @@ public class ProviderManager {
         String name = provider.getName();
         String description = provider.getDescription();
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
 
         // TODO add enum
@@ -495,6 +497,8 @@ public class ProviderManager {
                 configurable = new OIDCIdentityProviderConfigMap();
             } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
                 configurable = new SamlIdentityProviderConfigMap();
+            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+                configurable = new SpidIdentityProviderConfigMap();
             }
 
             if (configurable == null) {
@@ -707,10 +711,10 @@ public class ProviderManager {
      * avoid mangling with administrative sessions
      */
 
-    private List<ConfigurableProvider> listProvidersByAuthority(String authority) {
-        List<ProviderEntity> providers = providerService.listProvidersByAuthority(authority);
-        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
-    }
+//    private List<ConfigurableProvider> listProvidersByAuthority(String authority) {
+//        List<ProviderEntity> providers = providerService.listProvidersByAuthority(authority);
+//        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
+//    }
 
     private ConfigurableProvider getProvider(String providerId) throws NoSuchProviderException {
         ProviderEntity pe = providerService.getProvider(providerId);
@@ -984,8 +988,9 @@ public class ProviderManager {
                     return OIDCIdentityProviderConfigMap.getConfigurationSchema();
                 } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
                     return SamlIdentityProviderConfigMap.getConfigurationSchema();
+                } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+                    return SpidIdentityProviderConfigMap.getConfigurationSchema();
                 }
-
             }
         } catch (JsonMappingException e) {
             e.printStackTrace();

@@ -91,6 +91,8 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
             account = accountRepository.findByRealmAndProviderAndEmail(realm, provider, attributes.get("email"));
         }
 
+        // TODO add find by usernameAttribute as set in providerConfig
+
         if (account == null) {
             throw new NoSuchUserException("No user found matching attributes");
         }

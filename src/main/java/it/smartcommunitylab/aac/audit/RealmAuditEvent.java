@@ -6,7 +6,12 @@ import java.util.Map;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class RealmAuditEvent extends AuditEvent {
+    
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    
     private final String realm;
 
     public RealmAuditEvent(String realm, Instant timestamp, String principal, String type, Map<String, Object> data) {

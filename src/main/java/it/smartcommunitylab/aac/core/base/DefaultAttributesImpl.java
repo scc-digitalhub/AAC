@@ -1,15 +1,16 @@
 package it.smartcommunitylab.aac.core.base;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 
@@ -22,7 +23,9 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
  * 
  * Models do not persist a relation with a provider, but provider-specific collections should be namespaced.
  */
-public class DefaultAttributesImpl implements AttributeSet {
+public class DefaultAttributesImpl implements AttributeSet, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String identifier;
 

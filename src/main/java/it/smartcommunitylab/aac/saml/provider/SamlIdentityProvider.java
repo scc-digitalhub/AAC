@@ -5,7 +5,6 @@ import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,13 +22,10 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
-import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.DefaultAttributesMapper;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
-import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -488,6 +484,11 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     @Override
     public String getDescription() {
         return providerConfig.getDescription();
+    }
+
+    @Override
+    public String getLoginComponent() {
+        return "login/button";
     }
 
     @Override

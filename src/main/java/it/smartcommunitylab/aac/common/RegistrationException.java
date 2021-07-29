@@ -16,12 +16,15 @@
 
 package it.smartcommunitylab.aac.common;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /**
  * @author raman
  *
  */
 public class RegistrationException extends RuntimeException {
-    private static final long serialVersionUID = -3713058847321448029L;
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public RegistrationException(String message, Throwable cause) {
         super(message, cause);

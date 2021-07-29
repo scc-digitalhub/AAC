@@ -6,8 +6,6 @@ import it.smartcommunitylab.aac.Config;
 
 public class SpaceRole {
 
-    private static final long serialVersionUID = 7746685141380346961L;
-
     // role definition
     private String context;
     private String space;
@@ -15,8 +13,8 @@ public class SpaceRole {
 
     public SpaceRole(String context, String space, String role) {
         super();
-        this.context = StringUtils.hasText(context) ? context: null;
-        this.space = StringUtils.hasText(space) ? space: null;
+        this.context = StringUtils.hasText(context) ? context : null;
+        this.space = StringUtils.hasText(space) ? space : null;
         this.role = role;
         validate(this);
     }
@@ -89,11 +87,11 @@ public class SpaceRole {
 
     public String canonicalSpace() {
         StringBuilder sb = new StringBuilder();
-        if (!StringUtils.isEmpty(context)) {
+        if (StringUtils.hasText(context)) {
             sb.append(context);
             sb.append('/');
         }
-        if (!StringUtils.isEmpty(space)) {
+        if (StringUtils.hasText(space)) {
             sb.append(space);
         }
         return sb.toString();
@@ -103,14 +101,13 @@ public class SpaceRole {
         return canonicalSpace().replace('/', '-');
     }
 
-
     public String getAuthority() {
         StringBuilder sb = new StringBuilder();
-        if (!StringUtils.isEmpty(context)) {
+        if (StringUtils.hasText(context)) {
             sb.append(context);
             sb.append('/');
         }
-        if (!StringUtils.isEmpty(space)) {
+        if (StringUtils.hasText(space)) {
             sb.append(space);
             sb.append(':');
         }
@@ -149,7 +146,7 @@ public class SpaceRole {
     public static SpaceRole parse(String s) throws IllegalArgumentException {
         s = s.trim();
         int idx = s.lastIndexOf(':');
-        if (StringUtils.isEmpty(s) || idx == s.length() - 1)
+        if (!StringUtils.hasText(s) || idx == s.length() - 1)
             throw new IllegalArgumentException("Invalid Role format " + s);
         if (idx <= 0)
             return new SpaceRole(null, null, s.substring(idx + 1));

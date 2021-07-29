@@ -7,9 +7,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpHeaders;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class WebAuthenticationDetails extends org.springframework.security.web.authentication.WebAuthenticationDetails {
 
-    private static final long serialVersionUID = 560916581108681215L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final long timestamp;
     private final String scheme;

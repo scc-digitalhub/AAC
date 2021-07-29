@@ -7,7 +7,7 @@ import java.util.Map;
 import javax.mail.MessagingException;
 
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -118,7 +118,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
         String realm = getRealm();
 
         // extract base fields
-        String username = Jsoup.clean(reg.getUsername(), Whitelist.none());
+        String username = Jsoup.clean(reg.getUsername(), Safelist.none());
 
         // validate username
         if (!StringUtils.hasText(username)) {
@@ -147,19 +147,19 @@ public class InternalAccountService extends InternalAccountProvider implements A
             lang = ireg.getLang();
 
             if (StringUtils.hasText(password)) {
-                password = Jsoup.clean(password, Whitelist.none());
+                password = Jsoup.clean(password, Safelist.none());
             }
             if (StringUtils.hasText(email)) {
-                email = Jsoup.clean(email, Whitelist.none());
+                email = Jsoup.clean(email, Safelist.none());
             }
             if (StringUtils.hasText(name)) {
-                name = Jsoup.clean(name, Whitelist.none());
+                name = Jsoup.clean(name, Safelist.none());
             }
             if (StringUtils.hasText(surname)) {
-                surname = Jsoup.clean(surname, Whitelist.none());
+                surname = Jsoup.clean(surname, Safelist.none());
             }
             if (StringUtils.hasText(lang)) {
-                lang = Jsoup.clean(lang, Whitelist.none());
+                lang = Jsoup.clean(lang, Safelist.none());
             }
 
             // we accept confirmed accounts
@@ -269,16 +269,16 @@ public class InternalAccountService extends InternalAccountProvider implements A
             String lang = ireg.getLang();
 
             if (StringUtils.hasText(email)) {
-                email = Jsoup.clean(email, Whitelist.none());
+                email = Jsoup.clean(email, Safelist.none());
             }
             if (StringUtils.hasText(name)) {
-                name = Jsoup.clean(name, Whitelist.none());
+                name = Jsoup.clean(name, Safelist.none());
             }
             if (StringUtils.hasText(surname)) {
-                surname = Jsoup.clean(surname, Whitelist.none());
+                surname = Jsoup.clean(surname, Safelist.none());
             }
             if (StringUtils.hasText(lang)) {
-                lang = Jsoup.clean(lang, Whitelist.none());
+                lang = Jsoup.clean(lang, Safelist.none());
             }
 
             // we update all props, even if empty or null

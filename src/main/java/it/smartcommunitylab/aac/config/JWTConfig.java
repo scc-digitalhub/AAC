@@ -34,7 +34,6 @@ import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.DefaultJWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.DefaultJWTSigningAndValidationService;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
-import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 
 /**

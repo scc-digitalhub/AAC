@@ -15,7 +15,11 @@ import org.springframework.util.Assert;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class IdToken extends OidcIdToken {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     public static final Set<String> REGISTERED_CLAIM_NAMES = JWTClaimsSet.getRegisteredNames();
     public static final Set<String> STANDARD_CLAIM_NAMES = IDTokenClaimsSet.getStandardClaimNames();

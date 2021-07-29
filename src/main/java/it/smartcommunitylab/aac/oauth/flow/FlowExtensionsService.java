@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
 @Service

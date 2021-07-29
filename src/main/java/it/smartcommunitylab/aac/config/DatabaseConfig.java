@@ -27,7 +27,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.QueryLookupStrategy;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -54,6 +53,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.saml.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.oauth.persistence",
+        "it.smartcommunitylab.aac.spid.persistence",
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
 
@@ -65,6 +65,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.saml.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.oauth.persistence",
+        "it.smartcommunitylab.aac.spid.persistence",        
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
         "it.smartcommunitylab.aac.repository",
@@ -141,6 +142,7 @@ public class DatabaseConfig {
                 "it.smartcommunitylab.aac.saml.persistence",
                 "it.smartcommunitylab.aac.roles.persistence",
                 "it.smartcommunitylab.aac.oauth.persistence",
+                "it.smartcommunitylab.aac.spid.persistence",                
                 "it.smartcommunitylab.aac.services.persistence",
                 "it.smartcommunitylab.aac.attributes.persistence");
 //		bean.setPersistenceUnitManager(null);

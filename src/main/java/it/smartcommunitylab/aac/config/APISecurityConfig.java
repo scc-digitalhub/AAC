@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,9 +10,6 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import it.smartcommunitylab.aac.api.ApiExceptionHandler;
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 
 /*

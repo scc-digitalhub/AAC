@@ -6,9 +6,12 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String username;
     private String key;

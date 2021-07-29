@@ -9,7 +9,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class StringArraySerializer extends StdSerializer<Set<String>> {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public StringArraySerializer() {
         super(Set.class, false);

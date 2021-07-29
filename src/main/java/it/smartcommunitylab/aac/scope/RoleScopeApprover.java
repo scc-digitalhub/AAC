@@ -15,7 +15,6 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 
 public class RoleScopeApprover implements ScopeApprover {

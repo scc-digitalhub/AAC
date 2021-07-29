@@ -9,7 +9,6 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.model.User;
 
 public interface ClaimsService {
 

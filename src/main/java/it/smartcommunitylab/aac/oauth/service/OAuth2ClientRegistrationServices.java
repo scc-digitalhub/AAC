@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
@@ -84,13 +84,13 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         String description = registration.getName();
 
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
         } else {
             // generate random
             name = nameGenerator.generateKey();
         }
         if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Whitelist.none());
+            description = Jsoup.clean(description, Safelist.none());
         }
 
         // enable all providers for the given realm
@@ -159,14 +159,14 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             String description = registration.getName();
 
             if (StringUtils.hasText(name)) {
-                name = Jsoup.clean(name, Whitelist.none());
+                name = Jsoup.clean(name, Safelist.none());
             } else {
                 // keep existing or generate
                 name = StringUtils.hasText(client.getName()) ? client.getName() : nameGenerator.generateKey();
             }
 
             if (StringUtils.hasText(description)) {
-                description = Jsoup.clean(description, Whitelist.none());
+                description = Jsoup.clean(description, Safelist.none());
             }
 
             // enable all providers for the given realm

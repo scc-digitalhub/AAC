@@ -16,11 +16,12 @@
 
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.io.Serializable;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import it.smartcommunitylab.aac.SystemKeys;
 
 /**
  * User registration information (different account of the registered user)
@@ -30,6 +31,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 @JsonInclude(Include.NON_EMPTY)
 public class AccountProfile extends AbstractProfile {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public static final String IDENTIFIER = "accountprofile";
 

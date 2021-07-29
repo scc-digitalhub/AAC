@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import it.smartcommunitylab.aac.repository.StringOrArraySerializer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * IETF RFC7662 Token Introspection model

@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.core.model;
 
 import java.io.Serializable;
-import java.util.Map;
 
 /*
  * A set of attributes for a given user, from an authority via a provider

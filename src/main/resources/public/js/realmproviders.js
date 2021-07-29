@@ -379,7 +379,13 @@ angular.module('aac.controllers.realmproviders', [])
 
 
         var init = function () {
-            RealmProviders.getIdentityProviderTemplates(slug)
+         RealmData.getUrl(slug)
+                .then(function (data) {
+                    $scope.realmUrls = data;
+                })
+                .then(function () {
+                    return  RealmProviders.getIdentityProviderTemplates(slug);
+                })
                 .then(function (data) {
                     $scope.providerTemplates = data;
 
@@ -412,6 +418,7 @@ angular.module('aac.controllers.realmproviders', [])
             }
 
             if (authority == 'saml') {
+               
                 var authnContextClasses = [];
                 if (config.authnContextClasses) {
                     config.authnContextClasses.forEach(function (s) {
@@ -421,6 +428,7 @@ angular.module('aac.controllers.realmproviders', [])
 
                 $scope.samlAuthnContextClasses = authnContextClasses;
             }
+             
         }
 
         var extractConfiguration = function (authority, config) {
@@ -474,6 +482,11 @@ angular.module('aac.controllers.realmproviders', [])
             }
 
             $scope.attributeMapping = attributeMapping;
+            
+            if (data.authority == 'saml' || data.authority == 'spid') {
+                var metadataUrl = $scope.realmUrls.applicationUrl+"/auth/"+data.authority+"/metadata/"+data.provider;
+                $scope.samlMetadataUrl = metadataUrl;
+            }
         };
 
 
@@ -596,6 +609,15 @@ angular.module('aac.controllers.realmproviders', [])
                 return './svg/sprite.svg#logo-' + logo;
             }
             return './italia/svg/sprite.svg#it-unlocked';
+        }
+
+        $scope.copyText = function (txt) {
+            var textField = document.createElement('textarea');
+            textField.innerText = txt;
+            document.body.appendChild(textField);
+            textField.select();
+            document.execCommand('copy');
+            textField.remove();
         }
 
         init();

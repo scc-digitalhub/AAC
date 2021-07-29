@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
 import java.util.Collection;
-import java.util.Collections;
 import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;

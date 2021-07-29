@@ -1,22 +1,21 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
 
 /*
  * Default User Attributes is an instantiable bean which contains attributes bound to a user
  */
 
 public class DefaultUserAttributesImpl extends BaseAttributes {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String userId;
     private Set<Attribute> attributes;

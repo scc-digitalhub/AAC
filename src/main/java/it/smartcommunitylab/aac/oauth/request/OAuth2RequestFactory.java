@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
@@ -82,8 +83,8 @@ public class OAuth2RequestFactory
     public TokenRequest createTokenRequest(Map<String, String> requestParameters, OAuth2ClientDetails clientDetails) {
 
         // required parameters
-        String clientId = requestParameters.get("client_id");
-        String grantType = requestParameters.get("grant_type");
+        String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
+        String grantType = readParameter(requestParameters, "grant_type", STRING_PATTERN);
 
         // check if we didn't receive clientId, use authentication info
         if (clientId == null) {
@@ -121,8 +122,8 @@ public class OAuth2RequestFactory
         // use per flow token request subtype
         AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
         if (authorizationGrantType == AUTHORIZATION_CODE) {
-            String code = requestParameters.get("code");
-            String redirectUri = requestParameters.get("redirect_uri");
+            String code = readParameter(requestParameters, "code", STRING_PATTERN);
+            String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
 
             logger.trace("create token request for " + clientId
                     + " grantType " + grantType
@@ -137,7 +138,7 @@ public class OAuth2RequestFactory
             throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
         }
         if (authorizationGrantType == PASSWORD) {
-            String username = requestParameters.get("username");
+            String username = readParameter(requestParameters, "username", STRING_PATTERN);
             String password = requestParameters.get("password");
             Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
 
@@ -210,12 +211,12 @@ public class OAuth2RequestFactory
             OAuth2ClientDetails clientDetails, User user) {
 
         // required parameters
-        String clientId = requestParameters.get("client_id");
-        String responseType = requestParameters.get("response_type");
+        String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
+        String responseType = readParameter(requestParameters, "response_type", STRING_PATTERN);
         Set<String> responseTypes = delimitedStringToSet(decodeParameters(responseType));
 
         // optional
-        String state = requestParameters.get("state");
+        String state = readParameter(requestParameters, "state", SPECIAL_PATTERN);
 
         // check if we didn't receive clientId, use authentication info
         if (clientId == null) {
@@ -242,8 +243,8 @@ public class OAuth2RequestFactory
         }
 
         Set<String> scopes = delimitedStringToSet(decodeParameters(requestParameters.get("scope")));
-        String redirectUri = requestParameters.get("redirect_uri");
-        String responseMode = requestParameters.get("response_mode");
+        String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
+        String responseMode = readParameter(requestParameters, "response_mode", STRING_PATTERN);
         if (responseMode == null) {
             responseMode = (responseTypes.contains("token") | responseTypes.contains("id_token")) ? "fragment"
                     : "query";
@@ -288,7 +289,7 @@ public class OAuth2RequestFactory
         extensions.put("response_mode", responseMode);
 
         // support NONCE
-        String nonce = requestParameters.get("nonce");
+        String nonce = readParameter(requestParameters, "nonce", SPECIAL_PATTERN);
         if (StringUtils.hasText(nonce)) {
             extensions.put("nonce", nonce);
         }
@@ -462,6 +463,10 @@ public class OAuth2RequestFactory
     private final static AuthorizationGrantType PASSWORD = AuthorizationGrantType.PASSWORD;
     private final static AuthorizationGrantType REFRESH_TOKEN = AuthorizationGrantType.REFRESH_TOKEN;
 
+    public final static String SLUG_PATTERN = SystemKeys.SLUG_PATTERN;
+    public final static String STRING_PATTERN = "^[a-zA-Z0-9_:-]+$";
+    public final static String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
+    public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9!@#$&()\\-`.+,/\"]*$";
     /*
      * Legacy factory
      * 
@@ -494,6 +499,21 @@ public class OAuth2RequestFactory
         String clientId = requestParameters.get("client_id");
         OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
         return createTokenRequest(requestParameters, clientDetails);
+    }
+
+    private String readParameter(Map<String, String> requestParameters, String key, String pattern)
+            throws IllegalArgumentException {
+        if (!requestParameters.containsKey(key)) {
+            return null;
+        }
+
+        String raw = requestParameters.get(key);
+        if (!raw.matches(pattern)) {
+            throw new IllegalArgumentException(key + " does not match pattern " + String.valueOf(pattern));
+        }
+
+        return raw.trim();
+
     }
 
 }

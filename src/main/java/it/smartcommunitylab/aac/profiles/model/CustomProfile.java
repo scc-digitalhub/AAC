@@ -10,11 +10,14 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import it.smartcommunitylab.aac.SystemKeys;
 
 @JsonInclude(Include.NON_EMPTY)
 public class CustomProfile extends AbstractProfile {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     @JsonIgnore
     private final String identifier;

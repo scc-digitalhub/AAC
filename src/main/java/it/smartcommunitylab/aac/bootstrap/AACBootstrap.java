@@ -41,7 +41,6 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 @Component
 public class AACBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private static ObjectMapper mapper = new ObjectMapper();
 
     @Value("${bootstrap.apply}")
     private boolean apply;

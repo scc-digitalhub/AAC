@@ -15,12 +15,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalIdentityProviderConfigMap implements ConfigurableProperties {
+public class InternalIdentityProviderConfigMap implements ConfigurableProperties, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {

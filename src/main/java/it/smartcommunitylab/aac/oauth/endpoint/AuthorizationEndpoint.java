@@ -49,7 +49,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.ScopesController;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.UserService;

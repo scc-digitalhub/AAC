@@ -8,7 +8,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
@@ -18,14 +17,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 @Entity
 @Table(name = "oidc_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "provider_id", "user_id" }))
 @EntityListeners(AuditingEntityListener.class)
 public class OIDCUserAccount implements UserAccount {
 
-    private static final long serialVersionUID = -1089336824606818125L;
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     @Id
     @GeneratedValue

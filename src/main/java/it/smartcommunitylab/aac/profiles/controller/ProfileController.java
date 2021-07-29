@@ -48,12 +48,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiAuditScope;
-import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.model.ErrorInfo;
 import it.smartcommunitylab.aac.model.Response;
@@ -75,9 +72,6 @@ public class ProfileController {
 
     @Autowired
     private ProfileManager profileManager;
-
-    @Autowired
-    private AuthenticationHelper authHelper;
 
     /*
      * Current user operations TODO evaluate move/copy to MVC controller and keep

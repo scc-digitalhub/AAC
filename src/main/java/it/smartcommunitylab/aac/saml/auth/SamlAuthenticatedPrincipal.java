@@ -12,6 +12,8 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 
 public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
 
+    private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
+
     private final String provider;
     private final String realm;
 

@@ -17,10 +17,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.repository.StringArraySerializer;
 
 @JsonInclude(Include.NON_NULL)
 public class OAuth2ClientDetails implements ClientDetails {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     @JsonProperty("client_id")
     private String clientId;

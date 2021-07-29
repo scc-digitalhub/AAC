@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AccountExpiredException;
-import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -531,22 +530,22 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
     }
 
-    private Collection<GrantedAuthority> convertUserRoles(List<UserRoleEntity> userRoles,
-            List<UserRoleEntity> realmRoles) {
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        // always grant user role
-        authorities.add(new SimpleGrantedAuthority(Config.R_USER));
-
-        for (UserRoleEntity role : userRoles) {
-            authorities.add(new SimpleGrantedAuthority(role.getRole()));
-        }
-
-        for (UserRoleEntity role : realmRoles) {
-            authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
-        }
-
-        return authorities;
-    }
+//    private Collection<GrantedAuthority> convertUserRoles(List<UserRoleEntity> userRoles,
+//            List<UserRoleEntity> realmRoles) {
+//        Set<GrantedAuthority> authorities = new HashSet<>();
+//        // always grant user role
+//        authorities.add(new SimpleGrantedAuthority(Config.R_USER));
+//
+//        for (UserRoleEntity role : userRoles) {
+//            authorities.add(new SimpleGrantedAuthority(role.getRole()));
+//        }
+//
+//        for (UserRoleEntity role : realmRoles) {
+//            authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
+//        }
+//
+//        return authorities;
+//    }
 
     public boolean supports(Class<?> authentication) {
         // we support only requests with provider ids
@@ -564,11 +563,11 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
         }
     }
 
-    private void auditSuccess(UserAuthentication auth) {
-        if (eventPublisher != null) {
-            // publish as is, listener will resolve realm
-            eventPublisher.publishAuthenticationSuccess(auth);
-        }
-    }
+//    private void auditSuccess(UserAuthentication auth) {
+//        if (eventPublisher != null) {
+//            // publish as is, listener will resolve realm
+//            eventPublisher.publishAuthenticationSuccess(auth);
+//        }
+//    }
 
 }

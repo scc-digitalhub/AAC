@@ -5,9 +5,12 @@ import java.util.regex.Pattern;
 
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserResource;
 
 public abstract class AbstractBaseResource implements UserResource, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String authority;
     private final String realm;
@@ -22,7 +25,8 @@ public abstract class AbstractBaseResource implements UserResource, Serializable
     /**
      * Private constructor for JPA and other serialization tools.
      * 
-     * We need to implement this to enable deserialization of resources via reflection
+     * We need to implement this to enable deserialization of resources via
+     * reflection
      */
     @SuppressWarnings("unused")
     private AbstractBaseResource() {

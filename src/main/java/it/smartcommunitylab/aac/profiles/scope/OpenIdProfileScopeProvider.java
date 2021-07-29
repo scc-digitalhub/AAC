@@ -6,22 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
-import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
-import it.smartcommunitylab.aac.attributes.service.AttributeService;
-import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
-import it.smartcommunitylab.aac.profiles.extractor.AttributeSetProfileExtractor;
-import it.smartcommunitylab.aac.profiles.extractor.UserProfileExtractor;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;

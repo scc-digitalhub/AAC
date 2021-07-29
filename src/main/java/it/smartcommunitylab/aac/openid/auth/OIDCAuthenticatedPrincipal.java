@@ -6,12 +6,12 @@ import java.util.Map;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 
 public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     private final String provider;
     private final String realm;

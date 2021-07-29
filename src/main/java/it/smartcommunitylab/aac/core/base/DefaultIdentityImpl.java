@@ -3,6 +3,8 @@ package it.smartcommunitylab.aac.core.base;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.security.core.CredentialsContainer;
+
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -12,6 +14,8 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
  */
 
 public class DefaultIdentityImpl extends BaseIdentity implements CredentialsContainer {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected final UserAuthenticatedPrincipal principal;
     protected UserAccount account;

@@ -3,10 +3,13 @@ package it.smartcommunitylab.aac.audit;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 
 public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String authority;
     private final String provider;

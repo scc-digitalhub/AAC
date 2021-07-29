@@ -6,9 +6,12 @@ public class SystemKeys {
 
     // to be upgraded when serialized objects are updated, breaks db
     // TODO implement
-    public static final String AAC_CORE_SERIAL_VERSION = "";
-    public static final String AAC_OAUTH2_SERIAL_VERSION = "";
-    public static final String AAC_SAML_SERIAL_VERSION = "";
+    public static final long AAC_COMMON_SERIAL_VERSION = 400L;
+    public static final long AAC_CORE_SERIAL_VERSION = 400L;
+    public static final long AAC_OAUTH2_SERIAL_VERSION = 400L;
+    public static final long AAC_OIDC_SERIAL_VERSION = 400L;
+    public static final long AAC_SAML_SERIAL_VERSION = 400L;
+    public static final long AAC_SPID_SERIAL_VERSION = 400L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";
@@ -18,6 +21,8 @@ public class SystemKeys {
     public static final String AUTHORITY_INTERNAL = "internal";
     public static final String AUTHORITY_OIDC = "oidc";
     public static final String AUTHORITY_SAML = "saml";
+    public static final String AUTHORITY_SPID = "spid";
+    public static final String AUTHORITY_CIE = "cie";
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";
@@ -51,6 +56,9 @@ public class SystemKeys {
     public static final String SCOPE_PATTERN = "^[a-zA-Z.:]{3,}$";
     public static final String NAMESPACE_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public static final String KEY_PATTERN = "^[a-zA-Z0-9._]+$";
+    public static final String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
+    public static final String SPECIAL_PATTERN = "^[a-zA-Z0-9!@#$&()\\-`.+,/\"]*$";
+    public static final String JWT_PATTERN = "(^[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*\\.[A-Za-z0-9-_]*$)";
 
     public static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30;// 30 days
 

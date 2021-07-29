@@ -1,11 +1,7 @@
 package it.smartcommunitylab.aac.openid.auth;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;

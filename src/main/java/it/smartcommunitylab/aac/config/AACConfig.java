@@ -5,6 +5,7 @@ import java.io.Writer;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,7 @@ import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 
 /*
  * AAC core config
@@ -80,6 +82,12 @@ public class AACConfig {
     @ConfigurationProperties(prefix = "attributesets")
     public AttributeSetsProperties systemAttributeSets() {
         return new AttributeSetsProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spid")
+    public SpidProperties spidProperties() {
+        return new SpidProperties();
     }
 
     @Bean
@@ -178,7 +186,14 @@ public class AACConfig {
     }
 
     @Bean
-    public SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
+    @Qualifier("samlRelyingPartyRegistrationRepository")
+    public SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository() {
+        return new SamlRelyingPartyRegistrationRepository();
+    }
+
+    @Bean
+    @Qualifier("spidRelyingPartyRegistrationRepository")
+    public SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository() {
         return new SamlRelyingPartyRegistrationRepository();
     }
 
@@ -195,6 +210,11 @@ public class AACConfig {
     @Bean
     public InMemoryProviderRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
         return new InMemoryProviderRepository<SamlIdentityProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
+        return new InMemoryProviderRepository<SpidIdentityProviderConfig>();
     }
 
     /*

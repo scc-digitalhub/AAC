@@ -8,15 +8,9 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
-import net.minidev.json.JSONObject;
 
 ////ignore data from APIM for paramers, we can't properly deserialize it 
 //@JsonIgnoreProperties(value = { "parameters" }, allowGetters = true)

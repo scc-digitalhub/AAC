@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.oauth.model;
 
-import java.util.Date;
 import java.util.Set;
 
 import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;

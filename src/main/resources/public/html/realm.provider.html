@@ -52,6 +52,10 @@
             <a class="nav-link  {{activeView('conf.saml')}}" href ng-click="switchView('conf.saml')">SAML
                 Configuration</a>
         </li>
+        <li ng-if="idp.authority == 'spid'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.spid')}}" href ng-click="switchView('conf.spid')">SPID
+                Configuration</a>
+        </li>        
         <li class="nav-item">
             <a class="nav-link  {{activeView('hooks')}}" href ng-click="switchView('hooks')">Hooks</a>
         </li>

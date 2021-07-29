@@ -6,9 +6,13 @@ import java.util.Map;
 
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 
 public class RefreshTokenTokenRequest extends TokenRequest {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
+
     private final static String GRANT_TYPE = AuthorizationGrantType.REFRESH_TOKEN.getValue();
 
     private String refreshToken;

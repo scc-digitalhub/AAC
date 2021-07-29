@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /*
  * An authenticationToken holding both the provider token and a resolved identity
  * 
@@ -16,7 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
-    private static final long serialVersionUID = -1302725087208017064L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final UserAuthenticatedPrincipal principal;
 
@@ -160,7 +162,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     public long getAge() {
         if (issuedAt != null) {
-            return Duration.between(issuedAt, Instant.now()).toSeconds();
+            return Duration.between(issuedAt, Instant.now()).getSeconds();
         }
         return -1;
     }

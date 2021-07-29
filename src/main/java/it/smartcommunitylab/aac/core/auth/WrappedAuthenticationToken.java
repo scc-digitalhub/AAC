@@ -8,10 +8,12 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public abstract class WrappedAuthenticationToken implements Authentication,
         CredentialsContainer {
 
-    private static final long serialVersionUID = 6963872664984798641L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected AbstractAuthenticationToken token;
 

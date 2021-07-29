@@ -11,13 +11,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DefaultAttribute implements Attribute {
+public class DefaultAttribute implements Attribute, Serializable {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+
     @NotBlank
     private String key;
 
@@ -25,7 +29,7 @@ public class DefaultAttribute implements Attribute {
     private AttributeType type;
     private String name;
     private String description;
-    
+
     @JsonProperty("multiple")
     private Boolean isMultiple;
 

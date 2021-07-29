@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -15,6 +14,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.nimbusds.jwt.JWT;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 
 /*
@@ -22,6 +22,8 @@ import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
  */
 
 public class AACOAuth2AccessTokenSerializer extends StdSerializer<AACOAuth2AccessToken> {
+
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     public AACOAuth2AccessTokenSerializer() {
         super(AACOAuth2AccessToken.class);

@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.base;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 
 /*
@@ -7,6 +8,8 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
  * offers mapper to profile
  */
 public abstract class BaseAccount extends AbstractAccount {
+
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected String userId;
 

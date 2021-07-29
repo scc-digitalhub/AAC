@@ -15,95 +15,54 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.config;
 
-import java.beans.PropertyVetoException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.Filter;
-import javax.sql.DataSource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CsrfLogoutHandler;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
-import org.yaml.snakeyaml.Yaml;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.ExpiredUserAuthenticationFilter;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
-import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.crypto.PlaintextPasswordEncoder;
 import it.smartcommunitylab.aac.internal.InternalConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.InternalLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.InternalResetKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
-import it.smartcommunitylab.aac.internal.provider.InternalAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.internal.service.InternalUserDetailsService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
-import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
-import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
-import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
-import it.smartcommunitylab.aac.oauth.service.OAuth2ClientUserDetailsService;
-import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.auth.OIDCLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openid.auth.OIDCRedirectAuthenticationFilter;
@@ -115,7 +74,10 @@ import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
-import it.smartcommunitylab.aac.utils.Utils;
+import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;
+import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
+import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 
 /*
  * Security config for AAC UI
@@ -150,7 +112,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private OIDCClientRegistrationRepository clientRegistrationRepository;
 
     @Autowired
-    private SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+    @Qualifier("samlRelyingPartyRegistrationRepository")
+    private SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository;
+
+    @Autowired
+    @Qualifier("spidRelyingPartyRegistrationRepository")
+    private SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository;
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
@@ -178,6 +145,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ProviderRepository<SamlIdentityProviderConfig> samlProviderRepository;
+
+    @Autowired
+    private ProviderRepository<SpidIdentityProviderConfig> spidProviderRepository;
 
 //    @Autowired
 //    private UserRepository userRepository;
@@ -302,6 +272,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/css/**").permitAll()
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
+                .antMatchers("/spid/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 // whitelist swagger
                 .antMatchers("/v2/api-docs",
@@ -337,7 +308,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .and()
                 .csrf()
 //                .disable()
-                .ignoringAntMatchers("/logout", "/console/**", "/account/**", "/auth/oidc/**", "/auth/saml/**")
+                .ignoringAntMatchers("/logout", "/console/**", "/account/**",
+                        "/auth/oidc/**",
+                        "/auth/saml/**",
+                        "/auth/spid/**")
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
@@ -347,7 +321,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getSamlAuthorityFilters(authManager, samlProviderRepository,
-                                relyingPartyRegistrationRepository),
+                                samlRelyingPartyRegistrationRepository),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getSpidAuthorityFilters(authManager, spidProviderRepository,
+                                spidRelyingPartyRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
@@ -539,6 +517,43 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         ssoFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
 
         SamlMetadataFilter metadataFilter = new SamlMetadataFilter(relyingPartyRegistrationRepository);
+
+        List<Filter> filters = new ArrayList<>();
+        filters.add(metadataFilter);
+        filters.add(requestFilter);
+        filters.add(ssoFilter);
+
+        CompositeFilter filter = new CompositeFilter();
+        filter.setFilters(filters);
+
+        return filter;
+    }
+
+    /*
+     * SPID Auth
+     */
+
+    public CompositeFilter getSpidAuthorityFilters(AuthenticationManager authManager,
+            ProviderRepository<SpidIdentityProviderConfig> providerRepository,
+            SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+
+        // request repository
+        Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+
+        // build filters
+        SpidWebSsoAuthenticationRequestFilter requestFilter = new SpidWebSsoAuthenticationRequestFilter(
+                providerRepository,
+                relyingPartyRegistrationRepository);
+        requestFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
+
+        SpidWebSsoAuthenticationFilter ssoFilter = new SpidWebSsoAuthenticationFilter(
+                providerRepository,
+                relyingPartyRegistrationRepository);
+        ssoFilter.setAuthenticationManager(authManager);
+        ssoFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
+
+        SpidMetadataFilter metadataFilter = new SpidMetadataFilter(providerRepository,
+                relyingPartyRegistrationRepository);
 
         List<Filter> filters = new ArrayList<>();
         filters.add(metadataFilter);

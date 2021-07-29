@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,12 +73,12 @@ public class RealmManager {
         String name = r.getName();
 
         if (StringUtils.hasText(slug)) {
-            slug = Jsoup.clean(slug, Whitelist.none());
+            slug = Jsoup.clean(slug, Safelist.none());
             slug = slug.trim().toLowerCase();
         }
 
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
             name = name.trim();
         }
 
@@ -109,7 +109,7 @@ public class RealmManager {
 
         String name = r.getName();
         if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Whitelist.none());
+            name = Jsoup.clean(name, Safelist.none());
             name = name.trim();
         }
         if (!StringUtils.hasText(name)) {
@@ -133,10 +133,10 @@ public class RealmManager {
                         String v = e.getValue();
 
                         if (StringUtils.hasText(k)) {
-                            k = Jsoup.clean(k, Whitelist.none());
+                            k = Jsoup.clean(k, Safelist.none());
                         }
                         if (StringUtils.hasText(v)) {
-                            v = Jsoup.clean(v, Whitelist.none());
+                            v = Jsoup.clean(v, Safelist.none());
                         }
 
                         if (StringUtils.hasText(k)) {

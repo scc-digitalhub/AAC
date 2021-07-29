@@ -26,6 +26,8 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 @EntityListeners(AuditingEntityListener.class)
 public class InternalUserAccount implements UserAccount {
 
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
     @Id
     @GeneratedValue
     private Long id;
@@ -272,7 +274,7 @@ public class InternalUserAccount implements UserAccount {
         profile.getAttributes().put("email", getEmail());
         profile.getAttributes().put("given_name", getName());
         profile.getAttributes().put("family_name", getSurname());
-        
+
         return profile;
     }
 

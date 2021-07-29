@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.openid.token;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 import it.smartcommunitylab.aac.openid.common.IdToken;

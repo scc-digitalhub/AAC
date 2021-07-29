@@ -15,15 +15,15 @@
  ******************************************************************************/
 package it.smartcommunitylab.aac.profiles.model;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BasicProfile extends AbstractProfile {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     public static final String IDENTIFIER = "basicprofile";
 

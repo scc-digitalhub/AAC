@@ -146,8 +146,7 @@ public class OAuth2Config {
 
     @Bean
     public RedirectResolver getRedirectResolver() {
-        ExtRedirectResolver redirectResolver = new ExtRedirectResolver(applicationURL, redirectMatchPorts,
-                redirectMatchSubDomains);
+        ExtRedirectResolver redirectResolver = new ExtRedirectResolver(redirectMatchPorts, redirectMatchSubDomains);
         return redirectResolver;
     }
 

@@ -2,52 +2,34 @@ package it.smartcommunitylab.aac.oauth.client;
 
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotBlank;
-
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseClient;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.jwt.JWTConfig;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
-import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
-import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
-import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
 
 public class OAuth2Client extends BaseClient implements ConfigurableProperties {
-    public static final String CLIENT_TYPE = SystemKeys.CLIENT_TYPE_OAUTH2;
 
-    private static ObjectMapper mapper = new ObjectMapper();
-    private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
+
+    public static final String CLIENT_TYPE = SystemKeys.CLIENT_TYPE_OAUTH2;
 
     @JsonIgnore
     private ClientSecret clientSecret;
@@ -365,9 +347,12 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         c.configMap = new OAuth2ClientConfigMap();
 
         c.configMap.setApplicationType(
-                (oauth.getApplicationType() != null ? ApplicationType.parse(oauth.getApplicationType()) : ApplicationType.WEB));
-        c.configMap.setTokenType((oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : TokenType.JWT));
-        c.configMap.setSubjectType((oauth.getSubjectType() != null ? SubjectType.parse(oauth.getSubjectType()) : SubjectType.PUBLIC));
+                (oauth.getApplicationType() != null ? ApplicationType.parse(oauth.getApplicationType())
+                        : ApplicationType.WEB));
+        c.configMap
+                .setTokenType((oauth.getTokenType() != null ? TokenType.parse(oauth.getTokenType()) : TokenType.JWT));
+        c.configMap.setSubjectType(
+                (oauth.getSubjectType() != null ? SubjectType.parse(oauth.getSubjectType()) : SubjectType.PUBLIC));
 
         Set<String> authorizedGrantTypes = StringUtils.commaDelimitedListToSet(oauth.getAuthorizedGrantTypes());
         c.configMap.setAuthorizedGrantTypes(authorizedGrantTypes.stream()

@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 
 /**
  * Constants and methods for managing resource visibility
@@ -161,7 +161,7 @@ public class Config {
     /** scopes for authorization */
     public static final String SCOPE_AUTH_MANAGE = "authorization.manage";
     public static final String SCOPE_AUTH_SCHEMA_MANAGE = "authorization.schema.manage";
-    
+
     public static final String SCOPE_DYNAMIC_CLIENT_REGISTRATION = "dcr";
 
 //	public static final String CLIENT_PARAM_SIGNED_RESPONSE_ALG = "signed_response_alg";
@@ -181,7 +181,7 @@ public class Config {
 
     public static final String WELL_KNOWN_URL = "/.well-known";
 
-    public static final Whitelist WHITELIST_RELAXED_NOIMG = Whitelist.relaxed()
+    public static final Safelist WHITELIST_RELAXED_NOIMG = Safelist.relaxed()
             .removeTags("img")
             .addTags("nav", "button", "hr")
             .addProtocols("a", "href", "#")

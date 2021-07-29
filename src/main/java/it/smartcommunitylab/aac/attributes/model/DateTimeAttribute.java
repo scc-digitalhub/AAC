@@ -3,15 +3,18 @@ package it.smartcommunitylab.aac.attributes.model;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.AttributeType;
 
 public class DateTimeAttribute extends AbstractAttribute {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private LocalDateTime value;
 

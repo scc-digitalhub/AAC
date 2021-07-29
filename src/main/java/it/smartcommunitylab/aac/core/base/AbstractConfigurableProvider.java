@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.core.base;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.persistence.Convert;
-
-import it.smartcommunitylab.aac.repository.HashMapConverter;
-
 public abstract class AbstractConfigurableProvider extends AbstractProvider implements ConfigurableProperties {
 
     protected AbstractConfigurableProvider(String authority, String provider, String realm) {

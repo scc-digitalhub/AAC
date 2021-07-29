@@ -28,7 +28,6 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.RoleService;
 

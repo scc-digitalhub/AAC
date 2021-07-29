@@ -27,42 +27,44 @@ import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /**
  * @author raman
  * 
  */
 public class IsolationSupportHibernateJpaDialect extends HibernateJpaDialect {
-	private static final long serialVersionUID = -847163859069850868L;
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-	ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>();
-	ThreadLocal<Integer> originalIsolation = new ThreadLocal<Integer>();
+    ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>();
+    ThreadLocal<Integer> originalIsolation = new ThreadLocal<Integer>();
 
-	@Override
-	public Object beginTransaction(EntityManager entityManager,
-			TransactionDefinition definition) throws PersistenceException,
-			SQLException, TransactionException {
+    @Override
+    public Object beginTransaction(EntityManager entityManager,
+            TransactionDefinition definition) throws PersistenceException,
+            SQLException, TransactionException {
 
-		boolean readOnly = definition.isReadOnly();
-		Connection connection = this.getJdbcConnection(entityManager, readOnly)
-				.getConnection();
-		connectionThreadLocal.set(connection);
-		originalIsolation.set(DataSourceUtils.prepareConnectionForTransaction(
-				connection, definition));
+        boolean readOnly = definition.isReadOnly();
+        Connection connection = this.getJdbcConnection(entityManager, readOnly)
+                .getConnection();
+        connectionThreadLocal.set(connection);
+        originalIsolation.set(DataSourceUtils.prepareConnectionForTransaction(
+                connection, definition));
 
-		entityManager.getTransaction().begin();
+        entityManager.getTransaction().begin();
 
-		return prepareTransaction(entityManager, readOnly, definition.getName());
-	}
+        return prepareTransaction(entityManager, readOnly, definition.getName());
+    }
 
-	@Override
-	public void cleanupTransaction(Object transactionData) {
-		try {
-			super.cleanupTransaction(transactionData);
-			DataSourceUtils.resetConnectionAfterTransaction(
-					connectionThreadLocal.get(), originalIsolation.get());
-		} finally {
-			connectionThreadLocal.remove();
-			originalIsolation.remove();
-		}
-	}
+    @Override
+    public void cleanupTransaction(Object transactionData) {
+        try {
+            super.cleanupTransaction(transactionData);
+            DataSourceUtils.resetConnectionAfterTransaction(
+                    connectionThreadLocal.get(), originalIsolation.get(), true);
+        } finally {
+            connectionThreadLocal.remove();
+            originalIsolation.remove();
+        }
+    }
 }

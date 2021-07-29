@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.profiles.service;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +13,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -24,7 +22,6 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.AccountProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.AttributeSetProfileExtractor;
-import it.smartcommunitylab.aac.profiles.extractor.AttributesProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.BasicProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.EmailProfileExtractor;
 import it.smartcommunitylab.aac.profiles.extractor.OpenIdProfileExtractor;

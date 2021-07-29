@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -42,8 +41,6 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.Scope;
