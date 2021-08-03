@@ -39,8 +39,13 @@ public class AuditConfig {
 
     @Bean
     public ExtendedAuthenticationEventPublisher authenticationEventPublisher(
-            ApplicationEventPublisher applicationEventPublisher) {
-        return new ExtendedAuthenticationEventPublisher(applicationEventPublisher);
+            ApplicationEventPublisher applicationEventPublisher,
+            ProviderService providerService) {
+        ExtendedAuthenticationEventPublisher publisher = new ExtendedAuthenticationEventPublisher(
+                applicationEventPublisher);
+        publisher.setProviderService(providerService);
+
+        return publisher;
     }
 
     @Bean

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AccountExpiredException;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -31,7 +32,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
@@ -72,7 +72,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
     private final UserEntityService userService;
     private final ProviderManager providerManager;
 
-    private ExtendedAuthenticationEventPublisher eventPublisher;
+    private AuthenticationEventPublisher eventPublisher;
 
     public ExtendedAuthenticationManager(
             ProviderManager providerManager,
@@ -87,7 +87,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
     }
 
     @Autowired
-    public void setAuthenticationEventPublisher(ExtendedAuthenticationEventPublisher eventPublisher) {
+    public void setAuthenticationEventPublisher(AuthenticationEventPublisher eventPublisher) {
         Assert.notNull(eventPublisher, "AuthenticationEventPublisher cannot be null");
         this.eventPublisher = eventPublisher;
     }
@@ -473,8 +473,17 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                     identity, attributeSets,
                     authorities);
 
+            // set webAuth details matching this request
+            userAuth.setWebAuthenticationDetails(webAuthDetails);
+
             logger.debug("successfully build userAuthentication token for " + userAuth.getSubjectId());
             logger.trace("userAuthentication is " + userAuth.toString());
+
+            // audit trail for request
+            if (eventPublisher != null) {
+                // publish as is, listener will resolve realm
+                eventPublisher.publishAuthenticationSuccess(userAuth);
+            }
 
             // merge userAuth from session here, filters won't have the context
             DefaultUserAuthenticationToken result = userAuth;
@@ -515,11 +524,12 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // set webAuth details matching this request
             result.setWebAuthenticationDetails(webAuthDetails);
 
-            // audit trail
-            if (eventPublisher != null) {
-                // publish as is, listener will resolve realm
-                eventPublisher.publishUserAuthenticationSuccess(authorityId, providerId, realm, result);
-            }
+            // audit trail for result
+            // DISABLED, for now audit single login events
+//            if (eventPublisher != null) {
+//                // publish as is, listener will resolve realm
+//                eventPublisher.publishAuthenticationSuccess(result);
+//            }
 
             return result;
 

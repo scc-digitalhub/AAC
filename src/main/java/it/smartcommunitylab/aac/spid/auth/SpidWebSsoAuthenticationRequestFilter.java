@@ -48,6 +48,7 @@ public class SpidWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
 //    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
 
+    //TODO replace with spid specific implementation, handling resolution via relayState AND/OR requestId
     private Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository(
             HttpSessionSaml2AuthenticationRequestRepository.class.getName() + ".SPID_AUTHORIZATION_REQUEST");
 

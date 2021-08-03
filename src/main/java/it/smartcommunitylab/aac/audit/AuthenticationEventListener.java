@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.audit;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,13 +43,65 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
     @Override
     public void onApplicationEvent(AbstractAuthenticationEvent event) {
-        if (event instanceof AbstractAuthenticationFailureEvent) {
-            onAuthenticationFailureEvent((AbstractAuthenticationFailureEvent) event);
+        if (event instanceof UserAuthenticationFailureEvent) {
+            onUserAuthenticationFailureEvent((UserAuthenticationFailureEvent) event);
         } else if (event instanceof UserAuthenticationSuccessEvent) {
             onUserAuthenticationSuccessEvent((UserAuthenticationSuccessEvent) event);
         } else if (event instanceof AuthenticationSuccessEvent) {
             onAuthenticationSuccessEvent((AuthenticationSuccessEvent) event);
+        } else if (event instanceof AbstractAuthenticationFailureEvent) {
+            onAuthenticationFailureEvent((AbstractAuthenticationFailureEvent) event);
         }
+    }
+
+    private void onUserAuthenticationFailureEvent(UserAuthenticationFailureEvent event) {
+        AuthenticationException ex = event.getException();
+        Authentication authentication = event.getAuthentication();
+        String principal = authentication.getName();
+
+        String authority = event.getAuthority();
+        String provider = event.getProvider();
+        String realm = event.getRealm();
+
+        String level = SystemKeys.EVENTS_LEVEL_DETAILS;
+        String eventType = USER_AUTHENTICATION_FAILURE;
+
+        if (providerService != null) {
+            ProviderEntity p = providerService.findProvider(provider);
+            if (p != null && p.getEvents() != null) {
+                level = p.getEvents();
+            }
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("authority", authority);
+        data.put("provider", provider);
+        data.put("realm", realm);
+        data.put("type", ex.getClass().getSimpleName());
+        data.put("message", ex.getMessage());
+
+        if (SystemKeys.EVENTS_LEVEL_DETAILS.equals(level) || SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
+            if (ex instanceof Serializable) {
+                data.put("exception", event.exportException());
+            }
+
+            if (authentication instanceof WrappedAuthenticationToken) {
+                // persist web details, should be safe to store
+                data.put("details", ((WrappedAuthenticationToken) authentication).getAuthenticationDetails());
+            }
+        }
+
+        if (SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
+            // persist full authentication token
+            // TODO add export
+            data.put("authentication", authentication);
+        }
+
+        // build audit
+        RealmAuditEvent audit = new RealmAuditEvent(realm, Instant.now(), principal, eventType, data);
+
+        // publish as event, listener will persist to store
+        publish(audit);
     }
 
     private void onUserAuthenticationSuccessEvent(UserAuthenticationSuccessEvent event) {
@@ -84,6 +137,7 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
         if (SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
             // persist full authentication token
+            // TODO add export
             data.put("authentication", auth);
         }
 

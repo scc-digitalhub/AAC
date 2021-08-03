@@ -17,6 +17,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
+import org.springframework.security.saml2.core.Saml2ResponseValidatorResult;
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
@@ -29,10 +30,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthentication;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
+import it.smartcommunitylab.aac.spid.auth.SpidResponseValidator;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 
 public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
@@ -47,6 +51,7 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
     private final Set<String> registrationIds;
 
     private final OpenSamlAuthenticationProvider openSamlProvider;
+    private final SpidResponseValidator spidValidator;
 
     public SpidAuthenticationProvider(String providerId,
             SpidIdentityProviderConfig config,
@@ -65,20 +70,35 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
 
         this.registrationIds = config.getRelyingPartyRegistrationIds();
 
-        // build a default saml provider with a clock skew of 5 minutes
+        // build spid validator
+        spidValidator = new SpidResponseValidator();
+
+        // build a custom saml provider with validtion rules
         openSamlProvider = new OpenSamlAuthenticationProvider();
-//        openSamlProvider.setAssertionValidator(OpenSamlAuthenticationProvider
-//                .createDefaultAssertionValidator(assertionToken -> {
-//                    Map<String, Object> params = new HashMap<>();
-//                    params.put(SAML2AssertionValidationParameters.CLOCK_SKEW, Duration.ofMinutes(5).toMillis());
-//                    return new ValidationContext(params);
-//                }));
+        openSamlProvider.setAssertionValidator(assertionToken -> {
+            // call default
+            Saml2ResponseValidatorResult result = OpenSamlAuthenticationProvider
+                    .createDefaultAssertionValidator().convert(assertionToken);
+
+            // explicitely validate assertion signature as required, even when response is
+            // signed
+            // TODO
+
+            Assertion assertion = assertionToken.getAssertion();
+
+            return result;
+        });
         Converter<ResponseToken, Saml2Authentication> authenticationConverter = OpenSamlAuthenticationProvider
                 .createDefaultResponseAuthenticationConverter();
         openSamlProvider.setResponseAuthenticationConverter((responseToken) -> {
+
             Response response = responseToken.getResponse();
             Saml2AuthenticationToken token = responseToken.getToken();
             Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
+
+            // validate as per spid
+            spidValidator.validateResponse(responseToken);
+
             Saml2Authentication auth = authenticationConverter.convert(responseToken);
 
             // integrate assertions as attributes
@@ -95,10 +115,12 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
                 attributes.put("authnContextClassRef", Collections.singletonList(
                         authnStatement.getAuthnContext().getAuthnContextClassRef().getAuthnContextClassRef()));
             }
-            attributes.put(SUBJECT_ATTRIBUTE, Collections.singletonList(assertion.getSubject().getNameID().getValue()));
+            attributes.put(SUBJECT_ATTRIBUTE,
+                    Collections.singletonList(assertion.getSubject().getNameID().getValue()));
 
             return new Saml2Authentication(new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes),
                     token.getSaml2Response(), Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+
         });
 
         // use a custom authorities mapper to cleanup authorities
@@ -110,6 +132,8 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
     public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
         // extract registrationId and check if matches our providerid
         Saml2AuthenticationToken loginAuthenticationToken = (Saml2AuthenticationToken) authentication;
+        String serializedResponse = loginAuthenticationToken.getSaml2Response();
+
         String registrationId = loginAuthenticationToken.getRelyingPartyRegistration().getRegistrationId();
         if (!registrationIds.contains(registrationId)) {
             // this login is not for us, let others process it
@@ -117,11 +141,20 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
         }
 
         // delegate to openSaml, and leverage default converter
-        Authentication token = openSamlProvider.authenticate(authentication);
-        Saml2Authentication auth = (Saml2Authentication) token;
+        try {
+            Authentication token = openSamlProvider.authenticate(authentication);
+            Saml2Authentication auth = (Saml2Authentication) token;
 
-        // TODO validate as per spid
-        return auth;
+            return auth;
+        } catch (Saml2AuthenticationException e) {
+            // check if wrapped spid ex
+            if (e.getCause() instanceof SpidAuthenticationException) {
+                throw (SpidAuthenticationException) e.getCause();
+            }
+
+            throw new SpidAuthenticationException(e, serializedResponse);
+        }
+
     }
 
     @Override
