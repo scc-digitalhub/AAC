@@ -15,6 +15,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
+import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ResetKeyAuthenticationToken;
@@ -65,30 +66,49 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
     @Override
     public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
         // just delegate to provider
+        String username = authentication.getName();
+        String credentials = String
+                .valueOf(authentication.getCredentials());
+
         // TODO check if providers are available
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
-            UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authProvider
-                    .authenticate(authentication);
-            if (token == null) {
-                return null;
+
+            try {
+                UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authProvider
+                        .authenticate(authentication);
+                if (token == null) {
+                    return null;
+                }
+
+                // rebuild token to include account
+                username = token.getName();
+                InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
+
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(account,
+                        token.getCredentials(), token.getAuthorities());
+                auth.setDetails(token.getDetails());
+                return auth;
+            } catch (AuthenticationException e) {
+                throw new InternalAuthenticationException(username, credentials, "password", e,
+                        e.getMessage());
             }
-
-            // rebuild token to include account
-            String username = token.getName();
-            InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
-
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(account,
-                    token.getCredentials(), token.getAuthorities());
-            auth.setDetails(token.getDetails());
-            return auth;
-
         } else if (authentication instanceof ConfirmKeyAuthenticationToken) {
-            return confirmKeyProvider.authenticate(authentication);
+            try {
+                return confirmKeyProvider.authenticate(authentication);
+            } catch (AuthenticationException e) {
+                throw new InternalAuthenticationException(username, credentials, "confirmKey", e,
+                        e.getMessage());
+            }
         } else if (authentication instanceof ResetKeyAuthenticationToken) {
-            return resetKeyProvider.authenticate(authentication);
+            try {
+                return resetKeyProvider.authenticate(authentication);
+            } catch (AuthenticationException e) {
+                throw new InternalAuthenticationException(username, credentials, "resetKey", e,
+                        e.getMessage());
+            }
         }
-
-        throw new BadCredentialsException("invalid request");
+        throw new InternalAuthenticationException(username, credentials, "unknown",
+                new BadCredentialsException("invalid request"));
     }
 
     @Override

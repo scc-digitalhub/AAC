@@ -93,8 +93,8 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
         if (SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
             // persist full authentication token
-            // TODO add export
-            data.put("authentication", authentication);
+            // export to ensure we can serialize the token
+            data.put("authentication", event.exportAuthentication());
         }
 
         // build audit

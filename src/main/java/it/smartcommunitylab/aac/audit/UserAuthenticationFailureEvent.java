@@ -58,6 +58,19 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
         return data;
     }
 
+    public Map<String, Serializable> exportAuthentication() {
+        Map<String, Serializable> data = new HashMap<>();
+        Authentication auth = getAuthentication();
+        if (auth instanceof WrappedAuthenticationToken) {
+            auth = ((WrappedAuthenticationToken) getAuthentication()).getAuthenticationToken();
+        }
+        
+        data.put("type", auth.getClass().getName());
+        data.put("principal", auth.getName());
+
+        return data;
+    }
+
     public WebAuthenticationDetails getAuthenticationDetails() {
         Authentication auth = getAuthentication();
         if (auth instanceof WrappedAuthenticationToken) {

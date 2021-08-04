@@ -30,14 +30,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthentication;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidResponseValidator;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
+import it.smartcommunitylab.aac.spid.model.SpidError;
 
 public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -132,13 +131,14 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
     public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
         // extract registrationId and check if matches our providerid
         Saml2AuthenticationToken loginAuthenticationToken = (Saml2AuthenticationToken) authentication;
-        String serializedResponse = loginAuthenticationToken.getSaml2Response();
-
         String registrationId = loginAuthenticationToken.getRelyingPartyRegistration().getRegistrationId();
         if (!registrationIds.contains(registrationId)) {
             // this login is not for us, let others process it
             return null;
         }
+
+        // TODO fetch also saml2Request
+        String serializedResponse = loginAuthenticationToken.getSaml2Response();
 
         // delegate to openSaml, and leverage default converter
         try {
@@ -149,10 +149,11 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
         } catch (Saml2AuthenticationException e) {
             // check if wrapped spid ex
             if (e.getCause() instanceof SpidAuthenticationException) {
-                throw (SpidAuthenticationException) e.getCause();
+                SpidError err = ((SpidAuthenticationException) e.getCause()).getError();
+                throw new SpidAuthenticationException(err, null, serializedResponse);
             }
 
-            throw new SpidAuthenticationException(e, serializedResponse);
+            throw new SpidAuthenticationException(e, null, serializedResponse);
         }
 
     }

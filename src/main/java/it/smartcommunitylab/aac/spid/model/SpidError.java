@@ -4,40 +4,43 @@ import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum SpidError {
 //    AUTENTICATION_SUCCESS(1),
-    SYSTEM_UNAVAILABLE(2),
-    SYSTEM_ERROR(3),
-    INVALID_BINDING_FORMAT(4),
-    INVALID_SIGNATURE(5),
-    INVALID_BINDING(6),
-    INVALID_REQUEST_SIGNATURE(7),
-    MALFORMED_RESPONSE_DATA(8),
-    UNKNOWN_RESPONSE_CLASS(9),
-    INVALID_ISSUER(10),
-    INVALID_ID(11),
-    INVALID_AUTHNCONTEXT(12),
-    INVALID_ISSUEINSTANT(13),
-    INVALID_DESTINATION(14),
-    ISPASSIVE_ERROR(15),
-    INVALID_ACS(16),
-    INVALID_NAMEFORMAT(17),
-    INVALID_ACS_INDEX(18),
-    AUTH_FAILED_REQUEST_COUNT(19),
-    AUTH_FAILED_INVALID_CREDENTIALS(20),
-    AUTH_FAILED_TIMEOUT(21),
-    AUTH_FAILED_NOT_APPROVED(22),
-    AUTH_FAILED_USER_LOCKED(23),
-    AUTH_FAILED_CANCELED(25),
-    AUTH_FAILED_WRONG_IDENTITY_TYPE(30);
+    SYSTEM_UNAVAILABLE(2, "system unavailable"),
+    SYSTEM_ERROR(3, "system error"),
+    INVALID_BINDING_FORMAT(4, "invalid binding format"),
+    INVALID_SIGNATURE(5, "invalid signature"),
+    INVALID_BINDING(6, "invalid http binding"),
+    INVALID_REQUEST_SIGNATURE(7, "invalid request signature"),
+    MALFORMED_RESPONSE_DATA(8, "response data malformed"),
+    UNKNOWN_RESPONSE_CLASS(9, "unknown response class"),
+    INVALID_ISSUER(10, "invalid issuer"),
+    INVALID_ID(11, "invalid ID"),
+    INVALID_AUTHNCONTEXT(12, "invalid authN context"),
+    INVALID_ISSUEINSTANT(13, "invalid issueInstant"),
+    INVALID_DESTINATION(14, "invalid destination"),
+    ISPASSIVE_ERROR(15, "isPassive flag can not be set"),
+    INVALID_ACS(16, "invalid assertion consumer service"),
+    INVALID_NAMEFORMAT(17, "invalid nameFormat"),
+    INVALID_ACS_INDEX(18, "invalid acs index"),
+    AUTH_FAILED_REQUEST_COUNT(19, "auth failed: too many requests"),
+    AUTH_FAILED_INVALID_CREDENTIALS(20, "auth failed: invalid credentials"),
+    AUTH_FAILED_TIMEOUT(21, "auth failed: timeout"),
+    AUTH_FAILED_NOT_APPROVED(22, "auth failed: not approved"),
+    AUTH_FAILED_USER_LOCKED(23, "auth failed: user locked"),
+    AUTH_FAILED_CANCELED(25, "auth failed: process canceled"),
+    AUTH_FAILED_WRONG_IDENTITY_TYPE(30, "auth failed: wrong identity type");
 
     private final Integer value;
+    private final String message;
 
-    SpidError(Integer value) {
+    SpidError(Integer value, String message) {
         Assert.notNull(value, "value cannot be empty");
         this.value = value;
+        this.message = message;
     }
 
     @JsonValue
@@ -49,8 +52,13 @@ public enum SpidError {
         return String.valueOf(value);
     }
 
+    @JsonIgnore
     public String getErrorCode() {
         return "spid.error." + Integer.toString(value);
+    }
+
+    public String getMessage() {
+        return message;
     }
 
     public static SpidError parse(Integer value) {

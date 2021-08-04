@@ -132,20 +132,19 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
             throw new BadCredentialsException("invalid user or password");
         }
 
-        // fetch account
+        // fetch account to check
+        // if this does not exists we'll let authProvider handle the error to ensure
+        // proper audit
         InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
-        if (account == null) {
-            // don't leak user does not exists
-            throw new BadCredentialsException("invalid user or password");
-        }
-
-        HttpSession session = request.getSession(true);
-        if (session != null) {
-            // check if user needs to reset password, and add redirect
-            if (account.isChangeOnFirstAccess()) {
-                // TODO build url
-                session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
-                        "/changepwd/" + providerId + "/" + username);
+        if (account != null) {
+            HttpSession session = request.getSession(true);
+            if (session != null) {
+                // check if user needs to reset password, and add redirect
+                if (account.isChangeOnFirstAccess()) {
+                    // TODO build url
+                    session.setAttribute(RequestAwareAuthenticationSuccessHandler.SAVED_REQUEST,
+                            "/changepwd/" + providerId + "/" + username);
+                }
             }
         }
 

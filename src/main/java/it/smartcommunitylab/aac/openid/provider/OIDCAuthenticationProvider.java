@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthor
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
@@ -28,6 +29,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
@@ -79,25 +81,36 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
             return null;
         }
 
+        // TODO extract codeResponse + tokenResponse for audit
+        String authorizationRequest = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationRequest()
+                .getAuthorizationRequestUri();
+        String authorizationResponse = loginAuthenticationToken.getAuthorizationExchange().getAuthorizationResponse()
+                .getRedirectUri();
+
         // delegate to oauth providers in sequence
-        Authentication auth = oidcProvider.authenticate(authentication);
-        if (auth == null) {
-            auth = oauthProvider.authenticate(authentication);
-        }
+        try {
+            Authentication auth = oidcProvider.authenticate(authentication);
+            if (auth == null) {
+                auth = oauthProvider.authenticate(authentication);
+            }
 
-        if (auth != null) {
-            // convert to out authToken and clear exchange information, those are not
-            // serializable..
-            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
-            //
-            auth = new OIDCAuthenticationToken(
-                    authenticationToken.getPrincipal(),
-                    authenticationToken.getAccessToken(),
-                    authenticationToken.getRefreshToken(),
-                    Collections.singleton(new SimpleGrantedAuthority(Config.R_USER)));
-        }
+            if (auth != null) {
+                // convert to out authToken and clear exchange information, those are not
+                // serializable..
+                OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
+                //
+                auth = new OIDCAuthenticationToken(
+                        authenticationToken.getPrincipal(),
+                        authenticationToken.getAccessToken(),
+                        authenticationToken.getRefreshToken(),
+                        Collections.singleton(new SimpleGrantedAuthority(Config.R_USER)));
+            }
 
-        return auth;
+            return auth;
+        } catch (OAuth2AuthenticationException e) {
+            throw new OIDCAuthenticationException(e.getError(), e.getMessage(), authorizationRequest,
+                    authorizationResponse, null, null);
+        }
     }
 
     @Override

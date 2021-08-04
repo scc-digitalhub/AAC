@@ -24,6 +24,12 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.ProviderService;
+import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
+import it.smartcommunitylab.aac.internal.auth.InternalUserAuthenticationFailureEvent;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
+import it.smartcommunitylab.aac.openid.auth.OIDCUserAuthenticationFailureEvent;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
+import it.smartcommunitylab.aac.saml.auth.SamlUserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidUserAuthenticationFailureEvent;
 
@@ -142,6 +148,18 @@ public class ExtendedAuthenticationEventPublisher
         if (exception instanceof SpidAuthenticationException) {
             return new SpidUserAuthenticationFailureEvent(
                     authority, provider, realm, authentication, (SpidAuthenticationException) exception);
+        }
+        if (exception instanceof SamlAuthenticationException) {
+            return new SamlUserAuthenticationFailureEvent(
+                    authority, provider, realm, authentication, (SamlAuthenticationException) exception);
+        }
+        if (exception instanceof OIDCAuthenticationException) {
+            return new OIDCUserAuthenticationFailureEvent(
+                    authority, provider, realm, authentication, (OIDCAuthenticationException) exception);
+        }
+        if (exception instanceof InternalAuthenticationException) {
+            return new InternalUserAuthenticationFailureEvent(
+                    authority, provider, realm, authentication, (InternalAuthenticationException) exception);
         }
 
         return new UserAuthenticationFailureEvent(

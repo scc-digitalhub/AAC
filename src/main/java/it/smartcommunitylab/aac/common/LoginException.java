@@ -5,6 +5,9 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
+import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 
 public class LoginException extends AuthenticationException {
@@ -35,8 +38,16 @@ public class LoginException extends AuthenticationException {
         return new LoginException(e.getError().getErrorCode(), e);
     }
 
-    public static LoginException translate(Saml2AuthenticationException e) {
-        return new LoginException(e.getSaml2Error().getErrorCode(), e);
+    public static LoginException translate(SamlAuthenticationException e) {
+        return new LoginException(e.getError().getErrorCode(), e);
+    }
+    
+    public static LoginException translate(OIDCAuthenticationException e) {
+        return new LoginException(e.getError().getErrorCode(), e);
+    }
+    
+    public static LoginException translate(InternalAuthenticationException e) {
+        return new LoginException(e.getError(), e);
     }
 
     public static LoginException translate(AuthenticationException e) {
@@ -45,9 +56,19 @@ public class LoginException extends AuthenticationException {
             return translate((SpidAuthenticationException) e);
         }
 
-        if (e instanceof Saml2AuthenticationException) {
-            return translate((Saml2AuthenticationException) e);
+        if (e instanceof SamlAuthenticationException) {
+            return translate((SamlAuthenticationException) e);
         }
+        
+        if (e instanceof OIDCAuthenticationException) {
+            return translate((OIDCAuthenticationException) e);
+        }
+
+        
+        if (e instanceof InternalAuthenticationException) {
+            return translate((InternalAuthenticationException) e);
+        }
+
 
         return new LoginException(e.getClass().getSimpleName(), e);
 
