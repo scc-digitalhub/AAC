@@ -335,6 +335,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                     Subject ss = i.getSubjectResolver().resolveByLinkingAttributes(attributes);
                     if (ss != null) {
                         subjectId = ss.getSubjectId();
+                        logger.debug("linked subject for identity to " + subjectId);
                         break;
                     }
                 }
