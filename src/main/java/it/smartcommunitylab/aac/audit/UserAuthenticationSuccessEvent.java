@@ -7,6 +7,9 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 
+//TODO add custom serializer
+//TODO add subtype inference 
+
 public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

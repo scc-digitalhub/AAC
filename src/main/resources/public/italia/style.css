@@ -1,3 +1,5 @@
+
+
 /**
  *    Copyright 2015-2019 Smart Community Lab, FBK
  *
@@ -216,3 +218,14 @@ tags-input {
 form .invalid-feedback {
   display: initial;
 } 
+
+.card-logo {
+   height: 96px;
+   background: transparent;
+   text-align: center;
+}
+.card-logo > img {
+   height: 100%;
+   display: inline-flex;
+   object-fit: contain;
+}

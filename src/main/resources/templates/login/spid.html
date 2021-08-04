@@ -5,6 +5,7 @@
 
 <body>
    <div th:fragment="login">
+      <p th:if="${authority.description == null}" th:text="#{lbl_login_providers}">Login with</p>   
       <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
       <!-- AGID - SPID IDP BUTTON MEDIUM "ENTRA CON SPID" * begin * -->
       <a href="#" class="italia-it-button italia-it-button-size-m button-spid"

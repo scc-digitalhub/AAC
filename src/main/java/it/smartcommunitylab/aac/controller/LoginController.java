@@ -15,6 +15,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
@@ -226,8 +228,11 @@ public class LoginController {
         // check errors
         Exception error = (Exception) req.getSession()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (error != null) {
-            model.addAttribute("error", error.getClass().getSimpleName());
+        if (error != null && error instanceof AuthenticationException) {
+            LoginException le = LoginException.translate((AuthenticationException) error);
+
+            model.addAttribute("error", le.getError());
+            model.addAttribute("errorMessage", le.getMessage());
 
             // also remove from session
             req.getSession().removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);

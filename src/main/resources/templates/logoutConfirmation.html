@@ -41,28 +41,32 @@
 </head>
 
 <body>
-  <div class="container">
-
-    <div th:if="${headerText == null}">
-      <img class="logo d-none d-md-block" src="../img/ls_logo.png" alt="SmartCommunity" />
-      <div class="clear"></div>
-    </div>
-
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${headerText != null}"
-      th:utext="${headerText}"></div>
-
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${accessConfirmationText != null}"
-      th:utext="${accessConfirmationText}"></div>
+  <div class="container-sm">
 
     <div class="row mt-md-0 mt-5 justify-content-center">
-      <div class="confirmation-content container-fluid">
-        <div class="row justify-content-center">
-          <div class="col-md-offset-2 col-md-8">
-            <h2 th:text="#{lbl_logout_title}">Logout confirmation</h2>
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
+        <div class="card card-bg mt-5">
+
+          <div class="card-header bg-primary text-white customization-block"
+            th:if="${customization != null && customization.get('headerText') != null}"
+            th:utext="${customization.get('headerText')}"></div>
+
+
+          <div class="card-body align-items-center">
+            <div class="card-logo">
+              <img class="" th:src="@{/img/ls_logo.png}" alt="SmartCommunity" />
+            </div>
+
+            <h4 class="text-center" th:text="#{lbl_logout_title}">Logout confirmation</h4>
+
+            <div class="mt-md-0 mt-5 justify-content-center  customization-block"
+              th:if="${customization != null && customization.get('accessConfirmationText') != null}"
+              th:utext="${customization.get('accessConfirmationText')}"></div>
+
 
             <form id="logoutForm" name="logoutForm" th:action="${formAction}" method="post">
 
-              <div class="row-fluid">
+              <div class="text-center">
                 <div th:if="${ client != null }">
                   <div th:utext="#{lbl_logout_from(${client.displayName})}">Logout from application</div>
                 </div>
@@ -74,14 +78,16 @@
               </div>
 
             </form>
-
           </div>
+
+          <div class="card-footer text-muted customization-block"
+            th:if="${customization != null && customization.get('footerText') != null}"
+            th:utext="${customization.get('footerText')}"></div>
 
         </div>
       </div>
     </div>
-    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${footerText != null}"
-      th:utext="${footerText}"></div>
+
 
   </div>
   <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>

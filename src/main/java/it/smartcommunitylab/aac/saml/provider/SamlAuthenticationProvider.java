@@ -18,6 +18,7 @@ import org.springframework.security.saml2.provider.service.authentication.OpenSa
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider.ResponseToken;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -28,6 +29,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthentication;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
@@ -102,12 +104,19 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
             return null;
         }
 
-        // delegate to openSaml, and leverage default converter
-        Authentication token = openSamlProvider.authenticate(authentication);
-        SamlAuthentication auth = (SamlAuthentication) token;
+        // TODO fetch also saml2Request
+        String serializedResponse = loginAuthenticationToken.getSaml2Response();
 
-        // TODO wrap response token and erase credentials etc
-        return auth;
+        // delegate to openSaml, and leverage default converter
+        try {
+            Authentication token = openSamlProvider.authenticate(authentication);
+            SamlAuthentication auth = (SamlAuthentication) token;
+
+            // TODO wrap response token and erase credentials etc
+            return auth;
+        } catch (Saml2AuthenticationException e) {
+            throw new SamlAuthenticationException(e.getSaml2Error(), e.getMessage(), null, serializedResponse);
+        }
     }
 
     @Override
