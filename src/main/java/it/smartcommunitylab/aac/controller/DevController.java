@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +107,7 @@ public class DevController {
 
     @Value("${application.url}")
     private String applicationUrl;
-    
+
     @Autowired
     private RealmManager realmManager;
     @Autowired
@@ -184,7 +185,7 @@ public class DevController {
         return ResponseEntity.ok(metadata);
 
     }
-    
+
     @GetMapping("/console/dev/realms/{realm:.*}/well-known/url")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -192,13 +193,13 @@ public class DevController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             HttpServletRequest request) throws NoSuchRealmException {
         // hack
-        
+
         UriComponentsBuilder uri = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
         URI requestUri = uri.build().toUri();
         builder.scheme(requestUri.getScheme()).host(requestUri.getHost()).port(requestUri.getPort());
         String baseUrl = builder.build().toString();
-        
+
         // TODO render proper per realm meta
         Map<String, String> metadata = new HashMap<>();
         metadata.put("applicationUrl", applicationUrl);
@@ -284,16 +285,35 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void exportRealm(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = false, defaultValue = "false") boolean custom,
+            @RequestParam(required = false, defaultValue = "false") boolean full,
             HttpServletResponse res)
             throws NoSuchRealmException, SystemException, IOException {
+
         Realm r = realmManager.getRealm(realm);
+        Object export = r;
+        String key = r.getSlug();
+
+        if (custom) {
+            key = r.getSlug() + "-custom";
+            export = Collections.singletonMap("customization", r.getCustomization());
+        } else if (full) {
+            key = r.getSlug() + "-full";
+            Map<String, Collection<? extends Object>> map = new HashMap<>();
+            map.put("realms", Collections.singleton(r));
+            map.put("providers", providerManager
+                    .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY));
+            map.put("clients", clientManager.listClientApps(realm));
+            map.put("services", serviceManager.listServices(realm));
+            export = map;
+        }
 
 //      String s = yaml.dump(clientApp);
-        String s = yamlObjectMapper.writeValueAsString(r);
+        String s = yamlObjectMapper.writeValueAsString(export);
 
         // write as file
         res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=realm-" + r.getSlug() + ".yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=realm-" + key + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.print(s);
         out.flush();

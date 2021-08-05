@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -34,6 +35,7 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 @Service
 public class RealmManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final static Safelist WHITELIST_RELAXED_NOIMG = Config.WHITELIST_RELAXED_NOIMG;
 
     private int minLength = 3;
 
@@ -136,7 +138,7 @@ public class RealmManager {
                             k = Jsoup.clean(k, Safelist.none());
                         }
                         if (StringUtils.hasText(v)) {
-                            v = Jsoup.clean(v, Safelist.none());
+                            v = Jsoup.clean(v, WHITELIST_RELAXED_NOIMG);
                         }
 
                         if (StringUtils.hasText(k)) {

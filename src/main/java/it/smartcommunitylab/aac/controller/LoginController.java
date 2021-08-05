@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -129,19 +131,23 @@ public class LoginController {
 
         String displayName = null;
         Realm re = null;
-        CustomizationBean cb = null;
+        Map<String, String> resources = new HashMap<>();
         if (!realm.equals(SystemKeys.REALM_COMMON)) {
             re = realmManager.getRealm(realm);
             displayName = re.getName();
-            cb = re.getCustomization("login");
+            CustomizationBean gcb = re.getCustomization("global");
+            if(gcb != null ) {
+                resources.putAll(gcb.getResources());
+            }
+            CustomizationBean lcb = re.getCustomization("login");
+            if(lcb != null ) {
+                resources.putAll(lcb.getResources());
+            }
         }
 
         model.addAttribute("displayName", displayName);
-        if (cb != null) {
-            model.addAttribute("customization", cb.getResources());
-        } else {
-            model.addAttribute("customization", null);
-        }
+        model.addAttribute("customization", resources);
+        
 
         // fetch providers for given realm
         Collection<IdentityProvider> providers = providerManager.getIdentityProviders(realm);

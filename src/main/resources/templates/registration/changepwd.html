@@ -42,92 +42,96 @@
 
 
 <body>
-  <div class="container">
+  <div class="container-sm">
 
-    <div th:if="${headerText == null}">
-      <img class="logo d-none d-md-block" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
-      <div class="clear"></div>
-    </div>
+    <div class="row mt-md-0 mt-5 justify-content-center">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
+        <div class="card card-bg mt-5">
 
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${headerText != null}"
-      th:utext="${headerText}"></div>
-
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${resetText != null}"
-      th:utext="${resetText}"></div>
+          <div class="card-header bg-primary text-white customization-block"
+            th:if="${customization != null && customization.get('headerText') != null}"
+            th:utext="${customization.get('headerText')}"></div>
 
 
-    <div class="row justify-content-center">
-      <div class="col-md-offset-4 col-md-4">
-        <div class="panel panel-default">
-          <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_changepwd_title}">AAC</h4>
-          <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
-
-          <h5 th:text="#{lbl_changepwd_title}">Change password</h5>
-          <p id="infoPassword" class="form-text text-muted" th:text=${policy}>password policy</p>
-          
-          <form action="#" th:action="${changeUrl}" th:object="${reg}" method="post">
-            <input type="hidden" th:field="*{userId}">
-            <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
-
-            <div class="col-md-12 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
-              <label th:text="#{lbl_cur_pwd}  + '*: '"></label>
-              <input class="form-control input-password" type="password" th:field="*{curPassword}" />
-              <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
-                </svg>
-                <svg class="password-icon-invisible icon icon-sm d-none">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
-                </svg>
-              </span>
-              <div th:if="${#fields.hasErrors('curPassword')}" th:errors="*{curPassword}">
-              </div>
+          <div class="card-body align-items-center">
+            <div class="card-logo">
+              <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
             </div>
 
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-            <div class="col-md-12 form-group">
-              <label th:text="#{lbl_pwd}  + '*: '"></label>
-              <input class="form-control input-password " type="password" th:field="*{password}" >
-              <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
-                </svg>
-                <svg class="password-icon-invisible icon icon-sm d-none">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
-                </svg>
-              </span>
-              <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
-              </div>
-            </div>
+            <h5 th:text="#{lbl_changepwd_title}">Change password</h5>
+            <p id="infoPassword" class="form-text text-muted" th:text=${policy}>password policy</p>
 
-            <div class="col-md-12 form-group">
-              <label th:text="#{lbl_verify_pwd}  + '*: '"></label>
-              <input class="form-control input-password " type="password" th:field="*{verifyPassword}" >
-              <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
-                </svg>
-                <svg class="password-icon-invisible icon icon-sm d-none">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
-                </svg>
-              </span>
-              <div th:if="${#fields.hasErrors('verifyPassword')}" th:errors="*{verifyPassword}">
-              </div>
-            </div>
+            <form action="#" th:action="${changeUrl}" th:object="${reg}" method="post">
+              <input type="hidden" th:field="*{userId}">
+              <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
-            <div class="row">
-              <div class="col-md-6 form-group">
-                <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+              <div class="col-md-12 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
+                <label th:text="#{lbl_cur_pwd}  + '*: '"></label>
+                <input class="form-control input-password" type="password" th:field="*{curPassword}" />
+                <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
+                  </svg>
+                  <svg class="password-icon-invisible icon icon-sm d-none">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
+                  </svg>
+                </span>
+                <div th:if="${#fields.hasErrors('curPassword')}" th:errors="*{curPassword}">
+                </div>
               </div>
-              <div class="col-md-6 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
-                <a class="btn btn-block" th:href="${accountUrl}" th:text="#{lbl_cancel}"></a>
-              </div>
-            </div>
 
-          </form>
+
+              <div class="col-md-12 form-group">
+                <label th:text="#{lbl_pwd}  + '*: '"></label>
+                <input class="form-control input-password " type="password" th:field="*{password}">
+                <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
+                  </svg>
+                  <svg class="password-icon-invisible icon icon-sm d-none">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
+                  </svg>
+                </span>
+                <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                </div>
+              </div>
+
+              <div class="col-md-12 form-group">
+                <label th:text="#{lbl_verify_pwd}  + '*: '"></label>
+                <input class="form-control input-password " type="password" th:field="*{verifyPassword}">
+                <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
+                  </svg>
+                  <svg class="password-icon-invisible icon icon-sm d-none">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
+                  </svg>
+                </span>
+                <div th:if="${#fields.hasErrors('verifyPassword')}" th:errors="*{verifyPassword}">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+                </div>
+                <div class="col-md-6 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
+                  <a class="btn btn-block" th:href="${accountUrl}" th:text="#{lbl_cancel}"></a>
+                </div>
+              </div>
+
+            </form>
+
+          </div>
+
+          <div class="card-footer text-muted customization-block"
+            th:if="${customization != null && customization.get('footerText') != null}"
+            th:utext="${customization.get('footerText')}"></div>
+
         </div>
       </div>
     </div>
 
-    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${footerText != null}"
-      th:utext="${footerText}"></div>
 
   </div>
   <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>

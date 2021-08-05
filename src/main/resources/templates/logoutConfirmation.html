@@ -57,6 +57,10 @@
               <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
             </div>
 
+
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
+
             <h4 class="text-center" th:text="#{lbl_logout_title}">Logout confirmation</h4>
 
             <div class="mt-md-0 mt-5 justify-content-center  customization-block"
