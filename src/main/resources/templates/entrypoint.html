@@ -41,17 +41,14 @@
 </head>
 
 <body>
-  <div class="container">
-
-    <div>
-      <img class="logo d-none d-md-block" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
-      <div class="clear"></div>
-    </div>
+  <div class="container-sm">
 
     <div class="row mt-md-0 mt-5 justify-content-center">
       <div class="col-xl-4 col-lg-6 col-md-8 col-sm-10">
-        <div class="panel panel-default">
-
+        <div class="card mt-5">
+          <div class="card-logo">
+            <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity">
+          </div>
           <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
           <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 

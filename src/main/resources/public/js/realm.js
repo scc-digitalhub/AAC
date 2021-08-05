@@ -379,26 +379,22 @@ angular.module('aac.controllers.realm', [])
       // TODO multilanguage
       //TODO handle templates registration in controllers...
       var customization = {
-        "login": {
+      "global": {
           'headerText': null,
-          'footerText': null,
+          'footerText': null
+        },
+        "login": {
           'loginText': null,
           'resetPasswordText': null
         },
         "registration": {
-          'headerText': null,
-          'footerText': null,
           'registrationText': null,
           'registrationSuccessText': null,
         },
         "approval": {
-          'headerText': null,
-          'footerText': null,
           'approvalText': null
         },
         "endsession": {
-          'headerText': null,
-          'footerText': null,
           'logoutText': null
         }
 
@@ -461,11 +457,10 @@ angular.module('aac.controllers.realm', [])
 
     }
 
-    $scope.exportRealm = function () {
-      window.open('console/dev/realms/' + $scope.realm.slug + '/export');
+    $scope.exportRealmCustom = function () {
+      window.open('console/dev/realms/' + $scope.realm.slug + '/export?custom=1');
     };
-
-
+    
     $scope.previewRealmCustom = function (template) {
       if ($scope.realmCustom[template] == null) {
         Utils.showError("invalid template or missing data");
@@ -558,8 +553,12 @@ angular.module('aac.controllers.realm', [])
 
     }
 
-    $scope.exportRealm = function () {
+    $scope.exportRealmSettings = function () {
       window.open('console/dev/realms/' + $scope.realm.slug + '/export');
+    };
+
+    $scope.exportRealm = function () {
+      window.open('console/dev/realms/' + $scope.realm.slug + '/export?full=1');
     };
 
     init();

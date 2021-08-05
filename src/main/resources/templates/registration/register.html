@@ -41,76 +41,84 @@
 </head>
 
 <body>
-  <div class="container">
 
-    <div>
-      <img class="logo d-none d-md-block" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
-      <div class="clear"></div>
-    </div>
-
-    <div class="row mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('headerText') != null}"
-      th:utext="${customization.get('headerText')}"></div>
-
+  <div class="container-sm">
 
     <div class="row mt-md-0 mt-5 justify-content-center">
-      <div class="col-md-offset-4 col-md-4">
-        <div class="panel panel-default">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
+        <div class="card card-bg mt-5">
 
-          <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_register_title}">AAC</h4>
-          <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
+          <div class="card-header bg-primary text-white customization-block"
+            th:if="${customization != null && customization.get('headerText') != null}"
+            th:utext="${customization.get('headerText')}"></div>
 
-           <div class="mt-md-0 mt-5 justify-content-center  customization-block" th:if="${customization != null && customization.get('registrationText') != null}"
-                  th:utext="${customization.get('registrationText')}"></div>
 
-          <h5 th:text="#{lbl_register_title}">Register</h5>
-          <form action="#" th:action="${registrationUrl}" th:object="${reg}" method="post">
-           
-            <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
-           
-            <div class="col-md-12 form-group">
-              <label th:text="#{lbl_name} + '*: '"></label>
-              <input type="text" class="form-control" th:field="*{name}" />
-              <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+          <div class="card-body align-items-center">
+            <div class="card-logo">
+              <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
             </div>
-            <div class="col-md-12 form-group">
-              <label th:text="#{lbl_surname} + '*: '"></label>
-              <input type="text" class="form-control" th:field="*{surname}" />
-              <div class="invalid-feedback" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}"></div>
-            </div>
-            <div class="col-md-12 form-group">
-              <label th:text="#{lbl_user} + '*: '"></label>
-              <input type="text" class="form-control" th:field="*{email}" />
-              <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-            </div>
-            <div class="col-md-12 form-group">
-              <label th:text="#{lbl_pwd} + '*: '"></label>
-              <input class="form-control input-password" type="password" th:field="*{password}" />
-              <span class="password-icon" aria-hidden="true">
-                <svg class="password-icon-visible icon icon-sm">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
-                </svg>
-                <svg class="password-icon-invisible icon icon-sm d-none">
-                  <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
-                </svg>
-              </span>
-              <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 form-group">
-                <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
+
+            <p class="mt-3 mb-3" th:text="#{lbl_register_title}"   th:if="${customization == null || customization.get('registrationText') == null}">Register</p>
+            <div class="mt-3 mb-3 justify-content-center  customization-block"
+              th:if="${customization != null && customization.get('registrationText') != null}"
+              th:utext="${customization.get('registrationText')}"></div>
+
+
+            <form action="#" th:action="${registrationUrl}" th:object="${reg}" method="post">
+
+              <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
+
+              <div class="col-md-12 form-group">
+                <label th:text="#{lbl_name} + '*: '"></label>
+                <input type="text" class="form-control" th:field="*{name}" />
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
               </div>
-              <div class="col-md-6 form-group">
-                <a class="btn btn-block" th:href="${loginUrl}" th:text="#{lbl_cancel}"></a>
+              <div class="col-md-12 form-group">
+                <label th:text="#{lbl_surname} + '*: '"></label>
+                <input type="text" class="form-control" th:field="*{surname}" />
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}"></div>
               </div>
-            </div>
-           
-          </form>
+              <div class="col-md-12 form-group">
+                <label th:text="#{lbl_user} + '*: '"></label>
+                <input type="text" class="form-control" th:field="*{email}" />
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+              </div>
+              <div class="col-md-12 form-group">
+                <label th:text="#{lbl_pwd} + '*: '"></label>
+                <input class="form-control input-password" type="password" th:field="*{password}" />
+                <span class="password-icon" aria-hidden="true">
+                  <svg class="password-icon-visible icon icon-sm">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
+                  </svg>
+                  <svg class="password-icon-invisible icon icon-sm d-none">
+                    <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
+                  </svg>
+                </span>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+                </div>
+                <div class="col-md-6 form-group">
+                  <a class="btn btn-block" th:href="${loginUrl}" th:text="#{lbl_cancel}"></a>
+                </div>
+              </div>
+
+            </form>
+
+          </div>
+
+          <div class="card-footer text-muted customization-block"
+            th:if="${customization != null && customization.get('footerText') != null}"
+            th:utext="${customization.get('footerText')}"></div>
+
         </div>
       </div>
     </div>
-
-    <div class="row mt-md-0 mt-5 justify-content-center customization-block" th:if="${customization != null && customization.get('footerText') != null}"
-      th:utext="${customization.get('footerText')}"></div>
 
 
   </div>

@@ -89,15 +89,22 @@ public class RegistrationController {
 
         Realm re = realmManager.getRealm(realm);
         String displayName = re.getName();
-        CustomizationBean cb = re.getCustomization("registration");
-
-        if (cb != null) {
-            model.addAttribute("customization", cb.getResources());
-        } else {
-            model.addAttribute("customization", null);
+        Map<String, String> resources = new HashMap<>();
+        if (!realm.equals(SystemKeys.REALM_COMMON)) {
+            re = realmManager.getRealm(realm);
+            displayName = re.getName();
+            CustomizationBean gcb = re.getCustomization("global");
+            if (gcb != null) {
+                resources.putAll(gcb.getResources());
+            }
+            CustomizationBean rcb = re.getCustomization("registration");
+            if (rcb != null) {
+                resources.putAll(rcb.getResources());
+            }
         }
 
         model.addAttribute("displayName", displayName);
+        model.addAttribute("customization", resources);
 
         // build model
         model.addAttribute("reg", new UserRegistrationBean());
@@ -146,15 +153,22 @@ public class RegistrationController {
 
             Realm re = realmManager.getRealm(realm);
             String displayName = re.getName();
-            CustomizationBean cb = re.getCustomization("registration");
-
-            if (cb != null) {
-                model.addAttribute("customization", cb.getResources());
-            } else {
-                model.addAttribute("customization", null);
+            Map<String, String> resources = new HashMap<>();
+            if (!realm.equals(SystemKeys.REALM_COMMON)) {
+                re = realmManager.getRealm(realm);
+                displayName = re.getName();
+                CustomizationBean gcb = re.getCustomization("global");
+                if (gcb != null) {
+                    resources.putAll(gcb.getResources());
+                }
+                CustomizationBean rcb = re.getCustomization("registration");
+                if (rcb != null) {
+                    resources.putAll(rcb.getResources());
+                }
             }
 
             model.addAttribute("displayName", displayName);
+            model.addAttribute("customization", resources);
 
             model.addAttribute("registrationUrl", "/auth/internal/register/" + providerId);
             model.addAttribute("loginUrl", "/-/" + realm + "/login");
@@ -346,19 +360,22 @@ public class RegistrationController {
 
         String displayName = null;
         Realm re = null;
-        CustomizationBean cb = null;
+        Map<String, String> resources = new HashMap<>();
         if (!realm.equals(SystemKeys.REALM_COMMON)) {
             re = realmManager.getRealm(realm);
             displayName = re.getName();
-            cb = re.getCustomization("login");
+            CustomizationBean gcb = re.getCustomization("global");
+            if (gcb != null) {
+                resources.putAll(gcb.getResources());
+            }
+            CustomizationBean lcb = re.getCustomization("login");
+            if (lcb != null) {
+                resources.putAll(lcb.getResources());
+            }
         }
 
         model.addAttribute("displayName", displayName);
-        if (cb != null) {
-            model.addAttribute("customization", cb.getResources());
-        } else {
-            model.addAttribute("customization", null);
-        }
+        model.addAttribute("customization", resources);
 
         // build model
         model.addAttribute("reg", new UserResetBean());
@@ -405,19 +422,22 @@ public class RegistrationController {
 
             String displayName = null;
             Realm re = null;
-            CustomizationBean cb = null;
+            Map<String, String> resources = new HashMap<>();
             if (!realm.equals(SystemKeys.REALM_COMMON)) {
                 re = realmManager.getRealm(realm);
                 displayName = re.getName();
-                cb = re.getCustomization("login");
+                CustomizationBean gcb = re.getCustomization("global");
+                if (gcb != null) {
+                    resources.putAll(gcb.getResources());
+                }
+                CustomizationBean lcb = re.getCustomization("login");
+                if (lcb != null) {
+                    resources.putAll(lcb.getResources());
+                }
             }
 
             model.addAttribute("displayName", displayName);
-            if (cb != null) {
-                model.addAttribute("customization", cb.getResources());
-            } else {
-                model.addAttribute("customization", null);
-            }
+            model.addAttribute("customization", resources);
 
             String username = reg.getUsername();
             String email = reg.getEmail();
