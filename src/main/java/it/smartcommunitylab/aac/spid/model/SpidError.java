@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum SpidError {
 //    AUTENTICATION_SUCCESS(1),
-    SYSTEM_UNAVAILABLE(2, "system unavailable"),
+    SYSTEM_UNAVAILABLE(2, "system_unavailable"),
     SYSTEM_ERROR(3, "system error"),
     INVALID_BINDING_FORMAT(4, "invalid binding format"),
     INVALID_SIGNATURE(5, "invalid signature"),
@@ -54,7 +54,7 @@ public enum SpidError {
 
     @JsonIgnore
     public String getErrorCode() {
-        return "spid.error." + Integer.toString(value);
+        return Integer.toString(value);
     }
 
     public String getMessage() {

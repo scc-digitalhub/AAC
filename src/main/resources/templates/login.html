@@ -38,7 +38,7 @@
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
   <link type="text/css" rel="stylesheet" th:href="@{'/spid/css/spid-sp-access-button.min.css'}" />
 
-  <title th:text="#{lbl_login_title}">AAC Login</title>
+  <title th:text="#{label.login_title}">AAC Login</title>
 </head>
 
 <body>
@@ -60,7 +60,7 @@
               <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
             </div>
 
-            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.login_title}">AAC</h4>
             <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
             <div class="mt-3 mb-3 justify-content-center  customization-block"
@@ -68,27 +68,27 @@
               th:utext="${customization.get('loginText')}"></div>
 
 
-            <div th:if="${realm == 'system'}" class="alert alert-info" role="alert" th:text="#{alert_login_global}">
+            <div th:if="${realm == 'system'}" class="alert alert-info" role="alert" th:text="#{alert.login_global}">
             </div>
 
             <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
             <div class="text-center mt-4"
               th:if="${internalAuthority == null && (externalAuthorities == null || externalAuthorities.size() == 0)}">
-              <p th:text="#{lbl_login_no_provider}">Login is disabled</p>
+              <p th:text="#{label.login_no_provider}">Login is disabled</p>
             </div>
 
             <div class="text-center mt-4" th:if="${internalAuthority != null}">
-              <p th:text="#{lbl_login_internal}">Login with</p>
+              <p th:text="#{label.login_form}">Login with</p>
               <form th:action=${internalAuthority.loginUrl} th:object="${login}" method="post">
 
                 <div class="col-md-12 form-group">
-                  <label th:text="#{lbl_user}" for="username">: </label>
+                  <label th:text="#{field.username}" for="username">: </label>
                   <input class="form-control" type="text" id="username" name="username" />
                 </div>
 
                 <div class="col-md-12 form-group mb-3">
-                  <label th:text="#{lbl_pwd}" for="password">: </label>
+                  <label th:text="#{field.pwd}" for="password">: </label>
                   <input class="form-control input-password" type="password" id="password" name="password" />
                   <span class="password-icon" aria-hidden="true">
                     <svg class="password-icon-visible icon icon-sm">
@@ -102,17 +102,17 @@
 
                 <div class="col-md-12 text-left mt-n2 mb-4" th:if="${internalAuthority.resetUrl != null}">
                   <small>
-                    <a class="" th:href="${internalAuthority.resetUrl}" th:text="#{lbl_pwd_reset}">Reset
+                    <a class="" th:href="${internalAuthority.resetUrl}" th:text="#{label.login_pwd_reset}">Reset
                       password</a>
                   </small>
                 </div>
 
                 <div class="row px-2 align-items-center">
-                  <button class="btn btn-primary btn-block" th:text="#{lbl_login}">Login</button>
+                  <button class="btn btn-primary btn-block" th:text="#{action.login}">Login</button>
                 </div>
                 <div class="col-md-12 text-left mt-4 mb-4" th:if="${internalAuthority.registrationUrl != null}">
                   <span>
-                    <a class="" th:href="${internalAuthority.registrationUrl}" th:text="#{lbl_register}">Register</a>
+                    <a class="" th:href="${internalAuthority.registrationUrl}" th:text="#{label.login_register}">Register</a>
                   </span>
 
                 </div>

@@ -37,7 +37,7 @@
 
 	<link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-	<title th:text="#{lbl_approval_title}">AAC Approval</title>
+	<title th:text="#{label.approval_title}">AAC Approval</title>
 </head>
 
 <body>
@@ -61,19 +61,19 @@
 							<input type="hidden" name="key" id="key" th:value="${key}">
 							<div class="error"
 								th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null and !(session.SPRING_SECURITY_LAST_EXCEPTION instanceof org.springframework.security.oauth2.common.exceptions.UnapprovedClientAuthenticationException)}">
-								<h2 th:text="#{lbl_approval_error_title}">Error title</h2>
-								<p th:text="#{lbl_approval_error_message}">: (<span
+								<h2 th:text="#{label.approval_error_title}">Error title</h2>
+								<p th:text="#{label.approval_error_message}">: (<span
 										th:text="${session.getAttribute('SPRING_SECURITY_LAST_EXCEPTION').message}">message</span>)
 								</p>
 							</div>
 
 							<div th:if="${resources.size() > 0}">
-								<h2 th:text="#{lbl_approval_confirm}">Please Confirm</h2>
+								<h2 th:text="#{label.approval_please_confirm}">Please Confirm</h2>
 								<div class="mt-md-0 mt-5 justify-content-center  customization-block"
 									th:if="${customization != null && customization.get('approvalText') != null}"
 									th:utext="${customization.get('approvalText')}"></div>
 
-								<p th:utext="#{lbl_approval_authorize(${clientName})}">Text:</p>
+								<p th:utext="#{label.approval_text_x(${clientName})}">Text:</p>
 								<ul class="permission">
 									<li th:each="r : ${resources}">
 										<h6 th:text="${r.getName()}">Scope name</h6>
@@ -89,9 +89,9 @@
 								<br /> <br />
 								<div class="form-group row">
 									<div class="col-md-12 bootstrap-select-wrapper standard">
-										<label th:text="#{lbl_approval_space(${clientName})}">space</label>
+										<label th:text="#{label.approval_select_space_x(${clientName})}">space</label>
 										<select class="custom-select" name="space_selection" required="required">
-											<option value="" th:text="#{lbl_approval_empty}"></option>
+											<option value="" th:text="#{action.select}"></option>
 											<option th:each="option : ${spaces}" th:value="${option}"
 												th:text="${option}"></option>
 										</select>
@@ -106,11 +106,11 @@
 										type="hidden" />
 
 									<label><button id="authorize" class="btn btn-primary" name="authorize"
-											th:text="#{lbl_approval_do_authorize}"></button></label>
+											th:text="#{action.authorize}"></button></label>
 								</div>
 								<div class="col-6">
 									<label><button class="btn" id="deny" name="deny"
-											th:text="#{lbl_approval_do_deny}"></button></label>
+											th:text="#{action.deny}"></button></label>
 								</div>
 							</div>
 						</form>

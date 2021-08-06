@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{lbl_login_title}">AAC Login</title>
+  <title th:text="#{label.login_title}">AAC Login</title>
 </head>
 
 <body>
@@ -49,22 +49,22 @@
           <div class="card-logo">
             <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity">
           </div>
-          <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+          <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.login_title}">AAC</h4>
           <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
 
           <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
           <div class="text-center mt-4">
-            <p th:text="#{lbl_login_select_realm}">Login with</p>
+            <p th:text="#{label.login_select_realm}">Login with</p>
             <form th:action="${loginUrl}" th:object="${login}" method="get">
 
               <div class="col-md-12 form-group mt-5 mb-2">
-                <label th:text="#{lbl_realm}" for="realm" class="active">: </label>
+                <label th:text="#{field.realm}" for="realm" class="active">: </label>
                 <div class="bootstrap-select-wrapper border-bottom-0">
                  <select class="" name="realm"
                     required="required">
-                    <option value="" th:text="#{lbl_select_realm}"></option>
+                    <option value="" th:text="#{action.select}"></option>
                     <option th:each="r : ${realms}" th:value="${r.slug}"
                        th:text="${r.name}"></option>
                  </select>       
@@ -73,14 +73,14 @@
               </div>
 
               <div class="row px-2 mt-4 align-items-center">
-                <button class="btn btn-primary btn-block" th:text="#{lbl_continue}">Continue</button>
+                <button class="btn btn-primary btn-block" th:text="#{action.continue}">Continue</button>
               </div>
           </form>
 
         </div>
         
          <div class="text-center mt-4">
-            <p th:utext="#{lbl_login_dev_realm(${'/-/system'+loginUrl})}">Dev login</p>
+            <p th:utext="#{label.login_dev_realm(${'/-/system'+loginUrl})}">Dev login</p>
          </div>
         
         

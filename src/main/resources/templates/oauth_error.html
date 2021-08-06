@@ -36,7 +36,7 @@
 
    <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-   <title th:text="#{lbl_approval_title}">AAC Approval</title>
+   <title th:text="#{label.oauth_error}">AAC Approval</title>
 </head>
 
 <body>
@@ -65,8 +65,8 @@
                            <p th:text="${errorSummary}"></p>
                         </div>
                      </div>
-                     <h2 th:if="${error == null}" th:text="#{lbl_oauth_error}">AAC OAuth2 Error</h2>
-                     <p class="mb-4" th:text="#{lbl_oauth_text}">Please go back to your client application and try
+                     <h2 th:if="${error == null}" th:text="#{label.oauth_error}">AAC OAuth2 Error</h2>
+                     <p class="mb-4" th:text="#{label.oauth_text}">Please go back to your client application and try
                         again, or contact
                         the administrator for support</p>
 

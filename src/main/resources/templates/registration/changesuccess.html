@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{lbl_changepwd_title}">AAC Change password</title>
+  <title th:text="#{label.changepwd_title}">AAC Change password</title>
 </head>
 
 <body>
@@ -59,15 +59,15 @@
       <div class="col-md-offset-4 col-md-4">
         <div class="panel panel-default">
 
-          <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_changesuccess_title}">AAC</h4>
+          <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.changepwd_success_title}">AAC</h4>
           <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-          <h5 th:text="#{lbl_changesuccess_title}">Reset success</h5>
-          <p th:text="#{lbl_changesuccess_text}"></p>
+          <h5 th:text="#{label.changepwd_success_title}">Reset success</h5>
+          <p th:text="#{label.changepwd_success_title}"></p>
 
           <div class="row">
             <div class="col-md-6 form-group">
-              <a class="btn btn-block" th:href="${accountUrl}" th:text="#{lbl_login}"></a>
+              <a class="btn btn-block" th:href="${accountUrl}" th:text="#{action.login}"></a>
             </div>
           </div>
 

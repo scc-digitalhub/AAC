@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.common;
 
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -35,19 +34,19 @@ public class LoginException extends AuthenticationException {
      */
 
     public static LoginException translate(SpidAuthenticationException e) {
-        return new LoginException(e.getError().getErrorCode(), e);
+        return new LoginException(e.getErrorMessage(), e);
     }
 
     public static LoginException translate(SamlAuthenticationException e) {
-        return new LoginException(e.getError().getErrorCode(), e);
+        return new LoginException(e.getErrorMessage(), e);
     }
-    
+
     public static LoginException translate(OIDCAuthenticationException e) {
-        return new LoginException(e.getError().getErrorCode(), e);
+        return new LoginException(e.getErrorMessage(), e);
     }
-    
+
     public static LoginException translate(InternalAuthenticationException e) {
-        return new LoginException(e.getError(), e);
+        return new LoginException(e.getErrorMessage(), e);
     }
 
     public static LoginException translate(AuthenticationException e) {
@@ -59,18 +58,26 @@ public class LoginException extends AuthenticationException {
         if (e instanceof SamlAuthenticationException) {
             return translate((SamlAuthenticationException) e);
         }
-        
+
         if (e instanceof OIDCAuthenticationException) {
             return translate((OIDCAuthenticationException) e);
         }
 
-        
         if (e instanceof InternalAuthenticationException) {
             return translate((InternalAuthenticationException) e);
         }
 
-
-        return new LoginException(e.getClass().getSimpleName(), e);
+        String error = "error." + e.getClass().getSimpleName().replaceAll(R_REGEX, R_REPL).toLowerCase();
+        if (error.endsWith(R_SUFFIX)) {
+            error = error.substring(0, error.length() - R_SUFFIX.length());
+        }
+        return new LoginException(error, e);
 
     }
+
+    // regex to convert camelCase to snake_case
+    private final static String R_REGEX = "([a-z])([A-Z]+)";
+    private final static String R_REPL = "$1_$2";
+    private final static String R_SUFFIX = "_exception";
+
 }

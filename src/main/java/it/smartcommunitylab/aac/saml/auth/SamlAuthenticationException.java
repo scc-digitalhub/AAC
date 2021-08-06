@@ -34,6 +34,10 @@ public class SamlAuthenticationException extends AuthenticationException {
         return error;
     }
 
+    public String getErrorMessage() {
+        return "saml.error." + getError().getErrorCode();
+    }
+
     public String getSaml2Request() {
         return saml2Request;
     }

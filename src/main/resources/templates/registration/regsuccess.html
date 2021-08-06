@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{lbl_registration_title}">AAC Registration</title>
+  <title th:text="#{label.register_title}">AAC Registration</title>
 </head>
 
 <body>
@@ -58,18 +58,18 @@
       <div class="col-md-offset-4 col-md-4">
         <div class="panel panel-default">
 
-          <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_register_title}">AAC</h4>
+          <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.register_title}">AAC</h4>
           <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-          <h5 style="text-align:center" th:text="#{lbl_confirm_title}"></h5>
+          <h5 style="text-align:center" th:text="#{label.confirm_title}"></h5>
           
-          <p th:text="#{lbl_confirm_text}"></p>
+          <p th:text="#{label.confirm_text}"></p>
           <div class="row">
             <!-- <div class="col-md-6 form-group">
-              <a class="btn btn-block btn-primary" href="resend" th:text="#{lbl_resend}"></a>
+              <a class="btn btn-block btn-primary" href="resend" th:text="#{action.resend}"></a>
             </div> -->
             <div class="col-md-6 form-group">
-              <a class="btn btn-block" th:href="${loginUrl}" th:text="#{lbl_login}"></a>
+              <a class="btn btn-block" th:href="${loginUrl}" th:text="#{action.login}"></a>
             </div>
           </div>
           

@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{lbl_logout_title}">AAC Logout</title>
+  <title th:text="#{label.logout_title}">AAC Logout</title>
 </head>
 
 <body>
@@ -58,10 +58,10 @@
             </div>
 
 
-            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.logout_title}">AAC</h4>
             <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-            <h4 class="text-center" th:text="#{lbl_logout_title}">Logout confirmation</h4>
+            <h4 class="text-center" th:text="#{label.logout_title}">Logout confirmation</h4>
 
             <div class="mt-md-0 mt-5 justify-content-center  customization-block"
               th:if="${customization != null && customization.get('accessConfirmationText') != null}"
@@ -72,7 +72,7 @@
 
               <div class="text-center">
                 <div th:if="${ client != null }">
-                  <div th:utext="#{lbl_logout_from(${client.displayName})}">Logout from application</div>
+                  <div th:utext="#{label.logout_from(${client.displayName})}">Logout from application</div>
                 </div>
                 <br /><br />
                 <input name="approve" th:attr="value=#{lbl_confirm_btn}" type="submit"
