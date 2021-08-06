@@ -31,12 +31,15 @@
     <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet" />
     <!-- Custom styles for this template -->
     <link th:href="@{/css/style.css}"  rel="stylesheet" />
+
+    <title th:text="#{label.generic_error}">AAC Login</title>
+
 </head>
 
 <body class="text-center">
 	<img class="logo" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
 	<div class="clear"></div>
-	<div class="authorities" th:text="#{lbl_generic_error_text}">
+	<div class="authorities" th:text="#{label.generic_error_text}">
 		<p>An error has occurred while processing you request. Please contact the administrator.</p>
 	</div>
   <div style="display:none" th:if="${exception != null and !(exception instanceof T(java.lang.String))}">	

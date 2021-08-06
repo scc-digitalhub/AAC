@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{lbl_changepwd_title}">AAC Change password</title>
+  <title th:text="#{label.changepwd_title}">AAC Change password</title>
 </head>
 
 
@@ -58,10 +58,10 @@
               <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
             </div>
 
-            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.changepwd_title}">AAC</h4>
             <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-            <h5 th:text="#{lbl_changepwd_title}">Change password</h5>
+            <h5 th:text="#{label.changepwd_title}">Change password</h5>
             <p id="infoPassword" class="form-text text-muted" th:text=${policy}>password policy</p>
 
             <form action="#" th:action="${changeUrl}" th:object="${reg}" method="post">
@@ -69,7 +69,7 @@
               <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
               <div class="col-md-12 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
-                <label th:text="#{lbl_cur_pwd}  + '*: '"></label>
+                <label th:text="#{field.pwd}  + '*: '"></label>
                 <input class="form-control input-password" type="password" th:field="*{curPassword}" />
                 <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
                     <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
@@ -84,7 +84,7 @@
 
 
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_pwd}  + '*: '"></label>
+                <label th:text="#{field.pwd_new}  + '*: '"></label>
                 <input class="form-control input-password " type="password" th:field="*{password}">
                 <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
                     <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
@@ -98,7 +98,7 @@
               </div>
 
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_verify_pwd}  + '*: '"></label>
+                <label th:text="#{field.pwd_confirm}  + '*: '"></label>
                 <input class="form-control input-password " type="password" th:field="*{verifyPassword}">
                 <span class="password-icon" aria-hidden="true"> <svg class="password-icon-visible icon icon-sm">
                     <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-visible}"></use>
@@ -113,10 +113,10 @@
 
               <div class="row">
                 <div class="col-md-6 form-group">
-                  <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+                  <button class="btn btn-primary btn-block" th:text="#{action.continue}"></button>
                 </div>
                 <div class="col-md-6 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
-                  <a class="btn btn-block" th:href="${accountUrl}" th:text="#{lbl_cancel}"></a>
+                  <a class="btn btn-block" th:href="${accountUrl}" th:text="#{action.cancel}"></a>
                 </div>
               </div>
 

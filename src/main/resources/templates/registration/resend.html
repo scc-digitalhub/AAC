@@ -17,52 +17,56 @@
 -->
 
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" >
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="-1" />        
-        <title th:text="#{lbl_login_title}"></title>
+<html xmlns:th="http://www.thymeleaf.org">
 
-    <!-- Design Italia -->
-    <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css"/>   
-    <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>    
-    <link href="../italia/style.css" rel="stylesheet" />
-    <script src="../italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
-  
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="-1" />
+  <title th:text="#{label.register_title}"></title>
 
-    </head>
-    <body>
-      <div class="container">
-	      <img class="logo" src="../img/ds_logo.png" alt="SmartCommunity" />
-	      <div class="clear"></div>
-        <div class="row justify-content-center">
-          <div class="col-md-offset-4 col-md-4">
-            <div class="panel panel-default">
-            <h4 style="text-align:center" th:text="#{lbl_resend_title}"></h4>
-            <!-- <form action="#" th:action="@{/internal/resend}" method="post"> -->
-            <form action="resend" method="post">
-                <div class="error" th:if="${error} != null" th:text="${error}">Error text</div>
-                <div>&nbsp;</div>
-                <div class="col-md-12 form-group"><label th:text="#{lbl_user}" >: </label><input class="form-control" type="text" name="username"/></div>
-                <div class="row">
-                <div class="col-md-6 form-group">
-                  <button class="btn  btn-block btn-primary" th:text="#{lbl_resend_btn}" ></button>
-                </div>  
-                <div class="col-md-6 form-group">
-                  <a class="btn btn-block" href="../login" th:text="#{lbl_cancel}" ></a>
-                </div>  
-                </div>
-                <div>&nbsp;</div>
-            </form>
+  <!-- Design Italia -->
+  <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css" />
+  <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>
+  <link href="../italia/style.css" rel="stylesheet" />
+  <script src="../italia/js/bootstrap-italia.bundle.min.js" type="text/javascript" charset="utf-8"></script>
+
+
+</head>
+
+<body>
+  <div class="container">
+    <img class="logo" src="../img/ds_logo.png" alt="SmartCommunity" />
+    <div class="clear"></div>
+    <div class="row justify-content-center">
+      <div class="col-md-offset-4 col-md-4">
+        <div class="panel panel-default">
+          <h4 style="text-align:center" th:text="#{label.resend_title}"></h4>
+          <!-- <form action="#" th:action="@{/internal/resend}" method="post"> -->
+          <form action="resend" method="post">
+            <div class="error" th:if="${error} != null" th:text="${error}">Error text</div>
+            <div>&nbsp;</div>
+            <div class="col-md-12 form-group"><label th:text="#{field.username}">: </label><input class="form-control"
+                type="text" name="username" /></div>
+            <div class="row">
+              <div class="col-md-6 form-group">
+                <button class="btn  btn-block btn-primary" th:text="#{action.resend}"></button>
+              </div>
+              <div class="col-md-6 form-group">
+                <a class="btn btn-block" href="../login" th:text="#{action.cancel}"></a>
+              </div>
             </div>
-          </div>
+            <div>&nbsp;</div>
+          </form>
         </div>
-      </div>  
-    </body>
+      </div>
+    </div>
+  </div>
+</body>
+
 </html>

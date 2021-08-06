@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{lbl_resetpwd_title}">AAC Reset Account</title>
+  <title th:text="#{label.resetpwd_title}">AAC Reset Account</title>
 </head>
 
 <body>
@@ -57,32 +57,32 @@
               <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
             </div>
 
-            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.resetpwd_title}">AAC</h4>
             <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-            <p th:text="#{lbl_reset_title}">Reset account</p>
+            <p th:text="#{label.resetpwd_title}">Reset account</p>
             <form action="#" th:action="${resetUrl}" th:object="${reg}" method="post">
 
               <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_username} + '*: '"></label>
+                <label th:text="#{field.username} + '*: '"></label>
                 <input type="text" class="form-control" th:field="*{username}" />
                 <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
               </div>
 
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_email} + '*: '"></label>
+                <label th:text="#{field.email} + '*: '"></label>
                 <input type="text" class="form-control" th:field="*{email}" />
                 <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
               </div>
 
               <div class="row">
                 <div class="col-md-6 form-group">
-                  <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+                  <button class="btn btn-primary btn-block" th:text="#{action.reset}"></button>
                 </div>
                 <div class="col-md-6 form-group">
-                  <a class="btn btn-block" th:href="${loginUrl}" th:text="#{lbl_cancel}"></a>
+                  <a class="btn btn-block" th:href="${loginUrl}" th:text="#{action.cancel}"></a>
                 </div>
               </div>
 

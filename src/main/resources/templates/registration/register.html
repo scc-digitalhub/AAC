@@ -37,7 +37,7 @@
 
   <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-  <title th:text="#{lbl_registration_title}">AAC Registration</title>
+  <title th:text="#{label.register_title}">AAC Registration</title>
 </head>
 
 <body>
@@ -58,10 +58,10 @@
               <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
             </div>
 
-            <h4 class="text-center" th:if="${displayName == null}" th:text="#{lbl_login_title}">AAC</h4>
+            <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.register_title}">AAC</h4>
             <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
 
-            <p class="mt-3 mb-3" th:text="#{lbl_register_title}"   th:if="${customization == null || customization.get('registrationText') == null}">Register</p>
+            <p class="mt-3 mb-3" th:text="#{label.register_title}"   th:if="${customization == null || customization.get('registrationText') == null}">Register</p>
             <div class="mt-3 mb-3 justify-content-center  customization-block"
               th:if="${customization != null && customization.get('registrationText') != null}"
               th:utext="${customization.get('registrationText')}"></div>
@@ -72,22 +72,22 @@
               <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_name} + '*: '"></label>
+                <label th:text="#{field.name} + '*: '"></label>
                 <input type="text" class="form-control" th:field="*{name}" />
                 <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
               </div>
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_surname} + '*: '"></label>
+                <label th:text="#{field.surname} + '*: '"></label>
                 <input type="text" class="form-control" th:field="*{surname}" />
                 <div class="invalid-feedback" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}"></div>
               </div>
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_user} + '*: '"></label>
+                <label th:text="#{field.email} + '*: '"></label>
                 <input type="text" class="form-control" th:field="*{email}" />
                 <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
               </div>
               <div class="col-md-12 form-group">
-                <label th:text="#{lbl_pwd} + '*: '"></label>
+                <label th:text="#{field.pwd} + '*: '"></label>
                 <input class="form-control input-password" type="password" th:field="*{password}" />
                 <span class="password-icon" aria-hidden="true">
                   <svg class="password-icon-visible icon icon-sm">
@@ -101,10 +101,10 @@
               </div>
               <div class="row">
                 <div class="col-md-6 form-group">
-                  <button class="btn btn-primary btn-block" th:text="#{lbl_reg_btn}"></button>
+                  <button class="btn btn-primary btn-block" th:text="#{action.register}"></button>
                 </div>
                 <div class="col-md-6 form-group">
-                  <a class="btn btn-block" th:href="${loginUrl}" th:text="#{lbl_cancel}"></a>
+                  <a class="btn btn-block" th:href="${loginUrl}" th:text="#{action.cancel}"></a>
                 </div>
               </div>
 

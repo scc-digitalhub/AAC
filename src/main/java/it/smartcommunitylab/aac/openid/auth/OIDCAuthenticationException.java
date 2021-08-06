@@ -42,6 +42,10 @@ public class OIDCAuthenticationException extends AuthenticationException {
         return error;
     }
 
+    public String getErrorMessage() {
+        return "oauth2.error." + getError().getErrorCode();
+    }
+
     public String getAuthorizationRequest() {
         return authorizationRequest;
     }

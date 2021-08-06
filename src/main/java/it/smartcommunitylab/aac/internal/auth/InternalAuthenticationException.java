@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.internal.auth;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.AuthenticationException;
 import it.smartcommunitylab.aac.SystemKeys;
 
@@ -56,5 +57,25 @@ public class InternalAuthenticationException extends AuthenticationException {
     public String getError() {
         return exception != null ? exception.getClass().getSimpleName() : null;
     }
+
+    public String getErrorMessage() {
+
+        String err = getError();
+        if (err == null) {
+            return "internal_error";
+        }
+
+        String msg = err.replaceAll(R_REGEX, R_REPL).toLowerCase();
+        if (msg.endsWith(R_SUFFIX)) {
+            msg = msg.substring(0, msg.length() - R_SUFFIX.length());
+        }
+
+        return "error." + msg;
+    }
+
+    // regex to convert camelCase to snake_case
+    private final static String R_REGEX = "([a-z])([A-Z]+)";
+    private final static String R_REPL = "$1_$2";
+    private final static String R_SUFFIX = "_exception";
 
 }

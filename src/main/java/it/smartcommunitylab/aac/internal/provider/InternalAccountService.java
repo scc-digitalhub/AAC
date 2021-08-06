@@ -445,7 +445,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
             }
 
             String subject = mailService.getMessageSource().getMessage(
-                    "password.subject", null,
+                    "mail.password_subject", null,
                     Locale.forLanguageTag(lang));
 
             mailService.sendEmail(account.getEmail(), template, subject, vars);
@@ -476,7 +476,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
             }
 
             String subject = mailService.getMessageSource().getMessage(
-                    "confirmation.subject", null,
+                    "mail.confirmation_subject", null,
                     Locale.forLanguageTag(lang));
 
             mailService.sendEmail(account.getEmail(), template, subject, vars);
@@ -505,7 +505,7 @@ public class InternalAccountService extends InternalAccountProvider implements A
             }
 
             String subject = mailService.getMessageSource().getMessage(
-                    "confirmation.subject", null,
+                    "mail.confirmation_subject", null,
                     Locale.forLanguageTag(lang));
 
             mailService.sendEmail(account.getEmail(), template, subject, vars);

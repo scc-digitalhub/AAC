@@ -75,6 +75,10 @@ public class SpidAuthenticationException extends AuthenticationException {
         return error;
     }
 
+    public String getErrorMessage() {
+        return "spid.error." + getError().getErrorCode();
+    }
+
     public String getSaml2Request() {
         return saml2Request;
     }
