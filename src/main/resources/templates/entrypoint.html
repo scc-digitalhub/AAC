@@ -48,10 +48,8 @@
         <div class="card mt-5">
           <div class="card-logo">
             <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity">
+            <h4 class="text-center" th:text="${displayName}">AAC</h4>            
           </div>
-          <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.login_title}">AAC</h4>
-          <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
-
 
           <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
 

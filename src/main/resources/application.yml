@@ -15,6 +15,7 @@ server:
 # APPLICATION EXTERNAL URL
 application:
    url: ${APPLICATION_EXT_URL:http://localhost:8080}
+   name: AAC
 
 # DB CONFIGURATION
 jdbc:

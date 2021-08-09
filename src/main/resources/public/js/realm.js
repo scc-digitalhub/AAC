@@ -105,6 +105,7 @@ angular.module('aac.controllers.realm', [])
     var slug = $stateParams.realmId;
     $scope.curStep = 1
     var init = function () {
+      if(slug) {
       RealmData.getRealmStats(slug)
         .then(function (stats) {
           $scope.load(stats);
@@ -112,6 +113,7 @@ angular.module('aac.controllers.realm', [])
         .catch(function (err) {
           Utils.showError('Failed to load realm: ' + err.data.message);
         });
+      }
     };
 
     $scope.load = function (stats) {

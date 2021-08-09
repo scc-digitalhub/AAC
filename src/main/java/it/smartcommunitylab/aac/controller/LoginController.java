@@ -17,6 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
@@ -43,6 +44,9 @@ import it.smartcommunitylab.aac.model.Realm;
 @RequestMapping
 public class LoginController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Value("${application.name}")
+    private String applicationName;
 
     @Autowired
     private ProviderManager providerManager;
@@ -90,6 +94,7 @@ public class LoginController {
             }
         });
 
+        model.addAttribute("displayName", applicationName);
         model.addAttribute("realms", realms);
         model.addAttribute("loginUrl", "/login");
 
@@ -129,25 +134,24 @@ public class LoginController {
 
         model.addAttribute("realm", realm);
 
-        String displayName = null;
+        String displayName = applicationName;
         Realm re = null;
         Map<String, String> resources = new HashMap<>();
         if (!realm.equals(SystemKeys.REALM_COMMON)) {
             re = realmManager.getRealm(realm);
             displayName = re.getName();
             CustomizationBean gcb = re.getCustomization("global");
-            if(gcb != null ) {
+            if (gcb != null) {
                 resources.putAll(gcb.getResources());
             }
             CustomizationBean lcb = re.getCustomization("login");
-            if(lcb != null ) {
+            if (lcb != null) {
                 resources.putAll(lcb.getResources());
             }
         }
 
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
-        
 
         // fetch providers for given realm
         Collection<IdentityProvider> providers = providerManager.getIdentityProviders(realm);
