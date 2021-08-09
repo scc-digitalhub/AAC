@@ -212,7 +212,7 @@ public class OAuth2RequestFactory
 
         // required parameters
         String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
-        String responseType = readParameter(requestParameters, "response_type", STRING_PATTERN);
+        String responseType = readParameter(requestParameters, "response_type", SPACE_STRING_PATTERN);
         Set<String> responseTypes = delimitedStringToSet(decodeParameters(responseType));
 
         // optional
@@ -467,6 +467,8 @@ public class OAuth2RequestFactory
     public final static String STRING_PATTERN = "^[a-zA-Z0-9_:-]+$";
     public final static String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9!@#$&()\\-`.+,/\"]*$";
+    public final static String SPACE_STRING_PATTERN = "^[a-zA-Z0-9 _:-]+$";
+
     /*
      * Legacy factory
      * 

@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
@@ -109,14 +112,24 @@ public class UserApprovalEndpoint implements InitializingBean {
             String realm = clientDetails.getRealm();
 
             try {
-                Realm re = realmManager.getRealm(realm);
-                CustomizationBean cb = re.getCustomization("approval");
-
-                if (cb != null) {
-                    model.put("customization", cb.getResources());
-                } else {
-                    model.put("customization", null);
+                String displayName = null;
+                Realm re = null;
+                Map<String, String> resources = new HashMap<>();
+                if (!realm.equals(SystemKeys.REALM_COMMON)) {
+                    re = realmManager.getRealm(realm);
+                    displayName = re.getName();
+                    CustomizationBean gcb = re.getCustomization("global");
+                    if (gcb != null) {
+                        resources.putAll(gcb.getResources());
+                    }
+                    CustomizationBean lcb = re.getCustomization("approval");
+                    if (lcb != null) {
+                        resources.putAll(lcb.getResources());
+                    }
                 }
+
+                model.put("displayName", displayName);
+                model.put("customization", resources);
             } catch (NoSuchRealmException e) {
                 throw new IllegalArgumentException("Invalid realm");
             }
@@ -128,7 +141,7 @@ public class UserApprovalEndpoint implements InitializingBean {
             // add user info
             String userName = StringUtils.hasText(userDetails.getUsername()) ? userDetails.getUsername()
                     : userDetails.getSubjectId();
-            model.put("userName", userName);
+            model.put("username", userName);
 
             // we have a list of scopes in model
             Set<String> scopes = delimitedStringToSet((String) model.get("scope"));

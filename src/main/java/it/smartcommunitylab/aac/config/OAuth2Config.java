@@ -179,10 +179,12 @@ public class OAuth2Config {
 
     public ApprovalStoreUserApprovalHandler userApprovalHandler(
             ApprovalStore approvalStore,
-            OAuth2ClientDetailsService oauthClientDetailsService) {
+            OAuth2ClientDetailsService oauthClientDetailsService,
+            ScopeRegistry scopeRegistry) {
         ApprovalStoreUserApprovalHandler handler = new ApprovalStoreUserApprovalHandler();
         handler.setApprovalStore(approvalStore);
         handler.setClientDetailsService(oauthClientDetailsService);
+        handler.setScopeRegistry(scopeRegistry);
         return handler;
     }
 
@@ -211,7 +213,7 @@ public class OAuth2Config {
             it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
             UserService userService,
             FlowExtensionsService flowExtensionsService) {
-        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService);
+        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService, scopeRegistry);
         ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService,
                 userService);
         SpacesApprovalHandler spacesHandler = spacesApprovalHandler(clientDetailsService, userService);

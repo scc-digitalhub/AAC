@@ -55,13 +55,10 @@
           <div class="card-body align-items-center">
             <div class="card-logo">
               <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
+              <h4 class="text-center" th:text="${displayName}">AAC</h4>              
             </div>
 
-
-            <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.logout_title}">AAC</h4>
-            <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
-
-            <h4 class="text-center" th:text="#{label.logout_title}">Logout confirmation</h4>
+            <h3 class="text-center" th:text="#{label.logout_title}">Logout confirmation</h3>
 
             <div class="mt-md-0 mt-5 justify-content-center  customization-block"
               th:if="${customization != null && customization.get('accessConfirmationText') != null}"
@@ -75,10 +72,10 @@
                   <div th:utext="#{label.logout_from(${client.displayName})}">Logout from application</div>
                 </div>
                 <br /><br />
-                <input name="approve" th:attr="value=#{lbl_confirm_btn}" type="submit"
+                <input name="approve" th:attr="value=#{action.confirm}" type="submit"
                   class="btn btn-primary btn-large" />
                 &nbsp;
-                <input name="deny" th:attr="value=#{lbl_cancel}" type="submit" class="btn btn-large" />
+                <input name="deny" th:attr="value=#{action.cancel}" type="submit" class="btn btn-large" />
               </div>
 
             </form>

@@ -21,8 +21,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,8 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 /**
  * Extension of {@link TokenStoreUserApprovalHandler} to enable automatic
@@ -71,6 +75,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     private ApprovalStore approvalStore;
 //    private OAuthFlowExtensions flowExtensions;
     private OAuth2ClientDetailsService oauthClientDetailsService;
+    private ScopeRegistry scopeRegistry;
 //    private it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService;
 //    private UserService userService;
 
@@ -108,6 +113,9 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             throw new InvalidRequestException("invalid client");
         }
 
+        logger.debug("requested scopes for client " + clientId + ": " + requestedScopes.toString());
+
+        
         // we have 2 sets of approved scopes
         // firstParty handling: autoApprove for same realm user with autoApprove scopes
         // TODO handle mixed user scopes + client scopes
@@ -130,6 +138,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         }
 
         logger.debug("autoApproved scopes for client " + clientId + ": " + autoApprovedScopes.toString());
+        logger.debug("userApproved  scopes for client " + clientId + ": " + userApprovedScopes.toString());
 
         // check if all requested scopes are already approved
         Set<String> approvedScopes = new HashSet<>();
@@ -435,15 +444,25 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
     private Set<String> getAutoApproved(Set<String> requestedScopes, UserDetails userDetails,
             OAuth2ClientDetails clientDetails) {
         Set<String> autoApprovedScopes = new HashSet<>();
+        if (scopeRegistry != null) {
+            // build autoapproved only if client is firstParty same realm
+            // TODO evaluate checking request realm
+            if (clientDetails.isFirstParty()
+                    && userDetails.getRealm().equals(clientDetails.getRealm())) {
+                // get from registry core resources
+                List<String> coreScopes = scopeRegistry.listResources().stream()
+                        .filter(r -> r.getResourceId().startsWith("aac."))
+                        .flatMap(r -> r.getScopes().stream())
+                        .map(s -> s.getScope())
+                        .collect(Collectors.toList());
 
-        // build autoapproved only if client is firstParty same realm
-        // TODO evaluate checking request realm
-        if (clientDetails.isFirstParty()
-                && userDetails.getRealm().equals(clientDetails.getRealm())) {
-            // get from registry
-            // TODO
+                autoApprovedScopes = requestedScopes.stream().filter(s -> coreScopes.contains(s))
+                        .collect(Collectors.toSet());
+
+                // get client realm resources
+                // TODO, scopes are not per realm for now
+            }
         }
-
         return autoApprovedScopes;
     }
 
@@ -516,6 +535,10 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 //    public void setUserService(UserService userService) {
 //        this.userService = userService;
 //    }
+
+    public void setScopeRegistry(ScopeRegistry scopeRegistry) {
+        this.scopeRegistry = scopeRegistry;
+    }
 
     private Date computeExpiry() {
         Calendar expiresAt = Calendar.getInstance();

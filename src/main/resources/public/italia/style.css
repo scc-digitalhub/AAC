@@ -220,12 +220,15 @@ form .invalid-feedback {
 } 
 
 .card-logo {
-   height: 96px;
    background: transparent;
    text-align: center;
 }
 .card-logo > img {
-   height: 100%;
+   height: 96px;
    display: inline-flex;
    object-fit: contain;
+}
+
+.permission .toggles label input[type="checkbox"][disabled]:checked + .lever::after {
+   background-color: #06c;
 }

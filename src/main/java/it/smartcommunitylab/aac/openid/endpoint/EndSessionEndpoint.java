@@ -1,8 +1,11 @@
 package it.smartcommunitylab.aac.openid.endpoint;
 
 import java.io.IOException;
+import java.net.URI;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -34,10 +37,14 @@ import com.nimbusds.jwt.JWTParser;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import springfox.documentation.annotations.ApiIgnore;
@@ -75,6 +82,9 @@ public class EndSessionEndpoint {
 
     @Autowired
     private OAuth2ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private RealmManager realmManager;
 
     @ApiOperation(value = "Logout with user confirmation")
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
@@ -159,7 +169,32 @@ public class EndSessionEndpoint {
             // display the log out confirmation page
 
             // add form action
-            // TODO handle per realm
+            // load realm customizations
+            String realm = userAuth.getRealm();
+
+            try {
+                String displayName = null;
+                Realm re = null;
+                Map<String, String> resources = new HashMap<>();
+                if (!realm.equals(SystemKeys.REALM_COMMON)) {
+                    re = realmManager.getRealm(realm);
+                    displayName = re.getName();
+                    CustomizationBean gcb = re.getCustomization("global");
+                    if (gcb != null) {
+                        resources.putAll(gcb.getResources());
+                    }
+                    CustomizationBean lcb = re.getCustomization("logout");
+                    if (lcb != null) {
+                        resources.putAll(lcb.getResources());
+                    }
+                }
+
+                model.addAttribute("displayName", displayName);
+                model.addAttribute("customization", resources);
+            } catch (NoSuchRealmException e) {
+                throw new IllegalArgumentException("Invalid realm");
+            }
+
             model.addAttribute("formAction", END_SESSION_URL);
             return "logoutConfirmation";
         }
@@ -167,7 +202,7 @@ public class EndSessionEndpoint {
 
     @ApiIgnore
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
-    public void processLogout(@RequestParam(value = "approve", required = false) String approved,
+    public void processLogout(@RequestParam(value = "approve", required = false) Optional<Boolean> approve,
             HttpServletRequest request,
             HttpServletResponse response,
             HttpSession session, Authentication auth,
@@ -177,24 +212,16 @@ public class EndSessionEndpoint {
         String state = (String) session.getAttribute(STATE_KEY);
         String clientId = (String) session.getAttribute(CLIENT_KEY);
 
-        if (StringUtils.hasText(approved)) {
+        boolean approved = approve.isPresent() ? approve.get().booleanValue() : false;
 
-            // user approved, perform the logout
-            if (auth != null) {
-//                // leverage rememberme service to clear cookie
-//                rememberMeServices.logout(request, response, auth);
-                // logout
-                logoutHandler.logout(request, response, auth);
-            }
-//            SecurityContextHolder.getContext().setAuthentication(null);
-            // TODO: hook into other logout post-processing
-        }
-
-        // if the user didn't approve, don't log out but hit the landing page anyway for
-        // redirect as needed
+        // build default redirect base
+        URI requestUri = UriComponentsBuilder.fromUriString(request.getRequestURL().toString()).build().toUri();
+        UriComponentsBuilder baseUri = UriComponentsBuilder.newInstance();
+        baseUri.scheme(requestUri.getScheme()).host(requestUri.getHost()).port(requestUri.getPort());
+        String redirect = null;
 
         // if we have a client AND the client has post-logout redirect URIs
-        // registered AND the URI given is in that list, then...
+        // registered AND the URI given is in that list, then use it
         OAuth2ClientDetails clientDetails = null;
         if (StringUtils.hasText(clientId)) {
             try {
@@ -214,15 +241,35 @@ public class EndSessionEndpoint {
 
                 // add state param from session
                 UriComponents uri = UriComponentsBuilder.fromUriString(redirectUri).queryParam("state", state).build();
-
-//                return "redirect:" + uri;
-                request.setAttribute(ExtendedLogoutSuccessHandler.REDIRECT_ATTRIBUTE, uri.toUriString());
+                redirect = uri.toUriString();
             }
         }
 
-        // let logoutSuccess process request
-        logoutSuccessHandler.onLogoutSuccess(request, response, auth);
+        if (approved && auth != null) {
+//                // leverage rememberme service to clear cookie
+//                rememberMeServices.logout(request, response, auth);
+            // logout
+            logoutHandler.logout(request, response, auth);
 
+            // set redirect, if null will led to login
+            request.setAttribute(ExtendedLogoutSuccessHandler.REDIRECT_ATTRIBUTE, redirect);
+
+            // let logoutSuccess process request
+            logoutSuccessHandler.onLogoutSuccess(request, response, auth);
+
+            // TODO: hook into other logout post-processing
+        } else {
+
+            // if the user didn't approve, don't log out but
+            // redirect as needed
+
+            if (redirect == null) {
+                redirect = baseUri.path("").toUriString();
+            }
+
+            response.sendRedirect(redirect);
+
+        }
     }
 
     private String readParameter(Map<String, String> requestParameters, String key, String pattern)
