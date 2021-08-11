@@ -43,6 +43,7 @@ public class ProviderEntity {
 
     private String name;
     private String description;
+    private String icon;
 
     @NotNull
     @Column(name = "linkable")
@@ -65,6 +66,9 @@ public class ProviderEntity {
     @Column(name = "hook_functions")
     @Convert(converter = HashMapBase64Converter.class)
     private Map<String, String> hookFunctions;
+
+    @Column(name = "display_mode")
+    private String displayMode;
 
     public ProviderEntity() {
 
@@ -146,6 +150,14 @@ public class ProviderEntity {
         this.description = description;
     }
 
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
     public String getPersistence() {
         return persistence;
     }
@@ -160,6 +172,14 @@ public class ProviderEntity {
 
     public void setEvents(String events) {
         this.events = events;
+    }
+
+    public String getDisplayMode() {
+        return displayMode;
+    }
+
+    public void setDisplayMode(String displayMode) {
+        this.displayMode = displayMode;
     }
 
     public Map<String, Serializable> getConfigurationMap() {

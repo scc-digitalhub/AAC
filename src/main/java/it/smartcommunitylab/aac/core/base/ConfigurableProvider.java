@@ -46,9 +46,13 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     private String name;
     private String description;
-//    private String icon;
+    private String icon;
 
     private Map<String, Serializable> configuration;
+
+    private String displayMode;
+    private Map<String, String> actionUrls;
+
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
 
@@ -159,6 +163,30 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public String getDisplayMode() {
+        return displayMode;
+    }
+
+    public void setDisplayMode(String displayMode) {
+        this.displayMode = displayMode;
+    }
+
+    public Map<String, String> getActionUrls() {
+        return actionUrls;
+    }
+
+    public void setActionUrls(Map<String, String> actionUrls) {
+        this.actionUrls = actionUrls;
     }
 
     @Override

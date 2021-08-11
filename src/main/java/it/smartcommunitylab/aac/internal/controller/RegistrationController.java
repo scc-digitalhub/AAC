@@ -37,14 +37,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.dto.UserResetBean;
+import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
@@ -61,7 +60,7 @@ public class RegistrationController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private ProviderManager providerManager;
+    private InternalIdentityAuthority internalAuthority;
 
     @Autowired
     private RealmManager realmManager;
@@ -76,15 +75,15 @@ public class RegistrationController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        IdentityService ids = providerManager.getIdentityService(providerId);
+        InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
 
-        if (!ids.canRegister()) {
+        if (!idp.canRegister()) {
             throw new RegistrationException("registration is disabled");
         }
 
         model.addAttribute("providerId", providerId);
 
-        String realm = ids.getRealm();
+        String realm = idp.getRealm();
         model.addAttribute("realm", realm);
 
         Realm re = realmManager.getRealm(realm);
@@ -139,13 +138,13 @@ public class RegistrationController {
         try {
 
             // resolve provider
-            IdentityService ids = providerManager.getIdentityService(providerId);
+            InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
 
-            if (!ids.canRegister()) {
+            if (!idp.canRegister()) {
                 throw new RegistrationException("registration is disabled");
             }
 
-            String realm = ids.getRealm();
+            String realm = idp.getRealm();
 
             // build model for result
             model.addAttribute("providerId", providerId);
@@ -200,7 +199,7 @@ public class RegistrationController {
             String subjectId = null;
 
             // register
-            UserIdentity identity = ids.registerIdentity(subjectId, account, Collections.emptyList());
+            UserIdentity identity = idp.registerIdentity(subjectId, account, Collections.emptyList());
 
             model.addAttribute("identity", identity);
 
@@ -347,15 +346,15 @@ public class RegistrationController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        IdentityService ids = providerManager.getIdentityService(providerId);
+        InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
 
-        if (!ids.getCredentialsService().canReset()) {
+        if (!idp.getCredentialsService().canReset()) {
             throw new RegistrationException("reset is disabled");
         }
 
         model.addAttribute("providerId", providerId);
 
-        String realm = ids.getRealm();
+        String realm = idp.getRealm();
         model.addAttribute("realm", realm);
 
         String displayName = null;
@@ -403,16 +402,12 @@ public class RegistrationController {
         try {
 
             // resolve provider
-            IdentityService ids = providerManager.getIdentityService(providerId);
-
-            // shortcut, we use only internal provider in this path
-            if (!(ids instanceof InternalIdentityProvider)) {
-                throw new RegistrationException("reset is not supported");
+            InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
+            if (!idp.getCredentialsService().canReset()) {
+                throw new RegistrationException("reset is disabled");
             }
 
-            InternalIdentityProvider ip = (InternalIdentityProvider) ids;
-
-            String realm = ids.getRealm();
+            String realm = idp.getRealm();
 
             // build model for result
             model.addAttribute("providerId", providerId);
@@ -454,11 +449,11 @@ public class RegistrationController {
             }
 
             // resolve user
-            UserAccount account = ip.getAccountProvider().getByIdentifyingAttributes(attributes);
+            UserAccount account = idp.getAccountProvider().getByIdentifyingAttributes(attributes);
             String userId = account.getUserId();
 
             // direct call to reset
-            InternalPasswordService passwordService = (InternalPasswordService) ip.getCredentialsService();
+            InternalPasswordService passwordService = idp.getCredentialsService();
             account = passwordService.resetPassword(userId);
 
             model.addAttribute("account", account);

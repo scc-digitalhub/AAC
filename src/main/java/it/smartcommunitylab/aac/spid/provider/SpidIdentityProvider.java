@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -332,11 +333,11 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
                 + "authenticate/" + getProvider();
     }
 
-    @Override
-    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-        // we don't have one
-        return null;
-    }
+//    @Override
+//    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+//        // we don't have one
+//        return null;
+//    }
 
     public static String[] SAML_ATTRIBUTES = {
             "subject", "issuer", "issueInstant"
@@ -350,8 +351,14 @@ public class SpidIdentityProvider extends AbstractProvider implements IdentityPr
     };
 
     @Override
-    public String getLoginComponent() {
-        return "login/spid";
+    public String getDisplayMode() {
+        // not configurable
+        return SystemKeys.DISPLAY_MODE_SPID;
+    }
+
+    @Override
+    public Map<String, String> getActionUrls() {
+        return Collections.singletonMap(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
     }
 
 }

@@ -527,6 +527,7 @@ angular.module('aac.controllers.realmproviders', [])
                 authority: provider.authority,
                 name: provider.name,
                 description: provider.description,
+                displayMode: provider.displayMode,
                 enabled: provider.enabled,
                 persistence: provider.persistence,
                 linkable: provider.linkable,

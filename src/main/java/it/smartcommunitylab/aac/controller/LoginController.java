@@ -38,6 +38,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
+import it.smartcommunitylab.aac.dto.LoginAuthorityBean;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Controller
@@ -177,63 +178,28 @@ public class LoginController {
         }
 
         // fetch as authorities model
-        // TODO make an helper to format
         List<LoginAuthorityBean> authorities = new ArrayList<>();
-        LoginAuthorityBean internal = null;
         for (IdentityProvider idp : providers) {
-            LoginAuthorityBean a = new LoginAuthorityBean();
-            a.authority = idp.getAuthority();
-            a.provider = idp.getProvider();
-            a.realm = idp.getRealm();
-            a.loginUrl = idp.getAuthenticationUrl();
-//            a.name = idp.getName();
-            a.name = idp.getName();
-            a.description = idp.getDescription();
-            String key = a.name.trim()
-                    .replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
-            a.cssClass = "provider-" + key;
-            a.icon = "it-key";
-
-            if (ArrayUtils.contains(icons, key)) {
-                a.icon = "logo-" + key;
-            }
-            a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
-
-            a.fragment = idp.getLoginComponent() != null ? idp.getLoginComponent() : "button";
-            a.configuration = idp.getConfiguration();
-
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(idp.getAuthority())) {
-                internal = a;
-                // also lookup internal service for registration/reset links
-                IdentityService ids = providerManager.fetchIdentityService(idp.getAuthority(), idp.getProvider());
-                if (ids != null) {
-                    if (ids.canRegister() && StringUtils.hasText(ids.getRegistrationUrl())) {
-                        a.registrationUrl = ids.getRegistrationUrl();
-                    }
-
-                    if (ids.getCredentialsService() != null
-                            && ids.getCredentialsService().canReset()
-                            && StringUtils.hasText(ids.getCredentialsService().getResetUrl())) {
-                        a.resetUrl = ids.getCredentialsService().getResetUrl();
-                    }
-
-                }
-
-            } else {
-
-                if (StringUtils.hasText(a.loginUrl)) {
-                    authorities.add(a);
-                }
-            }
+            LoginAuthorityBean a = LoginAuthorityBean.from(idp);
+            authorities.add(a);
         }
 
+        // sort by name
         Collections.sort(authorities);
 
-        if (internal != null) {
-            model.addAttribute("internalAuthority", internal);
-        }
+        // build a display list respecting display mode for ordering: form, spid, button
+        List<LoginAuthorityBean> loginAuthorities = new ArrayList<>();
+        loginAuthorities.addAll(authorities.stream()
+                .filter(a -> SystemKeys.DISPLAY_MODE_FORM.equals(a.getDisplayMode()))
+                .collect(Collectors.toList()));
+        loginAuthorities.addAll(authorities.stream()
+                .filter(a -> SystemKeys.DISPLAY_MODE_SPID.equals(a.getDisplayMode()))
+                .collect(Collectors.toList()));
+        loginAuthorities.addAll(authorities.stream()
+                .filter(a -> SystemKeys.DISPLAY_MODE_BUTTON.equals(a.getDisplayMode()))
+                .collect(Collectors.toList()));
 
-        model.addAttribute("externalAuthorities", authorities);
+        model.addAttribute("authorities", loginAuthorities);
 
         // check errors
         Exception error = (Exception) req.getSession()
@@ -249,32 +215,6 @@ public class LoginController {
         }
 
         return "login";
-    }
-
-    private String[] icons = {
-            "google", "facebook", "github", "microsoft", "apple", "instagram"
-    };
-
-    private class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
-        public String provider;
-        public String authority;
-        public String realm;
-        public String loginUrl;
-        public String registrationUrl;
-        public String resetUrl;
-        public String icon;
-        public String iconUrl;
-        public String name;
-        public String description;
-        public String cssClass;
-        public String fragment;
-        public ConfigurableProperties configuration;
-
-        @Override
-        public int compareTo(LoginAuthorityBean o) {
-            return name.compareTo(((LoginAuthorityBean) o).name);
-        }
-
     }
 
 }

@@ -13,6 +13,16 @@
             </div>
             <div class="form-group col ">
                 <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="displayMode">Display mode</label>
+                    <select id="displayMode" ng-model="idp.displayMode">
+                        <option value="" ng-selected="idp.displayMode==''">Default</option>
+                        <option value="button" ng-selected="idp.displayMode=='button'">Button</option>
+                        <option value="form" ng-selected="idp.displayMode=='form'">Form</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
                     <label for="persistence">Persistence*</label>
                     <select id="persistence" ng-model="idp.persistence">
                         <option value="none" ng-selected="idp.persistence=='none'">None</option>

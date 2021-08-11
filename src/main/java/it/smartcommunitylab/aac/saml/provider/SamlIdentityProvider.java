@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -405,11 +406,11 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
                 + "authenticate/" + getProvider();
     }
 
-    @Override
-    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-        // we don't have one
-        return null;
-    }
+//    @Override
+//    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+//        // we don't have one
+//        return null;
+//    }
 
     @Override
     public boolean canRegister() {
@@ -487,8 +488,14 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     }
 
     @Override
-    public String getLoginComponent() {
-        return "login/button";
+    public String getDisplayMode() {
+        // not configurable for now
+        return SystemKeys.DISPLAY_MODE_BUTTON;
+    }
+
+    @Override
+    public Map<String, String> getActionUrls() {
+        return Collections.singletonMap(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
     }
 
     @Override

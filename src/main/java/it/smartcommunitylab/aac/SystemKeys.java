@@ -52,6 +52,18 @@ public class SystemKeys {
     public static final String EVENTS_LEVEL_DETAILS = "details";
     public static final String EVENTS_LEVEL_FULL = "full";
 
+    public static final String DISPLAY_MODE_BUTTON = "button";
+    public static final String DISPLAY_MODE_FORM = "form";
+    public static final String DISPLAY_MODE_SPID = "spid";
+
+    public static final String ACTION_LOGIN = "login";
+    public static final String ACTION_REGISTER = "register";
+    public static final String ACTION_DELETE = "delete";
+    public static final String ACTION_RESET = "reset";
+    public static final String ACTION_RECOVERY = "recovery";
+    public static final String ACTION_ENABLE = "enable";
+    public static final String ACTION_DISABLE = "disable";
+
     public static final String SLUG_PATTERN = "^[a-zA-Z0-9_-]+$";
     public static final String SCOPE_PATTERN = "^[a-zA-Z.:]{3,}$";
     public static final String NAMESPACE_PATTERN = "^[a-zA-Z0-9._:/-]+$";

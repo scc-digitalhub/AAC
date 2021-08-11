@@ -326,11 +326,15 @@ public class ProviderManager {
 
         String name = provider.getName();
         String description = provider.getDescription();
+        String icon = provider.getIcon();
         if (StringUtils.hasText(name)) {
             name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
             description = Jsoup.clean(description, Safelist.none());
+        }
+        if (StringUtils.hasText(icon)) {
+            icon = Jsoup.clean(icon, Safelist.none());
         }
 
         // TODO add enum
@@ -356,6 +360,17 @@ public class ProviderManager {
                 && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
                 && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
             throw new RegistrationException("invalid events level");
+        }
+
+        String displayMode = provider.getDisplayMode();
+        if (!StringUtils.hasText(displayMode)) {
+            displayMode = SystemKeys.DISPLAY_MODE_BUTTON;
+        }
+
+        if (!SystemKeys.DISPLAY_MODE_BUTTON.equals(displayMode)
+                && !SystemKeys.DISPLAY_MODE_FORM.equals(displayMode)
+                && !SystemKeys.DISPLAY_MODE_SPID.equals(displayMode)) {
+            throw new RegistrationException("invalid display mode");
         }
 
         Map<String, Serializable> configuration = null;
@@ -386,8 +401,8 @@ public class ProviderManager {
 
         ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(),
                 type,
-                name, description,
-                persistence, events,
+                name, description, icon,
+                persistence, events, displayMode,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -448,13 +463,16 @@ public class ProviderManager {
         // we update only props and configuration
         String name = provider.getName();
         String description = provider.getDescription();
+        String icon = provider.getIcon();
         if (StringUtils.hasText(name)) {
             name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
             description = Jsoup.clean(description, Safelist.none());
         }
-
+        if (StringUtils.hasText(icon)) {
+            icon = Jsoup.clean(icon, Safelist.none());
+        }
         // TODO add enum
         String persistence = provider.getPersistence();
         if (!StringUtils.hasText(persistence)) {
@@ -478,6 +496,17 @@ public class ProviderManager {
                 && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
                 && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
             throw new RegistrationException("invalid events level");
+        }
+
+        String displayMode = provider.getDisplayMode();
+        if (!StringUtils.hasText(displayMode)) {
+            displayMode = SystemKeys.DISPLAY_MODE_BUTTON;
+        }
+
+        if (!SystemKeys.DISPLAY_MODE_BUTTON.equals(displayMode)
+                && !SystemKeys.DISPLAY_MODE_FORM.equals(displayMode)
+                && !SystemKeys.DISPLAY_MODE_SPID.equals(displayMode)) {
+            throw new RegistrationException("invalid display mode");
         }
 
         boolean enabled = provider.isEnabled();
@@ -515,8 +544,8 @@ public class ProviderManager {
         // update: even when enabled this provider won't be active until registration
         pe = providerService.updateProvider(providerId,
                 enabled, linkable,
-                name, description,
-                persistence, events,
+                name, description, icon,
+                persistence, events, displayMode,
                 configuration, hookFunctions);
 
         return fromEntity(pe);
@@ -565,8 +594,8 @@ public class ProviderManager {
         if (!pe.isEnabled()) {
             pe = providerService.updateProvider(providerId,
                     true, pe.isLinkable(),
-                    pe.getName(), pe.getDescription(),
-                    pe.getPersistence(), pe.getEvents(),
+                    pe.getName(), pe.getDescription(), pe.getIcon(),
+                    pe.getPersistence(), pe.getEvents(), pe.getDisplayMode(),
                     pe.getConfigurationMap(), pe.getHookFunctions());
         }
 
@@ -601,8 +630,8 @@ public class ProviderManager {
         if (pe.isEnabled()) {
             pe = providerService.updateProvider(providerId,
                     false, pe.isLinkable(),
-                    pe.getName(), pe.getDescription(),
-                    pe.getPersistence(), pe.getEvents(),
+                    pe.getName(), pe.getDescription(), pe.getIcon(),
+                    pe.getPersistence(), pe.getEvents(), pe.getDisplayMode(),
                     pe.getConfigurationMap(), pe.getHookFunctions());
         }
 
@@ -1015,7 +1044,8 @@ public class ProviderManager {
 
         cp.setName(pe.getName());
         cp.setDescription(pe.getDescription());
-
+        cp.setDisplayMode(pe.getDisplayMode());
+        
         return cp;
 
     }

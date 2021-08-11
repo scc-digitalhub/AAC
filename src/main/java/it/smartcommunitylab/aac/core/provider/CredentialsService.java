@@ -29,7 +29,7 @@ public interface CredentialsService extends ResourceProvider {
      * At least one between resetLink or resetCredentials is required to support
      * reset. Credentials used for login should be resettable
      */
-    public String getResetUrl() throws NoSuchUserException;
+    public String getResetUrl();
 
     public UserCredentials resetUserCredentials(String userId) throws NoSuchUserException;
 

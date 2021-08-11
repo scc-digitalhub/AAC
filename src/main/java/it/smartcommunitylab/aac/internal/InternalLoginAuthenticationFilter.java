@@ -29,6 +29,8 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
+import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -39,6 +41,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 public class InternalLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
+    public static final String DEFAULT_LOGIN_URI = InternalIdentityAuthority.AUTHORITY_URL + "form/{registrationId}";
 
     private final RequestMatcher requestMatcher;
 
@@ -70,7 +73,11 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         setRequiresAuthenticationRequestMatcher(requestMatcher);
 
         // redirect failed attempts to login
-        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+//        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
+
+        // redirect failed attempts to internal login
+        this.authenticationEntryPoint = new InternalLoginAuthenticationEntryPoint("/login", DEFAULT_LOGIN_URI,
+                filterProcessingUrl);
         if (authenticationEntryPoint != null) {
             this.authenticationEntryPoint = authenticationEntryPoint;
         }
@@ -129,7 +136,9 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         String password = request.getParameter("password");
 
         if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
-            throw new BadCredentialsException("invalid user or password");
+            AuthenticationException e = new BadCredentialsException("invalid user or password");
+            throw new InternalAuthenticationException(username, password, "password", e,
+                    e.getMessage());
         }
 
         // fetch account to check
