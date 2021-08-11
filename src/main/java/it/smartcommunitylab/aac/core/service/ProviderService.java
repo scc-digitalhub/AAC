@@ -77,8 +77,8 @@ public class ProviderService {
             String providerId,
             String realm,
             String type,
-            String name, String description,
-            String persistence, String events,
+            String name, String description, String icon,
+            String persistence, String events, String displayMode,
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) {
 
@@ -91,9 +91,11 @@ public class ProviderService {
         p.setEnabled(false);
         p.setName(name);
         p.setDescription(description);
+        p.setIcon(icon);
         p.setPersistence(persistence);
         p.setLinkable(true);
         p.setEvents(events);
+        p.setDisplayMode(displayMode);
         p.setConfigurationMap(configurationMap);
         p.setHookFunctions(hookFunctions);
 
@@ -105,8 +107,8 @@ public class ProviderService {
     public ProviderEntity updateProvider(
             String providerId,
             boolean enabled, boolean linkable,
-            String name, String description,
-            String persistence, String events,
+            String name, String description, String icon,
+            String persistence, String events, String displayMode,
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) throws NoSuchProviderException {
 
@@ -118,9 +120,11 @@ public class ProviderService {
         // update props
         p.setName(name);
         p.setDescription(description);
+        p.setIcon(icon);
         p.setPersistence(persistence);
         p.setLinkable(linkable);
         p.setEvents(events);
+        p.setDisplayMode(displayMode);
         p.setHookFunctions(hookFunctions);
 
         // we update both status and configuration at the same time

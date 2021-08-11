@@ -18,12 +18,11 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.dto.UserPasswordBean;
+import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.model.UserPasswordCredentials;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
@@ -37,7 +36,7 @@ public class CredentialsController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private ProviderManager providerManager;
+    private InternalIdentityAuthority internalAuthority;
 
     @GetMapping("/changepwd/{providerId}/{username}")
     public String changepwd(
@@ -67,14 +66,10 @@ public class CredentialsController {
         }
 
         // fetch provider
-        IdentityService idp = providerManager.getIdentityService(providerId);
-
-        if (!(idp instanceof InternalIdentityProvider)) {
-            throw new IllegalArgumentException("service invalid");
-        }
+        InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
 
         // fetch credentials service if available
-        InternalPasswordService service = ((InternalIdentityProvider) idp).getCredentialsService();
+        InternalPasswordService service = idp.getCredentialsService();
 
         if (service == null) {
             throw new IllegalArgumentException("credentials are immutable");
@@ -99,7 +94,7 @@ public class CredentialsController {
         model.addAttribute("reg", reg);
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
-        model.addAttribute("changeUrl", "/changepwd/" + providerId+"/"+username);
+        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
         return "registration/changepwd";
     }
 
@@ -136,14 +131,10 @@ public class CredentialsController {
             }
 
             // fetch provider
-            IdentityService idp = providerManager.getIdentityService(providerId);
-
-            if (!(idp instanceof InternalIdentityProvider)) {
-                throw new IllegalArgumentException("service invalid");
-            }
+            InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
 
             // fetch credentials service if available
-            InternalPasswordService service = ((InternalIdentityProvider) idp).getCredentialsService();
+            InternalPasswordService service = idp.getCredentialsService();
 
             if (service == null) {
                 throw new IllegalArgumentException("credentials are immutable");
@@ -163,7 +154,7 @@ public class CredentialsController {
             model.addAttribute("policy", policy);
 
             model.addAttribute("accountUrl", "/account");
-            model.addAttribute("changeUrl", "/changepwd/" + providerId+"/"+username);
+            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
 
             if (result.hasErrors()) {
                 return "registration/changepwd";

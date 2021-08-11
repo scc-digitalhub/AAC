@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.core.provider;
 
+import java.util.Map;
+
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -58,7 +60,12 @@ public interface IdentityProvider extends ResourceProvider {
 
     public String getAuthenticationUrl();
 
-    public AuthenticationEntryPoint getAuthenticationEntryPoint();
-    
-    public String getLoginComponent();
+//    public AuthenticationEntryPoint getAuthenticationEntryPoint();
+
+    public String getDisplayMode();
+
+    /*
+     * Additional urls
+     */
+    public Map<String, String> getActionUrls();
 }

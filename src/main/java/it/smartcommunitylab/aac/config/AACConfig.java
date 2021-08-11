@@ -248,6 +248,7 @@ public class AACConfig {
     /*
      * Entrypoint
      */
+    // TODO make sure all filters use this bean to build urls..
     @Bean
     public RealmAwarePathUriBuilder realmUriBuilder() {
         return new RealmAwarePathUriBuilder(applicationUrl);

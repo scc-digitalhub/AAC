@@ -3,11 +3,12 @@ package it.smartcommunitylab.aac.internal.provider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -260,7 +261,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
             // TODO consolidate *all* attribute sets logic in attributeProvider
             identity.setAttributes(extractUserAttributes(account));
         }
-        
+
         // do note returned identity has credentials populated
         // we erase here
         identity.eraseCredentials();
@@ -309,16 +310,22 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     @Override
     public String getAuthenticationUrl() {
-        // we use an address bound to provider, no reason to expose realm
-        return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
+        if (SystemKeys.DISPLAY_MODE_FORM.equals(getDisplayMode())) {
+            // action url for receiving post
+            // we use an address bound to provider, no reason to expose realm
+            return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
+        } else {
+            // display url for internal form
+            return InternalIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
+        }
     }
 
-    @Override
-    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-        // we don't have one
-        // TODO add
-        return null;
-    }
+//    @Override
+//    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+//        // we don't have one
+//        // TODO add
+//        return null;
+//    }
 
     public void shutdown() {
         // cleanup ourselves
@@ -508,6 +515,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         return InternalIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
     }
 
+    public String getResetUrl() {
+        return getCredentialsService().getResetUrl();
+    }
+
     @Override
     public String getName() {
         return config.getName();
@@ -524,7 +535,17 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     }
 
     @Override
-    public String getLoginComponent() {
-        return "login/form";
+    public String getDisplayMode() {
+        return config.getDisplayMode() != null ? config.getDisplayMode() : SystemKeys.DISPLAY_MODE_FORM;
+    }
+
+    @Override
+    public Map<String, String> getActionUrls() {
+        Map<String, String> map = new HashMap<>();
+        map.put(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
+        map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
+        map.put(SystemKeys.ACTION_RESET, getResetUrl());
+
+        return map;
     }
 }
