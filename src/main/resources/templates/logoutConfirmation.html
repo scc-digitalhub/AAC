@@ -69,7 +69,7 @@
 
               <div class="text-center">
                 <div th:if="${ client != null }">
-                  <div th:utext="#{label.logout_from(${client.displayName})}">Logout from application</div>
+                  <div th:utext="#{label.logout_from(${client.clientName})}">Logout from application</div>
                 </div>
                 <br /><br />
                 <input name="approve" th:attr="value=#{action.confirm}" type="submit"
