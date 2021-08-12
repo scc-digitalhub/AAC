@@ -196,13 +196,13 @@ public class EndSessionEndpoint {
             }
 
             model.addAttribute("formAction", END_SESSION_URL);
-            return "logoutConfirmation";
+            return "logout_confirmation";
         }
     }
 
     @ApiIgnore
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
-    public void processLogout(@RequestParam(value = "approve", required = false) Optional<Boolean> approve,
+    public void processLogout(@RequestParam(value = "approve", required = false) Optional<String> approve,
             HttpServletRequest request,
             HttpServletResponse response,
             HttpSession session, Authentication auth,
@@ -212,7 +212,7 @@ public class EndSessionEndpoint {
         String state = (String) session.getAttribute(STATE_KEY);
         String clientId = (String) session.getAttribute(CLIENT_KEY);
 
-        boolean approved = approve.isPresent() ? approve.get().booleanValue() : false;
+        boolean approved = approve.isPresent() ? true : false;
 
         // build default redirect base
         URI requestUri = UriComponentsBuilder.fromUriString(request.getRequestURL().toString()).build().toUri();
