@@ -12,7 +12,7 @@
                 <svg class="icon icon-sm icon-white">
                     <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
                 </svg>
-                New AttributeSet</button>
+                Add AttributeSet</button>
             <button class="btn btn-secondary btn-sm" ng-click="importAttributeSetDlg()">Import</button>
         </div>
     </div>
@@ -35,10 +35,29 @@
         </table>
     </div>
 
-    <div ng-if="attributeSets == null || attributeSets.length == 0">
-        <h5>No data</h5>
+    <div ng-if="attributeSets && attributeSets.length == 0">
+        <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="it-hero-text-wrapper bg-dark">
+                            <h1 class="no_toc">No attribute sets defined.</h1>
+                            <p class="d-none d-lg-block">Add a custom attribute set to map user properties.</p>
+                            <div class="it-btn-container">
+                                <button class="btn btn-primary text-right" type="button"
+                                    ng-click="createAttributeSetDlg()">
+                                    <svg class="icon icon-sm ">
+                                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                                    </svg>
+                                    Add AttributeSet
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
 </div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createAttributeSetDlg">

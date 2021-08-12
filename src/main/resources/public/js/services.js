@@ -340,8 +340,15 @@ angular.module('aac.services', [])
                 return data.data;
             });
         }
+        
         rService.updateRealm = function (slug, r) {
-            return $http.put('console/admin/realms/' + r.slug, r).then(function (data) {
+            return $http.put('console/dev/realms/' + slug, r).then(function (data) {
+                return data.data;
+            });
+        }
+        
+        rService.removeRealm = function (slug) {
+            return $http.delete('console/dev/realms/' + slug).then(function (data) {
                 return data.data;
             });
         }
