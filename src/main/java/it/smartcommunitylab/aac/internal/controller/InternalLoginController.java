@@ -94,7 +94,9 @@ public class InternalLoginController {
 
         LoginAuthorityBean a = LoginAuthorityBean.from(idp);
         // make sure we show the form
+        // it should also point to login
         a.setDisplayMode(SystemKeys.DISPLAY_MODE_FORM);
+        a.setLoginUrl(idp.getLoginUrl());
         model.addAttribute("authorities", Collections.singleton(a));
 
         // check errors

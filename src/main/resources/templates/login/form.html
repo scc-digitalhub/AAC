@@ -31,22 +31,24 @@
                 </span>
             </div>
 
-            <div class="col-md-12 text-left mt-n2 mb-4" th:if="${authority.resetUrl != null}">
-                <small>
-                    <a class="" th:href="${authority.resetUrl}" th:text="#{label.login_pwd_reset}">Reset
-                        password</a>
-                </small>
-            </div>
+
 
             <div class="row px-2 align-items-center">
                 <button class="btn btn-primary btn-block" th:text="#{action.login}">Login</button>
             </div>
 
-            <div class="col-md-12 text-left mt-4 mb-4" th:if="${authority.registrationUrl != null}">
+            <div class="col-md-12 text-center mt-4 mb-4" th:if="${authority.registrationUrl != null}">
                 <span>
                     <a class="" th:href="${authority.registrationUrl}" th:text="#{label.login_register}">Register</a>
                 </span>
 
+            </div>
+
+            <div class="col-md-12 text-center mt-n2 mb-4" th:if="${authority.resetUrl != null}">
+                <span>
+                    <a class="" th:href="${authority.resetUrl}" th:text="#{label.login_pwd_reset}">Reset
+                        password</a>
+                </span>
             </div>
         </form>
 
