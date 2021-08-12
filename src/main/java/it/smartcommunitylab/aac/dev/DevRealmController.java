@@ -56,8 +56,10 @@ public class DevRealmController {
 
     @Autowired
     private RealmManager realmManager;
+
     @Autowired
     private ProviderManager providerManager;
+
     @Autowired
     private ClientManager clientManager;
 

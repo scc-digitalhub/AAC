@@ -55,11 +55,11 @@ angular.module('aac.controllers.realmapps', [])
             }
         }
 
-        raService.importClientApp = function (slug, file) {
+        raService.importClientApp = function (slug, file, reset) {
             var fd = new FormData();
             fd.append('file', file);
             return $http({
-                url: 'console/dev/realms/' + slug + '/apps',
+                url: 'console/dev/realms/' + slug + '/apps'+ (reset ? "?reset=true" : ""),
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -168,14 +168,15 @@ angular.module('aac.controllers.realmapps', [])
         $scope.importClientApp = function () {
             $('#importClientAppDlg').modal('hide');
             var file = $scope.importFile;
+            var resetID = !!file.resetID;
             var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
             if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
                 Utils.showError("invalid file");
             } else {
-                RealmAppsData.importClientApp($scope.realm.slug, file)
+                RealmAppsData.importClientApp(slug, file, resetID)
                     .then(function (res) {
                         $scope.importFile = null;
-                        $state.go('realm.app', { realmId: res.realm, clientId: res.clientId });
+                        $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
