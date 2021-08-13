@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2015-2019 Smart Community Lab, FBK
+       Copyright 2015-2021 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -43,54 +43,71 @@
 <body>
   <div class="container-sm">
 
-    <div class="row mt-md-0 mt-5 justify-content-center">
+    <div class="row mt-2 mt-md-4 justify-content-center">
       <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
-        <div class="card card-bg mt-5">
+        <div class="card border border-primary mb-4">
 
-          <div class="card-header bg-primary text-white customization-block"
-            th:if="${customization != null && customization.get('headerText') != null}"
-            th:utext="${customization.get('headerText')}"></div>
-
+          <!-- card header -->
+          <div class="card-header pl-4 text-muted">
+            <span>
+              <svg class="icon icon-secondary icon-sm">
+                <use th:xlink:href="@{/italia/svg/sprite.svg#it-warning-circle}"></use>
+              </svg>
+            </span>
+            <span class="ml-1" th:text="#{label.logout_title}"></span>
+          </div>
 
           <div class="card-body align-items-center">
+            <!-- realm logo  -->
             <div class="card-logo">
-              <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
-              <h4 class="text-center" th:text="${displayName}">AAC</h4>              
+              <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
+              <h4 class="text-center" th:text="${displayName}">AAC</h4>
             </div>
 
-            <h3 class="text-center" th:text="#{label.logout_title}">Logout confirmation</h3>
+            <!-- panel text -->
+            <div class="mt-3 mb-3 justify-content-center  customization-block"
+              th:if="${customization != null && customization.get('logoutText') != null}"
+              th:utext="${customization.get('logoutText')}"></div>
 
-            <div class="mt-md-0 mt-5 justify-content-center  customization-block"
-              th:if="${customization != null && customization.get('accessConfirmationText') != null}"
-              th:utext="${customization.get('accessConfirmationText')}"></div>
-
+            <div class="text-center">
+                <div class="avatar-wrapper avatar-extra-text text-left p-2 mt-2 mb-2">
+                    <div class="avatar size-xl">
+                        <svg class="icon icon-secondary">
+                            <use th:xlink:href="@{/italia/svg/sprite.svg#it-user}"></use>
+                        </svg>
+                    </div>
+                    <div class="extra-text">
+                        <h5 th:text="${fullname}"></h5>
+                        <span class="text-muted" th:text="${username}"></span>
+                    </div>
+                </div>
+            </div>
 
             <form id="logoutForm" name="logoutForm" th:action="${formAction}" method="post">
-
+              <div th:if="${client != null}">
+                <p class="text-center" th:utext="#{label.logout_from(${client.name})}">Logout from application </p>
+              </div>
+              <div th:if="${client == null}">
+                <p class="text-center" th:text="#{label.logout_text}">Logout from application </p>
+              </div>
               <div class="text-center">
-                <div th:if="${ client != null }">
-                  <div th:utext="#{label.logout_from(${client.name})}">Logout from application</div>
-                </div>
-                <br /><br />
-                <input name="approve" th:attr="value=#{action.confirm}" type="submit"
-                  class="btn btn-primary btn-large" />
+                <input name="approve" th:attr="value=#{action.confirm}" type="submit" class="btn btn-primary btn-large">
                 &nbsp;
-                <input name="deny" th:attr="value=#{action.cancel}" type="submit" class="btn btn-large" />
+                <input name="deny" th:attr="value=#{action.cancel}" type="submit" class="btn btn-large">
               </div>
 
             </form>
           </div>
 
-          <div class="card-footer text-muted customization-block"
+          <div class="card-footer bg-primary text-white customization-block"
             th:if="${customization != null && customization.get('footerText') != null}"
             th:utext="${customization.get('footerText')}"></div>
 
         </div>
       </div>
     </div>
-
-
   </div>
+
   <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
 
 </body>

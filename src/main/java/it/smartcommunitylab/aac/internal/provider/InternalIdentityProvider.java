@@ -312,11 +312,10 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     public String getAuthenticationUrl() {
         if (SystemKeys.DISPLAY_MODE_FORM.equals(getDisplayMode())) {
             // action url for receiving post
-            // we use an address bound to provider, no reason to expose realm
-            return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
+            return getLoginUrl();
         } else {
             // display url for internal form
-            return InternalIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
+            return getFormUrl();
         }
     }
 
@@ -517,6 +516,15 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     public String getResetUrl() {
         return getCredentialsService().getResetUrl();
+    }
+
+    public String getLoginUrl() {
+        // we use an address bound to provider, no reason to expose realm
+        return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
+    }
+
+    public String getFormUrl() {
+        return InternalIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
     }
 
     @Override

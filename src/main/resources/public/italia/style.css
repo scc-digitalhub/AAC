@@ -212,12 +212,19 @@ tags-input {
 }
 
 .customization-block {
-	margin-bottom: 5px;
 }
 
 form .invalid-feedback {
   display: initial;
 } 
+
+.card.border {
+    border-width: 2px !important;
+}
+
+.card.border::after {
+   margin: 0;
+}
 
 .card-logo {
    background: transparent;
@@ -232,3 +239,4 @@ form .invalid-feedback {
 .permission .toggles label input[type="checkbox"][disabled]:checked + .lever::after {
    background-color: #06c;
 }
+

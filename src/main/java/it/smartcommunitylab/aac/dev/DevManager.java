@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.dev;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -45,6 +45,11 @@ import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.AuthorityManager;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.RealmService;

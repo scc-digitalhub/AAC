@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2015-2019 Smart Community Lab, FBK
+       Copyright 2015-2021 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -44,24 +44,31 @@
 <body>
     <div class="container-sm">
 
-
-
-        <div class="row mt-md-0 mt-5 justify-content-center">
+        <div class="row mt-2 mt-md-4 justify-content-center">
             <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
-                <div class="card card-bg mt-5">
-                    <!-- realm header -->
-                    <div class="card-header bg-primary text-white customization-block"
-                        th:if="${customization != null && customization.get('headerText') != null}"
-                        th:utext="${customization.get('headerText')}"></div>
+                <div class="card border mb-4" th:classappend="${error == null} ? 'border-primary' : 'border-danger'">
 
+                    <!-- card header -->
+                    <div class="card-header pl-4 text-muted">
+                        <span>
+                            <svg class="icon icon-secondary icon-sm">
+                                <use th:xlink:href="@{/italia/svg/sprite.svg#it-key}"></use>
+                            </svg>
+                        </span>
+                        <span class="ml-1" th:text="#{label.login_title}"></span>
+                    </div>
 
                     <div class="card-body align-items-center">
                         <!-- realm logo  -->
                         <div class="card-logo">
-                            <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
+                            <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
                             <h4 class="text-center" th:text="${displayName}">AAC</h4>
                         </div>
 
+                        <!-- panel text -->
+                        <p class="mt-3 mb-3 text-center"
+                            th:if="${customization == null || customization.get('loginText') == null}"
+                            th:text="#{label.login_text}">Login with</p>
                         <div class="mt-3 mb-3 justify-content-center  customization-block"
                             th:if="${customization != null && customization.get('loginText') != null}"
                             th:utext="${customization.get('loginText')}"></div>
@@ -79,8 +86,8 @@
                         </div>
 
                         <div class="text-center mt-4" th:if="${authorities != null && authorities.size() > 0}">
-                            <div class="row d-md-flex justify-content-center">
-                                <div class="col col-md-12 mb-3" th:each="authority: ${authorities}">
+                            <div class="row d-flex justify-content-center">
+                                <div class="col col-12 mb-3" th:each="authority: ${authorities}">
                                     <div th:replace="${authority.fragment} :: login"></div>
                                 </div>
                             </div>
@@ -88,7 +95,7 @@
                     </div>
 
                     <!-- realm footer -->
-                    <div class="card-footer text-muted customization-block"
+                    <div class="card-footer bg-primary text-white customization-block"
                         th:if="${customization != null && customization.get('footerText') != null}"
                         th:utext="${customization.get('footerText')}"></div>
 

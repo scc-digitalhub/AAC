@@ -136,7 +136,7 @@
             <div class="modal-body">
                 <form name="importAppForm" enctype="multipart/form-data" class="needs-validation was-validated"
                     novalidate>
-                    <p>Upload a valid YAML file with the full client definition.</p>
+                    <p>Upload a valid YAML file with the full client definition, or with a list of valid clients nested under key <em>clients</em>.</p>
 
                     <div class="form-group col pt-4 mb-2">
                         <label for="file">File*</label>
@@ -151,7 +151,12 @@
                             </li>
                         </ul>
                     </div>
-
+                    <div class="form-group col pt-4 mb-2">
+                         <div class="form-check">
+                             <input class="form-check-input" name="reset" id="reset" type="checkbox" ng-model="importFile.resetID">
+                             <label for="reset">Reset ID(s)</label>
+                         </div>                    
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">

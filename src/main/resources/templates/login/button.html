@@ -7,8 +7,7 @@
 </head>
 
 <body>
-  <div th:fragment="login">
-    <p th:if="${authority.description == null}" th:text="#{label.login_button}">Login with</p>
+  <div th:fragment="login">    
     <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
     <a class="italia-it-button italia-it-button-size-m btn-primary" th:classAppend="${authority.cssClass}"
       th:href="${authority.loginUrl}">
