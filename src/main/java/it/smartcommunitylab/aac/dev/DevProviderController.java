@@ -97,7 +97,7 @@ public class DevProviderController {
         return ResponseEntity.ok(providers);
     }
 
-    @GetMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
+    @GetMapping("/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<ConfigurableProvider> getRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -126,7 +126,7 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @DeleteMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
+    @DeleteMapping("/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> deleteRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -136,7 +136,7 @@ public class DevProviderController {
         return ResponseEntity.ok(null);
     }
 
-    @PostMapping("/console/dev/realms/{realm}/providers")
+    @PostMapping("/realms/{realm}/providers")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<ConfigurableProvider> createRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -172,7 +172,7 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @PutMapping("/console/dev/realms/{realm}/providers/{providerId:.*}")
+    @PutMapping("/realms/{realm}/providers/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<ConfigurableProvider> updateRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -185,6 +185,7 @@ public class DevProviderController {
         // we update only configuration
         String name = registration.getName();
         String description = registration.getDescription();
+        String displayMode = registration.getDisplayMode();
         String persistence = registration.getPersistence();
         String events = registration.getEvents();
         boolean linkable = registration.isLinkable();
@@ -194,6 +195,8 @@ public class DevProviderController {
 
         provider.setName(name);
         provider.setDescription(description);
+        provider.setDisplayMode(displayMode);
+        
         provider.setPersistence(persistence);
         provider.setLinkable(linkable);
 
@@ -214,7 +217,7 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @PutMapping("/console/dev/realms/{realm}/providers/{providerId}/state")
+    @PutMapping("/realms/{realm}/providers/{providerId}/state")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<ConfigurableProvider> updateRealmProviderState(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -238,7 +241,7 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @GetMapping("/console/dev/realms/{realm}/providers/{providerId:.*}/export")
+    @GetMapping("/realms/{realm}/providers/{providerId:.*}/export")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void exportRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -261,7 +264,7 @@ public class DevProviderController {
 
     }
 
-    @PutMapping("/console/dev/realms/{realm}/providers")
+    @PutMapping("/realms/{realm}/providers")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<ConfigurableProvider> importRealmProvider(
@@ -287,6 +290,7 @@ public class DevProviderController {
             String type = registration.getType();
             String name = registration.getName();
             String description = registration.getDescription();
+            String displayMode = registration.getDisplayMode();
             String persistence = registration.getPersistence();
             String events = registration.getEvents();
             Map<String, Serializable> configuration = registration.getConfiguration();
@@ -295,6 +299,7 @@ public class DevProviderController {
             ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
             provider.setName(name);
             provider.setDescription(description);
+            provider.setDisplayMode(displayMode);
             provider.setType(type);
             provider.setEnabled(false);
             provider.setPersistence(persistence);

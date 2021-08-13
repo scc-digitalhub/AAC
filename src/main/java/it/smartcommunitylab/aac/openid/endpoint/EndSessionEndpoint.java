@@ -40,6 +40,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
@@ -167,7 +168,14 @@ public class EndSessionEndpoint {
         } else {
             // we are logged in, need to prompt the user before we log out
             // display the log out confirmation page
-
+            UserDetails userDetails = userAuth.getUser();
+            // add user info
+            String userName = StringUtils.hasText(userDetails.getUsername()) ? userDetails.getUsername()
+                    : userDetails.getSubjectId();
+//            String fullName = userDetails.getFullName();
+            model.addAttribute("fullname", userName);
+            model.addAttribute("username", userName);
+            
             // add form action
             // load realm customizations
             String realm = userAuth.getRealm();
@@ -183,7 +191,7 @@ public class EndSessionEndpoint {
                     if (gcb != null) {
                         resources.putAll(gcb.getResources());
                     }
-                    CustomizationBean lcb = re.getCustomization("logout");
+                    CustomizationBean lcb = re.getCustomization("endsession");
                     if (lcb != null) {
                         resources.putAll(lcb.getResources());
                     }

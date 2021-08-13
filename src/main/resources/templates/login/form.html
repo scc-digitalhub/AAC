@@ -8,7 +8,6 @@
 
 <body>
     <div th:fragment="login">
-        <p th:if="${authority.description == null}" th:text="#{label.login_form}">Login with</p>
         <p th:if="${authority.description != null}" th:text="${authority.description}"></p>
 
         <form th:action=${authority.loginUrl} th:object="${login}" method="post">

@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2015-2019 Smart Community Lab, FBK
+       Copyright 2015-2021 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -28,45 +28,73 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="-1" />
-  <title th:text="#{label.register_title}"></title>
-
   <!-- Design Italia -->
-  <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css" />
-  <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>
-  <link href="../italia/style.css" rel="stylesheet" />
-  <script src="../italia/js/bootstrap-italia.bundle.min.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+  <script th:inline="javascript">
+    const contextpath = /*[[@{/}]]*/ "/";
+    window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+  </script>
+  <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
+  <title th:text="#{label.register_title}"></title>
 
 </head>
 
 <body>
-  <div class="container">
-    <img class="logo" src="../img/ds_logo.png" alt="SmartCommunity" />
-    <div class="clear"></div>
-    <div class="row justify-content-center">
-      <div class="col-md-offset-4 col-md-4">
-        <div class="panel panel-default">
-          <h4 style="text-align:center" th:text="#{label.resend_title}"></h4>
-          <!-- <form action="#" th:action="@{/internal/resend}" method="post"> -->
-          <form action="resend" method="post">
-            <div class="error" th:if="${error} != null" th:text="${error}">Error text</div>
-            <div>&nbsp;</div>
-            <div class="col-md-12 form-group"><label th:text="#{field.username}">: </label><input class="form-control"
-                type="text" name="username" /></div>
-            <div class="row">
-              <div class="col-md-6 form-group">
-                <button class="btn  btn-block btn-primary" th:text="#{action.resend}"></button>
-              </div>
-              <div class="col-md-6 form-group">
-                <a class="btn btn-block" href="../login" th:text="#{action.cancel}"></a>
-              </div>
+  <div class="container-sm">
+
+    <div class="row mt-2 mt-md-4 justify-content-center">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
+        <div class="card border border-primary mb-4">
+
+          <!-- card header -->
+          <div class="card-header pl-4 text-muted">
+            <span>
+              <svg class="icon icon-secondary icon-sm">
+                <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
+              </svg>
+            </span>
+            <span class="ml-1" th:text="#{label.resetpwd_title}"></span>
+          </div>
+
+
+          <div class="card-body align-items-center">
+            <!-- realm logo  -->
+            <div class="card-logo">
+              <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
+              <h4 class="text-center" th:text="${displayName}">AAC</h4>
             </div>
-            <div>&nbsp;</div>
-          </form>
+
+            <p th:text="#{label.resetpwd_text}">Reset account</p>
+            <form action="resend" method="post">
+              <div class="error" th:if="${error} != null" th:text="${error}">Error text</div>
+              <div>&nbsp;</div>
+              <div class="col-md-12 form-group"><label th:text="#{field.username}">: </label><input class="form-control"
+                  type="text" name="username" /></div>
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <button class="btn  btn-block btn-primary" th:text="#{action.resend}"></button>
+                </div>
+                <div class="col-md-6 form-group">
+                  <a class="btn btn-block" href="../login" th:text="#{action.cancel}"></a>
+                </div>
+              </div>
+              <div>&nbsp;</div>
+            </form>
+          </div>
+
+          <!-- realm footer  -->
+          <div class="card-footer bg-primary text-white customization-block"
+            th:if="${customization != null && customization.get('footerText') != null}"
+            th:utext="${customization.get('footerText')}"></div>
+
         </div>
       </div>
     </div>
+
+
   </div>
+  <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
 </body>
 
 </html>

@@ -141,6 +141,8 @@ public class UserApprovalEndpoint implements InitializingBean {
             // add user info
             String userName = StringUtils.hasText(userDetails.getUsername()) ? userDetails.getUsername()
                     : userDetails.getSubjectId();
+//            String fullName = userDetails.getFullName();
+            model.put("fullname", userName);
             model.put("username", userName);
 
             // we have a list of scopes in model
