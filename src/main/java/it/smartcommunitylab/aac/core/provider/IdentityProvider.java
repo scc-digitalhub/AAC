@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Map;
 
-import org.springframework.security.web.AuthenticationEntryPoint;
-
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;

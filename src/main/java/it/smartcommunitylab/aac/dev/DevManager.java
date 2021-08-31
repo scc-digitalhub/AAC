@@ -30,7 +30,6 @@ import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
@@ -46,9 +45,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
@@ -74,10 +71,10 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 @Component
 public class DevManager {
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
-    };
-    private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<ArrayList<Serializable>>() {
-    };
+//    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<HashMap<String, Serializable>>() {
+//    };
+//    private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<ArrayList<Serializable>>() {
+//    };
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -88,11 +85,11 @@ public class DevManager {
     @Autowired
     private ClientDetailsService clientDetailsService;
 
-    @Autowired
-    private AuthorityManager authorityManager;
-
-    @Autowired
-    private ProviderManager providerManager;
+//    @Autowired
+//    private AuthorityManager authorityManager;
+//
+//    @Autowired
+//    private ProviderManager providerManager;
 
     @Autowired
     private OAuth2AuthorizationRequestFactory oauth2AuthorizationRequestFactory;

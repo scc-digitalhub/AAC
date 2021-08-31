@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.internal.auth;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.core.Authentication;

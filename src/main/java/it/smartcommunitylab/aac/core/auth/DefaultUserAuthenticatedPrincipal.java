@@ -5,7 +5,10 @@ import java.util.Map;
 
 import org.springframework.util.Assert;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 public class DefaultUserAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private final String authority;
     private final String provider;

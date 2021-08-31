@@ -36,9 +36,6 @@ public class InternalUserManager {
     @Autowired
     private UserEntityService userService;
 
-//    @Autowired
-//    private AttributeEntityService attributeService;
-
     @Autowired
     private RoleService roleService;
 
@@ -82,6 +79,9 @@ public class InternalUserManager {
 
         String subjectId = account.getSubject();
 
+        // update username
+        user = userService.updateUser(subjectId, adminUsername);
+
         // re-set password
         String hash = PasswordHash.createHash(adminPassword);
         account.setPassword(hash);
@@ -116,17 +116,21 @@ public class InternalUserManager {
 
         // set
         List<UserRoleEntity> userRoles = userService.updateRoles(subjectId, roles);
-        
+
         // set minimal space roles
         Set<SpaceRole> spaceRoles = roleService.getRoles(subjectId);
         if (spaceRoles.isEmpty()) {
-        	roleService.addRole(subjectId, null, "", Config.R_PROVIDER);
+            roleService.addRole(subjectId, null, "", Config.R_PROVIDER);
         }
 
         logger.debug("admin user id " + String.valueOf(account.getId()));
         logger.debug("admin user " + user.toString());
         logger.debug("admin user roles " + userRoles.toString());
         logger.debug("admin account " + account.toString());
+    }
+
+    public InternalUserAccount internalAdmin() {
+        return accountService.findAccountByUsername(SystemKeys.REALM_SYSTEM, adminUsername);
     }
 
     /*

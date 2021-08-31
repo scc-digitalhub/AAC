@@ -110,7 +110,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.query(query.toString(), params.toArray(new Object[0]), rowMapper);
+        return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0]));
     }
 
     @Override
@@ -139,7 +139,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.queryForObject(query.toString(), params.toArray(new Object[0]), Long.class);
+        return jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
     }
 
     @Override
@@ -169,7 +169,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.query(query.toString(), params.toArray(new Object[0]), rowMapper).stream()
+        return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0])).stream()
                 .filter(e -> (e instanceof RealmAuditEvent))
                 .map(e -> (RealmAuditEvent) e)
                 .collect(Collectors.toList());
@@ -202,7 +202,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.query(query.toString(), params.toArray(new Object[0]), rowMapper);
+        return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0]));
     }
 
     @Override
@@ -231,7 +231,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.queryForObject(query.toString(), params.toArray(new Object[0]), Long.class);
+        return jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
     }
 
     public void setCreateAuditTableSql(String createAuditTableSql) {

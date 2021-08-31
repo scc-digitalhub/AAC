@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
@@ -95,6 +96,9 @@ public class UserManager {
     @Autowired
     private RealmService realmService;
 
+    @Autowired
+    private InternalUserManager internalUserManager;
+
     /*
      * Current user, from context
      */
@@ -118,6 +122,16 @@ public class UserManager {
     public User curUser(String realm) throws NoSuchRealmException {
         Realm r = realmService.getRealm(realm);
         return userService.getUser(curUserDetails(), r.getSlug());
+    }
+
+    /*
+     * System admin user internal usage TODO rework for non-internal providers
+     */
+    public User systemAdmin() {
+        // hack
+        // TODO rework
+        InternalUserAccount account = internalUserManager.internalAdmin();
+        return userService.findUser(account.getSubject());
     }
 
     /*

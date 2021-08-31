@@ -51,7 +51,7 @@ public class InternalSubjectResolver extends AbstractProvider
             InternalUserAccount account = accountProvider.getAccount(userId);
 
             // build subject with username
-            return new Subject(account.getSubject(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername());
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -64,7 +64,7 @@ public class InternalSubjectResolver extends AbstractProvider
             InternalUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
             // build subject with username
-            return new Subject(account.getSubject(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername());
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -105,7 +105,7 @@ public class InternalSubjectResolver extends AbstractProvider
                 InternalUserAccount account = accountProvider.getByIdentifyingAttributes(idAttrs);
 
                 // build subject with username
-                return new Subject(account.getSubject(), account.getUsername());
+                return new Subject(account.getSubject(), getRealm(), account.getUsername());
             } catch (NoSuchUserException nex) {
                 return null;
             }

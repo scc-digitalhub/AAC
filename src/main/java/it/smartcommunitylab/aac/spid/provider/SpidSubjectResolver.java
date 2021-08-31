@@ -57,7 +57,7 @@ public class SpidSubjectResolver extends AbstractProvider implements SubjectReso
             SpidUserAccount account = accountProvider.getAccount(userId);
 
             // build subject with username
-            return new Subject(account.getSubject(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername());
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -71,7 +71,7 @@ public class SpidSubjectResolver extends AbstractProvider implements SubjectReso
             SpidUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
             // build subject with username
-            return new Subject(account.getSubject(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername());
         } catch (NoSuchUserException nex) {
             return null;
         }
