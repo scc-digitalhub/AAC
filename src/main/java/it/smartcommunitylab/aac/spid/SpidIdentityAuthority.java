@@ -58,11 +58,11 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
                 @Override
                 public SpidIdentityProvider load(final String id) throws Exception {
                     SpidIdentityProviderConfig config = registrationRepository.findByProviderId(id);
-                    config.setIdps(spidRegistry.getIdentityProviders());
 
                     if (config == null) {
                         throw new IllegalArgumentException("no configuration matching the given provider id");
                     }
+                    config.setIdps(spidRegistry.getIdentityProviders());
 
                     SpidIdentityProvider idp = new SpidIdentityProvider(
                             id, config.getName(),
@@ -185,7 +185,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
             try {
                 SpidIdentityProviderConfig providerConfig = SpidIdentityProviderConfig.fromConfigurableProvider(cp);
                 providerConfig.setIdps(spidRegistry.getIdentityProviders());
-                
+
                 // build registration, will ensure configuration is valid *before* registering
                 // the provider in repositories
                 Set<RelyingPartyRegistration> registrations = providerConfig.getRelyingPartyRegistrations();

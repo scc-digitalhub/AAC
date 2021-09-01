@@ -39,8 +39,8 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    FilterRegistrationBean shallowEtagBean() {
-        FilterRegistrationBean filter = new FilterRegistrationBean();
+    FilterRegistrationBean<ShallowEtagHeaderFilter> shallowEtagBean() {
+        FilterRegistrationBean<ShallowEtagHeaderFilter> filter = new FilterRegistrationBean<>();
         filter.setFilter(new ShallowEtagHeaderFilter());
         filter.addUrlPatterns("/html/*", "/js/*", "/css/*", "/fonts/*", "/lib/*", "/italia/*");
 //        frb.setOrder(2);
@@ -60,7 +60,8 @@ public class WebConfig implements WebMvcConfigurer {
         // * spring MVC considering all those the same
         // result is only /about is protected by antMatcher, all the other variants are
         // open to the world
-        configurer.setUseSuffixPatternMatch(false);
+        // disable suffix match, as of 5.3 is set as false by default
+//        configurer.setUseSuffixPatternMatch(false);
         configurer.setUseTrailingSlashMatch(false);
     }
 
@@ -70,7 +71,8 @@ public class WebConfig implements WebMvcConfigurer {
         // the default breaks every single mapping which receives a path ending with
         // '.x', like 'user.roles.me'
         configurer
-                .favorPathExtension(false)
+        // disable path extension, as of 5.3 is false by default
+//                .favorPathExtension(false)
                 .favorParameter(false);
 
         // add mediatypes

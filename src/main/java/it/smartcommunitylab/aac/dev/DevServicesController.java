@@ -166,7 +166,7 @@ public class DevServicesController {
 
     }
 
-    @GetMapping("/console/dev/services/nsexists")
+    @GetMapping("/services/nsexists")
     public ResponseEntity<Boolean> checkRealmServiceNamespace(@RequestParam String ns) throws NoSuchRealmException {
         return ResponseEntity.ok(serviceManager.checkServiceNamespace(ns));
     }

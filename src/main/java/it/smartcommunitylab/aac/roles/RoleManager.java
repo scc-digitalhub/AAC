@@ -13,13 +13,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
+import it.smartcommunitylab.aac.model.Subject;
 
 @Service
 public class RoleManager {
@@ -32,7 +35,7 @@ public class RoleManager {
     private RoleService roleService;
 
     @Autowired
-    private UserEntityService userService;
+    private SubjectService subjectService;
 
     /*
      * Current user, from context
@@ -46,28 +49,30 @@ public class RoleManager {
     /*
      * Users from db
      */
-    public Collection<SpaceRole> getUserRoles(String subjectId) throws NoSuchUserException {
-        UserEntity user = userService.getUser(subjectId);
+    public Collection<SpaceRole> getRoles(String subjectId) throws NoSuchUserException {
         return roleService.getRoles(subjectId);
     }
 
-    public Collection<SpaceRole> getUserRoles(String realm, String subjectId) throws NoSuchUserException {
-        // we don't filter space roles per realm, so read all
-        return getUserRoles(subjectId);
-    }
-
     /*
-     * Manage
+     * Subject
      */
-    public Collection<SpaceRole> addRoles(String subjectId, Collection<SpaceRole> spaceRoles) {
-        return roleService.addRoles(subjectId, spaceRoles);
+    public Collection<SpaceRole> addRoles(String subjectId, Collection<SpaceRole> spaceRoles)
+            throws NoSuchSubjectException {
+        // check if subject exists
+        Subject s = subjectService.getSubject(subjectId);
+        return roleService.addRoles(s.getSubjectId(), spaceRoles);
     }
 
-    public void removeRoles(String subject, Collection<SpaceRole> spaceRoles) {
-        roleService.removeRoles(subject, spaceRoles);
+    public void removeRoles(String subjectId, Collection<SpaceRole> spaceRoles) throws NoSuchSubjectException {
+        // check if subject exists
+        Subject s = subjectService.getSubject(subjectId);
+        roleService.removeRoles(s.getSubjectId(), spaceRoles);
     }
 
-    public Collection<SpaceRole> addRoles(String subjectId, String context, String space, List<String> roles) {
+    public Collection<SpaceRole> addRoles(String subjectId, String context, String space, List<String> roles)
+            throws NoSuchSubjectException {
+        // check if subject exists
+        Subject s = subjectService.getSubject(subjectId);
         Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
                 .collect(Collectors.toList());
 
@@ -75,11 +80,14 @@ public class RoleManager {
 
     }
 
-    public void removeRoles(String subject, String context, String space, List<String> roles) {
+    public void removeRoles(String subjectId, String context, String space, List<String> roles)
+            throws NoSuchSubjectException {
+        // check if subject exists
+        Subject s = subjectService.getSubject(subjectId);
         Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
                 .collect(Collectors.toList());
 
-        roleService.removeRoles(subject, spaceRoles);
+        roleService.removeRoles(s.getSubjectId(), spaceRoles);
     }
 
     /*

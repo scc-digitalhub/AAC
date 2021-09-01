@@ -58,11 +58,13 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
     public RequestMatcher getRequestMatcher() {
         return new OrRequestMatcher(
                 new AntPathRequestMatcher(API_PREFIX + "/**"),
-                // TODO remap as /profile/basic etc..
+                new AntPathRequestMatcher("/profile/**"),
+                new AntPathRequestMatcher("/roles/**"),
+                // TODO remove legacy paths
                 new AntPathRequestMatcher("/basicprofile/**"),
                 new AntPathRequestMatcher("/accountprofile/**"),
                 new AntPathRequestMatcher("/openidprofile/**"),
-                new AntPathRequestMatcher("/userroles/**"));
+                new AntPathRequestMatcher("/userroles/me"));
 
     }
 

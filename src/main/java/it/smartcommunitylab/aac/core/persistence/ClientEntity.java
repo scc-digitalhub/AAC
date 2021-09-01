@@ -7,11 +7,11 @@ import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -27,14 +27,16 @@ public class ClientEntity {
 
     public static final String ID_PREFIX = "c_";
 
+//    @Id
+//    @GeneratedValue
+//    private Long id;
+
     @Id
-    @GeneratedValue
-    private Long id;
-
-    private String realm;
-
     @Column(name = "client_id", unique = true)
     private String clientId;
+
+    @NotNull
+    private String realm;
 
     // base
     private String name;
@@ -84,13 +86,13 @@ public class ClientEntity {
         this.clientId = clientId;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+//    public Long getId() {
+//        return id;
+//    }
+//
+//    public void setId(Long id) {
+//        this.id = id;
+//    }
 
     public String getRealm() {
         return realm;

@@ -12,11 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.SubjectEntity;
+import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
 
 /*
  * Manage persistence for client entities and roles
@@ -27,18 +30,23 @@ public class ClientEntityService {
 
     private final ClientEntityRepository clientRepository;
     private final ClientRoleEntityRepository clientRoleRepository;
+    private final SubjectEntityRepository subjectRepository;
 
     public ClientEntityService(ClientEntityRepository clientRepository,
-            ClientRoleEntityRepository clientRoleRepository) {
+            ClientRoleEntityRepository clientRoleRepository,
+            SubjectEntityRepository subjectRepository) {
         Assert.notNull(clientRepository, "client repository is mandatory");
         Assert.notNull(clientRoleRepository, "client roles repository is mandatory");
+        Assert.notNull(subjectRepository, "subject repository is mandatory");
+
         this.clientRepository = clientRepository;
         this.clientRoleRepository = clientRoleRepository;
+        this.subjectRepository = subjectRepository;
     }
 
     public ClientEntity createClient() {
         // generate random
-        // TODO ensure unique on multi node deploy
+        // TODO ensure unique on multi node deploy: replace with idGenerator
         // (given that UUID is derived from timestamp we consider this safe enough)
         String uuid = UUID.randomUUID().toString();
 
@@ -64,6 +72,14 @@ public class ClientEntityService {
             throw new IllegalArgumentException("client already exists with the same id");
         }
 
+        // create a subject, will throw error if exists
+        SubjectEntity s = new SubjectEntity(clientId);
+        s.setRealm(realm);
+        s.setType(SystemKeys.RESOURCE_CLIENT);
+        s.setName(name);
+        s = subjectRepository.save(s);
+
+        // create client
         c = new ClientEntity(clientId);
         c.setRealm(realm);
         c.setType(type);
@@ -143,6 +159,16 @@ public class ClientEntityService {
         c.setHookUniqueSpaces(hookUniqueSpaces);
         c = clientRepository.save(c);
 
+        // check if subject exists and update name
+        SubjectEntity s = subjectRepository.findBySubjectId(clientId);
+        if (s == null) {
+            s = new SubjectEntity(clientId);
+            s.setRealm(c.getRealm());
+            s.setType(SystemKeys.RESOURCE_CLIENT);
+        }
+        s.setName(name);
+        s = subjectRepository.save(s);
+
         return c;
 
     }
@@ -156,6 +182,9 @@ public class ClientEntityService {
 
             // remove entity
             clientRepository.delete(c);
+
+            // remove subject
+            subjectRepository.deleteById(clientId);
         }
     }
 

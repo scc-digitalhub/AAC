@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2015 Fondazione Bruno Kessler
+ * Copyright 2015 - 2021 Fondazione Bruno Kessler
  * 
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class RolesController {
 
     @ApiOperation(value = "Get roles of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLE + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/userroles/me")
+    @RequestMapping(method = RequestMethod.GET, value = { "/userroles/me", "/roles/me" })
     public Collection<SpaceRole> getRoles(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
@@ -78,7 +78,7 @@ public class RolesController {
         }
 
         // return all the user roles
-        return roleManager.getUserRoles(subject);
+        return roleManager.getRoles(subject);
     }
 
     /*
@@ -88,7 +88,7 @@ public class RolesController {
      * authorization via spaces ownership
      */
 
-    @ApiOperation(value = "Get roles of a specific user in a domain")
+    @ApiOperation(value = "Get roles of a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/api/roles/{subjectId}")
@@ -101,10 +101,10 @@ public class RolesController {
         }
 
         // return all the user roles
-        return roleManager.getUserRoles(subjectId);
+        return roleManager.getRoles(subjectId);
     }
 
-    @ApiOperation(value = "Add roles to a specific user")
+    @ApiOperation(value = "Add roles to a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/api/roles/{subjectId}")
@@ -129,10 +129,10 @@ public class RolesController {
         return roleManager.addRoles(subjectId, spaceRoles);
     }
 
-    @ApiOperation(value = "Delete roles for a specific user")
+    @ApiOperation(value = "Delete roles for a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
-    @RequestMapping(method = RequestMethod.DELETE, value = "/userroles/user/{userId}")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/api/roles/{subjectId}")
     public void deleteRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
             @RequestParam List<String> roles) throws Exception {
@@ -151,7 +151,7 @@ public class RolesController {
             }
         });
 
-        roleManager.addRoles(subjectId, spaceRoles);
+        roleManager.removeRoles(subjectId, spaceRoles);
 
     }
 

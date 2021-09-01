@@ -441,7 +441,8 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // TODO add concurrent sessions for same subject control
 
             // convert to subject
-            Subject subject = new Subject(subjectId, user.getUsername());
+            // TODO fetch subject from service
+            Subject subject = new Subject(subjectId, realm, user.getUsername());
 
             // fetch global and realm authorities for subject
             List<UserRoleEntity> userRoles = userService.getRoles(subjectId);

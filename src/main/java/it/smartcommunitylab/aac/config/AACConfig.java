@@ -22,6 +22,8 @@ import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -112,6 +114,8 @@ public class AACConfig {
     @Bean
     public YAMLFactory yamlFactory() {
         class CustomYAMLFactory extends YAMLFactory {
+            private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+
             @Override
             protected YAMLGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
                 int feats = _yamlGeneratorFeatures;

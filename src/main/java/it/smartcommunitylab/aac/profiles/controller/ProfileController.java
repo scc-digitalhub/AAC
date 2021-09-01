@@ -78,6 +78,7 @@ public class ProfileController {
      * this API only, with bearer token
      */
 
+    @Deprecated()
     @ApiOperation(value = "Get basic profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE + "')")
     @GetMapping(value = "/basicprofile/me")
@@ -100,6 +101,7 @@ public class ProfileController {
         return new ProfileResponse(subject, profile);
     }
 
+    @Deprecated()
     @ApiOperation(value = "Get openid profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_PROFILE + "')")
     @GetMapping(value = "/openidprofile/me")
@@ -122,6 +124,7 @@ public class ProfileController {
         return new ProfileResponse(subject, profile);
     }
 
+    @Deprecated()
     @ApiOperation(value = "Get account profiles of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE
             + "')")
@@ -145,9 +148,9 @@ public class ProfileController {
         return new ProfileResponse(subject, profiles);
     }
 
-    @ApiOperation(value = "Get account profiles of the current user")
-    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_profile.#identifier.me')")
-    @GetMapping(value = "/{identifier}/me")
+    @ApiOperation(value = "Get profiles of the current user")
+    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_profile.'+#identifier+'.me')")
+    @GetMapping(value = "/profile/{identifier}/me")
     public @ResponseBody ProfileResponse myProfiles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
             BearerTokenAuthentication auth)

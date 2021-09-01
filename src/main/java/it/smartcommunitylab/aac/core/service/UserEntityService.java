@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -19,7 +18,8 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.persistence.SubjectEntity;
+import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
@@ -33,20 +33,24 @@ import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
 public class UserEntityService {
 
     private final UserEntityRepository userRepository;
-
     private final UserRoleEntityRepository userRoleRepository;
+    private final SubjectEntityRepository subjectRepository;
 
-    public UserEntityService(UserEntityRepository userRepository, UserRoleEntityRepository userRoleRepository) {
+    public UserEntityService(UserEntityRepository userRepository,
+            UserRoleEntityRepository userRoleRepository,
+            SubjectEntityRepository subjectRepository) {
         Assert.notNull(userRepository, "user repository is mandatory");
         Assert.notNull(userRoleRepository, "user roles repository is mandatory");
+        Assert.notNull(subjectRepository, "subject repository is mandatory");
+
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
+        this.subjectRepository = subjectRepository;
     }
 
     public UserEntity createUser(String realm) {
-
         // generate random
-        // TODO ensure unique on multi node deploy
+        // TODO ensure unique on multi node deploy: replace with idGenerator
         // (given that UUID is derived from timestamp we consider this safe enough)
         String uuid = UUID.randomUUID().toString();
 
@@ -59,23 +63,31 @@ public class UserEntityService {
     }
 
     public UserEntity addUser(String uuid, String realm, String username) throws AlreadyRegisteredException {
-        if (!StringUtils.hasText(realm)) {
-            throw new RegistrationException("realm is invalid");
-        }
-
-        if (!StringUtils.hasText(uuid)) {
-            throw new IllegalArgumentException("empty subject id");
-        }
-
-        if (uuid.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, uuid)) {
-            throw new IllegalArgumentException("invalid subject id");
-        }
+//        if (!StringUtils.hasText(realm)) {
+//            throw new RegistrationException("realm is invalid");
+//        }
+//
+//        if (!StringUtils.hasText(uuid)) {
+//            throw new IllegalArgumentException("empty subject id");
+//        }
+//
+//        if (uuid.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, uuid)) {
+//            throw new IllegalArgumentException("invalid subject id");
+//        }
 
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
             throw new AlreadyRegisteredException("user already exists");
         }
 
+        // create a subject, will throw error if exists
+        SubjectEntity s = new SubjectEntity(uuid);
+        s.setRealm(realm);
+        s.setType(SystemKeys.RESOURCE_USER);
+        s.setName(username);
+        s = subjectRepository.save(s);
+
+        // create user
         u = new UserEntity(uuid, realm);
         u.setUsername(username);
         // ensure user is active
@@ -88,29 +100,9 @@ public class UserEntityService {
 
     public UserEntity addUser(String uuid, String realm, String username, List<String> roles)
             throws AlreadyRegisteredException {
-        if (!StringUtils.hasText(realm)) {
-            throw new RegistrationException("realm is invalid");
-        }
+        UserEntity u = addUser(uuid, realm, username);
 
-        if (!StringUtils.hasText(uuid)) {
-            throw new IllegalArgumentException("empty subject id");
-        }
-
-        if (uuid.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, uuid)) {
-            throw new IllegalArgumentException("invalid subject id");
-        }
-
-        UserEntity u = userRepository.findByUuid(uuid);
-        if (u != null) {
-            throw new AlreadyRegisteredException("user already exists");
-        }
-
-        u = new UserEntity(uuid, realm);
-        u.setUsername(username);
-        // ensure user is active
-        u.setLocked(false);
-        u.setBlocked(false);
-        u = userRepository.save(u);
+        // add roles
         for (String role : roles) {
             UserRoleEntity r = new UserRoleEntity(uuid);
             r.setRealm(SystemKeys.REALM_GLOBAL);
@@ -140,10 +132,6 @@ public class UserEntityService {
         return userRepository.findByRealm(realm);
     }
 
-    /**
-     * @param realm
-     * @return
-     */
     @Transactional(readOnly = true)
     public long countUsers(String realm) {
         return userRepository.countByRealm(realm);
@@ -169,10 +157,24 @@ public class UserEntityService {
     }
 
     public UserEntity updateUser(String uuid, String username) throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
+        UserEntity u = userRepository.findByUuid(uuid);
+        if (u == null) {
+            throw new NoSuchUserException("no user for subject " + uuid);
+        }
 
         u.setUsername(username);
         u = userRepository.save(u);
+
+        // check if subject exists and update name
+        SubjectEntity s = subjectRepository.findBySubjectId(uuid);
+        if (s == null) {
+            s = new SubjectEntity(uuid);
+            s.setRealm(u.getRealm());
+            s.setType(SystemKeys.RESOURCE_USER);
+        }
+        s.setName(username);
+        s = subjectRepository.save(s);
+
         return u;
 
     }
@@ -303,6 +305,9 @@ public class UserEntityService {
 
             // remove entity
             userRepository.delete(u);
+
+            // remove subject
+            subjectRepository.deleteById(uuid);
         }
 
         return u;

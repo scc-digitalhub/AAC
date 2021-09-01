@@ -34,6 +34,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.nimbusds.jose.EncryptionMethod;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWSAlgorithm;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
@@ -47,6 +51,7 @@ import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.openid.scope.OpenIdScopeProvider;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
 import it.smartcommunitylab.aac.profiles.scope.ProfileScopeProvider;
 
 /**
@@ -233,6 +238,7 @@ public class OpenIDMetadataEndpoint {
 
         List<String> scopes = new ArrayList<>();
         scopes.addAll(OpenIdScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
+        scopes.addAll(OpenIdProfileScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
         scopes.addAll(ProfileScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
         m.put("scopes_supported", scopes);
 
@@ -274,10 +280,10 @@ public class OpenIDMetadataEndpoint {
 //        m.put("userinfo_encryption_alg_values_supported",encAlgorithms);
 //        m.put("userinfo_encryption_enc_values_supported",encMethods);
 
-        // unsupported
-//        m.put("request_object_signing_alg_values_supported",signAlgorithms);
-//        m.put("request_object_encryption_alg_values_supported",encAlgorithms);
-//        m.put("request_object_encryption_enc_values_supported",encMethods);
+        // support only plaintext
+        m.put("request_object_signing_alg_values_supported", Collections.singleton(JWSAlgorithm.NONE.getName()));
+        m.put("request_object_encryption_alg_values_supported", Collections.singleton(JWEAlgorithm.NONE.getName()));
+        m.put("request_object_encryption_enc_values_supported", Collections.singleton(EncryptionMethod.NONE.getName()));
 
         List<String> authMethods = Stream
                 .of(AuthenticationMethod.CLIENT_SECRET_BASIC,
@@ -303,7 +309,7 @@ public class OpenIDMetadataEndpoint {
 //	          m.put("claims_locales_supported",""); //not supported
 //	          m.put("ui_locales_supported",""); //not supported           
         m.put("claims_parameter_supported", false);
-        m.put("request_parameter_supported", false);
+        m.put("request_parameter_supported", true);
         m.put("request_uri_parameter_supported", false);
         m.put("require_request_uri_registration", false);
 //	          m.put("op_policy_uri",""); //not supported

@@ -13,11 +13,13 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private final String subjectId;
+    private final String realm;
     private final String name;
 
-    public Subject(String subject, String name) {
+    public Subject(String subject, String realm, String name) {
         Assert.notNull(subject, "subject can not be null");
         this.subjectId = subject;
+        this.realm = realm;
         if (StringUtils.hasText(name)) {
             this.name = name;
         } else {
@@ -32,6 +34,10 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
 
     public String getSubjectId() {
         return subjectId;
+    }
+
+    public String getRealm() {
+        return realm;
     }
 
     @Override
@@ -61,7 +67,7 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
 
     @Override
     public String toString() {
-        return "Subject [subjectId=" + subjectId + ", name=" + name + "]";
+        return "Subject [subjectId=" + subjectId + ", realm=" + realm + ", name=" + name + "]";
     }
 
 }

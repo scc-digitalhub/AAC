@@ -5,13 +5,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
@@ -20,6 +23,8 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.RoleService;
 
 @Service
 public class InternalUserManager {
@@ -31,11 +36,8 @@ public class InternalUserManager {
     @Autowired
     private UserEntityService userService;
 
-//    @Autowired
-//    private AttributeEntityService attributeService;
-
-//    @Autowired
-//    private RoleService roleService;
+    @Autowired
+    private RoleService roleService;
 
     /*
      * User store init
@@ -77,6 +79,9 @@ public class InternalUserManager {
 
         String subjectId = account.getSubject();
 
+        // update username
+        user = userService.updateUser(subjectId, adminUsername);
+
         // re-set password
         String hash = PasswordHash.createHash(adminPassword);
         account.setPassword(hash);
@@ -112,10 +117,20 @@ public class InternalUserManager {
         // set
         List<UserRoleEntity> userRoles = userService.updateRoles(subjectId, roles);
 
+        // set minimal space roles
+        Set<SpaceRole> spaceRoles = roleService.getRoles(subjectId);
+        if (spaceRoles.isEmpty()) {
+            roleService.addRole(subjectId, null, "", Config.R_PROVIDER);
+        }
+
         logger.debug("admin user id " + String.valueOf(account.getId()));
         logger.debug("admin user " + user.toString());
         logger.debug("admin user roles " + userRoles.toString());
         logger.debug("admin account " + account.toString());
+    }
+
+    public InternalUserAccount internalAdmin() {
+        return accountService.findAccountByUsername(SystemKeys.REALM_SYSTEM, adminUsername);
     }
 
     /*

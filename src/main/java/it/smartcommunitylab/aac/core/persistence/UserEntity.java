@@ -5,7 +5,6 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -22,18 +21,19 @@ public class UserEntity {
     public static final String ID_PREFIX = "u_";
 
     // TODO remove numeric id, we should have UUID to avoid locking on create
-    @Id
-    @GeneratedValue
-    private Long id;
+//    @Id
+//    @GeneratedValue
+//    private Long id;
 
+    @Id
     @NotNull
     @Column(unique = true)
     private String uuid;
 
-    private String username;
-
     @NotNull
     private String realm;
+
+    private String username;
 
     /*
      * user status
@@ -78,13 +78,13 @@ public class UserEntity {
         this.realm = realm;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+//    public Long getId() {
+//        return id;
+//    }
+//
+//    public void setId(Long id) {
+//        this.id = id;
+//    }
 
     public String getUuid() {
         return uuid;
