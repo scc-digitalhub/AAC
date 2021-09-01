@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -40,7 +42,9 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
         http.requestMatcher(getRequestMatcher())
                 .authorizeRequests((authorizeRequests) -> authorizeRequests
                         .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_CLIENT"))
+                // TODO add support for passing token in request body via custom filter
                 .oauth2ResourceServer(oauth2 -> oauth2
+                        .bearerTokenResolver(bearerTokenResolver())
                         .opaqueToken(opaqueToken -> opaqueToken
                                 .introspector(tokenIntrospector)))
                 // disable request cache, we override redirects but still better enforce it
@@ -56,6 +60,14 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
         // we don't want a session for these endpoints, each request should be evaluated
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    public BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
+        // support token in form body
+        resolver.setAllowFormEncodedBodyParameter(true);
+
+        return resolver;
     }
 
     public RequestMatcher getRequestMatcher() {

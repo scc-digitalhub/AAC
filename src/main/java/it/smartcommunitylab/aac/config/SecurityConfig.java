@@ -120,7 +120,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository;
 
     @Autowired
-    private OAuth2ClientDetailsService clientDetailsService;
+    private OAuth2ClientDetailsService oauth2ClientDetailsService;
 
     @Autowired
     private OAuth2ClientService oauth2ClientService;
@@ -289,7 +289,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // use a realm aware entryPoint
 //                .authenticationEntryPoint(new RealmAwareAuthenticationEntryPoint("/login"))
                 .defaultAuthenticationEntryPointFor(
-                        oauth2AuthenticationEntryPoint(clientDetailsService, loginPath),
+                        oauth2AuthenticationEntryPoint(oauth2ClientDetailsService, loginPath),
                         new AntPathRequestMatcher("/oauth/**"))
                 .defaultAuthenticationEntryPointFor(
                         realmAuthEntryPoint(loginPath, realmUriBuilder),
@@ -330,8 +330,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(
                         getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
                         BasicAuthenticationFilter.class)
-                .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService), BasicAuthenticationFilter.class)
-                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
+                .addFilterBefore(new AuthorizationEndpointFilter(oauth2ClientService, oauth2ClientDetailsService),
+                        BasicAuthenticationFilter.class);
+//                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
 
         // we always want a session here
         http.sessionManagement()

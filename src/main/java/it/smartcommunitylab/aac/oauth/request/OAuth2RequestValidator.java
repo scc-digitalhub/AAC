@@ -141,6 +141,12 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
             throw new InvalidRequestException("missing openid scope");
         }
 
+        if (responseTypes.isEmpty()) {
+            // response type is REQUIRED as per
+            // https://datatracker.ietf.org/doc/html/rfc6749#section-3.1.1
+            throw new InvalidRequestException("response_type can not be null or empty");
+        }
+
         // ensure valid combinations only
         // TODO evaluate dedicated validator
         if (responseTypes.size() == 1 && responseTypes.contains(ResponseType.CODE)) {

@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,17 +54,32 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.openid.common.IdToken;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdAddressScope;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
+import it.smartcommunitylab.aac.profiles.scope.OpenIdPhoneScope;
 
 public class OIDCTokenServices implements IdTokenServices, InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String MAX_AGE = "max_age";
     private static final String NONCE = "nonce";
+    private static final Set<String> OPENID_SCOPES;
 
     // static config
     public static final int DEFAULT_ID_TOKEN_VALIDITY = 60 * 60; // 1 hour
     private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(20);
     private static final Charset ENCODE_CHARSET = Charset.forName("US-ASCII");
+
+    static {
+        Set<String> s = new HashSet<>();
+        s.add(OpenIdEmailScope.SCOPE);
+        s.add(OpenIdDefaultScope.SCOPE);
+        s.add(OpenIdPhoneScope.SCOPE);
+        s.add(OpenIdAddressScope.SCOPE);
+
+        OPENID_SCOPES = Collections.unmodifiableSet(s);
+    }
 
     private final String issuer;
     private final OpenIdClaimsExtractorProvider claimsExtractorProvider;
@@ -424,8 +441,15 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
 
         List<Claim> claimss = new ArrayList<>();
         for (String scope : scopes) {
+            // avoid adding openid claims if access token is issued
+            // as per spec they should be fetched from userinfo
+            // https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.5.4
+            if (accessToken != null && OPENID_SCOPES.contains(scope)) {
+                continue;
+            }
             if (claimsExtractorProvider.getScopes().contains(scope)) {
-                ClaimsSet cs = claimsExtractorProvider.getExtractor(scope).extractUserClaims(scope, user, clientDetails,
+                ClaimsSet cs = claimsExtractorProvider.getExtractor(scope).extractUserClaims(scope, user,
+                        clientDetails,
                         scopes, null);
                 if (cs != null) {
                     claimss.addAll(cs.getClaims());

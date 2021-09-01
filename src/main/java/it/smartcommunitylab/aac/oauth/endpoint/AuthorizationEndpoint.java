@@ -155,7 +155,14 @@ public class AuthorizationEndpoint implements InitializingBean {
             @PathVariable("realm") Optional<String> realmKey,
             Authentication authentication) {
 
+        // TODO move everything to catch block and *always* parse request via factory
+
         if (!(authentication instanceof UserAuthentication) || !authentication.isAuthenticated()) {
+            // check if prompt=none to return an error instead of triggering login
+//            if (PromptMode.NONE.getValue().equals(promptParam)) {
+//                // return error
+//            }
+
             throw new InsufficientAuthenticationException("Invalid user authentication");
         }
 

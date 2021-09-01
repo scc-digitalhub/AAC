@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth.request;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,6 +25,8 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEObject;
+import com.nimbusds.jose.PlainObject;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -38,8 +41,11 @@ import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.openid.common.exceptions.InvalidRequestObjectException;
+import it.smartcommunitylab.aac.openid.common.exceptions.UnsupportedRequestUriException;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import net.minidev.json.JSONObject;
 
 public class OAuth2RequestFactory
         implements OAuth2TokenRequestFactory, OAuth2AuthorizationRequestFactory,
@@ -210,13 +216,14 @@ public class OAuth2RequestFactory
     public AuthorizationRequest createAuthorizationRequest(Map<String, String> requestParameters,
             OAuth2ClientDetails clientDetails, User user) {
 
-        // required parameters
+        // *always* required parameters
         String clientId = readParameter(requestParameters, "client_id", SLUG_PATTERN);
         String responseType = readParameter(requestParameters, "response_type", SPACE_STRING_PATTERN);
         Set<String> responseTypes = delimitedStringToSet(decodeParameters(responseType));
 
         // optional
         String state = readParameter(requestParameters, "state", SPECIAL_PATTERN);
+        String nonce = readParameter(requestParameters, "nonce", SPECIAL_PATTERN);
 
         // check if we didn't receive clientId, use authentication info
         if (clientId == null) {
@@ -236,8 +243,9 @@ public class OAuth2RequestFactory
                     // TODO rewrite with proper merge with exclusion list
                     requestParameters.put("client_id", clientId);
                     requestParameters.put("response_type", responseType);
-                    requestParameters.put("state", state);
 
+                    requestParameters.put("state", state);
+                    requestParameters.put("nonce", nonce);
                 }
             }
         }
@@ -264,6 +272,54 @@ public class OAuth2RequestFactory
 
         Set<String> prompt = delimitedStringToSet(decodeParameters(requestParameters.get("prompt")));
 
+        // support request param only for openid
+        String request = requestParameters.get("request");
+        if (StringUtils.hasText(request) && scopes.contains("openid")) {
+            // this should be a JWT
+            // we support only plain for now
+            try {
+                JOSEObject jwt = JOSEObject.parse(request);
+                if (!(jwt instanceof PlainObject)) {
+                    throw new InvalidRequestObjectException("request param type unsupported");
+                }
+
+                JSONObject json = jwt.getPayload().toJSONObject();
+
+                // values in jwt superseed params
+                if (StringUtils.hasText(json.getAsString("state"))) {
+                    state = readParameter(json.getAsString("state"), SPECIAL_PATTERN);
+                }
+                if (StringUtils.hasText(json.getAsString("nonce"))) {
+                    nonce = readParameter(json.getAsString("nonce"), SPECIAL_PATTERN);
+                }
+                if (StringUtils.hasText(json.getAsString("redirect_uri"))) {
+                    redirectUri = readParameter(json.getAsString("redirect_uri"), URI_PATTERN);
+                }
+                if (StringUtils.hasText(json.getAsString("response_mode"))) {
+                    responseMode = readParameter(json.getAsString("response_mode"), STRING_PATTERN);
+                }
+                if (StringUtils.hasText(json.getAsString("resource"))) {
+                    resourceIds = delimitedStringToSet(json.getAsString("resource"));
+                }
+                if (StringUtils.hasText(json.getAsString("audience"))) {
+                    audience = delimitedStringToSet(json.getAsString("audience"));
+                }
+                if (StringUtils.hasText(json.getAsString("prompt"))) {
+                    prompt = delimitedStringToSet(json.getAsString("prompt"));
+                }
+
+            } catch (ParseException e) {
+                throw new InvalidRequestObjectException("request param is malformed");
+            }
+
+        }
+
+        // we do not support request_uri
+        String requestUri = requestParameters.get("request_uri");
+        if (StringUtils.hasText(requestUri)) {
+            throw new UnsupportedRequestUriException("request_uri is not supported");
+        }
+
         logger.trace("create authorization request for " + clientId
                 + " response type " + responseTypes.toString()
                 + " response mode " + String.valueOf(responseMode)
@@ -289,7 +345,6 @@ public class OAuth2RequestFactory
         extensions.put("response_mode", responseMode);
 
         // support NONCE
-        String nonce = readParameter(requestParameters, "nonce", SPECIAL_PATTERN);
         if (StringUtils.hasText(nonce)) {
             extensions.put("nonce", nonce);
         }
@@ -510,8 +565,15 @@ public class OAuth2RequestFactory
         }
 
         String raw = requestParameters.get(key);
+        return readParameter(raw, pattern);
+
+    }
+
+    private String readParameter(String raw, String pattern)
+            throws IllegalArgumentException {
+
         if (!raw.matches(pattern)) {
-            throw new IllegalArgumentException(key + " does not match pattern " + String.valueOf(pattern));
+            throw new IllegalArgumentException("param does not match pattern " + String.valueOf(pattern));
         }
 
         return raw.trim();
