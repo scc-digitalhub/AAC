@@ -64,11 +64,12 @@
               <h4 class="text-center" th:text="${displayName}">AAC</h4>
             </div>
 
-            <p th:text="#{label.resetpwd_text}">Reset account</p>
+            <p class="text-center" th:text="#{label.resetpwd_text}">Reset account</p>
             <form action="#" th:action="${resetUrl}" th:object="${reg}" method="post">
 
-              <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
-
+              <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
+                            Error text</div>
+                            
               <div class="col-md-12 form-group">
                 <label th:text="#{field.username} + '*: '"></label>
                 <input type="text" class="form-control" th:field="*{username}" />
