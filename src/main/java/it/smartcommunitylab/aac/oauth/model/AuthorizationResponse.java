@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -41,7 +43,7 @@ public class AuthorizationResponse {
     @JsonProperty("expires_in")
     private Integer expiresIn;
 
-    @JsonUnwrapped
+    @JsonIgnore
     private Map<String, Serializable> additionalInformation;
 
     public AuthorizationResponse() {
@@ -130,6 +132,11 @@ public class AuthorizationResponse {
 
     public void setAdditionalInformation(Map<String, Serializable> additionalInformation) {
         this.additionalInformation = additionalInformation;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Serializable> getMap() {
+        return additionalInformation;
     }
 
 }

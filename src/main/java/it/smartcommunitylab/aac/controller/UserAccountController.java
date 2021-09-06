@@ -177,13 +177,17 @@ public class UserAccountController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/credentials/{userId}")
+    @GetMapping("/credentials/{authority}/{providerId}/{userId}")
     public ModelAndView credentials(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String authority,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchProviderException, NoSuchUserException {
         // first check userid vs user
+        // TODO rewrite not hardcoded..
+        String id = authority + "|" + providerId + "|" + userId;
         UserDetails user = authHelper.getUserDetails();
-        UserIdentity identity = user.getIdentity(userId);
+        UserIdentity identity = user.getIdentity(id);
 
         if (identity == null) {
             throw new IllegalArgumentException("userid invalid");
@@ -192,7 +196,7 @@ public class UserAccountController {
         UserAccount account = identity.getAccount();
 
         // fetch provider
-        String providerId = identity.getProvider();
+        providerId = identity.getProvider();
         IdentityService idp = providerManager.getIdentityService(providerId);
 
         // fetch credentials service if available
@@ -206,7 +210,7 @@ public class UserAccountController {
             throw new IllegalArgumentException("credentials are immutable");
         }
 
-        String url = service.getSetUrl();
+        String url = service.getSetUrl() + "/" + providerId + "/" + userId;
         return new ModelAndView("redirect:" + url);
     }
 

@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -40,7 +42,7 @@ public class TokenResponse {
     @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope;
 
-    @JsonUnwrapped
+    @JsonIgnore
     private Map<String, Serializable> additionalInformation;
 
     public TokenResponse() {
@@ -126,6 +128,11 @@ public class TokenResponse {
 
     public void setAdditionalInformation(Map<String, Serializable> additionalInformation) {
         this.additionalInformation = additionalInformation;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Serializable> getMap() {
+        return additionalInformation;
     }
 
 }

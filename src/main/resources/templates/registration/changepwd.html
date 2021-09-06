@@ -48,26 +48,31 @@
       <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
         <div class="card card-bg mt-5">
 
-          <div class="card-header bg-primary text-white customization-block"
-            th:if="${customization != null && customization.get('headerText') != null}"
-            th:utext="${customization.get('headerText')}"></div>
+          <!-- card header -->
+          <div class="card-header pl-4 text-muted">
+            <span>
+              <svg class="icon icon-secondary icon-sm">
+                <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
+              </svg>
+            </span>
+            <span class="ml-1" th:text="#{label.changepwd_title}"></span>
+          </div>
 
 
           <div class="card-body align-items-center">
+             <!-- realm logo  -->
             <div class="card-logo">
-              <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
+              <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
+              <h4 class="text-center" th:text="${displayName}">AAC</h4>
             </div>
 
-            <h4 class="text-center" th:if="${displayName == null}" th:text="#{label.changepwd_title}">AAC</h4>
-            <h4 class="text-center" th:if="${displayName != null}" th:text="${displayName}">AAC</h4>
-
-            <h5 th:text="#{label.changepwd_title}">Change password</h5>
+            <p class="text-center" th:text="#{label.changepwd_text}">Change password</p>
             <p id="infoPassword" class="form-text text-muted" th:text=${policy}>password policy</p>
 
             <form action="#" th:action="${changeUrl}" th:object="${reg}" method="post">
               <input type="hidden" th:field="*{userId}">
-              <div class="error" th:if="${error} != null" th:text="#{${error}}">Error text</div>
-
+              <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
+                            Error text</div>
               <div class="col-md-12 form-group" th:if="${!credentials.isChangeOnFirstAccess()}">
                 <label th:text="#{field.pwd}  + '*: '"></label>
                 <input class="form-control input-password" type="password" th:field="*{curPassword}" />
@@ -78,8 +83,7 @@
                     <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
                   </svg>
                 </span>
-                <div th:if="${#fields.hasErrors('curPassword')}" th:errors="*{curPassword}">
-                </div>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('curPassword')}" th:errors="*{curPassword}"></div>
               </div>
 
 
@@ -93,8 +97,7 @@
                     <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
                   </svg>
                 </span>
-                <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
-                </div>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
               </div>
 
               <div class="col-md-12 form-group">
@@ -107,8 +110,7 @@
                     <use th:xlink:href="@{/italia/svg/sprite.svg#it-password-invisible}"></use>
                   </svg>
                 </span>
-                <div th:if="${#fields.hasErrors('verifyPassword')}" th:errors="*{verifyPassword}">
-                </div>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('verifyPassword')}" th:errors="*{verifyPassword}"></div>
               </div>
 
               <div class="row">
@@ -124,7 +126,8 @@
 
           </div>
 
-          <div class="card-footer text-muted customization-block"
+          <!-- realm footer  -->
+          <div class="card-footer bg-primary text-white customization-block"
             th:if="${customization != null && customization.get('footerText') != null}"
             th:utext="${customization.get('footerText')}"></div>
 
