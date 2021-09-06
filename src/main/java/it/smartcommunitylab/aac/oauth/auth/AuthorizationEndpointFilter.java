@@ -81,9 +81,10 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
                 // we need to store request for after auth success
                 // TODO remove prompt to avoid looping..
                 // we need a way to bind reauth to requests, to avoid messing with context
-                this.requestCache.saveRequest(request, response);
-                this.authenticationEntryPoint.commence(request, response, null);
-                return;
+                // disabled for now
+//                this.requestCache.saveRequest(request, response);
+//                this.authenticationEntryPoint.commence(request, response, null);
+//                return;
             }
 
             UserAuthentication userAuth = getUserAuthentication();

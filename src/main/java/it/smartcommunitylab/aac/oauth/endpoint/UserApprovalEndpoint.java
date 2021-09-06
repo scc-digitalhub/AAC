@@ -34,6 +34,7 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.ResponseMode;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -51,6 +52,7 @@ public class UserApprovalEndpoint implements InitializingBean {
 
     private static final String errorPage = "forward:" + ErrorEndpoint.ERROR_URL;
     private static final String responsePage = "forward:" + AuthorizationEndpoint.AUTHORIZED_URL;
+    private static final String formPage = "forward:" + AuthorizationEndpoint.FORM_POST_URL;
 
 //    private static final String SCOPE_PREFIX = OAuth2Utils.SCOPE_PREFIX;
 
@@ -228,6 +230,13 @@ public class UserApprovalEndpoint implements InitializingBean {
 
             // forward to authorization endpoint for response
             // no need to append key param since we forward all params already
+            // check if response is requested via post
+            String responseMode = (String) authorizationRequest.getExtensions().get("response_mode");
+            if (ResponseMode.FORM_POST.getValue().equals(responseMode)) {
+                // process as authorized via form post
+                return new ModelAndView(formPage);
+            }
+
             return new ModelAndView(responsePage);
 
         } catch (RuntimeException e) {

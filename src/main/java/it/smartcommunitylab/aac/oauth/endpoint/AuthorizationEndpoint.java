@@ -93,7 +93,8 @@ public class AuthorizationEndpoint implements InitializingBean {
     private static final String errorView = "forward:" + ErrorEndpoint.ERROR_URL;
     private static final String responseView = "forward:" + AUTHORIZED_URL;
     private static final String formView = "forward:" + FORM_POST_URL;
-    private static final String formPage = "oauth_form_post.html";
+//    private static final String formPage = "oauth_form_post.html";
+    private static final String formPage = FormPostView.VIEWNAME;
 
     @Autowired
     private OAuth2AuthorizationRequestFactory oauth2AuthorizationRequestFactory;
@@ -802,7 +803,7 @@ public class AuthorizationEndpoint implements InitializingBean {
             params.put("token_type", authorizationResponse.getTokenType());
         }
         if (authorizationResponse.getExpiresIn() != null) {
-            params.put("expires_in", authorizationResponse.getExpiresIn());
+            params.put("expires_in", Integer.toString(authorizationResponse.getExpiresIn()));
         }
         if (authorizationResponse.getScope() != null) {
             String scope = StringUtils.collectionToDelimitedString(authorizationResponse.getScope(), " ");

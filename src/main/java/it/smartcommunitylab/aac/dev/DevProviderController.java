@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.dev;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.yaml.snakeyaml.Yaml;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
@@ -50,6 +53,8 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping("/console/dev")
 public class DevProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final TypeReference<Map<String, List<ConfigurableProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableProvider>>>() {
+    };
 
     @Autowired
     private ProviderManager providerManager;
@@ -196,7 +201,7 @@ public class DevProviderController {
         provider.setName(name);
         provider.setDescription(description);
         provider.setDisplayMode(displayMode);
-        
+
         provider.setPersistence(persistence);
         provider.setLinkable(linkable);
 
@@ -267,7 +272,7 @@ public class DevProviderController {
     @PutMapping("/realms/{realm}/providers")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<ConfigurableProvider> importRealmProvider(
+    public ResponseEntity<Collection<ConfigurableProvider>> importRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
         if (file == null || file.isEmpty()) {
@@ -281,39 +286,86 @@ public class DevProviderController {
             throw new IllegalArgumentException("invalid file");
         }
         try {
-            ConfigurableProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
-                    ConfigurableProvider.class);
+            List<ConfigurableProvider> providers = new ArrayList<>();
+            boolean multiple = false;
 
-            // unpack and build model
-            String id = registration.getProvider();
-            String authority = registration.getAuthority();
-            String type = registration.getType();
-            String name = registration.getName();
-            String description = registration.getDescription();
-            String displayMode = registration.getDisplayMode();
-            String persistence = registration.getPersistence();
-            String events = registration.getEvents();
-            Map<String, Serializable> configuration = registration.getConfiguration();
-            Map<String, String> hookFunctions = registration.getHookFunctions();
+            // read as raw yaml to check if collection
+            Yaml yaml = new Yaml();
+            Map<String, Object> obj = yaml.load(file.getInputStream());
+            multiple = obj.containsKey("providers");
 
-            ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
-            provider.setName(name);
-            provider.setDescription(description);
-            provider.setDisplayMode(displayMode);
-            provider.setType(type);
-            provider.setEnabled(false);
-            provider.setPersistence(persistence);
-            provider.setEvents(events);
-            provider.setConfiguration(configuration);
-            provider.setHookFunctions(hookFunctions);
+            if (multiple) {
+                Map<String, List<ConfigurableProvider>> list = yamlObjectMapper.readValue(file.getInputStream(),
+                        typeRef);
 
-            provider = providerManager.addProvider(realm, provider);
+                for (ConfigurableProvider registration : list.get("providers")) {
+                    // unpack and build model
+                    String id = registration.getProvider();
+                    String authority = registration.getAuthority();
+                    String type = registration.getType();
+                    String name = registration.getName();
+                    String description = registration.getDescription();
+                    String displayMode = registration.getDisplayMode();
+                    String persistence = registration.getPersistence();
+                    String events = registration.getEvents();
+                    Map<String, Serializable> configuration = registration.getConfiguration();
+                    Map<String, String> hookFunctions = registration.getHookFunctions();
 
-            // fetch also configuration schema
-            JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
-            provider.setSchema(schema);
+                    ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
+                    provider.setName(name);
+                    provider.setDescription(description);
+                    provider.setDisplayMode(displayMode);
+                    provider.setType(type);
+                    provider.setEnabled(false);
+                    provider.setPersistence(persistence);
+                    provider.setEvents(events);
+                    provider.setConfiguration(configuration);
+                    provider.setHookFunctions(hookFunctions);
 
-            return ResponseEntity.ok(provider);
+                    provider = providerManager.addProvider(realm, provider);
+
+                    // fetch also configuration schema
+                    JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(),
+                            provider.getAuthority());
+                    provider.setSchema(schema);
+                    providers.add(provider);
+                }
+            } else {
+                // try single element
+                ConfigurableProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
+                        ConfigurableProvider.class);
+
+                // unpack and build model
+                String id = registration.getProvider();
+                String authority = registration.getAuthority();
+                String type = registration.getType();
+                String name = registration.getName();
+                String description = registration.getDescription();
+                String displayMode = registration.getDisplayMode();
+                String persistence = registration.getPersistence();
+                String events = registration.getEvents();
+                Map<String, Serializable> configuration = registration.getConfiguration();
+                Map<String, String> hookFunctions = registration.getHookFunctions();
+
+                ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
+                provider.setName(name);
+                provider.setDescription(description);
+                provider.setDisplayMode(displayMode);
+                provider.setType(type);
+                provider.setEnabled(false);
+                provider.setPersistence(persistence);
+                provider.setEvents(events);
+                provider.setConfiguration(configuration);
+                provider.setHookFunctions(hookFunctions);
+
+                provider = providerManager.addProvider(realm, provider);
+
+                // fetch also configuration schema
+                JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
+                provider.setSchema(schema);
+                providers.add(provider);
+            }
+            return ResponseEntity.ok(providers);
 
         } catch (Exception e) {
             e.printStackTrace();

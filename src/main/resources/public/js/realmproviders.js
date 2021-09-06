@@ -328,7 +328,7 @@ angular.module('aac.controllers.realmproviders', [])
                 RealmProviders.importIdentityProvider($scope.realm.slug, file)
                     .then(function (res) {
                         $scope.importFile = null;
-                        $state.go('realm.provider', { realmId: res.realm, providerId: res.provider });
+                        $scope.load();
                         Utils.showSuccess();
                     })
                     .catch(function (err) {
@@ -492,6 +492,11 @@ angular.module('aac.controllers.realmproviders', [])
                 var metadataUrl = $scope.realmUrls.applicationUrl+"/auth/"+data.authority+"/metadata/"+data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
+            if (data.authority == 'oidc') {
+                var loginUrl = $scope.realmUrls.applicationUrl+"/auth/"+data.authority+"/login/"+data.provider;
+                $scope.oidcRedirectUrl = loginUrl;
+            }            
+            
         };
 
 

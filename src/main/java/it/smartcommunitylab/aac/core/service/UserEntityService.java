@@ -306,8 +306,10 @@ public class UserEntityService {
             // remove entity
             userRepository.delete(u);
 
-            // remove subject
-            subjectRepository.deleteById(uuid);
+            // remove subject if exists
+            if (subjectRepository.findById(uuid) != null) {
+                subjectRepository.deleteById(uuid);
+            }
         }
 
         return u;
