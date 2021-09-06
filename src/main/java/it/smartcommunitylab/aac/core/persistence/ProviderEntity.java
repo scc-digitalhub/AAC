@@ -19,13 +19,14 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
 @Table(name = "providers")
 public class ProviderEntity {
 
-    @Id
-    @GeneratedValue
-    private Long id;
+//    @Id
+//    @GeneratedValue
+//    private Long id;
 
     @NotNull
     private String authority;
 
+    @Id
     @NotNull
     @Column(name = "provider_id", unique = true)
     private String providerId;
@@ -78,13 +79,13 @@ public class ProviderEntity {
         this.providerId = providerId;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+//    public Long getId() {
+//        return id;
+//    }
+//
+//    public void setId(Long id) {
+//        this.id = id;
+//    }
 
     public String getAuthority() {
         return authority;

@@ -51,7 +51,7 @@ public class DevUsersController {
         return ResponseEntity.ok(userManager.searchUsers(realm, q, pageRequest));
     }
 
-    @GetMapping("/console/dev/realms/{realm}/users/{subjectId:.*}")
+    @GetMapping("/realms/{realm}/users/{subjectId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<User> getRealmUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -61,7 +61,7 @@ public class DevUsersController {
         return ResponseEntity.ok(user);
     }
 
-    @DeleteMapping("/console/dev/realms/{realm}/users/{subjectId:.*}")
+    @DeleteMapping("/realms/{realm}/users/{subjectId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> deleteRealmUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -75,7 +75,7 @@ public class DevUsersController {
         return ResponseEntity.ok(null);
     }
 
-    @PutMapping("/console/dev/realms/{realm}/users/{subjectId:.*}/roles")
+    @PutMapping("/realms/{realm}/users/{subjectId:.*}/roles")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<User> updateRealmUserRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -85,7 +85,7 @@ public class DevUsersController {
         return ResponseEntity.ok(userManager.getUser(realm, subjectId));
     }
 
-    @PostMapping("/console/dev/realms/{realm}/users/invite")
+    @PostMapping("/realms/{realm}/users/invite")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> inviteRealmUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

@@ -32,6 +32,7 @@ public class ClientEntity {
 //    private Long id;
 
     @Id
+    @NotNull
     @Column(name = "client_id", unique = true)
     private String clientId;
 

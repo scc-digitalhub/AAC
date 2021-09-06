@@ -18,7 +18,6 @@
 
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
    <meta charset="utf-8" />
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -26,7 +25,6 @@
    <meta http-equiv="Expires" content="-1" />
    <title>OAuth2 Authorization</title>
 </head>
-
 <body onload="document.forms[0].submit()">
    <noscript>
       <p>
@@ -34,7 +32,6 @@
          you must press the Continue button once to proceed.
       </p>
    </noscript>
-
    <form th:action="${redirectUri}" method="post">
       <div>
          <input type="hidden" name="code" th:value="${code}" th:if="${code != null}">
@@ -45,16 +42,16 @@
          <input type="hidden" name="token_type" th:value="${token_type}" th:if="${token_type != null}">
          <input type="hidden" name="scope" th:value="${scope}" th:if="${scope != null}">
          <input type="hidden" name="state" th:value="${state}" th:if="${state != null}">
+         <input type="hidden" name="nonce" th:value="${nonce}" th:if="${nonce != null}">
 
-
+         <input type="hidden" name="error" th:value="${error}" th:if="${error != null}">
+         <input type="hidden" name="error_description" th:value="${error_description}" th:if="${error_description != null}">
       </div>
       <noscript>
          <div>
-            <input type="submit" th:value="#{action.continue}" >
+            <input type="submit" >
          </div>
       </noscript>
    </form>
-
 </body>
-
 </html>

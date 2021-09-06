@@ -27,7 +27,9 @@ import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
+import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.core.service.ProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -66,6 +68,9 @@ public class ClientManager {
 
     @Autowired
     private SearchableApprovalStore approvalStore;
+
+    @Autowired
+    private ProviderService providerService;
 
     /*
      * ClientApp via appService
@@ -174,6 +179,19 @@ public class ClientManager {
         Realm r = realmService.getRealm(realm);
 
         String type = app.getType();
+
+        // providers
+        if (app.getProviders() == null || app.getProviders().length == 0) {
+            // enable all registered providers by default
+            List<ProviderEntity> providers = providerService.listProvidersByRealmAndType(realm,
+                    SystemKeys.RESOURCE_IDENTITY);
+            Set<String> providerIds = providers.stream()
+                    .map(p -> p.getProviderId())
+                    .collect(Collectors.toSet());
+            app.setProviders(providerIds.toArray(new String[0]));
+        }
+
+        // scopes
         Set<String> appScopes = new HashSet<>(Arrays.asList(app.getScopes()));
         Set<String> invalidScopes = appScopes.stream().filter(s -> scopeRegistry.findScope(s) == null)
                 .collect(Collectors.toSet());
@@ -181,6 +199,7 @@ public class ClientManager {
             throw new IllegalArgumentException("invalid scopes: " + invalidScopes.toString());
         }
 
+        // config
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
             app.setRealm(realm);
 

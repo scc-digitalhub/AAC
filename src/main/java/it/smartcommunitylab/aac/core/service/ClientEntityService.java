@@ -183,8 +183,10 @@ public class ClientEntityService {
             // remove entity
             clientRepository.delete(c);
 
-            // remove subject
-            subjectRepository.deleteById(clientId);
+            // remove subject if exists
+            if (subjectRepository.findById(clientId) != null) {
+                subjectRepository.deleteById(clientId);
+            }
         }
     }
 

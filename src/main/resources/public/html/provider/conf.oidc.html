@@ -1,6 +1,24 @@
 <div class="pt-3 mb-5">
 
     <fieldset>
+         <legend class="mb-4">OIDC RP Configuration</legend>
+         <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="oidcRedirectUrl" class="active">Redirect url</label>
+                    <input type="text" class="form-control" id="oidcRedirectUrl" ng-model="oidcRedirectUrl"
+                        readonly>
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(oidcRedirectUrl)">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>        
+        </div>    
         <legend class="mb-4">OIDC IdP Configuration</legend>
         <div class="form-group col ">
             <label for="clientId">Client ID*</label>

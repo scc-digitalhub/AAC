@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class SubjectEntity {
 
     @Id
+    @NotNull
     @Column(name = "subject_id", unique = true)
     private String subjectId;
 
