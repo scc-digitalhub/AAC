@@ -18,7 +18,7 @@
     <table class="table table-hover border-bottom">
       <thead>
         <tr>
-          <th>Name</th>
+          <th>UUID</th>
           <th>Provider</th>
           <th>Username</th>
           <th>Realm Roles</th>
@@ -26,7 +26,7 @@
         </tr>
       </thead>
       <tr ng-repeat="item in users.content">
-        <td class="align-middle">{{item.lastName}} {{item.firstName}} <span class="small">{{item.subjectId}}</span></td>
+        <td class="align-middle"> <span class="small">{{item.subjectId}}</span></td>
         <td class="align-middle">
           <span ng-if="item.source != realm.slug">Proxy ({{item.source}})</span>
           <div ng-if="item.source == realm.slug">

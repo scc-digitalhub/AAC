@@ -39,4 +39,7 @@ public class NullAttributeStore implements AttributeStore {
     public void deleteAttribute(String userId, String key) {
     }
 
+    @Override
+    public void deleteAttributes(String entityId) {
+    }
 }

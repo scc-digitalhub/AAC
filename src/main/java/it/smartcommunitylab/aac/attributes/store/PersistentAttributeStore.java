@@ -61,4 +61,8 @@ public class PersistentAttributeStore implements AttributeStore {
         attributeStore.deleteAttribute(provider, entityId, key);
     }
 
+    @Override
+    public void deleteAttributes(String entityId) {
+        attributeStore.clearAttributes(provider, entityId);
+    }
 }

@@ -307,7 +307,7 @@ public class UserEntityService {
             userRepository.delete(u);
 
             // remove subject if exists
-            if (subjectRepository.findById(uuid) != null) {
+            if (subjectRepository.findOne(uuid) != null) {
                 subjectRepository.deleteById(uuid);
             }
         }

@@ -184,7 +184,7 @@ public class ClientEntityService {
             clientRepository.delete(c);
 
             // remove subject if exists
-            if (subjectRepository.findById(clientId) != null) {
+            if (subjectRepository.findOne(clientId) != null) {
                 subjectRepository.deleteById(clientId);
             }
         }

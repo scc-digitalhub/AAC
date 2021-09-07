@@ -11,6 +11,21 @@
          <div class="card card-bg">
             <div class="card-body">
                <h5 class="card-title">{{'accounts.internal_title'| translate}}</h5>
+               <p class="card-text">
+                  <span class="text-monospace">{{profile.subjectId}}</span>
+               </p>
+
+               <div ng-if="profiles['openid']">
+                  <p class="card-text">{{'accounts.internal_subtitle'| translate}}</p>
+                  <table class="table">
+                     <tr ng-repeat="(key, value) in profiles['openid']">
+                        <td><b>{{key | translate}}</b></td>
+                        <td>{{value}}</td>
+                     </tr>
+                  </table>
+               </div>
+
+
                <p class="card-text" ng-if="accounts['internal']">{{'accounts.internal_subtitle'| translate}}</p>
                <table class="table" ng-if="accounts['internal']">
                   <tr>
@@ -55,7 +70,7 @@
 <div class="row">
    <div class="col-12 text-center">
       <br />
-      <h3>{{'accounts.external' | translate}}</h3>
+      <h3>{{'accounts.list_title' | translate}}</h3>
    </div>
 </div>
 
@@ -65,7 +80,14 @@
       <div class="card-wrapper card-space">
          <div class="card card-bg">
             <div class="card-body">
-               <h5 class="card-title">{{account.provider}}:{{account.username}}</h5>
+               <div class="categoryicon-top">
+                  <svg class="icon">
+                     <use xlink:href="{{account.provider.icon}}"></use>
+                  </svg>
+                  <span class="text">{{account.provider.name}}</span>
+               </div>
+
+               <h5 class="card-title">{{account.username}}</h5>
                <p class="card-text">
                   <span class="text-monospace">{{account.userId}}</span>
                </p>
@@ -75,7 +97,8 @@
                      <td>{{v}}</td>
                   </tr>
                </table>
-               <a class="read-more" href="" ng-click="updateCredentials(account.userId)" ng-if="account.authority == 'internal'">
+               <a class="read-more" href="" ng-click="updateCredentials(account.userId)"
+                  ng-if="account.authority == 'internal'">
                   <span class="text text-primary">{{'accounts.internal_edit'| translate}}</span>
                   <svg class="icon">
                      <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>

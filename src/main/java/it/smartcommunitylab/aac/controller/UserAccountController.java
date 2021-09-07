@@ -16,21 +16,27 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -40,15 +46,21 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
+import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.profiles.model.BasicProfile;
+import it.smartcommunitylab.aac.profiles.model.EmailProfile;
+import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.roles.RoleManager;
 
 /**
@@ -106,7 +118,24 @@ public class UserAccountController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        // TODO use a proper profile for UI (UserProfile..)
         return ResponseEntity.ok(user);
+
+    }
+
+    @GetMapping("/account/profiles")
+    public ResponseEntity<Map<String, AbstractProfile>> myProfiles() throws InvalidDefinitionException {
+        UserDetails user = authHelper.getUserDetails();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Map<String, AbstractProfile> profiles = new HashMap<>();
+        profiles.put(BasicProfile.IDENTIFIER, profileManager.curBasicProfile());
+        profiles.put(EmailProfile.IDENTIFIER, profileManager.curEmailProfile());
+        profiles.put(OpenIdProfile.IDENTIFIER, profileManager.curOpenIdProfile());
+
+        return ResponseEntity.ok(profiles);
 
     }
 
@@ -175,6 +204,30 @@ public class UserAccountController {
 
         Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/account/providers")
+    public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviders()
+            throws NoSuchRealmException {
+        UserDetails user = authHelper.getUserDetails();
+        String realm = user.getRealm();
+        List<ConfigurableProvider> providers = providerManager
+                .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY)
+                .stream()
+                .map(cp -> {
+                    cp.setRegistered(providerManager.isProviderRegistered(cp));
+                    // clear config and reserved info
+                    cp.setDisplayMode(null);
+                    cp.setEvents(null);
+                    cp.setPersistence(null);
+                    cp.setSchema(null);
+                    cp.setConfiguration(null);
+                    cp.setHookFunctions(null);
+
+                    return cp;
+                }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(providers);
     }
 
     @GetMapping("/credentials/{authority}/{providerId}/{userId}")

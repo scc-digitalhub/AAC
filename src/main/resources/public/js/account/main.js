@@ -32,25 +32,67 @@ angular.module('aac.controllers.main', [])
    .controller('HomeController', function($scope, $rootScope, $location) {
    })
    .controller('AccountsController', function($scope, $rootScope, $location, Data, Utils) {
-      Data.getAccounts().then(function(data) {
-         $scope.accounts = data;
-//         var providers = [];
-//         var accounts = {};
-//         data.forEach(function(a) {
-//            if (a.provider !== 'internal') providers.push(a.provider);
-//            accounts[a.provider] = Object.assign({}, a.attributes);
-//            accounts[a.provider].username = a.username;
-//         });
-//         $scope.providers = providers;
-//         $scope.accounts = accounts;
-      }).catch(function(err) {
-         Utils.showError(err);
-      });
-      
+
+      $scope.load = function() {
+         Data.getProfile()
+            .then(function(profile) {
+               $scope.profile = profile;
+               return profile;
+            })
+            .then(function() {
+               return Data.getProfiles()
+            })
+            .then(function(profiles) {
+               $scope.profiles = profiles;
+               return profiles;
+            })
+            .then(function() {
+               return Data.getAccounts()
+            })
+            .then(function(accounts) {
+               $scope.accounts = accounts;
+               //         var providers = [];
+               //         var accounts = {};
+               //         data.forEach(function(a) {
+               //            if (a.provider !== 'internal') providers.push(a.provider);
+               //            accounts[a.provider] = Object.assign({}, a.attributes);
+               //            accounts[a.provider].username = a.username;
+               //         });
+               //         $scope.providers = providers;
+               //         $scope.accounts = accounts;
+               return accounts;
+            })
+            .then(function() {
+               return Data.getProviders()
+            })
+            .then(function(providers) {
+               var idps = providers.filter(p => p.type === 'identity');
+               idps.forEach(function(idp) {
+                  idp.icon = iconProvider(idp);
+               });
+               $scope.providers = idps;
+               return idps;
+            })
+            .then(function(providers) {
+               var map = new Map(providers.map(e => [e.provider, e]));
+               //merge with account details
+               var accounts = $scope.accounts;
+               accounts.forEach(function(ac) {
+                  var provider = map.get(ac.provider);
+                  ac.provider = provider;
+               });
+               $scope.accounts = accounts;
+
+            })
+            .catch(function(err) {
+               Utils.showError(err);
+            });
+      }
+
       $scope.updateCredentials = function(userId) {
          //split userid and redirect
-         var path = userId.replaceAll("|","/");
-         window.location.href = './credentials/'+path;
+         var path = userId.replaceAll("|", "/");
+         window.location.href = './credentials/' + path;
       }
 
       $scope.confirmDeleteAccount = function() {
@@ -66,6 +108,28 @@ angular.module('aac.controllers.main', [])
          });
       }
 
+      var iconProvider = function(idp) {
+         var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
+
+         if (idp.authority === "oidc") {
+            var logo = null;
+            if ('clientName' in idp.configuration && icons.includes(idp.configuration.clientName.toLowerCase())) {
+               logo = idp.configuration.clientName.toLowerCase();
+            } else if (icons.includes(idp.name.toLowerCase())) {
+               logo = idp.name.toLowerCase();
+            }
+
+            if (logo) {
+               return './svg/sprite.svg#logo-' + logo;
+            }
+         }
+         if (idp.authority === "spid") {
+            return './spid/sprite.svg#spid-ico-circle-bb';
+         }
+         return './italia/svg/sprite.svg#it-unlocked';
+      }
+
+      $scope.load();
    })
    .controller('ConnectionsController', function($scope, $rootScope, $location, Data, Utils) {
       Data.getConnections().then(function(connections) {

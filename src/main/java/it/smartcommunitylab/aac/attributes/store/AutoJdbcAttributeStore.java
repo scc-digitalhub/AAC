@@ -96,6 +96,10 @@ public class AutoJdbcAttributeStore {
         jdbcTemplate.update(deleteAttributeSql, providerId, entityId, key);
     }
 
+    public void clearAttributes(String providerId, String entityId) {
+        jdbcTemplate.update(clearAttributeSql, providerId, entityId);
+    }
+
     public void setCreateAttributesSql(String createAttributesSql) {
         this.createAttributesSql = createAttributesSql;
     }
