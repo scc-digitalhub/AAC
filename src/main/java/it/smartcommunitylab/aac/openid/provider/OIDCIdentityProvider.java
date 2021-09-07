@@ -474,15 +474,30 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException {
-        // TODO delete via service
+        String realm = getRealm();
+        String provider = getProvider();
+        String id = parseResourceId(userId);
 
+        // delete account
+        OIDCUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, id);
+        if (account != null) {
+            accountRepository.delete(account);
+        }
+
+        // cleanup attributes
+        attributeStore.deleteAttributes(id);
     }
 
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentities(String subjectId) {
-        // TODO Auto-generated method stub
-
+        Collection<OIDCUserAccount> accounts = accountProvider.listAccounts(subjectId);
+        for (OIDCUserAccount account : accounts) {
+            try {
+                deleteIdentity(subjectId, account.getUserId());
+            } catch (NoSuchUserException e) {
+            }
+        }
     }
 
     @Override

@@ -91,4 +91,11 @@ public class InMemoryAttributeStore implements AttributeStore {
         }
     }
 
+    @Override
+    public void deleteAttributes(String entityId) {
+        if (this.attributes.containsKey(entityId)) {
+            this.attributes.remove(entityId);
+        }
+    }
+
 }

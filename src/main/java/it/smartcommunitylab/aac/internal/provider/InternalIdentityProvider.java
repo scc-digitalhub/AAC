@@ -191,7 +191,7 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     private Collection<UserAttributes> extractUserAttributes(InternalUserAccount account) {
         List<UserAttributes> attributes = new ArrayList<>();
 //        String userId = exportInternalId(account.getUserId());
-String userId = account.getUserId();
+        String userId = account.getUserId();
 
         // build base
         BasicAttributesSet basicset = new BasicAttributesSet();

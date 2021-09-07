@@ -15,7 +15,7 @@
   "home": {
     "welcome" : "Benvenuto, {{fullName || username}}!",
     "account_card_title": "Informazioni dell'account",
-    "account_card_text": "Vedi le informazioni del tuo account,, gestisici e connetti account social, ecc.",
+    "account_card_text": "Vedi le informazioni del tuo account, gestisici e connetti account social, ecc.",
     "account_card_more": "Gestisci account",
     "app_card_title": "Applicazioni terze",
     "app_card_text": "Vedi le terze app connesse al tuo account, gestisic le autorizzazioni per le app.",
@@ -30,6 +30,7 @@
     "delete_title": "Elimina account",
     "delete_subtitle": "Elimina il tuo account e tutte le info associate",
     "delete_delete": "Elimina",
+    "list_title": "Account collegati",
     "external": "Account esterni e / o social",
     "external_subtitle": "Le tue info personali ottenute dall'account",
     "external_missing": "Nessun account associato",

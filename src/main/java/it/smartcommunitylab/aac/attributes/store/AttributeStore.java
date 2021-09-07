@@ -34,4 +34,7 @@ public interface AttributeStore extends AttributeService {
             String entityId,
             String key);
 
+    public void deleteAttributes(
+            String entityId);
+
 }

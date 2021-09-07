@@ -30,6 +30,7 @@
     "delete_title": "Delete Account",
     "delete_subtitle": "Remove your account and all the associated information",
     "delete_delete": "Delete",
+    "list_title": "Linked accounts", 
     "external": "External associated accounts",
     "external_subtitle": "You personal data extracted from this account",
     "external_missing": "No account associated",
