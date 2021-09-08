@@ -521,7 +521,7 @@ public class OAuth2RequestFactory
     public final static String SLUG_PATTERN = SystemKeys.SLUG_PATTERN;
     public final static String STRING_PATTERN = "^[a-zA-Z0-9_:-]+$";
     public final static String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
-    public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9!@#$&()\\-`.+,/\"]*$";
+    public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9_!=@#$&()\\-`.+,/\"]*$";
     public final static String SPACE_STRING_PATTERN = "^[a-zA-Z0-9 _:-]+$";
 
     /*
