@@ -85,7 +85,7 @@
 
             <form id="logoutForm" name="logoutForm" th:action="${formAction}" method="post">
               <div th:if="${client != null}">
-                <p class="text-center" th:utext="#{label.logout_from(${client.name})}">Logout from application </p>
+                <p class="text-center" th:utext="#{label.logout_from_x(${client.name})}">Logout from application </p>
               </div>
               <div th:if="${client == null}">
                 <p class="text-center" th:text="#{label.logout_text}">Logout from application </p>
