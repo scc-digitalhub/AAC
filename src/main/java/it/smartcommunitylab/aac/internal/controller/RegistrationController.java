@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -173,6 +174,7 @@ public class RegistrationController {
             model.addAttribute("loginUrl", "/-/" + realm + "/login");
 
             if (result.hasErrors()) {
+                model.addAttribute("error", InvalidDataException.ERROR);
                 return "registration/register";
             }
 
@@ -196,6 +198,7 @@ public class RegistrationController {
 
             // TODO handle subject resolution to link with existing accounts
             // either via current session or via providers from same realm
+            // TODO force require confirmation if linking
             String subjectId = null;
 
             // register
@@ -206,11 +209,12 @@ public class RegistrationController {
             // WRONG, should send redirect to success page to avoid double POST
             return "registration/regsuccess";
         } catch (RegistrationException e) {
-            model.addAttribute("error", e.getClass().getSimpleName());
+            String error = e.getError();
+            model.addAttribute("error", error);
             return "registration/register";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            model.addAttribute("error", RegistrationException.class.getSimpleName());
+            model.addAttribute("error", RegistrationException.ERROR);
             return "registration/register";
         }
     }
@@ -461,11 +465,11 @@ public class RegistrationController {
             // WRONG, should send redirect to success page to avoid double POST
             return "registration/resetsuccess";
         } catch (RegistrationException e) {
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", e.getError());
             return "registration/resetpwd";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            model.addAttribute("error", RegistrationException.class.getSimpleName());
+            model.addAttribute("error", RegistrationException.ERROR);
             return "registration/resetpwd";
         }
     }

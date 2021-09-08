@@ -23,14 +23,16 @@ import it.smartcommunitylab.aac.SystemKeys;
  *
  */
 public class InvalidDataException extends RegistrationException {
-    
-    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
-    /**
-     * @param message
-     */
-    public InvalidDataException() {
-        super(InvalidDataException.class.getName());
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+    public final static String ERROR = "error.invalid_data";
+
+    public InvalidDataException(String message) {
+        super(message);
     }
 
+    @Override
+    public String getError() {
+        return InvalidDataException.ERROR;
+    }
 }

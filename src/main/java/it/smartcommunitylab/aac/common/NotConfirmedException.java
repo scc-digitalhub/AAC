@@ -25,9 +25,15 @@ import it.smartcommunitylab.aac.SystemKeys;
 public class NotConfirmedException extends RegistrationException {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+    public final static String ERROR = "error.not_confirmed";
 
     public NotConfirmedException() {
         super(NotConfirmedException.class.getSimpleName());
+    }
+
+    @Override
+    public String getError() {
+        return NotConfirmedException.ERROR;
     }
 
 }

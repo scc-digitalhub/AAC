@@ -23,8 +23,9 @@ import it.smartcommunitylab.aac.SystemKeys;
  *
  */
 public class RegistrationException extends RuntimeException {
-
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+
+    public static final String ERROR = "error.registration";
 
     public RegistrationException(String message, Throwable cause) {
         super(message, cause);
@@ -32,6 +33,10 @@ public class RegistrationException extends RuntimeException {
 
     public RegistrationException(String message) {
         super(message);
+    }
+
+    public String getError() {
+        return ERROR;
     }
 
 }
