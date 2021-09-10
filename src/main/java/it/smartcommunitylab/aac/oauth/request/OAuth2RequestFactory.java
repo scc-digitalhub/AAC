@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.oauth.request;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -222,7 +224,24 @@ public class OAuth2RequestFactory
         Set<String> responseTypes = delimitedStringToSet(decodeParameters(responseType));
 
         // optional
-        String state = readParameter(requestParameters, "state", SPECIAL_PATTERN);
+        String state = null;
+        try {
+            state = readParameter(requestParameters, "state", SPECIAL_PATTERN);
+        } catch (IllegalArgumentException e) {
+            // try to re-encode as url param
+            try {
+                String raw = requestParameters.get("state") != null
+                        ? URLEncoder.encode(requestParameters.get("state"), "UTF-8")
+                        : null;
+                if (raw != null) {
+                    // use encoded string as response, if client sent unencoded we'll effectively
+                    // return a different string
+                    state = readParameter(raw, SPECIAL_PATTERN);
+                }
+            } catch (UnsupportedEncodingException ex) {
+            }
+        }
+        
         String nonce = readParameter(requestParameters, "nonce", SPECIAL_PATTERN);
 
         // check if we didn't receive clientId, use authentication info
@@ -521,7 +540,7 @@ public class OAuth2RequestFactory
     public final static String SLUG_PATTERN = SystemKeys.SLUG_PATTERN;
     public final static String STRING_PATTERN = "^[a-zA-Z0-9_:-]+$";
     public final static String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
-    public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9_!=@#$&()\\-`.+,/\"]*$";
+    public final static String SPECIAL_PATTERN = "^[a-zA-Z0-9_!=@#$&%()\\-`.+,/\"]*$";
     public final static String SPACE_STRING_PATTERN = "^[a-zA-Z0-9 _:-]+$";
 
     /*
