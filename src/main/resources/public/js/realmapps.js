@@ -15,7 +15,7 @@ angular.module('aac.controllers.realmapps', [])
     /**
       * Realm Data Services
       */
-    .service('RealmAppsData', function ($q, $http) {
+    .service('RealmAppsData', function ($q, $http, $httpParamSerializer) {
         var raService = {};
 
         raService.getClientApps = function (slug) {
@@ -23,7 +23,12 @@ angular.module('aac.controllers.realmapps', [])
                 return data.data;
             });
         }
-
+        raService.searchClientApps = function (slug, params) {
+         console.log("search apps params "+buildQuery(params, $httpParamSerializer));
+            return $http.get('console/dev/realms/' + slug + '/apps/search?' + buildQuery(params, $httpParamSerializer)).then(function (data) {
+                return data.data;
+            });
+        }
         raService.getClientApp = function (slug, clientId) {
             return $http.get('console/dev/realms/' + slug + '/apps/' + clientId).then(function (data) {
                 return data.data;
@@ -96,10 +101,21 @@ angular.module('aac.controllers.realmapps', [])
    */
     .controller('RealmAppsController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
-
+         $scope.query = {
+         page: 0,
+         size: 20,
+         sort: { name: 1 },
+         q: ''
+         }
+         $scope.keywords = '';
+      
         $scope.load = function () {
-            RealmAppsData.getClientApps(slug)
+            RealmAppsData.searchClientApps(slug, $scope.query)
                 .then(function (data) {
+                    //add icon
+                    data.content.forEach(function(app) {
+                     app.icon = iconProvider(app);
+                     });
                     $scope.apps = data;
                 })
                 .catch(function (err) {
@@ -114,18 +130,36 @@ angular.module('aac.controllers.realmapps', [])
             $scope.load();
         };
 
-        $scope.createClientAppDlg = function () {
+      $scope.setPage = function(page) {
+         $scope.query.page = page;
+         $scope.load();
+      }
+      
+      $scope.setQuery = function(query) {
+         $scope.query.q = query;
+         $scope.page= 0;         
+         $scope.load();
+      }
+      
+      $scope.runQuery = function() {
+         $scope.setQuery($scope.keywords);
+      }  
+
+        $scope.createClientAppDlg = function (applicationType) {
             $scope.modClientApp = {
                 name: '',
                 type: 'oauth2',
-                realm: slug
+                realm: slug,
+                configuration: {
+                  applicationType: applicationType
+               }
             };
 
-            $('#createClientAppDlg').modal({ keyboard: false });
+            $('#createClientAppDlgOAuth2').modal({ keyboard: false });
         }
 
         $scope.createClientApp = function () {
-            $('#createClientAppDlg').modal('hide');
+            $('#createClientAppDlgOAuth2').modal('hide');
 
 
             RealmAppsData.saveClientApp($scope.realm.slug, $scope.modClientApp)
@@ -185,7 +219,35 @@ angular.module('aac.controllers.realmapps', [])
             }
         }
 
-
+        $scope.copyText = function (txt) {
+            var textField = document.createElement('textarea');
+            textField.innerText = txt;
+            document.body.appendChild(textField);
+            textField.select();
+            document.execCommand('copy');
+            textField.remove();
+        }
+        
+        var iconProvider = function(clientApp) {
+         var icon = './italia/svg/sprite.svg#it-piattaforme';
+         if(clientApp.type == 'oauth2') {
+            if(clientApp.configuration.applicationType == 'web') {
+               icon = './italia/svg/sprite.svg#it-open-source';
+            }
+            if(clientApp.configuration.applicationType == 'native') {
+               icon = './italia/svg/sprite.svg#it-card';
+            }   
+            if(clientApp.configuration.applicationType == 'machine') {
+               icon = './italia/svg/sprite.svg#it-software';
+            }
+            if(clientApp.configuration.applicationType == 'spa') {
+               icon = './italia/svg/sprite.svg#it-presentation';
+            }            
+         }
+        
+         return icon;
+        }
+        
         init();
     })
     .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, RealmProviders, Utils, $window) {
@@ -261,6 +323,7 @@ angular.module('aac.controllers.realmapps', [])
 
         $scope.load = function (data) {
             //set
+            data.icon = iconProvider(data);
             $scope.app = data;
             $scope.appname = data.name;
             $scope.configurationMap = data.configuration;
@@ -684,6 +747,26 @@ angular.module('aac.controllers.realmapps', [])
         }
 
 
+         var iconProvider = function(clientApp) {
+         var icon = './italia/svg/sprite.svg#it-piattaforme';
+         if(clientApp.type == 'oauth2') {
+            if(clientApp.configuration.applicationType == 'web') {
+               icon = './italia/svg/sprite.svg#it-open-source';
+            }
+            if(clientApp.configuration.applicationType == 'native') {
+               icon = './italia/svg/sprite.svg#it-card';
+            }   
+            if(clientApp.configuration.applicationType == 'machine') {
+               icon = './italia/svg/sprite.svg#it-software';
+            }
+            if(clientApp.configuration.applicationType == 'spa') {
+               icon = './italia/svg/sprite.svg#it-presentation';
+            }            
+         }
+        
+         return icon;
+        }
+
         init();
     })
     .controller('RealmAppStartController', function ($scope, $stateParams, $state, RealmAppsData, Utils) {
@@ -784,8 +867,10 @@ angular.module('aac.controllers.realmapps', [])
 
         $scope.load = function (data) {
             //set
+            data.icon = iconProvider(data);
             $scope.app = data;
             $scope.appname = data.name;
+            
 
             // process scopes scopes
             var scopes = [];
@@ -913,6 +998,26 @@ angular.module('aac.controllers.realmapps', [])
             }
 
             $scope.oauth2Tokens[grantType].decoded = d;
+        }
+
+         var iconProvider = function(clientApp) {
+         var icon = './italia/svg/sprite.svg#it-piattaforme';
+         if(clientApp.type == 'oauth2') {
+            if(clientApp.configuration.applicationType == 'web') {
+               icon = './italia/svg/sprite.svg#it-open-source';
+            }
+            if(clientApp.configuration.applicationType == 'native') {
+               icon = './italia/svg/sprite.svg#it-card';
+            }   
+            if(clientApp.configuration.applicationType == 'machine') {
+               icon = './italia/svg/sprite.svg#it-software';
+            }
+            if(clientApp.configuration.applicationType == 'spa') {
+               icon = './italia/svg/sprite.svg#it-presentation';
+            }            
+         }
+        
+         return icon;
         }
 
         init();

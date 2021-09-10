@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -133,6 +135,17 @@ public class ClientEntityService {
     @Transactional(readOnly = true)
     public Collection<ClientEntity> listClients(String realm, String type) {
         return clientRepository.findByRealmAndType(realm, type);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClientEntity> searchClients(String realm, String q, Pageable pageRequest) {
+        Page<ClientEntity> page = StringUtils.hasText(q)
+//                ? clientRepository.findByRealmAndNameContainingIgnoreCase(realm, q, pageRequest)
+                ? clientRepository.findByRealmAndNameContainingIgnoreCaseOrRealmAndClientIdContainingIgnoreCase(realm, q, realm,
+                        q, pageRequest)
+                : clientRepository.findByRealm(realm, pageRequest);
+
+        return page;
     }
 
     public ClientEntity updateClient(String clientId,

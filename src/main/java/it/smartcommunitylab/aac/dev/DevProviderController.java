@@ -3,9 +3,12 @@ package it.smartcommunitylab.aac.dev;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
@@ -39,13 +42,16 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.model.ClientApp;
 import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
@@ -58,6 +64,9 @@ public class DevProviderController {
 
     @Autowired
     private ProviderManager providerManager;
+
+    @Autowired
+    private ClientManager clientManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -372,5 +381,36 @@ public class DevProviderController {
             throw e;
         }
 
+    }
+
+    @PutMapping("/realms/{realm}/providers/{providerId}/apps/{clientId}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<ClientApp> updateRealmProviderClientApp(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @RequestBody ClientApp app)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchClientException, SystemException,
+            NoSuchProviderException {
+
+        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+        // update providers only for this id
+        Set<String> providers = new HashSet<>(Arrays.asList(clientApp.getProviders()));
+        boolean enabled = Arrays.stream(app.getProviders()).anyMatch(p -> providerId.equals(p));
+        if (enabled) {
+            if (!providers.contains(providerId)) {
+                providers.add(providerId);
+                clientApp.setProviders(providers.toArray(new String[0]));
+                clientApp = clientManager.updateClientApp(realm, clientId, clientApp);
+            }
+        } else {
+            if (providers.contains(providerId)) {
+                providers.remove(providerId);
+                clientApp.setProviders(providers.toArray(new String[0]));
+                clientApp = clientManager.updateClientApp(realm, clientId, clientApp);
+            }
+        }
+
+        return ResponseEntity.ok(clientApp);
     }
 }

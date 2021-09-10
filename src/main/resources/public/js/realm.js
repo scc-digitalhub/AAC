@@ -161,10 +161,12 @@ angular.module('aac.controllers.realm', [])
          sort: { username: 1 },
          q: ''
       }
+      $scope.keywords = '';
 
       $scope.load = function() {
          RealmData.getRealmUsers(slug, $scope.query)
             .then(function(data) {
+               $scope.keywords = $scope.query.q;
                $scope.users = data;
                $scope.users.content.forEach(function(u) {
                   if ('identities' in u) {
@@ -227,6 +229,25 @@ angular.module('aac.controllers.realm', [])
          $scope.query.page = page;
          $scope.load();
       }
+      
+      $scope.setQuery = function(query) {
+         $scope.query.q = query;
+         $scope.page= 0;         
+         $scope.load();
+      }
+      
+      $scope.runQuery = function() {
+         $scope.setQuery($scope.keywords);
+      }      
+      
+     $scope.copyText = function (txt) {
+         var textField = document.createElement('textarea');
+         textField.innerText = txt;
+         document.body.appendChild(textField);
+         textField.select();
+         document.execCommand('copy');
+         textField.remove();
+     }      
 
       init();
 

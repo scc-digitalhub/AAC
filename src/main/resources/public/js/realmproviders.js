@@ -60,13 +60,19 @@ angular.module('aac.controllers.realmproviders', [])
 
         }
 
+        rService.changeIdentityProviderClientApp = function (slug, providerId, client) {
+            return $http.put('console/dev/realms/' + slug + '/providers/' + providerId + '/apps/'+client.clientId, client).then(function (data) {
+                return data.data;
+            });
+        }
+
         return rService;
 
     })
     /**
       * Realm providers controller
       */
-    .controller('RealmProvidersController', function ($scope, $state, $stateParams, RealmData, RealmProviders, Utils) {
+    .controller('RealmProvidersController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
 
         $scope.load = function () {
@@ -83,7 +89,26 @@ angular.module('aac.controllers.realmproviders', [])
                     $scope.providers = data;
                     return data;
                 })
-
+                .then(function() {
+                    return RealmAppsData.getClientApps(slug);
+                })
+               .then(function (data) {
+                    $scope.apps = data;
+                    var providers = $scope.providers;
+                    //count num of active apps per provider
+                    var cc = new Map(providers.map(p => [p.provider, 0]));
+                    data.forEach(function(app) {
+                       app.providers.forEach(function (p) {
+                        var c = cc.get(p);
+                        cc.set(p, c+1); 
+                       });  
+                    });
+                    providers.forEach(function (idp) {
+                        idp.apps = cc.get(idp.provider);         
+                    });
+                    $scope.providers = providers;
+                    
+                })
                 .catch(function (err) {
                     Utils.showError('Failed to load realm providers: ' + err.data.message);
                 });
@@ -358,9 +383,18 @@ angular.module('aac.controllers.realmproviders', [])
             return './italia/svg/sprite.svg#it-unlocked';
         }
 
+        $scope.copyText = function (txt) {
+            var textField = document.createElement('textarea');
+            textField.innerText = txt;
+            document.body.appendChild(textField);
+            textField.select();
+            document.execCommand('copy');
+            textField.remove();
+        }
+
         init();
     })
-    .controller('RealmProviderController', function ($scope, $state, $stateParams, RealmData, RealmProviders, Utils) {
+    .controller('RealmProviderController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
         var providerId = $stateParams.providerId;
         $scope.formView = 'overview';
@@ -407,6 +441,12 @@ angular.module('aac.controllers.realmproviders', [])
                     $scope.load(data);
                     $scope.formView = 'overview';
                     return data;
+                })
+                .then(function() {
+                    return RealmAppsData.getClientApps(slug);
+                })
+                .then(function(apps) {
+                     $scope.apps = apps;
                 })
                 .catch(function (err) {
                     Utils.showError('Failed to load provider : ' + err.data.message);
@@ -604,6 +644,36 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.attributeMapping = attributeMapping;
 
+        }
+        
+        $scope.toggleProviderClientApp = function (provider, client) {
+         if(client.clientId) {
+            var clientId = client.clientId;
+            var providers = client.providers;
+            if(providers.includes(provider)) {
+                  console.log("disable provider "+provider+" for "+clientId); 
+                  providers = providers.filter(function (p) { return p != provider });
+            } else {
+                  console.log("enable provider "+provider+" for "+clientId); 
+                  providers.push(provider);
+            }
+            
+            var data = {
+               'clientId' : clientId,
+               'type': client.type,
+               'name': client.name,
+               'providers': providers
+            };
+            
+           RealmProviders.changeIdentityProviderClientApp($scope.realm.slug, provider, data)
+                .then(function (res) {
+                    client.providers = res.providers;
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });            
+         }
         }
 
         var iconProvider = function (idp) {

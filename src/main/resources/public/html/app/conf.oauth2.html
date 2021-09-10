@@ -89,9 +89,8 @@
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label class="active" for="clientName">Application type</label>
                     <select id="applicationType" ng-model="app.configuration.applicationType">
-                        <option value="web" ng-selected="app.configuration.applicationType =='web'">Web</option>
-                        <option value="native" ng-selected="app.configuration.applicationType == 'native'">Native
-                        </option>
+                        <option ng-repeat="at in configurationSchema.properties.applicationType.enum" value="{{at}}"
+                            ng-selected="app.configuration.applicationType==at">{{at | limitTo:1 | uppercase}}{{at.substr(1) | lowercase }}</option>                     
                     </select>
                 </div>
 

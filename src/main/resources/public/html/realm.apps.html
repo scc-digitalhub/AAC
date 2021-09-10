@@ -5,27 +5,72 @@
             <p>Manage web, mobile, server and IoT applications</p>
         </div>
         <div class="col col-md-6 text-right">
-            <button class="btn btn-primary text-right" type="button" ng-click="createClientAppDlg()">
-                <svg class="icon icon-sm icon-white">
-                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
-                </svg>
-                Add Client
+               <button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false">
+              <svg class="icon icon-sm icon-white">
+                <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+              </svg>
+              Add Client
+              <svg class="icon-expand icon icon-sm icon-light">
+                <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+              </svg>
             </button>
+            <div class="dropdown-menu">
+              <div class="link-list-wrapper">
+                <ul class="link-list">
+                  <li><a class="list-item" href="" ng-click="createClientAppDlg('web')"><span>Web</span></a></li>
+                  <li><a class="list-item" href="" ng-click="createClientAppDlg('native')"><span>Native</span></a></li>
+                  <li><a class="list-item" href="" ng-click="createClientAppDlg('machine')"><span>Machine</span></a></li>
+                  <li><a class="list-item" href="" ng-click="createClientAppDlg('spa')"><span>SPA</span></a></li>     
+                </ul>
+              </div>
+            </div>        
+        
             <button class="btn btn-secondary btn-sm" ng-click="importClientAppDlg()">Import</button>
         </div>
     </div>
 </div>
 <div class="accordion" id="apps">
-    <div ng-if="apps && apps.length > 0">
+  <form name="searchApps"  class="" novalidate >
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="keywords" class="{{keywords != '' ? 'active' : ''}}">Search</label>
+                    <input type="text" class="form-control bg-transparent" id="keywords" ng-model="keywords">
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="runQuery()">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-search"></use>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div>
+            </div>   
+  </form>
+    <div ng-if="apps && apps.content.length > 0">
         <table class="table table-hover border-bottom">
-            <tr ng-repeat="item in apps">
+            <tr ng-repeat="item in apps.content">
                 <td class="align-middle">
-                    <span class="h6">{{item.name}}</span> <br>
-                    <small class="text-muted"> {{item.type }}</small>
-                    <p>{{item.description}}</p>
+                   <div class="avatar-wrapper avatar-extra-text">
+                     <div class="avatar size-lg">   
+                        <svg  aria-hidden="true" class="icon icon-secondary">
+                             <use xlink:href="{{item.icon}}"></use>
+                        </svg> 
+                     </div>
+                     <div class="extra-text">
+                         <span class="h6">{{item.name}}</span> <br>
+                         <small class="text-muted"> {{item.type }} <span ng-if="item.type == 'oauth2'">{{item.configuration.applicationType}}</span></small>
+                         <div>{{item.description}}</div>                
+                   </div>                  
                 </td>
                 <td class="align-middle">
-                    <span class="small">{{item.clientId}}</span>
+                    ClientID <span class="small text-monospace bg-light pl-1 pr-1">{{item.clientId}}</span>
+                  <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.clientId)">
+                      <svg class="icon icon-xs icon-black">
+                          <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                      </svg>
+                  </button>                     
                 </td>
                 <td class="text-right">
                     <button class="btn btn-secondary btn-sm"
@@ -36,6 +81,39 @@
                 </td>
             </tr>
         </table>
+        
+    <nav class="pagination-wrapper" aria-label="pagination">
+      <ul class="pagination">
+        <li class="page-item" ng-class="{'disabled':apps.first}">
+          <a class="page-link" ng-click="setPage(query.page - 1)">
+            <svg class="icon icon-primary">
+              <use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use>
+            </svg>
+            <span class="sr-only">Previous page</span>
+          </a>
+        </li>
+        <li class="page-item" ng-if="apps.pageable.pageNumber - 1 > 0"><a class="page-link"
+            ng-click="setPage(apps.pageable.pageNumber - 2)">{{apps.pageable.pageNumber - 1}}</a></li>
+        <li class="page-item" ng-if="apps.pageable.pageNumber > 0"><a class="page-link"
+            ng-click="setPage(apps.pageable.pageNumber - 1)">{{apps.pageable.pageNumber}}</a></li>
+        <li class="page-item active">
+          <a class="page-link" aria-current="page"><span class="d-inline-block d-sm-none">Pagina
+            </span>{{apps.pageable.pageNumber + 1}}</a>
+        </li>
+        <li class="page-item" ng-if="apps.pageable.pageNumber + 1 < apps.totalPages"><a class="page-link"
+            ng-click="setPage(apps.pageable.pageNumber + 1)">{{apps.pageable.pageNumber + 2}}</a></li>
+        <li class="page-item" ng-if="apps.pageable.pageNumber + 2 < apps.totalPages"><a class="page-link"
+            ng-click="setPage(apps.pageable.pageNumber + 2)">{{apps.pageable.pageNumber + 3}}</a></li>
+        <li class="page-item" ng-class="{'disabled':apps.last}">
+          <a class="page-link" ng-click="setPage(query.page + 1)">
+            <span class="sr-only">Next page</span>
+            <svg class="icon icon-primary">
+              <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </nav>        
     </div>
 
     <div ng-if="apps && apps.length == 0">
@@ -64,7 +142,7 @@
 
 </div>
 
-<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createClientAppDlg">
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createClientAppDlgOAuth2">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -72,6 +150,7 @@
             </div>
             <div class="modal-body">
                 <form name="createAppForm" class="needs-validation was-validated" novalidate>
+                    <input type="hidden" name="type" ng-model="modClientApp.type" value="oauth2">
                     <div class="form-group col pt-4 mb-2">
                         <label for="name">Client Name*</label>
                         <input type="text" name="name" class="form-control form-control-sm" id="name" required
@@ -79,9 +158,12 @@
                     </div>
                     <div class="form-group col pt-4">
                         <div class="bootstrap-select-wrapper border-bottom-0">
-                            <label for="type">Client Type*</label>
-                            <select required title="Select one" id="type" ng-model="modClientApp.type">
-                                <option value="oauth2" ng-selected="provider.type=='oauth2'"> OAuth2 </option>
+                            <label for="type">Application Type*</label>
+                            <select required title="Select one" id="type" ng-model="modClientApp.configuration.applicationType">
+                                <option value="web" ng-selected="modClientApp.configuration.applicationType=='web'"> Web </option>
+                                <option value="native" ng-selected="modClientApp.configuration.applicationTypee=='native'"> Native </option>
+                                <option value="spa" ng-selected="modClientApp.configuration.applicationType=='spa'"> SPA </option>
+                                <option value="machine" ng-selected="modClientApp.configuration.applicationType=='machine'"> Machine </option>                                
                             </select>
                         </div>
                     </div>

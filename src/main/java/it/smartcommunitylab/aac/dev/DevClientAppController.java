@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -79,6 +81,16 @@ public class DevClientAppController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
         return ResponseEntity.ok(clientManager.listClientApps(realm));
+    }
+
+    @GetMapping("/realms/{realm}/apps/search")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Page<ClientApp>> searchRealmClientApps(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = false) String q, Pageable pageRequest)
+            throws NoSuchRealmException {
+        return ResponseEntity.ok(clientManager.searchClientApps(realm, q, pageRequest));
     }
 
     @GetMapping("/realms/{realm}/apps/{clientId:.*}")

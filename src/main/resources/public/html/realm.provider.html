@@ -55,10 +55,13 @@
         <li ng-if="idp.authority == 'spid'" class="nav-item">
             <a class="nav-link  {{activeView('conf.spid')}}" href ng-click="switchView('conf.spid')">SPID
                 Configuration</a>
-        </li>        
+        </li>            
         <li class="nav-item">
             <a class="nav-link  {{activeView('hooks')}}" href ng-click="switchView('hooks')">Hooks</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('apps')}}" href ng-click="switchView('apps')">Apps</a>
+        </li>           
     </ul>
     <div class="tab-content pt-3">
         <div class="tab-pane fade show active">

@@ -10,8 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.crypto.keygen.BytesKeyGenerator;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
@@ -159,6 +163,29 @@ public class OAuth2ClientService implements ClientService {
         }
 
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OAuth2Client> searchClients(String realm, String keywords, Pageable pageRequest) {
+        List<OAuth2Client> result = new ArrayList<>();
+        Page<ClientEntity> page = clientService.searchClients(realm, keywords, pageRequest);
+
+        // wrong way, totalCount will be off but we have only oauth2 now..
+        List<ClientEntity> clients = page.getContent().stream()
+                .filter(c -> OAuth2Client.CLIENT_TYPE.equals(c.getType())).collect(Collectors.toList());
+
+        for (ClientEntity client : clients) {
+            OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(client.getClientId());
+            if (oauth != null) {
+                result.add(OAuth2Client.from(client, oauth));
+            }
+        }
+
+        return PageableExecutionUtils.getPage(
+                result,
+                pageRequest,
+                () -> page.getTotalElements());
+
     }
 
     @Override

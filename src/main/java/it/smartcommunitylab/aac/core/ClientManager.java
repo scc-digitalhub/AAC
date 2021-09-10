@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
@@ -102,6 +104,25 @@ public class ClientManager {
         }
 
         throw new IllegalArgumentException("invalid client type");
+    }
+
+//    @Transactional(readOnly = true)
+//    public long countClientApps(String realm) throws NoSuchRealmException {
+//        logger.debug("count client apps for realm " + realm);
+//
+//        Realm r = realmService.getRealm(realm);
+//        // we support only oauth for now
+//        return oauthClientAppService.countClients(r.getSlug());
+//
+//    }
+
+    @Transactional(readOnly = true)
+    public Page<ClientApp> searchClientApps(String realm, String keywords, Pageable pageRequest)
+            throws NoSuchRealmException {
+        logger.debug("search clients for realm " + realm + " with keywords " + String.valueOf(keywords));
+        Realm r = realmService.getRealm(realm);
+        // we support only oauth for now
+        return oauthClientAppService.searchClients(r.getSlug(), keywords, pageRequest);
     }
 
     @Deprecated

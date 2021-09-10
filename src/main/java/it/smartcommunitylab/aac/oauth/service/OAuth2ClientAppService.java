@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -48,6 +51,22 @@ public class OAuth2ClientAppService implements ClientAppService {
         return clients.stream()
                 .map(c -> toApp(c))
                 .collect(Collectors.toList());
+    }
+
+    public Page<ClientApp> searchClients(String realm, String keywords, Pageable pageRequest) {
+        Page<OAuth2Client> page = clientService.searchClients(realm, keywords, pageRequest);
+
+        // reset credentials, accessible only if single fetch
+        page.getContent().stream()
+                .forEach(c -> c.setClientSecret(null));
+
+        return PageableExecutionUtils.getPage(
+                page.getContent().stream()
+                        .map(c -> toApp(c))
+                        .collect(Collectors.toList()),
+                pageRequest,
+                () -> page.getTotalElements());
+
     }
 
     @Override
