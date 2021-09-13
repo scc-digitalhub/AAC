@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -172,7 +173,15 @@ public class UserApprovalEndpoint implements InitializingBean {
 
                 resources.add(s);
             }
-            model.put("resources", resources);
+
+            // filter already approved scopes
+            List<Scope> approvalResources = resources.stream().filter(s -> !approvedScopes.contains(s.getScope()))
+                    .collect(Collectors.toList());
+            model.put("resources", approvalResources);
+
+            List<Scope> hiddenResources = resources.stream().filter(s -> approvedScopes.contains(s.getScope()))
+                    .collect(Collectors.toList());
+            model.put("hiddenResources", hiddenResources);
 
             // add spaces
             Set<String> spaces = delimitedStringToSet((String) model.get("spaces"));
