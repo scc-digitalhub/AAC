@@ -48,6 +48,7 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.openid.scope.OfflineAccessScope;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
@@ -350,7 +351,8 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         for (String scope : requestedScopes) {
             // set all scopes according to status
-            if (allApprovedScopes.contains(scope)) {
+            // note offline_access can't be autoapproved or fetched from db...
+            if (allApprovedScopes.contains(scope) && !OfflineAccessScope.SCOPE.equals(scope)) {
                 approvedScopes.add(scope);
             } else {
                 approvalScopes.add(scope);
