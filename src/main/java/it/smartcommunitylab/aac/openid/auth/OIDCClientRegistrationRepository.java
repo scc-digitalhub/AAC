@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.openid.auth;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -13,7 +13,7 @@ public class OIDCClientRegistrationRepository implements ClientRegistrationRepos
     private final Map<String, ClientRegistration> registrations;
 
     public OIDCClientRegistrationRepository() {
-        this.registrations = new HashMap<>();
+        this.registrations = new ConcurrentHashMap<>();
     }
 
     /*
