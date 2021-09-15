@@ -981,7 +981,7 @@ angular.module('aac.controllers.realmapps', [])
 
             RealmAppsData.testOAuth2ClientApp($scope.realm.slug, $scope.app.clientId, grantType).then(function (token) {
                 $scope.oauth2Tokens[grantType].token = token.access_token;
-                oauth2Tokens
+                $scope.oauth2Tokens[grantType].decoded = null;
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });

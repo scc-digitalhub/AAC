@@ -8,6 +8,7 @@ var app = angular.module('dev', [
     'aac.services',
     'aac.controllers.main',
     'aac.controllers.admin',
+    'aac.controllers.dev',
     'aac.controllers.realm',
     'aac.controllers.realmproviders',
     'aac.controllers.realmapps',
@@ -41,6 +42,11 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/admin.html',
             controller: 'AdminController',
         })
+        .state('dev', {
+            url: '/dev',
+            templateUrl: 'html/dev.html',
+            controller: 'DevController',
+        })        
         .state('realm', {
             url: '/realm?realmId',
             templateUrl: 'html/realm.html',

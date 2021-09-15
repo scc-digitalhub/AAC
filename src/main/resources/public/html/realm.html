@@ -6,85 +6,115 @@
           <ul class="link-list">
             <li>
               <div>
-                <div ng-if="realms.length > 1" >
-	                <a class="font-weight-semibold dropdown-toggle px-1 pb-1"  href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	                  <span class="text-primary h3">{{realm.name | limitTo: 12}}{{realm.name.length > 12 ? '...' : ''}} </span>
-	                  <svg class="icon icon-sm icon-primary"><use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use></svg>
-	                </a>
-	                <div class="dropdown-menu dark">
-					        <div class="link-list-wrapper">
-					          <ul class="link-list">
-					            <li ng-repeat="r in realms"><a class="list-item" href="" ng-click="selectRealm(r)"><span>{{r.name | limitTo: 17}}{{r.name.length > 17 ? '...' : ''}}</span></a></li>
-					          </ul>
-					        </div>
-					      </div>
-				      </div>
-                
-              <h3  ng-if="realms.length == 1">{{realm.name | limitTo: 12}}{{realm.name.length > 12 ? '...' : ''}}</h3>
-                
+                <div ng-if="realms.length > 1">
+                  <a class="font-weight-semibold dropdown-toggle px-1 pb-1" href="" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    <span class="text-primary h3">{{realm.name | limitTo: 12}}{{realm.name.length > 12 ? '...' : ''}}
+                    </span>
+                    <svg class="icon icon-sm icon-primary">
+                      <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+                    </svg>
+                  </a>
+                  <div class="dropdown-menu dark">
+                    <div class="link-list-wrapper">
+                      <ul class="link-list">
+                        <li ng-repeat="r in realms"><a class="list-item" href=""
+                            ng-click="selectRealm(r)"><span>{{r.name | limitTo: 17}}{{r.name.length > 17 ? '...' :
+                              ''}}</span></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 ng-if="realms.length == 1">{{realm.name | limitTo: 12}}{{realm.name.length > 12 ? '...' : ''}}</h3>
+
               </div>
-              <p class="pl-4 text-monospace text-muted" style="display: none;">{{realm.slug}} </p>              
+              <p class="pl-4 text-monospace text-muted" style="display: none;">{{realm.slug}} </p>
             </li>
-             <li ng-if="(realmAdmin || realmDeveloper)">
+            <li ng-if="(realmAdmin || realmDeveloper)">
               <a class="list-item medium px-2 pb-2 left-icon" href ui-sref-active="active" ui-sref="realm.dashboard">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-star-outline"></use></svg>
-               <span>Dashboard</span>
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-star-outline"></use>
+                </svg>
+                <span>Dashboard</span>
               </a>
             </li>
             <li ng-if="(realmAdmin || realmDeveloper) && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.apps">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use></svg>
-               <span> Client Applications</span>
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use>
+                </svg>
+                <span> Client Applications</span>
               </a>
             </li>
             <li ng-if="realmAdmin">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.users">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-user"></use></svg>
-               <span> Users </span>
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-user"></use>
+                </svg>
+                <span> Users </span>
               </a>
             </li>
             <li ng-if="realmAdmin && !realmImmutable">
-              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.providers">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use></svg>
-               <span> Identity Providers </span>
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
+                ui-sref="realm.providers">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                </svg>
+                <span> Identity Providers </span>
               </a>
             </li>
             <li ng-if="realmAdmin">
-              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.attributesets">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-box"></use></svg>
-               <span> Attribute Sets </span>
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
+                ui-sref="realm.attributesets">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-box"></use>
+                </svg>
+                <span> Attribute Sets </span>
               </a>
-            </li>            
+            </li>
             <li ng-if="(realmAdmin || realmDeveloper)">
-              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.services">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-plug"></use></svg>
-               <span> Custom Services </span>
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
+                ui-sref="realm.services">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-plug"></use>
+                </svg>
+                <span> Custom Services </span>
               </a>
             </li>
             <li ng-if="(realmAdmin || realmDeveloper)">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.scopes">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-code-circle"></use></svg>
-               <span> Scopes </span>
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-code-circle"></use>
+                </svg>
+                <span> Scopes </span>
               </a>
-            </li>            
+            </li>
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.custom">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-pencil"></use></svg>
-               <span> Customization </span>
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                </svg>
+                <span> Customization </span>
               </a>
             </li>
             <li ng-if="realmAdmin">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.audit">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-note"></use></svg>
-               <span> Audit </span>
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-note"></use>
+                </svg>
+                <span> Audit </span>
               </a>
-            </li>   
+            </li>
             <li ng-if="realmAdmin && !realmImmutable">
-              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.settings">
-               <svg class="icon icon-sm icon-primary left" aria-hidden="true"><use xlink:href="./italia/svg/sprite.svg#it-settings"></use></svg>
-               <span> Settings </span>
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
+                ui-sref="realm.settings">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-settings"></use>
+                </svg>
+                <span> Settings </span>
               </a>
-            </li>                      
+            </li>
           </ul>
         </div>
       </div>
