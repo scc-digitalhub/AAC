@@ -12,7 +12,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
@@ -251,8 +251,9 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     /*
      * builders
      */
-    public static ConfigurableProvider toConfigurableProvider(OIDCIdentityProviderConfig op) {
-        ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(), op.getRealm());
+    public static ConfigurableIdentityProvider toConfigurableProvider(OIDCIdentityProviderConfig op) {
+        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(),
+                op.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setPersistence(op.getPersistence());
 
@@ -267,7 +268,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         return cp;
     }
 
-    public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
+    public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         op.configMap = new OIDCIdentityProviderConfigMap();
         op.configMap.setConfiguration(cp.getConfiguration());

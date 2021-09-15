@@ -62,18 +62,9 @@ public class UserEntityService {
         return u;
     }
 
-    public UserEntity addUser(String uuid, String realm, String username) throws AlreadyRegisteredException {
-//        if (!StringUtils.hasText(realm)) {
-//            throw new RegistrationException("realm is invalid");
-//        }
-//
-//        if (!StringUtils.hasText(uuid)) {
-//            throw new IllegalArgumentException("empty subject id");
-//        }
-//
-//        if (uuid.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, uuid)) {
-//            throw new IllegalArgumentException("invalid subject id");
-//        }
+    public UserEntity addUser(
+            String uuid, String realm,
+            String username, String emailAddress) throws AlreadyRegisteredException {
 
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
@@ -90,6 +81,7 @@ public class UserEntityService {
         // create user
         u = new UserEntity(uuid, realm);
         u.setUsername(username);
+        u.setEmailAddress(emailAddress);
         // ensure user is active
         u.setLocked(false);
         u.setBlocked(false);
@@ -98,19 +90,22 @@ public class UserEntityService {
         return u;
     }
 
-    public UserEntity addUser(String uuid, String realm, String username, List<String> roles)
-            throws AlreadyRegisteredException {
-        UserEntity u = addUser(uuid, realm, username);
-
-        // add roles
-        for (String role : roles) {
-            UserRoleEntity r = new UserRoleEntity(uuid);
-            r.setRealm(SystemKeys.REALM_GLOBAL);
-            r.setRole(role);
-            userRoleRepository.save(r);
-        }
-        return u;
-    }
+//    public UserEntity addUser(
+//            String uuid, String realm,
+//            String username, String emailAddress,
+//            List<String> roles)
+//            throws AlreadyRegisteredException {
+//        UserEntity u = addUser(uuid, realm, username, emailAddress);
+//
+//        // add roles
+//        for (String role : roles) {
+//            UserRoleEntity r = new UserRoleEntity(uuid);
+//            r.setRealm(SystemKeys.REALM_GLOBAL);
+//            r.setRole(role);
+//            userRoleRepository.save(r);
+//        }
+//        return u;
+//    }
 
     @Transactional(readOnly = true)
     public UserEntity findUser(String uuid) {
@@ -121,20 +116,35 @@ public class UserEntityService {
     public UserEntity getUser(String uuid) throws NoSuchUserException {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u == null) {
-            throw new NoSuchUserException("no user for subject " + uuid);
+            throw new NoSuchUserException("no user for subject " + String.valueOf(uuid));
         }
 
         return u;
     }
 
     @Transactional(readOnly = true)
-    public List<UserEntity> getUsers(String realm) {
+    public long countUsers(String realm) {
+        return userRepository.countByRealm(realm);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserEntity> listUsers() {
+        return userRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserEntity> listUsers(String realm) {
         return userRepository.findByRealm(realm);
     }
 
     @Transactional(readOnly = true)
-    public long countUsers(String realm) {
-        return userRepository.countByRealm(realm);
+    public List<UserEntity> findUsersByUsername(String realm, String username) {
+        return userRepository.findByRealmAndUsername(realm, username);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserEntity> findUsersByEmailAddrss(String realm, String emailAddress) {
+        return userRepository.findByRealmAndEmailAddress(realm, emailAddress);
     }
 
     @Transactional(readOnly = true)
@@ -156,13 +166,14 @@ public class UserEntityService {
         return userRoleRepository.findBySubjectAndRealm(u.getUuid(), realm);
     }
 
-    public UserEntity updateUser(String uuid, String username) throws NoSuchUserException {
+    public UserEntity updateUser(String uuid, String username, String emailAddress) throws NoSuchUserException {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u == null) {
             throw new NoSuchUserException("no user for subject " + uuid);
         }
 
         u.setUsername(username);
+        u.setEmailAddress(emailAddress);
         u = userRepository.save(u);
 
         // check if subject exists and update name

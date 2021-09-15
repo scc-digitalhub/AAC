@@ -1,24 +1,15 @@
 package it.smartcommunitylab.aac.core;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -26,153 +17,40 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.config.ProvidersProperties;
-import it.smartcommunitylab.aac.config.ProvidersProperties.ProviderConfiguration;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.service.ProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 
 @Service
 public class ProviderManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private ProviderService providerService;
-
-    private SessionManager sessionManager;
+    private IdentityProviderService identityProviderService;
 
     private AuthorityManager authorityManager;
 
     private RealmService realmService;
 
-    // keep a local map for global providers since these are not in db
-    // key is providerId
-    private Map<String, IdentityProvider> systemIdps;
-    private Map<String, IdentityService> systemIdss;
-//    private Map<String, AttributeProvider> globalAttrps;
+//    // keep a local map for global providers since these are not in db
+//    // key is providerId
+//    private Map<String, IdentityProvider> systemIdps;
+//    private Map<String, IdentityService> systemIdss;
+////    private Map<String, AttributeProvider> globalAttrps;
 
     public ProviderManager(
             AuthorityManager authorityManager,
-            SessionManager sessionManager,
-            ProviderService providerService, RealmService realmService,
-            ProvidersProperties providers) {
+            IdentityProviderService identityProviderService, RealmService realmService) {
         Assert.notNull(authorityManager, "authority manager is mandatory");
-        Assert.notNull(sessionManager, "session manager is mandatory");
-        Assert.notNull(providerService, "provider service is mandatory");
+        Assert.notNull(identityProviderService, "identity provider service is mandatory");
         Assert.notNull(realmService, "realm service is mandatory");
 
         this.authorityManager = authorityManager;
-        this.sessionManager = sessionManager;
-        this.providerService = providerService;
+        this.identityProviderService = identityProviderService;
         this.realmService = realmService;
-
-        this.systemIdps = new HashMap<>();
-        this.systemIdss = new HashMap<>();
-//        this.globalAttrps = new HashMap<>();
-
-        // create system idps
-        // these users access administrative contexts, they will have realm=""
-        // we expect no client/services in global+system realm!
-
-        // always register the internal provider for the superuser account
-        IdentityAuthority internal = authorityManager.getIdentityAuthority(SystemKeys.AUTHORITY_INTERNAL);
-
-        ConfigurableProvider internalIdpConfig = new ConfigurableProvider(
-                SystemKeys.AUTHORITY_INTERNAL, SystemKeys.AUTHORITY_INTERNAL,
-                SystemKeys.REALM_SYSTEM);
-        internalIdpConfig.setType(SystemKeys.RESOURCE_IDENTITY);
-        logger.debug("register internal idp in system realm");
-        IdentityProvider internalIdp = internal.registerIdentityProvider(internalIdpConfig);
-        systemIdps.put(internalIdp.getProvider(), internalIdp);
-        // global idp is an iss
-        IdentityService internalIss = internal.getIdentityService(internalIdp.getProvider());
-        if (internalIss != null) {
-            systemIdss.put(internalIss.getProvider(), internalIss);
-        }
-
-        // process additional from config
-        if (providers != null) {
-            // identity providers
-            for (ProviderConfiguration providerConfig : providers.getIdentity()) {
-                try {
-                    // check match
-                    if (!SystemKeys.RESOURCE_IDENTITY.equals(providerConfig.getType())) {
-                        continue;
-                    }
-
-                    // we handle only system providers, add others via bootstrap
-                    if (SystemKeys.REALM_SYSTEM.equals(providerConfig.getRealm())
-                            || !StringUtils.hasText(providerConfig.getRealm())) {
-                        logger.debug(
-                                "register provider for " + providerConfig.getType() + " in system realm: "
-                                        + providerConfig.toString());
-
-                        // translate config
-                        ConfigurableProvider provider = new ConfigurableProvider(providerConfig.getAuthority(),
-                                providerConfig.getProvider(), SystemKeys.REALM_SYSTEM);
-                        provider.setType(providerConfig.getType());
-                        provider.setName(providerConfig.getName());
-                        provider.setEnabled(true);
-                        for (Map.Entry<String, String> entry : providerConfig.getConfiguration().entrySet()) {
-                            provider.setConfigurationProperty(entry.getKey(), entry.getValue());
-                        }
-
-                        // by default global providers persist account + attributes
-                        String persistenceLevel = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
-                        if (StringUtils.hasText(providerConfig.getPersistence())) {
-                            // set persistence level
-                            persistenceLevel = providerConfig.getPersistence();
-                        }
-                        provider.setPersistence(persistenceLevel);
-
-                        // set default event level
-                        String eventsLevel = SystemKeys.EVENTS_LEVEL_DETAILS;
-                        if (StringUtils.hasText(providerConfig.getEvents())) {
-                            // set persistence level
-                            eventsLevel = providerConfig.getEvents();
-                        }
-                        provider.setEvents(eventsLevel);
-
-                        // register
-                        IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
-                        IdentityProvider idp = ia.registerIdentityProvider(provider);
-                        systemIdps.put(idp.getProvider(), idp);
-
-                        // check if we get an iss from this idp
-                        IdentityService iss = ia.getIdentityService(idp.getProvider());
-                        if (iss != null) {
-                            systemIdss.put(iss.getProvider(), iss);
-                        }
-
-                    }
-                } catch (RegistrationException | SystemException | IllegalArgumentException ex) {
-                    logger.error("error registering provider :" + ex.getMessage(), ex);
-                }
-            }
-
-            // attribute providers
-            for (ProviderConfiguration providerConfig : providers.getAttributes()) {
-                try {
-                    // check match
-                    if (!SystemKeys.RESOURCE_ATTRIBUTES.equals(providerConfig.getType())) {
-                        continue;
-                    }
-
-                    // TODO
-                } catch (SystemException | IllegalArgumentException ex) {
-                    logger.error("error registering provider :" + ex.getMessage(), ex);
-                }
-            }
-        }
 
 //        // now load all realm providers from storage
 //        // we iterate by authority to load consistently
@@ -181,7 +59,7 @@ public class ProviderManager {
 //            List<ConfigurableProvider> storeProviders = listProvidersByAuthority(ia.getAuthorityId());
 //            for (ConfigurableProvider provider : storeProviders) {
 //                // check match
-//                if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
+//                if (!TYPE_IDENTITY.equals(provider.getType())) {
 //                    continue;
 //                }
 //
@@ -213,80 +91,130 @@ public class ProviderManager {
         }
 
         Realm re = realmService.getRealm(realm);
-        List<ProviderEntity> providers = providerService.listProvidersByRealm(re.getSlug());
-        return providers.stream()
-                .map(p -> fromEntity(p))
-                .collect(Collectors.toList());
+        List<ConfigurableProvider> providers = new ArrayList<>();
+        // identity providers
+        Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(re.getSlug());
+        providers.addAll(idps);
+        // attribute providers
+        return providers;
     }
 
-    public Collection<ConfigurableProvider> listProviders(String realm, String type) throws NoSuchRealmException {
-//        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
-//            // we do not persist in db global providers
-//            throw new SystemException("global providers are immutable");
-//        }
+    public Collection<? extends ConfigurableProvider> listProviders(String realm, String type)
+            throws NoSuchRealmException {
+        if (TYPE_IDENTITY.equals(type)) {
+            return listIdentityProviders(realm);
+        }
 
-        Realm re = realmService.getRealm(realm);
-        List<ProviderEntity> providers = providerService.listProvidersByRealmAndType(re.getSlug(), type);
-        return providers.stream()
-                .map(p -> fromEntity(p))
-                .collect(Collectors.toList());
+        throw new IllegalArgumentException("invalid type");
     }
 
-    public ConfigurableProvider findProvider(String realm, String providerId) {
-        ProviderEntity pe = providerService.findProvider(providerId);
-
-        if (pe == null) {
-            return null;
+    public ConfigurableProvider findProvider(String realm, String type, String providerId) {
+        if (TYPE_IDENTITY.equals(type)) {
+            return findIdentityProvider(realm, providerId);
         }
 
-        if (!realm.equals(pe.getRealm())) {
-            throw new IllegalArgumentException("realm does not match provider");
-        }
-
-        return fromEntity(pe);
-
-    }
-
-    public ConfigurableProvider getProvider(String realm, String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
-        Realm re = realmService.getRealm(realm);
-        ProviderEntity pe = providerService.getProvider(providerId);
-
-        if (!re.getSlug().equals(pe.getRealm())) {
-            throw new IllegalArgumentException("realm does not match provider");
-        }
-
-        // deprecated, let controllers/managers ask for status where needed
-        // this does not pertain to configuration
-//        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
-
-        return fromEntity(pe);
-
+        throw new IllegalArgumentException("invalid type");
     }
 
     public ConfigurableProvider getProvider(String realm, String type, String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        Realm re = realmService.getRealm(realm);
-        ProviderEntity pe = providerService.getProvider(providerId);
+        if (TYPE_IDENTITY.equals(type)) {
+            return getIdentityProvider(realm, providerId);
+        }
 
-        if (!re.getSlug().equals(pe.getRealm())) {
+        throw new IllegalArgumentException("invalid type");
+    }
+
+    public ConfigurableProvider addProvider(String realm,
+            ConfigurableProvider provider) throws RegistrationException, SystemException, NoSuchRealmException {
+
+        if (provider instanceof ConfigurableIdentityProvider) {
+            return addIdentityProvider(realm, (ConfigurableIdentityProvider) provider);
+        }
+
+        throw new IllegalArgumentException("invalid provider");
+    }
+
+    public ConfigurableProvider updateProvider(String realm,
+            String providerId, ConfigurableProvider provider)
+            throws NoSuchProviderException, NoSuchRealmException {
+        if (provider instanceof ConfigurableIdentityProvider) {
+            return updateIdentityProvider(realm, providerId, (ConfigurableIdentityProvider) provider);
+        }
+
+        throw new IllegalArgumentException("invalid provider");
+    }
+
+    public void deleteProvider(String realm, String type, String providerId)
+            throws SystemException, NoSuchProviderException, NoSuchRealmException {
+        if (TYPE_IDENTITY.equals(type)) {
+            deleteIdentityProvider(realm, providerId);
+        }
+
+        throw new IllegalArgumentException("invalid type");
+    }
+
+    public ConfigurableProvider registerProvider(
+            String realm, String type,
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+        if (TYPE_IDENTITY.equals(type)) {
+            registerIdentityProvider(realm, providerId);
+        }
+
+        throw new IllegalArgumentException("invalid type");
+    }
+
+    public ConfigurableProvider unregisterProvider(
+            String realm, String type,
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+        if (TYPE_IDENTITY.equals(type)) {
+            unregisterIdentityProvider(realm, providerId);
+        }
+
+        throw new IllegalArgumentException("invalid type");
+    }
+
+    /*
+     * Identity Providers
+     */
+
+    public Collection<ConfigurableIdentityProvider> listIdentityProviders(String realm) throws NoSuchRealmException {
+        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
+            // we do not persist in db global providers
+            throw new SystemException("global providers are immutable");
+        }
+
+        Realm re = realmService.getRealm(realm);
+        return identityProviderService.listProviders(re.getSlug());
+    }
+
+    public ConfigurableIdentityProvider findIdentityProvider(String realm, String providerId) {
+        ConfigurableIdentityProvider ip = identityProviderService.findProvider(providerId);
+
+        if (ip != null && !realm.equals(ip.getRealm())) {
             throw new IllegalArgumentException("realm does not match provider");
         }
 
-        if (!type.equals(pe.getType())) {
-            throw new IllegalArgumentException("type does not match provider");
+        return ip;
+    }
+
+    public ConfigurableIdentityProvider getIdentityProvider(String realm, String providerId)
+            throws NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        ConfigurableIdentityProvider ip = identityProviderService.getProvider(providerId);
+        if (!re.getSlug().equals(ip.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
         }
 
         // deprecated, let controllers/managers ask for status where needed
         // this does not pertain to configuration
 //        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
 
-        return fromEntity(pe);
-
+        return ip;
     }
 
-    public ConfigurableProvider addProvider(String realm,
-            ConfigurableProvider provider) throws RegistrationException, SystemException, NoSuchRealmException {
+    public ConfigurableIdentityProvider addIdentityProvider(String realm,
+            ConfigurableIdentityProvider provider) throws RegistrationException, SystemException, NoSuchRealmException {
 
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             // we do not persist in db global providers
@@ -294,366 +222,124 @@ public class ProviderManager {
         }
 
         Realm re = realmService.getRealm(realm);
-
-        // check if id provided
-        String providerId = provider.getProvider();
-        if (StringUtils.hasText(providerId)) {
-            ProviderEntity pe = providerService.findProvider(providerId);
-            if (pe != null) {
-                throw new RegistrationException("id already in use");
-            }
-
-            // validate
-            if (providerId.length() < 6 || !Pattern.matches(SystemKeys.SLUG_PATTERN, providerId)) {
-                throw new RegistrationException("invalid id");
-            }
-
-        } else {
-            // generate a valid id
-            ProviderEntity pe = providerService.createProvider();
-            providerId = pe.getProviderId();
-        }
-
-        // unpack props and validate
-        // TODO handle enum of authorities for validation
-        String authority = provider.getAuthority();
-
-        // we support only idp for now
-        String type = provider.getType();
-        if (!StringUtils.hasText(type) || !SystemKeys.RESOURCE_IDENTITY.equals(type)) {
-            throw new RegistrationException("invalid provider type");
-        }
-
-        String name = provider.getName();
-        String description = provider.getDescription();
-        String icon = provider.getIcon();
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (StringUtils.hasText(icon)) {
-            icon = Jsoup.clean(icon, Safelist.none());
-        }
-
-        // TODO add enum
-        String persistence = provider.getPersistence();
-        if (!StringUtils.hasText(persistence)) {
-            persistence = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
-        }
-
-        if (!SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)
-                && !SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)
-                && !SystemKeys.PERSISTENCE_LEVEL_SESSION.equals(persistence)
-                && !SystemKeys.PERSISTENCE_LEVEL_NONE.equals(persistence)) {
-            throw new RegistrationException("invalid persistence level");
-        }
-
-        String events = provider.getEvents();
-        if (!StringUtils.hasText(events)) {
-            events = SystemKeys.EVENTS_LEVEL_DETAILS;
-        }
-
-        if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
-                && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
-                && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
-                && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
-            throw new RegistrationException("invalid events level");
-        }
-
-        String displayMode = provider.getDisplayMode();
-        if (!StringUtils.hasText(displayMode)) {
-            displayMode = SystemKeys.DISPLAY_MODE_BUTTON;
-        }
-
-        if (!SystemKeys.DISPLAY_MODE_BUTTON.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_FORM.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_SPID.equals(displayMode)) {
-            throw new RegistrationException("invalid display mode");
-        }
-
-        Map<String, Serializable> configuration = null;
-        if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
-
-            // we validate config by converting to specific configMap
-            ConfigurableProperties configurable = null;
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-                configurable = new InternalIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-                configurable = new OIDCIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-                configurable = new SamlIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-                configurable = new SpidIdentityProviderConfigMap();
-            }
-
-            if (configurable == null) {
-                throw new IllegalArgumentException("invalid configuration");
-            }
-
-            configurable.setConfiguration(provider.getConfiguration());
-            configuration = configurable.getConfiguration();
-        }
-
-        // fetch hooks
-        Map<String, String> hookFunctions = provider.getHookFunctions();
-
-        ProviderEntity pe = providerService.addProvider(authority, providerId, re.getSlug(),
-                type,
-                name, description, icon,
-                persistence, events, displayMode,
-                configuration, hookFunctions);
-
-        return fromEntity(pe);
+        return identityProviderService.addProvider(re.getSlug(), provider);
 
     }
 
-//    public ConfigurableProvider updateProvider(String realm, String providerId, boolean enabled)
-//            throws NoSuchProviderException, NoSuchRealmException {
-//        Realm re = realmService.getRealm(realm);
-//        ProviderEntity pe = providerService.getProvider(providerId);
-//
-//        if (!re.getSlug().equals(pe.getRealm())) {
-//            throw new IllegalArgumentException("realm does not match provider");
-//        }
-//
-//        // check if active, we don't support update for active providers
-//        boolean isActive = false;
-//        // we support only idp now
-//        if (SystemKeys.RESOURCE_IDENTITY.equals(pe.getType())) {
-//            isActive = isProviderRegistered(providerId);
-//        }
-//
-//        if (isActive) {
-//            throw new IllegalArgumentException("active providers can not be updated");
-//        }
-//
-//        // check previous status
-//        if (enabled != pe.isEnabled()) {
-//            // sync
-//            pe = providerService.updateProvider(providerId, enabled, pe.getConfigurationMap());
-//        }
-//
-//        return fromEntity(pe);
-//
-//    }
-
-    public ConfigurableProvider updateProvider(String realm,
-            String providerId, ConfigurableProvider provider)
+    public ConfigurableIdentityProvider updateIdentityProvider(String realm,
+            String providerId, ConfigurableIdentityProvider provider)
             throws NoSuchProviderException, NoSuchRealmException {
         Realm re = realmService.getRealm(realm);
-        ProviderEntity pe = providerService.getProvider(providerId);
+        ConfigurableIdentityProvider ip = identityProviderService.getProvider(providerId);
 
-        if (!re.getSlug().equals(pe.getRealm())) {
+        if (!re.getSlug().equals(ip.getRealm())) {
             throw new IllegalArgumentException("realm does not match provider");
         }
 
-        if (StringUtils.hasText(provider.getProvider()) && !providerId.equals(provider.getProvider())) {
-            throw new IllegalArgumentException("configuration does not match provider");
-        }
+        return identityProviderService.updateProvider(providerId, provider);
 
-        // check if active, we don't support update for active providers
-        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
-
-        if (isActive) {
-            throw new IllegalArgumentException("active providers can not be updated");
-        }
-
-        // we update only props and configuration
-        String name = provider.getName();
-        String description = provider.getDescription();
-        String icon = provider.getIcon();
-        if (StringUtils.hasText(name)) {
-            name = Jsoup.clean(name, Safelist.none());
-        }
-        if (StringUtils.hasText(description)) {
-            description = Jsoup.clean(description, Safelist.none());
-        }
-        if (StringUtils.hasText(icon)) {
-            icon = Jsoup.clean(icon, Safelist.none());
-        }
-        // TODO add enum
-        String persistence = provider.getPersistence();
-        if (!StringUtils.hasText(persistence)) {
-            persistence = SystemKeys.PERSISTENCE_LEVEL_REPOSITORY;
-        }
-
-        if (!SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)
-                && !SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)
-                && !SystemKeys.PERSISTENCE_LEVEL_SESSION.equals(persistence)
-                && !SystemKeys.PERSISTENCE_LEVEL_NONE.equals(persistence)) {
-            throw new RegistrationException("invalid persistence level");
-        }
-
-        String events = provider.getEvents();
-        if (!StringUtils.hasText(events)) {
-            events = SystemKeys.EVENTS_LEVEL_DETAILS;
-        }
-
-        if (!SystemKeys.EVENTS_LEVEL_DETAILS.equals(events)
-                && !SystemKeys.EVENTS_LEVEL_FULL.equals(events)
-                && !SystemKeys.EVENTS_LEVEL_MINIMAL.equals(events)
-                && !SystemKeys.EVENTS_LEVEL_NONE.equals(events)) {
-            throw new RegistrationException("invalid events level");
-        }
-
-        String displayMode = provider.getDisplayMode();
-        if (!StringUtils.hasText(displayMode)) {
-            displayMode = SystemKeys.DISPLAY_MODE_BUTTON;
-        }
-
-        if (!SystemKeys.DISPLAY_MODE_BUTTON.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_FORM.equals(displayMode)
-                && !SystemKeys.DISPLAY_MODE_SPID.equals(displayMode)) {
-            throw new RegistrationException("invalid display mode");
-        }
-
-        boolean enabled = provider.isEnabled();
-        boolean linkable = provider.isLinkable();
-
-        Map<String, Serializable> configuration = null;
-
-        String type = pe.getType();
-        if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
-            String authority = pe.getAuthority();
-
-            // we validate config by converting to specific configMap
-            ConfigurableProperties configurable = null;
-            if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-                configurable = new InternalIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-                configurable = new OIDCIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-                configurable = new SamlIdentityProviderConfigMap();
-            } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-                configurable = new SpidIdentityProviderConfigMap();
-            }
-
-            if (configurable == null) {
-                throw new IllegalArgumentException("invalid configuration");
-            }
-
-            configurable.setConfiguration(provider.getConfiguration());
-            configuration = configurable.getConfiguration();
-        }
-
-        // fetch hooks
-        Map<String, String> hookFunctions = provider.getHookFunctions();
-
-        // update: even when enabled this provider won't be active until registration
-        pe = providerService.updateProvider(providerId,
-                enabled, linkable,
-                name, description, icon,
-                persistence, events, displayMode,
-                configuration, hookFunctions);
-
-        return fromEntity(pe);
     }
 
-    public void deleteProvider(String realm, String providerId)
+    public void deleteIdentityProvider(String realm, String providerId)
             throws SystemException, NoSuchProviderException, NoSuchRealmException {
         Realm re = realmService.getRealm(realm);
+        ConfigurableIdentityProvider ip = identityProviderService.getProvider(providerId);
 
-        ProviderEntity pe = providerService.getProvider(providerId);
-        if (!re.getSlug().equals(pe.getRealm())) {
+        if (!re.getSlug().equals(ip.getRealm())) {
             throw new IllegalArgumentException("realm does not match provider");
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
+        boolean isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be deleted");
         }
 
-        providerService.deleteProvider(providerId);
-
+        identityProviderService.deleteProvider(providerId);
     }
 
     //
-    public ConfigurableProvider registerProvider(
+    public ConfigurableIdentityProvider registerIdentityProvider(
             String realm,
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
 
         Realm re = realmService.getRealm(realm);
         // fetch, only persisted configurations can be registered
-        ProviderEntity pe = providerService.getProvider(providerId);
-        if (!re.getSlug().equals(pe.getRealm())) {
+        ConfigurableIdentityProvider ip = identityProviderService.getProvider(providerId);
+
+        if (!re.getSlug().equals(ip.getRealm())) {
             throw new IllegalArgumentException("realm does not match provider");
         }
 
         // check if active, we don't support update for active providers
-        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
+        boolean isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
 
         if (isActive) {
             throw new IllegalArgumentException("active providers can not be registered again");
         }
 
         // check if already enabled in config, or update
-        if (!pe.isEnabled()) {
-            pe = providerService.updateProvider(providerId,
-                    true, pe.isLinkable(),
-                    pe.getName(), pe.getDescription(), pe.getIcon(),
-                    pe.getPersistence(), pe.getEvents(), pe.getDisplayMode(),
-                    pe.getConfigurationMap(), pe.getHookFunctions());
+        if (!ip.isEnabled()) {
+            ip.setEnabled(true);
+            ip = identityProviderService.updateProvider(providerId,
+                    ip);
         }
 
-        ConfigurableProvider provider = fromEntity(pe);
+        IdentityProvider idp = authorityManager.registerIdentityProvider(ip);
+        isActive = idp != null;
 
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            registerIdentityProvider(provider);
-            isActive = true;
-        } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
-            // TODO attribute providers
-        } else {
-            throw new SystemException("unsupported provider type");
-        }
+        // TODO fetch registered status?
+        ip.setRegistered(isActive);
 
-        return provider;
+        return ip;
 
     }
 
-    public ConfigurableProvider unregisterProvider(
+    public ConfigurableIdentityProvider unregisterIdentityProvider(
             String realm,
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
 
         Realm re = realmService.getRealm(realm);
         // fetch, only persisted configurations can be registered
-        ProviderEntity pe = providerService.getProvider(providerId);
-        if (!re.getSlug().equals(pe.getRealm())) {
+        ConfigurableIdentityProvider ip = identityProviderService.getProvider(providerId);
+
+        if (!re.getSlug().equals(ip.getRealm())) {
             throw new IllegalArgumentException("realm does not match provider");
         }
 
         // check if already disabled in config, or update
-        if (pe.isEnabled()) {
-            pe = providerService.updateProvider(providerId,
-                    false, pe.isLinkable(),
-                    pe.getName(), pe.getDescription(), pe.getIcon(),
-                    pe.getPersistence(), pe.getEvents(), pe.getDisplayMode(),
-                    pe.getConfigurationMap(), pe.getHookFunctions());
+        if (ip.isEnabled()) {
+            ip.setEnabled(false);
+            ip = identityProviderService.updateProvider(providerId, ip);
         }
 
-        ConfigurableProvider provider = fromEntity(pe);
-
         // check if active
-        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
+        boolean isActive = authorityManager.isIdentityProviderRegistered(ip.getAuthority(), ip.getProvider());
 
         if (isActive) {
 
-            // we support only idp now
-            if (SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-                unregisterIdentityProvider(provider);
-                isActive = false;
-            } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(provider.getType())) {
-                // TODO attribute providers
-            } else {
-                throw new SystemException("unsupported provider type");
-            }
+            authorityManager.unregisterIdentityProvider(ip);
+            isActive = false;
+
+            // TODO fetch registered status?
+            ip.setRegistered(isActive);
         }
 
-        return provider;
+        return ip;
+    }
+
+    /*
+     * Compatibility
+     * 
+     * Support checking registration status
+     */
+    public boolean isProviderRegistered(ConfigurableProvider provider) throws SystemException {
+        if (TYPE_IDENTITY.equals(provider.getType())) {
+            return authorityManager.isIdentityProviderRegistered(provider.getAuthority(), provider.getProvider());
+        }
+
+        throw new IllegalArgumentException("invalid type");
     }
 
     /*
@@ -662,76 +348,6 @@ public class ProviderManager {
      * methods for handling providers either private or exposed for internal (core)
      * usage
      */
-
-    /*
-     * Enable/disable providers with authorities
-     */
-
-    private IdentityProvider registerIdentityProvider(ConfigurableProvider provider) throws SystemException {
-        if (!provider.isEnabled()) {
-            throw new IllegalArgumentException("provider is disabled");
-        }
-
-        // we support only idp now
-        if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            throw new IllegalArgumentException("unsupported provider type");
-        }
-
-        IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
-        return a.registerIdentityProvider(provider);
-
-    }
-
-    private void unregisterIdentityProvider(ConfigurableProvider provider) throws SystemException {
-        // we support only idp now
-        if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-            throw new IllegalArgumentException("unsupported provider type");
-        }
-
-        IdentityAuthority a = authorityManager.getIdentityAuthority(provider.getAuthority());
-        String providerId = provider.getProvider();
-
-        // terminate sessions
-        sessionManager.destroyProviderSessions(providerId);
-        a.unregisterIdentityProvider(provider.getRealm(), providerId);
-
-    }
-
-    /*
-     * Public API: check provider registration with authorities
-     */
-
-    public boolean isProviderRegistered(String providerId) throws SystemException, NoSuchProviderException {
-        ConfigurableProvider p = getProvider(providerId);
-        return isProviderRegistered(p);
-    }
-
-    public boolean isProviderRegistered(ConfigurableProvider provider) throws SystemException {
-        return isProviderRegistered(provider.getType(), provider.getAuthority(), provider.getProvider());
-    }
-
-    public boolean isProviderRegistered(String type, String authority, String providerId) throws SystemException {
-        // we support only idp now
-        if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
-            IdentityAuthority a = authorityManager.getIdentityAuthority(authority);
-
-            return a.hasIdentityProvider(providerId);
-        } else if (SystemKeys.RESOURCE_ATTRIBUTES.equals(type)) {
-            // TODO attribute providers
-            throw new IllegalArgumentException("unsupported provider type");
-        } else {
-            throw new IllegalArgumentException("unsupported provider type");
-        }
-
-    }
-
-    private Collection<IdentityProvider> listSystemIdentityProviders() {
-        return systemIdps.values();
-    }
-
-    private Collection<IdentityService> listSystemIdentityServices() {
-        return systemIdss.values();
-    }
 
     /*
      * Persist configuration
@@ -744,244 +360,21 @@ public class ProviderManager {
 //        List<ProviderEntity> providers = providerService.listProvidersByAuthority(authority);
 //        return providers.stream().map(p -> fromEntity(p)).collect(Collectors.toList());
 //    }
-
-    private ConfigurableProvider getProvider(String providerId) throws NoSuchProviderException {
-        ProviderEntity pe = providerService.getProvider(providerId);
-
-        return fromEntity(pe);
-
-    }
-
-    /*
-     * Identity providers
-     * 
-     * we expose only getters to ensure consumers won't update config. Also only
-     * active (ie registered with an authority) providers are exposed.
-     * 
-     * we assume that registered providers are a match for stored configuration,
-     * since config is immutable in authorities
-     */
-
-    public IdentityProvider findIdentityProvider(String providerId) {
-
-        // lookup in global map first
-        if (systemIdps.containsKey(providerId)) {
-            return systemIdps.get(providerId);
-        }
-        try {
-            ConfigurableProvider provider = getProvider(providerId);
-
-            if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-                return null;
-            }
-
-            // lookup in authority
-            IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
-            return ia.getIdentityProvider(providerId);
-        } catch (NoSuchProviderException e) {
-            return null;
-        }
-    }
-
-    public IdentityProvider getIdentityProvider(String providerId) throws NoSuchProviderException {
-        IdentityProvider idp = findIdentityProvider(providerId);
-        if (idp == null) {
-            // provider is not active or not existing
-            // TODO add dedicated exception?
-            throw new NoSuchProviderException("provider not found");
-        }
-
-        return idp;
-    }
-
-    // fast load, skips db lookup, returns null if missing
-    public IdentityProvider fetchIdentityProvider(String authority, String providerId) {
-        // lookup in global map first
-        if (systemIdps.containsKey(providerId)) {
-            return systemIdps.get(providerId);
-        }
-
-        // lookup in authority
-        IdentityAuthority ia = authorityManager.getIdentityAuthority(authority);
-        if (ia == null) {
-            return null;
-        }
-        try {
-            return ia.getIdentityProvider(providerId);
-        } catch (NoSuchProviderException e) {
-            return null;
-        }
-    }
-
-    public Collection<IdentityProvider> getIdentityProviders(String realm) throws NoSuchRealmException {
-        if (SystemKeys.REALM_SYSTEM.equals(realm)) {
-            return listSystemIdentityProviders();
-        }
-
-        Collection<ConfigurableProvider> providers = listProviders(realm, SystemKeys.RESOURCE_IDENTITY);
-
-        // fetch each active provider from authority
-        List<IdentityProvider> idps = new ArrayList<>();
-        for (ConfigurableProvider provider : providers) {
-            // lookup in authority
-            IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
-            try {
-                IdentityProvider idp = ia.getIdentityProvider(provider.getProvider());
-                if (idp != null) {
-                    idps.add(idp);
-                }
-            } catch (NoSuchProviderException e) {
-                // skip
-            }
-
-        }
-
-        return idps;
-    }
-
-    // fast load, skips db lookup
-    public Collection<IdentityProvider> fetchIdentityProviders(String realm) {
-        if (SystemKeys.REALM_SYSTEM.equals(realm)) {
-            return listSystemIdentityProviders();
-        }
-
-        List<IdentityProvider> providers = new ArrayList<>();
-        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            providers.addAll(ia.getIdentityProviders(realm));
-        }
-
-        return providers;
-
-    }
-
-    // fast load, skips db lookup
-    public Collection<IdentityProvider> fetchIdentityProviders(String authority, String realm) {
-        if (SystemKeys.REALM_SYSTEM.equals(realm)) {
-            return listSystemIdentityProviders().stream()
-                    .filter(i -> i.getAuthority().equals(authority))
-                    .collect(Collectors.toList());
-        }
-
-        IdentityAuthority ia = authorityManager.getIdentityAuthority(authority);
-        if (ia != null) {
-            return ia.getIdentityProviders(realm);
-        }
-
-        return null;
-    }
+//
+//    private ConfigurableProvider getProvider(String providerId) throws NoSuchProviderException {
+//        IdentityProviderEntity pe = providerService.getProvider(providerId);
+//
+//        return fromEntity(pe);
+//
+//    }
 
     /*
-     * Identity services
-     * 
-     * idp with persistence can expose an identity service for operations on stored
-     * users, such as search,update,delete etc
-     */
-
-    public IdentityService findIdentityService(String providerId) {
-
-        // lookup in global map first
-        if (systemIdss.containsKey(providerId)) {
-            return systemIdss.get(providerId);
-        }
-        try {
-            ConfigurableProvider provider = getProvider(providerId);
-
-            if (!SystemKeys.RESOURCE_IDENTITY.equals(provider.getType())) {
-                return null;
-            }
-
-            // lookup in authority
-            IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
-            return ia.getIdentityService(providerId);
-        } catch (NoSuchProviderException e) {
-            return null;
-        }
-    }
-
-    public IdentityService getIdentityService(String providerId) throws NoSuchProviderException {
-        IdentityService idp = findIdentityService(providerId);
-        if (idp == null) {
-            // provider is not active or not existing
-            // TODO add dedicated exception?
-            throw new NoSuchProviderException("provider not found");
-        }
-
-        return idp;
-    }
-
-    // fast load, skips db lookup, returns null if missing
-    public IdentityService fetchIdentityService(String authority, String providerId) {
-        // lookup in global map first
-        if (systemIdss.containsKey(providerId)) {
-            return systemIdss.get(providerId);
-        }
-
-        // lookup in authority
-        IdentityAuthority ia = authorityManager.getIdentityAuthority(authority);
-        if (ia == null) {
-            return null;
-        }
-        return ia.getIdentityService(providerId);
-    }
-
-    public Collection<IdentityService> getIdentityServices(String realm) throws NoSuchRealmException {
-        if (SystemKeys.REALM_SYSTEM.equals(realm)) {
-            return listSystemIdentityServices();
-        }
-
-        Collection<ConfigurableProvider> providers = listProviders(realm, SystemKeys.RESOURCE_IDENTITY);
-
-        // fetch each active provider from authority
-        List<IdentityService> idps = new ArrayList<>();
-        for (ConfigurableProvider provider : providers) {
-            // lookup in authority
-            IdentityAuthority ia = authorityManager.getIdentityAuthority(provider.getAuthority());
-            IdentityService idp = ia.getIdentityService(provider.getProvider());
-            if (idp != null) {
-                idps.add(idp);
-            }
-        }
-
-        return idps;
-    }
-
-    // fast load, skips db lookup
-    public Collection<IdentityService> fetchIdentityServices(String realm) {
-        if (SystemKeys.REALM_SYSTEM.equals(realm)) {
-            return listSystemIdentityServices();
-        }
-
-        List<IdentityService> providers = new ArrayList<>();
-        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            providers.addAll(ia.getIdentityServices(realm));
-        }
-
-        return providers;
-
-    }
-
-    // fast load, skips db lookup
-    public Collection<IdentityService> fetchIdentityServices(String authority, String realm) {
-        if (SystemKeys.REALM_SYSTEM.equals(realm)) {
-            return listSystemIdentityServices().stream()
-                    .filter(i -> i.getAuthority().equals(authority))
-                    .collect(Collectors.toList());
-        }
-
-        IdentityAuthority ia = authorityManager.getIdentityAuthority(authority);
-        if (ia != null) {
-            return ia.getIdentityServices(realm);
-        }
-
-        return null;
-    }
-
-    /*
-     * Configuration templates
+     * Configuration templates TODO drop templates and rework as custom authorities
+     * extending a base
      */
 
     public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
-        if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
+        if (TYPE_IDENTITY.equals(type)) {
             // we support only idp templates
             List<ConfigurableProvider> templates = new ArrayList<>();
             for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
@@ -1009,45 +402,18 @@ public class ProviderManager {
      */
 
     public JsonSchema getConfigurationSchema(String type, String authority) {
-        try {
-            if (SystemKeys.RESOURCE_IDENTITY.equals(type)) {
-                if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-                    return InternalIdentityProviderConfigMap.getConfigurationSchema();
-                } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-                    return OIDCIdentityProviderConfigMap.getConfigurationSchema();
-                } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-                    return SamlIdentityProviderConfigMap.getConfigurationSchema();
-                } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-                    return SpidIdentityProviderConfigMap.getConfigurationSchema();
-                }
-            }
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-            return null;
+        if (TYPE_IDENTITY.equals(type)) {
+            return identityProviderService.getConfigurationSchema(authority);
         }
 
         throw new IllegalArgumentException("invalid provider type");
     }
 
+    public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;
+    public static final String TYPE_ATTRIBUTES = SystemKeys.RESOURCE_ATTRIBUTES;
+
     /*
      * Helpers
      */
-
-    private ConfigurableProvider fromEntity(ProviderEntity pe) {
-        ConfigurableProvider cp = new ConfigurableProvider(pe.getAuthority(), pe.getProviderId(), pe.getRealm());
-        cp.setType(pe.getType());
-        cp.setConfiguration(pe.getConfigurationMap());
-        cp.setEnabled(pe.isEnabled());
-        cp.setPersistence(pe.getPersistence());
-        cp.setEvents(pe.getEvents());
-        cp.setHookFunctions(pe.getHookFunctions() != null ? pe.getHookFunctions() : Collections.emptyMap());
-
-        cp.setName(pe.getName());
-        cp.setDescription(pe.getDescription());
-        cp.setDisplayMode(pe.getDisplayMode());
-        
-        return cp;
-
-    }
 
 }

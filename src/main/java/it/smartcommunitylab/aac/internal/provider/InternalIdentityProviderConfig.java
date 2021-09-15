@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 
 public class InternalIdentityProviderConfig extends AbstractConfigurableProvider {
 
@@ -120,8 +120,9 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
     /*
      * builders
      */
-    public static ConfigurableProvider toConfigurableProvider(InternalIdentityProviderConfig ip) {
-        ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_INTERNAL, ip.getProvider(),
+    public static ConfigurableIdentityProvider toConfigurableProvider(InternalIdentityProviderConfig ip) {
+        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_INTERNAL,
+                ip.getProvider(),
                 ip.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
@@ -139,7 +140,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
         return cp;
     }
 
-    public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
+    public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         InternalIdentityProviderConfig ip = new InternalIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         ip.configMap = new InternalIdentityProviderConfigMap();
         ip.configMap.setConfiguration(cp.getConfiguration());
@@ -155,7 +156,7 @@ public class InternalIdentityProviderConfig extends AbstractConfigurableProvider
         return ip;
     }
 
-    public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp,
+    public static InternalIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp,
             InternalIdentityProviderConfigMap defaultConfigMap) {
         InternalIdentityProviderConfig ip = fromConfigurableProvider(cp);
 

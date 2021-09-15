@@ -119,19 +119,18 @@ public class OAuth2ClientService implements ClientService {
     }
 
     @Transactional(readOnly = true)
-    public OAuth2Client findClient(String realm, String name) {
-        ClientEntity client = clientService.findClient(realm, name);
-        if (client == null) {
-            return null;
+    public List<OAuth2Client> findClient(String realm, String name) {
+        List<OAuth2Client> result = new ArrayList<>();
+        Collection<ClientEntity> clients = clientService.findClientsByName(realm, name);
+
+        for (ClientEntity client : clients) {
+            OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(client.getClientId());
+            if (oauth != null) {
+                result.add(OAuth2Client.from(client, oauth));
+            }
         }
 
-        OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(client.getClientId());
-        if (oauth == null) {
-            return null;
-        }
-
-        return OAuth2Client.from(client, oauth);
-
+        return result;
     }
 
 //    @Override
@@ -153,7 +152,7 @@ public class OAuth2ClientService implements ClientService {
     @Transactional(readOnly = true)
     public List<OAuth2Client> listClients(String realm) {
         List<OAuth2Client> result = new ArrayList<>();
-        Collection<ClientEntity> clients = clientService.listClients(realm, OAuth2Client.CLIENT_TYPE);
+        Collection<ClientEntity> clients = clientService.findClientsByType(realm, OAuth2Client.CLIENT_TYPE);
 
         for (ClientEntity client : clients) {
             OAuth2ClientEntity oauth = oauthClientRepository.findByClientId(client.getClientId());

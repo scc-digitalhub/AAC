@@ -170,7 +170,7 @@ public class AACConfig {
 
     @Bean
     public ExtendedAuthenticationManager extendedAuthenticationManager() throws Exception {
-        return new ExtendedAuthenticationManager(providerManager, userService);
+        return new ExtendedAuthenticationManager(authorityManager, userService);
     }
 
     @Bean

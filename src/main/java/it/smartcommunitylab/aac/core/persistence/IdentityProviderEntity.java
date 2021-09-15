@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
 @Table(name = "providers")
-public class ProviderEntity {
+public class IdentityProviderEntity {
 
 //    @Id
 //    @GeneratedValue
@@ -34,9 +34,9 @@ public class ProviderEntity {
     @NotNull
     private String realm;
 
-    @NotNull
-    @Column(name = "provider_type")
-    private String type;
+//    @NotNull
+//    @Column(name = "provider_type")
+//    private String type;
 
     @NotNull
     @Column(name = "enabled")
@@ -71,11 +71,11 @@ public class ProviderEntity {
     @Column(name = "display_mode")
     private String displayMode;
 
-    public ProviderEntity() {
+    public IdentityProviderEntity() {
 
     }
 
-    public ProviderEntity(String providerId) {
+    public IdentityProviderEntity(String providerId) {
         this.providerId = providerId;
     }
 
@@ -111,13 +111,13 @@ public class ProviderEntity {
         this.realm = realm;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
+//    public String getType() {
+//        return type;
+//    }
+//
+//    public void setType(String type) {
+//        this.type = type;
+//    }
 
     public boolean isEnabled() {
         return enabled;

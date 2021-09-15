@@ -33,7 +33,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
@@ -215,7 +215,7 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public OIDCIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
+    public OIDCIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -258,15 +258,10 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public void unregisterIdentityProvider(String realm, String providerId) {
+    public void unregisterIdentityProvider(String providerId) {
         OIDCIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
-            // check realm match
-            if (!realm.equals(registration.getRealm())) {
-                throw new IllegalArgumentException("realm does not match");
-            }
-
             // can't unregister system providers, check
             if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
                 return;
@@ -302,13 +297,13 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
         return templates.values().stream().map(c -> OIDCIdentityProviderConfig.toConfigurableProvider(c))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
         if (templates.containsKey(templateId)) {
             return OIDCIdentityProviderConfig.toConfigurableProvider(templates.get(templateId));

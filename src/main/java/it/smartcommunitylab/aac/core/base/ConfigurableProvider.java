@@ -1,11 +1,8 @@
 package it.smartcommunitylab.aac.core.base;
 
 import java.io.Serializable;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -13,10 +10,8 @@ import javax.validation.constraints.Pattern;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
@@ -40,36 +35,24 @@ public class ConfigurableProvider implements ConfigurableProperties {
     @NotBlank
     private String type;
     private boolean enabled;
-    private boolean linkable;
-    private String persistence;
-    private String events;
+    private Boolean registered;
 
     private String name;
     private String description;
-    private String icon;
 
-    private Map<String, Serializable> configuration;
+    protected Map<String, Serializable> configuration;
 
-    private String displayMode;
-    private Map<String, String> actionUrls;
+    protected JsonSchema schema;
 
-    @JsonIgnore
-    private Map<String, String> hookFunctions = new HashMap<>();
-
-    private JsonSchema schema;
-    private Boolean registered;
-
-    public ConfigurableProvider(String authority, String provider, String realm) {
+    public ConfigurableProvider(String authority, String provider, String realm, String type) {
         this.authority = authority;
         this.realm = realm;
         this.provider = provider;
+        this.type = type;
         this.configuration = new HashMap<>();
-        this.persistence = SystemKeys.PERSISTENCE_LEVEL_NONE;
-        this.events = SystemKeys.EVENTS_LEVEL_DETAILS;
         this.name = provider;
-//        this.registered = false;
         this.enabled = true;
-        this.linkable = true;
+        this.registered = null;
     }
 
     /**
@@ -80,7 +63,7 @@ public class ConfigurableProvider implements ConfigurableProperties {
      */
     @SuppressWarnings("unused")
     private ConfigurableProvider() {
-        this((String) null, (String) null, (String) null);
+        this((String) null, (String) null, (String) null, (String) null);
     }
 
     public String getAuthority() {
@@ -123,30 +106,6 @@ public class ConfigurableProvider implements ConfigurableProperties {
         this.enabled = enabled;
     }
 
-    public boolean isLinkable() {
-        return linkable;
-    }
-
-    public void setLinkable(boolean linkable) {
-        this.linkable = linkable;
-    }
-
-    public String getPersistence() {
-        return persistence;
-    }
-
-    public void setPersistence(String persistence) {
-        this.persistence = persistence;
-    }
-
-    public String getEvents() {
-        return events;
-    }
-
-    public void setEvents(String events) {
-        this.events = events;
-    }
-
     public String getName() {
         return name;
     }
@@ -163,30 +122,6 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
-    public String getDisplayMode() {
-        return displayMode;
-    }
-
-    public void setDisplayMode(String displayMode) {
-        this.displayMode = displayMode;
-    }
-
-    public Map<String, String> getActionUrls() {
-        return actionUrls;
-    }
-
-    public void setActionUrls(Map<String, String> actionUrls) {
-        this.actionUrls = actionUrls;
     }
 
     @Override
@@ -210,14 +145,6 @@ public class ConfigurableProvider implements ConfigurableProperties {
         configuration.put(key, value);
     }
 
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
-    }
-
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
-    }
-
     public JsonSchema getSchema() {
         return schema;
     }
@@ -232,29 +159,6 @@ public class ConfigurableProvider implements ConfigurableProperties {
 
     public void setRegistered(Boolean registered) {
         this.registered = registered;
-    }
-
-    @JsonProperty("hookFunctions")
-    public Map<String, String> getHookFunctionsBase64() {
-        if (hookFunctions == null) {
-            return null;
-        }
-        return hookFunctions.entrySet().stream()
-                .filter(e -> StringUtils.hasText(e.getValue()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                    return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
-                }));
-    }
-
-    @JsonProperty("hookFunctions")
-    public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
-        if (hookFunctions != null) {
-            this.hookFunctions = hookFunctions.entrySet().stream()
-                    .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> {
-                        return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                    }));
-        }
     }
 
     public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;

@@ -49,6 +49,9 @@ public class InternalUserManager {
     @Value("${admin.password}")
     private String adminPassword;
 
+    @Value("${admin.email}")
+    private String adminEmail;
+
     @Value("${admin.roles}")
     private String[] adminRoles;
 
@@ -64,23 +67,24 @@ public class InternalUserManager {
             user = userService.findUser(account.getSubject());
             if (user == null) {
                 user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
-                        SystemKeys.REALM_SYSTEM, adminUsername);
+                        SystemKeys.REALM_SYSTEM, adminUsername, adminEmail);
             }
         } else {
             // register as new
             user = userService.addUser(userService.createUser(SystemKeys.REALM_SYSTEM).getUuid(),
-                    SystemKeys.REALM_SYSTEM, adminUsername);
+                    SystemKeys.REALM_SYSTEM, adminUsername, adminEmail);
             account = new InternalUserAccount();
             account.setSubject(user.getUuid());
             account.setRealm(SystemKeys.REALM_SYSTEM);
             account.setUsername(adminUsername);
+            account.setEmail(adminEmail);
             account = accountService.addAccount(account);
         }
 
         String subjectId = account.getSubject();
 
         // update username
-        user = userService.updateUser(subjectId, adminUsername);
+        user = userService.updateUser(subjectId, adminUsername, adminEmail);
 
         // re-set password
         String hash = PasswordHash.createHash(adminPassword);

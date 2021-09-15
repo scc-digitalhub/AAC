@@ -309,6 +309,11 @@ public class UserDetails implements org.springframework.security.core.userdetail
                 a -> Config.R_ADMIN.equals(a.getAuthority()) || isRealmRole(a.getAuthority(), Config.R_ADMIN));
     }
 
+    public boolean isSystemDeveloper() {
+        // any system user is a dev
+        return SystemKeys.REALM_SYSTEM.equals(getRealm());
+    }
+
     public boolean isSystemAdmin() {
         // TODO check if can do better at the level of user
         return getAuthorities() != null

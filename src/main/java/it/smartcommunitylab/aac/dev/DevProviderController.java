@@ -49,8 +49,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -59,7 +59,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping("/console/dev")
 public class DevProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<ConfigurableProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableProvider>>>() {
+    private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {
     };
 
     @Autowired
@@ -76,15 +76,15 @@ public class DevProviderController {
      * Providers
      */
 
-    @GetMapping("/realms/{realm}/providers")
+    @GetMapping("/realms/{realm}/idps")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviders(
+    public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
 
-        List<ConfigurableProvider> providers = providerManager
-                .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY)
+        List<ConfigurableIdentityProvider> providers = providerManager
+                .listIdentityProviders(realm)
                 .stream()
                 .map(cp -> {
                     cp.setRegistered(providerManager.isProviderRegistered(cp));
@@ -103,35 +103,35 @@ public class DevProviderController {
         List<ConfigurableProvider> providers = providerManager
                 .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY)
                 .stream()
-                .map(cp -> {
-                    cp.setRegistered(providerManager.isProviderRegistered(cp));
-                    return cp;
-                }).collect(Collectors.toList());
+//                .map(cp -> {
+//                    cp.setRegistered(providerManager.isProviderRegistered(cp));
+//                    return cp;
+//                })
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(providers);
     }
 
-    @GetMapping("/realms/{realm}/providers/{providerId:.*}")
+    @GetMapping("/realms/{realm}/idps/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ConfigurableProvider> getRealmProvider(
+    public ResponseEntity<ConfigurableIdentityProvider> getRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        ConfigurableProvider provider = providerManager.getProvider(realm, ConfigurableProvider.TYPE_IDENTITY,
-                providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
         provider.setRegistered(isRegistered);
 
-        // if registered fetch active configuration
-        if (isRegistered) {
-            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
-            Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
-            // we replace config instead of merging, when active config can not be
-            // modified anyway
-            provider.setConfiguration(configMap);
-        }
+//        // if registered fetch active configuration
+//        if (isRegistered) {
+//            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
+//            Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
+//            // we replace config instead of merging, when active config can not be
+//            // modified anyway
+//            provider.setConfiguration(configMap);
+//        }
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
@@ -140,25 +140,24 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @DeleteMapping("/realms/{realm}/providers/{providerId:.*}")
+    @DeleteMapping("/realms/{realm}/idps/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> deleteRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-        providerManager.deleteProvider(realm, providerId);
+        providerManager.deleteIdentityProvider(realm, providerId);
         return ResponseEntity.ok(null);
     }
 
-    @PostMapping("/realms/{realm}/providers")
+    @PostMapping("/realms/{realm}/idps")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ConfigurableProvider> createRealmProvider(
+    public ResponseEntity<ConfigurableIdentityProvider> createRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @Valid @RequestBody ConfigurableProvider registration)
+            @Valid @RequestBody ConfigurableIdentityProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
         // unpack and build model
         String authority = registration.getAuthority();
-        String type = registration.getType();
         String name = registration.getName();
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
@@ -167,17 +166,16 @@ public class DevProviderController {
 
         Map<String, Serializable> configuration = registration.getConfiguration();
 
-        ConfigurableProvider provider = new ConfigurableProvider(authority, null, realm);
+        ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, null, realm);
         provider.setName(name);
         provider.setDescription(description);
-        provider.setType(type);
         provider.setEnabled(false);
         provider.setPersistence(persistence);
         provider.setLinkable(linkable);
         provider.setEvents(events);
         provider.setConfiguration(configuration);
 
-        provider = providerManager.addProvider(realm, provider);
+        provider = providerManager.addIdentityProvider(realm, provider);
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
@@ -186,15 +184,15 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @PutMapping("/realms/{realm}/providers/{providerId:.*}")
+    @PutMapping("/realms/{realm}/idps/{providerId:.*}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ConfigurableProvider> updateRealmProvider(
+    public ResponseEntity<ConfigurableIdentityProvider> updateRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @Valid @RequestBody ConfigurableProvider registration)
+            @Valid @RequestBody ConfigurableIdentityProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
-        ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
         // we update only configuration
         String name = registration.getName();
@@ -218,7 +216,7 @@ public class DevProviderController {
         provider.setConfiguration(configuration);
         provider.setHookFunctions(hookFunctions);
 
-        provider = providerManager.updateProvider(realm, providerId, provider);
+        provider = providerManager.updateIdentityProvider(realm, providerId, provider);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
@@ -231,21 +229,21 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @PutMapping("/realms/{realm}/providers/{providerId}/state")
+    @PutMapping("/realms/{realm}/idps/{providerId}/state")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<ConfigurableProvider> updateRealmProviderState(
+    public ResponseEntity<ConfigurableIdentityProvider> updateRealmProviderState(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody ConfigurableProvider registration)
+            @RequestBody ConfigurableIdentityProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
-        ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
         boolean enabled = registration.isEnabled();
 
         if (enabled) {
-            provider = providerManager.registerProvider(realm, providerId);
+            provider = providerManager.registerIdentityProvider(realm, providerId);
         } else {
-            provider = providerManager.unregisterProvider(realm, providerId);
+            provider = providerManager.unregisterIdentityProvider(realm, providerId);
         }
 
         // check if registered
@@ -255,15 +253,14 @@ public class DevProviderController {
         return ResponseEntity.ok(provider);
     }
 
-    @GetMapping("/realms/{realm}/providers/{providerId:.*}/export")
+    @GetMapping("/realms/{realm}/idps/{providerId:.*}/export")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void exportRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             HttpServletResponse res)
             throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
-        ConfigurableProvider provider = providerManager.getProvider(realm, ConfigurableProvider.TYPE_IDENTITY,
-                providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
 //      String s = yaml.dump(clientApp);
         String s = yamlObjectMapper.writeValueAsString(provider);
@@ -278,10 +275,10 @@ public class DevProviderController {
 
     }
 
-    @PutMapping("/realms/{realm}/providers")
+    @PutMapping("/realms/{realm}/idps")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Collection<ConfigurableProvider>> importRealmProvider(
+    public ResponseEntity<Collection<ConfigurableIdentityProvider>> importRealmProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
         if (file == null || file.isEmpty()) {
@@ -295,7 +292,7 @@ public class DevProviderController {
             throw new IllegalArgumentException("invalid file");
         }
         try {
-            List<ConfigurableProvider> providers = new ArrayList<>();
+            List<ConfigurableIdentityProvider> providers = new ArrayList<>();
             boolean multiple = false;
 
             // read as raw yaml to check if collection
@@ -304,14 +301,13 @@ public class DevProviderController {
             multiple = obj.containsKey("providers");
 
             if (multiple) {
-                Map<String, List<ConfigurableProvider>> list = yamlObjectMapper.readValue(file.getInputStream(),
+                Map<String, List<ConfigurableIdentityProvider>> list = yamlObjectMapper.readValue(file.getInputStream(),
                         typeRef);
 
-                for (ConfigurableProvider registration : list.get("providers")) {
+                for (ConfigurableIdentityProvider registration : list.get("providers")) {
                     // unpack and build model
                     String id = registration.getProvider();
                     String authority = registration.getAuthority();
-                    String type = registration.getType();
                     String name = registration.getName();
                     String description = registration.getDescription();
                     String displayMode = registration.getDisplayMode();
@@ -320,18 +316,17 @@ public class DevProviderController {
                     Map<String, Serializable> configuration = registration.getConfiguration();
                     Map<String, String> hookFunctions = registration.getHookFunctions();
 
-                    ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
+                    ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
                     provider.setName(name);
                     provider.setDescription(description);
                     provider.setDisplayMode(displayMode);
-                    provider.setType(type);
                     provider.setEnabled(false);
                     provider.setPersistence(persistence);
                     provider.setEvents(events);
                     provider.setConfiguration(configuration);
                     provider.setHookFunctions(hookFunctions);
 
-                    provider = providerManager.addProvider(realm, provider);
+                    provider = providerManager.addIdentityProvider(realm, provider);
 
                     // fetch also configuration schema
                     JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(),
@@ -341,8 +336,8 @@ public class DevProviderController {
                 }
             } else {
                 // try single element
-                ConfigurableProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
-                        ConfigurableProvider.class);
+                ConfigurableIdentityProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
+                        ConfigurableIdentityProvider.class);
 
                 // unpack and build model
                 String id = registration.getProvider();
@@ -356,7 +351,7 @@ public class DevProviderController {
                 Map<String, Serializable> configuration = registration.getConfiguration();
                 Map<String, String> hookFunctions = registration.getHookFunctions();
 
-                ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
+                ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
                 provider.setName(name);
                 provider.setDescription(description);
                 provider.setDisplayMode(displayMode);
@@ -367,7 +362,7 @@ public class DevProviderController {
                 provider.setConfiguration(configuration);
                 provider.setHookFunctions(hookFunctions);
 
-                provider = providerManager.addProvider(realm, provider);
+                provider = providerManager.addIdentityProvider(realm, provider);
 
                 // fetch also configuration schema
                 JsonSchema schema = providerManager.getConfigurationSchema(provider.getType(), provider.getAuthority());
@@ -383,7 +378,7 @@ public class DevProviderController {
 
     }
 
-    @PutMapping("/realms/{realm}/providers/{providerId}/apps/{clientId}")
+    @PutMapping("/realms/{realm}/idps/{providerId}/apps/{clientId}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<ClientApp> updateRealmProviderClientApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

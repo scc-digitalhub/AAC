@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.audit.OAuth2EventListener;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
-import it.smartcommunitylab.aac.core.service.ProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.jwt.JWTService;
@@ -382,7 +382,7 @@ public class OAuth2Config {
     @Bean
     public ClientRegistrationServices clientRegistrationServices(
             OAuth2ClientService clientService,
-            ProviderService providerService) {
+            IdentityProviderService providerService) {
         OAuth2ClientRegistrationServices dcrServices = new OAuth2ClientRegistrationServices(clientService);
         dcrServices.setProviderService(providerService);
 

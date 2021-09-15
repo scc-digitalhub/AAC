@@ -108,9 +108,10 @@ public class DevController {
     @GetMapping("/dev")
     public ModelAndView developer() {
         UserDetails user = userManager.curUserDetails();
-        if (user == null || !user.isRealmDeveloper()) {
+        if (user == null || (!user.isRealmDeveloper() && !user.isSystemDeveloper())) {
             throw new SecurityException();
         }
+
         return new ModelAndView("index");
     }
 
@@ -163,8 +164,7 @@ public class DevController {
         Long userCount = userManager.countUsers(realm);
         bean.setUsers(userCount);
 
-        Collection<ConfigurableProvider> providers = providerManager
-                .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY);
+        Collection<ConfigurableProvider> providers = providerManager.listProviders(realm);
         bean.setProviders(providers.size());
 
         int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(p)).count();
@@ -304,8 +304,6 @@ public class DevController {
         SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
         return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));
     }
-
-
 
 //    /*
 //     * REST style exception handling

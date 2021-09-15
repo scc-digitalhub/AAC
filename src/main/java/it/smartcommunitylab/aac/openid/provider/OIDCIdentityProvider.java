@@ -66,7 +66,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
     // internal providers
     private final OIDCAccountProvider accountProvider;
-//    private final OIDCAttributeProvider attributeProvider;
     private final OIDCAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
 
@@ -98,7 +97,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, config, realm);
-//        this.attributeProvider = new OIDCAttributeProvider(providerId, accountRepository, attributeStore, realm);
         this.authenticationProvider = new OIDCAuthenticationProvider(providerId, accountRepository, config, realm);
         this.subjectResolver = new OIDCSubjectResolver(providerId, accountRepository, config, realm);
 
@@ -129,11 +127,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     public AccountProvider getAccountProvider() {
         return accountProvider;
     }
-
-//    @Override
-//    public AttributeProvider getAttributeProvider() {
-//        return attributeProvider;
-//    }
 
     @Override
     public SubjectResolver getSubjectResolver() {

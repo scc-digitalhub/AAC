@@ -220,10 +220,10 @@ public class RealmManager {
                     if (provider.getRealm().equals(slug)) {
 
                         // stop provider, will terminate sessions
-                        providerManager.unregisterProvider(slug, providerId);
+                        providerManager.unregisterProvider(slug, provider.getType(), providerId);
 
                         // remove provider
-                        providerManager.deleteProvider(slug, providerId);
+                        providerManager.deleteProvider(slug, provider.getType(), providerId);
                     }
                 } catch (NoSuchProviderException e) {
                     // skip

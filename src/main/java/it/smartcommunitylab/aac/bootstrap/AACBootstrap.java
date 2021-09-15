@@ -27,8 +27,10 @@ import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
@@ -85,6 +87,9 @@ public class AACBootstrap {
     @Autowired
     private InternalUserAccountService internalUserService;
 
+    @Autowired
+    private IdentityProviderService identityProviderService;
+
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
@@ -94,7 +99,8 @@ public class AACBootstrap {
 
             // bootstrap providers
             // TODO use a dedicated thread, or a multithread
-            bootstrapProviders();
+            bootstrapSystemProviders();
+            bootstrapIdentityProviders();
 
             // custom bootstrap
             if (apply) {
@@ -110,7 +116,41 @@ public class AACBootstrap {
         }
     }
 
-    private void bootstrapProviders() {
+    private void bootstrapSystemProviders() throws NoSuchRealmException {
+        Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+
+        Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
+
+        for (ConfigurableIdentityProvider idp : idps) {
+            // try register
+            if (idp.isEnabled()) {
+                try {
+                    // register via authorityManager
+//                        authorityManager.registerIdentityProvider(idp);
+
+                    // register directly with authority
+                    IdentityAuthority ia = ias.get(idp.getAuthority());
+                    if (ia == null) {
+                        throw new IllegalArgumentException(
+                                "no authority for " + String.valueOf(idp.getAuthority()));
+                    }
+
+                    ia.registerIdentityProvider(idp);
+                } catch (Exception e) {
+                    logger.error("error registering provider " + idp.getProvider() + " for realm "
+                            + idp.getRealm() + ": " + e.getMessage());
+
+                    if (logger.isTraceEnabled()) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+    }
+
+    private void bootstrapIdentityProviders() {
         Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
                 .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
@@ -120,37 +160,34 @@ public class AACBootstrap {
         // we iterate by realm to load consistently each realm
         // we use parallel to leverage default threadpool, loading should be thread-safe
         realms.parallelStream().forEach(realm -> {
-            try {
-                Collection<ConfigurableProvider> idps = providerManager.listProviders(realm.getSlug(),
-                        SystemKeys.RESOURCE_IDENTITY);
+            Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(realm.getSlug());
 
-                for (ConfigurableProvider idp : idps) {
-                    // try register
-                    if (idp.isEnabled()) {
-                        try {
-                            IdentityAuthority ia = ias.get(idp.getAuthority());
-                            if (ia == null) {
-                                throw new IllegalArgumentException(
-                                        "no authority for " + String.valueOf(idp.getAuthority()));
-                            }
+            for (ConfigurableIdentityProvider idp : idps) {
+                // try register
+                if (idp.isEnabled()) {
+                    try {
+                        // register via authorityManager
+//                        authorityManager.registerIdentityProvider(idp);
 
-                            ia.registerIdentityProvider(idp);
-                        } catch (Exception e) {
-                            logger.error("error registering provider " + idp.getProvider() + " for realm "
-                                    + idp.getRealm() + ": " + e.getMessage());
+                        // register directly with authority
+                        IdentityAuthority ia = ias.get(idp.getAuthority());
+                        if (ia == null) {
+                            throw new IllegalArgumentException(
+                                    "no authority for " + String.valueOf(idp.getAuthority()));
+                        }
 
-                            if (logger.isTraceEnabled()) {
-                                e.printStackTrace();
-                            }
+                        ia.registerIdentityProvider(idp);
+                    } catch (Exception e) {
+                        logger.error("error registering provider " + idp.getProvider() + " for realm "
+                                + idp.getRealm() + ": " + e.getMessage());
+
+                        if (logger.isTraceEnabled()) {
+                            e.printStackTrace();
                         }
                     }
                 }
-
-            } catch (NoSuchRealmException e1) {
-                logger.error("error, missing realm " + String.valueOf(realm.getSlug()));
             }
         });
-
     }
 
     // @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -224,19 +261,21 @@ public class AACBootstrap {
                 // we support only idp for now
                 if (SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
                     logger.debug("create or update provider " + cp.getProvider());
-                    ConfigurableProvider provider = providerManager.findProvider(cp.getRealm(), cp.getProvider());
+                    ConfigurableIdentityProvider provider = providerManager.findIdentityProvider(cp.getRealm(),
+                            cp.getProvider());
 
-                    if (provider == null) {
-                        provider = providerManager.addProvider(cp.getRealm(), cp);
-                    } else {
-                        provider = providerManager.unregisterProvider(cp.getRealm(), cp.getProvider());
-                        provider = providerManager.updateProvider(cp.getRealm(), cp.getProvider(), cp);
-                    }
+//                    if (provider == null) {
+//                        provider = providerManager.addIdentityProvider(cp.getRealm(), cp);
+//                    } else {
+//                        provider = providerManager.unregisterIdentityProvider(cp.getRealm(), cp.getProvider());
+//                        provider = providerManager.updateIdentityProvider(cp.getRealm(), cp.getProvider(), cp);
+//                    }
 
                     if (cp.isEnabled()) {
                         // register
                         if (!providerManager.isProviderRegistered(provider)) {
-                            provider = providerManager.registerProvider(provider.getRealm(), provider.getProvider());
+                            provider = providerManager.registerIdentityProvider(provider.getRealm(),
+                                    provider.getProvider());
                         }
                     }
 
@@ -351,7 +390,7 @@ public class AACBootstrap {
                 // check if user exists, recreate if needed
                 UserEntity user = userService.findUser(ua.getSubject());
                 if (user == null) {
-                    user = userService.addUser(ua.getSubject(), ua.getRealm(), ua.getUsername());
+                    user = userService.addUser(ua.getSubject(), ua.getRealm(), ua.getUsername(), ua.getEmail());
                 } else {
                     // check match
                     if (!user.getRealm().equals(ua.getRealm())) {
@@ -359,7 +398,7 @@ public class AACBootstrap {
                         throw new IllegalArgumentException("realm mismatch");
                     }
 
-                    user = userService.updateUser(ua.getSubject(), ua.getUsername());
+                    user = userService.updateUser(ua.getSubject(), ua.getUsername(), ua.getEmail());
                 }
 
                 InternalUserAccount account = internalUserService.findAccountByUsername(ua.getRealm(),

@@ -36,8 +36,8 @@ import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
 @RestController
 @RequestMapping("api")
@@ -68,11 +68,11 @@ public class ProviderController {
     @GetMapping("/idp/{realm}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public Collection<ConfigurableProvider> listIdps(
+    public Collection<ConfigurableIdentityProvider> listIdps(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         logger.debug("list idp for realm " + String.valueOf(realm));
 
-        return providerManager.listProviders(realm, ConfigurableProvider.TYPE_IDENTITY)
+        return providerManager.listIdentityProviders(realm)
                 .stream()
                 .map(cp -> {
                     cp.setRegistered(providerManager.isProviderRegistered(cp));
@@ -83,28 +83,27 @@ public class ProviderController {
     @GetMapping("/idp/{realm}/{providerId}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public ConfigurableProvider getIdp(
+    public ConfigurableIdentityProvider getIdp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
 
         logger.debug("get idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
-        ConfigurableProvider provider = providerManager.getProvider(realm, ConfigurableProvider.TYPE_IDENTITY,
-                providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
         provider.setRegistered(isRegistered);
 
-        // if registered fetch active configuration
-        if (isRegistered) {
-            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
-            Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
-            // we replace config instead of merging, when active config can not be
-            // modified anyway
-            provider.setConfiguration(configMap);
-        }
+//        // if registered fetch active configuration
+//        if (isRegistered) {
+//            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
+//            Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
+//            // we replace config instead of merging, when active config can not be
+//            // modified anyway
+//            provider.setConfiguration(configMap);
+//        }
 
         return provider;
     }
@@ -112,16 +111,15 @@ public class ProviderController {
     @PostMapping("/idp/{realm}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public ConfigurableProvider addIdp(
+    public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @Valid @RequestBody ConfigurableProvider registration) throws NoSuchRealmException {
+            @Valid @RequestBody ConfigurableIdentityProvider registration) throws NoSuchRealmException {
 
         logger.debug("add idp to realm " + String.valueOf(realm));
 
         // unpack and build model
         String id = registration.getProvider();
         String authority = registration.getAuthority();
-        String type = registration.getType();
         String name = registration.getName();
         String description = registration.getDescription();
         String persistence = registration.getPersistence();
@@ -131,10 +129,9 @@ public class ProviderController {
         Map<String, Serializable> configuration = registration.getConfiguration();
         Map<String, String> hookFunctions = registration.getHookFunctions();
 
-        ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
+        ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
         provider.setName(name);
         provider.setDescription(description);
-        provider.setType(type);
         provider.setEnabled(false);
         provider.setPersistence(persistence);
         provider.setLinkable(linkable);
@@ -147,7 +144,7 @@ public class ProviderController {
             logger.trace("idp bean: " + String.valueOf(provider));
         }
 
-        provider = providerManager.addProvider(realm, provider);
+        provider = providerManager.addIdentityProvider(realm, provider);
 
         return provider;
     }
@@ -155,20 +152,20 @@ public class ProviderController {
     @PutMapping("/idp/{realm}/{providerId}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public ConfigurableProvider updateIdp(
+    public ConfigurableIdentityProvider updateIdp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @Valid @RequestBody ConfigurableProvider registration,
+            @Valid @RequestBody ConfigurableIdentityProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
             throws NoSuchRealmException, NoSuchProviderException {
         logger.debug("update idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
-        ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
         if (forceRegistration && providerManager.isProviderRegistered(provider)) {
-            provider = providerManager.unregisterProvider(realm, providerId);
+            provider = providerManager.unregisterIdentityProvider(realm, providerId);
         }
 
         // we update only configuration
@@ -195,12 +192,12 @@ public class ProviderController {
             logger.trace("idp bean: " + String.valueOf(provider));
         }
 
-        provider = providerManager.updateProvider(realm, providerId, provider);
+        provider = providerManager.updateIdentityProvider(realm, providerId, provider);
 
         // if force and enabled try to register
         if (forceRegistration && provider.isEnabled()) {
             try {
-                provider = providerManager.registerProvider(realm, providerId);
+                provider = providerManager.registerIdentityProvider(realm, providerId);
             } catch (Exception e) {
                 // ignore
             }
@@ -221,14 +218,14 @@ public class ProviderController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
         logger.debug("delete idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
-        providerManager.deleteProvider(realm, providerId);
+        providerManager.deleteIdentityProvider(realm, providerId);
 
     }
 
     @PutMapping("/idp/{realm}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public ConfigurableProvider importProvider(
+    public ConfigurableIdentityProvider importProvider(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
         logger.debug("import idp to realm " + String.valueOf(realm));
@@ -243,13 +240,12 @@ public class ProviderController {
             throw new IllegalArgumentException("invalid file");
         }
         try {
-            ConfigurableProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
-                    ConfigurableProvider.class);
+            ConfigurableIdentityProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
+                    ConfigurableIdentityProvider.class);
 
             // unpack and build model
             String id = registration.getProvider();
             String authority = registration.getAuthority();
-            String type = registration.getType();
             String name = registration.getName();
             String description = registration.getDescription();
             String persistence = registration.getPersistence();
@@ -259,10 +255,9 @@ public class ProviderController {
             Map<String, Serializable> configuration = registration.getConfiguration();
             Map<String, String> hookFunctions = registration.getHookFunctions();
 
-            ConfigurableProvider provider = new ConfigurableProvider(authority, id, realm);
+            ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
             provider.setName(name);
             provider.setDescription(description);
-            provider.setType(type);
             provider.setEnabled(false);
             provider.setPersistence(persistence);
             provider.setLinkable(linkable);
@@ -274,7 +269,7 @@ public class ProviderController {
                 logger.trace("idp bean: " + String.valueOf(provider));
             }
 
-            provider = providerManager.addProvider(realm, provider);
+            provider = providerManager.addIdentityProvider(realm, provider);
 
             return provider;
 
@@ -292,14 +287,14 @@ public class ProviderController {
     @PutMapping("/idp/{realm}/{providerId}/status")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public ConfigurableProvider registerIdp(
+    public ConfigurableIdentityProvider registerIdp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
         logger.debug("register idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
-        ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
-        provider = providerManager.registerProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+        provider = providerManager.registerIdentityProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
@@ -311,14 +306,14 @@ public class ProviderController {
 
     @DeleteMapping("/idp/{realm}/{providerId}/status")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ConfigurableProvider unregisterIdp(
+    public ConfigurableIdentityProvider unregisterIdp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
         logger.debug("unregister idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
-        ConfigurableProvider provider = providerManager.getProvider(realm, providerId);
-        provider = providerManager.unregisterProvider(realm, providerId);
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+        provider = providerManager.unregisterIdentityProvider(realm, providerId);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(provider);
@@ -331,15 +326,13 @@ public class ProviderController {
     /*
      * Configuration schema
      */
-    @GetMapping("/idp_schema/{type}/{authority}")
+    @GetMapping("/idp_schema/{authority}")
     public JsonSchema getConfigurationSchema(
-            @PathVariable(required = true) @Valid @NotBlank String type,
             @PathVariable(required = true) @Valid @NotBlank String authority)
             throws IllegalArgumentException {
-        logger.debug("get idp config schema for type " + String.valueOf(type) + " for authority "
-                + String.valueOf(authority));
+        logger.debug("get idp config schema  for authority " + String.valueOf(authority));
 
-        return providerManager.getConfigurationSchema(type, authority);
+        return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_IDENTITY, authority);
     }
 
 }

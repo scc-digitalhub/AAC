@@ -12,4 +12,6 @@ public interface UserAccount extends UserResource, Serializable {
     // we should make no assumptions on the content
     public String getUsername();
 
+    public String getEmailAddress();
+
 }

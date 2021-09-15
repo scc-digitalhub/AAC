@@ -43,9 +43,11 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
@@ -88,6 +90,9 @@ public class UserAccountController {
 
 //    @Autowired
 //    private InternalUserAccountService userAccountService;
+
+    @Autowired
+    private AuthorityManager authorityManager;
 
     @Autowired
     private ProviderManager providerManager;
@@ -207,15 +212,14 @@ public class UserAccountController {
     }
 
     @GetMapping("/account/providers")
-    public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviders()
+    public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders()
             throws NoSuchRealmException {
         UserDetails user = authHelper.getUserDetails();
         String realm = user.getRealm();
-        List<ConfigurableProvider> providers = providerManager
-                .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY)
+        List<ConfigurableIdentityProvider> providers = providerManager
+                .listIdentityProviders(realm)
                 .stream()
                 .map(cp -> {
-                    cp.setRegistered(providerManager.isProviderRegistered(cp));
                     // clear config and reserved info
                     cp.setDisplayMode(null);
                     cp.setEvents(null);
@@ -250,7 +254,7 @@ public class UserAccountController {
 
         // fetch provider
         providerId = identity.getProvider();
-        IdentityService idp = providerManager.getIdentityService(providerId);
+        IdentityService idp = authorityManager.getIdentityService(providerId);
 
         // fetch credentials service if available
         CredentialsService service = idp.getCredentialsService();

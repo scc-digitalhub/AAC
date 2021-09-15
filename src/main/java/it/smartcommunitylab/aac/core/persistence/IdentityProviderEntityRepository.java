@@ -7,20 +7,14 @@ import org.springframework.stereotype.Repository;
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 
 @Repository
-public interface ProviderEntityRepository extends CustomJpaRepository<ProviderEntity, Long> {
+public interface IdentityProviderEntityRepository extends CustomJpaRepository<IdentityProviderEntity, Long> {
 
-    ProviderEntity findByProviderId(String providerId);
+    IdentityProviderEntity findByProviderId(String providerId);
 
-    List<ProviderEntity> findByAuthority(String authority);
+    List<IdentityProviderEntity> findByAuthority(String authority);
 
-    List<ProviderEntity> findByRealm(String realm);
+    List<IdentityProviderEntity> findByRealm(String realm);
 
-    List<ProviderEntity> findByAuthorityAndType(String authority, String type);
-
-    List<ProviderEntity> findByRealmAndType(String realm, String type);
-
-    List<ProviderEntity> findByAuthorityAndRealm(String authority, String realm);
-
-    List<ProviderEntity> findByAuthorityAndRealmAndType(String authority, String realm, String type);
+    List<IdentityProviderEntity> findByAuthorityAndRealm(String authority, String realm);
 
 }

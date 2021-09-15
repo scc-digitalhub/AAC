@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.SpidProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
@@ -167,7 +167,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public SpidIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
+    public SpidIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -213,15 +213,10 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public void unregisterIdentityProvider(String realm, String providerId) {
+    public void unregisterIdentityProvider(String providerId) {
         SpidIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
-            // check realm match
-            if (!realm.equals(registration.getRealm())) {
-                throw new IllegalArgumentException("realm does not match");
-            }
-
             // can't unregister system providers, check
             if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
                 return;
@@ -256,12 +251,13 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
         return Collections.emptyList();
     }
 
     @Override
-    public ConfigurableProvider getConfigurableProviderTemplate(String templateId) throws NoSuchProviderException {
+    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
+            throws NoSuchProviderException {
         throw new NoSuchProviderException();
     }
 

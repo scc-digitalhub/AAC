@@ -23,6 +23,7 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
     @JsonIgnore
     private String internalUserId;
     private String username;
+    private String emailAddress;
     private Map<String, String> attributes = new HashMap<>();
     // jsonSchema describing attributes to serve UI
     private JsonSchema schema;
@@ -40,12 +41,22 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
         this.internalUserId = internalUserId;
     }
 
+    @Override
     public String getUsername() {
         return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    @Override
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
     }
 
     @Override

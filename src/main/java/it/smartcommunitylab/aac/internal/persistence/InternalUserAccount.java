@@ -104,6 +104,11 @@ public class InternalUserAccount implements UserAccount {
     }
 
     @Override
+    public String getEmailAddress() {
+        return email;
+    }
+
+    @Override
     public String getUserId() {
         if (userId == null) {
             // use our id at authority level is the internal id

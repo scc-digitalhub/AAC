@@ -25,13 +25,13 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
-import it.smartcommunitylab.aac.core.service.ProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
@@ -72,7 +72,7 @@ public class ClientManager {
     private SearchableApprovalStore approvalStore;
 
     @Autowired
-    private ProviderService providerService;
+    private IdentityProviderService providerService;
 
     /*
      * ClientApp via appService
@@ -204,10 +204,9 @@ public class ClientManager {
         // providers
         if (app.getProviders() == null || app.getProviders().length == 0) {
             // enable all registered providers by default
-            List<ProviderEntity> providers = providerService.listProvidersByRealmAndType(realm,
-                    SystemKeys.RESOURCE_IDENTITY);
+            Collection<ConfigurableIdentityProvider> providers = providerService.listProviders(realm);
             Set<String> providerIds = providers.stream()
-                    .map(p -> p.getProviderId())
+                    .map(p -> p.getProvider())
                     .collect(Collectors.toSet());
             app.setProviders(providerIds.toArray(new String[0]));
         }

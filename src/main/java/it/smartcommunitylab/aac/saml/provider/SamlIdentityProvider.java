@@ -64,7 +64,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
     // internal providers
     private final SamlAccountProvider accountProvider;
-//    private final SamlAttributeProvider attributeProvider;
     private final SamlAuthenticationProvider authenticationProvider;
     private final SamlSubjectResolver subjectResolver;
 
@@ -101,7 +100,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SamlAccountProvider(providerId, accountRepository, config, realm);
-//        this.attributeProvider = new SamlAttributeProvider(providerId, accountRepository, attributeStore, realm);
         this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, config, realm);
         this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, config, realm);
 
@@ -127,11 +125,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     public AccountProvider getAccountProvider() {
         return accountProvider;
     }
-
-//    @Override
-//    public AttributeProvider getAttributeProvider() {
-//        return attributeProvider;
-//    }
 
     @Override
     public SubjectResolver getSubjectResolver() {

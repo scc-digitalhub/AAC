@@ -13,7 +13,7 @@ public interface ClientEntityRepository extends CustomJpaRepository<ClientEntity
 
     ClientEntity findByClientId(String clientId);
 
-    ClientEntity findByRealmAndName(String realm, String name);
+    List<ClientEntity> findByRealmAndName(String realm, String name);
 
     List<ClientEntity> findByRealm(String realm);
 
@@ -23,7 +23,8 @@ public interface ClientEntityRepository extends CustomJpaRepository<ClientEntity
 
     Page<ClientEntity> findByRealmAndNameContainingIgnoreCase(String realm, String name, Pageable page);
 
-    Page<ClientEntity> findByRealmAndNameContainingIgnoreCaseOrRealmAndClientIdContainingIgnoreCase(String realmn, String name,
+    Page<ClientEntity> findByRealmAndNameContainingIgnoreCaseOrRealmAndClientIdContainingIgnoreCase(String realmn,
+            String name,
             String realmc, String clientId, Pageable page);
 
     long countByRealm(String realm);

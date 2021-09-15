@@ -28,11 +28,8 @@ import org.opensaml.security.credential.BasicCredential;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.CredentialSupport;
 import org.opensaml.security.credential.UsageType;
-import org.springframework.security.saml2.core.Saml2Error;
-import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.core.Saml2X509Credential.Saml2X509CredentialType;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
@@ -41,9 +38,8 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
-import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 
 public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
@@ -523,8 +519,8 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
     /*
      * builders
      */
-    public static ConfigurableProvider toConfigurableProvider(SpidIdentityProviderConfig sp) {
-        ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_SPID, sp.getProvider(), sp.getRealm());
+    public static ConfigurableIdentityProvider toConfigurableProvider(SpidIdentityProviderConfig sp) {
+        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_SPID, sp.getProvider(), sp.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setPersistence(sp.getPersistence());
 
@@ -538,7 +534,7 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
         return cp;
     }
 
-    public static SpidIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
+    public static SpidIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         SpidIdentityProviderConfig sp = new SpidIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         sp.setConfiguration(cp.getConfiguration());
 

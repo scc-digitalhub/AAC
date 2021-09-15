@@ -317,15 +317,11 @@ public class UserService {
 
     public List<User> listUsers(String realm) {
         // owned by realm
-        List<UserEntity> users = userService.getUsers(realm);
+        List<UserEntity> users = userService.listUsers(realm);
         return convertUsers(realm, users);
 
     }
 
-    /**
-     * @param realm
-     * @return
-     */
     public Long countUsers(String realm) {
         // TODO Auto-generated method stub
         return userService.countUsers(realm);

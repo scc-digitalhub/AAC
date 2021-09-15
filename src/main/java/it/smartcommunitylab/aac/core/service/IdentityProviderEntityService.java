@@ -9,48 +9,48 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
+import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepository;
 
 @Service
 @Transactional
-public class ProviderService {
+public class IdentityProviderEntityService {
 
-    private final ProviderEntityRepository providerRepository;
+    private final IdentityProviderEntityRepository providerRepository;
 
-    public ProviderService(ProviderEntityRepository providerRepository) {
+    public IdentityProviderEntityService(IdentityProviderEntityRepository providerRepository) {
         Assert.notNull(providerRepository, "provider repository is mandatory");
         this.providerRepository = providerRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<ProviderEntity> listProviders() {
+    public List<IdentityProviderEntity> listIdentityProviders() {
         return providerRepository.findAll();
     }
 
     @Transactional(readOnly = true)
-    public List<ProviderEntity> listProvidersByAuthority(String authority) {
+    public List<IdentityProviderEntity> listIdentityProvidersByAuthority(String authority) {
         return providerRepository.findByAuthority(authority);
     }
 
     @Transactional(readOnly = true)
-    public List<ProviderEntity> listProvidersByRealm(String realm) {
+    public List<IdentityProviderEntity> listIdentityProvidersByRealm(String realm) {
         return providerRepository.findByRealm(realm);
     }
 
     @Transactional(readOnly = true)
-    public List<ProviderEntity> listProvidersByRealmAndType(String realm, String type) {
-        return providerRepository.findByRealmAndType(realm, type);
+    public List<IdentityProviderEntity> listIdentityProvidersByAuthorityAndRealm(String authority, String realm) {
+        return providerRepository.findByAuthorityAndRealm(authority, realm);
     }
 
     @Transactional(readOnly = true)
-    public ProviderEntity findProvider(String providerId) {
+    public IdentityProviderEntity findIdentityProvider(String providerId) {
         return providerRepository.findByProviderId(providerId);
     }
 
     @Transactional(readOnly = true)
-    public ProviderEntity getProvider(String providerId) throws NoSuchProviderException {
-        ProviderEntity p = providerRepository.findByProviderId(providerId);
+    public IdentityProviderEntity getIdentityProvider(String providerId) throws NoSuchProviderException {
+        IdentityProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
             throw new NoSuchProviderException();
         }
@@ -58,35 +58,33 @@ public class ProviderService {
         return p;
     }
 
-    public ProviderEntity createProvider() {
+    public IdentityProviderEntity createIdentityProvider() {
         // generate random
         String id = RandomStringUtils.randomAlphanumeric(8);
 
-        ProviderEntity pe = providerRepository.findByProviderId(id);
+        IdentityProviderEntity pe = providerRepository.findByProviderId(id);
         if (pe != null) {
             // re generate longer
             id = RandomStringUtils.randomAlphanumeric(10);
         }
 
-        ProviderEntity p = new ProviderEntity(id);
+        IdentityProviderEntity p = new IdentityProviderEntity(id);
         return p;
     }
 
-    public ProviderEntity addProvider(
+    public IdentityProviderEntity addIdentityProvider(
             String authority,
             String providerId,
             String realm,
-            String type,
             String name, String description, String icon,
             String persistence, String events, String displayMode,
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) {
 
-        ProviderEntity p = new ProviderEntity();
+        IdentityProviderEntity p = new IdentityProviderEntity();
         p.setAuthority(authority);
         p.setProviderId(providerId);
         p.setRealm(realm);
-        p.setType(type);
         // disabled by default, need to be explicitely enabled
         p.setEnabled(false);
         p.setName(name);
@@ -104,7 +102,7 @@ public class ProviderService {
         return p;
     }
 
-    public ProviderEntity updateProvider(
+    public IdentityProviderEntity updateIdentityProvider(
             String providerId,
             boolean enabled, boolean linkable,
             String name, String description, String icon,
@@ -112,7 +110,7 @@ public class ProviderService {
             Map<String, Serializable> configurationMap,
             Map<String, String> hookFunctions) throws NoSuchProviderException {
 
-        ProviderEntity p = providerRepository.findByProviderId(providerId);
+        IdentityProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p == null) {
             throw new NoSuchProviderException();
         }
@@ -136,8 +134,8 @@ public class ProviderService {
 
     }
 
-    public void deleteProvider(String providerId) {
-        ProviderEntity p = providerRepository.findByProviderId(providerId);
+    public void deleteIdentityProvider(String providerId) {
+        IdentityProviderEntity p = providerRepository.findByProviderId(providerId);
         if (p != null) {
             providerRepository.delete(p);
         }
