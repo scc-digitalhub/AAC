@@ -72,7 +72,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
     // attributes
     private final OpenIdAttributesMapper openidMapper;
     private ScriptExecutionService executionService;
-    private AttributeManager attributeService;
 
     public OIDCIdentityProvider(
             String providerId, String providerName,
@@ -81,6 +80,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
             String realm) {
         super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
+        Assert.notNull(attributeStore, "attribute store is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
         this.providerName = StringUtils.hasText(providerName) ? providerName : providerId;
@@ -106,11 +106,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
 
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
-    }
-
-    // TODO remove and move to attributeProvider
-    public void setAttributeService(AttributeManager attributeManager) {
-        this.attributeService = attributeManager;
     }
 
     @Override
@@ -317,21 +312,6 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentitySe
                 }
             }
             attributes.add(idpset);
-
-            // build additional user-defined attribute sets via mappers
-            if (attributeService != null) {
-                Collection<AttributeSet> sets = attributeService.listAttributeSets(getRealm());
-                for (AttributeSet as : sets) {
-                    DefaultAttributesMapper amap = new DefaultAttributesMapper(as);
-                    AttributeSet set = amap.mapAttributes(principalAttributes);
-                    if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
-                        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                                set));
-                    }
-                }
-
-            }
-
         }
 
         return attributes;

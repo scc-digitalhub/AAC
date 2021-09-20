@@ -22,7 +22,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
@@ -85,7 +84,6 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
                             config.getRealm());
 
                     idp.setExecutionService(executionService);
-                    idp.setAttributeService(attributeManager);
                     return idp;
 
                 }
@@ -100,9 +98,6 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
-
-    // attribute manager for custom attributes mapping
-    private AttributeManager attributeManager;
 
     public OIDCIdentityAuthority(
             OIDCUserAccountRepository accountRepository,
@@ -143,11 +138,6 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     @Autowired
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
-    }
-
-    @Autowired
-    public void setAttributeManager(AttributeManager attributeManager) {
-        this.attributeManager = attributeManager;
     }
 
     @Override

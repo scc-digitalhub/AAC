@@ -24,6 +24,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfig;
+import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -219,6 +221,16 @@ public class AACConfig {
     @Bean
     public InMemoryProviderRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
         return new InMemoryProviderRepository<SpidIdentityProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
+        return new InMemoryProviderRepository<MapperAttributeProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
+        return new InMemoryProviderRepository<ScriptAttributeProviderConfig>();
     }
 
     /*

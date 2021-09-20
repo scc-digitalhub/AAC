@@ -48,6 +48,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
@@ -478,6 +479,22 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             // set webAuth details matching this request
             userAuth.setWebAuthenticationDetails(webAuthDetails);
+
+            // load additional attributes from providers
+            UserDetails userDetails = userAuth.getUser();
+            Collection<AttributeProvider> attributeProviders = authorityManager.fetchAttributeProviders(realm);
+            for (AttributeProvider ap : attributeProviders) {
+                // try to fetch attributes, don't stop authentication on errors
+                // attributes from aps are optional by definition
+                try {
+                    Collection<UserAttributes> attrs = ap.convertAttributes(principal, subjectId);
+                    if (attrs != null) {
+                        attrs.forEach(a -> userDetails.addAttributeSet(a));
+                    }
+                } catch (RuntimeException e) {
+                    logger.error("error loading attributes with provider " + ap.getProvider() + ": " + e.getMessage());
+                }
+            }
 
             logger.debug("successfully build userAuthentication token for " + userAuth.getSubjectId());
             logger.trace("userAuthentication is " + userAuth.toString());

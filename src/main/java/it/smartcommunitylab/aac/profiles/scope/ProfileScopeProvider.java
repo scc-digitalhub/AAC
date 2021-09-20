@@ -15,8 +15,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.profiles.claims.ProfileClaimsSet;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -98,7 +98,7 @@ public class ProfileScopeProvider implements ScopeProvider {
 
         // check if scope is a set id
         String id = extractId(scope);
-        AttributeSetEntity set = attributeService.findAttributeSet(id);
+        AttributeSet set = attributeService.findAttributeSet(id);
         if (set != null) {
             try {
                 return setApprovers.get(scope);

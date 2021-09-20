@@ -37,11 +37,10 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 
 @RestController
 @RequestMapping("api")
-public class ProviderController {
+public class IdentityProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -56,15 +55,6 @@ public class ProviderController {
      * 
      * Manage only realm providers, with config stored
      */
-    @GetMapping("/idp_templates/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public Collection<ConfigurableProvider> listTemplates(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
-        logger.debug("list idp templates for realm " + String.valueOf(realm));
-        return providerManager.listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
-    }
-
     @GetMapping("/idp/{realm}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
@@ -225,7 +215,7 @@ public class ProviderController {
     @PutMapping("/idp/{realm}")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-    public ConfigurableIdentityProvider importProvider(
+    public ConfigurableIdentityProvider importIdp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
         logger.debug("import idp to realm " + String.valueOf(realm));
@@ -326,13 +316,27 @@ public class ProviderController {
     /*
      * Configuration schema
      */
-    @GetMapping("/idp_schema/{authority}")
-    public JsonSchema getConfigurationSchema(
-            @PathVariable(required = true) @Valid @NotBlank String authority)
-            throws IllegalArgumentException {
-        logger.debug("get idp config schema  for authority " + String.valueOf(authority));
+    @GetMapping("/idp/{realm}/{providerId}/schema")
+    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
+    public JsonSchema getIdpConfigurationSchema(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            throws NoSuchProviderException, NoSuchRealmException {
 
-        return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_IDENTITY, authority);
+        logger.debug("get idp config schema for " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+        return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_IDENTITY, provider.getAuthority());
     }
+
+//    @GetMapping("/idp_schema/{authority}")
+//    public JsonSchema getConfigurationSchema(
+//            @PathVariable(required = true) @Valid @NotBlank String authority)
+//            throws IllegalArgumentException {
+//        logger.debug("get idp config schema  for authority " + String.valueOf(authority));
+//
+//        return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_IDENTITY, authority);
+//    }
 
 }

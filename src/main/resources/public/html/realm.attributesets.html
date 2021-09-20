@@ -27,9 +27,11 @@
                     <p>{{attributeSet.description}}</p>
                 </td>
                 <td class="text-right">
-                    <button class="btn btn-primary btn-sm"
-                        ui-sref="realm.attributeset({realmId:attributeSet.realm, setId:attributeSet.identifier})">Manage</button>
-                    <button class="btn btn-danger btn-sm" ng-click="deleteAttributeSetDlg(attributeSet)">Delete</button>
+                    <button class="btn btn-primary btn-sm" ng-if="slug != attributeSet.realm"
+                        ui-sref="realm.attributeset({realmId:slug, setId:attributeSet.identifier})">View</button>                
+                    <button class="btn btn-primary btn-sm" ng-if="slug == attributeSet.realm"
+                        ui-sref="realm.attributeset({realmId:slug, setId:attributeSet.identifier})">Manage</button>
+                    <button class="btn btn-danger btn-sm" ng-if="slug == attributeSet.realm" ng-click="deleteAttributeSetDlg(attributeSet)">Delete</button>
                 </td>
             </tr>
         </table>

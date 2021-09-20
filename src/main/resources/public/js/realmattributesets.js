@@ -59,6 +59,7 @@ angular.module('aac.controllers.realmattributesets', [])
         };
 
         $scope.load = function () {
+            $scope.slug = slug;
             RealmAttributeSets.getAttributeSets(slug)
                 .then(function (data) {
                     $scope.attributeSets = data;
@@ -131,6 +132,7 @@ angular.module('aac.controllers.realmattributesets', [])
         };
 
         var init = function () {
+            $scope.slug = slug;
             RealmAttributeSets.getAttributeSet(slug, setId)
                 .then(function (data) {
                     $scope.load(data);

@@ -23,7 +23,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -83,9 +82,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
-    // attribute manager for custom attributes mapping
-    private AttributeManager attributeManager;
-
     @Override
     public String getAuthorityId() {
         return SystemKeys.AUTHORITY_SPID;
@@ -112,11 +108,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     @Autowired
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
-    }
-
-    @Autowired
-    public void setAttributeManager(AttributeManager attributeManager) {
-        this.attributeManager = attributeManager;
     }
 
     @Override

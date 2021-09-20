@@ -4,21 +4,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.MapperAttributeAuthority;
+import it.smartcommunitylab.aac.attributes.ScriptAttributeAuthority;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
@@ -40,16 +44,16 @@ public class AuthorityManager {
     private IdentityProviderService identityProviderService;
 
     @Autowired
-    private InternalIdentityAuthority internalAuthority;
+    private InternalIdentityAuthority internalIdentityAuthority;
 
     @Autowired
-    private OIDCIdentityAuthority oidcAuthority;
+    private OIDCIdentityAuthority oidcIdentityAuthority;
 
     @Autowired
-    private SamlIdentityAuthority samlAuthority;
+    private SamlIdentityAuthority samlIdentityAuthority;
 
     @Autowired
-    private SpidIdentityAuthority spidAuthority;
+    private SpidIdentityAuthority spidIdentityAuthority;
 
     /*
      * Identity providers
@@ -57,23 +61,61 @@ public class AuthorityManager {
 
     public IdentityAuthority getIdentityAuthority(String authority) {
         if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-            return internalAuthority;
+            return internalIdentityAuthority;
         } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-            return oidcAuthority;
+            return oidcIdentityAuthority;
         } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-            return samlAuthority;
+            return samlIdentityAuthority;
         } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-            return spidAuthority;
+            return spidIdentityAuthority;
         }
         return null;
     }
 
     public List<IdentityAuthority> listIdentityAuthorities() {
         List<IdentityAuthority> result = new ArrayList<>();
-        result.add(internalAuthority);
-        result.add(oidcAuthority);
-        result.add(samlAuthority);
-        result.add(spidAuthority);
+        result.add(internalIdentityAuthority);
+        result.add(oidcIdentityAuthority);
+        result.add(samlIdentityAuthority);
+        result.add(spidIdentityAuthority);
+        return result;
+    }
+
+    /*
+     * Attribute
+     */
+    @Autowired
+    private AttributeProviderService attributeProviderService;
+
+    @Autowired
+    private InternalAttributeAuthority internalAttributeAuthority;
+
+    @Autowired
+    private MapperAttributeAuthority mapperAttributeAuthority;
+
+    @Autowired
+    private ScriptAttributeAuthority scriptAttributeAuthority;
+    
+    /*
+     * Attribute providers
+     */
+
+    public AttributeAuthority getAttributeAuthority(String authority) {
+        if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
+//            return internalAttributeAuthority;
+        } else if (SystemKeys.AUTHORITY_MAPPER.equals(authority)) {
+            return mapperAttributeAuthority;
+        } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
+            return scriptAttributeAuthority;
+        }
+        return null;
+    }
+
+    public List<AttributeAuthority> listAttributeAuthorities() {
+        List<AttributeAuthority> result = new ArrayList<>();
+//        result.add(internalAttributeAuthority);
+        result.add(mapperAttributeAuthority);
+        result.add(scriptAttributeAuthority);
         return result;
     }
 
@@ -86,6 +128,8 @@ public class AuthorityManager {
     private Collection<? extends ConfigurableProvider> listProviders(String type, String realm) {
         if (TYPE_IDENTITY.equals(type)) {
             return identityProviderService.listProviders(realm);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            return attributeProviderService.listProviders(realm);
         }
 
         return Collections.emptyList();
@@ -95,6 +139,8 @@ public class AuthorityManager {
         ConfigurableProvider cp = null;
         if (TYPE_IDENTITY.equals(type)) {
             cp = identityProviderService.findProvider(providerId);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            cp = attributeProviderService.findProvider(providerId);
         }
 
         return cp;
@@ -105,6 +151,8 @@ public class AuthorityManager {
         ConfigurableProvider cp = null;
         if (TYPE_IDENTITY.equals(type)) {
             cp = identityProviderService.getProvider(providerId);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            cp = attributeProviderService.getProvider(providerId);
         }
 
         return cp;
@@ -297,8 +345,7 @@ public class AuthorityManager {
         if (TYPE_IDENTITY.equals(type)) {
             return isIdentityProviderRegistered(authority, providerId);
         } else if (TYPE_ATTRIBUTES.equals(type)) {
-            // TODO attribute providers
-            throw new IllegalArgumentException("unsupported provider type");
+            return isAttributeProviderRegistered(authority, providerId);
         } else {
             throw new IllegalArgumentException("unsupported provider type");
         }
@@ -325,6 +372,130 @@ public class AuthorityManager {
         // terminate sessions
         sessionManager.destroyProviderSessions(providerId);
         a.unregisterIdentityProvider(providerId);
+    }
+
+    /*
+     * Attribute providers
+     * 
+     * we expose only getters to ensure consumers won't update config. Also only
+     * active (ie registered with an authority) providers are exposed.
+     * 
+     * we assume that registered providers are a match for stored configuration,
+     * since config is immutable in authorities
+     */
+
+    public AttributeProvider findAttributeProvider(String providerId) {
+        try {
+            ConfigurableProvider provider = getProvider(TYPE_ATTRIBUTES, providerId);
+
+            // lookup in authority
+            AttributeAuthority ia = getAttributeAuthority(provider.getAuthority());
+            return ia.getAttributeProvider(providerId);
+        } catch (NoSuchProviderException e) {
+            return null;
+        }
+    }
+
+    public AttributeProvider getAttributeProvider(String providerId) throws NoSuchProviderException {
+        AttributeProvider idp = findAttributeProvider(providerId);
+        if (idp == null) {
+            // provider is not active or not existing
+            // TODO add dedicated exception?
+            throw new NoSuchProviderException("provider not found");
+        }
+
+        return idp;
+    }
+
+    // fast load, skips db lookup, returns null if missing
+    public AttributeProvider fetchAttributeProvider(String authority, String providerId) {
+        // lookup in authority
+        AttributeAuthority ia = getAttributeAuthority(authority);
+        if (ia == null) {
+            return null;
+        }
+        try {
+            return ia.getAttributeProvider(providerId);
+        } catch (NoSuchProviderException e) {
+            return null;
+        }
+    }
+
+    public Collection<AttributeProvider> getAttributeProviders(String realm) throws NoSuchRealmException {
+        Collection<? extends ConfigurableProvider> providers = listProviders(TYPE_ATTRIBUTES, realm);
+
+        // fetch each active provider from authority
+        List<AttributeProvider> idps = new ArrayList<>();
+        for (ConfigurableProvider provider : providers) {
+            // lookup in authority
+            AttributeAuthority ia = getAttributeAuthority(provider.getAuthority());
+            try {
+                AttributeProvider idp = ia.getAttributeProvider(provider.getProvider());
+                if (idp != null) {
+                    idps.add(idp);
+                }
+            } catch (NoSuchProviderException e) {
+                // skip
+            }
+
+        }
+
+        return idps;
+    }
+
+    // fast load, skips db lookup
+    public Collection<AttributeProvider> fetchAttributeProviders(String realm) {
+        List<AttributeProvider> providers = new ArrayList<>();
+        for (AttributeAuthority ia : listAttributeAuthorities()) {
+            providers.addAll(ia.getAttributeProviders(realm));
+        }
+
+        return providers;
+
+    }
+
+    // fast load, skips db lookup
+    public Collection<AttributeProvider> fetchAttributeProviders(String authority, String realm) {
+        AttributeAuthority ia = getAttributeAuthority(authority);
+        if (ia != null) {
+            return ia.getAttributeProviders(realm);
+        }
+
+        return null;
+    }
+
+    /*
+     * Public API: check provider registration with authorities
+     */
+
+    public boolean isAttributeProviderRegistered(String providerId) throws SystemException, NoSuchProviderException {
+        ConfigurableProvider p = getProvider(TYPE_ATTRIBUTES, providerId);
+        return isAttributeProviderRegistered(p.getAuthority(), p.getProvider());
+    }
+
+    public boolean isAttributeProviderRegistered(String authority, String providerId) throws SystemException {
+        AttributeAuthority a = getAttributeAuthority(authority);
+        return a.hasAttributeProvider(providerId);
+    }
+
+    /*
+     * Enable/disable providers with authorities
+     */
+
+    public AttributeProvider registerAttributeProvider(ConfigurableAttributeProvider provider) throws SystemException {
+        if (!provider.isEnabled()) {
+            throw new IllegalArgumentException("provider is disabled");
+        }
+
+        AttributeAuthority a = getAttributeAuthority(provider.getAuthority());
+        return a.registerAttributeProvider(provider);
+    }
+
+    public void unregisterAttributeProvider(ConfigurableAttributeProvider provider) throws SystemException {
+        AttributeAuthority a = getAttributeAuthority(provider.getAuthority());
+        String providerId = provider.getProvider();
+
+        a.unregisterAttributeProvider(providerId);
     }
 
 }

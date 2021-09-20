@@ -26,10 +26,13 @@ import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
@@ -90,6 +93,9 @@ public class AACBootstrap {
     @Autowired
     private IdentityProviderService identityProviderService;
 
+    @Autowired
+    private AttributeProviderService attributeProviderService;
+
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
@@ -101,6 +107,7 @@ public class AACBootstrap {
             // TODO use a dedicated thread, or a multithread
             bootstrapSystemProviders();
             bootstrapIdentityProviders();
+            bootstrapAttributeProviders();
 
             // custom bootstrap
             if (apply) {
@@ -180,6 +187,47 @@ public class AACBootstrap {
                     } catch (Exception e) {
                         logger.error("error registering provider " + idp.getProvider() + " for realm "
                                 + idp.getRealm() + ": " + e.getMessage());
+
+                        if (logger.isTraceEnabled()) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void bootstrapAttributeProviders() {
+        Map<String, AttributeAuthority> ias = authorityManager.listAttributeAuthorities().stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+
+        // load all realm providers from storage
+        Collection<Realm> realms = realmManager.listRealms();
+
+        // we iterate by realm to load consistently each realm
+        // we use parallel to leverage default threadpool, loading should be thread-safe
+        realms.parallelStream().forEach(realm -> {
+            Collection<ConfigurableAttributeProvider> providers = attributeProviderService
+                    .listProviders(realm.getSlug());
+
+            for (ConfigurableAttributeProvider provider : providers) {
+                // try register
+                if (provider.isEnabled()) {
+                    try {
+                        // register via authorityManager
+//                        authorityManager.registerAttributeProvider(idp);
+
+                        // register directly with authority
+                        AttributeAuthority ia = ias.get(provider.getAuthority());
+                        if (ia == null) {
+                            throw new IllegalArgumentException(
+                                    "no authority for " + String.valueOf(provider.getAuthority()));
+                        }
+
+                        ia.registerAttributeProvider(provider);
+                    } catch (Exception e) {
+                        logger.error("error registering provider " + provider.getProvider() + " for realm "
+                                + provider.getRealm() + ": " + e.getMessage());
 
                         if (logger.isTraceEnabled()) {
                             e.printStackTrace();

@@ -57,7 +57,7 @@
             </li>
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
-                ui-sref="realm.providers">
+                ui-sref="realm.idps">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
                 </svg>
@@ -71,6 +71,15 @@
                   <use xlink:href="./italia/svg/sprite.svg#it-box"></use>
                 </svg>
                 <span> Attribute Sets </span>
+              </a>
+            </li>
+            <li ng-if="realmAdmin && !realmImmutable">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
+                ui-sref="realm.aps">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                </svg>
+                <span> Attribute Providers </span>
               </a>
             </li>
             <li ng-if="(realmAdmin || realmDeveloper)">

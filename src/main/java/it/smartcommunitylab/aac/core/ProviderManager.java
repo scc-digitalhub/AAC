@@ -18,9 +18,12 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
@@ -29,11 +32,11 @@ import it.smartcommunitylab.aac.model.Realm;
 public class ProviderManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private IdentityProviderService identityProviderService;
+    private final IdentityProviderService identityProviderService;
+    private final AttributeProviderService attributeProviderService;
 
-    private AuthorityManager authorityManager;
-
-    private RealmService realmService;
+    private final AuthorityManager authorityManager;
+    private final RealmService realmService;
 
 //    // keep a local map for global providers since these are not in db
 //    // key is providerId
@@ -43,13 +46,17 @@ public class ProviderManager {
 
     public ProviderManager(
             AuthorityManager authorityManager,
-            IdentityProviderService identityProviderService, RealmService realmService) {
+            IdentityProviderService identityProviderService,
+            AttributeProviderService attributeProviderService,
+            RealmService realmService) {
         Assert.notNull(authorityManager, "authority manager is mandatory");
         Assert.notNull(identityProviderService, "identity provider service is mandatory");
+        Assert.notNull(attributeProviderService, "attribute provider service is mandatory");
         Assert.notNull(realmService, "realm service is mandatory");
 
         this.authorityManager = authorityManager;
         this.identityProviderService = identityProviderService;
+        this.attributeProviderService = attributeProviderService;
         this.realmService = realmService;
 
 //        // now load all realm providers from storage
@@ -85,17 +92,24 @@ public class ProviderManager {
      * TODO add permissions
      */
     public Collection<ConfigurableProvider> listProviders(String realm) throws NoSuchRealmException {
+        List<ConfigurableProvider> providers = new ArrayList<>();
+
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
-            // we do not persist in db global providers
-            throw new SystemException("global providers are immutable");
+            // idps only
+            Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(realm);
+            providers.addAll(idps);
+            return providers;
         }
 
         Realm re = realmService.getRealm(realm);
-        List<ConfigurableProvider> providers = new ArrayList<>();
+
         // identity providers
         Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(re.getSlug());
         providers.addAll(idps);
         // attribute providers
+        Collection<ConfigurableAttributeProvider> aps = attributeProviderService.listProviders(re.getSlug());
+        providers.addAll(aps);
+
         return providers;
     }
 
@@ -103,6 +117,8 @@ public class ProviderManager {
             throws NoSuchRealmException {
         if (TYPE_IDENTITY.equals(type)) {
             return listIdentityProviders(realm);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            return listAttributeProviders(realm);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -111,6 +127,8 @@ public class ProviderManager {
     public ConfigurableProvider findProvider(String realm, String type, String providerId) {
         if (TYPE_IDENTITY.equals(type)) {
             return findIdentityProvider(realm, providerId);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            return findAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -120,6 +138,8 @@ public class ProviderManager {
             throws NoSuchProviderException, NoSuchRealmException {
         if (TYPE_IDENTITY.equals(type)) {
             return getIdentityProvider(realm, providerId);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            return getAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -130,6 +150,8 @@ public class ProviderManager {
 
         if (provider instanceof ConfigurableIdentityProvider) {
             return addIdentityProvider(realm, (ConfigurableIdentityProvider) provider);
+        } else if (provider instanceof ConfigurableAttributeProvider) {
+            return addAttributeProvider(realm, (ConfigurableAttributeProvider) provider);
         }
 
         throw new IllegalArgumentException("invalid provider");
@@ -140,6 +162,8 @@ public class ProviderManager {
             throws NoSuchProviderException, NoSuchRealmException {
         if (provider instanceof ConfigurableIdentityProvider) {
             return updateIdentityProvider(realm, providerId, (ConfigurableIdentityProvider) provider);
+        } else if (provider instanceof ConfigurableAttributeProvider) {
+            return updateAttributeProvider(realm, providerId, (ConfigurableAttributeProvider) provider);
         }
 
         throw new IllegalArgumentException("invalid provider");
@@ -149,6 +173,8 @@ public class ProviderManager {
             throws SystemException, NoSuchProviderException, NoSuchRealmException {
         if (TYPE_IDENTITY.equals(type)) {
             deleteIdentityProvider(realm, providerId);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            deleteAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -159,6 +185,8 @@ public class ProviderManager {
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
         if (TYPE_IDENTITY.equals(type)) {
             registerIdentityProvider(realm, providerId);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            registerAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -169,6 +197,8 @@ public class ProviderManager {
             String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
         if (TYPE_IDENTITY.equals(type)) {
             unregisterIdentityProvider(realm, providerId);
+        } else if (TYPE_ATTRIBUTES.equals(type)) {
+            unregisterAttributeProvider(realm, providerId);
         }
 
         throw new IllegalArgumentException("invalid type");
@@ -180,8 +210,7 @@ public class ProviderManager {
 
     public Collection<ConfigurableIdentityProvider> listIdentityProviders(String realm) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
-            // we do not persist in db global providers
-            throw new SystemException("global providers are immutable");
+            return identityProviderService.listProviders(realm);
         }
 
         Realm re = realmService.getRealm(realm);
@@ -330,6 +359,160 @@ public class ProviderManager {
     }
 
     /*
+     * Attribute Providers
+     */
+
+    public Collection<ConfigurableAttributeProvider> listAttributeProviders(String realm) throws NoSuchRealmException {
+        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
+            return attributeProviderService.listProviders(realm);
+        }
+
+        Realm re = realmService.getRealm(realm);
+        return attributeProviderService.listProviders(re.getSlug());
+    }
+
+    public ConfigurableAttributeProvider findAttributeProvider(String realm, String providerId) {
+        ConfigurableAttributeProvider ap = attributeProviderService.findProvider(providerId);
+
+        if (ap != null && !realm.equals(ap.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        return ap;
+    }
+
+    public ConfigurableAttributeProvider getAttributeProvider(String realm, String providerId)
+            throws NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        ConfigurableAttributeProvider ap = attributeProviderService.getProvider(providerId);
+        if (!re.getSlug().equals(ap.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // deprecated, let controllers/managers ask for status where needed
+        // this does not pertain to configuration
+//        boolean isActive = isProviderRegistered(pe.getType(), pe.getAuthority(), pe.getProviderId());
+
+        return ap;
+    }
+
+    public ConfigurableAttributeProvider addAttributeProvider(String realm,
+            ConfigurableAttributeProvider provider)
+            throws RegistrationException, SystemException, NoSuchRealmException {
+
+        if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
+            // we do not persist in db global providers
+            throw new RegistrationException("global providers are immutable");
+        }
+
+        Realm re = realmService.getRealm(realm);
+        return attributeProviderService.addProvider(re.getSlug(), provider);
+
+    }
+
+    public ConfigurableAttributeProvider updateAttributeProvider(String realm,
+            String providerId, ConfigurableAttributeProvider provider)
+            throws NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        ConfigurableAttributeProvider ap = attributeProviderService.getProvider(providerId);
+
+        if (!re.getSlug().equals(ap.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        return attributeProviderService.updateProvider(providerId, provider);
+
+    }
+
+    public void deleteAttributeProvider(String realm, String providerId)
+            throws SystemException, NoSuchProviderException, NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        ConfigurableAttributeProvider ap = attributeProviderService.getProvider(providerId);
+
+        if (!re.getSlug().equals(ap.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // check if active, we don't support update for active providers
+        boolean isActive = authorityManager.isAttributeProviderRegistered(ap.getAuthority(), ap.getProvider());
+
+        if (isActive) {
+            throw new IllegalArgumentException("active providers can not be deleted");
+        }
+
+        attributeProviderService.deleteProvider(providerId);
+    }
+
+    //
+    public ConfigurableAttributeProvider registerAttributeProvider(
+            String realm,
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+
+        Realm re = realmService.getRealm(realm);
+        // fetch, only persisted configurations can be registered
+        ConfigurableAttributeProvider ap = attributeProviderService.getProvider(providerId);
+
+        if (!re.getSlug().equals(ap.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // check if active, we don't support update for active providers
+        boolean isActive = authorityManager.isAttributeProviderRegistered(ap.getAuthority(), ap.getProvider());
+
+        if (isActive) {
+            throw new IllegalArgumentException("active providers can not be registered again");
+        }
+
+        // check if already enabled in config, or update
+        if (!ap.isEnabled()) {
+            ap.setEnabled(true);
+            ap = attributeProviderService.updateProvider(providerId, ap);
+        }
+
+        AttributeProvider idp = authorityManager.registerAttributeProvider(ap);
+        isActive = idp != null;
+
+        // TODO fetch registered status?
+        ap.setRegistered(isActive);
+
+        return ap;
+
+    }
+
+    public ConfigurableAttributeProvider unregisterAttributeProvider(
+            String realm,
+            String providerId) throws SystemException, NoSuchRealmException, NoSuchProviderException {
+
+        Realm re = realmService.getRealm(realm);
+        // fetch, only persisted configurations can be registered
+        ConfigurableAttributeProvider ap = attributeProviderService.getProvider(providerId);
+
+        if (!re.getSlug().equals(ap.getRealm())) {
+            throw new IllegalArgumentException("realm does not match provider");
+        }
+
+        // check if already disabled in config, or update
+        if (ap.isEnabled()) {
+            ap.setEnabled(false);
+            ap = attributeProviderService.updateProvider(providerId, ap);
+        }
+
+        // check if active
+        boolean isActive = authorityManager.isAttributeProviderRegistered(ap.getAuthority(), ap.getProvider());
+
+        if (isActive) {
+
+            authorityManager.unregisterAttributeProvider(ap);
+            isActive = false;
+
+            // TODO fetch registered status?
+            ap.setRegistered(isActive);
+        }
+
+        return ap;
+    }
+
+    /*
      * Compatibility
      * 
      * Support checking registration status
@@ -338,7 +521,9 @@ public class ProviderManager {
         if (TYPE_IDENTITY.equals(provider.getType())) {
             return authorityManager.isIdentityProviderRegistered(provider.getAuthority(), provider.getProvider());
         }
-
+        if (TYPE_ATTRIBUTES.equals(provider.getType())) {
+            return authorityManager.isAttributeProviderRegistered(provider.getAuthority(), provider.getProvider());
+        }
         throw new IllegalArgumentException("invalid type");
     }
 
@@ -405,7 +590,9 @@ public class ProviderManager {
         if (TYPE_IDENTITY.equals(type)) {
             return identityProviderService.getConfigurationSchema(authority);
         }
-
+        if (TYPE_ATTRIBUTES.equals(type)) {
+            return attributeProviderService.getConfigurationSchema(authority);
+        }
         throw new IllegalArgumentException("invalid provider type");
     }
 

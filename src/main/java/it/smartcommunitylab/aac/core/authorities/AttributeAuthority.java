@@ -30,7 +30,7 @@ public interface AttributeAuthority {
      * we expect providers to be registered and usable, or removed. To update config
      * implementations should unregister+register
      */
-    public void registerAttributeProvider(ConfigurableAttributeProvider idp)
+    public AttributeProvider registerAttributeProvider(ConfigurableAttributeProvider cp)
             throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterAttributeProvider(String providerId) throws SystemException;

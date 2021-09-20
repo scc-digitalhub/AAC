@@ -22,6 +22,8 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 //    public static final String PROVIDER_FACEBOOK = "facebook";
 //    public static final String PROVIDER_GITHUB = "github";
 
+    private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
+
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
 
@@ -163,7 +165,13 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
         // check for autoconf, will override template
         if (StringUtils.hasText(configMap.getIssuerUri())) {
-            builder = ClientRegistrations.fromIssuerLocation(configMap.getIssuerUri());
+            String issuerUri = configMap.getIssuerUri();
+            // remove well-known path if provided by user
+            if (issuerUri.endsWith(WELL_KNOWN_CONFIGURATION_OPENID)) {
+                issuerUri = issuerUri.substring(0, issuerUri.length() - WELL_KNOWN_CONFIGURATION_OPENID.length());
+            }
+
+            builder = ClientRegistrations.fromIssuerLocation(issuerUri);
         }
 
         // set config

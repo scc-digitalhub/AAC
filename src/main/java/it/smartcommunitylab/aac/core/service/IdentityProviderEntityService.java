@@ -85,7 +85,7 @@ public class IdentityProviderEntityService {
         p.setAuthority(authority);
         p.setProviderId(providerId);
         p.setRealm(realm);
-        // disabled by default, need to be explicitely enabled
+        // disabled by default, need to be explicitly enabled
         p.setEnabled(false);
         p.setName(name);
         p.setDescription(description);

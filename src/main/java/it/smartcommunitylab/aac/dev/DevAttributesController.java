@@ -59,7 +59,7 @@ public class DevAttributesController {
     public Collection<AttributeSet> listRealmAttributeSets(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         logger.debug("list attribute sets for realm " + String.valueOf(realm));
-        return attributeManager.listAttributeSets(realm);
+        return attributeManager.listAttributeSets(realm, true);
     }
 
     @GetMapping("/realms/{realm}/attributeset/{setId}")

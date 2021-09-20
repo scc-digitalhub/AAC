@@ -3,14 +3,14 @@ angular.module('aac.controllers.realm', [])
    /**
     * Main realm layout controller
     */
-   .controller('RealmController', function($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
+   .controller('RealmController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
       var slug = $stateParams.realmId;
       var toDashboard = false;
 
 
-      var init = function() {
+      var init = function () {
          RealmData.getMyRealms()
-            .then(function(data) {
+            .then(function (data) {
                $scope.realms = data;
                if (!slug) {
                   var stored = localStorage.getItem('realm');
@@ -25,48 +25,48 @@ angular.module('aac.controllers.realm', [])
 
                return data;
             })
-            .then(function() {
+            .then(function () {
                RealmData.getRealm(slug)
-                  .then(function(data) {
+                  .then(function (data) {
                      $scope.load(data);
                   });
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError('Failed to load realms: ' + err.data.message);
             });
       }
 
-      $scope.selectRealm = function(r) {
+      $scope.selectRealm = function (r) {
          localStorage.setItem('realm', r.slug);
          $scope.realm = r;
          $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
       }
 
-      $scope.load = function(data) {
+      $scope.load = function (data) {
          $scope.realm = data;
          // global admin or realm admin
-         $scope.realmAdmin = $rootScope.user.authorities.findIndex(function(a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN' }) >= 0;
+         $scope.realmAdmin = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_ADMIN' || a.authority == 'ROLE_ADMIN' }) >= 0;
          // realm admin or developer
-         $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function(a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER' }) >= 0 || $scope.realmAdmin;
+         $scope.realmDeveloper = $rootScope.user.authorities.findIndex(function (a) { return a.realm == slug && a.role == 'ROLE_DEVELOPER' }) >= 0 || $scope.realmAdmin;
          $scope.realmImmutable = $scope.realm.slug == 'system' || data.slug == '';
          if (toDashboard) {
             $state.go('realm', { realmId: $scope.realm.slug, isGlobal: !$scope.realm.slug });
          }
       }
 
-      $scope.refresh = function() {
+      $scope.refresh = function () {
          RealmData.getMyRealms()
-            .then(function(data) {
+            .then(function (data) {
                $scope.realms = data;
                return data;
             })
-            .then(function() {
+            .then(function () {
                RealmData.getRealm(slug)
-                  .then(function(data) {
+                  .then(function (data) {
                      $scope.load(data);
                   });
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError('Failed to load realms: ' + err.data.message);
             });
       }
@@ -101,22 +101,22 @@ angular.module('aac.controllers.realm', [])
       //   });
    })
 
-   .controller('RealmDashboardController', function($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
+   .controller('RealmDashboardController', function ($scope, $rootScope, $state, $stateParams, RealmData, Utils) {
       var slug = $stateParams.realmId;
       $scope.curStep = 1
-      var init = function() {
+      var init = function () {
          if (slug) {
             RealmData.getRealmStats(slug)
-               .then(function(stats) {
+               .then(function (stats) {
                   $scope.load(stats);
                })
-               .catch(function(err) {
+               .catch(function (err) {
                   Utils.showError('Failed to load realm: ' + err.data.message);
                });
          }
       };
 
-      $scope.load = function(stats) {
+      $scope.load = function (stats) {
          $scope.stats = stats;
          $scope.showAddIdp = !(stats.providers);
          $scope.showAddApp = !(stats.apps);
@@ -136,13 +136,13 @@ angular.module('aac.controllers.realm', [])
          }
       };
 
-      $scope.prevStep = function() {
+      $scope.prevStep = function () {
          $scope.curStep--;
       }
-      $scope.nextStep = function() {
+      $scope.nextStep = function () {
          $scope.curStep++;
       }
-      $scope.setStep = function(s) {
+      $scope.setStep = function (s) {
          $scope.curStep = s;
       }
 
@@ -153,7 +153,7 @@ angular.module('aac.controllers.realm', [])
    /**
     * Realm users controller
     */
-   .controller('RealmUsersController', function($scope, $stateParams, RealmData, RealmProviders, Utils) {
+   .controller('RealmUsersController', function ($scope, $stateParams, RealmData, RealmProviders, Utils) {
       var slug = $stateParams.realmId;
       $scope.query = {
          page: 0,
@@ -163,25 +163,25 @@ angular.module('aac.controllers.realm', [])
       }
       $scope.keywords = '';
 
-      $scope.load = function() {
+      $scope.load = function () {
          RealmData.getRealmUsers(slug, $scope.query)
-            .then(function(data) {
+            .then(function (data) {
                $scope.keywords = $scope.query.q;
                $scope.users = data;
-               $scope.users.content.forEach(function(u) {
+               $scope.users.content.forEach(function (u) {
                   if ('identities' in u) {
-                     u._providers = u.identities.map(function(i) {
+                     u._providers = u.identities.map(function (i) {
                         return $scope.providers[i.provider] ? $scope.providers[i.provider].name : i.provider;
                      });
                   }
                   if ('authorities' in u) {
                      u._authorities = u.authorities
-                        .filter(function(a) { return a.realm === $scope.realm.slug })
-                        .map(function(a) { return a.role });
+                        .filter(function (a) { return a.realm === $scope.realm.slug })
+                        .map(function (a) { return a.role });
                   }
                });
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError('Failed to load realm users: ' + err.data.message);
             });
       }
@@ -189,69 +189,69 @@ angular.module('aac.controllers.realm', [])
       /**
      * Initialize the app: load list of the users
      */
-      var init = function() {
+      var init = function () {
          $scope.systemRoles = ['ROLE_ADMIN', 'ROLE_DEVELOPER'];
 
          RealmProviders.getIdentityProviders(slug)
-            .then(function(providers) {
+            .then(function (providers) {
                var pMap = {};
-               providers.forEach(function(p) { pMap[p.provider] = p });
+               providers.forEach(function (p) { pMap[p.provider] = p });
                $scope.providers = pMap;
                $scope.load();
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError('Failed to load realm users: ' + err.data.message);
             });
       };
 
-      $scope.deleteUserDlg = function(user) {
+      $scope.deleteUserDlg = function (user) {
          $scope.modUser = user;
          $('#deleteConfirm').modal({ keyboard: false });
       }
 
-      $scope.deleteUser = function() {
+      $scope.deleteUser = function () {
          $('#deleteConfirm').modal('hide');
-         RealmData.removeUser($scope.realm.slug, $scope.modUser).then(function() {
+         RealmData.removeUser($scope.realm.slug, $scope.modUser).then(function () {
             $scope.load();
             Utils.showSuccess();
-         }).catch(function(err) {
+         }).catch(function (err) {
             Utils.showError(err.data.message);
          });
       }
 
-      $scope.jsonUserDlg = function(user) {
+      $scope.jsonUserDlg = function (user) {
          $scope.modUser = user;
          $('#userJsonModal').modal({ keyboard: false });
 
       }
 
-      $scope.setPage = function(page) {
+      $scope.setPage = function (page) {
          $scope.query.page = page;
          $scope.load();
       }
-      
-      $scope.setQuery = function(query) {
+
+      $scope.setQuery = function (query) {
          $scope.query.q = query;
-         $scope.page= 0;         
+         $scope.page = 0;
          $scope.load();
       }
-      
-      $scope.runQuery = function() {
+
+      $scope.runQuery = function () {
          $scope.setQuery($scope.keywords);
-      }      
-      
-     $scope.copyText = function (txt) {
+      }
+
+      $scope.copyText = function (txt) {
          var textField = document.createElement('textarea');
          textField.innerText = txt;
          document.body.appendChild(textField);
          textField.select();
          document.execCommand('copy');
          textField.remove();
-     }      
+      }
 
       init();
 
-      $scope.editRoles = function(user) {
+      $scope.editRoles = function (user) {
          var systemRoles = $scope.systemRoles.map(r => {
             return {
                'text': r,
@@ -277,7 +277,7 @@ angular.module('aac.controllers.realm', [])
       }
 
       // save roles
-      $scope.updateRoles = function() {
+      $scope.updateRoles = function () {
          $('#rolesModal').modal('hide');
 
          if ($scope.modUser) {
@@ -287,11 +287,11 @@ angular.module('aac.controllers.realm', [])
             var roles = systemRoles.concat(customRoles);
 
             RealmData.updateRealmRoles($scope.realm.slug, $scope.modUser, roles)
-               .then(function() {
+               .then(function () {
                   $scope.load();
                   Utils.showSuccess();
                })
-               .catch(function(err) {
+               .catch(function (err) {
                   Utils.showError(err);
                });
 
@@ -299,7 +299,7 @@ angular.module('aac.controllers.realm', [])
          }
       }
 
-      $scope.inviteUser = function() {
+      $scope.inviteUser = function () {
          var systemRoles = $scope.systemRoles.map(r => {
             return {
                'text': r,
@@ -317,7 +317,7 @@ angular.module('aac.controllers.realm', [])
 
          $('#inviteModal').modal({ backdrop: 'static', focus: true })
       }
-      $scope.invite = function() {
+      $scope.invite = function () {
          $('#inviteModal').modal('hide');
 
          if ($scope.invitation) {
@@ -326,10 +326,10 @@ angular.module('aac.controllers.realm', [])
 
             var roles = systemRoles.concat(customRoles);
 
-            RealmData.inviteUser($scope.realm.slug, $scope.invitation, roles).then(function() {
+            RealmData.inviteUser($scope.realm.slug, $scope.invitation, roles).then(function () {
                $scope.load();
                Utils.showSuccess();
-            }).catch(function(err) {
+            }).catch(function (err) {
                Utils.showError(err.data.message);
             });
 
@@ -350,7 +350,7 @@ angular.module('aac.controllers.realm', [])
 
 
 
-      $scope.dismiss = function() {
+      $scope.dismiss = function () {
          $('#rolesModal').modal('hide');
       }
 
@@ -366,7 +366,7 @@ angular.module('aac.controllers.realm', [])
    })
 
 
-   .controller('RealmCustomController', function($scope, $stateParams, RealmData, Utils) {
+   .controller('RealmCustomController', function ($scope, $stateParams, RealmData, Utils) {
       var slug = $stateParams.realmId;
 
       $scope.formView = 'login';
@@ -378,27 +378,27 @@ angular.module('aac.controllers.realm', [])
          minLines: 12,
       };
 
-      $scope.activeView = function(view) {
+      $scope.activeView = function (view) {
          return view == $scope.formView ? 'active' : '';
       };
 
-      $scope.switchView = function(view) {
+      $scope.switchView = function (view) {
          $scope.formView = view;
          Utils.refreshFormBS(300);
       }
 
-      var init = function() {
+      var init = function () {
          RealmData.getRealm(slug)
-            .then(function(data) {
+            .then(function (data) {
                $scope.load(data);
                return data;
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
             });
       };
 
-      $scope.load = function(data) {
+      $scope.load = function (data) {
          $scope.realmName = data.name;
          // TODO multilanguage
          //TODO handle templates registration in controllers...
@@ -446,14 +446,14 @@ angular.module('aac.controllers.realm', [])
          $scope.realmCustom = custom;
       }
 
-      $scope.saveRealmCustom = function() {
+      $scope.saveRealmCustom = function () {
          var data = $scope.realm;
          var customization = [];
 
          for (var k in $scope.realmCustom) {
             var res = {};
             var rs = $scope.realmCustom[k]
-               .filter(function(r) {
+               .filter(function (r) {
                   return r.value != null;
                });
 
@@ -471,21 +471,21 @@ angular.module('aac.controllers.realm', [])
 
 
          RealmData.updateRealm($scope.realm.slug, data)
-            .then(function(res) {
+            .then(function (res) {
                $scope.load(res);
                Utils.showSuccess();
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError(err.data.message);
             });
 
       }
 
-      $scope.exportRealmCustom = function() {
+      $scope.exportRealmCustom = function () {
          window.open('console/dev/realms/' + $scope.realm.slug + '/export?custom=1');
       };
 
-      $scope.previewRealmCustom = function(template) {
+      $scope.previewRealmCustom = function (template) {
          if ($scope.realmCustom[template] == null) {
             Utils.showError("invalid template or missing data");
          } else {
@@ -495,7 +495,7 @@ angular.module('aac.controllers.realm', [])
             }
             var res = {};
             var rs = $scope.realmCustom[template]
-               .filter(function(r) {
+               .filter(function (r) {
                   return r.value != null;
                });
 
@@ -509,12 +509,12 @@ angular.module('aac.controllers.realm', [])
 
 
             RealmData.previewRealm($scope.realm.slug, template, cb)
-               .then(function(res) {
+               .then(function (res) {
                   console.log(res);
                   $scope.customPreview = res;
                   $('#customPreview').modal({ keyboard: false });
                })
-               .catch(function(err) {
+               .catch(function (err) {
                   Utils.showError(err.data.message);
                });
          }
@@ -523,7 +523,7 @@ angular.module('aac.controllers.realm', [])
       init();
    })
 
-   .controller('RealmSettingsController', function($scope, $stateParams, RealmData, Utils) {
+   .controller('RealmSettingsController', function ($scope, $stateParams, RealmData, Utils) {
       var slug = $stateParams.realmId;
 
 
@@ -536,74 +536,74 @@ angular.module('aac.controllers.realm', [])
          minLines: 12,
       };
 
-      $scope.activeView = function(view) {
+      $scope.activeView = function (view) {
          return view == $scope.formView ? 'active' : '';
       };
 
-      $scope.switchView = function(view) {
+      $scope.switchView = function (view) {
          $scope.formView = view;
          Utils.refreshFormBS(300);
       }
 
 
-      var init = function() {
+      var init = function () {
          RealmData.getRealm(slug)
-            .then(function(data) {
+            .then(function (data) {
                $scope.load(data);
                return data;
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
             });
       };
 
-      $scope.load = function(data) {
+      $scope.load = function (data) {
          $scope.realmSettings = data;
          Utils.refreshFormBS(300);
       };
 
-      $scope.saveRealmSettings = function() {
+      $scope.saveRealmSettings = function () {
          var data = $scope.realmSettings;
 
          RealmData.updateRealm($scope.realm.slug, data)
-            .then(function(res) {
+            .then(function (res) {
                $scope.load(res);
                $scope['$parent'].refresh();
                Utils.showSuccess();
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError(err.data.message);
             });
 
       }
 
-      $scope.exportRealmSettings = function() {
+      $scope.exportRealmSettings = function () {
          window.open('console/dev/realms/' + $scope.realm.slug + '/export');
       };
 
-      $scope.exportRealm = function() {
+      $scope.exportRealm = function () {
          window.open('console/dev/realms/' + $scope.realm.slug + '/export?full=1');
       };
 
       init();
    })
 
-   .controller('RealmScopesController', function($scope, $stateParams, RealmData, Utils) {
+   .controller('RealmScopesController', function ($scope, $stateParams, RealmData, Utils) {
       var slug = $stateParams.realmId;
 
 
-      var init = function() {
+      var init = function () {
          RealmData.getResources(slug)
-            .then(function(data) {
+            .then(function (data) {
                $scope.load(data);
                return data;
             })
-            .catch(function(err) {
+            .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
             });
       };
 
-      $scope.load = function(data) {
+      $scope.load = function (data) {
          $scope.resources = data;
          var scopes = [];
          data.forEach(r => {
@@ -617,13 +617,13 @@ angular.module('aac.controllers.realm', [])
       };
 
 
-      $scope.scopesDlg = function(resource) {
+      $scope.scopesDlg = function (resource) {
          $scope.scopeResource = resource;
          $('#scopesModal').modal({ backdrop: 'static', focus: true })
          Utils.refreshFormBS();
       }
 
-      $scope.doSearch = function() {
+      $scope.doSearch = function () {
          var keywords = $scope.search;
          var results = null;
          if (keywords) {

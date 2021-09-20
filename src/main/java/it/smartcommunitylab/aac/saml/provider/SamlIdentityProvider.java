@@ -70,7 +70,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     // attributes
     private final OpenIdAttributesMapper openidMapper;
     private ScriptExecutionService executionService;
-    private AttributeManager attributeService;
 
     @Override
     public String getType() {
@@ -109,11 +108,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
-    }
-
-    // TODO remove and move to attributeProvider
-    public void setAttributeService(AttributeManager attributeManager) {
-        this.attributeService = attributeManager;
     }
 
     @Override
@@ -302,21 +296,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
                 }
             }
             attributes.add(idpset);
-
-            // build additional user-defined attribute sets via mappers
-            if (attributeService != null) {
-                Collection<AttributeSet> sets = attributeService.listAttributeSets(getRealm());
-                for (AttributeSet as : sets) {
-                    DefaultAttributesMapper amap = new DefaultAttributesMapper(as);
-                    AttributeSet set = amap.mapAttributes(principalAttributes);
-                    if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
-                        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                                set));
-                    }
-                }
-
-            }
-
         }
 
         return attributes;
