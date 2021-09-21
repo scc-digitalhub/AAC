@@ -2,11 +2,11 @@ package it.smartcommunitylab.aac.scope;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider registry is a map with keys matching resourceIds
-    private final Map<String, ScopeProvider> providers = new HashMap<>();
+    private final Map<String, ScopeProvider> providers = new ConcurrentHashMap<>();
 
     // create the register and populate will all providers
     public InMemoryScopeRegistry(Collection<ScopeProvider> scopeProviders) {

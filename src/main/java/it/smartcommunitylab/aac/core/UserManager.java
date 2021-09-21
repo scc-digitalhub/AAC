@@ -72,11 +72,11 @@ public class UserManager {
 //    @Autowired
 //    private RoleService roleService;
 
-//    @Autowired
-//    private AuthorityManager authorityManager;
-
     @Autowired
-    private ProviderManager providerManager;
+    private AuthorityManager authorityManager;
+
+//    @Autowired
+//    private ProviderManager providerManager;
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -300,7 +300,7 @@ public class UserManager {
         Realm r = realmService.getRealm(realm);
 
         if (StringUtils.hasText(username)) {
-            Collection<IdentityProvider> providers = providerManager.getIdentityProviders(realm);
+            Collection<IdentityProvider> providers = authorityManager.getIdentityProviders(r.getSlug());
 
             // Assume internal provider exists and is unique
             Optional<IdentityProvider> internalProvider = providers.stream()
@@ -309,7 +309,7 @@ public class UserManager {
                 throw new NoSuchProviderException("No internal provider available");
             }
 
-            IdentityService identityService = providerManager.getIdentityService(internalProvider.get().getProvider());
+            IdentityService identityService = authorityManager.getIdentityService(internalProvider.get().getProvider());
 
             InternalUserAccount account = new InternalUserAccount();
             account.setUsername(username);

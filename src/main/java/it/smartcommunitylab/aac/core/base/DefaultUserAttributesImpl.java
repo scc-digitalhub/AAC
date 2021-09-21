@@ -40,7 +40,7 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
 
     @Override
     public String getAttributesId() {
-        return identifier + ":" + userId;
+        return exportInternalId(identifier + ":" + userId);
     }
 
     @Override

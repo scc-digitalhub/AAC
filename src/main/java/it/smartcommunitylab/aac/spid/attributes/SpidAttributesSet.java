@@ -9,12 +9,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Component;
+
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 
+@Component
 public class SpidAttributesSet implements AttributeSet {
     public static final String IDENTIFIER = "aac.spid";
     public static final List<String> keys;

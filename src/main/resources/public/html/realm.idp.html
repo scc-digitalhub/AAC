@@ -1,7 +1,7 @@
 <div class="pb-3 pt-3">
     <div class="row">
         <div class="col col-md-6 p-3">
-            <h6><a ui-sref="realm.providers({realmId:idp.realm})">Identity providers
+            <h6><a ui-sref="realm.idps({realmId:idp.realm})">Identity providers
                     &raquo;</a></h6>
         </div>
         <div class="col col-md-6 text-right">
@@ -55,15 +55,18 @@
         <li ng-if="idp.authority == 'spid'" class="nav-item">
             <a class="nav-link  {{activeView('conf.spid')}}" href ng-click="switchView('conf.spid')">SPID
                 Configuration</a>
-        </li>        
+        </li>            
         <li class="nav-item">
             <a class="nav-link  {{activeView('hooks')}}" href ng-click="switchView('hooks')">Hooks</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('apps')}}" href ng-click="switchView('apps')">Apps</a>
+        </li>           
     </ul>
     <div class="tab-content pt-3">
         <div class="tab-pane fade show active">
             <form role="form" name="providerForm" class="needs-validation was-validated" novalidate>
-                <div ng-include="'./html/provider/'+formView+'.html'"></div>
+                <div ng-include="'./html/provider/idp.'+formView+'.html'"></div>
             </form>
         </div>
     </div>

@@ -35,6 +35,9 @@ public class UserEntity {
 
     private String username;
 
+    @Column(name = "email_address")
+    private String emailAddress;
+
     /*
      * user status
      */
@@ -100,6 +103,14 @@ public class UserEntity {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
     }
 
     public String getRealm() {

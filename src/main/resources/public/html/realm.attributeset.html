@@ -2,17 +2,17 @@
     <div>
         <div class="row">
             <div class="col col-md-9">
-                <h6><a ui-sref="realm.attributesets({realmId:attributeSet.realm})">Attribute Sets
+                <h6><a ui-sref="realm.attributesets({realmId:slug})">Attribute Sets
                         &raquo;</a></h6>
                 <h3>{{attributeSet.name}}</h3>
-                <p class="text-monospace">{{attributeSet.identifier}}:profile.{{attributeSet.identifier}}.me</p>
+                <p class="text-monospace">{{attributeSet.identifier}}<span  ng-if="slug == attributeSet.realm">:profile.{{attributeSet.identifier}}.me</span></p>
             </div>
             <div class="col col-md-3 text-right">
-                <button class="btn btn-primary" type="button" ng-click="saveAttributeSet(attributeSet)">Save</button>
-                <button class="btn btn-primary" type="button"
+                <button class="btn btn-primary" type="button" ng-if="slug == attributeSet.realm" ng-click="saveAttributeSet(attributeSet)">Save</button>
+                <button class="btn btn-primary" type="button" ng-if="slug == attributeSet.realm"
                     ng-click="editAttributeSetDlg(attributeSet)">Edit</button>
                 <button class="btn btn-info" type="button" ng-click="exportAttributeSet(attributeSet)">Export</button>
-                <button class="btn btn-danger" type="button"
+                <button class="btn btn-danger" type="button" ng-if="slug == attributeSet.realm"
                     ng-click="deleteAttributeSetDlg(attributeSet)">Delete</button>
             </div>
         </div>
@@ -24,7 +24,7 @@
                 <h4>Attributes</h4>
             </div>
             <div class="col-md-1 text-right">
-                <a class="btn btn-xs btn-primary btn-icon" ng-click="editAttribute()">
+                <a class="btn btn-xs btn-primary btn-icon" ng-if="slug == attributeSet.realm" ng-click="editAttribute()">
                     <svg class="icon icon-white">
                         <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
                     </svg>
@@ -49,11 +49,11 @@
                             {{attr.multiple ? ('[' + attr.type +']'): attr.type}}
                         </td>
                         <td class="text-right">
-                            <a class="btn btn-xs  btn-danger btn-icon pull-right" ng-click="removeAttribute(attr)"><svg
+                            <a class="btn btn-xs  btn-danger btn-icon pull-right" ng-if="slug == attributeSet.realm" ng-click="removeAttribute(attr)"><svg
                                     class="icon icon-white">
                                     <use xlink:href="./italia/svg/sprite.svg#it-minus"></use>
                                 </svg></span></a>
-                            <a class="btn btn-xs btn-primary btn-icon  pull-right" ng-click="editAttribute(attr)"><svg
+                            <a class="btn btn-xs btn-primary btn-icon  pull-right" ng-if="slug == attributeSet.realm" ng-click="editAttribute(attr)"><svg
                                     class="icon icon-white">
                                     <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
                                 </svg></a>

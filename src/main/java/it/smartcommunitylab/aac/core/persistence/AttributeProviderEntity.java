@@ -6,22 +6,16 @@ import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
-@Table(name = "providers")
-public class ProviderEntity {
-
-//    @Id
-//    @GeneratedValue
-//    private Long id;
+@Table(name = "attribute_providers")
+public class AttributeProviderEntity {
 
     @NotNull
     private String authority;
@@ -35,26 +29,20 @@ public class ProviderEntity {
     private String realm;
 
     @NotNull
-    @Column(name = "provider_type")
-    private String type;
-
-    @NotNull
     @Column(name = "enabled")
     private boolean enabled;
 
     private String name;
     private String description;
-    private String icon;
-
-    @NotNull
-    @Column(name = "linkable")
-    private boolean linkable = true;
 
     @Column(name = "persistence_level")
     private String persistence;
 
     @Column(name = "event_level")
     private String events;
+
+    @Column(name = "set_ids")
+    private String attributeSets;
 
     // key-based configuration for persistence
     // converts to json via custom converter
@@ -63,29 +51,13 @@ public class ProviderEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> configurationMap;
 
-    @Lob
-    @Column(name = "hook_functions")
-    @Convert(converter = HashMapBase64Converter.class)
-    private Map<String, String> hookFunctions;
-
-    @Column(name = "display_mode")
-    private String displayMode;
-
-    public ProviderEntity() {
+    public AttributeProviderEntity() {
 
     }
 
-    public ProviderEntity(String providerId) {
+    public AttributeProviderEntity(String providerId) {
         this.providerId = providerId;
     }
-
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
 
     public String getAuthority() {
         return authority;
@@ -111,13 +83,13 @@ public class ProviderEntity {
         this.realm = realm;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
+//    public String getType() {
+//        return type;
+//    }
+//
+//    public void setType(String type) {
+//        this.type = type;
+//    }
 
     public boolean isEnabled() {
         return enabled;
@@ -125,14 +97,6 @@ public class ProviderEntity {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public boolean isLinkable() {
-        return linkable;
-    }
-
-    public void setLinkable(boolean linkable) {
-        this.linkable = linkable;
     }
 
     public String getName() {
@@ -151,12 +115,12 @@ public class ProviderEntity {
         this.description = description;
     }
 
-    public String getIcon() {
-        return icon;
+    public String getAttributeSets() {
+        return attributeSets;
     }
 
-    public void setIcon(String icon) {
-        this.icon = icon;
+    public void setAttributeSets(String attributeSets) {
+        this.attributeSets = attributeSets;
     }
 
     public String getPersistence() {
@@ -175,28 +139,12 @@ public class ProviderEntity {
         this.events = events;
     }
 
-    public String getDisplayMode() {
-        return displayMode;
-    }
-
-    public void setDisplayMode(String displayMode) {
-        this.displayMode = displayMode;
-    }
-
     public Map<String, Serializable> getConfigurationMap() {
         return configurationMap;
     }
 
     public void setConfigurationMap(Map<String, Serializable> configurationMap) {
         this.configurationMap = configurationMap;
-    }
-
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
-    }
-
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
     }
 
 }

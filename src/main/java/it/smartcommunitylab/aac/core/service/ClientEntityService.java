@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -67,6 +69,7 @@ public class ClientEntityService {
             Map<String, String> hookFunctions,
             Map<String, String> hookWebUrls,
             String hookUniqueSpaces) throws IllegalArgumentException {
+
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c != null) {
             throw new IllegalArgumentException("client already exists with the same id");
@@ -95,7 +98,6 @@ public class ClientEntityService {
         c.setHookUniqueSpaces(hookUniqueSpaces);
 
         c = clientRepository.save(c);
-
         return c;
 
     }
@@ -109,15 +111,15 @@ public class ClientEntityService {
     public ClientEntity getClient(String clientId) throws NoSuchClientException {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c == null) {
-            throw new NoSuchClientException();
+            throw new NoSuchClientException("no client for id " + String.valueOf(clientId));
         }
 
         return c;
     }
 
     @Transactional(readOnly = true)
-    public ClientEntity findClient(String realm, String name) {
-        return clientRepository.findByRealmAndName(realm, name);
+    public long countClients(String realm) {
+        return clientRepository.countByRealm(realm);
     }
 
     @Transactional(readOnly = true)
@@ -131,8 +133,24 @@ public class ClientEntityService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<ClientEntity> listClients(String realm, String type) {
+    public Collection<ClientEntity> findClientsByName(String realm, String name) {
+        return clientRepository.findByRealmAndName(realm, name);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<ClientEntity> findClientsByType(String realm, String type) {
         return clientRepository.findByRealmAndType(realm, type);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClientEntity> searchClients(String realm, String q, Pageable pageRequest) {
+        Page<ClientEntity> page = StringUtils.hasText(q)
+                ? clientRepository.findByRealmAndNameContainingIgnoreCaseOrRealmAndClientIdContainingIgnoreCase(realm,
+                        q, realm,
+                        q, pageRequest)
+                : clientRepository.findByRealm(realm, pageRequest);
+
+        return page;
     }
 
     public ClientEntity updateClient(String clientId,
@@ -195,14 +213,14 @@ public class ClientEntityService {
      */
     @Transactional(readOnly = true)
     public List<ClientRoleEntity> getRoles(String clientId) throws NoSuchClientException {
-//        ClientEntity c = getClient(clientId);
-        return clientRoleRepository.findByClientId(clientId);
+        ClientEntity c = getClient(clientId);
+        return clientRoleRepository.findByClientId(c.getClientId());
     }
 
     @Transactional(readOnly = true)
     public List<ClientRoleEntity> getRoles(String clientId, String realm) throws NoSuchClientException {
-//      ClientEntity c = getClient(clientId);
-        return clientRoleRepository.findByClientIdAndRealm(clientId, realm);
+        ClientEntity c = getClient(clientId);
+        return clientRoleRepository.findByClientIdAndRealm(c.getClientId(), realm);
     }
 
     /*

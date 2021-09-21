@@ -1,0 +1,25 @@
+<div class="pt-3">
+
+    <fieldset>
+       <legend class="mb-4">Client applications</legend>
+       <div ng-if="apps && apps.length > 0">
+           <table class="table table-hover border-bottom">
+               <tr ng-repeat="item in apps" class="{{item.providers.includes(idp.provider) ? '' : 'text-muted'}}">
+                   <td class="align-middle">
+                       <span class="h6">{{item.name}}</span> <br>
+                       <small class="text-muted"> {{item.type }}</small>
+                       <p>{{item.description}}</p>
+                   </td>
+                   <td class="text-right">
+                     <div class="toggles">
+                         <label>
+                             <input type="checkbox" ng-checked="item.providers.includes(idp.provider)" ng-click="toggleProviderClientApp(idp.provider, item)">
+                             <span class="lever"></span>
+                         </label>
+                     </div>                      
+                   </td>
+               </tr>
+           </table>
+       </div>
+    </fieldset>
+</div>

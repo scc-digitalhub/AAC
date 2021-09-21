@@ -12,12 +12,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.service.ProviderService;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.auth.InternalUserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticationException;
@@ -34,7 +35,7 @@ public class ExtendedAuthenticationEventPublisher
     private ApplicationEventPublisher applicationEventPublisher;
     private final DefaultAuthenticationEventPublisher defaultPublisher;
 
-    private ProviderService providerService;
+    private IdentityProviderService providerService;
 
     public ExtendedAuthenticationEventPublisher() {
         this(null);
@@ -59,7 +60,7 @@ public class ExtendedAuthenticationEventPublisher
         Assert.notNull(providerService, "provider manager can not be null");
     }
 
-    public void setProviderService(ProviderService providerService) {
+    public void setProviderService(IdentityProviderService providerService) {
         this.providerService = providerService;
     }
 
@@ -103,10 +104,14 @@ public class ExtendedAuthenticationEventPublisher
         if (authentication instanceof ProviderWrappedAuthenticationToken) {
             ProviderWrappedAuthenticationToken token = (ProviderWrappedAuthenticationToken) authentication;
             String realm = null;
-            // resolve only active providers
-            ProviderEntity idp = providerService.findProvider(token.getProvider());
+            // resolve providers via service
+            ConfigurableIdentityProvider idp = providerService.findProvider(token.getProvider());
+
             if (idp != null) {
                 realm = idp.getRealm();
+            } else {
+                // fallback to system realm
+                realm = SystemKeys.REALM_SYSTEM;
             }
 
             UserAuthenticationFailureEvent event = translateAuthenticationException(

@@ -41,7 +41,7 @@
     <table class="table table-hover border-bottom">
       <tr ng-repeat="item in providers">
 
-        <td class="align-middle {{item.registered ? '' : 'text-muted'}}">
+        <td class="align-middle {{!item.enabled && !item.registered ? 'text-muted' : ''}} {{item.enabled && !item.registered ? 'text-danger' : ''}}">
 
           <div class="avatar-wrapper avatar-extra-text">
             <div class="avatar size-lg">
@@ -53,24 +53,32 @@
               <span class="h6">{{item.name}}</span>
               <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
                 <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                <title>Active</title>
               </svg>
               <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
                 <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
+                <title>Error</title>
               </svg>
               <svg ng-if="!item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
                 <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                <title>Disabled</title>
               </svg>
-              <br><small class=""> {{item.authority }}:{{item.provider}}</small>
+              <br><small class=""> {{item.authority }}</small>
               <p>{{item.description}}</p>
           </div>
 
 
         </td>
+       <td class="align-middle">
+           ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.provider}}</span>
+         <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.provider)">
+             <svg class="icon icon-xs icon-black">
+                 <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+             </svg>
+         </button>                     
+       </td>        
         <td class="align-middle">
-          <div class="form-check form-check-inline"><input ng-attr-id="{{item.provider}}-registered" type="checkbox"
-              ng-checked="item.registered" ng-model="item.registered" disabled><label
-              ng-attr-for="{{item.provider}}-registered"></label>
-          </div>
+            <span>{{item.apps}} apps
         </td>
         <td class="text-right">
           <button ng-if="!item.enabled" class="btn btn-success btn-sm  text-right"
@@ -82,7 +90,7 @@
             Disable
           </button>
           <button class="btn btn-primary btn-sm"
-            ui-sref="realm.provider({realmId:item.realm, providerId:item.provider})">Edit</button>
+            ui-sref="realm.idp({realmId:item.realm, providerId:item.provider})">Edit</button>
           <button class="btn btn-danger btn-sm" ng-disabled="item.enabled"
             ng-click="deleteProviderDlg(item)">Delete</button>
         </td>

@@ -14,29 +14,55 @@
   </div>
 </div>
 <div class="accordion" id="users">
+  <form name="searchUsers"  class="" novalidate >
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="keywords" class="{{keywords != '' ? 'active' : ''}}">Search</label>
+                    <input type="text" class="form-control bg-transparent" id="keywords" ng-model="keywords">
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="runQuery()">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-search"></use>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div>
+            </div>   
+  </form>
   <div ng-if="users && users.content.length > 0">
+  
     <table class="table table-hover border-bottom">
-      <thead>
-        <tr>
-          <th>UUID</th>
-          <th>Provider</th>
-          <th>Username</th>
-          <th>Realm Roles</th>
-          <th></th>
-        </tr>
-      </thead>
       <tr ng-repeat="item in users.content">
-        <td class="align-middle"> <span class="small">{{item.subjectId}}</span></td>
-        <td class="align-middle">
-          <span ng-if="item.source != realm.slug">Proxy ({{item.source}})</span>
-          <div ng-if="item.source == realm.slug">
-            <div ng-repeat="p in item._providers">{{p}}</div>
-          </div>
+        <td class="align-middle">        
+          <div class="avatar-wrapper avatar-extra-text">
+            <div class="avatar size-lg">
+               <p> {{item.username | limitTo: 2 | uppercase}} </p>                  
+            </div>
+            <div class="extra-text">
+                <span class="h6">{{item.username}}</span> <br>
+                <div ng-if="item.source == realm.slug">
+                  <small class="text-muted" ng-repeat="p in item._providers">{{p}}</span>
+                </div>
+                <small class="text-muted"> {{item.type }}</small>
+                <p>{{item.email}}</p>                     
+          </div>                   
         </td>
-        <td class="align-middle">{{item.username}}</td>
+        
+        <td class="align-middle">
+           Uuid <span class="small text-monospace bg-light pl-1 pr-1">{{item.subjectId}}</span>
+         <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.subjectId)">
+             <svg class="icon icon-xs icon-black">
+                 <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+             </svg>
+         </button>           
+        </td>
+        
         <td class="align-middle small">
           <span ng-repeat="a in item._authorities"><span class="badge badge-secondary">{{a}}</span> </span>
         </td>
+                        
         <td class="text-right">
           <button class="btn btn-secondary btn-sm" ng-click="editRoles(item)">Roles</button>
           <button class="btn btn-secondary btn-sm" ng-click="jsonUserDlg(item)">Inspect</button>
@@ -44,6 +70,7 @@
         </td>
       </tr>
     </table>
+    
     <nav class="pagination-wrapper" aria-label="pagination">
       <ul class="pagination">
         <li class="page-item" ng-class="{'disabled':users.first}">
@@ -78,7 +105,30 @@
     </nav>
   </div>
 
-  <div ng-if="users && users.content.length == 0">
+  <div ng-if="users && users.content.length == 0 && query.q != ''">
+    <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="it-hero-text-wrapper bg-dark">
+              <h1 class="no_toc">No users found.</h1>
+              <p class="d-none d-lg-block">No user found matching query '{{query.q}}'</p>
+              <p class="d-none d-lg-block">Add or invite a user.</p>
+              <div class="it-btn-container">
+                <button class="btn btn-primary text-right" type="button" ng-click="inviteUser()">
+                  <svg class="icon icon-sm">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                  </svg>
+                  Add / Invite User</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="users && users.content.length == 0 && query.q == ''">
     <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
       <div class="container-fluid">
         <div class="row">

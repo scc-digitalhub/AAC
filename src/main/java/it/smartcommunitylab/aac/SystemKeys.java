@@ -23,6 +23,10 @@ public class SystemKeys {
     public static final String AUTHORITY_SAML = "saml";
     public static final String AUTHORITY_SPID = "spid";
     public static final String AUTHORITY_CIE = "cie";
+    public static final String AUTHORITY_MAPPER = "mapper";
+    public static final String AUTHORITY_SCRIPT = "script";
+    public static final String AUTHORITY_WEBHOOK = "webhook";
+
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";

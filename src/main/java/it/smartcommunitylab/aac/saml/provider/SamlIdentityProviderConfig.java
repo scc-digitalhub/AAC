@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 
 public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
@@ -415,8 +415,9 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     /*
      * builders
      */
-    public static ConfigurableProvider toConfigurableProvider(SamlIdentityProviderConfig sp) {
-        ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_SAML, sp.getProvider(), sp.getRealm());
+    public static ConfigurableIdentityProvider toConfigurableProvider(SamlIdentityProviderConfig sp) {
+        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_SAML, sp.getProvider(),
+                sp.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setPersistence(sp.getPersistence());
 
@@ -430,7 +431,7 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         return cp;
     }
 
-    public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
+    public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         SamlIdentityProviderConfig sp = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         sp.setConfiguration(cp.getConfiguration());
 

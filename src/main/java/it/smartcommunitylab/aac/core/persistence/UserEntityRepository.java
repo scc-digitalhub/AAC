@@ -16,13 +16,17 @@ public interface UserEntityRepository extends CustomJpaRepository<UserEntity, Lo
 
     List<UserEntity> findByRealm(String realm);
 
+    List<UserEntity> findByRealmAndUsername(String realm, String username);
+
+    List<UserEntity> findByRealmAndEmailAddress(String realm, String emailAddress);
+
 //    Page<UserEntity> findByRealm(String realm, Pageable pageRequest);
 //    @Query("select u from UserEntity u where u.realm = ?1 and LOWER(u.username) like lower(concat('%', ?2,'%'))")
 //    Page<UserEntity> findByRealm(String realm, String q, Pageable pageRequest);
 
-    
     @Query("select distinct u from UserEntity u left outer join UserRoleEntity r on u.uuid = r.subject where (r.realm = ?1 or u.realm = ?1)")
     Page<UserEntity> findByRealm(String realm, Pageable pageRequest);
+
     @Query("select distinct u from UserEntity u  left outer join UserRoleEntity r on u.uuid = r.subject where (r.realm = ?1 or u.realm = ?1) and LOWER(u.username) like lower(concat('%', ?2,'%'))")
     Page<UserEntity> findByRealm(String realm, String q, Pageable pageRequest);
 

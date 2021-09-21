@@ -23,13 +23,17 @@ import it.smartcommunitylab.aac.SystemKeys;
  *
  */
 public class AlreadyRegisteredException extends RegistrationException {
-    /**
-     * @param string
-     */
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+    public final static String ERROR = "error.already_registered";
+
     public AlreadyRegisteredException(String string) {
         super(string);
     }
 
-    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+    @Override
+    public String getError() {
+        return AlreadyRegisteredException.ERROR;
+    }
 
 }

@@ -48,6 +48,7 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
@@ -68,19 +69,18 @@ import it.smartcommunitylab.aac.model.Subject;
 public class ExtendedAuthenticationManager implements AuthenticationManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-//    private final AuthorityManager authorityManager;
+    private final AuthorityManager authorityManager;
     private final UserEntityService userService;
-    private final ProviderManager providerManager;
 
     private AuthenticationEventPublisher eventPublisher;
 
     public ExtendedAuthenticationManager(
-            ProviderManager providerManager,
+            AuthorityManager authorityManager,
             UserEntityService userService) {
-        Assert.notNull(providerManager, "provider manager is required");
+        Assert.notNull(authorityManager, "authority manager is required");
         Assert.notNull(userService, "user service is required");
 
-        this.providerManager = providerManager;
+        this.authorityManager = authorityManager;
         this.userService = userService;
 
         logger.debug("authentication manager created");
@@ -130,10 +130,10 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
                 IdentityProvider idp = null;
                 if (StringUtils.hasText(authorityId)) {
                     // fast load
-                    idp = providerManager.fetchIdentityProvider(authorityId, providerId);
+                    idp = authorityManager.fetchIdentityProvider(authorityId, providerId);
                 } else {
                     // from db
-                    idp = providerManager.findIdentityProvider(providerId);
+                    idp = authorityManager.findIdentityProvider(providerId);
                 }
 
                 if (idp == null) {
@@ -170,11 +170,11 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
                 if (StringUtils.hasText(authorityId)) {
                     // fast load
-                    providers.addAll(providerManager.fetchIdentityProviders(authorityId, realm));
+                    providers.addAll(authorityManager.fetchIdentityProviders(authorityId, realm));
                 } else {
                     // from db
                     try {
-                        providers.addAll(providerManager.getIdentityProviders(realm));
+                        providers.addAll(authorityManager.getIdentityProviders(realm));
                     } catch (NoSuchRealmException re) {
                         providers = Collections.emptyList();
                     }
@@ -304,7 +304,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
         // fetch identity provider for the given userId
         // fast load skipping db
-        IdentityProvider idp = providerManager.fetchIdentityProvider(authorityId, providerId);
+        IdentityProvider idp = authorityManager.fetchIdentityProvider(authorityId, providerId);
         if (idp == null) {
             // should not happen, provider has become unavailable during login
             throw new ProviderNotFoundException("provider not found");
@@ -329,7 +329,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // account linking via attributes
             Map<String, String> attributes = resolver.getLinkingAttributes(principal);
             if (attributes != null && !attributes.isEmpty()) {
-                Collection<IdentityProvider> idps = providerManager.fetchIdentityProviders(realm);
+                Collection<IdentityProvider> idps = authorityManager.fetchIdentityProviders(realm);
                 // first result is ok
                 for (IdentityProvider i : idps) {
                     Subject ss = i.getSubjectResolver().resolveByLinkingAttributes(attributes);
@@ -346,7 +346,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // generate a new subject, always persisted
             UserEntity u = userService.createUser(realm);
             subjectId = u.getUuid();
-            u = userService.addUser(subjectId, realm, null);
+            u = userService.addUser(subjectId, realm, null, null);
 
             logger.debug("created subject for identity to " + subjectId);
 
@@ -420,7 +420,9 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             // always override username with last login
             if (StringUtils.hasText(identity.getAccount().getUsername())) {
-                user = userService.updateUser(subjectId, identity.getAccount().getUsername());
+                user = userService.updateUser(subjectId,
+                        identity.getAccount().getUsername(),
+                        identity.getAccount().getEmailAddress());
             }
 
             // set login date
@@ -478,6 +480,22 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // set webAuth details matching this request
             userAuth.setWebAuthenticationDetails(webAuthDetails);
 
+            // load additional attributes from providers
+            UserDetails userDetails = userAuth.getUser();
+            Collection<AttributeProvider> attributeProviders = authorityManager.fetchAttributeProviders(realm);
+            for (AttributeProvider ap : attributeProviders) {
+                // try to fetch attributes, don't stop authentication on errors
+                // attributes from aps are optional by definition
+                try {
+                    Collection<UserAttributes> attrs = ap.convertAttributes(principal, subjectId);
+                    if (attrs != null) {
+                        attrs.forEach(a -> userDetails.addAttributeSet(a));
+                    }
+                } catch (RuntimeException e) {
+                    logger.error("error loading attributes with provider " + ap.getProvider() + ": " + e.getMessage());
+                }
+            }
+
             logger.debug("successfully build userAuthentication token for " + userAuth.getSubjectId());
             logger.trace("userAuthentication is " + userAuth.toString());
 
@@ -503,7 +521,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             // load additional identities from same realm providers
             // fast load, get only idp with persistence
-            Collection<IdentityService> idps = providerManager.fetchIdentityServices(realm);
+            Collection<IdentityService> idps = authorityManager.fetchIdentityServices(realm);
             // ask all providers except the one already used
             for (IdentityService ip : idps) {
                 if (!providerId.equals(ip.getProvider())) {

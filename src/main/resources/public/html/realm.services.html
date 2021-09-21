@@ -23,6 +23,14 @@
           <br> <small class="text-muted"> {{service.namespace}} </small>
           <p>{{service.description}}</p>
         </td>
+       <td class="align-middle">
+           Audience <span class="small text-monospace bg-light pl-1 pr-1">{{service.namespace}}</span>
+         <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(service.namespace)">
+             <svg class="icon icon-xs icon-black">
+                 <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+             </svg>
+         </button>                     
+       </td>        
         <td class="text-right">
           <button class="btn btn-secondary btn-sm" ng-click="serviceApprovals(service)">Approvals</button>
           <button class="btn btn-primary btn-sm" ng-click="switchService(service)">Manage</button>

@@ -6,7 +6,7 @@ import java.util.List;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 
@@ -45,10 +45,10 @@ public interface IdentityAuthority {
      * implementations should unregister+register, we want identities and sessions
      * to be invalidated if config changes
      */
-    public IdentityProvider registerIdentityProvider(ConfigurableProvider idp)
+    public IdentityProvider registerIdentityProvider(ConfigurableIdentityProvider idp)
             throws IllegalArgumentException, RegistrationException, SystemException;
 
-    public void unregisterIdentityProvider(String realm, String providerId) throws SystemException;
+    public void unregisterIdentityProvider(String providerId) throws SystemException;
 
     /*
      * Identity services
@@ -68,9 +68,9 @@ public interface IdentityAuthority {
      * either a null or empty collection.
      */
 
-    public Collection<ConfigurableProvider> getConfigurableProviderTemplates();
+    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates();
 
-    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException;
 
 }

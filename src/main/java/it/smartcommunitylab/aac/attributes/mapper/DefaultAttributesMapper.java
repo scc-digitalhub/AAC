@@ -24,6 +24,8 @@ import it.smartcommunitylab.aac.model.AttributeType;
 
 public class DefaultAttributesMapper extends BaseAttributesMapper {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    
+    public static final String TYPE = "default";
 
     public DefaultAttributesMapper(AttributeSet attributeSet) {
         super(attributeSet);

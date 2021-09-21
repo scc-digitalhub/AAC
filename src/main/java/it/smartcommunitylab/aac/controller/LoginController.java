@@ -29,8 +29,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.LoginException;
+import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
@@ -47,7 +47,7 @@ public class LoginController {
     private String applicationName;
 
     @Autowired
-    private ProviderManager providerManager;
+    private AuthorityManager authorityManager;
 
     @Autowired
     private RealmManager realmManager;
@@ -152,10 +152,10 @@ public class LoginController {
         model.addAttribute("customization", resources);
 
         // fetch providers for given realm
-        Collection<IdentityProvider> providers = providerManager.getIdentityProviders(realm);
+        Collection<IdentityProvider> providers = authorityManager.getIdentityProviders(realm);
 
         if (StringUtils.hasText(providerId)) {
-            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
+            IdentityProvider idp = authorityManager.getIdentityProvider(providerId);
             if (idp.getRealm().equals(realm)) {
                 providers = Collections.singleton(idp);
             }

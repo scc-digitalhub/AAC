@@ -23,13 +23,12 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.SpidProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
@@ -83,9 +82,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
-    // attribute manager for custom attributes mapping
-    private AttributeManager attributeManager;
-
     @Override
     public String getAuthorityId() {
         return SystemKeys.AUTHORITY_SPID;
@@ -112,11 +108,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     @Autowired
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
-    }
-
-    @Autowired
-    public void setAttributeManager(AttributeManager attributeManager) {
-        this.attributeManager = attributeManager;
     }
 
     @Override
@@ -167,7 +158,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public SpidIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
+    public SpidIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -213,15 +204,10 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public void unregisterIdentityProvider(String realm, String providerId) {
+    public void unregisterIdentityProvider(String providerId) {
         SpidIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
-            // check realm match
-            if (!realm.equals(registration.getRealm())) {
-                throw new IllegalArgumentException("realm does not match");
-            }
-
             // can't unregister system providers, check
             if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
                 return;
@@ -256,12 +242,13 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
         return Collections.emptyList();
     }
 
     @Override
-    public ConfigurableProvider getConfigurableProviderTemplate(String templateId) throws NoSuchProviderException {
+    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
+            throws NoSuchProviderException {
         throw new NoSuchProviderException();
     }
 

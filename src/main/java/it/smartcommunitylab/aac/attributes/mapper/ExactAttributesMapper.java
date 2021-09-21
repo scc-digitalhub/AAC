@@ -24,6 +24,8 @@ import it.smartcommunitylab.aac.model.AttributeType;
 public class ExactAttributesMapper extends BaseAttributesMapper {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    public static final String TYPE = "exact";
+
     public ExactAttributesMapper(AttributeSet attributeSet) {
         super(attributeSet);
 

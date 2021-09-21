@@ -16,7 +16,7 @@ import org.springframework.util.StringUtils;
 import com.nimbusds.jose.jwk.JWKSet;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.service.ProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
@@ -40,7 +40,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
     private static final StringKeyGenerator NAME_GENERATOR = new HumanStringKeyGenerator(4);
 
     private final OAuth2ClientService clientService;
-    private ProviderService providerService;
+    private IdentityProviderService providerService;
     private StringKeyGenerator nameGenerator;
 
     public OAuth2ClientRegistrationServices(OAuth2ClientService clientService) {
@@ -49,7 +49,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         this.nameGenerator = NAME_GENERATOR;
     }
 
-    public void setProviderService(ProviderService providerService) {
+    public void setProviderService(IdentityProviderService providerService) {
         this.providerService = providerService;
     }
 
@@ -95,7 +95,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
         // enable all providers for the given realm
         // we lack a way to transmit providers via client registration
-        Set<String> providers = providerService.listProvidersByRealm(realm).stream().map(pe -> pe.getProviderId())
+        Set<String> providers = providerService.listProviders(realm).stream().map(p -> p.getProvider())
                 .collect(Collectors.toSet());
 
         // build a client config
@@ -171,7 +171,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
 
             // enable all providers for the given realm
             // we lack a way to transmit providers via client registration
-            Set<String> providers = providerService.listProvidersByRealm(realm).stream().map(pe -> pe.getProviderId())
+            Set<String> providers = providerService.listProviders(realm).stream().map(p -> p.getProvider())
                     .collect(Collectors.toSet());
 
             // build a client config

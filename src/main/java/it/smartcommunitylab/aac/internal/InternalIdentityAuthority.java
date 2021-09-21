@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
@@ -204,7 +204,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public InternalIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
+    public InternalIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -245,15 +245,10 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public void unregisterIdentityProvider(String realm, String providerId) {
+    public void unregisterIdentityProvider(String providerId) {
         InternalIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
-            // check realm match
-            if (!realm.equals(registration.getRealm())) {
-                throw new IllegalArgumentException("realm does not match");
-            }
-
             // can't unregister system providers, check
             if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
                 return;
@@ -288,12 +283,12 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
         return Collections.singleton(InternalIdentityProviderConfig.toConfigurableProvider(template));
     }
 
     @Override
-    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
         if ("internal.default".equals(templateId)) {
             return InternalIdentityProviderConfig.toConfigurableProvider(template);
@@ -307,11 +302,11 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
      */
 
     private InternalIdentityProviderConfig getProviderConfig(String provider, String realm,
-            ConfigurableProvider cp) {
+            ConfigurableIdentityProvider cp) {
 
         // build empty config if missing
         if (cp == null) {
-            cp = new ConfigurableProvider(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+            cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         } else {
             Assert.isTrue(SystemKeys.AUTHORITY_INTERNAL.equals(cp.getAuthority()),
                     "configuration does not match this provider");

@@ -50,7 +50,6 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
 
     // providers
     private final InternalAccountProvider accountProvider;
-//    private final InternalAttributeProvider attributeProvider;
     private final InternalAuthenticationProvider authenticationProvider;
     private final InternalSubjectResolver subjectResolver;
     private final InternalAccountService accountService;
@@ -83,8 +82,6 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         this.passwordService = new InternalPasswordService(providerId, userAccountService, realm,
                 this.config.getConfigMap());
 
-        // TODO attributeService to feed attribute provider
-//        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, null, realm);
         this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
                 passwordService, realm, this.config.getConfigMap());
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, realm);
@@ -121,11 +118,6 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
     public InternalAccountProvider getAccountProvider() {
         return accountProvider;
     }
-//
-//    @Override
-//    public AttributeProvider getAttributeProvider() {
-//        return attributeProvider;
-//    }
 
     @Override
     public SubjectResolver getSubjectResolver() {
@@ -382,12 +374,13 @@ public class InternalIdentityProvider extends AbstractProvider implements Identi
         if (!StringUtils.hasText(username)) {
             throw new RegistrationException("missing-username");
         }
+        String emailAddress = reg.getEmailAddress();
 
         // we expect subject to be valid, or null if we need to create
         UserEntity user = null;
         if (!StringUtils.hasText(subject)) {
             subject = userEntityService.createUser(realm).getUuid();
-            user = userEntityService.addUser(subject, realm, username);
+            user = userEntityService.addUser(subject, realm, username, emailAddress);
             subject = user.getUuid();
         } else {
             // check if exists

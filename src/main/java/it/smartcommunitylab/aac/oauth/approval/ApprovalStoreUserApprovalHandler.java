@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.oauth.approval;
 
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,7 +46,9 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.openid.scope.OfflineAccessScope;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
@@ -115,7 +118,6 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         logger.debug("requested scopes for client " + clientId + ": " + requestedScopes.toString());
 
-        
         // we have 2 sets of approved scopes
         // firstParty handling: autoApprove for same realm user with autoApprove scopes
         // TODO handle mixed user scopes + client scopes
@@ -349,12 +351,20 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         for (String scope : requestedScopes) {
             // set all scopes according to status
-            if (allApprovedScopes.contains(scope)) {
+            // note offline_access can't be autoapproved or fetched from db...
+            if (allApprovedScopes.contains(scope) && !OfflineAccessScope.SCOPE.equals(scope)) {
                 approvedScopes.add(scope);
             } else {
                 approvalScopes.add(scope);
             }
 
+        }
+
+        // check if prompt consent and clear approved
+        Set<String> prompt = StringUtils
+                .commaDelimitedListToSet((String) request.getExtensions().get("prompt"));
+        if (prompt.contains(PromptMode.CONSENT.getValue())) {
+            approvedScopes = Collections.emptySet();
         }
 
         // set as oauth2 scope params

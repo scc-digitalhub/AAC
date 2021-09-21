@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
@@ -37,6 +38,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
  */
 
 @Component
+@Deprecated
 //@Transactional
 public class APIMProviderService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -46,6 +48,9 @@ public class APIMProviderService {
 
     @Autowired
     private ProviderManager providerManager;
+
+    @Autowired
+    private AuthorityManager authorityManager;
 
 //    @Autowired
 //    private ServiceManager serviceManager;
@@ -92,7 +97,8 @@ public class APIMProviderService {
         }
         // check if exists by developer and name
         if (client == null && StringUtils.hasText(clientName)) {
-            client = clientService.findClient(realm, clientName);
+            Collection<OAuth2Client> clients = clientService.findClient(realm, clientName);
+            client = clients != null ? clients.stream().findFirst().orElse(null) : null;
         }
 
         if (client == null) {
@@ -111,7 +117,7 @@ public class APIMProviderService {
         OAuth2ClientConfigMap configMap = client.getConfigMap();
 
         // fetch and add all realm providers
-        List<String> providers = providerManager.getIdentityProviders(realm).stream().map(idp -> idp.getProvider())
+        List<String> providers = authorityManager.getIdentityProviders(realm).stream().map(idp -> idp.getProvider())
                 .collect(Collectors.toList());
 
         Set<AuthenticationMethod> authenticationMethods = new HashSet<>();
@@ -160,7 +166,7 @@ public class APIMProviderService {
         }
 
         // fetch and add all realm providers
-        List<String> providers = providerManager.getIdentityProviders(realm).stream().map(idp -> idp.getProvider())
+        List<String> providers = authorityManager.getIdentityProviders(realm).stream().map(idp -> idp.getProvider())
                 .collect(Collectors.toList());
 
         // get current config

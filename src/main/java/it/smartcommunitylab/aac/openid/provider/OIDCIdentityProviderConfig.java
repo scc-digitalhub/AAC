@@ -12,7 +12,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
 
@@ -21,6 +21,8 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 //    public static final String PROVIDER_GOOGLE = "google";
 //    public static final String PROVIDER_FACEBOOK = "facebook";
 //    public static final String PROVIDER_GITHUB = "github";
+
+    private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
 
     public static final String DEFAULT_REDIRECT_URL = "{baseUrl}" + OIDCIdentityAuthority.AUTHORITY_URL
             + "{action}/{registrationId}";
@@ -163,7 +165,13 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
 
         // check for autoconf, will override template
         if (StringUtils.hasText(configMap.getIssuerUri())) {
-            builder = ClientRegistrations.fromIssuerLocation(configMap.getIssuerUri());
+            String issuerUri = configMap.getIssuerUri();
+            // remove well-known path if provided by user
+            if (issuerUri.endsWith(WELL_KNOWN_CONFIGURATION_OPENID)) {
+                issuerUri = issuerUri.substring(0, issuerUri.length() - WELL_KNOWN_CONFIGURATION_OPENID.length());
+            }
+
+            builder = ClientRegistrations.fromIssuerLocation(issuerUri);
         }
 
         // set config
@@ -251,8 +259,9 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     /*
      * builders
      */
-    public static ConfigurableProvider toConfigurableProvider(OIDCIdentityProviderConfig op) {
-        ConfigurableProvider cp = new ConfigurableProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(), op.getRealm());
+    public static ConfigurableIdentityProvider toConfigurableProvider(OIDCIdentityProviderConfig op) {
+        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_OIDC, op.getProvider(),
+                op.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);
         cp.setPersistence(op.getPersistence());
 
@@ -267,7 +276,7 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
         return cp;
     }
 
-    public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableProvider cp) {
+    public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getProvider(), cp.getRealm());
         op.configMap = new OIDCIdentityProviderConfigMap();
         op.configMap.setConfiguration(cp.getConfiguration());

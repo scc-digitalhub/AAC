@@ -3,13 +3,22 @@
         <div class="col col-md-6 p-3">
             <h6><a ui-sref="realm.apps({realmId:app.realm})">Client applications
                     &raquo;</a></h6>
-            <h3>{{appname}}</h3>
-            <p class="text-monospace">{{app.clientId}}</p>
         </div>
         <div class="col col-md-6 text-right">
             <button class="btn btn-primary btn-sm"
                 ui-sref="realm.app({realmId:app.realm, clientId:app.clientId})">Edit</button>
         </div>
+       <div class="row mb-3">
+           <div class="col-xs-1">
+           <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.apps({realmId:app.realm})">
+            <svg class="icon icon-xl icon-primary left" aria-hidden="true"><use xlink:href="{{app.icon}}"></use></svg>
+           </a>          
+           </div>
+           <div class="col">
+              <h3>{{appname}}</h3>
+              <p class="text-monospace">{{app.clientId}}</p>
+           </div>
+       </div>         
     </div>
 </div>
 

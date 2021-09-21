@@ -13,11 +13,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.AccountProfileExtractor;
@@ -76,7 +76,7 @@ public class ProfileService {
             .build(new CacheLoader<String, UserProfileExtractor>() {
                 @Override
                 public UserProfileExtractor load(final String id) throws Exception {
-                    AttributeSetEntity set = attributeService.findAttributeSet(id);
+                    AttributeSet set = attributeService.findAttributeSet(id);
                     if (set == null) {
                         throw new IllegalArgumentException("no attribute set matching the given identifier");
 

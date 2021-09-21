@@ -3,10 +3,10 @@ package it.smartcommunitylab.aac.oauth.store;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
@@ -18,7 +18,7 @@ public class InMemoryAuthorizationRequestStore implements AuthorizationRequestSt
     private final Map<String, AuthorizationRequest> requests;
 
     public InMemoryAuthorizationRequestStore() {
-        this.requests = new HashMap<>();
+        this.requests = new ConcurrentHashMap<>();
     }
 
     @Override

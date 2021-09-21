@@ -8,6 +8,7 @@ var app = angular.module('dev', [
     'aac.services',
     'aac.controllers.main',
     'aac.controllers.admin',
+    'aac.controllers.dev',
     'aac.controllers.realm',
     'aac.controllers.realmproviders',
     'aac.controllers.realmapps',
@@ -41,6 +42,11 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/admin.html',
             controller: 'AdminController',
         })
+        .state('dev', {
+            url: '/dev',
+            templateUrl: 'html/dev.html',
+            controller: 'DevController',
+        })
         .state('realm', {
             url: '/realm?realmId',
             templateUrl: 'html/realm.html',
@@ -57,16 +63,32 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/realm.users.html',
             controller: 'RealmUsersController',
         })
-        .state('realm.providers', {
-            url: '/providers',
-            templateUrl: 'html/realm.providers.html',
-            controller: 'RealmProvidersController',
+        /*
+        * providers
+        */
+        .state('realm.idps', {
+            url: '/idps',
+            templateUrl: 'html/realm.idps.html',
+            controller: 'RealmIdentityProvidersController',
         })
-        .state('realm.provider', {
-            url: '/provider?providerId',
-            templateUrl: 'html/realm.provider.html',
-            controller: 'RealmProviderController',
+        .state('realm.idp', {
+            url: '/idp?providerId',
+            templateUrl: 'html/realm.idp.html',
+            controller: 'RealmIdentityProviderController',
         })
+        .state('realm.aps', {
+            url: '/aps',
+            templateUrl: 'html/realm.aps.html',
+            controller: 'RealmAttributeProvidersController',
+        })
+        .state('realm.ap', {
+            url: '/ap?providerId',
+            templateUrl: 'html/realm.ap.html',
+            controller: 'RealmAttributeProviderController',
+        })
+        /*
+        * client apps
+        */
         .state('realm.apps', {
             url: '/apps',
             templateUrl: 'html/realm.apps.html',
@@ -82,6 +104,9 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/realm.app.start.html',
             controller: 'RealmAppStartController',
         })
+        /*
+        * services
+        */
         .state('realm.services', {
             url: '/services',
             templateUrl: 'html/realm.services.html',

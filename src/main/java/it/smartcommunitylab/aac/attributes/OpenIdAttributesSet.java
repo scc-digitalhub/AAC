@@ -8,12 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
+
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 
+@Component
 public class OpenIdAttributesSet implements AttributeSet {
     public static final String IDENTIFIER = "aac.openid";
     public static final List<String> keys;

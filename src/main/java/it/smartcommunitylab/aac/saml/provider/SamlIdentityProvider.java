@@ -64,14 +64,12 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
     // internal providers
     private final SamlAccountProvider accountProvider;
-//    private final SamlAttributeProvider attributeProvider;
     private final SamlAuthenticationProvider authenticationProvider;
     private final SamlSubjectResolver subjectResolver;
 
     // attributes
     private final OpenIdAttributesMapper openidMapper;
     private ScriptExecutionService executionService;
-    private AttributeManager attributeService;
 
     @Override
     public String getType() {
@@ -101,7 +99,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
 
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new SamlAccountProvider(providerId, accountRepository, config, realm);
-//        this.attributeProvider = new SamlAttributeProvider(providerId, accountRepository, attributeStore, realm);
         this.authenticationProvider = new SamlAuthenticationProvider(providerId, accountRepository, config, realm);
         this.subjectResolver = new SamlSubjectResolver(providerId, accountRepository, config, realm);
 
@@ -113,11 +110,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
         this.executionService = executionService;
     }
 
-    // TODO remove and move to attributeProvider
-    public void setAttributeService(AttributeManager attributeManager) {
-        this.attributeService = attributeManager;
-    }
-
     @Override
     public ExtendedAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
@@ -127,11 +119,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
     public AccountProvider getAccountProvider() {
         return accountProvider;
     }
-
-//    @Override
-//    public AttributeProvider getAttributeProvider() {
-//        return attributeProvider;
-//    }
 
     @Override
     public SubjectResolver getSubjectResolver() {
@@ -309,21 +296,6 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentitySe
                 }
             }
             attributes.add(idpset);
-
-            // build additional user-defined attribute sets via mappers
-            if (attributeService != null) {
-                Collection<AttributeSet> sets = attributeService.listAttributeSets(getRealm());
-                for (AttributeSet as : sets) {
-                    DefaultAttributesMapper amap = new DefaultAttributesMapper(as);
-                    AttributeSet set = amap.mapAttributes(principalAttributes);
-                    if (set.getAttributes() != null && !set.getAttributes().isEmpty()) {
-                        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                                set));
-                    }
-                }
-
-            }
-
         }
 
         return attributes;

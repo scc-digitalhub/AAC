@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ApplicationType {
     NATIVE("native"),
-    WEB("web");
+    WEB("web"),
+    MACHINE("machine"),
+    SPA("spa");
 
     private final String value;
 

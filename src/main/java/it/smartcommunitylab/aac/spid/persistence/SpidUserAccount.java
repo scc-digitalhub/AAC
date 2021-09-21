@@ -100,6 +100,11 @@ public class SpidUserAccount implements UserAccount {
         return username;
     }
 
+    @Override
+    public String getEmailAddress() {
+        return email;
+    }
+
     /*
      * fields
      */

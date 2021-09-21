@@ -23,7 +23,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
 import it.smartcommunitylab.aac.attributes.store.InMemoryAttributeStore;
@@ -34,7 +33,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ProvidersProperties;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
@@ -77,7 +76,6 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
                             accountRepository, attributeStore,
                             config, config.getRealm());
                     idp.setExecutionService(executionService);
-                    idp.setAttributeService(attributeManager);
                     return idp;
 
                 }
@@ -92,9 +90,6 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
-
-    // attribute manager for custom attributes mapping
-    private AttributeManager attributeManager;
 
     @Override
     public String getAuthorityId() {
@@ -125,11 +120,6 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     @Autowired
     public void setExecutionService(ScriptExecutionService executionService) {
         this.executionService = executionService;
-    }
-
-    @Autowired
-    public void setAttributeManager(AttributeManager attributeManager) {
-        this.attributeManager = attributeManager;
     }
 
     @Override
@@ -194,7 +184,7 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public SamlIdentityProvider registerIdentityProvider(ConfigurableProvider cp) {
+    public SamlIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -237,15 +227,10 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public void unregisterIdentityProvider(String realm, String providerId) {
+    public void unregisterIdentityProvider(String providerId) {
         SamlIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
-            // check realm match
-            if (!realm.equals(registration.getRealm())) {
-                throw new IllegalArgumentException("realm does not match");
-            }
-
             // can't unregister system providers, check
             if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
                 return;
@@ -287,9 +272,9 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
         // we generate a new store for each provider
         AttributeStore store = new NullAttributeStore();
         if (SystemKeys.PERSISTENCE_LEVEL_REPOSITORY.equals(persistence)) {
-            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId, jdbcAttributeStore);
+            store = new PersistentAttributeStore(SystemKeys.AUTHORITY_SAML, providerId, jdbcAttributeStore);
         } else if (SystemKeys.PERSISTENCE_LEVEL_MEMORY.equals(persistence)) {
-            store = new InMemoryAttributeStore(SystemKeys.AUTHORITY_OIDC, providerId);
+            store = new InMemoryAttributeStore(SystemKeys.AUTHORITY_SAML, providerId);
         }
 
         return store;
@@ -320,13 +305,13 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public Collection<ConfigurableProvider> getConfigurableProviderTemplates() {
+    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
         return templates.values().stream().map(c -> SamlIdentityProviderConfig.toConfigurableProvider(c))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ConfigurableProvider getConfigurableProviderTemplate(String templateId)
+    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
         if (templates.containsKey(templateId)) {
             return SamlIdentityProviderConfig.toConfigurableProvider(templates.get(templateId));

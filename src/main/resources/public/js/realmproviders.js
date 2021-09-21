@@ -5,13 +5,13 @@ angular.module('aac.controllers.realmproviders', [])
     .service('RealmProviders', function ($q, $http) {
         var rService = {};
         rService.getIdentityProvider = function (slug, providerId) {
-            return $http.get('console/dev/realms/' + slug + '/providers/' + providerId).then(function (data) {
+            return $http.get('console/dev/realms/' + slug + '/idps/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
         rService.getIdentityProviders = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/providers').then(function (data) {
+            return $http.get('console/dev/realms/' + slug + '/idps').then(function (data) {
                 return data.data;
             });
         }
@@ -23,25 +23,25 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         rService.removeIdentityProvider = function (slug, providerId) {
-            return $http.delete('console/dev/realms/' + slug + '/providers/' + providerId).then(function (data) {
+            return $http.delete('console/dev/realms/' + slug + '/idps/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
         rService.saveIdentityProvider = function (slug, provider) {
             if (provider.provider) {
-                return $http.put('console/dev/realms/' + slug + '/providers/' + provider.provider, provider).then(function (data) {
+                return $http.put('console/dev/realms/' + slug + '/idps/' + provider.provider, provider).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.post('console/dev/realms/' + slug + '/providers', provider).then(function (data) {
+                return $http.post('console/dev/realms/' + slug + '/idps', provider).then(function (data) {
                     return data.data;
                 });
             }
         }
 
         rService.changeIdentityProviderState = function (slug, providerId, provider) {
-            return $http.put('console/dev/realms/' + slug + '/providers/' + providerId + '/state', provider).then(function (data) {
+            return $http.put('console/dev/realms/' + slug + '/idps/' + providerId + '/state', provider).then(function (data) {
                 return data.data;
             });
         }
@@ -50,23 +50,83 @@ angular.module('aac.controllers.realmproviders', [])
             var fd = new FormData();
             fd.append('file', file);
             return $http({
-                url: 'console/dev/realms/' + slug + '/providers',
+                url: 'console/dev/realms/' + slug + '/idps',
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
             }).then(function (data) {
                 return data.data;
             });
+        }
 
+        rService.changeIdentityProviderClientApp = function (slug, providerId, client) {
+            return $http.put('console/dev/realms/' + slug + '/idps/' + providerId + '/apps/' + client.clientId, client).then(function (data) {
+                return data.data;
+            });
+        }
+
+        rService.getAttributeProvider = function (slug, providerId) {
+            return $http.get('console/dev/realms/' + slug + '/aps/' + providerId).then(function (data) {
+                return data.data;
+            });
+        }
+
+        rService.getAttributeProviders = function (slug) {
+            return $http.get('console/dev/realms/' + slug + '/aps').then(function (data) {
+                return data.data;
+            });
+        }
+
+        rService.removeAttributeProvider = function (slug, providerId) {
+            return $http.delete('console/dev/realms/' + slug + '/aps/' + providerId).then(function (data) {
+                return data.data;
+            });
+        }
+
+        rService.saveAttributeProvider = function (slug, provider) {
+            if (provider.provider) {
+                return $http.put('console/dev/realms/' + slug + '/aps/' + provider.provider, provider).then(function (data) {
+                    return data.data;
+                });
+            } else {
+                return $http.post('console/dev/realms/' + slug + '/aps', provider).then(function (data) {
+                    return data.data;
+                });
+            }
+        }
+
+        rService.changeAttributeProviderState = function (slug, providerId, provider) {
+            return $http.put('console/dev/realms/' + slug + '/aps/' + providerId + '/state', provider).then(function (data) {
+                return data.data;
+            });
+        }
+
+        rService.importAttributeProvider = function (slug, file) {
+            var fd = new FormData();
+            fd.append('file', file);
+            return $http({
+                url: 'console/dev/realms/' + slug + '/aps',
+                headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
+                data: fd,
+                method: "PUT"
+            }).then(function (data) {
+                return data.data;
+            });
+        }
+
+        rService.testAttributeProvider = function (slug, providerId) {
+            return $http.get('console/dev/realms/' + slug + '/aps/' + providerId + '/test').then(function (data) {
+                return data.data;
+            });
         }
 
         return rService;
 
     })
     /**
-      * Realm providers controller
+      * Realm identity providers controller
       */
-    .controller('RealmProvidersController', function ($scope, $state, $stateParams, RealmData, RealmProviders, Utils) {
+    .controller('RealmIdentityProvidersController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
 
         $scope.load = function () {
@@ -83,7 +143,26 @@ angular.module('aac.controllers.realmproviders', [])
                     $scope.providers = data;
                     return data;
                 })
+                .then(function () {
+                    return RealmAppsData.getClientApps(slug);
+                })
+                .then(function (data) {
+                    $scope.apps = data;
+                    var providers = $scope.providers;
+                    //count num of active apps per provider
+                    var cc = new Map(providers.map(p => [p.provider, 0]));
+                    data.forEach(function (app) {
+                        app.providers.forEach(function (p) {
+                            var c = cc.get(p);
+                            cc.set(p, c + 1);
+                        });
+                    });
+                    providers.forEach(function (idp) {
+                        idp.apps = cc.get(idp.provider);
+                    });
+                    $scope.providers = providers;
 
+                })
                 .catch(function (err) {
                     Utils.showError('Failed to load realm providers: ' + err.data.message);
                 });
@@ -259,25 +338,25 @@ angular.module('aac.controllers.realmproviders', [])
         //
         //        }
 
-//        $scope.toggleProviderState = function (provider) {  
-//            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
-//                .then(function (res) {
-//                    provider.enabled = res.enabled;
-//                    provider.registered = res.registered;
-//                    Utils.showSuccess();
-//                })
-//                .catch(function (err) {
-//                    Utils.showError(err.data.message);
-//                });
-//
-//        }
+        //        $scope.toggleProviderState = function (provider) {  
+        //            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
+        //                .then(function (res) {
+        //                    provider.enabled = res.enabled;
+        //                    provider.registered = res.registered;
+        //                    Utils.showSuccess();
+        //                })
+        //                .catch(function (err) {
+        //                    Utils.showError(err.data.message);
+        //                });
+        //
+        //        }
 
         $scope.toggleProviderState = function (provider, state) {
             var data = {
-               'authority': provider.authority,
-               'realm': provider.realm,
-               'provider': provider.provider,
-               'enabled': state               
+                'authority': provider.authority,
+                'realm': provider.realm,
+                'provider': provider.provider,
+                'enabled': state
             }
 
             RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, data)
@@ -339,7 +418,7 @@ angular.module('aac.controllers.realmproviders', [])
 
         var iconProvider = function (idp) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
-           
+
             if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
                 var logo = null;
                 if (icons.includes(idp.configuration.clientName.toLowerCase())) {
@@ -347,20 +426,29 @@ angular.module('aac.controllers.realmproviders', [])
                 } else if (icons.includes(idp.name.toLowerCase())) {
                     logo = idp.name.toLowerCase();
                 }
-            
+
                 if (logo) {
-                   return './svg/sprite.svg#logo-' + logo;
+                    return './svg/sprite.svg#logo-' + logo;
                 }
-            } 
+            }
             if (idp.authority === "spid") {
-               return './spid/sprite.svg#spid-ico-circle-bb';    
+                return './spid/sprite.svg#spid-ico-circle-bb';
             }
             return './italia/svg/sprite.svg#it-unlocked';
         }
 
+        $scope.copyText = function (txt) {
+            var textField = document.createElement('textarea');
+            textField.innerText = txt;
+            document.body.appendChild(textField);
+            textField.select();
+            document.execCommand('copy');
+            textField.remove();
+        }
+
         init();
     })
-    .controller('RealmProviderController', function ($scope, $state, $stateParams, RealmData, RealmProviders, Utils) {
+    .controller('RealmIdentityProviderController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
         var providerId = $stateParams.providerId;
         $scope.formView = 'overview';
@@ -384,12 +472,12 @@ angular.module('aac.controllers.realmproviders', [])
 
 
         var init = function () {
-         RealmData.getUrl(slug)
+            RealmData.getUrl(slug)
                 .then(function (data) {
                     $scope.realmUrls = data;
                 })
                 .then(function () {
-                    return  RealmProviders.getIdentityProviderTemplates(slug);
+                    return RealmProviders.getIdentityProviderTemplates(slug);
                 })
                 .then(function (data) {
                     $scope.providerTemplates = data;
@@ -408,6 +496,12 @@ angular.module('aac.controllers.realmproviders', [])
                     $scope.formView = 'overview';
                     return data;
                 })
+                .then(function () {
+                    return RealmAppsData.getClientApps(slug);
+                })
+                .then(function (apps) {
+                    $scope.apps = apps;
+                })
                 .catch(function (err) {
                     Utils.showError('Failed to load provider : ' + err.data.message);
                 });
@@ -423,7 +517,7 @@ angular.module('aac.controllers.realmproviders', [])
             }
 
             if (authority == 'saml') {
-               
+
                 var authnContextClasses = [];
                 if (config.authnContextClasses) {
                     config.authnContextClasses.forEach(function (s) {
@@ -433,7 +527,7 @@ angular.module('aac.controllers.realmproviders', [])
 
                 $scope.samlAuthnContextClasses = authnContextClasses;
             }
-             
+
         }
 
         var extractConfiguration = function (authority, config) {
@@ -487,16 +581,16 @@ angular.module('aac.controllers.realmproviders', [])
             }
 
             $scope.attributeMapping = attributeMapping;
-            
+
             if (data.authority == 'saml' || data.authority == 'spid') {
-                var metadataUrl = $scope.realmUrls.applicationUrl+"/auth/"+data.authority+"/metadata/"+data.provider;
+                var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
             if (data.authority == 'oidc') {
-                var loginUrl = $scope.realmUrls.applicationUrl+"/auth/"+data.authority+"/login/"+data.provider;
+                var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
-            }            
-            
+            }
+
         };
 
 
@@ -508,7 +602,7 @@ angular.module('aac.controllers.realmproviders', [])
         $scope.deleteProvider = function () {
             $('#deleteProviderConfirm').modal('hide');
             RealmProviders.removeIdentityProvider($scope.realm.slug, $scope.modProvider.provider).then(function () {
-                $state.go('realm.providers', { realmId: $scope.realm.slug });
+                $state.go('realm.idps', { realmId: $scope.realm.slug });
             }).catch(function (err) {
                 Utils.showError(err.data.message);
             });
@@ -567,7 +661,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.exportProvider = function (provider) {
-            window.open('console/dev/realms/' + provider.realm + '/providers/' + provider.provider + '/export');
+            window.open('console/dev/realms/' + provider.realm + '/idps/' + provider.provider + '/export');
         };
 
         $scope.applyProviderTemplate = function () {
@@ -606,25 +700,247 @@ angular.module('aac.controllers.realmproviders', [])
 
         }
 
-        var iconProvider = function (idp) {
+        $scope.toggleProviderClientApp = function (provider, client) {
+            if (client.clientId) {
+                var clientId = client.clientId;
+                var providers = client.providers;
+                if (providers.includes(provider)) {
+                    console.log("disable provider " + provider + " for " + clientId);
+                    providers = providers.filter(function (p) { return p != provider });
+                } else {
+                    console.log("enable provider " + provider + " for " + clientId);
+                    providers.push(provider);
+                }
+
+                var data = {
+                    'clientId': clientId,
+                    'type': client.type,
+                    'name': client.name,
+                    'providers': providers
+                };
+
+                RealmProviders.changeIdentityProviderClientApp($scope.realm.slug, provider, data)
+                    .then(function (res) {
+                        client.providers = res.providers;
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+        }
+
+        var iconProvider = function (ap) {
             var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
-           
-            if (idp.authority === "oidc" && 'clientName' in idp.configuration) {
+
+            if (ap.authority === "oidc" && 'clientName' in ap.configuration) {
                 var logo = null;
-                if (icons.includes(idp.configuration.clientName.toLowerCase())) {
-                    logo = idp.configuration.clientName.toLowerCase();
-                } else if (icons.includes(idp.name.toLowerCase())) {
-                    logo = idp.name.toLowerCase();
+                if (icons.includes(ap.configuration.clientName.toLowerCase())) {
+                    logo = ap.configuration.clientName.toLowerCase();
+                } else if (icons.includes(ap.name.toLowerCase())) {
+                    logo = ap.name.toLowerCase();
                 }
-            
+
                 if (logo) {
-                   return './svg/sprite.svg#logo-' + logo;
+                    return './svg/sprite.svg#logo-' + logo;
                 }
-            } 
-            if (idp.authority === "spid") {
-               return './spid/sprite.svg#spid-ico-circle-bb';    
+            }
+            if (ap.authority === "spid") {
+                return './spid/sprite.svg#spid-ico-circle-bb';
             }
             return './italia/svg/sprite.svg#it-unlocked';
+        }
+
+
+        $scope.copyText = function (txt) {
+            var textField = document.createElement('textarea');
+            textField.innerText = txt;
+            document.body.appendChild(textField);
+            textField.select();
+            document.execCommand('copy');
+            textField.remove();
+        }
+
+        init();
+    })
+    /**
+      * Realm attribute providers controller
+      */
+    .controller('RealmAttributeProvidersController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, Utils) {
+        var slug = $stateParams.realmId;
+
+        $scope.load = function () {
+            RealmProviders.getAttributeProviders(slug)
+                .then(function (data) {
+                    return data.map(ap => {
+                        return {
+                            ...ap,
+                            'icon': iconProvider(ap)
+                        };
+                    });
+                })
+                .then(function (data) {
+                    $scope.providers = data;
+                    return data;
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load realm providers: ' + err.data.message);
+                });
+        }
+
+        /**
+         * Initialize the app: load list of the providers
+         */
+        var init = function () {
+            $scope.load();
+        };
+
+        $scope.deleteProviderDlg = function (provider) {
+            $scope.modProvider = provider;
+            //add confirm field
+            $scope.modProvider.confirmId = '';
+            $('#deleteProviderConfirm').modal({ keyboard: false });
+        }
+
+        $scope.deleteProvider = function () {
+            $('#deleteProviderConfirm').modal('hide');
+            if ($scope.modProvider.provider === $scope.modProvider.confirmId) {
+                RealmProviders.removeAttributeProvider($scope.realm.slug, $scope.modProvider.provider).then(function () {
+                    $scope.load();
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+            } else {
+                Utils.showError("confirmId not valid");
+            }
+        }
+
+        $scope.createProviderDlg = function (authority) {
+            var provider = {
+                type: 'attributes',
+                name: '',
+                authority: authority,
+                realm: slug,
+                configuration: {}
+            };
+
+            $scope.modProvider = provider;
+
+            $('#createProviderDlg').modal({ keyboard: false });
+            Utils.refreshFormBS();
+        }
+
+        $scope.createProvider = function () {
+            $('#createProviderDlg').modal('hide');
+            var data = $scope.modProvider
+            data.realm = slug;
+
+            RealmProviders.saveAttributeProvider(slug, data)
+                .then(function () {
+                    $scope.load();
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+
+
+        }
+
+
+
+
+
+        $scope.saveProvider = function () {
+            var name = $scope.provider.name;
+            delete $scope.provider.name;
+            var persistence = $scope.provider.persistence;
+            delete $scope.provider.persistence;
+
+            var data = {
+                realm: $scope.realm.slug,
+                name: name,
+                persistence: persistence,
+                configuration: $scope.provider,
+                authority: $scope.providerAuthority,
+                type: 'attributes',
+                provider: $scope.providerId
+            };
+            RealmProviders.saveAttributeProvider($scope.realm.slug, data)
+                .then(function () {
+                    $scope.load();
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
+
+        $scope.toggleProviderState = function (provider, state) {
+            var data = {
+                'authority': provider.authority,
+                'realm': provider.realm,
+                'provider': provider.provider,
+                'enabled': state
+            }
+
+            RealmProviders.changeAttributeProviderState($scope.realm.slug, provider.provider, data)
+                .then(function (res) {
+                    provider.enabled = res.enabled;
+                    provider.registered = res.registered;
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+
+        }
+
+        $scope.updatePersistenceType = function () {
+            Utils.refreshFormBS();
+        }
+
+
+        $scope.importProviderDlg = function () {
+            $('#importProviderDlg').modal({ keyboard: false });
+        }
+
+
+        $scope.importProvider = function () {
+            $('#importProviderDlg').modal('hide');
+            var file = $scope.importFile;
+            var mimeTypes = ['text/yaml', 'text/yml', 'application/x-yaml'];
+            if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
+                Utils.showError("invalid file");
+            } else {
+                RealmProviders.importAttributeProvider($scope.realm.slug, file)
+                    .then(function (res) {
+                        $scope.importFile = null;
+                        $scope.load();
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+        }
+
+
+        var iconProvider = function (idp) {
+            if (idp.authority === "mapper") {
+                return './italia/svg/sprite.svg#it-exchange-circle';
+            }
+            if (idp.authority === "internal") {
+                return './italia/svg/sprite.svg#it-upload';
+            }
+            if (idp.authority === "webhook") {
+                return './italia/svg/sprite.svg#it-download';
+            }
+            if (idp.authority === "script") {
+                return './italia/svg/sprite.svg#it-software';
+            }
+            return './italia/svg/sprite.svg#it-file';
         }
 
         $scope.copyText = function (txt) {
@@ -638,5 +954,202 @@ angular.module('aac.controllers.realmproviders', [])
 
         init();
     })
+    .controller('RealmAttributeProviderController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, RealmAttributeSets, Utils) {
+        var slug = $stateParams.realmId;
+        var providerId = $stateParams.providerId;
+        $scope.formView = 'overview';
 
+        $scope.aceOption = {
+            mode: 'javascript',
+            theme: 'monokai',
+            maxLines: 30,
+            minLines: 6
+        };
+
+
+        $scope.activeView = function (view) {
+            return view == $scope.formView ? 'active' : '';
+        };
+
+        $scope.switchView = function (view) {
+            $scope.formView = view;
+            Utils.refreshFormBS(300);
+        }
+
+
+        var init = function () {
+            RealmAttributeSets.getAttributeSets(slug)
+                .then(function (data) {
+                    $scope.attributeSets = data.filter(s => s.realm == slug);
+                    return data;
+                })
+                .then(function () {
+                    return RealmProviders.getAttributeProvider(slug, providerId)
+                })
+                .then(function (data) {
+                    $scope.load(data);
+                    $scope.formView = 'overview';
+                    return data;
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load provider : ' + err.data.message);
+                });
+        };
+
+        var initConfiguration = function (authority, config) {
+            if (authority == 'script') {
+                console.log(config);
+                $scope.script = {
+                    code : config.code ? atob(config.code) : 'function attributeMapping(principal) {\n return {}; \n}'
+                }
+            }
+        }
+
+        var extractConfiguration = function (authority, config) {
+            if (authority == 'script' && $scope.script) {
+                var code = $scope.script.code;
+                config.code = code !== null ? btoa(code) : null;
+            }
+            return config;
+        };
+
+
+        $scope.load = function (data) {
+            $scope.providerName = data.name != '' ? data.name : data.provider;
+            $scope.ap = data;
+            $scope.providerIcon = iconProvider(data);
+            $scope.test = {
+                context: null,
+                result: null,
+                errors: null
+            }
+            initConfiguration(data.authority, data.configuration);
+        };
+
+
+        $scope.deleteProviderDlg = function (provider) {
+            $scope.modProvider = provider;
+            $('#deleteProviderConfirm').modal({ keyboard: false });
+        }
+
+        $scope.deleteProvider = function () {
+            $('#deleteProviderConfirm').modal('hide');
+            RealmProviders.removeAttributeProvider($scope.realm.slug, $scope.modProvider.provider).then(function () {
+                $state.go('realm.aps', { realmId: $scope.realm.slug });
+            }).catch(function (err) {
+                Utils.showError(err.data.message);
+            });
+        }
+
+        $scope.saveProvider = function (provider) {
+            var configuration = extractConfiguration(provider.authority, provider.configuration);
+
+            var data = {
+                realm: provider.realm,
+                provider: provider.provider,
+                type: provider.type,
+                authority: provider.authority,
+                name: provider.name,
+                description: provider.description,
+                enabled: provider.enabled,
+                persistence: provider.persistence,
+                events: provider.events,
+                attributeSets: provider.attributeSets,
+                configuration: configuration
+            }
+
+            RealmProviders.saveAttributeProvider($scope.realm.slug, data)
+                .then(function (res) {
+                    $scope.load(res);
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
+
+        $scope.toggleProviderState = function (provider) {
+            provider.enabled = !provider.enabled;
+
+            RealmProviders.changeAttributeProviderState($scope.realm.slug, provider.provider, provider)
+                .then(function (res) {
+                    provider.enabled = res.enabled;
+                    provider.registered = res.registered;
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+
+        }
+
+        $scope.toggleProviderAttributeSet = function (attributeSet) {
+            if (attributeSet.identifier) {
+                var id = attributeSet.identifier;
+                var setIds = $scope.ap.attributeSets;
+                if ($scope.ap.attributeSets.includes(id)) {
+                    setIds = setIds.filter(i => !id == i);
+                } else {
+                    setIds.push(id);
+                }
+
+                $scope.ap.attributeSets = setIds;
+
+            }
+        }
+
+        $scope.testProvider = function (provider) {
+            if (!provider.enabled) {
+                Utils.showError('provider must be enabled');
+            }
+
+            RealmProviders.testAttributeProvider($scope.realm.slug, provider.provider)
+                .then(function (res) {
+                    $scope.test.context = res.context;
+                    $scope.test.result = res.result;
+                    $scope.test.errors = res.errors;
+
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    $scope.test.context = null;
+                    $scope.test.result = null;
+                    $scope.test.errors = null;
+
+                    Utils.showError(err.data.message);
+                });
+
+        }
+
+        $scope.exportProvider = function (provider) {
+            window.open('console/dev/realms/' + provider.realm + '/aps/' + provider.provider + '/export');
+        };
+
+        var iconProvider = function (idp) {
+            if (idp.authority === "mapper") {
+                return './italia/svg/sprite.svg#it-exchange-circle';
+            }
+            if (idp.authority === "internal") {
+                return './italia/svg/sprite.svg#it-upload';
+            }
+            if (idp.authority === "webhook") {
+                return './italia/svg/sprite.svg#it-download';
+            }
+            if (idp.authority === "script") {
+                return './italia/svg/sprite.svg#it-software';
+            }
+            return './italia/svg/sprite.svg#it-file';
+        }
+
+        $scope.copyText = function (txt) {
+            var textField = document.createElement('textarea');
+            textField.innerText = txt;
+            document.body.appendChild(textField);
+            textField.select();
+            document.execCommand('copy');
+            textField.remove();
+        }
+
+        init();
+    })
     ;

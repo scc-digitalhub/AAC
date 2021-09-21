@@ -1,12 +1,8 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Map;
-
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 
 /*
@@ -31,6 +27,15 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 public interface AttributeProvider extends ResourceProvider {
 
     /*
+     * Config
+     */
+    public String getName();
+
+    public String getDescription();
+
+    public ConfigurableProperties getConfiguration();
+
+    /*
      * Attribute sets (for scopes)
      * 
      * An attribute set Provider specific, each set should be consistent for mapping
@@ -40,9 +45,9 @@ public interface AttributeProvider extends ResourceProvider {
      * Implementations need to expose only *specific* attribute sets, and declare
      * which global set they support
      */
-    public Collection<AttributeSet> listCustomAttributeSets();
-
-    public Collection<String> listCustomAttributes(String setId);
+//    public Collection<AttributeSet> listCustomAttributeSets();
+//
+//    public Collection<String> listCustomAttributes(String setId);
 
 //    /*
 //     * these are the global sets this provider supports.
@@ -75,9 +80,9 @@ public interface AttributeProvider extends ResourceProvider {
      * Sets returned from identity conversion are *always* used for token claims
      */
 
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal);
+    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String subjectId);
 
-    public Collection<UserAttributes> convertAttributes(Map<String, Serializable> attributes);
+//    public Collection<UserAttributes> convertAttributes(Map<String, Serializable> attributes);
 
 //    public UserAttributes convertAttributes(UserAttributes attributes);
 
@@ -95,8 +100,8 @@ public interface AttributeProvider extends ResourceProvider {
 
     // we expect the list to contain both custom and global sets, according to
     // supported, if available
-    public Collection<UserAttributes> getUserAttributes(String userId) throws NoSuchUserException;
+    public Collection<UserAttributes> getUserAttributes(String subjectId);
 
-    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
+//    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
 
 }
