@@ -30,7 +30,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -86,19 +86,19 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
 
     // loading cache for idps
-    private final LoadingCache<String, InternalIdentityProvider> providers = CacheBuilder.newBuilder()
+    private final LoadingCache<String, InternalIdentityService> providers = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
             .maximumSize(100)
-            .build(new CacheLoader<String, InternalIdentityProvider>() {
+            .build(new CacheLoader<String, InternalIdentityService>() {
                 @Override
-                public InternalIdentityProvider load(final String id) throws Exception {
+                public InternalIdentityService load(final String id) throws Exception {
                     InternalIdentityProviderConfig config = registrationRepository.findByProviderId(id);
 
                     if (config == null) {
                         throw new IllegalArgumentException("no configuration matching the given provider id");
                     }
 
-                    InternalIdentityProvider idp = new InternalIdentityProvider(
+                    InternalIdentityService idp = new InternalIdentityService(
                             id,
                             userAccountService, userEntityService,
                             config, config.getRealm());
@@ -172,7 +172,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public InternalIdentityProvider getIdentityProvider(String providerId) {
+    public InternalIdentityService getIdentityProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -197,14 +197,14 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public InternalIdentityProvider getUserIdentityProvider(String userId) {
+    public InternalIdentityService getUserIdentityProvider(String userId) {
         // unpack id
         String providerId = extractProviderId(userId);
         return getIdentityProvider(providerId);
     }
 
     @Override
-    public InternalIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
+    public InternalIdentityService registerIdentityProvider(ConfigurableIdentityProvider cp) {
         // we support only identity provider as resource providers
         if (cp != null
                 && getAuthorityId().equals(cp.getAuthority())
@@ -270,7 +270,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     }
 
     @Override
-    public InternalIdentityProvider getIdentityService(String providerId) {
+    public InternalIdentityService getIdentityService(String providerId) {
         return getIdentityProvider(providerId);
     }
 

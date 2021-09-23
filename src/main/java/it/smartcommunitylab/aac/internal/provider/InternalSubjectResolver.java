@@ -29,14 +29,15 @@ public class InternalSubjectResolver extends AbstractProvider
         implements SubjectResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private InternalAccountProvider accountProvider;
+    private InternalAccountService accountProvider;
 
-    public InternalSubjectResolver(String providerId, InternalUserAccountService userAccountService, String realm) {
+    public InternalSubjectResolver(String providerId, InternalUserAccountService userAccountService,
+            InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
 
         // build an internal provider bound to repository
-        this.accountProvider = new InternalAccountProvider(providerId, userAccountService, realm);
+        this.accountProvider = new InternalAccountService(providerId, userAccountService, providerConfig, realm);
     }
 
     @Override

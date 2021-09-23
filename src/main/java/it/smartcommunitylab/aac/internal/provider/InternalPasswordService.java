@@ -39,18 +39,21 @@ public class InternalPasswordService extends AbstractProvider implements Credent
     private final InternalUserAccountService userAccountService;
 
     // provider configuration
+    private final InternalIdentityProviderConfig providerConfig;
     private final InternalIdentityProviderConfigMap config;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
-    public InternalPasswordService(String providerId, InternalUserAccountService userAccountService, String realm,
-            InternalIdentityProviderConfigMap configMap) {
+    public InternalPasswordService(String providerId, InternalUserAccountService userAccountService,
+            InternalIdentityProviderConfig providerConfig,
+            String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
-        Assert.notNull(configMap, "config map is mandatory");
+        Assert.notNull(providerConfig, "provider config is mandatory");
         this.userAccountService = userAccountService;
-        this.config = configMap;
+        this.providerConfig = providerConfig;
+        this.config = providerConfig.getConfigMap();
     }
 
     public void setMailService(MailService mailService) {

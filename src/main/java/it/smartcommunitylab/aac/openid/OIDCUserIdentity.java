@@ -10,7 +10,7 @@ public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializabl
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
-    private String username;
+    private String emailAddress;
     private OIDCAuthenticatedPrincipal principal;
 
     public OIDCUserIdentity(String provider, String realm) {
@@ -47,11 +47,12 @@ public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializabl
 //        return null;
 //    }
 
-    /*
-     * props: only getters we want this to be immutable
-     */
-    public String getUsername() {
-        return username;
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
     }
 
     /*

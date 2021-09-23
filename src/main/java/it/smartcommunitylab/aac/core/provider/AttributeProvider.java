@@ -100,8 +100,9 @@ public interface AttributeProvider extends ResourceProvider {
 
     // we expect the list to contain both custom and global sets, according to
     // supported, if available
-    public Collection<UserAttributes> getUserAttributes(String subjectId);
+    public Collection<UserAttributes> getAttributes(String subjectId);
 
 //    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
 
+    public void deleteAttributes(String subjectId);
 }

@@ -340,13 +340,13 @@ angular.module('aac.services', [])
                 return data.data;
             });
         }
-        
+
         rService.updateRealm = function (slug, r) {
             return $http.put('console/dev/realms/' + slug, r).then(function (data) {
                 return data.data;
             });
         }
-        
+
         rService.removeRealm = function (slug) {
             return $http.delete('console/dev/realms/' + slug).then(function (data) {
                 return data.data;
@@ -369,54 +369,23 @@ angular.module('aac.services', [])
                 return data.data;
             });
         }
-        rService.getRealmUsers = function (slug, params) {
-            return $http.get('console/dev/realms/' + slug + '/users?' + buildQuery(params, $httpParamSerializer)).then(function (data) {
-                return data.data;
-            });
-        }
-        rService.getRealmUser = function (slug, subject) {
-            return $http.get('console/dev/realms/' + slug + '/users/' + subject).then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.removeUser = function (slug, user) {
-            return $http.delete('console/dev/realms/' + slug + '/users/' + user.subjectId).then(function (data) {
-                return data.data;
-            });
-        }
-        rService.updateRealmRoles = function (slug, user, roles) {
-            return $http.put('console/dev/realms/' + slug + '/users/' + user.subjectId + '/roles', { roles: roles }).then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.inviteUser = function (slug, invitation, roles) {
-            var data = { roles: roles, username: invitation.external ? null : invitation.username, subjectId: invitation.external ? invitation.subjectId : null };
-            return $http.post('console/dev/realms/' + slug + '/users/invite', data).then(function (data) {
-                return data.data;
-            });
-        }
-
-
-
         rService.getResources = function (slug) {
             return $http.get('console/dev/realms/' + slug + '/resources').then(function (data) {
                 return data.data;
             });
         }
-        
-       rService.getUrl = function (slug) {
+
+        rService.getUrl = function (slug) {
             return $http.get('console/dev/realms/' + slug + '/well-known/url').then(function (data) {
                 return data.data;
             });
-        }  
-        
+        }
+
         rService.getOAuth2Metadata = function (slug) {
             return $http.get('console/dev/realms/' + slug + '/well-known/oauth2').then(function (data) {
                 return data.data;
             });
-        }              
+        }
 
         return rService;
 

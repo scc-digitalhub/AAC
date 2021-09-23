@@ -1,0 +1,19 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">Internal AP Configuration</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                    ng-click="ap.configuration.usermode = !ap.configuration.usermode">
+                    <input class="form-check-input" type="checkbox" ng-model="ap.configuration.usermode">
+                    <label>Usermode</label>
+                </div>
+                <small class="form-text"> Enable usermode to let users autonomously handle their attributes via
+                    UI/API. By default attributes are managed by realm admins only.</small>
+            </div>
+        </div>
+
+    </fieldset>
+
+</div>

@@ -102,15 +102,19 @@ public class AttributeManager {
     /*
      * Attributes
      */
-    public Collection<Attribute> listAttributes(String realm, String identifier) throws NoSuchAttributeSetException {
+//    public Collection<Attribute> listAttributes(String realm, String identifier) throws NoSuchAttributeSetException {
+//
+//        AttributeSet se = attributeService.getAttributeSet(identifier);
+//        if (se.getAttributes() != null && !se.getAttributes().isEmpty()) {
+//            return se.getAttributes();
+//        }
+//
+//        return attributeService.listAttributes(identifier);
+//    }
 
-        AttributeSet se = attributeService.getAttributeSet(identifier);
-        if (se.getAttributes() != null && !se.getAttributes().isEmpty()) {
-            return se.getAttributes();
-        }
-
-        return attributeService.listAttributes(identifier);
-    }
+    /*
+     * Helpers
+     */
 
     private boolean isReserved(String identifier) {
         for (String prefix : RESERVED_PREFIXES) {

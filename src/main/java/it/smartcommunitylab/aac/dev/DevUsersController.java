@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.dev;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -28,6 +29,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.User;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -75,6 +77,19 @@ public class DevUsersController {
         return ResponseEntity.ok(null);
     }
 
+    @PostMapping("/realms/{realm}/users/invite")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Void> inviteRealmUser(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody InvitationBean bean)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
+        userManager.inviteUser(realm, bean.getUsername(), bean.getSubjectId(), bean.getRoles());
+        return ResponseEntity.ok(null);
+    }
+
+    /*
+     * Roles
+     */
     @PutMapping("/realms/{realm}/users/{subjectId:.*}/roles")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<User> updateRealmUserRoles(
@@ -85,14 +100,18 @@ public class DevUsersController {
         return ResponseEntity.ok(userManager.getUser(realm, subjectId));
     }
 
-    @PostMapping("/realms/{realm}/users/invite")
+    /*
+     * Attributes
+     */
+
+    @GetMapping("/realms/{realm}/users/{subjectId:.*}/attributes")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<Void> inviteRealmUser(
+    public Collection<UserAttributes> getRealmUserAttributes(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody InvitationBean bean)
-            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
-        userManager.inviteUser(realm, bean.getUsername(), bean.getSubjectId(), bean.getRoles());
-        return ResponseEntity.ok(null);
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, subjectId);
+        return attributes;
     }
 
     /*

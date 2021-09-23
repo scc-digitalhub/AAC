@@ -15,11 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
+import it.smartcommunitylab.aac.attributes.model.AbstractAttribute;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
+import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
 import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
 import it.smartcommunitylab.aac.attributes.model.SerializableAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
+import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
@@ -261,20 +264,27 @@ public class AttributeService {
         }
 
         AttributeType type = AttributeType.parse(ae.getType());
+        AbstractAttribute attr = null;
 
         if (type == AttributeType.STRING) {
-            return new StringAttribute(ae.getKey());
+            attr = new StringAttribute(ae.getKey());
+        } else if (type == AttributeType.NUMBER) {
+            attr = new NumberAttribute(ae.getKey());
         } else if (type == AttributeType.BOOLEAN) {
-            return new BooleanAttribute(ae.getKey());
-        }
-        if (type == AttributeType.DATE) {
-            return new DateAttribute(ae.getKey());
-        }
-        if (type == AttributeType.NUMBER) {
-            return new NumberAttribute(ae.getKey());
+            attr = new BooleanAttribute(ae.getKey());
+        } else if (type == AttributeType.DATE) {
+            attr = new DateAttribute(ae.getKey());
+        } else if (type == AttributeType.DATETIME) {
+            attr = new DateTimeAttribute(ae.getKey());
+        } else if (type == AttributeType.TIME) {
+            attr = new TimeAttribute(ae.getKey());
+        } else {
+            attr = new SerializableAttribute(ae.getKey());
         }
 
-        return new SerializableAttribute(ae.getKey());
+        attr.setName(ae.getName());
+        attr.setDescription(ae.getDescription());
 
+        return attr;
     }
 }

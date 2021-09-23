@@ -7,6 +7,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeService;
 
 public interface AttributeAuthority {
 
@@ -34,5 +35,12 @@ public interface AttributeAuthority {
             throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterAttributeProvider(String providerId) throws SystemException;
+
+    /*
+     * Services
+     */
+    public AttributeService getAttributeService(String providerId);
+
+    public List<AttributeService> getAttributeServices(String realm);
 
 }

@@ -619,4 +619,11 @@ public class UserManager {
 //		return userService.saveContextRoles(subject, context, space, roles);
 //	}
 
+    public Collection<UserAttributes> getUserAttributes(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+
+        Realm r = realmService.getRealm(realm);
+        return userService.getUserAttributes(subjectId, r.getSlug());
+    }
+
 }

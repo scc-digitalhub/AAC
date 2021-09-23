@@ -1,0 +1,18 @@
+<div class="pt-3">
+
+   <fieldset>
+      <legend class="mb-5">
+         Roles
+         <small class="form-text"> Manage roles for the current user</small>
+      </legend>
+      <div class="row">
+         <div class="col-md-12">
+            <p>Current realm roles:</p>
+            <span ng-repeat="item in authorities" class="badge badge-secondary m-1">{{item.role}}</span>
+         </div>
+         <div class="col-md-12">
+			<button class="btn btn-primary btn-sm" ng-click="editRoles(user)">Manage</button>
+         </div>
+      </div>
+   </fieldset>
+</div>

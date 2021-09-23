@@ -39,12 +39,13 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
     public InternalAuthenticationProvider(String providerId,
             InternalUserAccountService userAccountService,
             InternalAccountService accountService, InternalPasswordService passwordService,
-            String realm, InternalIdentityProviderConfigMap configMap) {
+            InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
-        Assert.notNull(configMap, "config map is mandatory");
-        this.config = configMap;
+        Assert.notNull(providerConfig, "provider config is mandatory");
+        this.config = providerConfig.getConfigMap();
         this.userAccountService = userAccountService;
+
         // build a userDetails service
         userDetailsService = new InternalUserDetailsService(userAccountService, realm);
 

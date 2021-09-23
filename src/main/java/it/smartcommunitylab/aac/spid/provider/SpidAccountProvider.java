@@ -115,4 +115,18 @@ public class SpidAccountProvider extends AbstractProvider implements AccountProv
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public void deleteAccount(String userId) throws NoSuchUserException {
+        String id = parseResourceId(userId);
+        String realm = getRealm();
+        String provider = getProvider();
+
+        SpidUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, id);
+
+        if (account != null) {
+            // remove account
+            accountRepository.delete(account);
+        }
+    }
+
 }

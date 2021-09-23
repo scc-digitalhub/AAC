@@ -42,6 +42,7 @@ import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
+import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.openid.auth.OIDCClientRegistrationRepository;
 import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
@@ -233,6 +234,10 @@ public class AACConfig {
         return new InMemoryProviderRepository<ScriptAttributeProviderConfig>();
     }
 
+    @Bean
+    public InMemoryProviderRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
+        return new InMemoryProviderRepository<InternalAttributeProviderConfig>();
+    }
     /*
      * initialize the execution service here and then build claims service
      */

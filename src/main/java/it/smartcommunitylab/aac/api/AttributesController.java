@@ -145,4 +145,9 @@ public class AttributesController {
 
     }
 
+
+    /*
+     * Attributes service
+     */
+    
 }

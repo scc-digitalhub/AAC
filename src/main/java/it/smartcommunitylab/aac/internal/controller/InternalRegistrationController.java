@@ -46,7 +46,7 @@ import it.smartcommunitylab.aac.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.dto.UserResetBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
 import springfox.documentation.annotations.ApiIgnore;
@@ -57,7 +57,7 @@ import springfox.documentation.annotations.ApiIgnore;
  */
 @Controller
 @RequestMapping
-public class RegistrationController {
+public class InternalRegistrationController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -76,7 +76,7 @@ public class RegistrationController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
+        InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.canRegister()) {
             throw new RegistrationException("registration is disabled");
@@ -139,7 +139,7 @@ public class RegistrationController {
         try {
 
             // resolve provider
-            InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
+            InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
             if (!idp.canRegister()) {
                 throw new RegistrationException("registration is disabled");
@@ -350,7 +350,7 @@ public class RegistrationController {
             Model model) throws NoSuchProviderException, NoSuchRealmException {
 
         // resolve provider
-        InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
+        InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
         if (!idp.getCredentialsService().canReset()) {
             throw new RegistrationException("reset is disabled");
@@ -406,7 +406,7 @@ public class RegistrationController {
         try {
 
             // resolve provider
-            InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
+            InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
             if (!idp.getCredentialsService().canReset()) {
                 throw new RegistrationException("reset is disabled");
             }

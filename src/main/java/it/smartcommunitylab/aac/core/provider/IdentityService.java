@@ -22,8 +22,6 @@ public interface IdentityService extends IdentityProvider {
 
     public boolean canUpdate();
 
-    public boolean canDelete();
-
     /*
      * Services
      */
@@ -31,31 +29,6 @@ public interface IdentityService extends IdentityProvider {
     public AccountService getAccountService();
 
     public CredentialsService getCredentialsService();
-
-    /*
-     * fetch identities from this provider
-     * 
-     * implementations are not required to support this
-     */
-
-    // userId is provider-specific
-    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException;
-
-    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException;
-
-    /*
-     * fetch for subject
-     * 
-     * opt-in, loads identities outside login for persisted accounts linked to the
-     * subject
-     * 
-     * providers implementing this will enable the managers to fetch identities
-     * outside the login flow!
-     */
-
-    public Collection<? extends UserIdentity> listIdentities(String subject);
-
-    public Collection<? extends UserIdentity> listIdentities(String subject, boolean fetchAttributes);
 
     /*
      * Manage identities from this provider
@@ -71,10 +44,6 @@ public interface IdentityService extends IdentityProvider {
             String subject,
             String userId, UserAccount account,
             Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
-
-    public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException;
-
-    public void deleteIdentities(String subjectId);
 
     /*
      * Registration

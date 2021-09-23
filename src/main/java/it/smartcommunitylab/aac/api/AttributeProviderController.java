@@ -321,13 +321,5 @@ public class AttributeProviderController {
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
         return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_ATTRIBUTES, provider.getAuthority());
     }
-//    @GetMapping("/ap_schema/{authority}")
-//    public JsonSchema getConfigurationSchema(
-//            @PathVariable(required = true) @Valid @NotBlank String authority)
-//            throws IllegalArgumentException {
-//        logger.debug("get ap config schema  for authority " + String.valueOf(authority));
-//
-//        return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_IDENTITY, authority);
-//    }
 
 }

@@ -47,6 +47,7 @@ public class User {
 
     // basic profile
     private String username;
+    private String email;
 
     // user status
     private boolean blocked;
@@ -182,13 +183,13 @@ public class User {
         this.username = username;
     }
 
-//    public String getEmail() {
-//        return email;
-//    }
-//
-//    public void setEmail(String email) {
-//        this.email = email;
-//    }
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public boolean isBlocked() {
         return blocked;

@@ -29,7 +29,7 @@ public class ScriptAttributeProviderConfig extends AbstractConfigurableProvider 
     private ScriptAttributeProviderConfigMap configMap;
 
     public ScriptAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
+        super(SystemKeys.AUTHORITY_SCRIPT, provider, realm);
         this.configMap = new ScriptAttributeProviderConfigMap();
     }
 
