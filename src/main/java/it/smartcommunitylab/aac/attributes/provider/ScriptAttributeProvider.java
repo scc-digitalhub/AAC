@@ -184,10 +184,10 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
-    public Collection<UserAttributes> getUserAttributes(String subjectId) {
+    public Collection<UserAttributes> getAttributes(String subjectId) {
         // fetch from store
         Map<String, Serializable> attributes = attributeStore.findAttributes(subjectId);
-        if (attributes.isEmpty()) {
+        if (attributes == null || attributes.isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -217,6 +217,12 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
         }
 
         return result;
+    }
+
+    @Override
+    public void deleteAttributes(String subjectId) {
+        // cleanup from store
+        attributeStore.deleteAttributes(subjectId);
     }
 
 }

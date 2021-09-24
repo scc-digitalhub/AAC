@@ -20,6 +20,8 @@ public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
     private String name;
     private OAuth2User principal;
 
+    private Map<String, String> attributes;
+
     public OIDCAuthenticatedPrincipal(String provider, String realm, String userId) {
         Assert.notNull(userId, "userId cannot be null");
         Assert.notNull(provider, "provider cannot be null");
@@ -42,7 +44,12 @@ public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
 
     @Override
     public Map<String, String> getAttributes() {
-        Map<String, String> attributes = new HashMap<>();
+        if (attributes != null) {
+            // local attributes overwrite oauth attributes when set
+            return attributes;
+        }
+
+        Map<String, String> result = new HashMap<>();
         if (principal != null) {
             Map<String, Object> oauthAttributes = principal.getAttributes();
 
@@ -50,17 +57,17 @@ public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
             // TODO implement a mapper via script handling a json representation without
             // security related attributes
             for (Map.Entry<String, Object> e : oauthAttributes.entrySet()) {
-                attributes.put(e.getKey(), e.getValue().toString());
+                result.put(e.getKey(), e.getValue().toString());
             }
 
             if (isOidcUser()) {
                 Map<String, Object> claims = ((OidcUser) principal).getClaims();
                 for (Map.Entry<String, Object> e : claims.entrySet()) {
-                    attributes.put(e.getKey(), e.getValue().toString());
+                    result.put(e.getKey(), e.getValue().toString());
                 }
             }
         }
-        return attributes;
+        return result;
     }
 
     public OAuth2User getPrincipal() {
@@ -88,6 +95,10 @@ public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
             return (OidcUser) principal;
         }
         return null;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
     }
 
 //    @Override

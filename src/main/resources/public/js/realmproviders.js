@@ -998,9 +998,8 @@ angular.module('aac.controllers.realmproviders', [])
 
         var initConfiguration = function (authority, config) {
             if (authority == 'script') {
-                console.log(config);
                 $scope.script = {
-                    code : config.code ? atob(config.code) : 'function attributeMapping(principal) {\n return {}; \n}'
+                    code: config.code ? atob(config.code) : 'function attributeMapping(principal) {\n return {}; \n}'
                 }
             }
         }
@@ -1088,7 +1087,7 @@ angular.module('aac.controllers.realmproviders', [])
                 var id = attributeSet.identifier;
                 var setIds = $scope.ap.attributeSets;
                 if ($scope.ap.attributeSets.includes(id)) {
-                    setIds = setIds.filter(i => !id == i);
+                    setIds = setIds.filter(i => id != i);
                 } else {
                     setIds.push(id);
                 }

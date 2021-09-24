@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.attributes;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -166,6 +167,16 @@ public class ScriptAttributeAuthority implements AttributeAuthority {
             // remove from registrations
             registrationRepository.removeRegistration(providerId);
         }
+    }
+
+    @Override
+    public it.smartcommunitylab.aac.core.provider.AttributeService getAttributeService(String providerId) {
+        return null;
+    }
+
+    @Override
+    public List<it.smartcommunitylab.aac.core.provider.AttributeService> getAttributeServices(String realm) {
+        return Collections.emptyList();
     }
 
     /*

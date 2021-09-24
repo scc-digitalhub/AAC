@@ -28,8 +28,18 @@ public class InternalAttributeProviderConfigMap implements ConfigurablePropertie
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
     };
 
+    private Boolean usermode;
+
     public InternalAttributeProviderConfigMap() {
 
+    }
+
+    public Boolean getUsermode() {
+        return usermode;
+    }
+
+    public void setUsermode(Boolean usermode) {
+        this.usermode = usermode;
     }
 
     @Override
@@ -48,6 +58,7 @@ public class InternalAttributeProviderConfigMap implements ConfigurablePropertie
         InternalAttributeProviderConfigMap map = mapper.convertValue(props, InternalAttributeProviderConfigMap.class);
 
         // map all props defined in model
+        this.usermode = map.getUsermode() != null ? map.getUsermode() : Boolean.FALSE;
 
     }
 

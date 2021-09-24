@@ -122,4 +122,16 @@ public class SamlAccountProvider extends AbstractProvider implements AccountProv
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public void deleteAccount(String userId) throws NoSuchUserException {
+        String id = parseResourceId(userId);
+        String realm = getRealm();
+        String provider = getProvider();
+
+        SamlUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, id);
+        if (account != null) {
+            accountRepository.delete(account);
+        }
+    }
+
 }

@@ -220,10 +220,14 @@ form .invalid-feedback {
 
 .card.border {
     border-width: 2px !important;
+    border-radius: 5px;
 }
 
 .card.border::after {
    margin: 0;
+}
+.card.border.border-3 {
+    border-width:3px !important;
 }
 
 .card-logo {

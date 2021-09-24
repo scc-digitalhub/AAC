@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
@@ -95,14 +96,14 @@ public class AuthorityManager {
 
     @Autowired
     private ScriptAttributeAuthority scriptAttributeAuthority;
-    
+
     /*
      * Attribute providers
      */
 
     public AttributeAuthority getAttributeAuthority(String authority) {
         if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-//            return internalAttributeAuthority;
+            return internalAttributeAuthority;
         } else if (SystemKeys.AUTHORITY_MAPPER.equals(authority)) {
             return mapperAttributeAuthority;
         } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
@@ -113,7 +114,7 @@ public class AuthorityManager {
 
     public List<AttributeAuthority> listAttributeAuthorities() {
         List<AttributeAuthority> result = new ArrayList<>();
-//        result.add(internalAttributeAuthority);
+        result.add(internalAttributeAuthority);
         result.add(mapperAttributeAuthority);
         result.add(scriptAttributeAuthority);
         return result;
@@ -459,6 +460,82 @@ public class AuthorityManager {
         AttributeAuthority ia = getAttributeAuthority(authority);
         if (ia != null) {
             return ia.getAttributeProviders(realm);
+        }
+
+        return null;
+    }
+
+    /*
+     * Attribute services
+     * 
+     */
+
+    public AttributeService findAttributeService(String providerId) {
+        try {
+            ConfigurableProvider provider = getProvider(TYPE_ATTRIBUTES, providerId);
+
+            // lookup in authority
+            AttributeAuthority ia = getAttributeAuthority(provider.getAuthority());
+            return ia.getAttributeService(providerId);
+        } catch (NoSuchProviderException e) {
+            return null;
+        }
+    }
+
+    public AttributeService getAttributeService(String providerId) throws NoSuchProviderException {
+        AttributeService ap = findAttributeService(providerId);
+        if (ap == null) {
+            // provider is not active or not existing
+            // TODO add dedicated exception?
+            throw new NoSuchProviderException("provider not found");
+        }
+
+        return ap;
+    }
+
+    // fast load, skips db lookup, returns null if missing
+    public AttributeService fetchAttributeService(String authority, String providerId) {
+        // lookup in authority
+        AttributeAuthority ia = getAttributeAuthority(authority);
+        if (ia == null) {
+            return null;
+        }
+        return ia.getAttributeService(providerId);
+    }
+
+    public Collection<AttributeService> getAttributeServices(String realm) throws NoSuchRealmException {
+        Collection<? extends ConfigurableProvider> providers = listProviders(TYPE_ATTRIBUTES, realm);
+
+        // fetch each active provider from authority
+        List<AttributeService> aps = new ArrayList<>();
+        for (ConfigurableProvider provider : providers) {
+            // lookup in authority
+            AttributeAuthority ia = getAttributeAuthority(provider.getAuthority());
+            AttributeService ap = ia.getAttributeService(provider.getProvider());
+            if (ap != null) {
+                aps.add(ap);
+            }
+        }
+
+        return aps;
+    }
+
+    // fast load, skips db lookup
+    public Collection<AttributeService> fetchAttributeServices(String realm) {
+        List<AttributeService> providers = new ArrayList<>();
+        for (AttributeAuthority ia : listAttributeAuthorities()) {
+            providers.addAll(ia.getAttributeServices(realm));
+        }
+
+        return providers;
+
+    }
+
+    // fast load, skips db lookup
+    public Collection<AttributeService> fetchAttributeServices(String authority, String realm) {
+        AttributeAuthority ia = getAttributeAuthority(authority);
+        if (ia != null) {
+            return ia.getAttributeServices(realm);
         }
 
         return null;

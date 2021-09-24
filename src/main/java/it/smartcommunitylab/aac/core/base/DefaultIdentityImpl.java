@@ -20,6 +20,7 @@ public class DefaultIdentityImpl extends BaseIdentity implements CredentialsCont
     protected final UserAuthenticatedPrincipal principal;
     protected UserAccount account;
     protected Collection<UserAttributes> attributes;
+    protected String username;
 
     public DefaultIdentityImpl(String authority, String provider, String realm) {
         super(authority, provider, realm);
@@ -53,7 +54,21 @@ public class DefaultIdentityImpl extends BaseIdentity implements CredentialsCont
     }
 
     public void setAttributes(Collection<UserAttributes> attributes) {
-        this.attributes = Collections.unmodifiableCollection(attributes);
+        if (attributes != null) {
+            this.attributes = Collections.unmodifiableCollection(attributes);
+        }
+    }
+
+    public String getUsername() {
+        if (this.username != null) {
+            return this.username;
+        }
+
+        return account.getUsername();
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     /*

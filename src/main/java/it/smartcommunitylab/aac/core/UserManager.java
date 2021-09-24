@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,12 +24,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
@@ -98,6 +103,9 @@ public class UserManager {
 
     @Autowired
     private InternalUserManager internalUserManager;
+
+    @Autowired
+    private AttributeService attributeService;
 
     /*
      * Current user, from context
@@ -618,5 +626,32 @@ public class UserManager {
 //	public SpaceRoles saveContextRoles(String subject, String context, String space, List<String> roles) {
 //		return userService.saveContextRoles(subject, context, space, roles);
 //	}
+
+    public Collection<UserAttributes> getUserAttributes(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+
+        Realm r = realmService.getRealm(realm);
+        return userService.getUserAttributes(subjectId, r.getSlug());
+    }
+
+    public UserAttributes setUserAttributes(String realm, String subjectId,
+            String provider, String identifier,
+            Map<String, Serializable> attributes)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
+
+        Realm r = realmService.getRealm(realm);
+
+        // get attributeSet
+        AttributeSet as = attributeService.getAttributeSet(identifier);
+
+        // build a mapper to extract from values
+        ExactAttributesMapper mapper = new ExactAttributesMapper(as);
+        AttributeSet set = mapper.mapAttributes(attributes);
+        if (set.getAttributes() == null || set.getAttributes().isEmpty()) {
+            throw new IllegalArgumentException("empty or invalid attribute set");
+        }
+
+        return userService.setUserAttributes(subjectId, r.getSlug(), provider, set);
+    }
 
 }

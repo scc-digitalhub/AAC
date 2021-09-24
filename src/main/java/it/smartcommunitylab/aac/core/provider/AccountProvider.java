@@ -19,4 +19,7 @@ public interface AccountProvider extends ResourceProvider {
     public UserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException;
 
     public Collection<? extends UserAccount> listAccounts(String subject);
+
+    public void deleteAccount(String userId) throws NoSuchUserException;
+
 }

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.openid;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -273,17 +274,13 @@ public class OIDCIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
-    public OIDCIdentityProvider getIdentityService(String providerId) {
-        // idp are ids
-        return getIdentityProvider(providerId);
+    public IdentityService getIdentityService(String providerId) {
+        return null;
     }
 
     @Override
     public List<IdentityService> getIdentityServices(String realm) {
-        // we need to fetch registrations and get idp from cache, with optional load
-        Collection<OIDCIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
-        return registrations.stream().map(r -> getIdentityService(r.getProvider()))
-                .filter(p -> (p != null)).collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
     @Override

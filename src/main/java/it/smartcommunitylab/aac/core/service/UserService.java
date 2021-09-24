@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,19 +15,26 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.core.provider.AttributeService;
+import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.RoleService;
@@ -50,6 +58,12 @@ public class UserService {
     // base services for users
     @Autowired
     private UserEntityService userService;
+
+    @Autowired
+    private IdentityProviderService identityProviderService;
+
+    @Autowired
+    private AttributeProviderService attributeProviderService;
 
     @Autowired
     private RoleService roleService;
@@ -218,8 +232,8 @@ public class UserService {
         // same realm, fetch all idps
         // TODO we need an order criteria
         for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<IdentityService> idps = ia.getIdentityServices(realm);
-            for (IdentityService idp : idps) {
+            List<IdentityProvider> idps = ia.getIdentityProviders(realm);
+            for (IdentityProvider idp : idps) {
                 identities.addAll(idp.listIdentities(subjectId));
             }
         }
@@ -254,6 +268,7 @@ public class UserService {
 
         User u = new User(subjectId, ue.getRealm());
         u.setUsername(ue.getUsername());
+        u.setEmail(ue.getEmailAddress());
 
         // fetch attributes
         u.setExpirationDate(ue.getExpirationDate());
@@ -268,8 +283,8 @@ public class UserService {
         // fetch all identities from source realm
         // TODO we need an order criteria
         for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<IdentityService> idps = ia.getIdentityServices(source);
-            for (IdentityService idp : idps) {
+            List<IdentityProvider> idps = ia.getIdentityProviders(source);
+            for (IdentityProvider idp : idps) {
                 identities.addAll(idp.listIdentities(subjectId));
             }
         }
@@ -277,8 +292,8 @@ public class UserService {
             // also fetch identities from destination realm
             // TODO we need an order criteria
             for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-                List<IdentityService> idps = ia.getIdentityServices(realm);
-                for (IdentityService idp : idps) {
+                List<IdentityProvider> idps = ia.getIdentityProviders(realm);
+                for (IdentityProvider idp : idps) {
                     identities.addAll(idp.listIdentities(subjectId));
                 }
             }
@@ -327,6 +342,14 @@ public class UserService {
         return userService.countUsers(realm);
     }
 
+    public Page<User> searchUsers(String realm, String q, Pageable pageRequest) {
+        Page<UserEntity> page = userService.searchUsers(realm, q, pageRequest);
+        return PageableExecutionUtils.getPage(
+                convertUsers(realm, page.getContent()),
+                pageRequest,
+                () -> page.getTotalElements());
+    }
+
     protected List<User> convertUsers(String realm, List<UserEntity> users) {
         List<User> realmUsers = users.stream()
                 .map(u -> {
@@ -355,6 +378,14 @@ public class UserService {
      * @throws NoSuchUserException
      */
     public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
+        //check role format
+        roles.stream().forEach(r -> {
+            if (!StringUtils.hasText(r) || !r.matches(SystemKeys.SLUG_PATTERN)) {
+                throw new IllegalArgumentException("invalid role format, valid chars "+SystemKeys.SLUG_PATTERN);
+            }
+        });
+        
+        //update
         userService.updateRoles(subjectId, slug, roles);
     }
 
@@ -391,17 +422,22 @@ public class UserService {
 
         // delete identities via providers
         for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-            List<IdentityService> idps = ia.getIdentityServices(realm);
-            for (IdentityService idp : idps) {
-                if (idp.canDelete()) {
-                    // remove all identities
-                    idp.deleteIdentities(subjectId);
-                }
+            List<IdentityProvider> idps = ia.getIdentityProviders(realm);
+            for (IdentityProvider idp : idps) {
+                // remove all identities
+                idp.deleteIdentities(subjectId);
             }
         }
 
-        // TODO attributes
+        // attributes
+        for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
+            List<AttributeProvider> aps = aa.getAttributeProviders(realm);
+            for (AttributeProvider ap : aps) {
+                // remove all attributes
+                ap.deleteAttributes(subjectId);
 
+            }
+        }
         // roles
         roleService.deleteRoles(subjectId);
 
@@ -414,12 +450,68 @@ public class UserService {
     // TODO user removal with authority via given provider
 
     /*
+     * User Attributes
+     */
+    public Collection<UserAttributes> getUserAttributes(String subjectId, String realm) throws NoSuchUserException {
+        UserEntity u = userService.getUser(subjectId);
+
+        return fetchUserAttributes(u.getUuid(), realm);
+    }
+
+    public Collection<UserAttributes> getUserAttributes(String subjectId, String realm, String provider)
+            throws NoSuchUserException, NoSuchProviderException {
+        UserEntity u = userService.getUser(subjectId);
+        AttributeProvider ap = authorityManager.getAttributeProvider(provider);
+        return ap.getAttributes(u.getUuid());
+    }
+
+    public UserAttributes getUserAttributes(String subjectId, String realm, String provider, String setId)
+            throws NoSuchUserException, NoSuchProviderException {
+        UserEntity u = userService.getUser(subjectId);
+        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
+        if (!cp.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+        if (!cp.getAttributeSets().contains(setId)) {
+            throw new IllegalArgumentException("set not enabled for this provider");
+        }
+
+        AttributeProvider ap = authorityManager.fetchAttributeProvider(cp.getAuthority(), provider);
+        return ap.getAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
+                .orElse(null);
+    }
+
+    public UserAttributes setUserAttributes(String subjectId, String realm, String provider,
+            AttributeSet attributeSet) throws NoSuchUserException, NoSuchProviderException {
+        UserEntity u = userService.getUser(subjectId);
+        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
+        if (!cp.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+        String setId = attributeSet.getIdentifier();
+        if (!cp.getAttributeSets().contains(setId)) {
+            throw new IllegalArgumentException("set not enabled for this provider");
+        }
+
+        AttributeService as = authorityManager.fetchAttributeService(cp.getAuthority(), provider);
+        return as.putAttributes(subjectId, Collections.singleton(attributeSet)).stream().findFirst().orElse(null);
+    }
+
+    /*
      * Helpers
      */
 
     private Collection<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
-        // TODO
-        return Collections.emptyList();
+        List<UserAttributes> attributes = new ArrayList<>();
+        // fetch from providers
+        for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
+            List<AttributeProvider> aps = aa.getAttributeProviders(realm);
+            for (AttributeProvider ap : aps) {
+                attributes.addAll(ap.getAttributes(subjectId));
+            }
+        }
+
+        return attributes;
     }
 
     private Collection<GrantedAuthority> fetchUserRealmAuthorities(String subjectId, String realm)
@@ -448,20 +540,6 @@ public class UserService {
     private Collection<SpaceRole> fetchUserSpaceRoles(String subjectId, String realm) throws NoSuchUserException {
         // we don't filter space roles per realm, so read all
         return roleService.getRoles(subjectId);
-    }
-
-    /**
-     * @param realm
-     * @param keywords
-     * @param pageRequest
-     * @return
-     */
-    public Page<User> searchUsers(String realm, String q, Pageable pageRequest) {
-        Page<UserEntity> page = userService.searchUsers(realm, q, pageRequest);
-        return PageableExecutionUtils.getPage(
-                convertUsers(realm, page.getContent()),
-                pageRequest,
-                () -> page.getTotalElements());
     }
 
 }

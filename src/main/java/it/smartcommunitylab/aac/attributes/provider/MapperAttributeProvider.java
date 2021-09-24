@@ -98,7 +98,7 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
         }
 
         MapperAttributeProviderConfigMap configMap = providerConfig.getConfigMap();
-        
+
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
         // get all attributes from principal
@@ -152,10 +152,10 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
     }
 
     @Override
-    public Collection<UserAttributes> getUserAttributes(String subjectId) {
+    public Collection<UserAttributes> getAttributes(String subjectId) {
         // fetch from store
         Map<String, Serializable> attributes = attributeStore.findAttributes(subjectId);
-        if (attributes.isEmpty()) {
+        if (attributes == null || attributes.isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -185,6 +185,12 @@ public class MapperAttributeProvider extends AbstractProvider implements Attribu
         }
 
         return result;
+    }
+
+    @Override
+    public void deleteAttributes(String subjectId) {
+        // cleanup from store
+        attributeStore.deleteAttributes(subjectId);
     }
 
     private BaseAttributesMapper getAttributeMapper(String type, AttributeSet as) {

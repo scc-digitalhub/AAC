@@ -21,6 +21,8 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
     private String name;
     private Saml2AuthenticatedPrincipal principal;
 
+    private Map<String, String> attributes;
+
     public SamlAuthenticatedPrincipal(String provider, String realm, String userId) {
         Assert.notNull(userId, "userId cannot be null");
         Assert.notNull(provider, "provider cannot be null");
@@ -43,7 +45,13 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
 
     @Override
     public Map<String, String> getAttributes() {
-        Map<String, String> attributes = new HashMap<>();
+
+        if (attributes != null) {
+            // local attributes overwrite oauth attributes when set
+            return attributes;
+        }
+
+        Map<String, String> result = new HashMap<>();
         if (principal != null) {
             // we implement only first attribute
             Set<String> keys = principal.getAttributes().keySet();
@@ -52,11 +60,11 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
             // TODO implement a mapper via script handling a json representation without
             // security related attributes
             for (String key : keys) {
-                attributes.put(key, principal.getFirstAttribute(key).toString());
+                result.put(key, principal.getFirstAttribute(key).toString());
             }
 
         }
-        return attributes;
+        return result;
     }
 
     public Saml2AuthenticatedPrincipal getPrincipal() {
@@ -84,6 +92,10 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
     @Override
     public String getProvider() {
         return provider;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
     }
 
 }

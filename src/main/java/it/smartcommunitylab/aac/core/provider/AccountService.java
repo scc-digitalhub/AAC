@@ -14,8 +14,6 @@ public interface AccountService extends AccountProvider {
 
     public boolean canUpdate();
 
-    public boolean canDelete();
-
     /*
      * Manage accounts from this provider
      * 
@@ -32,5 +30,4 @@ public interface AccountService extends AccountProvider {
             String userId,
             UserAccount account) throws NoSuchUserException, RegistrationException;
 
-    public void deleteAccount(String userId) throws NoSuchUserException;
 }

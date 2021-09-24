@@ -10,6 +10,7 @@ var app = angular.module('dev', [
     'aac.controllers.admin',
     'aac.controllers.dev',
     'aac.controllers.realm',
+    'aac.controllers.realmusers',
     'aac.controllers.realmproviders',
     'aac.controllers.realmapps',
     'aac.controllers.realmservices',
@@ -58,10 +59,18 @@ app.config(function ($stateProvider) {
             templateUrl: 'html/realm.dashboard.html',
             controller: 'RealmDashboardController',
         })
+        /*
+        * users
+        */
         .state('realm.users', {
             url: '/users',
             templateUrl: 'html/realm.users.html',
             controller: 'RealmUsersController',
+        })
+        .state('realm.user', {
+            url: '/user?subjectId',
+            templateUrl: 'html/realm.user.html',
+            controller: 'RealmUserController',
         })
         /*
         * providers

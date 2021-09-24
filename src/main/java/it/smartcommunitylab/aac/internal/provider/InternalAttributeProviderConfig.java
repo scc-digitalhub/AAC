@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +21,8 @@ public class InternalAttributeProviderConfig extends AbstractConfigurableProvide
 
     private String name;
     private String description;
+
+    private Set<String> attributeSets;
 
     // map capabilities
     private InternalAttributeProviderConfigMap configMap;
@@ -49,6 +53,14 @@ public class InternalAttributeProviderConfig extends AbstractConfigurableProvide
         this.description = description;
     }
 
+    public Set<String> getAttributeSets() {
+        return attributeSets;
+    }
+
+    public void setAttributeSets(Set<String> attributeSets) {
+        this.attributeSets = attributeSets;
+    }
+
     public InternalAttributeProviderConfigMap getConfigMap() {
         return configMap;
     }
@@ -76,6 +88,12 @@ public class InternalAttributeProviderConfig extends AbstractConfigurableProvide
                 ap.getProvider(),
                 ap.getRealm());
 
+        cp.setName(ap.getName());
+        cp.setDescription(ap.getDescription());
+
+        cp.setPersistence(SystemKeys.PERSISTENCE_LEVEL_REPOSITORY);
+        cp.setAttributeSets(ap.getAttributeSets());
+
         return cp;
     }
 
@@ -87,6 +105,7 @@ public class InternalAttributeProviderConfig extends AbstractConfigurableProvide
         ap.name = cp.getName();
         ap.description = cp.getDescription();
 
+        ap.attributeSets = cp.getAttributeSets() != null ? cp.getAttributeSets() : Collections.emptySet();
         return ap;
     }
 

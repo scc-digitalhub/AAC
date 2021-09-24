@@ -11,7 +11,7 @@
                     <label for="clientid" class="active">Client ID</label>
                     <input type="text" class="form-control input-password" id="clientid" ng-model="app.clientId"
                         readonly>
-                    </span>
+
                     <div class="input-group-append">
                         <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(app.clientId)">
                             <svg class="icon icon-sm icon-white">
@@ -27,7 +27,7 @@
                     <label for="secret" class="active">Client secret</label>
                     <input type="password" class="form-control input-password" id="secret"
                         ng-model="app.configuration.clientSecret" readonly>
-                    </span>
+
                     <div class="input-group-append">
                         <button class="btn btn-primary btn-sm  text-right"
                             ng-click="copyText(app.configuration.clientSecret)">
@@ -90,7 +90,8 @@
                     <label class="active" for="clientName">Application type</label>
                     <select id="applicationType" ng-model="app.configuration.applicationType">
                         <option ng-repeat="at in configurationSchema.properties.applicationType.enum" value="{{at}}"
-                            ng-selected="app.configuration.applicationType==at">{{at | limitTo:1 | uppercase}}{{at.substr(1) | lowercase }}</option>                     
+                            ng-selected="app.configuration.applicationType==at">{{at | limitTo:1 |
+                            uppercase}}{{at.substr(1) | lowercase }}</option>
                     </select>
                 </div>
 

@@ -25,12 +25,12 @@ import it.smartcommunitylab.aac.dto.UserPasswordBean;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.PasswordPolicy;
 import it.smartcommunitylab.aac.internal.model.UserPasswordCredentials;
-import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
+import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 
 @Controller
 @RequestMapping
-public class CredentialsController {
+public class InternalCredentialsController {
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -66,7 +66,7 @@ public class CredentialsController {
         }
 
         // fetch provider
-        InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
+        InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
         // fetch credentials service if available
         InternalPasswordService service = idp.getCredentialsService();
@@ -131,7 +131,7 @@ public class CredentialsController {
             }
 
             // fetch provider
-            InternalIdentityProvider idp = internalAuthority.getIdentityService(providerId);
+            InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
 
             // fetch credentials service if available
             InternalPasswordService service = idp.getCredentialsService();
