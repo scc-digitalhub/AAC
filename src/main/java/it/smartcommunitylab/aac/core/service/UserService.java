@@ -15,6 +15,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
@@ -377,6 +378,14 @@ public class UserService {
      * @throws NoSuchUserException
      */
     public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
+        //check role format
+        roles.stream().forEach(r -> {
+            if (!StringUtils.hasText(r) || !r.matches(SystemKeys.SLUG_PATTERN)) {
+                throw new IllegalArgumentException("invalid role format, valid chars "+SystemKeys.SLUG_PATTERN);
+            }
+        });
+        
+        //update
         userService.updateRoles(subjectId, slug, roles);
     }
 

@@ -1,7 +1,10 @@
 package it.smartcommunitylab.aac.dev;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
@@ -13,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,11 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.dto.AttributesRegistrationDTO;
 import it.smartcommunitylab.aac.model.User;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -92,12 +98,12 @@ public class DevUsersController {
      */
     @PutMapping("/realms/{realm}/users/{subjectId:.*}/roles")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public ResponseEntity<User> updateRealmUserRoles(
+    public ResponseEntity<Void> updateRealmUserRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
             @RequestBody RolesBean bean) throws NoSuchRealmException, NoSuchUserException {
         userManager.updateRealmAuthorities(realm, subjectId, bean.getRoles());
-        return ResponseEntity.ok(userManager.getUser(realm, subjectId));
+        return ResponseEntity.ok(null);
     }
 
     /*
@@ -112,6 +118,35 @@ public class DevUsersController {
             throws NoSuchRealmException, NoSuchUserException {
         Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, subjectId);
         return attributes;
+    }
+
+    @PostMapping("/realms/{realm}/users/{subjectId:.*}/attributes")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<UserAttributes> addRealmUserAttributes(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @RequestBody AttributesRegistrationDTO reg)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+
+        // extract registration
+        String identifier = reg.getIdentifier();
+        String provider = reg.getProvider();
+        if (!StringUtils.hasText(provider)) {
+            throw new IllegalArgumentException("a valid provider is required");
+        }
+
+        if (reg.getAttributes() == null) {
+            throw new IllegalArgumentException("attributes can not be null");
+        }
+
+        Map<String, Serializable> attributes = reg.getAttributes().stream()
+                .filter(a -> a.getValue() != null)
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+
+        // register
+        UserAttributes ua = userManager.setUserAttributes(realm, subjectId, provider, identifier, attributes);
+
+        return ResponseEntity.ok(ua);
     }
 
     /*

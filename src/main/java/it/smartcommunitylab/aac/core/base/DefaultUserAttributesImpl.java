@@ -36,6 +36,9 @@ public class DefaultUserAttributesImpl extends BaseAttributes {
         this.userId = userId;
         this.attributes = new HashSet<>();
         this.attributes.addAll(attributeSet.getAttributes());
+        this.name = attributeSet.getName();
+        this.description = attributeSet.getDescription();
+
     }
 
     @Override

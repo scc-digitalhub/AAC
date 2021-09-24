@@ -39,7 +39,10 @@ public abstract class BaseAttributesMapper implements AttributesMapper {
             }
         }
 
-        return new DefaultAttributesImpl(model.getIdentifier(), attributes);
+        DefaultAttributesImpl ua = new DefaultAttributesImpl(model.getIdentifier(), attributes);
+        ua.setName(model.getName());
+        ua.setDescription(model.getDescription());
+        return ua;
 
     }
 

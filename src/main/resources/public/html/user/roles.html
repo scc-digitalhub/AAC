@@ -1,18 +1,118 @@
 <div class="pt-3">
 
-   <fieldset>
-      <legend class="mb-5">
-         Roles
-         <small class="form-text"> Manage roles for the current user</small>
-      </legend>
-      <div class="row">
-         <div class="col-md-12">
-            <p>Current realm roles:</p>
-            <span ng-repeat="item in authorities" class="badge badge-secondary m-1">{{item.role}}</span>
-         </div>
-         <div class="col-md-12">
-			<button class="btn btn-primary btn-sm" ng-click="editRoles(user)">Manage</button>
-         </div>
-      </div>
-   </fieldset>
+    <fieldset>
+        <legend class="mb-5">
+            Roles
+            <small class="form-text"> Manage roles for the current user</small>
+        </legend>
+        <div class="row">
+            <table class="table table-hover border-bottom">
+                <tr ng-repeat="item in authorities">
+                    <td class="align-middle">
+                        <h6>{{item.role}}</h6>
+                    </td>
+                    <td class="align-middle">
+                        ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.authority}}</span>
+                        <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.authority)">
+                            <svg class="icon icon-xs icon-black">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-danger btn-sm" ng-click="removeRole(item)">Remove</button>
+                    </td>
+                </tr>
+            </table>
+            <div class="col-md-12">
+                <button class="btn btn-primary btn-sm" ng-click="addRoleDlg()">Add custom role</button>
+                <button class="btn btn-primary btn-sm" ng-click="manageSystemRolesDlg()">Edit system roles</button>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="rolesModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add realm role </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Add a custom role for the current user
+                </p>
+                <form name="roleForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="role">Role</label>
+                        <input type="text" name="role" class="form-control form-control-sm" id="role" required
+                            ng-model="modRole.role">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="addRole()"
+                    ng-disabled="roleForm.$invalid">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade bs-modal-lg" tabindex="-1" role="dialog" id="systemRolesModal">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit system roles </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Add or remove system roles to the current user
+                </p>
+                <form name="roleForm" class="needs-validation was-validated" novalidate>
+                    <table class="table table-hover border-bottom">
+                        <tr>
+                            <td class="align-middle">
+                                <span class="h6">Realm developer</span> <br>
+                                <small class="text-muted"> ROLE_DEVELOPER</small>
+                                <p>Manage realm applications and services</p>
+                            </td>
+                            <td class="text-right">
+                                <div class="toggles">
+                                    <label>
+                                        <input type="checkbox" ng-checked="modSystemRoles.developer"
+                                            ng-click="modSystemRoles.developer = !modSystemRoles.developer">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle">
+                                <span class="h6">Realm Administrator</span> <br>
+                                <small class="text-muted"> ROLE_ADMIN</small>
+                                <p>Manage realm settings and configuration (in addition to developer permissions)</p>
+                                {{modSystemRoles.admin}}
+                            </td>
+                            <td class="text-right">
+                                <div class="toggles">
+                                    <label>
+                                        <input type="checkbox" ng-checked="modSystemRoles.admin"
+                                            ng-click="modSystemRoles.admin = !modSystemRoles.admin">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="updateSystemRoles()"
+                    ng-disabled="roleForm.$invalid">Update</button>
+            </div>
+        </div>
+    </div>
 </div>

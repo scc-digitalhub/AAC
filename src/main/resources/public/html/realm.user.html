@@ -6,7 +6,7 @@
         </div>
         <div class="col col-md-6 text-right">
             <button class="btn btn-secondary btn-sm  text-right" ng-click="inspectDlg(user)">Inspect</button>
-            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteUser(user)">Delete</button>
+            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteUserDlg(user)">Delete</button>
         </div>
     </div>
     <div class="row mb-3">
@@ -41,7 +41,7 @@
             <a class="nav-link {{activeView('attributes')}}" href ng-click="switchView('attributes')">Attributes</a>
         </li>
     </ul>
-    <div class="tab-content pt-3">
+    <div class="tab-content pt-3 pb-2">
         <div class="tab-pane fade show active">
             <form role="form" name="appForm" class="needs-validation was-validated" novalidate>
                 <div ng-include="'./html/user/'+curView+'.html'"></div>
@@ -52,33 +52,20 @@
 
 
 </div>
-<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="resetClientCredentialsConfirm">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-body">
-                <p>Are you sure you want to reset credentials?</p>
-                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger btn-sm" ng-click="resetClientCredentials()" type="button">Reset</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+        <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="deleteUser()" type="button">Delete</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+      </div>
     </div>
-</div>
-<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteUserConfirm">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-body">
-                <p>Are you sure you want to delete?</p>
-                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger btn-sm" ng-click="deleteUser()" type="button">Delete</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 
 <div class="modal fade bs-modal-lg" id="inspectModal" tabindex="-1" role="dialog" aria-hidden="true">

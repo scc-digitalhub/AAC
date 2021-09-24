@@ -1,19 +1,41 @@
 package it.smartcommunitylab.aac.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 
+@Valid
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AttributesRegistrationDTO {
 
+    @NotBlank
     private String identifier;
+
+    @NotBlank
+    private String provider;
+
     private String name;
     private String description;
 
+    @NotNull
     private List<AttributeDTO> attributes;
+
+    public AttributesRegistrationDTO() {
+        this.attributes = new ArrayList<>();
+    }
 
     public String getIdentifier() {
         return identifier;
@@ -21,6 +43,14 @@ public class AttributesRegistrationDTO {
 
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getName() {
@@ -47,7 +77,10 @@ public class AttributesRegistrationDTO {
         this.attributes = attributes;
     }
 
+    @Valid
     public static class AttributeDTO {
+
+        @NotBlank
         private String key;
         private String type;
         private String value;

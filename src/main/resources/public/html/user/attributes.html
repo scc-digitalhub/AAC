@@ -23,8 +23,8 @@
 			<table class="table table-hover border-bottom">
 				<tr ng-repeat="item in identity.attributes">
 					<td class="align-middle">
-						<h6>{{attributeSets[item.identifier].name}}</h6>
-						<p>{{attributeSets[item.identifier].description}}</p>
+						<h6>{{item.name}}</h6>
+						<p>{{item.description}}</p>
 					</td>
 					<td class="align-middle">
 						ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.attributesId}}</span>
@@ -52,8 +52,8 @@
 			<table class="table table-hover border-bottom">
 				<tr ng-repeat="item in user.attributes">
 					<td class="align-middle">
-						<h6>{{attributeSets[item.identifier].name}}</h6>
-						<p>{{attributeSets[item.identifier].description}}</p>
+						<h6>{{item.name}}</h6>
+						<p>{{item.description}}</p>
 					</td>
 					<td class="align-middle">
 						ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.attributesId}}</span>
@@ -66,12 +66,39 @@
 					<td class="text-right">
 						<button class="btn btn-secondary btn-sm" ng-click="inspectDlg(item)">Inspect</button>
 						<button class="btn btn-primary btn-sm" ng-click="viewAttributes(item)">View</button>
-						<button class="btn btn-secondary btn-sm" ng-if="item.authority == 'internal'" ng-click="editAttributes(item)">Edit</button>
-						<button class="btn btn-danger btn-sm" ng-if="item.authority == 'internal'" ng-click="deleteAttributes(item)">Delete</button>
+						<button class="btn btn-secondary btn-sm" ng-if="item.authority == 'internal'"
+							ng-click="editAttributesDlg(item)">Edit</button>
+						<button class="btn btn-danger btn-sm" ng-if="item.authority == 'internal'"
+							ng-click="deleteAttributesDlg(item)">Delete</button>
 
 					</td>
 				</tr>
 			</table>
+			<div class="col-md-12" ng-if="editAttributes">
+				<button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
+					aria-haspopup="true" aria-expanded="false">
+					<svg class="icon icon-sm icon-white">
+						<use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+					</svg>
+					Add Attributes
+					<svg class="icon-expand icon icon-sm icon-light">
+						<use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+					</svg>
+				</button>
+				<div class="dropdown-menu">
+					<div class="link-list-wrapper">
+						<ul class="link-list">
+							<li ng-repeat="item in editAttributes">
+								<a class="list-item" href=""
+									ng-click="editAttributesDlg(item)"><span>{{item.name}}</span></a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
 		</div>
 	</fieldset>
 </div>
+
+<div ng-include="'./html/user/modal.attributes.html'"></div>
