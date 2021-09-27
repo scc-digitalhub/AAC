@@ -8,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider.ResponseToken;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import it.smartcommunitylab.aac.SystemKeys;
 
 public class SamlAuthentication extends AbstractAuthenticationToken {
@@ -16,7 +18,8 @@ public class SamlAuthentication extends AbstractAuthenticationToken {
 
     private final AuthenticatedPrincipal principal;
 
-    private final ResponseToken responseToken;
+    private final String saml2Response;
+    private final transient ResponseToken responseToken;
 
     public SamlAuthentication(AuthenticatedPrincipal principal, ResponseToken responseToken,
             Collection<? extends GrantedAuthority> authorities) {
@@ -24,6 +27,7 @@ public class SamlAuthentication extends AbstractAuthenticationToken {
         Assert.notNull(principal, "principal cannot be null");
         Assert.notNull(responseToken, "responseToken cannot be null");
         this.principal = principal;
+        this.saml2Response = responseToken.getToken().getSaml2Response();
         this.responseToken = responseToken;
         setAuthenticated(true);
     }
@@ -38,12 +42,13 @@ public class SamlAuthentication extends AbstractAuthenticationToken {
         return getSaml2Response();
     }
 
+    @JsonIgnore
     public ResponseToken getResponseToken() {
         return responseToken;
     }
 
     public String getSaml2Response() {
-        return responseToken.getToken().getSaml2Response();
+        return saml2Response;
     }
 
 }
