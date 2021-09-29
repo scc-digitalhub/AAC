@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 
-public class RolesClaimsExtractor implements ScopeClaimsExtractor {
+public class UserRolesClaimsExtractor implements ScopeClaimsExtractor {
 
     @Override
     public String getResourceId() {
@@ -31,7 +31,7 @@ public class RolesClaimsExtractor implements ScopeClaimsExtractor {
 
     @Override
     public Collection<String> getScopes() {
-        return Collections.singleton(Config.SCOPE_ROLE);
+        return Collections.singleton(Config.SCOPE_USER_ROLE);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class RolesClaimsExtractor implements ScopeClaimsExtractor {
         // build a claimsSet
         DefaultClaimsSet claimsSet = new DefaultClaimsSet();
         claimsSet.setResourceId(getResourceId());
-        claimsSet.setScope(Config.SCOPE_ROLE);
+        claimsSet.setScope(Config.SCOPE_USER_ROLE);
         // we merge our map with namespace to tld
         claimsSet.setNamespace(null);
         claimsSet.setUser(true);

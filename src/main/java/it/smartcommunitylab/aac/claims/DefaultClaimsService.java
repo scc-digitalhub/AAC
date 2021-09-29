@@ -144,7 +144,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                     user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
                 }
 
-                if (!scopes.contains(Config.SCOPE_ROLE)) {
+                if (!scopes.contains(Config.SCOPE_USER_ROLE)) {
                     user.setAuthorities(null);
                     user.setRoles(null);
                 }
@@ -170,7 +170,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                     user.setAttributes(narrowUserAttributes(user.getAttributes(), scopes));
                 }
 
-                if (!scopes.contains(Config.SCOPE_ROLE)) {
+                if (!scopes.contains(Config.SCOPE_USER_ROLE)) {
                     user.setAuthorities(null);
                     user.setRoles(null);
                 }

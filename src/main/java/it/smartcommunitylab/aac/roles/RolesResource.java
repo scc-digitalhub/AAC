@@ -14,12 +14,12 @@ public class RolesResource extends Resource {
     // TODO replace with keys for i18n
     @Override
     public String getName() {
-        return "User roles";
+        return "Roles";
     }
 
     @Override
     public String getDescription() {
-        return "Access user roles and groups";
+        return "Access roles and groups";
     }
 
 }

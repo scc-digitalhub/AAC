@@ -61,7 +61,7 @@ public class RolesController {
     private RoleManager roleManager;
 
     @ApiOperation(value = "Get roles of the current user")
-    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLE + "')")
+    @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE + "')")
     @RequestMapping(method = RequestMethod.GET, value = { "/userroles/me", "/roles/me" })
     public Collection<SpaceRole> getRoles(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchUserException {
