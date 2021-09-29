@@ -24,7 +24,8 @@ public class RolesScopeProvider implements ScopeProvider {
 
     static {
         Set<Scope> s = new HashSet<>();
-        s.add(new RolesScope());
+        s.add(new UserRolesScope());
+        s.add(new ClientRolesScope());
         s.add(new SpacesScope());
 
         scopes = Collections.unmodifiableSet(s);

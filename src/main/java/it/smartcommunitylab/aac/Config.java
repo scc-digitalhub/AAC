@@ -133,15 +133,17 @@ public class Config {
 
     /** Predefined scope for user creation and management */
     public static final String SCOPE_USERMANAGEMENT = "usermanagement";
-    public static final String SCOPE_ROLE = "user.roles.me";
-    public static final String SCOPE_GROUP = "user.groups.me";
-    public static final String SCOPE_SPACES = "user.spaces.me";
+    public static final String SCOPE_USER_ROLE = "user.roles.me";
+    public static final String SCOPE_USER_GROUP = "user.groups.me";
+    public static final String SCOPE_USER_SPACES = "user.spaces.me";
     public static final String SCOPE_ROLES_READ = "user.roles.read";
     public static final String SCOPE_ROLES_WRITE = "user.roles.write";
 
     /** scopes for client management */
     public static final String SCOPE_CLIENTMANAGEMENT = "clientmanagement";
     public static final String SCOPE_CLIENT_ROLES_READ_ALL = "client.roles.read.all";
+    public static final String SCOPE_CLIENT_ROLE = "client.roles.me";
+    public static final String SCOPE_CLIENT_GROUP = "client.groups.me";
 
     /** scopes for api key */
     public static final String SCOPE_APIKEY_CLIENT_ALL = "apikey.client.all";

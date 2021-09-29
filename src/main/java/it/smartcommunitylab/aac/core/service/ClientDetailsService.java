@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
+import it.smartcommunitylab.aac.roles.RoleService;
 
 @Service
 public class ClientDetailsService {
@@ -24,9 +26,16 @@ public class ClientDetailsService {
     // TODO add attributes service
     private final ClientEntityService clientService;
 
+    private RoleService roleService;
+
     public ClientDetailsService(ClientEntityService clientService) {
         Assert.notNull(clientService, "client service is mandatoy");
         this.clientService = clientService;
+    }
+
+    @Autowired
+    public void setRoleService(RoleService roleService) {
+        this.roleService = roleService;
     }
 
     public ClientDetails loadClient(String clientId) throws NoSuchClientException {
@@ -63,6 +72,12 @@ public class ClientDetailsService {
         details.setHookWebUrls(client.getHookWebUrls());
         details.setHookUniqueSpaces(client.getHookUniqueSpaces());
         // TODO client attributes from attr providers
+
+        // load space roles
+        if (roleService != null) {
+            // clientId is our subjectId
+            details.setRoles(roleService.getRoles(clientId));
+        }
 
         return details;
 

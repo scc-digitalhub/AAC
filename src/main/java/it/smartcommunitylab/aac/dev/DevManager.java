@@ -187,7 +187,7 @@ public class DevManager {
                 user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
             }
 
-            if (!approvedScopes.contains(Config.SCOPE_ROLE)) {
+            if (!approvedScopes.contains(Config.SCOPE_USER_ROLE)) {
                 user.setAuthorities(null);
                 user.setRoles(null);
             }

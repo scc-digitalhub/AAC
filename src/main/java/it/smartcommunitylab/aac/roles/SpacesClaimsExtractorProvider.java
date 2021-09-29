@@ -24,7 +24,7 @@ public class SpacesClaimsExtractorProvider implements ScopeClaimsExtractorProvid
 
     @Override
     public Collection<String> getScopes() {
-        return Collections.singleton(Config.SCOPE_SPACES);
+        return Collections.singleton(Config.SCOPE_USER_SPACES);
     }
 
 //    @Override
@@ -34,7 +34,7 @@ public class SpacesClaimsExtractorProvider implements ScopeClaimsExtractorProvid
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {
-        if (!Config.SCOPE_SPACES.equals(scope)) {
+        if (!Config.SCOPE_USER_SPACES.equals(scope)) {
             throw new IllegalArgumentException("invalid scope");
         }
 

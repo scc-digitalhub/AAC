@@ -33,7 +33,7 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
 
     @Override
     public Collection<String> getScopes() {
-        return Collections.singleton(Config.SCOPE_SPACES);
+        return Collections.singleton(Config.SCOPE_USER_SPACES);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
         // build a claimsSet
         DefaultClaimsSet claimsSet = new DefaultClaimsSet();
         claimsSet.setResourceId(getResourceId());
-        claimsSet.setScope(Config.SCOPE_SPACES);
+        claimsSet.setScope(Config.SCOPE_USER_SPACES);
         // we merge our map with namespace to tld
         claimsSet.setNamespace(null);
         claimsSet.setUser(true);
