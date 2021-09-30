@@ -181,6 +181,20 @@ public class LoginController {
             authorities.add(a);
         }
 
+        // bypass idp selection when only 1 is available
+
+        if (authorities.size() == 1) {
+            LoginAuthorityBean lab = authorities.get(0);
+            // note: we can bypass only providers which expose a button,
+            // anything else requires user interaction
+            if (SystemKeys.DISPLAY_MODE_BUTTON.equals(lab.getDisplayMode())) {
+                String redirectUrl = lab.getLoginUrl();
+                logger.trace("bypass login for single idp, send to " + redirectUrl);
+                return "redirect:" + redirectUrl;
+            }
+
+        }
+
         // sort by name
         Collections.sort(authorities);
 
