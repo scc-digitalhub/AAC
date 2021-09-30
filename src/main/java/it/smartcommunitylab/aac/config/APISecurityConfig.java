@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.config;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -10,6 +12,10 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 
 /*
@@ -45,6 +51,8 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
                 .accessDeniedPage("/accesserror")
                 .and()
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
                 .csrf()
                 .disable();
 
@@ -53,6 +61,15 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
         // we don't want a session for these endpoints, each request should be evaluated
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     public RequestMatcher getRequestMatcher() {
@@ -64,7 +81,8 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
                 new AntPathRequestMatcher("/basicprofile/**"),
                 new AntPathRequestMatcher("/accountprofile/**"),
                 new AntPathRequestMatcher("/openidprofile/**"),
-                new AntPathRequestMatcher("/userroles/me"));
+                new AntPathRequestMatcher("/userroles/me"),
+                new AntPathRequestMatcher("/clientroles/me"));
 
     }
 

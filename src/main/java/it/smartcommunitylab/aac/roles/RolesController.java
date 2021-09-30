@@ -63,7 +63,7 @@ public class RolesController {
     @ApiOperation(value = "Get roles of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE + "')")
     @RequestMapping(method = RequestMethod.GET, value = { "/userroles/me", "/roles/me" })
-    public Collection<SpaceRole> getRoles(BearerTokenAuthentication auth)
+    public Collection<SpaceRole> getUserRoles(BearerTokenAuthentication auth)
             throws InvalidDefinitionException, NoSuchUserException {
         if (auth == null) {
             logger.error("invalid authentication");
@@ -78,6 +78,27 @@ public class RolesController {
         }
 
         // return all the user roles
+        return roleManager.getRoles(subject);
+    }
+
+    @ApiOperation(value = "Get roles of the current client")
+    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENT_ROLE + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/clientroles/me")
+    public Collection<SpaceRole> getClientRoles(BearerTokenAuthentication auth)
+            throws InvalidDefinitionException, NoSuchUserException {
+        if (auth == null) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        String subject = (String) auth.getTokenAttributes().get("sub");
+
+        if (!StringUtils.hasText(subject)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        // return all the client roles
         return roleManager.getRoles(subject);
     }
 
