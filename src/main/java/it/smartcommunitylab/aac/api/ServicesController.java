@@ -33,6 +33,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServiceClaim;
 import it.smartcommunitylab.aac.services.ServiceClient;
