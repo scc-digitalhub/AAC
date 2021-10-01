@@ -27,10 +27,13 @@ public class SystemKeys {
     public static final String AUTHORITY_SCRIPT = "script";
     public static final String AUTHORITY_WEBHOOK = "webhook";
 
-
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";
     public static final String CLIENT_TYPE_OIDC = "oidc";
+
+    public static final String SERVICE_CLIENT_TYPE_INTROSPECT = "introspect";
+    public static final String SERVICE_CLIENT_TYPE_MACHINE = "machine";
+    public static final String SERVICE_CLIENT_TYPE_WEB = "web";
 
     public static final String RESOURCE_USER = "user";
     public static final String RESOURCE_ACCOUNT = "account";

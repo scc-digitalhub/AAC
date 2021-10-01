@@ -499,7 +499,15 @@ public class OAuth2RequestFactory
                 return scopeRegistry.findScope(s);
             })
                     .filter(s -> s != null)
-                    .map(s -> s.getResourceId())
+                    .map(s -> {
+                        Set<String> a = new HashSet<>();
+                        a.add(s.getResourceId());
+                        if (s.getAudience() != null) {
+                            a.addAll(s.getAudience());
+                        }
+                        return a;
+                    })
+                    .flatMap(a -> a.stream())
                     .collect(Collectors.toSet());
         }
 

@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.scope;
 
+import java.util.Set;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -21,6 +23,9 @@ public class Scope {
     protected String resourceId;
 
     protected ScopeType type;
+
+    // additional audience connected to this scope
+    protected Set<String> audience;
 
     public Scope() {
 
@@ -69,6 +74,22 @@ public class Scope {
 
     public void setType(ScopeType type) {
         this.type = type;
+    }
+
+    public Set<String> getAudience() {
+        return audience;
+    }
+
+    public void setAudience(Set<String> audience) {
+        this.audience = audience;
+    }
+
+    public boolean isUserScope() {
+        return type != null && (type == ScopeType.USER || type == ScopeType.GENERIC);
+    }
+
+    public boolean isClientScope() {
+        return type != null && (type == ScopeType.CLIENT || type == ScopeType.GENERIC);
     }
 
     @Override

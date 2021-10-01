@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -22,6 +23,8 @@ import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimRepository;
+import it.smartcommunitylab.aac.services.persistence.ServiceClientEntity;
+import it.smartcommunitylab.aac.services.persistence.ServiceClientRepository;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntityRepository;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
@@ -34,18 +37,22 @@ public class ServicesService {
     private final ServiceEntityRepository serviceRepository;
     private final ServiceScopeRepository scopeRepository;
     private final ServiceClaimRepository claimRepository;
+    private final ServiceClientRepository clientRepository;
 
     public ServicesService(
             ServiceEntityRepository serviceRepository,
             ServiceScopeRepository scopeRepository,
-            ServiceClaimRepository claimRepository) {
+            ServiceClaimRepository claimRepository,
+            ServiceClientRepository clientRepository) {
         Assert.notNull(serviceRepository, "service repository is required");
         Assert.notNull(scopeRepository, "scope repository is required");
         Assert.notNull(claimRepository, "claim repository is required");
+        Assert.notNull(clientRepository, "client repository is required");
 
         this.serviceRepository = serviceRepository;
         this.scopeRepository = scopeRepository;
         this.claimRepository = claimRepository;
+        this.clientRepository = clientRepository;
 
     }
 
@@ -79,8 +86,9 @@ public class ServicesService {
 
         List<ServiceScope> scopes = listScopes(serviceId);
         List<ServiceClaim> claims = listClaims(serviceId);
+        List<ServiceClient> clients = listClients(serviceId);
 
-        return toService(s, scopes, claims);
+        return toService(s, scopes, claims, clients);
     }
 
     /*
@@ -96,8 +104,9 @@ public class ServicesService {
 
         List<ServiceScope> scopes = listScopes(serviceId);
         List<ServiceClaim> claims = listClaims(serviceId);
+        List<ServiceClient> clients = listClients(serviceId);
 
-        return toService(s, scopes, claims);
+        return toService(s, scopes, claims, clients);
     }
 
     @Transactional(readOnly = true)
@@ -220,11 +229,11 @@ public class ServicesService {
     }
 
     private it.smartcommunitylab.aac.services.Service toService(ServiceEntity s,
-            List<ServiceScope> scopes, List<ServiceClaim> claims) {
+            List<ServiceScope> scopes, List<ServiceClaim> claims, List<ServiceClient> clients) {
         it.smartcommunitylab.aac.services.Service service = toService(s);
         service.setScopes(scopes);
         service.setClaims(claims);
-
+        service.setClients(clients);
         return service;
     }
 
@@ -496,6 +505,107 @@ public class ServicesService {
         ServiceClaimEntity sc = claimRepository.findByServiceIdAndKey(serviceId, key);
         if (sc != null) {
             claimRepository.delete(sc);
+        }
+
+    }
+
+    /*
+     * Service clients
+     */
+
+    @Transactional(readOnly = true)
+    public ServiceClient getClient(String serviceId, String clientId)
+            throws NoSuchClientException, NoSuchServiceException {
+        ServiceEntity service = serviceRepository.findOne(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
+        if (sc == null) {
+            throw new NoSuchClientException();
+        }
+
+        return ServiceClient.from(sc);
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceClient findClient(String serviceId, String clientId) throws NoSuchClientException {
+        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
+        if (sc == null) {
+            return null;
+        }
+
+        return ServiceClient.from(sc);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceClient> findClients(String serviceId, String type) {
+        List<ServiceClientEntity> list = clientRepository.findByServiceIdAndType(serviceId, type);
+        return list.stream().map(se -> ServiceClient.from(se)).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceClient> listClients(String serviceId) throws NoSuchServiceException {
+        ServiceEntity service = serviceRepository.findOne(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        List<ServiceClientEntity> list = clientRepository.findByServiceId(serviceId);
+        return list.stream().map(se -> ServiceClient.from(se)).collect(Collectors.toList());
+    }
+
+    public ServiceClient addClient(
+            String serviceId, String clientId,
+            String type) throws NoSuchServiceException, RegistrationException {
+
+        if (!StringUtils.hasText(clientId)) {
+            throw new IllegalArgumentException("invalid clientId");
+        }
+
+        ServiceEntity service = serviceRepository.findOne(serviceId);
+        if (service == null) {
+            throw new NoSuchServiceException();
+        }
+
+        ServiceClientEntity s = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
+        if (s != null) {
+            throw new RegistrationException("duplicated key");
+        }
+
+        ServiceClientEntity sc = new ServiceClientEntity();
+        sc.setClientId(clientId);
+        sc.setServiceId(serviceId);
+        sc.setType(type);
+
+        sc = clientRepository.save(sc);
+
+        return ServiceClient.from(sc);
+
+    }
+
+    public ServiceClient updateClient(
+            String serviceId, String clientId,
+            String type) throws NoSuchServiceException, NoSuchClientException {
+
+        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
+        if (sc == null) {
+            throw new NoSuchClientException();
+        }
+
+        sc.setType(type);
+
+        sc = clientRepository.save(sc);
+
+        return ServiceClient.from(sc);
+
+    }
+
+    public void deleteClient(String serviceId, String clientId) {
+        ServiceClientEntity sc = clientRepository.findByServiceIdAndClientId(serviceId, clientId);
+        if (sc != null) {
+            clientRepository.delete(sc);
         }
 
     }

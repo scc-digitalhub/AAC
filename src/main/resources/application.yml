@@ -249,6 +249,11 @@ mail:
 # API Manager
 api:
    contextSpace: components/apimanager
+   clients:
+      auto: 
+        introspect: true
+        machine: true
+        web: true
 
 # DEFAULT ADMIN CLIENT
 adminClient:

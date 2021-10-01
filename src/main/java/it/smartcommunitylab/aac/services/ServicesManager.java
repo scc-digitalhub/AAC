@@ -20,23 +20,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.AttributeType;
+import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
 import it.smartcommunitylab.aac.scope.CombinedScopeApprover;
@@ -58,11 +69,23 @@ import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 public class ServicesManager implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${api.clients.auto.introspect}")
+    private boolean autoClientIntrospect;
+
+    @Value("${api.clients.auto.machine}")
+    private boolean autoClientMachine;
+
+    @Value("${api.clients.auto.web}")
+    private boolean autoClientWeb;
+
     @Autowired
     private ServicesService serviceService;
 
     @Autowired
     private RealmService realmService;
+
+    @Autowired
+    private OAuth2ClientAppService oauth2ClientAppService;
 
     @Autowired
     private ScopeRegistry scopeRegistry;
@@ -95,6 +118,8 @@ public class ServicesManager implements InitializingBean {
             String serviceId = service.getServiceId();
             List<ServiceScope> scopes = serviceService.listScopes(serviceId);
             service.setScopes(scopes);
+            List<ServiceClient> clients = serviceService.listClients(serviceId);
+            service.setClients(clients);
 
             // build provider
             ServiceScopeProvider sp = new ServiceScopeProvider(service);
@@ -209,6 +234,31 @@ public class ServicesManager implements InitializingBean {
                 }
             }
             s.setClaims(serviceClaims);
+
+            // build auto clients
+            Set<ServiceClient> clients = new HashSet<>();
+            if (autoClientIntrospect) {
+                ClientApp app = createOAuth2Client(realm, s, SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                // register as client
+                ServiceClient client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                clients.add(client);
+            }
+            if (autoClientMachine) {
+                ClientApp app = createOAuth2Client(realm, s, SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                // register as client
+                ServiceClient client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                clients.add(client);
+            }
+            if (autoClientWeb) {
+                ClientApp app = createOAuth2Client(realm, s, SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                // register as client
+                ServiceClient client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                clients.add(client);
+            }
+            s.setClients(clients);
 
             // build provider
             if (!serviceScopes.isEmpty()) {
@@ -365,6 +415,74 @@ public class ServicesManager implements InitializingBean {
 
             result.setClaims(serviceClaims);
 
+            // build auto clients
+            Collection<ServiceClient> serviceClients = serviceService.listClients(serviceId);
+            Set<ServiceClient> clients = new HashSet<>();
+            clients.addAll(serviceClients);
+
+            if (autoClientIntrospect) {
+                // check if exists
+                ServiceClient client = serviceClients.stream()
+                        .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT.equals(c.getType())).findFirst()
+                        .orElse(null);
+
+                if (client != null) {
+                    // update
+                    ClientApp app = updateOAuth2Client(realm, result, client.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                } else {
+                    // create
+                    ClientApp app = createOAuth2Client(realm, result, SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                    // register as client
+                    client = serviceService.addClient(serviceId, app.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                    clients.add(client);
+
+                }
+
+            }
+            if (autoClientMachine) {
+                // check if exists
+                ServiceClient client = serviceClients.stream()
+                        .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_MACHINE.equals(c.getType())).findFirst()
+                        .orElse(null);
+
+                if (client != null) {
+                    // update
+                    ClientApp app = updateOAuth2Client(realm, result, client.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                } else {
+                    // create
+                    ClientApp app = createOAuth2Client(realm, result, SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                    // register as client
+                    client = serviceService.addClient(serviceId, app.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                    clients.add(client);
+
+                }
+            }
+            if (autoClientWeb) {
+                // check if exists
+                ServiceClient client = serviceClients.stream()
+                        .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_WEB.equals(c.getType())).findFirst()
+                        .orElse(null);
+
+                if (client != null) {
+                    // update
+                    ClientApp app = updateOAuth2Client(realm, result, client.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                } else {
+                    // create
+                    ClientApp app = createOAuth2Client(realm, result, SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                    // register as client
+                    client = serviceService.addClient(serviceId, app.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                    clients.add(client);
+
+                }
+            }
+            result.setClients(clients);
+
             // build provider
             if (!serviceScopes.isEmpty()) {
                 ServiceScopeProvider sp = new ServiceScopeProvider(result);
@@ -419,6 +537,14 @@ public class ServicesManager implements InitializingBean {
             }
 
             // TODO unregister custom extractors when implemented
+
+            // clear client
+            Collection<ServiceClient> serviceClients = serviceService.listClients(serviceId);
+            if (!serviceClients.isEmpty()) {
+                for (ServiceClient sc : serviceClients) {
+                    deleteOAuth2Client(realm, service, sc.getClientId());
+                }
+            }
 
             // remove, will cleanup related entities
             serviceService.deleteService(serviceId);
@@ -503,6 +629,74 @@ public class ServicesManager implements InitializingBean {
         List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
         service.setScopes(serviceScopes);
 
+        // build auto clients
+        Collection<ServiceClient> serviceClients = serviceService.listClients(serviceId);
+        Set<ServiceClient> clients = new HashSet<>();
+        clients.addAll(serviceClients);
+
+        if (autoClientIntrospect) {
+            // check if exists
+            ServiceClient client = serviceClients.stream()
+                    .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT.equals(c.getType())).findFirst()
+                    .orElse(null);
+
+            if (client != null) {
+                // update
+                ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+            } else {
+                // create
+                ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                // register as client
+                client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                clients.add(client);
+
+            }
+
+        }
+        if (autoClientMachine) {
+            // check if exists
+            ServiceClient client = serviceClients.stream()
+                    .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_MACHINE.equals(c.getType())).findFirst()
+                    .orElse(null);
+
+            if (client != null) {
+                // update
+                ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+            } else {
+                // create
+                ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                // register as client
+                client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                clients.add(client);
+
+            }
+        }
+        if (autoClientWeb) {
+            // check if exists
+            ServiceClient client = serviceClients.stream()
+                    .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_WEB.equals(c.getType())).findFirst()
+                    .orElse(null);
+
+            if (client != null) {
+                // update
+                ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+            } else {
+                // create
+                ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                // register as client
+                client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                clients.add(client);
+
+            }
+        }
+        service.setClients(clients);
+
         // unregister provider if present
         ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
         if (spr != null && spr instanceof ServiceScopeProvider) {
@@ -582,6 +776,74 @@ public class ServicesManager implements InitializingBean {
         List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
         service.setScopes(serviceScopes);
 
+        // build auto clients
+        Collection<ServiceClient> serviceClients = serviceService.listClients(serviceId);
+        Set<ServiceClient> clients = new HashSet<>();
+        clients.addAll(serviceClients);
+
+        if (autoClientIntrospect) {
+            // check if exists
+            ServiceClient client = serviceClients.stream()
+                    .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT.equals(c.getType())).findFirst()
+                    .orElse(null);
+
+            if (client != null) {
+                // update
+                ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+            } else {
+                // create
+                ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                // register as client
+                client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                clients.add(client);
+
+            }
+
+        }
+        if (autoClientMachine) {
+            // check if exists
+            ServiceClient client = serviceClients.stream()
+                    .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_MACHINE.equals(c.getType())).findFirst()
+                    .orElse(null);
+
+            if (client != null) {
+                // update
+                ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+            } else {
+                // create
+                ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                // register as client
+                client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                clients.add(client);
+
+            }
+        }
+        if (autoClientWeb) {
+            // check if exists
+            ServiceClient client = serviceClients.stream()
+                    .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_WEB.equals(c.getType())).findFirst()
+                    .orElse(null);
+
+            if (client != null) {
+                // update
+                ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+            } else {
+                // create
+                ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                // register as client
+                client = serviceService.addClient(serviceId, app.getClientId(),
+                        SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                clients.add(client);
+
+            }
+        }
+        service.setClients(clients);
+
         // unregister provider if present
         ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
         if (spr != null && spr instanceof ServiceScopeProvider) {
@@ -645,6 +907,74 @@ public class ServicesManager implements InitializingBean {
             // refresh service
             List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
             service.setScopes(serviceScopes);
+
+            // build auto clients
+            Collection<ServiceClient> serviceClients = serviceService.listClients(serviceId);
+            Set<ServiceClient> clients = new HashSet<>();
+            clients.addAll(serviceClients);
+
+            if (autoClientIntrospect) {
+                // check if exists
+                ServiceClient client = serviceClients.stream()
+                        .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT.equals(c.getType())).findFirst()
+                        .orElse(null);
+
+                if (client != null) {
+                    // update
+                    ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                } else {
+                    // create
+                    ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                    // register as client
+                    client = serviceService.addClient(serviceId, app.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT);
+                    clients.add(client);
+
+                }
+
+            }
+            if (autoClientMachine) {
+                // check if exists
+                ServiceClient client = serviceClients.stream()
+                        .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_MACHINE.equals(c.getType())).findFirst()
+                        .orElse(null);
+
+                if (client != null) {
+                    // update
+                    ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                } else {
+                    // create
+                    ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                    // register as client
+                    client = serviceService.addClient(serviceId, app.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_MACHINE);
+                    clients.add(client);
+
+                }
+            }
+            if (autoClientWeb) {
+                // check if exists
+                ServiceClient client = serviceClients.stream()
+                        .filter(c -> SystemKeys.SERVICE_CLIENT_TYPE_WEB.equals(c.getType())).findFirst()
+                        .orElse(null);
+
+                if (client != null) {
+                    // update
+                    ClientApp app = updateOAuth2Client(realm, service, client.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                } else {
+                    // create
+                    ClientApp app = createOAuth2Client(realm, service, SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                    // register as client
+                    client = serviceService.addClient(serviceId, app.getClientId(),
+                            SystemKeys.SERVICE_CLIENT_TYPE_WEB);
+                    clients.add(client);
+
+                }
+            }
+            service.setClients(clients);
 
             // build provider
             if (!serviceScopes.isEmpty()) {
@@ -954,6 +1284,161 @@ public class ServicesManager implements InitializingBean {
      */
     public Boolean checkServiceNamespace(String serviceNamespace) {
         return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
+    }
+
+    /*
+     * Service clients
+     * 
+     * machine client to support token introspection from api backend
+     * 
+     * TODO evaluate a test client for frontend
+     */
+    private ClientApp createOAuth2Client(String realm, Service service, String type) {
+        ClientApp app = new ClientApp();
+        app.setRealm(realm);
+        app.setType(SystemKeys.CLIENT_TYPE_OAUTH2);
+
+        String name = service.getName() + " (" + type + ")";
+        app.setName(name);
+        app.setDescription(service.getNamespace());
+
+        // make sure no providers are enabled by default
+        // (no user access)
+        app.setProviders(new String[0]);
+
+        // register service scopes
+        Set<String> scopes = service.getScopes().stream()
+                .filter(s -> {
+                    return (SystemKeys.SERVICE_CLIENT_TYPE_MACHINE.equals(type) && s.isClientScope()) ||
+                            (SystemKeys.SERVICE_CLIENT_TYPE_WEB.equals(type) && s.isUserScope());
+                }).map(s -> s.getScope())
+                .collect(Collectors.toSet());
+        app.setScopes(scopes.toArray(new String[0]));
+
+        // build config from scratch
+        OAuth2ClientConfigMap config = configureOAuth2Client(service, new OAuth2ClientConfigMap(), type);
+        app.setConfiguration(config.getConfiguration());
+
+        // register
+        return oauth2ClientAppService.registerClient(realm, app);
+    }
+
+    private ClientApp getOAuth2Client(String realm, Service service, String clientId) throws NoSuchClientException {
+        ClientApp client = oauth2ClientAppService.getClient(clientId);
+        if (client != null && !client.getRealm().equals(service.getRealm())) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+
+        return client;
+    }
+
+    private ClientApp updateOAuth2Client(String realm, Service service, String clientId, String type) {
+        ClientApp app = oauth2ClientAppService.findClient(clientId);
+        if (app != null && !app.getRealm().equals(service.getRealm())) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+        if (app == null) {
+            // create
+            app = new ClientApp();
+            app.setRealm(realm);
+            app.setType(SystemKeys.CLIENT_TYPE_OAUTH2);
+        }
+
+        String name = service.getName() + " (" + type + ")";
+        app.setName(name);
+        app.setDescription(service.getNamespace());
+
+        // register service scopes
+        Set<String> scopes = service.getScopes().stream()
+                .filter(s -> {
+                    return (SystemKeys.SERVICE_CLIENT_TYPE_MACHINE.equals(type) && s.isClientScope()) ||
+                            (SystemKeys.SERVICE_CLIENT_TYPE_WEB.equals(type) && s.isUserScope());
+                }).map(s -> s.getScope())
+                .collect(Collectors.toSet());
+        app.setScopes(scopes.toArray(new String[0]));
+
+        // update config
+        OAuth2ClientConfigMap config = configureOAuth2Client(service,
+                new OAuth2ClientConfigMap(app.getConfiguration()), type);
+        app.setConfiguration(config.getConfiguration());
+
+        // create or update
+        if (app.getClientId() == null) {
+            app.setClientId(clientId);
+            return oauth2ClientAppService.registerClient(realm, app);
+        } else {
+            try {
+                return oauth2ClientAppService.updateClient(clientId, app);
+            } catch (NoSuchClientException e) {
+                throw new SystemException();
+            }
+        }
+
+    }
+
+    private void deleteOAuth2Client(String realm, Service service, String clientId) {
+        ClientApp client = oauth2ClientAppService.findClient(clientId);
+        if (client != null && client.getRealm().equals(service.getRealm())) {
+            oauth2ClientAppService.deleteClient(clientId);
+        }
+    }
+
+    private OAuth2ClientConfigMap configureOAuth2Client(Service service, OAuth2ClientConfigMap config, String type) {
+
+        Set<AuthorizationGrantType> authorizedGrantTypes = new HashSet<>();
+        Set<AuthenticationMethod> authMethods = new HashSet<>();
+        authMethods.add(AuthenticationMethod.CLIENT_SECRET_BASIC);
+        authMethods.add(AuthenticationMethod.CLIENT_SECRET_POST);
+
+        if (SystemKeys.SERVICE_CLIENT_TYPE_INTROSPECT.equals(type)) {
+            config.setApplicationType(ApplicationType.MACHINE);
+            // introspect client has no flow
+            // enforce config
+            config.setRedirectUris(null);
+        }
+
+        if (SystemKeys.SERVICE_CLIENT_TYPE_MACHINE.equals(type)) {
+            config.setApplicationType(ApplicationType.MACHINE);
+            // service client has client_credentials
+            authorizedGrantTypes.add(AuthorizationGrantType.CLIENT_CREDENTIALS);
+            // keep user config
+            if (config.getAuthorizedGrantTypes() != null) {
+                authorizedGrantTypes.addAll(config.getAuthorizedGrantTypes());
+            }
+            if (config.getAuthenticationMethods() != null) {
+                authMethods.addAll(config.getAuthenticationMethods());
+            }
+        }
+        if (SystemKeys.SERVICE_CLIENT_TYPE_WEB.equals(type)) {
+            config.setApplicationType(ApplicationType.WEB);
+            // service client has authcode
+            authorizedGrantTypes.add(AuthorizationGrantType.AUTHORIZATION_CODE);
+            if (config.getRedirectUris() == null || config.getRedirectUris().isEmpty()) {
+                // register localhost
+                config.setRedirectUris(Collections.singleton("http://localhost"));
+            }
+
+            // keep user config
+            if (config.getAuthorizedGrantTypes() != null) {
+                authorizedGrantTypes.addAll(config.getAuthorizedGrantTypes());
+            }
+            if (config.getAuthenticationMethods() != null) {
+                authMethods.addAll(config.getAuthenticationMethods());
+            }
+
+            // enable client auth via pkce
+            authMethods.add(AuthenticationMethod.NONE);
+
+            // TODO enable idp?
+        }
+
+        config.setAuthenticationMethods(authMethods);
+        config.setAuthorizedGrantTypes(authorizedGrantTypes);
+
+        // TODO evaluate enforcing a strict config
+
+        return config;
+
     }
 
 }
