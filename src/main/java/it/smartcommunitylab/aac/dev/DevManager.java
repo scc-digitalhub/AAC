@@ -370,7 +370,7 @@ public class DevManager {
         }
 
         Set<String> resourceIds = new HashSet<>(clientDetails.getResourceIds());
-        Set<String> approvedScopes = getClientApprovedScopes(clientDetails, userDetails, clientScopes);
+        Set<String> approvedScopes = getClientApprovedScopes(clientDetails, userDetails, ScopeType.USER, clientScopes);
 
         // clear hookFunctions already set and pass only test function
         String functionCode = StringUtils.hasText(functionBean.getCode())
@@ -453,7 +453,9 @@ public class DevManager {
             throw new IllegalArgumentException("unauthorized grant type");
         }
 
-        Set<String> approvedScopes = getClientApprovedScopes(clientDetails, userDetails, oauthClientDetails.getScope());
+        ScopeType scopeType = (gt == AuthorizationGrantType.CLIENT_CREDENTIALS ? ScopeType.CLIENT : ScopeType.USER);
+        Set<String> approvedScopes = getClientApprovedScopes(clientDetails, userDetails, scopeType,
+                oauthClientDetails.getScope());
 
         // build base params
         Map<String, String> requestParams = new HashMap<>();
@@ -571,11 +573,16 @@ public class DevManager {
     }
 
     private Set<String> getClientApprovedScopes(ClientDetails clientDetails, UserDetails userDetails,
+            ScopeType scopeType,
             Collection<String> clientScopes) {
         Set<String> approvedScopes = new HashSet<>();
         for (String s : clientScopes) {
             try {
                 Scope scope = scopeRegistry.getScope(s);
+                if (ScopeType.GENERIC != scope.getType() && scopeType != scope.getType()) {
+                    // type not requested, skip
+                    continue;
+                }
                 ScopeApprover sa = scopeRegistry.getScopeApprover(s);
                 if (sa == null) {
                     // this scope is undecided so skip

@@ -18,6 +18,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 
 import it.smartcommunitylab.aac.core.ClientAuthenticationManager;
@@ -64,6 +67,8 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .accessDeniedPage("/accesserror")
+                .and()
+                .cors().configurationSource(corsConfigurationSource())
                 .and()
                 .csrf()
                 .disable()
@@ -129,6 +134,15 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
 
         return new OrRequestMatcher(antMatchers);
 
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     public static final String[] OAUTH2_URLS = {

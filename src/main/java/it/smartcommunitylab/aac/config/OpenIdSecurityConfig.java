@@ -17,6 +17,10 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import it.smartcommunitylab.aac.oauth.auth.InternalOpaqueTokenIntrospector;
 
 /*
@@ -54,8 +58,9 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .accessDeniedPage("/accesserror")
                 .and()
-                .csrf()
-                .disable();
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
+                .csrf().disable();
 
         // we don't want a session for these endpoints, each request should be evaluated
         http.sessionManagement()
@@ -76,6 +81,15 @@ public class OpenIdSecurityConfig extends WebSecurityConfigurerAdapter {
 
         return new OrRequestMatcher(antMatchers);
 
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     public static final String[] OPENID_URLS = {

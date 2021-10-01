@@ -29,10 +29,12 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiServicesScope;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServiceClaim;
 import it.smartcommunitylab.aac.services.ServiceScope;
@@ -368,6 +370,49 @@ public class ServicesController {
 
         serviceManager.revokeServiceScopeApproval(realm, serviceId, scope, clientId);
     }
+
+//    /*
+//     * Service client
+//     */
+//    @GetMapping("/service/{realm}/{serviceId}/clients")
+//    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
+//            + ApiServicesScope.SCOPE + "')")
+//    public ClientApp getServiceClient(
+//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+//            throws NoSuchServiceException, NoSuchRealmException, NoSuchClientException {
+//        logger.debug("get service client " + String.valueOf(serviceId) + " for realm " + String.valueOf(realm));
+//        Service service = serviceManager.getService(realm, serviceId);
+//        return serviceManager.getOAuth2Client(realm, service);
+//    }
+//
+//    @PutMapping("/service/{realm}/{serviceId}/client")
+//    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
+//            + ApiServicesScope.SCOPE + "')")
+//    public ClientApp addServiceClient(
+//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+//            throws NoSuchServiceException, NoSuchRealmException {
+//        logger.debug("add service client " + String.valueOf(serviceId) + " for realm " + String.valueOf(realm));
+//        Service service = serviceManager.getService(realm, serviceId);
+//        return serviceManager.createOAuth2Client(realm, service);
+//    }
+//
+//    @DeleteMapping("/service/{realm}/{serviceId}/client")
+//    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
+//            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
+//            + ApiServicesScope.SCOPE + "')")
+//    public void deleteServiceClient(
+//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+//            throws NoSuchServiceException, NoSuchRealmException, NoSuchClientException {
+//        logger.debug("delete service client " + String.valueOf(serviceId) + " for realm " + String.valueOf(realm));
+//        Service service = serviceManager.getService(realm, serviceId);
+//        serviceManager.deleteOAuth2Client(realm, service);
+//    }
+
 //    /*
 //     * Exceptions
 //     */

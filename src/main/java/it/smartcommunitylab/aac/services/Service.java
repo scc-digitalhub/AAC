@@ -47,6 +47,7 @@ public class Service {
 
     private Collection<ServiceScope> scopes = Collections.emptyList();
     private Collection<ServiceClaim> claims = Collections.emptyList();
+    private Collection<ServiceClient> clients = Collections.emptyList();
 
     public String getServiceId() {
         return serviceId;
@@ -110,6 +111,14 @@ public class Service {
 
     public void setClaims(Collection<ServiceClaim> claims) {
         this.claims = claims;
+    }
+
+    public Collection<ServiceClient> getClients() {
+        return clients;
+    }
+
+    public void setClients(Collection<ServiceClient> clients) {
+        this.clients = clients;
     }
 
     @JsonProperty("claimMapping")
