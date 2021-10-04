@@ -26,6 +26,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
+import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfig;
 import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
@@ -237,6 +238,11 @@ public class AACConfig {
     @Bean
     public InMemoryProviderRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
         return new InMemoryProviderRepository<InternalAttributeProviderConfig>();
+    }
+
+    @Bean
+    public InMemoryProviderRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
+        return new InMemoryProviderRepository<WebhookAttributeProviderConfig>();
     }
     /*
      * initialize the execution service here and then build claims service

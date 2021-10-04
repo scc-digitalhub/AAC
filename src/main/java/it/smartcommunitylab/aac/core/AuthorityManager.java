@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.MapperAttributeAuthority;
 import it.smartcommunitylab.aac.attributes.ScriptAttributeAuthority;
+import it.smartcommunitylab.aac.attributes.WebhookAttributeAuthority;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -97,6 +98,9 @@ public class AuthorityManager {
     @Autowired
     private ScriptAttributeAuthority scriptAttributeAuthority;
 
+    @Autowired
+    private WebhookAttributeAuthority webhookAttributeAuthority;
+
     /*
      * Attribute providers
      */
@@ -108,6 +112,8 @@ public class AuthorityManager {
             return mapperAttributeAuthority;
         } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
             return scriptAttributeAuthority;
+        } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
+            return webhookAttributeAuthority;
         }
         return null;
     }
@@ -117,6 +123,7 @@ public class AuthorityManager {
         result.add(internalAttributeAuthority);
         result.add(mapperAttributeAuthority);
         result.add(scriptAttributeAuthority);
+        result.add(webhookAttributeAuthority);
         return result;
     }
 

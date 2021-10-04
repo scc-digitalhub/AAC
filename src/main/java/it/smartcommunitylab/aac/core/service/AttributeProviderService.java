@@ -23,6 +23,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
+import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -156,6 +157,8 @@ public class AttributeProviderService {
                 configurable = new MapperAttributeProviderConfigMap();
             } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
                 configurable = new ScriptAttributeProviderConfigMap();
+            } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
+                configurable = new WebhookAttributeProviderConfigMap();
             }
             if (configurable == null) {
                 throw new IllegalArgumentException("invalid configuration");
@@ -236,6 +239,8 @@ public class AttributeProviderService {
             configurable = new MapperAttributeProviderConfigMap();
         } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
             configurable = new ScriptAttributeProviderConfigMap();
+        } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
+            configurable = new WebhookAttributeProviderConfigMap();
         }
         if (configurable == null) {
             throw new IllegalArgumentException("invalid configuration");
@@ -275,6 +280,8 @@ public class AttributeProviderService {
                 return MapperAttributeProviderConfigMap.getConfigurationSchema();
             } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
                 return ScriptAttributeProviderConfigMap.getConfigurationSchema();
+            } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
+                return WebhookAttributeProviderConfigMap.getConfigurationSchema();
             }
         } catch (JsonMappingException e) {
             e.printStackTrace();

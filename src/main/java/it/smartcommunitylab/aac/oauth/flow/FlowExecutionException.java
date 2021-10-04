@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.SystemKeys;
  */
 public class FlowExecutionException extends RuntimeException {
 
-    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     /**
      * @param string

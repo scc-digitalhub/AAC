@@ -5,12 +5,10 @@
                     &raquo;</a></h6>
         </div>
         <div class="col col-md-6 text-right">
-            <button ng-if="!ap.enabled" class="btn btn-success btn-sm  text-right"
-                ng-click="toggleProviderState(ap)">
+            <button ng-if="!ap.enabled" class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(ap)">
                 Enable
             </button>
-            <button ng-if="ap.enabled" class="btn btn-warning btn-sm  text-right"
-                ng-click="toggleProviderState(ap)">
+            <button ng-if="ap.enabled" class="btn btn-warning btn-sm  text-right" ng-click="toggleProviderState(ap)">
                 Disable
             </button>
             <button class="btn btn-primary btn-sm  text-right" ng-click="saveProvider(ap)"
@@ -43,8 +41,9 @@
             <a class="nav-link  {{activeView('settings')}}" href ng-click="switchView('settings')">Settings</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link  {{activeView('attributesets')}}" href ng-click="switchView('attributesets')">Attribute Sets</a>
-        </li>          
+            <a class="nav-link  {{activeView('attributesets')}}" href ng-click="switchView('attributesets')">Attribute
+                Sets</a>
+        </li>
         <li ng-if="ap.authority == 'internal'" class="nav-item">
             <a class="nav-link  {{activeView('conf.internal')}}" href ng-click="switchView('conf.internal')">Internal
                 Configuration</a>
@@ -57,9 +56,13 @@
             <a class="nav-link  {{activeView('conf.script')}}" href ng-click="switchView('conf.script')">Script
                 Configuration</a>
         </li>
+        <li ng-if="ap.authority == 'webhook'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.webhook')}}" href ng-click="switchView('conf.webhook')">Webhook
+                Configuration</a>
+        </li>
         <li class="nav-item">
             <a class="nav-link  {{activeView('test')}}" href ng-click="switchView('test')">Test</a>
-        </li>      
+        </li>
     </ul>
     <div class="tab-content pt-3">
         <div class="tab-pane fade show active">

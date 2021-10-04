@@ -1,0 +1,34 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">Webhook AP Configuration</legend>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="url">Webhook Url*</label>
+                <input type="text" required name="url" class="form-control form-control-sm" id="url"
+                    ng-model="ap.configuration.url">
+                <small>Remote url to be called via POST for receiving user attributes.</small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-10 ">
+                <label for="authentication">Authentication header</label>
+                <input type="text" name="authentication" class="form-control form-control-sm" id="authentication"
+                    ng-model="ap.configuration.authentication">
+                <small>Authentication header, used as is for POST requests to remote endpoint.</small>
+            </div>
+
+            <div class="form-group col ">
+                <label for="timeout">Timeout</label>
+                <span class="input-number">
+                    <input type="number" name="timeout" class="form-control form-control-sm" id="timeout"
+                        ng-model="ap.configuration.timeout">
+                </span>
+                <small> Timeout in milliseconds for HTTP connection </small>
+            </div>
+
+        </div>
+
+    </fieldset>
+
+</div>
