@@ -1,39 +1,16 @@
 <div class="pt-3">
   <div class="row">
     <fieldset class="col-md-5">
-        <legend class="mb-4">Basic settings</legend>
-          <div class="form-group col">
-	            <input type="text" name="name" class="form-control " id="name" ng-model="app.name" required>
-	            <label for="name" class="{{app.name != '' ? 'active' : ''}}">Name</label>
-	        </div>
-	        <div class="form-group col">
-	            <textarea rows="3" name="description" id="description"
-	                ng-model="app.description"></textarea>
-	            <label for="description" class="{{app.description != '' ? 'active' : ''}}">Description</label>
-	        </div>
+      <legend class="mb-4">Basic settings</legend>
+      <div class="form-group col">
+        <input type="text" name="name" class="form-control " id="name" ng-model="app.name" required>
+        <label for="name" class="{{app.name != '' ? 'active' : ''}}">Name</label>
+      </div>
+      <div class="form-group col">
+        <textarea rows="3" name="description" id="description" ng-model="app.description"></textarea>
+        <label for="description" class="{{app.description != '' ? 'active' : ''}}">Description</label>
+      </div>
     </fieldset>
-    
-    <fieldset  class="offset-md-1 col-md-6">
-        <legend class="mb-4">Providers</legend>
-        <div class="">
-            <label class="active">Identity providers</label>
-            <div class="form-check form-check-group {{idp.registered ? '' : 'text-muted'}}"  ng-repeat="idp in identityProviders" ng-click="idp.value = !idp.value">
-                  <input class="form-check-input" type="checkbox" ng-model="idp.value">
-                  <label>
-                      <strong class="{{idp.registered ? '' : 'text-muted'}}">{{idp.name}}</strong>
-                      <svg ng-if="idp.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
-                        <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
-                      </svg>
-                      <svg ng-if="idp.enabled && !idp.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
-                        <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
-                      </svg>
-                      <svg ng-if="!idp.enabled && !idp.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
-                        <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
-                      </svg>                  
-                  </label>                
-                  <small class="form-text"><span class="text-monospace">{{idp.authority}}</span> <br> {{idp.description}}</small>
-            </div>
-         </div>
-    </fieldset>
+
   </div>
 </div>

@@ -34,8 +34,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.api.scopes.ApiServicesScope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClaimException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
@@ -44,6 +46,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServiceClaim;
+import it.smartcommunitylab.aac.services.ServiceClient;
 import it.smartcommunitylab.aac.services.ServiceScope;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import springfox.documentation.annotations.ApiIgnore;
@@ -171,6 +174,19 @@ public class DevServicesController {
         return ResponseEntity.ok(serviceManager.checkServiceNamespace(ns));
     }
 
+    /*
+     * Claims
+     */
+    @GetMapping("/realms/{realm}/services/{serviceId}/claims")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Collection<ServiceClaim>> getRealmServiceClaims(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+            throws NoSuchRealmException, NoSuchServiceException, RegistrationException {
+        return ResponseEntity.ok(serviceManager.listServiceClaims(realm, serviceId));
+    }
+
     @PostMapping("/realms/{realm}/services/{serviceId}/claims")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -227,6 +243,19 @@ public class DevServicesController {
         return ResponseEntity.ok(function);
     }
 
+    /*
+     * Scopes
+     */
+    @GetMapping("/realms/{realm}/services/{serviceId}/scopes")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Collection<ServiceScope>> getRealmServiceScopes(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+            throws NoSuchRealmException, NoSuchServiceException, RegistrationException {
+        return ResponseEntity.ok(serviceManager.listServiceScopes(realm, serviceId));
+    }
+
     @PostMapping("/realms/{realm}/services/{serviceId}/scopes")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -273,16 +302,7 @@ public class DevServicesController {
         return ResponseEntity.ok(serviceManager.getServiceScopeApprovals(realm, serviceId, scope));
     }
 
-    @GetMapping("/realms/{realm}/services/{serviceId}/approvals")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
-    public ResponseEntity<Collection<Approval>> getRealmServiceApprovals(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
-            throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
-        return ResponseEntity.ok(serviceManager.getServiceApprovals(realm, serviceId));
-    }
-
+ 
     @PostMapping("/realms/{realm}/services/{serviceId}/scopes/{scope}/approvals")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -308,6 +328,80 @@ public class DevServicesController {
             @RequestParam String clientId)
             throws NoSuchRealmException, NoSuchScopeException, NoSuchServiceException {
         serviceManager.revokeServiceScopeApproval(realm, serviceId, scope, clientId);
+        return ResponseEntity.ok(null);
+    }
+
+    
+    /*
+     * Approvals
+     */
+    @GetMapping("/realms/{realm}/services/{serviceId}/approvals")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Collection<Approval>> getRealmServiceApprovals(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+            throws NoSuchRealmException, NoSuchServiceException, NoSuchScopeException {
+        return ResponseEntity.ok(serviceManager.getServiceApprovals(realm, serviceId));
+    }
+
+    
+    /*
+     * Service client
+     */
+
+    @GetMapping("/realms/{realm}/services/{serviceId}/clients")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Collection<ServiceClient>> listServiceClients(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
+            throws NoSuchServiceException, NoSuchRealmException {
+        logger.debug("list service clients " + String.valueOf(serviceId) + " for realm " + String.valueOf(realm));
+        Collection<ServiceClient> clients = serviceManager.listServiceClients(realm, serviceId);
+        return ResponseEntity.ok(clients);
+    }
+
+    @GetMapping("/realms/{realm}/services/{serviceId}/clients/{clientId}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ServiceClient> getServiceClients(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchServiceException, NoSuchRealmException, NoSuchClientException {
+        logger.debug("list service clients " + String.valueOf(serviceId) + " for realm " + String.valueOf(realm));
+        ServiceClient client = serviceManager.getServiceClient(realm, serviceId, clientId);
+        return ResponseEntity.ok(client);
+    }
+
+    @PostMapping("/realms/{realm}/services/{serviceId}/clients")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<ServiceClient> addServiceClient(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @RequestBody @Valid ServiceClient s)
+            throws NoSuchRealmException, NoSuchServiceException, RegistrationException {
+        logger.debug("add client to service " + String.valueOf(serviceId) + " for realm " + String.valueOf(realm));
+        if (logger.isTraceEnabled()) {
+            logger.trace("client bean " + String.valueOf(s));
+        }
+        String type = s.getType();
+        ServiceClient client = serviceManager.addServiceClient(realm, serviceId, type);
+        return ResponseEntity.ok(client);
+    }
+
+    @DeleteMapping("/realms/{realm}/services/{serviceId}/clients/{clientId}")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
+            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    public ResponseEntity<Void> deleteServiceClient(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchServiceException, NoSuchRealmException, NoSuchClientException {
+        logger.debug("delete service client " + String.valueOf(serviceId) + " for realm " + String.valueOf(realm));
+        serviceManager.deleteServiceClient(realm, serviceId, clientId);
         return ResponseEntity.ok(null);
     }
 }

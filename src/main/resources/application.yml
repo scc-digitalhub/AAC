@@ -252,8 +252,8 @@ api:
    clients:
       auto: 
         introspect: true
-        machine: true
-        web: true
+        machine: false
+        web: false
 
 # DEFAULT ADMIN CLIENT
 adminClient:

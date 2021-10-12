@@ -1,7 +1,11 @@
 <div class="pt-3">
 
     <fieldset>
-        <legend class="mb-4">OAuth2 endpoints</legend>
+        <legend class="mb-4">OAuth2 endpoints
+            <small class="form-text">
+                AAC endpoints for OAuth2 and OpenId Connect.
+            </small>
+        </legend>
 
         <table class="table table-bordered align-middle">
             <tr>
@@ -15,7 +19,7 @@
             <tr>
                 <th>Issuer metadata (OIDC)</th>
                 <td>{{oauth2Metadata.issuer}}/.well-known/openid-configuration</td>
-            </tr>            
+            </tr>
             <tr>
                 <th>Login url</th>
                 <td>{{oauth2Metadata.issuer}}/-/{{app.realm}}/login</td>
@@ -43,7 +47,7 @@
             <tr>
                 <th>Revocation endpoint</th>
                 <td>{{oauth2Metadata.revocation_endpoint}}</td>
-            </tr>            
+            </tr>
         </table>
 
     </fieldset>

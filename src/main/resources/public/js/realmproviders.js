@@ -705,10 +705,8 @@ angular.module('aac.controllers.realmproviders', [])
                 var clientId = client.clientId;
                 var providers = client.providers;
                 if (providers.includes(provider)) {
-                    console.log("disable provider " + provider + " for " + clientId);
                     providers = providers.filter(function (p) { return p != provider });
                 } else {
-                    console.log("enable provider " + provider + " for " + clientId);
                     providers.push(provider);
                 }
 

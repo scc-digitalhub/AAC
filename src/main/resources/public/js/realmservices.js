@@ -1,6 +1,6 @@
 angular.module('aac.controllers.realmservices', [])
 
-  .service('RealmServicesData', function ($q, $http) {
+  .service('RealmServices', function ($q, $http) {
     var rsService = {};
 
     rsService.getServices = function (realm) {
@@ -41,35 +41,30 @@ angular.module('aac.controllers.realmservices', [])
         return data.data;
       });
     }
+    rsService.checkServiceNamespace = function (serviceNs) {
+      return $http.get('console/dev/services/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
+        return data.data;
+      });
+    }
 
+    //claims
+    rsService.getClaims = function (realm, serviceId) {
+      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/claims').then(function (data) {
+        return data.data;
+      });
+    }
     rsService.addClaim = function (realm, serviceId, claim) {
       return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/claims', claim).then(function (data) {
         return data.data;
       });
     }
-    rsService.updateClaim = function (realm, serviceId, claim) {
-      return $http.put('console/dev/realms/' + realm + '/services/' + serviceId + '/claims/' + claim.key, claim).then(function (data) {
+    rsService.updateClaim = function (realm, serviceId, id, claim) {
+      return $http.put('console/dev/realms/' + realm + '/services/' + serviceId + '/claims/' + id, claim).then(function (data) {
         return data.data;
       });
     }
     rsService.deleteClaim = function (realm, serviceId, key) {
       return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/claims/' + key).then(function (data) {
-        return data.data;
-      });
-    }
-
-    rsService.addScope = function (realm, serviceId, scope) {
-      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes', scope).then(function (data) {
-        return data.data;
-      });
-    }
-    rsService.updateScope = function (realm, serviceId, scope) {
-      return $http.put('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + scope.scope, scope).then(function (data) {
-        return data.data;
-      });
-    }
-    rsService.deleteScope = function (realm, serviceId, scope) {
-      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + scope).then(function (data) {
         return data.data;
       });
     }
@@ -79,12 +74,29 @@ angular.module('aac.controllers.realmservices', [])
       });
     }
 
-    rsService.checkServiceNamespace = function (serviceNs) {
-      return $http.get('console/dev/services/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
+    //scopes
+    rsService.getScopes = function (realm, serviceId) {
+      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes').then(function (data) {
+        return data.data;
+      });
+    }
+    rsService.addScope = function (realm, serviceId, scope) {
+      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes', scope).then(function (data) {
+        return data.data;
+      });
+    }
+    rsService.updateScope = function (realm, serviceId, id, scope) {
+      return $http.put('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + id, scope).then(function (data) {
+        return data.data;
+      });
+    }
+    rsService.deleteScope = function (realm, serviceId, scope) {
+      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + scope).then(function (data) {
         return data.data;
       });
     }
 
+    //approvals
     rsService.getApprovals = function (realm, serviceId) {
       return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/approvals').then(function (data) {
         return data.data;
@@ -102,6 +114,28 @@ angular.module('aac.controllers.realmservices', [])
       });
     }
 
+    //clients
+    rsService.getClients = function (realm, serviceId) {
+      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/clients').then(function (data) {
+        return data.data;
+      });
+    }
+    rsService.getClient = function (realm, serviceId, clientId) {
+      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/clients/' + clientId).then(function (data) {
+        return data.data;
+      });
+    }
+    rsService.addClient = function (realm, serviceId, client) {
+      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/clients', client).then(function (data) {
+        return data.data;
+      });
+    }
+    rsService.deleteClient = function (realm, serviceId, clientId) {
+      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/clients/' + clientId).then(function (data) {
+        return data.data;
+      });
+    }
+
     return rsService;
   })
 
@@ -112,32 +146,26 @@ angular.module('aac.controllers.realmservices', [])
    * @param $http
    * @param $timeout
    */
-  .controller('RealmServicesController', function ($scope, $state, $stateParams, RealmServicesData, Utils) {
+  .controller('RealmServicesController', function ($scope, $state, $stateParams, RealmServices, Utils) {
     var slug = $stateParams.realmId;
-    $scope.reload = function () {
-      $scope.editService = null;
-      RealmServicesData.getServices(slug)
+    $scope.editService = null;
+
+    $scope.load = function () {
+
+      RealmServices.getServices(slug)
         .then(function (services) {
           $scope.services = services;
         })
         .catch(function (err) {
-          Utils.showError('Failed to load realm: ' + err.data.message);
+          Utils.showError('Failed to load realm services: ' + err.data.message);
         });
 
     };
 
-    $scope.reload();
-
-    $scope.serviceApprovals = function (service) {
-      $state.go('realm.serviceapprovals', { realmId: $stateParams.realmId, serviceId: service.serviceId });
-    }
-
-    /**
-     * switch to different service
-     */
-    $scope.switchService = function (service) {
-      $state.go('realm.service', { realmId: $stateParams.realmId, serviceId: service.serviceId });
+    var init = function () {
+      $scope.load();
     };
+
 
     /** 
      * initiate creation of new service
@@ -149,16 +177,36 @@ angular.module('aac.controllers.realmservices', [])
     };
 
     $scope.saveService = function () {
-      RealmServicesData.addService(slug, $scope.editService)
+      RealmServices.addService(slug, $scope.editService)
         .then(function () {
           $('#serviceModal').modal('hide');
-          $scope.reload();
+          $scope.load();
         })
         .catch(function (err) {
           Utils.showError('Failed to save service: ' + err.data.message);
         });
     }
 
+    $scope.deleteServiceDlg = function (service) {
+      $scope.modService = service;
+      //add confirm field
+      $scope.modService.confirmId = '';
+      $('#deleteServiceConfirm').modal({ keyboard: false });
+    }
+
+    $scope.deleteService = function () {
+      $('#deleteServiceConfirm').modal('hide');
+      if ($scope.modService.serviceId === $scope.modService.confirmId) {
+        RealmServices.deleteService($scope.realm.slug, $scope.modService.serviceId).then(function () {
+          $scope.load();
+          Utils.showSuccess();
+        }).catch(function (err) {
+          Utils.showError(err.data.message);
+        });
+      } else {
+        Utils.showError("confirmId not valid");
+      }
+    }
 
     $scope.importServiceDlg = function () {
       $('#importServiceDlg').modal({ keyboard: false });
@@ -172,7 +220,7 @@ angular.module('aac.controllers.realmservices', [])
       if (file == null || !mimeTypes.includes(file.type) || file.size == 0) {
         Utils.showError("invalid file");
       } else {
-        RealmServicesData.importService(slug, file)
+        RealmServices.importService(slug, file)
           .then(function (res) {
             $scope.importFile = null;
             $state.go('realm.service', { realmId: res.realm, serviceId: res.serviceId });
@@ -184,16 +232,6 @@ angular.module('aac.controllers.realmservices', [])
       }
     }
 
-    var doCheck = function () {
-      var oldCheck = $scope.nsChecking;
-      $scope.nsError = true;
-      RealmServicesData.checkServiceNamespace($scope.editService.namespace).then(function (data) {
-        if (!data) {
-          $scope.nsError = false;
-        }
-        if ($scope.nsChecking == oldCheck) $scope.nsChecking = null;
-      });
-    }
 
     $scope.changeNS = function () {
       $scope.nsError = false;
@@ -202,6 +240,19 @@ angular.module('aac.controllers.realmservices', [])
       }
       $scope.nsChecking = setTimeout(doCheck, 300);
     }
+
+    var doCheck = function () {
+      var oldCheck = $scope.nsChecking;
+      $scope.nsError = true;
+      RealmServices.checkServiceNamespace($scope.editService.namespace).then(function (data) {
+        if (!data) {
+          $scope.nsError = false;
+        }
+        if ($scope.nsChecking == oldCheck) $scope.nsChecking = null;
+      });
+    }
+
+    init();
   })
 
 
@@ -212,9 +263,10 @@ angular.module('aac.controllers.realmservices', [])
    * @param $http
    * @param $timeout
    */
-  .controller('RealmServiceController', function ($scope, $state, $stateParams, RealmServicesData, Utils) {
+  .controller('RealmServiceController', function ($scope, $state, $stateParams, RealmServices, RealmAppsData, Utils) {
     var slug = $stateParams.realmId;
     var serviceId = $stateParams.serviceId;
+    $scope.formView = 'overview';
 
     $scope.aceOption = {
       mode: 'javascript',
@@ -223,85 +275,113 @@ angular.module('aac.controllers.realmservices', [])
       minLines: 6
     };
 
-    var init = function () {
+    $scope.activeView = function (view) {
+      return view == $scope.formView ? 'active' : '';
+    };
+
+    $scope.switchView = function (view) {
+      $scope.formView = view;
+      Utils.refreshFormBS(300);
+    }
+
+
+
+    //TODO unpack loaders for scopes, claims, clients, approvals..
+    $scope.load = function () {
+
       //TODO load mock/context data for claim mapping
-      RealmServicesData.getService(slug, serviceId)
+      RealmServices.getService(slug, serviceId)
         .then(function (data) {
-          $scope.load(data);
+          $scope.service = data;
+          $scope.servicename = data.name;
+          $scope.servicedescription = data.description;
           return data;
         })
+        .then(function (data) {
+          $scope.scopes = data.scopes;
+          return data;
+        })
+        .then(function (data) {
+          $scope.approvals = data.approvals;
+          return data;
+        })
+        .then(function (data) {
+          $scope.claims = data.claims;
+          return data;
+        })
+        .then(function (data) {
+
+          //extract claimMapping
+          var claimMapping = {
+            'client': {
+              enabled: false,
+              code: "",
+              context: {},
+              scopes: [],
+              result: null,
+              error: null
+            },
+            'user': {
+              enabled: false,
+              code: "",
+              context: {},
+              scopes: [],
+              result: null,
+              error: null
+            }
+          };
+
+
+          if (data.claimMapping && !!data.claimMapping['user']) {
+            claimMapping['user'].enabled = true;
+            claimMapping['user'].code = atob(data.claimMapping['user']);
+          }
+
+          if (data.claimMapping && !!data.claimMapping['client']) {
+            claimMapping['client'].enabled = true;
+            claimMapping['client'].code = atob(data.claimMapping['client']);
+          }
+
+          $scope.claimMapping = claimMapping;
+
+          return data;
+        })
+        .then(function (data) {
+          return Promise.all(
+            data.clients.map(c => {
+              return RealmAppsData.getClientApp(slug, c.clientId);
+            })
+          );
+        }).then(function (clients) {
+          $scope.clients = clients;
+        })
         .catch(function (err) {
           Utils.showError('Failed to load realm service: ' + err.data.message);
         });
     };
-
-    $scope.load = function (data) {
-      $scope.service = data;
-      $scope.servicename = data.name;
-
-      //extract claimMapping
-      var claimMapping = {
-        'client': {
-          enabled: false,
-          code: "",
-          context: {},
-          scopes: [],
-          result: null,
-          error: null
-        },
-        'user': {
-          enabled: false,
-          code: "",
-          context: {},
-          scopes: [],
-          result: null,
-          error: null
-        }
-      };
-
-
-      if (data.claimMapping && !!data.claimMapping['user']) {
-        claimMapping['user'].enabled = true;
-        claimMapping['user'].code = atob(data.claimMapping['user']);
-      }
-
-      if (data.claimMapping && !!data.claimMapping['client']) {
-        claimMapping['client'].enabled = true;
-        claimMapping['client'].code = atob(data.claimMapping['client']);
-      }
-
-      $scope.claimMapping = claimMapping;
-
-    };
-
 
     $scope.reload = function () {
-      RealmServicesData.getService(slug, serviceId)
+      //reload basic settings
+      RealmServices.getService(slug, serviceId)
         .then(function (data) {
-          $scope.load(data);
+          $scope.service = data;
+          $scope.servicename = data.name;
+          $scope.servicedescription = data.description;
         })
-        // .then(function (service) {
-        //   $scope.service = service;
-        //   $scope.claimEnabled = {
-        //     client: { checked: service.claimMapping && !!service.claimMapping['client'], scopes: [] },
-        //     user: { checked: service.claimMapping && !!service.claimMapping['user'], scopes: [] }
-        //   };
-        //   $scope.validationResult = {};
-        //   $scope.validationError = {};
-        // })
         .catch(function (err) {
           Utils.showError('Failed to load realm service: ' + err.data.message);
         });
+    }
 
+    var init = function () {
+      $scope.load();
     };
 
-    /**
-     * delete service
-     */
+
     $scope.removeService = function () {
       $scope.doDelete = function () {
         $('#deleteConfirm').modal('hide');
-        RealmServicesData.deleteService($scope.service.realm, $scope.service.serviceId)
+        RealmServices.deleteService($scope.service.realm, $scope.service.serviceId)
           .then(function () {
             Utils.showSuccess();
             $state.go('realm.services', { realmId: $stateParams.realmId });
@@ -314,52 +394,101 @@ angular.module('aac.controllers.realmservices', [])
     };
 
 
-    /**
-     * Export service
-     */
+
     $scope.exportService = function () {
       window.open('console/dev/realms/' + $scope.service.realm + '/services/' + $scope.service.serviceId + '/yaml');
     };
 
-    /** 
-     * Edit service
-     */
-    $scope.editService = function () {
-      $scope.editService = Object.assign({}, $scope.service);
-      $('#serviceModal').modal({ backdrop: 'static', focus: true })
-      Utils.refreshFormBS();
-    };
-    /** 
-     * Save service
-     */
     $scope.saveService = function () {
-      RealmServicesData.updateService(slug, $scope.editService)
-        .then(function (service) {
-          $('#serviceModal').modal('hide');
-          $scope.service = service;
+      var service = $scope.service;
+
+      //save only basic settings
+      var data = {
+        realm: slug,
+        serviceId: service.serviceId,
+        namespace: service.namespace,
+        name: service.name,
+        description: service.description,
+        //TODO cleanup mapping from basic update, should stay with claims
+        claimMapping: service.claimMapping
+      };
+
+      RealmServices.updateService(slug, data)
+        .then(function (res) {
+          Utils.showSuccess();
+          $scope.reload();
         })
         .catch(function (err) {
           Utils.showError('Failed to save service: ' + err.data.message);
         });
     }
 
-    /**
-     * edit/create scope declaration
-     */
-    $scope.editScope = function (scope) {
-      if (scope) {
-        $scope.updating = true;
-        $scope.scope = Object.assign({}, scope);
-        $scope.approvalFunction = { checked: !!scope.approvalFunction };
-      } else {
-        $scope.updating = false;
-        $scope.scope = {};
-        $scope.approvalFunction = { checked: false };
-      }
+    /*
+    * Scopes
+    */
+
+    $scope.loadScopes = function () {
+      RealmServices.getScopes(slug, serviceId)
+        .then(function (data) {
+          $scope.scopes = data;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load service scopes: ' + err.data.message);
+        });
+    }
+
+    $scope.createScopeDlg = function () {
+      $scope.modScope = {
+        id: null,
+      };
+      $scope.approvalFunction = { checked: false };
+
       $('#scopeModal').modal({ keyboard: false });
       Utils.refreshFormBS();
     }
-    $scope.toggleApprovalFunction = function () {
+
+    $scope.editScopeDlg = function (scope) {
+      if (scope) {
+        $scope.modScope = {
+          id: scope.scope,
+          ...scope
+        }
+        $scope.approvalFunction = { checked: !!scope.approvalFunction };
+
+        $('#scopeModal').modal({ keyboard: false });
+        Utils.refreshFormBS();
+      }
+    }
+
+    $scope.saveScope = function () {
+      $('#scopeModal').modal('hide');
+      if ($scope.modScope) {
+        var scope = $scope.modScope;
+        if (scope.id) {
+          RealmServices.updateScope($scope.service.realm, $scope.service.serviceId, scope.id, scope)
+            .then(function () {
+              Utils.showSuccess();
+              $scope.loadScopes();
+            })
+            .catch(function (err) {
+              Utils.showError('Failed to save scope: ' + err.data.message);
+            });
+        } else {
+          RealmServices.addScope($scope.service.realm, $scope.service.serviceId, scope)
+            .then(function () {
+              Utils.showSuccess();
+              $scope.loadScopes();
+            })
+            .catch(function (err) {
+              Utils.showError('Failed to save scope: ' + err.data.message);
+            });
+        }
+
+        $scope.modScope = null;
+      }
+    }
+
+    $scope.toggleScopeApprovalFunction = function () {
       if (!$scope.approvalFunction.checked) {
         $scope.scope.approvalFunction = null;
       } else {
@@ -370,36 +499,14 @@ angular.module('aac.controllers.realmservices', [])
           'function approver(inputData) {\n   return {};\n}';
       }
     }
-    $scope.saveScope = function () {
-      $('#scopeModal').modal('hide');
-      if ($scope.updating) {
-        RealmServicesData.updateScope($scope.service.realm, $scope.service.serviceId, $scope.scope)
-          .then(function () {
-            $scope.reload();
-          })
-          .catch(function (err) {
-            Utils.showError('Failed to save scope: ' + err.data.message);
-          });
-      } else {
-        RealmServicesData.addScope($scope.service.realm, $scope.service.serviceId, $scope.scope)
-          .then(function () {
-            $scope.reload();
-          })
-          .catch(function (err) {
-            Utils.showError('Failed to save scope: ' + err.data.message);
-          });
-      }
-    }
-    /**
-   * delete scope
-   */
+
     $scope.removeScope = function (scope) {
       $scope.doDelete = function () {
         $('#deleteConfirm').modal('hide');
-        RealmServicesData.deleteScope($scope.service.realm, $scope.service.serviceId, scope.scope)
+        RealmServices.deleteScope($scope.service.realm, $scope.service.serviceId, scope.scope)
           .then(function () {
             Utils.showSuccess();
-            $scope.reload();
+            $scope.loadScopes();
           })
           .catch(function (err) {
             Utils.showError('Failed to load delete scope: ' + err.data.message);
@@ -408,53 +515,82 @@ angular.module('aac.controllers.realmservices', [])
       $('#deleteConfirm').modal({ keyboard: false });
     };
 
-    /**
-     * edit/create claim declaration
-     */
-    $scope.editClaim = function (claim) {
-      if (claim) {
-        $scope.updating = true;
-        $scope.claim = Object.assign({}, claim);
-      } else {
-        $scope.updating = false;
-        $scope.claim = {};
-      }
+    /*
+    * Claims
+    */
+    $scope.loadClaims = function () {
+      RealmServices.getClaims(slug, serviceId)
+        .then(function (data) {
+          $scope.claims = data;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load service claims: ' + err.data.message);
+        });
+    }
+
+    $scope.filterClaims = function (q) {
+      return $scope.claims.filter(function (c) {
+        return c.key.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+      }).map(function (c) {
+        return c.key;
+      });
+    }
+
+    $scope.createClaimDlg = function () {
+      $scope.modClaim = {
+        id: null
+      };
       $('#claimModal').modal({ keyboard: false });
-      Utils.refreshFormBS();
     };
-    /**
-     * Add new claim
-     */
+
+    $scope.editClaimDlg = function (claim) {
+      if (claim) {
+        $scope.modClaim = {
+          id: claim.key,
+          ...claim
+        };
+
+        $('#claimModal').modal({ keyboard: false });
+      }
+    };
+
     $scope.saveClaim = function () {
       $('#claimModal').modal('hide');
-      if ($scope.updating) {
-        RealmServicesData.updateClaim($scope.service.realm, $scope.service.serviceId, $scope.claim)
-          .then(function () {
-            $scope.reload();
-          })
-          .catch(function (err) {
-            Utils.showError('Failed to save claim: ' + err.data.message);
-          });
-      } else {
-        RealmServicesData.addClaim($scope.service.realm, $scope.service.serviceId, $scope.claim)
-          .then(function () {
-            $scope.reload();
-          })
-          .catch(function (err) {
-            Utils.showError('Failed to save claim: ' + err.data.message);
-          });
+      if ($scope.modClaim) {
+        var claim = $scope.modClaim;
+
+        if (claim.id) {
+
+          RealmServices.updateClaim($scope.service.realm, $scope.service.serviceId, claim.id, claim)
+            .then(function () {
+              Utils.showSuccess();
+              $scope.loadClaims();
+            })
+            .catch(function (err) {
+              Utils.showError('Failed to save claim: ' + err.data.message);
+            });
+        } else {
+          RealmServices.addClaim($scope.service.realm, $scope.service.serviceId, claim)
+            .then(function () {
+              Utils.showSuccess();
+              $scope.loadClaims();
+            })
+            .catch(function (err) {
+              Utils.showError('Failed to save claim: ' + err.data.message);
+            });
+        }
+
+        $scope.modClaim = null;
       }
     };
-    /**
-     * delete claim
-     */
+
     $scope.removeClaim = function (claim) {
       $scope.doDelete = function () {
         $('#deleteConfirm').modal('hide');
-        RealmServicesData.deleteClaim($scope.service.realm, $scope.service.serviceId, claim.key)
+        RealmServices.deleteClaim($scope.service.realm, $scope.service.serviceId, claim.key)
           .then(function () {
             Utils.showSuccess();
-            $scope.reload();
+            $scope.loadClaims();
           })
           .catch(function (err) {
             Utils.showError('Failed to load delete claim: ' + err.data.message);
@@ -495,9 +631,7 @@ angular.module('aac.controllers.realmservices', [])
 
     }
 
-    /**
-     * Validate claims
-     */
+
     $scope.validateClaims = function (m) {
       var mapping = $scope.claimMapping[m];
       if (!mapping) {
@@ -517,7 +651,7 @@ angular.module('aac.controllers.realmservices', [])
         scopes: mapping.scopes.map(function (s) { return s.text })
       };
 
-      RealmServicesData.validateClaims($scope.service.realm, $scope.service.serviceId, data).then(function (res) {
+      RealmServices.validateClaims($scope.service.realm, $scope.service.serviceId, data).then(function (res) {
         $scope.claimMapping[m].result = res.result;
         $scope.claimMapping[m].errors = res.errors;
       }).catch(function (err) {
@@ -529,7 +663,7 @@ angular.module('aac.controllers.realmservices', [])
       // $scope.validationResult[m] = '';
       // $scope.validationError[m] = '';
 
-      // RealmServicesData.validateClaims($scope.service.realm, $scope.service.serviceId, m, $scope.service.claimMapping[m], $scope.claimEnabled[m].scopes.map(function (s) { return s.text }))
+      // RealmServices.validateClaims($scope.service.realm, $scope.service.serviceId, m, $scope.service.claimMapping[m], $scope.claimEnabled[m].scopes.map(function (s) { return s.text }))
       //   .then(function (data) {
       //     $scope.validationResult[m] = data;
       //   })
@@ -563,9 +697,9 @@ angular.module('aac.controllers.realmservices', [])
       // if (!copy.claimMapping) copy.claimMapping = {};
       // copy.claimMapping[m] = $scope.claimEnabled[m].checked ? $scope.service.claimMapping[m] : null;
 
-      RealmServicesData.updateService($scope.service.realm, data)
+      RealmServices.updateService($scope.service.realm, data)
         .then(function (res) {
-          $scope.load(res);
+          $scope.reload();
           Utils.showSuccess();
         })
         .catch(function (err) {
@@ -573,14 +707,135 @@ angular.module('aac.controllers.realmservices', [])
         });
     }
 
-    $scope.loadClaims = function (q) {
-      return $scope.service.claims.filter(function (c) {
-        return c.key.toLowerCase().indexOf(q.toLowerCase()) >= 0;
-      }).map(function (c) {
-        return c.key;
-      });
+
+
+    /*
+    * Clients
+    */
+
+    $scope.loadClients = function () {
+      RealmServices.getClients(slug, serviceId)
+        .then(function (data) {
+          return Promise.all(
+            data.map(c => {
+              return RealmAppsData.getClientApp(slug, c.clientId);
+            })
+          );
+        })
+        .then(function (clients) {
+          $scope.clients = clients;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load service clients: ' + err.data.message);
+        });
     }
 
+    $scope.createClientDlg = function (type) {
+      if (!type) {
+        type = 'introspect';
+      }
+      $scope.modClient = {
+        type: type,
+      };
+
+      $('#clientModal').modal({ keyboard: false });
+      Utils.refreshFormBS();
+    }
+
+
+    $scope.createClient = function () {
+      $('#clientModal').modal('hide');
+      if ($scope.modClient) {
+        var type = $scope.modClient.type;
+        if (!type) {
+          type = 'introspect';
+        }
+
+        var data = {
+          realm: $scope.service.realm,
+          serviceId: $scope.service.serviceId,
+          type: type
+        }
+
+        RealmServices.addClient($scope.service.realm, $scope.service.serviceId, data)
+          .then(function () {
+            Utils.showSuccess();
+            $scope.loadClients();
+          })
+          .catch(function (err) {
+            Utils.showError('Failed to create client: ' + err.data.message);
+          });
+
+
+        $scope.modClient = null;
+      }
+    }
+
+
+    $scope.removeClient = function (client) {
+      $scope.doDelete = function () {
+        $('#deleteConfirm').modal('hide');
+        RealmServices.deleteClient($scope.service.realm, $scope.service.serviceId, client.clientId)
+          .then(function () {
+            Utils.showSuccess();
+            $scope.loadClients();
+          })
+          .catch(function (err) {
+            Utils.showError('Failed to delete client: ' + err.data.message);
+          });
+      }
+      $('#deleteConfirm').modal({ keyboard: false });
+    };
+
+    /*
+    * Approvals
+    */
+
+    $scope.loadApprovals = function () {
+      RealmServices.getApprovals(slug, serviceId)
+        .then(function (data) {
+          $scope.approvals = data;
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load service approvals: ' + err.data.message);
+        });
+    }
+
+    $scope.createApprovalDlg = function () {
+      $scope.modApproval = {};
+      $('#approvalModal').modal({ keyboard: false });
+      Utils.refreshFormBS();
+    }
+
+    $scope.saveApproval = function () {
+      if ($scope.modApproval) {
+        RealmServices.addApproval($scope.service.realm, $scope.service.serviceId, $scope.modApproval)
+          .then(function () {
+            Utils.showSuccess();
+            $scope.loadApprovals();
+          })
+          .catch(function (err) {
+            Utils.showError('Failed to save service approval: ' + err.data.message);
+          });
+      }
+
+      $('#approvalModal').modal('hide');
+    }
+
+    $scope.removeApproval = function (approval) {
+      $scope.doDelete = function () {
+        $('#deleteConfirm').modal('hide');
+        RealmServices.deleteApproval($scope.service.realm, $scope.service.serviceId, approval)
+          .then(function () {
+            Utils.showSuccess();
+            $scope.loadApprovals();
+          })
+          .catch(function (err) {
+            Utils.showError('Failed to load delete approval: ' + err.data.message);
+          });
+      }
+      $('#deleteConfirm').modal({ keyboard: false });
+    };
 
     init();
   })
@@ -592,67 +847,71 @@ angular.module('aac.controllers.realmservices', [])
    * @param $http
    * @param $timeout
    */
-  .controller('RealmServiceApprovalsController', function ($scope, $state, $stateParams, RealmServicesData, Utils) {
+  .controller('RealmServiceApprovalsController', function ($scope, $state, $stateParams, RealmServices, Utils) {
     var slug = $stateParams.realmId;
     var serviceId = $stateParams.serviceId;
 
-    RealmServicesData.getService(slug, serviceId)
-      .then(function (service) {
-        $scope.service = service;
-        $scope.reloadApprovals();
-      })
-      .catch(function (err) {
-        Utils.showError('Failed to load realm service: ' + err.data.message);
-      });
 
-    $scope.reloadApprovals = function () {
-      $scope.editService = null;
-      RealmServicesData.getApprovals(slug, serviceId)
+    $scope.load = function () {
+
+      RealmServices.getApprovals(slug, serviceId)
         .then(function (approvals) {
           $scope.approvals = approvals;
         })
         .catch(function (err) {
           Utils.showError('Failed to load service approvals: ' + err.data.message);
         });
+    }
 
-    };
+    var init = function () {
+      RealmServices.getService(slug, serviceId)
+        .then(function (service) {
+          $scope.service = service;
+        })
+        .then(function () {
+          $scope.load();
+        })
+        .catch(function (err) {
+          Utils.showError('Failed to load service: ' + err.data.message);
+        });
+    }
 
-    $scope.newApproval = function () {
-      $scope.approval = {};
+
+    $scope.createApproval = function () {
+      $scope.modApproval = {};
       $('#approvalModal').modal({ keyboard: false });
       Utils.refreshFormBS();
     }
 
     $scope.saveApproval = function () {
-      $('#approvalModal').modal('hide');
+      if ($scope.modApproval) {
+        RealmServices.addApproval($scope.service.realm, $scope.service.serviceId, $scope.modApproval)
+          .then(function () {
+            $scope.load();
+          })
+          .catch(function (err) {
+            Utils.showError('Failed to save service approval: ' + err.data.message);
+          });
+      }
 
-      RealmServicesData.addApproval($scope.service.realm, $scope.service.serviceId, $scope.approval)
-        .then(function () {
-          $scope.reloadApprovals();
-        })
-        .catch(function (err) {
-          Utils.showError('Failed to save service approval: ' + err.data.message);
-        });
+      $('#approvalModal').modal('hide');
     }
 
-    /**
-   * delete claim
-   */
     $scope.removeApproval = function (approval) {
-      $scope.approval = approval;
+      $scope.doDelete = function () {
+        $('#deleteConfirm').modal('hide');
+        RealmServices.deleteApproval($scope.service.realm, $scope.service.serviceId, approval)
+          .then(function () {
+            Utils.showSuccess();
+            $scope.load();
+          })
+          .catch(function (err) {
+            Utils.showError('Failed to load delete approval: ' + err.data.message);
+          });
+      }
       $('#deleteConfirm').modal({ keyboard: false });
     };
-    $scope.doDelete = function () {
-      $('#deleteConfirm').modal('hide');
-      RealmServicesData.deleteApproval($scope.service.realm, $scope.service.serviceId, $scope.approval)
-        .then(function () {
-          Utils.showSuccess();
-          $scope.reloadApprovals();
-        })
-        .catch(function (err) {
-          Utils.showError('Failed to load delete approval: ' + err.data.message);
-        });
-    }
 
+    init();
   })
   ;

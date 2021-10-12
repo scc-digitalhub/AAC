@@ -1,0 +1,201 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">
+            Service scopes
+            <small class="form-text">
+                Scopes are used to identify permissions on a resource managed by the service. Clients will ask for
+                scopes during authorization.
+            </small>
+        </legend>
+
+
+        <div class="row">
+            <div class="col col-12 text-right">
+                <button class="btn btn-primary text-right" type="button" ng-click="createScopeDlg()">
+                    <svg class="icon icon-sm icon-white">
+                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm table-hover border-bottom"
+                    ng-if="scopes && scopes.length > 0">
+                    <tr>
+                        <th>Scope</th>
+                        <th>Authority</th>
+                        <th></th>
+                    </tr>
+                    <tr ng-repeat="scope in scopes">
+                        <td>
+                            <strong>{{scope.scope}}</strong>
+                            <br><span class="small">{{scope.name}}: {{scope.description}}</span>
+                            <div
+                                ng-if="scope.approvalRequired || scope.approvalFunction || scope.approvalRoles && scope.approvalRoles.length > 0 || scope.approvalSpaceRoles && scope.approvalSpaceRoles.length > 0">
+                                <span>{{scope.approvalAny ? 'One of': 'All of'}}: </span>
+                                <span ng-if="scope.approvalRoles && scope.approvalRoles.length > 0"><i
+                                        class="small">realm
+                                        roles:
+                                        {{scope.approvalRoles.join(', ')}}</i>; </span>
+                                <span ng-if="scope.approvalSpaceRoles && scope.approvalSpaceRoles.length > 0"><i
+                                        class="small">global
+                                        roles: {{scope.approvalSpaceRoles.join(', ')}}</i>; </span>
+                                <span ng-if="scope.approvalRequired"><i class="small">explicit approval</i>;</span>
+                                <span ng-if="scope.approvalFunction"><i class="small">custom approval function</i><span>
+                            </div>
+                        </td>
+                        <td>{{scope.type}}</td>
+                        <td class="text-right">
+
+                            <a class="btn btn-xs btn-primary btn-icon pull-right" ng-click="editScopeDlg(scope)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                                </svg></a>
+                            <a class="btn btn-xs btn-danger btn-icon pull-right" ng-click="removeScope(scope)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-minus"></use>
+                                </svg></a>
+                        </td>
+                    </tr>
+                </table>
+                <p ng-if="!scopes || scopes.length == 0">No scopes defined</p>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+<div class="modal fade bs-modal-lg" id="scopeModal" tabindex="-1" role="dialog" aria-labelledby="servicescope"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="modal-title" id="servicescope">Scope definition</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form class="needs-validation was-validated" novalidate name="scopeForm">
+                            <input type="hidden" name="id" value="{{modScope.id}}">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="scope">Scope (Required)</label>
+                                    <input ng-if="!(modScope.id)" pattern="[:.a-zA-Z]{3,}" type="text" name="scope"
+                                        class="form-control" placeholder="Scope" ng-model="modScope.scope" required>
+                                    <input ng-if="modScope.id" pattern="[:.a-zA-Z]{3,}" type="text" name="scope"
+                                        class="form-control" placeholder="Scope" ng-model="modScope.scope" disabled
+                                        readonly>
+                                    <div ng-if="scopeForm.scope.$error.pattern" class="invalid-feedback">Only
+                                        letters, ., : accepted,
+                                        min length 3</div><br>
+                                    <br>
+                                </div>
+                                <div class="col">
+                                    <label for="name">Name (Required)</label>
+                                    <input type="text" class="form-control" placeholder="Scope name" name="name"
+                                        ng-model="modScope.name" required></td>
+                                    <br>
+                                </div>
+                                <div class="col">
+                                    <label for="type">Authority (Required)</label>
+                                    <div class="bootstrap-select-wrapper standard">
+                                        <select class="form-control" ng-model="modScope.type" required>
+                                            <option value="">Select a value</option>
+                                            <option value="user" ng-selected="modScope.type == 'user'">user</option>
+                                            <option value="client" ng-selected="modScope.type == 'client'">client
+                                            </option>
+                                            <option value="generic" ng-selected="modScope.type == 'generic'">generic
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="description">Description (Required)</label>
+                                    <input type="text" class="form-control" placeholder="description"
+                                        ng-model="modScope.description" required></td>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="claims">Claims</label>
+                                    <div>
+                                        <tags-input use-strings="true" min-length="1" add-from-autocomplete-only="true"
+                                            type="url" placeholder="Add a claim" class="" ng-model="modScope.claims">
+                                            <auto-complete min-length="1" source="filterClaims($query)"></auto-complete>
+                                        </tags-input>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <h5>Authorizations</h5>
+                                </div>
+                                <div class="form-check col text-right">
+                                    <div class="toggles">
+                                        <label for="approvalany">
+                                            One of
+                                            <input type="checkbox" id="approvalany" ng-model="modScope.approvalAny">
+                                            <span class="lever"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label>Authorization with realm roles</label>
+                                    <tags-input use-strings="true" type="url" placeholder="Add a realm role"
+                                        class="form-control form-control-sm" ng-model="modScope.approvalRoles">
+                                    </tags-input>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label>Authorization with global roles (glob supported)</label>
+                                    <tags-input use-strings="true" type="url" placeholder="Add a global role"
+                                        class="form-control form-control-sm" ng-model="modScope.approvalSpaceRoles">
+                                    </tags-input>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="explicitcheck" ng-model="modScope.approvalRequired">
+                                        <label for="explicitcheck">Authorization with explicit approval</label>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-check form-check-inline">
+                                        <input id="approvafunctionenabled" class="form-check-input" type="checkbox"
+                                            ng-model="approvalFunction.checked"
+                                            ng-change="toggleScopeApprovalFunction()">
+                                        <label for="approvafunctionenabled">Authorization with approval function</label>
+                                    </div>
+                                    <div ui-ace="aceOption" ng-model="modScope.approvalFunction"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" ng-disabled="scopeForm.$invalid"
+                    ng-click="saveScope()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

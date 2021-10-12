@@ -6,8 +6,9 @@
       </div>
       <div class="col col-md-6 text-right">
          <button class="btn btn-primary btn-sm  text-right" ng-click="saveRealmSettings()">Save</button>
-         <button class="btn btn-secondary btn-sm  text-right" ng-click="exportRealmSettings()" >Export </button>
-         <button class="btn btn-secondary btn-sm  text-right" ng-click="exportRealm()" >Backup </button>
+         <button class="btn btn-secondary btn-sm  text-right" ng-click="exportRealmSettings()">Export </button>
+         <button class="btn btn-secondary btn-sm  text-right" ng-click="exportRealm()">Backup </button>
+         <button class="btn btn-danger btn-sm  text-right" ng-click="deleteRealmDlg()">Delete </button>
       </div>
    </div>
 </div>
@@ -37,6 +38,38 @@
          <form role="form" name="settingsForm" class="needs-validation was-validated" novalidate>
             <div ng-include="'./html/realm/settings.'+formView+'.html'"></div>
          </form>
+      </div>
+   </div>
+</div>
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteRealmConfirm">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title">Delete realm </h5>
+         </div>
+         <div class="modal-body">
+            <p>Are you sure you want to delete {{modRealm.name}}?</p>
+            <p>You are deleting realm <span class="text-monospace">{{modRealm.slug}}</span> <br>
+               Removing the realm will delete all related configurations, clients, users, audit log etc.
+            </p>
+            <p>To proceed enter the slug</p>
+            <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+
+            <form name="deleteRealmForm" class="needs-validation was-validated" novalidate>
+               <div class="form-group col mb-4">
+                  <label for="confirmSlug">Realm Slug*</label>
+                  <input type="text" name="confirmSlug" class="form-control form-control-sm" id="confirmSlug" required
+                     ng-model="modRealm.confirmSlug" ng-pattern="(modRealm.slug)">
+               </div>
+            </form>
+         </div>
+         <div class="modal-footer">
+            <button class="btn btn-danger btn-sm" ng-click="deleteRealm()" type="button"
+               ng-disabled="deleteRealmForm.$invalid">Delete</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+         </div>
       </div>
    </div>
 </div>

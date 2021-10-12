@@ -23,7 +23,7 @@ public class SubjectService {
         return s;
     }
 
-    public Subject findSubject(String uuid) throws NoSuchSubjectException {
+    public Subject findSubject(String uuid) {
         SubjectEntity s = subjectRepository.findBySubjectId(uuid);
         if (s == null) {
             return null;

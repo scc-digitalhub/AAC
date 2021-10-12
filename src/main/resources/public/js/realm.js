@@ -71,6 +71,16 @@ angular.module('aac.controllers.realm', [])
             });
       }
 
+      $scope.isAnyState = function (states) {
+         var ret = false;
+         if (states) {
+            var sm = states.filter(s => $state.includes(s));
+            ret = sm && sm.length > 0;
+         }
+
+         return ret;
+      }
+
       init();
 
       // RealmData.getMyRealms()
@@ -293,7 +303,6 @@ angular.module('aac.controllers.realm', [])
 
             RealmData.previewRealm($scope.realm.slug, template, cb)
                .then(function (res) {
-                  console.log(res);
                   $scope.customPreview = res;
                   $('#customPreview').modal({ keyboard: false });
                })
@@ -306,7 +315,7 @@ angular.module('aac.controllers.realm', [])
       init();
    })
 
-   .controller('RealmSettingsController', function ($scope, $stateParams, RealmData, Utils) {
+   .controller('RealmSettingsController', function ($scope, $state, $stateParams, RealmData, Utils) {
       var slug = $stateParams.realmId;
 
 
@@ -367,6 +376,28 @@ angular.module('aac.controllers.realm', [])
       $scope.exportRealm = function () {
          window.open('console/dev/realms/' + $scope.realm.slug + '/export?full=1');
       };
+
+      $scope.deleteRealmDlg = function () {
+         $scope.modRealm = $scope.realm;
+         //add confirm field
+         $scope.modRealm.confirmSlug = '';
+         $('#deleteRealmConfirm').modal({ keyboard: false });
+      }
+
+      $scope.deleteRealm = function () {
+         $('#deleteRealmConfirm').modal('hide');
+         if ($scope.modRealm.slug === $scope.modRealm.confirmSlug) {
+            RealmData.removeRealm($scope.modRealm.slug).then(function () {
+               $state.go('realm', { realmId: null });
+               Utils.showSuccess();
+            }).catch(function (err) {
+               Utils.showError(err.data.message);
+            });
+         } else {
+            Utils.showError("confirmId not valid");
+         }
+      }
+
 
       init();
    })

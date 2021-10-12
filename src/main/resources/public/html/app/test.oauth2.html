@@ -1,7 +1,16 @@
 <div class="pt-3">
 
     <fieldset>
-        <legend class="mb-4">Test OAuth2 application</legend>
+        <legend class="mb-4">Test OAuth2 application
+            <small class="form-text">
+                Test authorization grant flows in an automated way, with the current user as subject. Tokens obtained
+                via test functions are valid and also usable outside the console.
+            </small>
+
+        </legend>
+        <div ng-if="!oauth2GrantTypes || oauth2GrantTypes.length == 0">
+            <p>No authorization flows enabled for this app, nothing to test.</p>
+        </div>
 
         <div class="form-group">
 
@@ -28,7 +37,8 @@
                         </div>
                     </div>
 
-                    <div class="form-group mt-5" ng-if="app.configuration.tokenType =='jwt' && !!oauth2Tokens[gt.key].token">
+                    <div class="form-group mt-5"
+                        ng-if="app.configuration.tokenType =='jwt' && !!oauth2Tokens[gt.key].token">
                         <p>Token is JWT. Try to <a href ng-click="decodeJwt(gt.key)">decode
                                 payload</a></p>
                         <figure class="p-2 mb-1 neutral-1-bg text-white" ng-if="!!oauth2Tokens[gt.key].decoded">
