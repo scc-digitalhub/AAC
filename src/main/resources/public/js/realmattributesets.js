@@ -160,7 +160,6 @@ angular.module('aac.controllers.realmattributesets', [])
                 ...attributeSet,
                 realm: slug
             };
-console.log(data);
             RealmAttributeSets.updateAttributeSet(slug, data.identifier, data)
                 .then(function (res) {
                     $scope.load(res);
@@ -245,7 +244,6 @@ console.log(data);
                     attributes.push(attr);
                 }
             }
-console.log(attributes);
             $scope.attributeSet.attributes = attributes;
         };
 

@@ -41,13 +41,13 @@
     <table class="table table-hover border-bottom">
       <tr ng-repeat="item in providers">
 
-        <td class="align-middle {{!item.enabled && !item.registered ? 'text-muted' : ''}} {{item.enabled && !item.registered ? 'text-danger' : ''}}">
-
+        <td
+          class="align-middle {{!item.enabled && !item.registered ? 'text-muted' : ''}} {{item.enabled && !item.registered ? 'text-danger' : ''}}">
           <div class="avatar-wrapper avatar-extra-text">
             <div class="avatar size-lg">
               <svg aria-hidden="true" class="icon icon-secondary">
                 <use xlink:href="{{item.icon}}"></use>
-              </svg>                         
+              </svg>
             </div>
             <div class="extra-text">
               <span class="h6">{{item.name}}</span>
@@ -59,27 +59,29 @@
                 <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
                 <title>Error</title>
               </svg>
-              <svg ng-if="!item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
+              <svg ng-if="!item.enabled && !item.registered" aria-hidden="true"
+                class="icon icon-sm icon-secondary mx-3">
                 <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
                 <title>Disabled</title>
               </svg>
-              <br><small class=""> {{item.authority }}</small>
+              <br><small class=""> {{item.authority}}</small>
               <p>{{item.description}}</p>
-          </div>
-
-
+            </div>
         </td>
-       <td class="align-middle">
-           ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.provider}}</span>
-         <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.provider)">
-             <svg class="icon icon-xs icon-black">
-                 <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
-             </svg>
-         </button>                     
-       </td>        
+
         <td class="align-middle">
-            <span>{{item.apps}} apps
+          ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.provider}}</span>
+          <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.provider)">
+            <svg class="icon icon-xs icon-black">
+              <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+            </svg>
+          </button>
         </td>
+
+        <td class="align-middle">
+          <span>{{item.apps}} apps
+        </td>
+
         <td class="text-right">
           <button ng-if="!item.enabled" class="btn btn-success btn-sm  text-right"
             ng-click="toggleProviderState(item, !item.enabled)">
@@ -94,6 +96,7 @@
           <button class="btn btn-danger btn-sm" ng-disabled="item.enabled"
             ng-click="deleteProviderDlg(item)">Delete</button>
         </td>
+
       </tr>
     </table>
   </div>

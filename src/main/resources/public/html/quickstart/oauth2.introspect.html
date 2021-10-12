@@ -1,0 +1,205 @@
+<fieldset>
+    <legend class="mb-4">Token introspection</legend>
+
+
+    <div class="steppers">
+        <ul class="steppers-header">
+            <li class="{{curStep == 1 ? 'active' : ''}}" ng-click="setStep(1)"><span class="steppers-number">1</span>
+                Get credentials
+            </li>
+            <li class="{{curStep == 2 ? 'active' : ''}}" ng-click="setStep(2)"><span class="steppers-number">2</span>
+                Retrieve a token
+            </li>
+            <li class="{{curStep == 3 ? 'active' : ''}}" ng-click="setStep(3)"><span class="steppers-number">3</span>
+                Call introspection</li>
+        </ul>
+        <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 1">
+
+            <p>Get <span class="neutral-2-bg text-monospace p-1 small">client_id</span> and <span
+                    class="neutral-2-bg text-monospace p-1 small">client_secret</span> from OAuth2 configuration page.
+            </p>
+
+            <div class="mt-4 mb-1">
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="clientid" class="active">Client ID</label>
+                        <input type="text" class="form-control" id="clientid" ng-model="app.clientId" readonly>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(app.clientId)">
+                                <svg class="icon icon-sm icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                                </svg>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="secret" class="active">Client secret</label>
+                        <input type="text" class="form-control" id="secret" ng-model="app.configuration.clientSecret"
+                            readonly>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary btn-sm  text-right"
+                                ng-click="copyText(app.configuration.clientSecret)">
+                                <svg class="icon icon-sm icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="callout warning">
+                <div class="callout-title">
+                    <svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-help-circle"></use>
+                    </svg>
+                    <span>Note</span>
+                </div>
+                <p>Keep client secret confidential!</p>
+            </div>
+
+        </div>
+        <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 2">
+            <p>Call the token endpoint by providing authentication and sending the requested scopes as parameters</p>
+
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="scopes" class="active">Scopes</label>
+                    <input type="text" class="form-control" id="scopes" ng-model="oauth2Scopes">
+                </div>
+            </div>     
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white pl-4">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+curl --request POST \
+--url '{{oauth2Metadata.token_endpoint}}' \
+--header 'content-type: application/x-www-form-urlencoded' \
+--data grant_type=client_credentials \
+--data client_id={{app.clientId}} \
+--data client_secret={{app.configuration.clientSecret}} \
+--data scope='{{oauth2Scopes}}'
+</code>
+                </pre>
+            </figure>
+
+            <p>The parameters for the token request are:</p>
+            <table class="table table-bordered">
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">grant_type</span></td>
+                    <td>set to <span class="neutral-2-bg text-monospace p-1 small">client_credentials</span></td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">client_id</span></td>
+                    <td>the client identifier</td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">client_secret</span></td>
+                    <td>The client secret. This field is optional if the request carries a <span
+                            class="neutral-2-bg text-monospace p-1 small">basic_auth</span> header </td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">scope</span></td>
+                    <td>The list of requested scopes, among those enabled for the client. Space separated.</td>
+                </tr>
+            </table>
+
+            <p>Alternatively, token requests can use basic authentication to transmit client credentials, and avoid
+                passing the secret as parameter.</p>
+            <p>The authentication header must contain the base64 encode of the pair <span
+                    class="neutral-2-bg text-monospace p-1 small">client_id:client_secret</span></p>
+            <figure class="p-2 mb-1 neutral-1-bg text-white pl-4">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+curl --request POST \
+--url '{{oauth2Metadata.token_endpoint}}' \
+--header 'content-type: application/x-www-form-urlencoded' \
+--header 'Authorization: Basic {{oauth2AuthHeader}}' \
+--data grant_type=client_credentials \
+--data scope='{{oauth2Scopes}}'
+</code>
+                </pre>
+            </figure>
+
+
+            <div class="callout note">
+                <div class="callout-title"><svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-info-circle"></use>
+                    </svg>Note</div>
+                <p>Sending client authentication via basic auth or POST parameters is equivalent, but the selected mode
+                    must be
+                    enabled for the current client.</p>
+            </div>
+
+            <p>On successful requests the response will contain an access token along with expiration information, for
+                example</p>
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+   {
+      "token_type":"bearer",
+      "access_token": "eyJraWQiOiJ0ZXN...",
+      "expires_in":300,
+      "scope": "..."
+   }
+</code>
+                </pre>
+            </figure>
+
+
+        </div>
+        <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 3">
+            <p>Use the bearer token to call a protected resource.</p>
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="accessToken" class="active">Access Token</label>
+                    <input type="text" class="form-control" id="accessToken" ng-model="oauth2AccessToken">
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="endpoint" class="active">Endpoint</label>
+                    <input type="text" class="form-control" id="endpoint" ng-model="oauth2TestEndpoint">
+                </div>
+            </div>
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white pl-4">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+curl --request GET \
+--url '{{oauth2TestEndpoint}}' \
+--header 'Authorization: Bearer {{oauth2AccessToken}}' 
+...
+</code>
+                </pre>
+            </figure>
+
+
+
+        </div>
+
+        <nav class="steppers-nav">
+            <button type="button" class="btn btn-outline-primary btn-sm steppers-btn-prev" ng-disabled="curStep == 1"
+                ng-click="prevStep()">
+                <svg class="icon icon-primary">
+                    <use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use>
+                </svg>
+                Previous
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm steppers-btn-next" ng-disabled="curStep == 3"
+                ng-click="nextStep()">
+                Next
+                <svg class="icon icon-primary">
+                    <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+                </svg>
+            </button>
+        </nav>
+    </div>
+</fieldset>

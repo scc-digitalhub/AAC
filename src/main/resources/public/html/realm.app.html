@@ -40,6 +40,10 @@
             <a class="nav-link  {{activeClientView('settings')}}" href
                 ng-click="switchClientView('settings')">Settings</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeClientView('idps')}}" href
+                ng-click="switchClientView('idps')">Providers</a>
+        </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
             <a class="nav-link  {{activeClientView('conf.oauth2')}}" href
                 ng-click="switchClientView('conf.oauth2')">OAuth2</a>

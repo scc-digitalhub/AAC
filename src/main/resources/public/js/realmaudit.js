@@ -18,7 +18,6 @@ angular.module('aac.controllers.realmaudit', [])
             if (before) {
                 params.before = before.toISOString();
             }
-            console.log(params);
             return $http.get('console/dev/realms/' + slug + '/audit', {
                 params: params
             }).then(function (data) {

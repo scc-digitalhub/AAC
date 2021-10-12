@@ -18,23 +18,36 @@
   <div ng-if="services && services.length > 0">
     <table class="table table-hover border-bottom">
       <tr ng-repeat="service in services">
+
         <td class="align-middle">
-          <span class="h6">{{service.name}}</span>
-          <br> <small class="text-muted"> {{service.namespace}} </small>
-          <p>{{service.description}}</p>
+          <div class="avatar-wrapper avatar-extra-text">
+            <div class="avatar size-lg">
+              <svg aria-hidden="true" class="icon icon-secondary">
+                <use xlink:href="./italia/svg/sprite.svg#it-plug"></use>
+              </svg>
+            </div>
+            <div class="extra-text">
+              <span class="h6">{{service.name}}</span>
+              <br> <small class="text-muted"> {{service.namespace}} </small>
+              <p>{{service.description}}</p>
+            </div>
         </td>
-       <td class="align-middle">
-           Audience <span class="small text-monospace bg-light pl-1 pr-1">{{service.namespace}}</span>
-         <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(service.namespace)">
-             <svg class="icon icon-xs icon-black">
-                 <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
-             </svg>
-         </button>                     
-       </td>        
+
+        <td class="align-middle">
+          ID <span class="small text-monospace bg-light pl-1 pr-1">{{service.serviceId}}</span>
+          <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(service.serviceId)">
+            <svg class="icon icon-xs icon-black">
+              <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+            </svg>
+          </button>
+        </td>
+
         <td class="text-right">
-          <button class="btn btn-secondary btn-sm" ng-click="serviceApprovals(service)">Approvals</button>
-          <button class="btn btn-primary btn-sm" ng-click="switchService(service)">Manage</button>
+          <button class="btn btn-primary btn-sm"
+            ui-sref="realm.service({realmId:service.realm, serviceId:service.serviceId})">Manage</button>
+          <button class="btn btn-danger btn-sm" ng-click="deleteServiceDlg(service)">Delete</button>
         </td>
+
       </tr>
     </table>
   </div>
@@ -62,8 +75,89 @@
   </div>
 </div>
 
-<div ng-include="'./html/realm.services.modal.html'"></div>
+<div class="modal fade bs-modal-lg" id="serviceModal" tabindex="-1" role="dialog" aria-labelledby="service"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form ng-submit="saveService()" role="form" class="needs-validation was-validated" novalidate name="serviceForm">
+        <div class="modal-header">
+          <h4 class="modal-title" id="service">Service definition</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div ng-if="errorMsg" class="alert alert-danger" role="alert">{{errorMsg}}</div>
+              <div class="row">
+                <div class=" col">
+                  <label for=inputservicename>Service Name (Required)</label>
+                  <input type="text" pattern="[\s\S]*\S[\s\S]*" class="form-control" name="inputservicename"
+                    id="inputservicename" ng-model="editService.name" required>
+                  <div ng-if="serviceForm.inputservicename.$invalid" class="invalid-feedback">Service name required
+                  </div><br>
+                </div>
+              </div>
+              <div class="row">
+                <div class=" col">
+                  <label for="inputservicedescription">Service Description (Required)</label>
+                  <input type="text" pattern="[\s\S]*\S[\s\S]*" class="form-control" name="inputservicedescription"
+                    id="inputservicedescription" ng-model="editService.description" required>
+                  <div ng-if="serviceForm.inputservicedescription.$error.required" class="invalid-feedback">Service
+                    description required</div><br>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <label for="inputnamespace">Service Namespace (Required)</label>
+                  <input ng-readonly="service.serviceId" pattern="[:./\w-]+" type="text" class="form-control"
+                    name="inputnamespace" id="inputnamespace" ng-model="editService.namespace"
+                    custom-validation="{'nsUsed': !nsError}" required ng-change="changeNS()">
+                  <div ng-if="serviceForm.inputnamespace.$error.nsUsed" class="invalid-feedback">Namespace already in
+                    use</div>
+                  <div ng-if="serviceForm.inputnamespace.$error.required" class="invalid-feedback">Namespace required
+                  </div>
+                  <div ng-if="serviceForm.inputnamespace.$error.pattern" class="invalid-feedback">Only letters, numbers,
+                    ., _, :, /, - accepted</div><br>
+                  <br>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" ng-disabled="serviceForm.$invalid || nsChecking">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteServiceConfirm">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+        <p>You are deleting service <span class="text-monospace">{{modService.serviceId}}</span> <br>To proceed
+          enter the id</p>
+        <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+        <form name="deleteServiceForm" class="needs-validation was-validated" novalidate>
+          <div class="form-group col mb-4">
+            <label for="confirmId">Service Id*</label>
+            <input type="text" name="confirmId" class="form-control form-control-sm" id="confirmId" required
+              ng-model="modService.confirmId" ng-pattern="(modService.serviceId)">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="deleteService()" type="button"
+          ng-disabled="deleteServiceForm.$invalid">Delete</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importServiceDlg">

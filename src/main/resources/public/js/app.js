@@ -123,7 +123,7 @@ app.config(function ($stateProvider) {
         })
         .state('realm.service', {
             url: '/service?serviceId',
-            templateUrl: 'html/realm.services.service.html',
+            templateUrl: 'html/realm.service.html',
             controller: 'RealmServiceController',
         })
         .state('realm.serviceapprovals', {

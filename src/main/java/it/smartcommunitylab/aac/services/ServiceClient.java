@@ -16,9 +16,9 @@ public class ServiceClient {
     @NotBlank
     private String serviceId;
 
-    @NotBlank
     private String clientId;
 
+    @NotBlank
     private String type;
 
     public String getServiceId() {
