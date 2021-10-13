@@ -169,9 +169,11 @@ public class DevServicesController {
 
     }
 
-    @GetMapping("/services/nsexists")
-    public ResponseEntity<Boolean> checkRealmServiceNamespace(@RequestParam String ns) throws NoSuchRealmException {
-        return ResponseEntity.ok(serviceManager.checkServiceNamespace(ns));
+    @GetMapping("/realms/{realm}/nsexists")
+    public ResponseEntity<Boolean> checkRealmServiceNamespace(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam String ns) throws NoSuchRealmException {
+        return ResponseEntity.ok(serviceManager.checkServiceNamespace(realm, ns));
     }
 
     /*
@@ -302,7 +304,6 @@ public class DevServicesController {
         return ResponseEntity.ok(serviceManager.getServiceScopeApprovals(realm, serviceId, scope));
     }
 
- 
     @PostMapping("/realms/{realm}/services/{serviceId}/scopes/{scope}/approvals")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
@@ -331,7 +332,6 @@ public class DevServicesController {
         return ResponseEntity.ok(null);
     }
 
-    
     /*
      * Approvals
      */
@@ -345,7 +345,6 @@ public class DevServicesController {
         return ResponseEntity.ok(serviceManager.getServiceApprovals(realm, serviceId));
     }
 
-    
     /*
      * Service client
      */

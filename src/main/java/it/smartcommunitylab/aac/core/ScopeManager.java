@@ -13,6 +13,8 @@ import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
+//TODO evaluate split scopes *per realm*
+//TODO permissions
 @Service
 public class ScopeManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());

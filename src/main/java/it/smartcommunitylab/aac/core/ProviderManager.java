@@ -8,10 +8,12 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -29,60 +31,24 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
 
 @Service
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class ProviderManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final IdentityProviderService identityProviderService;
-    private final AttributeProviderService attributeProviderService;
+    @Autowired
+    private IdentityProviderService identityProviderService;
 
-    private final AuthorityManager authorityManager;
-    private final RealmService realmService;
+    @Autowired
+    private AttributeProviderService attributeProviderService;
 
-//    // keep a local map for global providers since these are not in db
-//    // key is providerId
-//    private Map<String, IdentityProvider> systemIdps;
-//    private Map<String, IdentityService> systemIdss;
-////    private Map<String, AttributeProvider> globalAttrps;
+    @Autowired
+    private RealmService realmService;
 
-    public ProviderManager(
-            AuthorityManager authorityManager,
-            IdentityProviderService identityProviderService,
-            AttributeProviderService attributeProviderService,
-            RealmService realmService) {
-        Assert.notNull(authorityManager, "authority manager is mandatory");
-        Assert.notNull(identityProviderService, "identity provider service is mandatory");
-        Assert.notNull(attributeProviderService, "attribute provider service is mandatory");
-        Assert.notNull(realmService, "realm service is mandatory");
-
-        this.authorityManager = authorityManager;
-        this.identityProviderService = identityProviderService;
-        this.attributeProviderService = attributeProviderService;
-        this.realmService = realmService;
-
-//        // now load all realm providers from storage
-//        // we iterate by authority to load consistently
-//        // disabled, move to bootstrap thread not on init
-//        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-//            List<ConfigurableProvider> storeProviders = listProvidersByAuthority(ia.getAuthorityId());
-//            for (ConfigurableProvider provider : storeProviders) {
-//                // check match
-//                if (!TYPE_IDENTITY.equals(provider.getType())) {
-//                    continue;
-//                }
-//
-//                // try register
-//                if (provider.isEnabled()) {
-//                    try {
-//                        ia.registerIdentityProvider(provider);
-//                    } catch (Exception e) {
-//                        logger.error("error registering provider " + provider.getProvider() + " for realm "
-//                                + provider.getRealm() + ": " + e.getMessage());
-//                    }
-//                }
-//            }
-//        }
-
-    }
+    // TODO cleanup usage of authorityManager here
+    // either move to authorityService or link controllers directly
+    @Autowired
+    private AuthorityManager authorityManager;
 
     /*
      * Public API: realm providers only.
@@ -517,7 +483,7 @@ public class ProviderManager {
      * 
      * Support checking registration status
      */
-    public boolean isProviderRegistered(ConfigurableProvider provider) throws SystemException {
+    public boolean isProviderRegistered(String realm, ConfigurableProvider provider) throws SystemException {
         if (TYPE_IDENTITY.equals(provider.getType())) {
             return authorityManager.isIdentityProviderRegistered(provider.getAuthority(), provider.getProvider());
         }
@@ -558,7 +524,7 @@ public class ProviderManager {
      * extending a base
      */
 
-    public Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
+    private Collection<ConfigurableProvider> listProviderConfigurationTemplates(String type) {
         if (TYPE_IDENTITY.equals(type)) {
             // we support only idp templates
             List<ConfigurableProvider> templates = new ArrayList<>();
@@ -586,7 +552,7 @@ public class ProviderManager {
      * Configuration schemas
      */
 
-    public JsonSchema getConfigurationSchema(String type, String authority) {
+    public JsonSchema getConfigurationSchema(String realm, String type, String authority) {
         if (TYPE_IDENTITY.equals(type)) {
             return identityProviderService.getConfigurationSchema(authority);
         }

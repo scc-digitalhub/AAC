@@ -7,9 +7,11 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.model.Attribute;
@@ -25,6 +27,8 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
  */
 
 @Service
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class AttributeManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

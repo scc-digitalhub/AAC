@@ -27,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiClientAppScope;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -38,21 +37,13 @@ import it.smartcommunitylab.aac.model.ClientApp;
 
 /*
  * API controller for clientApp
- * 
- * split from UI controller to ensure proper authentication is used,
- * also we want to expose client management
  */
 @RestController
 @RequestMapping("api")
+@PreAuthorize("hasAuthority('SCOPE_" + ApiClientAppScope.SCOPE + "')")
 //@Validated
 public class ClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    //
-    // TODO permissions
-    // TODO rest exception handler (via controllerAdvice + custom ApiError model)
-    // TODO bean validation
-    //
 
     @Autowired
     private ClientManager clientManager;
@@ -62,21 +53,14 @@ public class ClientAppController {
     private ObjectMapper yamlObjectMapper;
 
     @GetMapping("/app/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public Collection<ClientApp> listApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         logger.debug("list client apps for realm " + String.valueOf(realm));
 
         return clientManager.listClientApps(realm);
-
     }
 
     @GetMapping("/app/{realm}/{clientId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public ClientApp getApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -84,16 +68,12 @@ public class ClientAppController {
         logger.debug("get client app " + String.valueOf(clientId) + " for realm " + String.valueOf(realm));
 
         return clientManager.getClientApp(realm, clientId);
-
     }
 
     /*
      * Management
      */
     @PostMapping("/app/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public ClientApp registerApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid ClientApp app) throws NoSuchRealmException {
@@ -109,9 +89,6 @@ public class ClientAppController {
     }
 
     @PutMapping("/app/{realm}/{clientId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public ClientApp updateApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
@@ -128,9 +105,6 @@ public class ClientAppController {
     }
 
     @DeleteMapping("/app/{realm}/{clientId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public void deleteApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -138,13 +112,9 @@ public class ClientAppController {
         logger.debug("delete client app " + String.valueOf(clientId) + " for realm " + String.valueOf(realm));
 
         clientManager.deleteClientApp(realm, clientId);
-
     }
 
     @PutMapping("/app/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public ClientApp importApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
@@ -171,7 +141,6 @@ public class ClientAppController {
 
             throw e;
         }
-
     }
 
     /*
@@ -179,9 +148,6 @@ public class ClientAppController {
      */
 
     @GetMapping("/app/{realm}/{clientId}/credentials")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public ClientCredentials getAppCredentials(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -190,13 +156,9 @@ public class ClientAppController {
                 "get credentials for client app " + String.valueOf(clientId) + " for realm " + String.valueOf(realm));
 
         return clientManager.getClientCredentials(realm, clientId);
-
     }
 
     @PutMapping("/app/{realm}/{clientId}/credentials")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public ClientCredentials getAppCredentials(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
@@ -205,13 +167,9 @@ public class ClientAppController {
         logger.debug(
                 "set credentials for client app " + String.valueOf(clientId) + " for realm " + String.valueOf(realm));
         return clientManager.setClientCredentials(realm, clientId, credentials);
-
     }
 
     @DeleteMapping("/app/{realm}/{clientId}/credentials")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiClientAppScope.SCOPE + "')")
     public ClientCredentials resetAppCredentials(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -219,18 +177,30 @@ public class ClientAppController {
         logger.debug(
                 "reset credentials for client app " + String.valueOf(clientId) + " for realm " + String.valueOf(realm));
         return clientManager.resetClientCredentials(realm, clientId);
-
     }
 
     /*
      * Configuration schema
      */
-    @GetMapping("/app_schema/{type}")
-    public JsonSchema getConfigurationSchema(
-            @PathVariable(required = true) @Valid @NotBlank String type) throws IllegalArgumentException {
+    @GetMapping("/app/{realm}/{clientId}/schema")
+    public JsonSchema getAppConfigurationSchema(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
         logger.debug(
-                "get client app config schema for type" + String.valueOf(type));
-        return clientManager.getConfigurationSchema(type);
+                "get configuration schema for client app " + String.valueOf(clientId) + " for realm "
+                        + String.valueOf(realm));
+
+        return clientManager.getClientConfigurationSchema(realm, clientId);
     }
+
+    // disabled: config is available after creating a client
+//    @GetMapping("/app_schema/{type}")
+//    public JsonSchema getConfigurationSchema(
+//            @PathVariable(required = true) @Valid @NotBlank String type) throws IllegalArgumentException {
+//        logger.debug(
+//                "get client app config schema for type" + String.valueOf(type));
+//        return clientManager.getConfigurationSchema(type);
+//    }
 
 }

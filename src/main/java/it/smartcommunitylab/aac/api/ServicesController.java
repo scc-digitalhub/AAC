@@ -34,7 +34,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServiceClaim;
 import it.smartcommunitylab.aac.services.ServiceClient;
@@ -43,6 +42,7 @@ import it.smartcommunitylab.aac.services.ServicesManager;
 
 @RestController
 @RequestMapping("api")
+@PreAuthorize("hasAuthority('SCOPE_" + ApiServicesScope.SCOPE + "')")
 public class ServicesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -61,9 +61,6 @@ public class ServicesController {
      */
 
     @GetMapping("/service/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Collection<Service> listServices(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         logger.debug("list services for realm " + String.valueOf(realm));
@@ -71,9 +68,6 @@ public class ServicesController {
     }
 
     @GetMapping("/service/{realm}/{serviceId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Service getService(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -83,9 +77,6 @@ public class ServicesController {
     }
 
     @PostMapping("/service/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Service addService(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid Service s) throws NoSuchRealmException {
@@ -97,9 +88,6 @@ public class ServicesController {
     }
 
     @PutMapping("/service/{realm}/{serviceId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Service updateService(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -112,9 +100,6 @@ public class ServicesController {
     }
 
     @DeleteMapping("/service/{realm}/{serviceId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public void deleteService(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -124,9 +109,6 @@ public class ServicesController {
     }
 
     @PutMapping("/service/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Service importService(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
@@ -163,9 +145,6 @@ public class ServicesController {
      */
 
     @GetMapping("/service/{realm}/{serviceId}/scopes")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Collection<ServiceScope> listServiceScopes(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -175,9 +154,6 @@ public class ServicesController {
     }
 
     @GetMapping("/service/{realm}/{serviceId}/scopes/{scope}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceScope getServiceScope(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -190,9 +166,6 @@ public class ServicesController {
     }
 
     @PostMapping("/service/{realm}/{serviceId}/scopes")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceScope addServiceScope(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -206,9 +179,6 @@ public class ServicesController {
     }
 
     @PutMapping("/service/{realm}/{serviceId}/scopes/{scope}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceScope updateServiceScope(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -225,9 +195,6 @@ public class ServicesController {
     }
 
     @DeleteMapping("/service/{realm}/{serviceId}/scopes/{scope}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public void deleteServiceScope(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -243,9 +210,6 @@ public class ServicesController {
      * Service claims
      */
     @GetMapping("/service/{realm}/{serviceId}/claims")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Collection<ServiceClaim> listServiceClaims(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -255,9 +219,6 @@ public class ServicesController {
     }
 
     @GetMapping("/service/{realm}/{serviceId}/claims/{key}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceClaim getServiceClaim(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -269,9 +230,6 @@ public class ServicesController {
     }
 
     @PostMapping("/service/{realm}/{serviceId}/claims")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceClaim addServiceClaim(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -285,9 +243,6 @@ public class ServicesController {
     }
 
     @PutMapping("/service/{realm}/{serviceId}/claims/{key}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceClaim updateServiceClaim(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -304,9 +259,6 @@ public class ServicesController {
     }
 
     @DeleteMapping("/service/{realm}/{serviceId}/claims/{key}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public void deleteServiceClaim(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -323,9 +275,6 @@ public class ServicesController {
      */
 
     @GetMapping("/service/{realm}/{serviceId}/scopes/{scope}/approvals")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Collection<Approval> getServiceScopeApprovals(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -338,9 +287,6 @@ public class ServicesController {
     }
 
     @PostMapping("/service/{realm}/{serviceId}/scopes/{scope}/approvals")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Approval addServiceScopeApproval(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -356,9 +302,6 @@ public class ServicesController {
     }
 
     @DeleteMapping("/service/{realm}/{serviceId}/scopes/{scope}/approvals")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public void deleteServiceScopeApproval(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -376,9 +319,6 @@ public class ServicesController {
      * Service client
      */
     @GetMapping("/service/{realm}/{serviceId}/clients")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public Collection<ServiceClient> listServiceClients(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId)
@@ -388,9 +328,6 @@ public class ServicesController {
     }
 
     @GetMapping("/service/{realm}/{serviceId}/clients/{clientId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceClient getServiceClients(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -401,9 +338,6 @@ public class ServicesController {
     }
 
     @PostMapping("/service/{realm}/{serviceId}/clients")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public ServiceClient addServiceClient(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -418,9 +352,6 @@ public class ServicesController {
     }
 
     @DeleteMapping("/service/{realm}/{serviceId}/clients/{clientId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')) and hasAuthority('SCOPE_"
-            + ApiServicesScope.SCOPE + "')")
     public void deleteServiceClient(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
@@ -430,11 +361,4 @@ public class ServicesController {
         serviceManager.deleteServiceClient(realm, serviceId, clientId);
     }
 
-//    /*
-//     * Exceptions
-//     */
-//    @ExceptionHandler({ CustomException1.class, CustomException2.class })
-//    public void handleException() {
-//        //
-//    }
 }

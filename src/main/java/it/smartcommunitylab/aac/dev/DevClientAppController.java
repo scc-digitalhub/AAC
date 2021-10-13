@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,7 +37,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -49,6 +47,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import springfox.documentation.annotations.ApiIgnore;
@@ -75,8 +74,6 @@ public class DevClientAppController {
      * ClientApps
      */
     @GetMapping("/realms/{realm}/apps")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Collection<ClientApp>> getRealmClientApps(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -84,8 +81,6 @@ public class DevClientAppController {
     }
 
     @GetMapping("/realms/{realm}/apps/search")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Page<ClientApp>> searchRealmClientApps(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false) String q, Pageable pageRequest)
@@ -93,9 +88,7 @@ public class DevClientAppController {
         return ResponseEntity.ok(clientManager.searchClientApps(realm, q, pageRequest));
     }
 
-    @GetMapping("/realms/{realm}/apps/{clientId:.*}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @GetMapping("/realms/{realm}/apps/{clientId}")
     public ResponseEntity<ClientApp> getRealmClientApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -105,15 +98,13 @@ public class DevClientAppController {
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
         // fetch also configuration schema
-        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
         clientApp.setSchema(schema);
 
         return ResponseEntity.ok(clientApp);
     }
 
     @PostMapping("/realms/{realm}/apps")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<ClientApp> createRealmClientApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @Valid @RequestBody ClientApp app)
@@ -123,16 +114,17 @@ public class DevClientAppController {
 
         ClientApp clientApp = clientManager.registerClientApp(realm, app);
 
-        // fetch also configuration schema
-        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
-        clientApp.setSchema(schema);
+        try {
+            // fetch also configuration schema
+            JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
+            clientApp.setSchema(schema);
+        } catch (NoSuchClientException e) {
+        }
 
         return ResponseEntity.ok(clientApp);
     }
 
     @PutMapping("/realms/{realm}/apps")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Collection<ClientApp>> importRealmClientApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
@@ -154,20 +146,11 @@ public class DevClientAppController {
             List<ClientApp> apps = new ArrayList<>();
             boolean multiple = false;
 
-//            // save as temp
-//            try (InputStream is = file.getInputStream()) {
-//                path = Files.createTempFile(temp, "client-", ".yaml");
-//                Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);
-//            }
-
             // read as raw yaml to check if collection
             Yaml yaml = new Yaml();
-//            try (InputStream is = Files.newInputStream(path)) {
             Map<String, Object> obj = yaml.load(file.getInputStream());
             multiple = obj.containsKey("clients");
-//            }
 
-//            try (InputStream is = Files.newInputStream(path)) {
             if (multiple) {
                 Map<String, List<ClientApp>> list = yamlObjectMapper.readValue(file.getInputStream(), typeRef);
                 for (ClientApp app : list.get("clients")) {
@@ -179,9 +162,12 @@ public class DevClientAppController {
 
                     ClientApp clientApp = clientManager.registerClientApp(realm, app);
 
-                    // fetch also configuration schema
-                    JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
-                    clientApp.setSchema(schema);
+                    try {
+                        // fetch also configuration schema
+                        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
+                        clientApp.setSchema(schema);
+                    } catch (NoSuchClientException e) {
+                    }
 
                     apps.add(clientApp);
                 }
@@ -197,13 +183,15 @@ public class DevClientAppController {
 
                 ClientApp clientApp = clientManager.registerClientApp(realm, app);
 
-                // fetch also configuration schema
-                JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
-                clientApp.setSchema(schema);
+                try {
+                    // fetch also configuration schema
+                    JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientApp.getClientId());
+                    clientApp.setSchema(schema);
+                } catch (NoSuchClientException e) {
+                }
 
                 apps.add(clientApp);
             }
-//            }
 
             return ResponseEntity.ok(apps);
         } catch (Exception e) {
@@ -211,22 +199,10 @@ public class DevClientAppController {
                 e.printStackTrace();
             }
             throw new RegistrationException(e.getMessage());
-//        } finally {
-//            if (path != null) {
-//                // cleanup temp
-//                try {
-//                    Files.delete(path);
-//                } catch (Exception e) {
-//                    logger.error("Error removing temp file " + path.toAbsolutePath());
-//                }
-//            }
         }
-
     }
 
-    @PutMapping("/realms/{realm}/apps/{clientId:.*}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @PutMapping("/realms/{realm}/apps/{clientId}")
     public ResponseEntity<ClientApp> updateRealmClientApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
@@ -236,15 +212,13 @@ public class DevClientAppController {
         ClientApp clientApp = clientManager.updateClientApp(realm, clientId, app);
 
         // fetch also configuration schema
-        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
         clientApp.setSchema(schema);
 
         return ResponseEntity.ok(clientApp);
     }
 
-    @DeleteMapping("/realms/{realm}/apps/{clientId:.*}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @DeleteMapping("/realms/{realm}/apps/{clientId}")
     public ResponseEntity<Void> deleteRealmClientApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -253,9 +227,7 @@ public class DevClientAppController {
         return ResponseEntity.ok(null);
     }
 
-    @DeleteMapping("/realms/{realm}/apps/{clientId:.*}/credentials")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @DeleteMapping("/realms/{realm}/apps/{clientId}/credentials")
     public ResponseEntity<ClientApp> resetRealmClientAppCredentials(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
@@ -267,16 +239,14 @@ public class DevClientAppController {
         ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
         // fetch also configuration schema
-        JsonSchema schema = clientManager.getConfigurationSchema(clientApp.getType());
+        JsonSchema schema = clientManager.getClientConfigurationSchema(realm, clientId);
         clientApp.setSchema(schema);
 
         return ResponseEntity.ok(clientApp);
 
     }
 
-    @GetMapping("/realms/{realm}/apps/{clientId:.*}/oauth2/{grantType}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @GetMapping("/realms/{realm}/apps/{clientId}/oauth2/{grantType}")
     public ResponseEntity<OAuth2AccessToken> testRealmClientAppOAuth2(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
@@ -296,9 +266,7 @@ public class DevClientAppController {
         return ResponseEntity.ok(accessToken);
     }
 
-    @PostMapping("/realms/{realm}/apps/{clientId:.*}/claims")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @PostMapping("/realms/{realm}/apps/{clientId}/claims")
     public ResponseEntity<FunctionValidationBean> testRealmClientAppClaims(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
@@ -324,9 +292,7 @@ public class DevClientAppController {
         return ResponseEntity.ok(function);
     }
 
-    @GetMapping("/realms/{realm}/apps/{clientId:.*}/export")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
+    @GetMapping("/realms/{realm}/apps/{clientId}/export")
     public void exportRealmClientApp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
@@ -349,12 +315,26 @@ public class DevClientAppController {
         out.close();
     }
 
-//    @Override
-//    public void afterPropertiesSet() throws Exception {
-//        // make sure temp folder is ready
-//        ApplicationTemp at = new ApplicationTemp(ClientApp.class);
-//        temp = Paths.get(at.getDir().getAbsolutePath());
-//
-//    }
+    @GetMapping("/realms/{realm}/apps/{clientId}/schema")
+    public ResponseEntity<JsonSchema> getAppConfigurationSchema(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
+
+        return ResponseEntity.ok(clientManager.getClientConfigurationSchema(realm, clientId));
+    }
+
+    @GetMapping("/realms/{realm}/apps/{clientId}/providers")
+    public ResponseEntity<Collection<ConfigurableIdentityProvider>> getAppProviders(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
+
+        // get client app
+//        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+
+        // TODO replace with registration bean when implemented
+        return ResponseEntity.ok(clientManager.listIdentityProviders(realm));
+    }
 
 }

@@ -5,11 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -17,12 +15,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
@@ -33,18 +32,21 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.service.AttributeProviderService;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
-import it.smartcommunitylab.aac.internal.InternalUserManager;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
@@ -65,6 +67,8 @@ import it.smartcommunitylab.aac.scope.ScopeRegistry;
  */
 
 @Service
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class UserManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -74,17 +78,8 @@ public class UserManager {
     @Autowired
     private UserEntityService userEntityService;
 
-//    @Autowired
-//    private RoleService roleService;
-
     @Autowired
     private AuthorityManager authorityManager;
-
-//    @Autowired
-//    private ProviderManager providerManager;
-
-    @Autowired
-    private AuthenticationHelper authHelper;
 
     @Autowired
     private SearchableApprovalStore approvalStore;
@@ -101,46 +96,27 @@ public class UserManager {
     @Autowired
     private RealmService realmService;
 
-    @Autowired
-    private InternalUserManager internalUserManager;
+//    @Autowired
+//    private InternalUserManager internalUserManager;
 
     @Autowired
     private AttributeService attributeService;
 
-    /*
-     * Current user, from context
-     */
+    @Autowired
+    private IdentityProviderService identityProviderService;
 
-    public UserDetails curUserDetails() {
-        UserDetails details = authHelper.getUserDetails();
-        if (details == null) {
-            throw new InsufficientAuthenticationException("invalid or missing user authentication");
-        }
+    @Autowired
+    private AttributeProviderService attributeProviderService;
 
-        return details;
-    }
-
-    /*
-     * Returns a model describing the current user as accessible for the given
-     * realm.
-     * 
-     * For same-realm scenarios the model will be complete, while on cross-realm
-     * some fields should be removed or empty.
-     */
-    public User curUser(String realm) throws NoSuchRealmException {
-        Realm r = realmService.getRealm(realm);
-        return userService.getUser(curUserDetails(), r.getSlug());
-    }
-
-    /*
-     * System admin user internal usage TODO rework for non-internal providers
-     */
-    public User systemAdmin() {
-        // hack
-        // TODO rework
-        InternalUserAccount account = internalUserManager.internalAdmin();
-        return userService.findUser(account.getSubject());
-    }
+//    /*
+//     * System admin user internal usage TODO rework for non-internal providers
+//     */
+//    public User systemAdmin() {
+//        // hack
+//        // TODO rework
+//        InternalUserAccount account = internalUserManager.internalAdmin();
+//        return userService.findUser(account.getSubject());
+//    }
 
     /*
      * Manage users
@@ -282,14 +258,15 @@ public class UserManager {
         }
 
         // full delete, need to remove all associated content
-
         // kill sessions
         sessionManager.destroyUserSessions(subjectId);
 
         // approvals
         try {
-            Collection<Approval> approvals = approvalStore.findUserApprovals(subjectId);
-            approvalStore.revokeApprovals(approvals);
+            Collection<Approval> userApprovals = approvalStore.findUserApprovals(subjectId);
+            approvalStore.revokeApprovals(userApprovals);
+            Collection<Approval> clientApprovals = approvalStore.findClientApprovals(subjectId);
+            approvalStore.revokeApprovals(clientApprovals);
         } catch (Exception e) {
         }
 
@@ -433,45 +410,6 @@ public class UserManager {
      */
 
     /*
-     * Attributes (inside + outside accounts)
-     * 
-     * TODO
-     */
-
-    public Collection<UserAttributes> getMyAttributes() {
-        UserDetails details = curUserDetails();
-        Set<UserAttributes> attributes = new HashSet<>();
-
-        // add all attributes from context
-        attributes.addAll(details.getAttributeSets());
-
-        // refresh attributes from additional providers
-        // TODO
-
-        return attributes;
-    }
-
-//    public Collection<UserAttributes> getUserAttributes(String realm, String subjectId) throws NoSuchUserException {
-//        // TODO should invoke attributeManager
-//        return null;
-//    }
-
-    /*
-     * Connected apps: current user
-     */
-
-    @Transactional(readOnly = false)
-    public Collection<ConnectedAppProfile> getMyConnectedApps() {
-        UserDetails details = curUserDetails();
-        return getConnectedApps(details.getSubjectId());
-    }
-
-    public void deleteMyConnectedApp(String clientId) {
-        UserDetails details = curUserDetails();
-        deleteConnectedApp(details.getSubjectId(), clientId);
-    }
-
-    /*
      * Connected apps: subjects
      */
     @Transactional(readOnly = false)
@@ -500,7 +438,7 @@ public class UserManager {
     /*
      * Connected apps: service
      * 
-     * TODO evaluate move to dedicated service
+     * TODO move to dedicated service!
      */
     private ConnectedAppProfile getConnectedApp(String subjectId, String clientId)
             throws NoSuchUserException, NoSuchClientException {
@@ -654,4 +592,46 @@ public class UserManager {
         return userService.setUserAttributes(subjectId, r.getSlug(), provider, set);
     }
 
+    /*
+     * User identity/attribute providers
+     * 
+     * TODO evaluate returning actual providers in place of configurable models
+     */
+    public Collection<ConfigurableIdentityProvider> getUserIdentityProviders(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+
+        Realm r = realmService.getRealm(realm);
+        // TODO filter per user
+        return identityProviderService.listProviders(r.getSlug()).stream()
+                .map(cp -> {
+                    // clear config and reserved info
+                    cp.setDisplayMode(null);
+                    cp.setEvents(null);
+                    cp.setPersistence(null);
+                    cp.setSchema(null);
+                    cp.setConfiguration(null);
+                    cp.setHookFunctions(null);
+
+                    return cp;
+                }).collect(Collectors.toList());
+
+    }
+
+    public Collection<ConfigurableAttributeProvider> getUserAttributeProviders(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+
+        Realm r = realmService.getRealm(realm);
+        // TODO filter per user
+        return attributeProviderService.listProviders(r.getSlug()).stream()
+                .map(cp -> {
+                    // clear config and reserved info
+                    cp.setEvents(null);
+                    cp.setPersistence(null);
+                    cp.setSchema(null);
+                    cp.setConfiguration(null);
+                    cp.setAttributeSets(null);
+                    return cp;
+                }).collect(Collectors.toList());
+
+    }
 }

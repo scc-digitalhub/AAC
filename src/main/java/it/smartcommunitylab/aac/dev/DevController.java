@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
@@ -75,6 +76,9 @@ public class DevController {
 
     @Value("${application.url}")
     private String applicationUrl;
+
+    @Autowired
+    private MyUserManager myUserManager;
 
     @Autowired
     private RealmManager realmManager;
@@ -107,7 +111,7 @@ public class DevController {
 
     @GetMapping("/dev")
     public ModelAndView developer() {
-        UserDetails user = userManager.curUserDetails();
+        UserDetails user = myUserManager.curUserDetails();
         if (user == null || (!user.isRealmDeveloper() && !user.isSystemDeveloper())) {
             throw new SecurityException();
         }
@@ -167,7 +171,8 @@ public class DevController {
         Collection<ConfigurableProvider> providers = providerManager.listProviders(realm);
         bean.setProviders(providers.size());
 
-        int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(p)).count();
+        int activeProviders = (int) providers.stream().filter(p -> providerManager.isProviderRegistered(realm, p))
+                .count();
         bean.setProvidersActive(activeProviders);
 
         Collection<ClientApp> apps = clientManager.listClientApps(realm);

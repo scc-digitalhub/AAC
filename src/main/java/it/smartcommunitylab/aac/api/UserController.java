@@ -1,6 +1,9 @@
 package it.smartcommunitylab.aac.api;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
@@ -8,7 +11,9 @@ import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,18 +23,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
+import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.model.UserAccount;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.dto.AttributesRegistrationDTO;
 import it.smartcommunitylab.aac.model.User;
 
 @RestController
 @RequestMapping("api/users")
+@PreAuthorize("hasAuthority('SCOPE_" + ApiUsersScope.SCOPE + "')")
 public class UserController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -37,8 +46,6 @@ public class UserController {
     private UserManager userManager;
 
     @GetMapping("{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiUsersScope.SCOPE + "')")
     public Collection<User> listUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         // list users owned or accessible by this realm
@@ -47,8 +54,6 @@ public class UserController {
     }
 
     @GetMapping("{realm}/{userId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiUsersScope.SCOPE + "')")
     public User getUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -59,8 +64,6 @@ public class UserController {
     }
 
     @DeleteMapping("{realm}/{userId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiUsersScope.SCOPE + "')")
     public void deleteUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -75,8 +78,6 @@ public class UserController {
      * 
      */
     @PostMapping("{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiUsersScope.SCOPE + "')")
     public User registerUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid UserAccount account) throws NoSuchRealmException {
@@ -90,8 +91,6 @@ public class UserController {
 
     // TODO evaluate, are UserAccounts editable?
     @PutMapping("{realm}/{userId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiUsersScope.SCOPE + "')")
     public User updateUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -105,6 +104,42 @@ public class UserController {
      * 
      * TODO
      */
+
+    @GetMapping("{realm}/{userId}/attributes")
+    public Collection<UserAttributes> getRealmUserAttributes(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, subjectId);
+        return attributes;
+    }
+
+    @PostMapping("{realm}/{userId}/attributes")
+    public UserAttributes addRealmUserAttributes(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @RequestBody AttributesRegistrationDTO reg)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+
+        // extract registration
+        String identifier = reg.getIdentifier();
+        String provider = reg.getProvider();
+        if (!StringUtils.hasText(provider)) {
+            throw new IllegalArgumentException("a valid provider is required");
+        }
+
+        if (reg.getAttributes() == null) {
+            throw new IllegalArgumentException("attributes can not be null");
+        }
+
+        Map<String, Serializable> attributes = reg.getAttributes().stream()
+                .filter(a -> a.getValue() != null)
+                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
+
+        // register
+        UserAttributes ua = userManager.setUserAttributes(realm, subjectId, provider, identifier, attributes);
+        return ua;
+    }
 
 //    @GetMapping("{realm}/{userId}/attributes")
 //    public Collection<UserAttributes> getUserAttributes(

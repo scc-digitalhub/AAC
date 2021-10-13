@@ -8,11 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 
 @Service
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class AuditManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -28,7 +32,7 @@ public class AuditManager {
         return auditStore.countByRealm(realm, a, b, type);
     }
 
-    public long countPrincipalEvents(String principal, String type, Date after, Date before) {
+    public long countPrincipalEvents(String realm, String principal, String type, Date after, Date before) {
         Instant a = after == null ? null : after.toInstant();
         Instant b = before == null ? null : before.toInstant();
 
@@ -47,7 +51,7 @@ public class AuditManager {
         return auditStore.findByRealm(realm, a, b, type);
     }
 
-    public List<AuditEvent> findPrincipalEvents(String principal, String type, Date after, Date before) {
+    public List<AuditEvent> findPrincipalEvents(String realm, String principal, String type, Date after, Date before) {
         Instant a = after == null ? null : after.toInstant();
         Instant b = before == null ? null : before.toInstant();
 

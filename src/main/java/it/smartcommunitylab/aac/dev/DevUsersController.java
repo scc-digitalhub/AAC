@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -52,7 +51,6 @@ public class DevUsersController {
      * Users
      */
     @GetMapping("/realms/{realm}/users")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Page<User>> getRealmUsers(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false) String q, Pageable pageRequest) throws NoSuchRealmException {
@@ -60,7 +58,6 @@ public class DevUsersController {
     }
 
     @GetMapping("/realms/{realm}/users/{subjectId:.*}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<User> getRealmUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
@@ -70,13 +67,13 @@ public class DevUsersController {
     }
 
     @DeleteMapping("/realms/{realm}/users/{subjectId:.*}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> deleteRealmUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            Authentication authentication)
             throws NoSuchRealmException, NoSuchUserException {
-        User curUser = userManager.curUser(realm);
-        if (curUser.getSubjectId().equals(subjectId)) {
+        // check if current user is the same subject
+        if (authentication.getName().equals(subjectId)) {
             throw new IllegalArgumentException("Cannot delete current user");
         }
         userManager.removeUser(realm, subjectId);
@@ -84,7 +81,6 @@ public class DevUsersController {
     }
 
     @PostMapping("/realms/{realm}/users/invite")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> inviteRealmUser(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody InvitationBean bean)
@@ -97,7 +93,6 @@ public class DevUsersController {
      * Roles
      */
     @PutMapping("/realms/{realm}/users/{subjectId:.*}/roles")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> updateRealmUserRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
@@ -111,17 +106,15 @@ public class DevUsersController {
      */
 
     @GetMapping("/realms/{realm}/users/{subjectId:.*}/attributes")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
-    public Collection<UserAttributes> getRealmUserAttributes(
+    public ResponseEntity<Collection<UserAttributes>> getRealmUserAttributes(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
             throws NoSuchRealmException, NoSuchUserException {
         Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, subjectId);
-        return attributes;
+        return ResponseEntity.ok(attributes);
     }
 
     @PostMapping("/realms/{realm}/users/{subjectId:.*}/attributes")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<UserAttributes> addRealmUserAttributes(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
@@ -151,6 +144,8 @@ public class DevUsersController {
 
     /*
      * DTO
+     * 
+     * TODO cleanup
      */
     public static class RolesBean {
 

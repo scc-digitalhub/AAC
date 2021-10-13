@@ -43,7 +43,6 @@ import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import springfox.documentation.annotations.ApiIgnore;
@@ -143,8 +142,7 @@ public class DevRealmController {
             key = r.getSlug() + "-full";
             Map<String, Collection<? extends Object>> map = new HashMap<>();
             map.put("realms", Collections.singleton(r));
-            map.put("providers", providerManager
-                    .listProviders(realm, ConfigurableProvider.TYPE_IDENTITY));
+            map.put("providers", providerManager.listProviders(realm));
             map.put("clients", clientManager.listClientApps(realm));
             map.put("services", serviceManager.listServices(realm));
             export = map;

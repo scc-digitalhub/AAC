@@ -91,6 +91,13 @@ angular.module('aac.controllers.realmapps', [])
             });
         }
 
+        raService.getProviders = function (slug, clientId) {
+            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/providers').then(function (data) {
+                return data.data;
+            });
+        }
+
+
         return raService;
 
     })
@@ -249,7 +256,7 @@ angular.module('aac.controllers.realmapps', [])
 
         init();
     })
-    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, RealmProviders, Utils, $window) {
+    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, Utils, $window) {
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
         $scope.clientView = 'overview';
@@ -274,7 +281,7 @@ angular.module('aac.controllers.realmapps', [])
                     return resources;
                 })
                 .then(function () {
-                    return RealmProviders.getIdentityProviders(slug)
+                    return RealmAppsData.getProviders(slug, clientId)
                 })
                 .then(function (providers) {
                     return providers.filter(p => p.type === 'identity');

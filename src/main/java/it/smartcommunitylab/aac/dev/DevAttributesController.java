@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeManager;
 import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
@@ -55,7 +53,6 @@ public class DevAttributesController {
      */
 
     @GetMapping("/realms/{realm}/attributeset")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public Collection<AttributeSet> listRealmAttributeSets(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         logger.debug("list attribute sets for realm " + String.valueOf(realm));
@@ -63,7 +60,6 @@ public class DevAttributesController {
     }
 
     @GetMapping("/realms/{realm}/attributeset/{setId}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public AttributeSet getRealmAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
@@ -73,7 +69,6 @@ public class DevAttributesController {
     }
 
     @PostMapping("/realms/{realm}/attributeset")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public AttributeSet addRealmAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid DefaultAttributesSet s) throws NoSuchRealmException {
@@ -85,7 +80,6 @@ public class DevAttributesController {
     }
 
     @PutMapping("/realms/{realm}/attributeset/{setId}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public AttributeSet updateRealmAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
@@ -98,7 +92,6 @@ public class DevAttributesController {
     }
 
     @DeleteMapping("/realms/{realm}/attributeset/{setId}")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void deleteRealmAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
@@ -108,7 +101,6 @@ public class DevAttributesController {
     }
 
     @PutMapping("/realms/{realm}/attributeset")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public AttributeSet importRealmAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
@@ -141,7 +133,6 @@ public class DevAttributesController {
     }
 
     @GetMapping("/realms/{realm}/attributeset/{setId}/yaml")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void exportRealmAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId, HttpServletResponse res)

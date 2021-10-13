@@ -11,9 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -21,11 +18,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.Approval.ApprovalStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
@@ -66,6 +65,9 @@ import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
  */
 
 @Component
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_DEVELOPER + "')")
 public class ServicesManager implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -1062,7 +1064,7 @@ public class ServicesManager implements InitializingBean {
      * @param serviceNamespace
      * @return
      */
-    public Boolean checkServiceNamespace(String serviceNamespace) {
+    public Boolean checkServiceNamespace(String realm, String serviceNamespace) {
         return serviceService.findServiceByNamespace(serviceNamespace.toLowerCase()) != null;
     }
 

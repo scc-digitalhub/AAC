@@ -11,9 +11,9 @@
 
       <div ng-if="identityProviders && identityProviders.length > 0">
         <table class="table table-hover border-bottom">
-          <tr ng-repeat="item in identityProviders" class="{{item.registered ? '' : 'text-muted'}}">
+          <tr ng-repeat="item in identityProviders" class="{{item.enabled ? '' : 'text-muted'}}">
             <td
-              class="align-middle {{!item.enabled && !item.registered ? 'text-muted' : ''}} {{item.enabled && !item.registered ? 'text-danger' : ''}}">
+              class="align-middle {{!item.enabled ? 'text-muted' : ''}}">
               <div class="avatar-wrapper avatar-extra-text">
                 <div class="avatar size-lg">
                   <svg aria-hidden="true" class="icon icon-secondary">
@@ -22,16 +22,11 @@
                 </div>
                 <div class="extra-text">
                   <span class="h6">{{item.name}}</span>
-                  <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                  <svg ng-if="item.enabled" aria-hidden="true" class="icon icon-sm icon-success mx-3">
                     <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
-                    <title>Active</title>
-                  </svg>
-                  <svg ng-if="item.enabled && !item.registered" aria-hidden="true"
-                    class="icon icon-sm icon-danger mx-3">
-                    <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
-                    <title>Error</title>
-                  </svg>
-                  <svg ng-if="!item.enabled && !item.registered" aria-hidden="true"
+                    <title>Enabled</title>
+                  </svg>                 
+                  <svg ng-if="!item.enabled" aria-hidden="true"
                     class="icon icon-sm icon-secondary mx-3">
                     <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
                     <title>Disabled</title>
@@ -44,7 +39,7 @@
             <td class="text-right">
               <div class="toggles">
                 <label>
-                  <input type="checkbox" ng-checked="item.value" ng-click="toggleIdp(item)">
+                  <input type="checkbox" ng-checked="item.value" ng-click="toggleIdp(item)" ng-disabled="!(item.enabled)">
                   <span class="lever"></span>
                 </label>
               </div>

@@ -103,6 +103,9 @@ public class AACBootstrap {
             logger.debug("application init");
             initServices();
 
+            // build a security context as admin to bootstrap configs
+            // initContext(adminUsername);
+
             // bootstrap providers
             // TODO use a dedicated thread, or a multithread
             bootstrapSystemProviders();
@@ -321,7 +324,7 @@ public class AACBootstrap {
 
                     if (cp.isEnabled()) {
                         // register
-                        if (!providerManager.isProviderRegistered(provider)) {
+                        if (!providerManager.isProviderRegistered(cp.getRealm(), provider)) {
                             provider = providerManager.registerIdentityProvider(provider.getRealm(),
                                     provider.getProvider());
                         }

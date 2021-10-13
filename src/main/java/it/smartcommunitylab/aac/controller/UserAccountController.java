@@ -16,27 +16,21 @@
 
 package it.smartcommunitylab.aac.controller;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -44,18 +38,15 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.AuthorityManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
-import it.smartcommunitylab.aac.dto.UserProfile;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
@@ -80,7 +71,7 @@ public class UserAccountController {
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private UserManager userManager;
+    private MyUserManager userManager;
 
 //    @Autowired
 //    private InternalUserManager internalUserManager;
@@ -93,9 +84,6 @@ public class UserAccountController {
 
     @Autowired
     private AuthorityManager authorityManager;
-
-    @Autowired
-    private ProviderManager providerManager;
 
     @Autowired
     private RoleManager roleManager;
@@ -168,7 +156,7 @@ public class UserAccountController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        userManager.removeUser(user.getRealm(), user.getSubjectId());
+        userManager.deleteCurUser();
         return ResponseEntity.ok().build();
     }
 
@@ -204,33 +192,15 @@ public class UserAccountController {
 
     @DeleteMapping("/account/connections/{clientId}")
     public ResponseEntity<Collection<ConnectedAppProfile>> deleteConnectedApp(@PathVariable String clientId) {
-
         userManager.deleteMyConnectedApp(clientId);
-
         Collection<ConnectedAppProfile> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/account/providers")
     public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders()
-            throws NoSuchRealmException {
-        UserDetails user = authHelper.getUserDetails();
-        String realm = user.getRealm();
-        List<ConfigurableIdentityProvider> providers = providerManager
-                .listIdentityProviders(realm)
-                .stream()
-                .map(cp -> {
-                    // clear config and reserved info
-                    cp.setDisplayMode(null);
-                    cp.setEvents(null);
-                    cp.setPersistence(null);
-                    cp.setSchema(null);
-                    cp.setConfiguration(null);
-                    cp.setHookFunctions(null);
-
-                    return cp;
-                }).collect(Collectors.toList());
-
+            throws NoSuchRealmException, NoSuchUserException {
+        Collection<ConfigurableIdentityProvider> providers = userManager.getMyIdentityProviders();
         return ResponseEntity.ok(providers);
     }
 

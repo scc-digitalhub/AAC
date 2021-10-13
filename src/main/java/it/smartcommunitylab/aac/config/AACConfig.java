@@ -75,8 +75,8 @@ public class AACConfig {
      * provider manager depends on authorities + static config + datasource
      */
 
-    @Autowired
-    private ProviderManager providerManager;
+//    @Autowired
+//    private ProviderManager providerManager;
 
     @Bean
     @ConfigurationProperties(prefix = "providers")

@@ -31,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -41,6 +40,7 @@ import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 
 @RestController
 @RequestMapping("api")
+@PreAuthorize("hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
 public class AttributeProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -58,8 +58,6 @@ public class AttributeProviderController {
      */
 
     @GetMapping("/ap/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public Collection<ConfigurableAttributeProvider> listAps(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         logger.debug("list ap for realm " + String.valueOf(realm));
@@ -67,14 +65,12 @@ public class AttributeProviderController {
         return providerManager.listAttributeProviders(realm)
                 .stream()
                 .map(cp -> {
-                    cp.setRegistered(providerManager.isProviderRegistered(cp));
+                    cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
                     return cp;
                 }).collect(Collectors.toList());
     }
 
     @GetMapping("/ap/{realm}/{providerId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public ConfigurableAttributeProvider getAp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -85,7 +81,7 @@ public class AttributeProviderController {
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
 
         // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(provider);
+        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
         provider.setRegistered(isRegistered);
 
 //        // if registered fetch active configuration
@@ -101,8 +97,6 @@ public class AttributeProviderController {
     }
 
     @PostMapping("/ap/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @Valid @RequestBody ConfigurableAttributeProvider registration) throws NoSuchRealmException {
@@ -138,8 +132,6 @@ public class AttributeProviderController {
     }
 
     @PutMapping("/ap/{realm}/{providerId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public ConfigurableAttributeProvider updateAp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -152,7 +144,7 @@ public class AttributeProviderController {
 
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
-        if (forceRegistration && providerManager.isProviderRegistered(provider)) {
+        if (forceRegistration && providerManager.isProviderRegistered(realm, provider)) {
             provider = providerManager.unregisterAttributeProvider(realm, providerId);
         }
 
@@ -189,15 +181,13 @@ public class AttributeProviderController {
         }
 
         // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(provider);
+        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
         provider.setRegistered(isRegistered);
 
         return provider;
     }
 
     @DeleteMapping("/ap/{realm}/{providerId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public void deleteAp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -208,8 +198,6 @@ public class AttributeProviderController {
     }
 
     @PutMapping("/ap/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public ConfigurableAttributeProvider importAp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
@@ -267,8 +255,6 @@ public class AttributeProviderController {
      */
 
     @PutMapping("/ap/{realm}/{providerId}/status")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public ConfigurableAttributeProvider registerAp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -279,7 +265,7 @@ public class AttributeProviderController {
         provider = providerManager.registerAttributeProvider(realm, providerId);
 
         // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(provider);
+        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
         provider.setRegistered(isRegistered);
 
         return provider;
@@ -287,7 +273,6 @@ public class AttributeProviderController {
     }
 
     @DeleteMapping("/ap/{realm}/{providerId}/status")
-    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ConfigurableAttributeProvider unregisterAp(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -298,7 +283,7 @@ public class AttributeProviderController {
         provider = providerManager.unregisterAttributeProvider(realm, providerId);
 
         // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(provider);
+        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
         provider.setRegistered(isRegistered);
 
         return provider;
@@ -309,8 +294,6 @@ public class AttributeProviderController {
      * Configuration schema
      */
     @GetMapping("/ap/{realm}/{providerId}/schema")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
     public JsonSchema getApConfigurationSchema(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
@@ -319,7 +302,7 @@ public class AttributeProviderController {
         logger.debug("get ap config schema for " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
 
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-        return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_ATTRIBUTES, provider.getAuthority());
+        return providerManager.getConfigurationSchema(realm, SystemKeys.RESOURCE_ATTRIBUTES, provider.getAuthority());
     }
 
 }

@@ -66,7 +66,7 @@ import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.services.ScriptServiceClaimExtractor;
 import it.smartcommunitylab.aac.services.Service;
-import it.smartcommunitylab.aac.services.ServicesManager;
+import it.smartcommunitylab.aac.services.ServicesService;
 
 @Component
 public class DevManager {
@@ -84,12 +84,6 @@ public class DevManager {
 
     @Autowired
     private ClientDetailsService clientDetailsService;
-
-//    @Autowired
-//    private AuthorityManager authorityManager;
-//
-//    @Autowired
-//    private ProviderManager providerManager;
 
     @Autowired
     private OAuth2AuthorizationRequestFactory oauth2AuthorizationRequestFactory;
@@ -116,7 +110,7 @@ public class DevManager {
     private ScriptExecutionService executionService;
 
     @Autowired
-    private ServicesManager serviceManager;
+    private ServicesService servicesService;
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -168,7 +162,7 @@ public class DevManager {
         clientDetails.setScopes(approvedScopes);
 
         // fetch service
-        Service service = serviceManager.getService(realm, serviceId);
+        Service service = servicesService.getService(serviceId);
 
         // clear hookFunctions already set and pass only test function
         Map<String, String> functions = new HashMap<>();

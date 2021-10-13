@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiAttributesScope;
 import it.smartcommunitylab.aac.attributes.AttributeManager;
@@ -36,6 +35,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 @RestController
 @RequestMapping("api")
+@PreAuthorize("hasAuthority('SCOPE_" + ApiAttributesScope.SCOPE + "')")
 public class AttributesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -54,8 +54,6 @@ public class AttributesController {
      */
 
     @GetMapping("/attributes/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiAttributesScope.SCOPE + "')")
     public Collection<AttributeSet> listAttributeSets(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
         logger.debug("list attribute sets for realm " + String.valueOf(realm));
@@ -63,8 +61,6 @@ public class AttributesController {
     }
 
     @GetMapping("/attributes/{realm}/{setId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiAttributesScope.SCOPE + "')")
     public AttributeSet getAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
@@ -74,8 +70,6 @@ public class AttributesController {
     }
 
     @PostMapping("/attributes/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiAttributesScope.SCOPE + "')")
     public AttributeSet addAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid DefaultAttributesSet s) throws NoSuchRealmException {
@@ -87,8 +81,6 @@ public class AttributesController {
     }
 
     @PutMapping("/attributes/{realm}/{setId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiAttributesScope.SCOPE + "')")
     public AttributeSet updateAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
@@ -101,8 +93,6 @@ public class AttributesController {
     }
 
     @DeleteMapping("/attributes/{realm}/{setId}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiAttributesScope.SCOPE + "')")
     public void deleteAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId)
@@ -112,8 +102,6 @@ public class AttributesController {
     }
 
     @PutMapping("/attributes/{realm}")
-    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
-            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + ApiAttributesScope.SCOPE + "')")
     public AttributeSet importAttributeSet(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
@@ -145,9 +133,8 @@ public class AttributesController {
 
     }
 
-
     /*
      * Attributes service
      */
-    
+
 }

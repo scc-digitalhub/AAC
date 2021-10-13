@@ -41,8 +41,8 @@ angular.module('aac.controllers.realmservices', [])
         return data.data;
       });
     }
-    rsService.checkServiceNamespace = function (serviceNs) {
-      return $http.get('console/dev/services/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
+    rsService.checkServiceNamespace = function (realm, serviceNs) {
+      return $http.get('console/dev/realms/' + realm + '/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
         return data.data;
       });
     }
@@ -244,7 +244,7 @@ angular.module('aac.controllers.realmservices', [])
     var doCheck = function () {
       var oldCheck = $scope.nsChecking;
       $scope.nsError = true;
-      RealmServices.checkServiceNamespace($scope.editService.namespace).then(function (data) {
+      RealmServices.checkServiceNamespace(slug, $scope.editService.namespace).then(function (data) {
         if (!data) {
           $scope.nsError = false;
         }

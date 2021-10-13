@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -43,6 +45,9 @@ import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 @Service
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
+        + " or hasAuthority(#realm+':" + Config.R_DEVELOPER + "')")
 public class ClientManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -79,7 +84,6 @@ public class ClientManager {
      * 
      * TODO add permission checkers
      */
-
     @Transactional(readOnly = true)
     public Collection<ClientApp> listClientApps(String realm) throws NoSuchRealmException {
         logger.debug("list client apps for realm " + realm);
@@ -334,48 +338,6 @@ public class ClientManager {
         return apps;
     }
 
-    @Transactional(readOnly = false)
-    private void deleteClient(String clientId) throws NoSuchClientException {
-        logger.debug("delete client " + String.valueOf(clientId));
-
-        ClientEntity entity = findClient(clientId);
-        if (entity == null) {
-            throw new NoSuchClientException();
-        }
-
-        String type = entity.getType();
-
-        Client client = null;
-        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            client = oauthClientService.getClient(clientId);
-        }
-
-        if (client == null) {
-            throw new IllegalArgumentException("invalid client type");
-        }
-
-        // session invalidation
-        sessionManager.destroyClientSessions(clientId);
-
-        // TODO token revoke, cleanups etc
-        // most things should be handled by the downstream service
-
-        // remove approvals
-        try {
-            Collection<Approval> approvals = approvalStore.findClientApprovals(clientId);
-            approvalStore.revokeApprovals(approvals);
-        } catch (Exception e) {
-        }
-
-        // delete
-        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            oauthClientService.deleteClient(clientId);
-        } else {
-            throw new IllegalArgumentException("invalid client type");
-        }
-
-    }
-
     /*
      * Client Credentials via service
      */
@@ -517,31 +479,59 @@ public class ClientManager {
         return realmRoles;
     }
 
-    // TODO evaluate removal, no reason to expose all roles
-    @Transactional(readOnly = false)
-    protected Collection<RealmRole> getRoles(String clientId) throws NoSuchClientException {
-        logger.debug("get roles for client " + String.valueOf(clientId));
+//    // TODO evaluate removal, no reason to expose all roles
+//    @Transactional(readOnly = false)
+//    protected Collection<RealmRole> getRoles(String clientId) throws NoSuchClientException {
+//        logger.debug("get roles for client " + String.valueOf(clientId));
+//
+//        // TODO optimize to avoid db fetch
+//        ClientEntity entity = findClient(clientId);
+//        if (entity == null) {
+//            throw new NoSuchClientException();
+//        }
+//
+//        List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
+//        Set<RealmRole> realmRoles = clientRoles.stream()
+//                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
+//                .collect(Collectors.toSet());
+//
+//        return realmRoles;
+//
+//    }
 
+    /*
+     * Configuration schemas
+     */
+    @Transactional(readOnly = true)
+    public JsonSchema getClientConfigurationSchema(String realm, String clientId)
+            throws NoSuchClientException, NoSuchRealmException {
+        logger.debug("get configuration schema for client " + String.valueOf(clientId) + " for realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get type by loading base client
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
         if (entity == null) {
             throw new NoSuchClientException();
         }
 
-        List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
-        Set<RealmRole> realmRoles = clientRoles.stream()
-                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
-                .collect(Collectors.toSet());
+        // check realm match
+        if (!entity.getRealm().equals(r.getSlug())) {
+            throw new AccessDeniedException("realm mismatch");
+        }
 
-        return realmRoles;
+        String type = entity.getType();
 
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            return oauthClientAppService.getConfigurationSchema();
+        }
+
+        throw new IllegalArgumentException("invalid client type");
     }
 
-    /*
-     * Configuration schemas
-     */
-
-    public JsonSchema getConfigurationSchema(String type) {
+    @Deprecated
+    public JsonSchema getConfigurationSchema(String realm, String type) {
         logger.debug("get config schema for client type " + type);
 
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
@@ -552,10 +542,74 @@ public class ClientManager {
     }
 
     /*
+     * Identity providers
+     * 
+     * workaround TODO split client+provider registration out as dedicated
+     * entity+service
+     */
+    public Collection<ConfigurableIdentityProvider> listIdentityProviders(String realm) throws NoSuchRealmException {
+        Realm re = realmService.getRealm(realm);
+        return providerService.listProviders(re.getSlug()).stream()
+                .map(cp -> {
+                    // clear config and reserved info
+                    cp.setDisplayMode(null);
+                    cp.setEvents(null);
+                    cp.setPersistence(null);
+                    cp.setSchema(null);
+                    cp.setConfiguration(null);
+                    cp.setHookFunctions(null);
+
+                    return cp;
+                }).collect(Collectors.toList());
+    }
+
+    /*
      * Base client
      */
     private ClientEntity findClient(String clientId) {
         return clientService.findClient(clientId);
+    }
+
+    @Transactional(readOnly = false)
+    private void deleteClient(String clientId) throws NoSuchClientException {
+        logger.debug("delete client " + String.valueOf(clientId));
+
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        String type = entity.getType();
+
+        Client client = null;
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            client = oauthClientService.getClient(clientId);
+        }
+
+        if (client == null) {
+            throw new IllegalArgumentException("invalid client type");
+        }
+
+        // session invalidation
+        sessionManager.destroyClientSessions(clientId);
+
+        // TODO token revoke, cleanups etc
+        // most things should be handled by the downstream service
+
+        // remove approvals
+        try {
+            Collection<Approval> approvals = approvalStore.findClientApprovals(clientId);
+            approvalStore.revokeApprovals(approvals);
+        } catch (Exception e) {
+        }
+
+        // delete
+        if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
+            oauthClientService.deleteClient(clientId);
+        } else {
+            throw new IllegalArgumentException("invalid client type");
+        }
+
     }
 
 }

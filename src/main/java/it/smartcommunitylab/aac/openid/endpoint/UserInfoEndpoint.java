@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -71,7 +72,7 @@ public class UserInfoEndpoint {
     public static final MediaType JOSE_MEDIA_TYPE = new MediaType("application", "jwt");
 
     @Autowired
-    private UserManager userManager;
+    private UserService userService;
 
     @Autowired
     private ClientDetailsService clientService;
@@ -130,7 +131,7 @@ public class UserInfoEndpoint {
         String realm = clientDetails.getRealm();
 
         // fetch user, translated for client realm
-        User user = userManager.getUser(realm, subjectId);
+        User user = userService.getUser(subjectId, realm);
 
         // content negotiation
         boolean useJwt = false;
