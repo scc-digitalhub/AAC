@@ -33,6 +33,9 @@ public class ServiceScopeProvider implements ScopeProvider {
         resource = new Resource(service.getNamespace());
         resource.setName(service.getName());
         resource.setDescription(service.getDescription());
+        
+        //add realm to resource
+        resource.setRealm(service.getRealm());
 
         // build scopes
         // include introspect client in audience

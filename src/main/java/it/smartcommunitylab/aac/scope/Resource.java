@@ -22,6 +22,8 @@ public class Resource {
     protected String name;
     protected String description;
 
+    protected String realm;
+
     private Set<Scope> scopes;
 
     public Resource() {
@@ -55,6 +57,14 @@ public class Resource {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     public Collection<Scope> getScopes() {

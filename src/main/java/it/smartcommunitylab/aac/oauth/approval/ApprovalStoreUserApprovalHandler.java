@@ -466,7 +466,15 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
                         .map(s -> s.getScope())
                         .collect(Collectors.toList());
 
-                autoApprovedScopes = requestedScopes.stream().filter(s -> coreScopes.contains(s))
+                // get same realm resources
+                List<String> resourceScopes = scopeRegistry.listResources().stream()
+                        .filter(r -> clientDetails.getRealm().equals(r.getRealm()))
+                        .flatMap(r -> r.getScopes().stream())
+                        .map(s -> s.getScope())
+                        .collect(Collectors.toList());
+
+                autoApprovedScopes = requestedScopes.stream()
+                        .filter(s -> (coreScopes.contains(s) || resourceScopes.contains(s)))
                         .collect(Collectors.toSet());
 
                 // get client realm resources
