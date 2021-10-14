@@ -43,10 +43,10 @@ class GlobalDefaultExceptionHandler implements HandlerExceptionResolver {
 	        HttpServletRequest aReq, HttpServletResponse aRes,
 	        Object aHandler, Exception anExc
 	    ) {
-	    	// hack. should be done better in configuration	
-	    	if ("/oauth/token".equals(aReq.getServletPath())) {
-	    		return null;
-	    	}
+//	    	// hack. should be done better in configuration	
+//	    	if ("/oauth/token".equals(aReq.getServletPath())) {
+//	    		return null;
+//	    	}
 	        // Otherwise setup and send the user to a default error-view.
 	        ModelAndView mav = new ModelAndView();
 	        mav.addObject("exception", anExc);

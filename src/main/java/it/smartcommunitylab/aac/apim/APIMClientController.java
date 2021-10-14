@@ -16,24 +16,18 @@
 
 package it.smartcommunitylab.aac.apim;
 
-import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletResponse;
-
-import org.codehaus.jackson.map.DeserializationConfig.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,8 +41,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.Utils;
+import it.smartcommunitylab.aac.oauth.auth.DefaultOAuth2AuthenticatedPrincipal;
 import springfox.documentation.annotations.ApiIgnore;
+
+/*
+ * Legacy integration with WSO2 apiManager 2.6
+ * 
+ * Relies on custom api and a dedicated client with 'clientmanagement' scope for a given realm.
+ * Should be deprecated in favor of OAuth2 DCR
+ */
 
 @ApiIgnore
 @Controller
@@ -58,15 +59,19 @@ public class APIMClientController {
     @Autowired
     private APIMProviderService wso2Manager;
 
-    @Autowired
-    private TokenStore tokenStore;
-
-    // custom mapper, TODO check if needed
-    private static final ObjectMapper mapper = new ObjectMapper().configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     @RequestMapping(value = "/wso2/client", method = RequestMethod.POST)
-    public @ResponseBody APIMClient createClient(HttpServletResponse response, @RequestBody APIMClient app)
+    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENTMANAGEMENT
+            + "')")
+    public @ResponseBody APIMClient createClient(@RequestBody APIMClient app, BearerTokenAuthentication auth)
             throws Exception {
+
+        if (auth == null || !(auth.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        DefaultOAuth2AuthenticatedPrincipal principal = (DefaultOAuth2AuthenticatedPrincipal) auth.getPrincipal();
+        String realm = principal.getRealm();
 
         String userName = app.getUserName();
         String un = extractUserFromTenant(userName);
@@ -90,14 +95,26 @@ public class APIMClientController {
         }
 
         logger.trace("received create for " + app.toString());
-        return wso2Manager.createClient(clientId, un, clientName, displayName, clientSecret, grantTypes, scopes,
+        return wso2Manager.createClient(realm, clientId, un, clientName, displayName, clientSecret, grantTypes, scopes,
                 redirectUris);
 
     }
 
     @RequestMapping(value = "/wso2/client/{clientId}", method = RequestMethod.PUT)
-    public @ResponseBody APIMClient updateClient(HttpServletResponse response, @RequestBody APIMClient app,
-            @PathVariable("clientId") String clientId) throws Exception {
+    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENTMANAGEMENT
+            + "')")
+    public @ResponseBody APIMClient updateClient(
+            @PathVariable("clientId") String clientId,
+            @RequestBody APIMClient app, BearerTokenAuthentication auth)
+            throws Exception {
+
+        if (auth == null || !(auth.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        DefaultOAuth2AuthenticatedPrincipal principal = (DefaultOAuth2AuthenticatedPrincipal) auth.getPrincipal();
+        String realm = principal.getRealm();
 
         // extract data
         String clientName = app.getName();
@@ -112,41 +129,82 @@ public class APIMClientController {
         String[] redirectUris = app.getRedirectUris() != null ? app.getRedirectUris().split(APIMClient.SEPARATOR)
                 : null;
 
-        return wso2Manager.updateClient(clientId, clientName, displayName, clientSecret, grantTypes, scopes,
+        return wso2Manager.updateClient(realm, clientId, clientName, displayName, clientSecret, grantTypes, scopes,
                 redirectUris);
 
     }
 
     @RequestMapping(value = "/wso2/client/{clientId}/validity/{validity}", method = RequestMethod.PATCH)
-    public @ResponseBody APIMClient updateTokenValidity(HttpServletResponse response,
-            @PathVariable("clientId") String clientId, @PathVariable("validity") Integer validity) throws Exception {
+    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENTMANAGEMENT
+            + "')")
+    public @ResponseBody APIMClient updateTokenValidity(
+            @PathVariable("clientId") String clientId, @PathVariable("validity") Integer validity,
+            BearerTokenAuthentication auth) throws Exception {
 
-        return wso2Manager.updateValidity(clientId, validity);
+        if (auth == null || !(auth.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        DefaultOAuth2AuthenticatedPrincipal principal = (DefaultOAuth2AuthenticatedPrincipal) auth.getPrincipal();
+        String realm = principal.getRealm();
+
+        return wso2Manager.updateValidity(realm, clientId, validity);
 
     }
 
     @RequestMapping(value = "/wso2/client/{clientId}/scope", method = RequestMethod.PUT)
-    public @ResponseBody APIMClient updateClientScope(HttpServletResponse response,
+    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENTMANAGEMENT
+            + "')")
+    public @ResponseBody APIMClient updateClientScope(
             @PathVariable("clientId") String clientId,
-            @RequestParam String scope) throws Exception {
+            @RequestParam String scope, BearerTokenAuthentication auth) throws Exception {
 
-        return wso2Manager.updateScope(clientId, scope);
+        if (auth == null || !(auth.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        DefaultOAuth2AuthenticatedPrincipal principal = (DefaultOAuth2AuthenticatedPrincipal) auth.getPrincipal();
+        String realm = principal.getRealm();
+
+        return wso2Manager.updateScope(realm, clientId, scope);
 
     }
 
     @RequestMapping(value = "/wso2/client/{clientId}", method = RequestMethod.GET)
-    public @ResponseBody APIMClient getClient(HttpServletResponse response, @PathVariable("clientId") String clientId)
+    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENTMANAGEMENT
+            + "')")
+    public @ResponseBody APIMClient getClient(@PathVariable("clientId") String clientId, BearerTokenAuthentication auth)
             throws Exception {
 
-        return wso2Manager.getClient(clientId);
+        if (auth == null || !(auth.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        DefaultOAuth2AuthenticatedPrincipal principal = (DefaultOAuth2AuthenticatedPrincipal) auth.getPrincipal();
+        String realm = principal.getRealm();
+
+        return wso2Manager.getClient(realm, clientId);
 
     }
 
     @RequestMapping(value = "/wso2/client/{clientId}", method = RequestMethod.DELETE)
-    public @ResponseBody void deleteClient(HttpServletResponse response, @PathVariable("clientId") String clientId)
+    @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENTMANAGEMENT
+            + "')")
+    public @ResponseBody void deleteClient(@PathVariable("clientId") String clientId, BearerTokenAuthentication auth)
             throws Exception {
 
-        wso2Manager.deleteClient(clientId);
+        if (auth == null || !(auth.getPrincipal() instanceof DefaultOAuth2AuthenticatedPrincipal)) {
+            logger.error("invalid authentication");
+            throw new IllegalArgumentException("invalid authentication");
+        }
+
+        DefaultOAuth2AuthenticatedPrincipal principal = (DefaultOAuth2AuthenticatedPrincipal) auth.getPrincipal();
+        String realm = principal.getRealm();
+
+        wso2Manager.deleteClient(realm, clientId);
 
     }
 
@@ -217,24 +275,24 @@ public class APIMClientController {
         return un;
     }
 
-    private String getUserNameAtTenant(String username, String tenantName) {
-        return username + "@" + tenantName;
-    }
-
-    private String[] extractInfoFromTenant(String tenant) {
-        int index = tenant.indexOf('@');
-        int lastIndex = tenant.lastIndexOf('@');
-
-        if (index != lastIndex) {
-            String result[] = new String[2];
-            result[0] = tenant.substring(0, lastIndex);
-            result[1] = tenant.substring(lastIndex + 1, tenant.length());
-            return result;
-        } else if (tenant.endsWith("@carbon.super")) {
-            return tenant.split("@");
-        }
-        return new String[] { tenant, "carbon.super" };
-    }
+//    private String getUserNameAtTenant(String username, String tenantName) {
+//        return username + "@" + tenantName;
+//    }
+//
+//    private String[] extractInfoFromTenant(String tenant) {
+//        int index = tenant.indexOf('@');
+//        int lastIndex = tenant.lastIndexOf('@');
+//
+//        if (index != lastIndex) {
+//            String result[] = new String[2];
+//            result[0] = tenant.substring(0, lastIndex);
+//            result[1] = tenant.substring(lastIndex + 1, tenant.length());
+//            return result;
+//        } else if (tenant.endsWith("@carbon.super")) {
+//            return tenant.split("@");
+//        }
+//        return new String[] { tenant, "carbon.super" };
+//    }
 
     @ExceptionHandler(InvalidDefinitionException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

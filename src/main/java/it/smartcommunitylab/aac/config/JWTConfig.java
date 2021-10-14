@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
@@ -39,6 +41,7 @@ import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
  *
  */
 @Configuration
+@Order(3)
 public class JWTConfig {
 
     @Value("${jwt.kid.sig}")
@@ -50,7 +53,7 @@ public class JWTConfig {
     @Autowired
     private JWKSetKeyStore jwtKeyStore;
 
-    @Bean()
+    @Bean
     public JWTSigningAndValidationService getJWTSigningAndValidationService()
             throws NoSuchAlgorithmException, InvalidKeySpecException {
 
@@ -93,7 +96,7 @@ public class JWTConfig {
         return service;
     }
 
-    @Bean()
+    @Bean
     public JWTEncryptionAndDecryptionService getJWTEncryptionAndDecryptionService()
             throws JOSEException, NoSuchAlgorithmException, InvalidKeySpecException {
 

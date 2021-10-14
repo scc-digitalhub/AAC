@@ -16,28 +16,30 @@
 
 package it.smartcommunitylab.aac.common;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /**
  * @author raman
  *
  */
 public class ResourceException extends RuntimeException {
-	private static final long serialVersionUID = -3713058847321448029L;
 
-	public ResourceException() {
-		super();
-	}
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
-	public ResourceException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public ResourceException() {
+        super();
+    }
 
-	public ResourceException(String message) {
-		super(message);
-	}
+    public ResourceException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public ResourceException(Throwable cause) {
-		super(cause);
-	}
+    public ResourceException(String message) {
+        super(message);
+    }
 
-	
+    public ResourceException(Throwable cause) {
+        super(cause);
+    }
+
 }

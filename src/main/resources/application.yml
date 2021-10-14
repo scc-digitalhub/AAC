@@ -2,15 +2,20 @@
 server:
    host: ${SERVER_HOST:localhost}
    port: ${SERVER_PORT:8080}
-   contextPath: ${SERVER_CONTEXT:/aac}
+   servlet:
+     context-path: ${SERVER_CONTEXT:/}
    tomcat:
-     remote_ip_header: ${SERVER_TOMCAT_REMOTE_IP_HEADER:x-forwarded-for}
-     protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
+     remoteip:
+      remote_ip_header: ${SERVER_TOMCAT_REMOTE_IP_HEADER:x-forwarded-for}
+      protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
    max-http-header-size: 32000     
+   error:
+      include-stacktrace: ON_TRACE_PARAM   
 
 # APPLICATION EXTERNAL URL
 application:
-   url: ${APPLICATION_EXT_URL:http://localhost:8080/aac}
+   url: ${APPLICATION_EXT_URL:http://localhost:8080}
+   name: AAC
 
 # DB CONFIGURATION
 jdbc:
@@ -25,29 +30,22 @@ jdbc:
 admin:
    username: ${ADMIN_USERNAME:admin}
    password: ${ADMIN_PASSWORD:admin}
+   email: ${ADMIN_EMAIL:}
    contexts: apimanager, authorization, components, organizations, resources, services
    contextSpaces: components/apimanager/carbon.super
-   roles: ${ADMIN_ROLES:components/apimanager/carbon.super:accountmanager, components/apimanager/carbon.super:profilemanager,components/apimanager/carbon.super:rolemanager}
+   roles: ${ADMIN_ROLES:}
 
 # BASIC SECURITY PROPERTIES
 security:
-   restricted: false
-   accesstoken:
-      validity: ${ACCESS_TOKEN_VALIDITY:43200}
-   refreshtoken:
-      validity: ${REFRESH_TOKEN_VALIDITY:2592000}
-   authcode:
-      validity: ${AUTH_CODE_VALIDITY:600}      
+   restricted: false  
    keystore: ${JWK_KEYSTORE:classpath:/keystore.jwks} 
    rememberme:
       key: ${REMEMBER_ME_KEY:REMEMBER_ME_SECRET_KEY}
    identity: # IDENTITY MAPPING SOURCE FILE
       source: ${IDENTITY_SOURCE:file:///path/to/identities.txt}
-   redirects:
-      matchports: ${REDIRECT_MATCH_PORTS:true}
-      matchsubdomains: ${REDIRECT_MATCH_SUBDOMAINS:true}
-   basic:
-      enabled: false
+
+#   basic:
+#      enabled: false
    cie: # CIE 2-factor authentication properties
       idp: Smart Community
       pattern: Inserisci il PIN per accedere a %1$s tramite %2$s
@@ -57,15 +55,24 @@ security:
 
 #OAUTH2
 oauth2:
-   jwt: ${ENABLE_JWT:false}
+   redirects:
+      matchports: ${REDIRECT_MATCH_PORTS:true}
+      matchsubdomains: ${REDIRECT_MATCH_SUBDOMAINS:true}
+   jwt: ${ENABLE_JWT:true}
    introspection:
-      permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:true}
+      permitAll: ${OAUTH2_INTROSPECTION_PERMIT_ALL:false}
    pkce:
       allowRefresh: true
    clientCredentials:
       allowRefresh: true
    resourceOwnerPassword:
       allowRefresh: false
+   accesstoken:
+      validity: ${ACCESS_TOKEN_VALIDITY:43200}
+   refreshtoken:
+      validity: ${REFRESH_TOKEN_VALIDITY:2592000}
+   authcode:
+      validity: ${AUTH_CODE_VALIDITY:600}          
             
 #JWT
 jwt:
@@ -80,42 +87,108 @@ jwt:
 #EXTERNAL PROVIDERS
 authorities:
    enabled: ${AUTHORITIES:internal}
+   internal:
+      linking: false
+      confirmation:
+        required: true
+        validity: 86400
+      password:
+        minLength: 8
+        maxLength: 20
+        requireAlpha: true
+        requireNumber: false
+        requireSpecial: false
+        supportWhitespace: false
+        reset:
+          enabled: true
+          validity: 86400
 
-oauth-providers:
-  providers:
-    - provider: facebook
-      client:
-        clientId: ${OAUTH_FACEBOOK_CLIENTID:YOUR_FACEBOOK_CLIENT_ID}
-        clientSecret: ${OAUTH_FACEBOOK_CLIENTSECRET:YOUR_FACEBOOK_CLIENT_SECRET}
-        accessTokenUri: https://graph.facebook.com/oauth/access_token
-        userAuthorizationUri: https://www.facebook.com/dialog/oauth
-        preEstablishedRedirectUri: ${application.url}/auth/facebook-oauth/callback
-        useCurrentUri: false
-        tokenName: oauth_token
-        authenticationScheme: query
-        clientAuthenticationScheme: form
-        scope:
-            - openid
-            - email
-            - profile
-    - provider: google
-      client:
-        clientId: ${OAUTH_GOOGLE_CLIENTID:YOUR_GOOGLE_CLIENT_ID}
-        clientSecret: ${OAUTH_GOOGLE_CLIENTSECRET:YOUR_GOOGLE_CLIENT_SECRET}
-        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
-        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
-        preEstablishedRedirectUri: ${application.url}/auth/google-oauth/callback
-        useCurrentUri: false
-        clientAuthenticationScheme: form
-        scope:
-            - openid
-            - email
-            - profile
-      resource:
+
+providers:
+  identity:
+  attributes:
+  templates:
+    internal:
+    saml:
+    oidc:
+      - clientName: Google
+        clientAuthenticationMethod: client_secret_basic
+        scope: openid,profile,email
+        authorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+        tokenUri: https://www.googleapis.com/oauth2/v4/token
+        jwkSetUri: https://www.googleapis.com/oauth2/v3/certs
+        issuerUri: https://accounts.google.com
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
-        preferTokenInfo: true
+        userNameAttributeName: email
+      - clientName: Facebook
+        clientAuthenticationMethod: client_secret_post      
+        scope: public_profile,email
+        authorizationUri: https://www.facebook.com/v2.8/dialog/oauth
+        tokenUri: https://graph.facebook.com/v2.8/oauth/access_token
+        userInfoUri: https://graph.facebook.com/me?fields=id,name,email
+        userNameAttributeName: id
+      - clientName: GitHub
+        clientAuthenticationMethod: client_secret_basic      
+        scope: read:user
+        authorizationUri: https://github.com/login/oauth/authorize
+        tokenUri: https://github.com/login/oauth/access_token
+        userInfoUri: https://api.github.com/user
+        userNameAttributeName: id        
 
+attributesets:
+  sets:
+    - identifier: sub
+      keys: sub      
+    - identifier: profile
+      keys: name,family_name,given_name,middle_name,nickname,preferred_username,profile,picture,website,gender,birthdate,zoneinfo,locale,updated_at
+    - identifier: email
+      keys: email,email_verified     
+    - identifier: phone
+      keys: phone_number,phone_number_verified 
+    - identifier: address
+      keys: formatted,street_address,locality,region,postal_code,country
+    
 
+spid:
+  idps:
+    - entityName: Aruba ID
+      entityId: https://loginspid.aruba.it    
+      entityLabel: arubaid
+      metadataUrl: https://loginspid.aruba.it/metadata
+    - entityName: Infocert ID
+      entityId: https://identity.infocert.it
+      entityLabel: infocertid
+      metadataUrl: https://identity.infocert.it/metadata/metadata.xml
+    - entityName: Intesa ID
+      entityId: https://spid.intesa.it
+      entityLabel: intesaid
+      metadataUrl: https://spid.intesa.it/metadata/metadata.xml
+    - entityName: Lepida ID
+      entityId: https://id.lepida.it/idp/shibboleth
+      entityLabel: lepidaid
+      metadataUrl: https://id.lepida.it/idp/shibboleth
+    - entityName: Namirial ID
+      entityId: https://idp.namirialtsp.com/idp
+      entityLabel: namirialid
+      metadataUrl: https://idp.namirialtsp.com/idp/metadata
+    - entityName: Poste ID
+      entityId: https://posteid.poste.it
+      entityLabel: posteid
+      metadataUrl: https://posteid.poste.it/jod-fs/metadata/metadata.xml    
+    - entityName: Sielte ID
+      entityId: https://identity.sieltecloud.it
+      entityLabel: spiditalia
+      metadataUrl: https://identity.sieltecloud.it/simplesaml/metadata.xml
+    - entityName: SPIDItalia Register.it
+      entityId: https://spid.register.it
+      entityLabel: sielteid
+      metadataUrl: https://spid.register.it/login/metadata
+    - entityName: Tim ID
+      entityId: https://login.id.tim.it/affwebservices/public/saml2sso
+      entityLabel: timid
+      metadataUrl: https://login.id.tim.it/spid-services/MetadataBrowser/idp  
+      
+                            
 # LOGGING CONFIGURATION
 logging:
    level:
@@ -155,8 +228,11 @@ spring:
    messages:
       basename: resources/internal
       encoding: UTF-8
-   resources:
-      cache-period: 3600
+   web:
+      resources:
+        cache.period: 3600
+   h2.console.enabled: false       
+   jpa.hibernate.ddl-auto: validate
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
@@ -173,6 +249,11 @@ mail:
 # API Manager
 api:
    contextSpace: components/apimanager
+   clients:
+      auto: 
+        introspect: true
+        machine: false
+        web: false
 
 # DEFAULT ADMIN CLIENT
 adminClient:
@@ -189,13 +270,25 @@ bootstrap:
 
 #port used to expose actuator
 management:
-   port: ${MANAGEMENT_PORT:8081}
+    server:
+      port: ${MANAGEMENT_PORT:8081}
+    endpoints:
+      enabled-by-default: false
+      web.base-path: 
+    endpoint:
+      info:
+        enabled: true
+      health:
+        enabled: true
+              
 
----
-# SPRING
-spring:
-   profiles: authorization
+    
 
-# ROLE PREFIX FOR AUTHORIZATION CHECK
-authorization:
-   contextSpace: authorization
+#---
+## SPRING
+#spring:
+#   profiles: authorization
+#
+## ROLE PREFIX FOR AUTHORIZATION CHECK
+#authorization:
+#   contextSpace: authorization

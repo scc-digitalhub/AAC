@@ -1,0 +1,75 @@
+<div class="pt-3">
+
+	<fieldset>
+		<legend class="mb-4">Custom claim mapping</legend>
+		<p>Custom mapping for claims generation, executed after token grants. The result will be used as provided to
+			build client responses.</p>
+
+		<div class="row">
+			<div class="form-check form-check-inline col">
+				<input id="appClaimMappingnabled" class="form-check-input" type="checkbox"
+					ng-model="claimMapping.enabled" ng-change="toggleClientAppClaimMapping()">
+				<label for="appClaimMappingnabled">Enable</label>
+			</div>
+		</div>
+		<div class="container-fluid p-1">
+			<div class="row mb-2">
+				<div class="col text-right">
+					<button class="btn btn-secondary btn-sm text-right" ng-click="testClientAppClaimMapping()"
+						ng-disabled="!claimMapping.enabled">Test</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-md-8">
+					<div ui-ace="aceOption" ng-model="claimMapping.code"></div>
+				</div>
+
+				<div class="col" ng-if="claimMapping.enabled">
+					<div ui-ace="aceOption" ng-model="claimMapping.context" readonly></div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="alert alert-danger" ng-if="claimMapping.errors && claimMapping.errors.length > 0">
+					<h6 class="alert-heading text-danger">Error</h6>
+					<div class="text-danger" ng-repeat="err in claimMapping.errors">{{err}}</div>
+				</div>
+
+				<div ng-if="claimMapping.result" class="col-md-12">
+					<figure class="neutral-2-bg p-2 mb-0">
+						<h6>Test results</h6>
+						<pre class="pre-scrollable">
+<code class="language-json" data-lang="json">
+{{claimMapping.result | json:4}}
+</code>
+						</pre>
+					</figure>
+
+				</div>
+
+			</div>
+		</div>
+
+	</fieldset>
+
+
+
+	<fieldset>
+		<legend class="mb-4">Hooks</legend>
+		<div class="form-group col">
+			<input type="text" name="hookUniqueSpaces" class="form-control" id="hookUniqueSpaces"
+				ng-model="app.hookUniqueSpaces">
+			<label for="hookUniqueSpaces" class="{{app.hookUniqueSpaces != '' ? 'active' : ''}}">Unique spaces
+				prefix</label>
+		</div>
+		<div class="form-group col" ng-if="app.type == 'oauth2'">
+			<input type="url" name="webHookAfterTokenGrant" class="form-control" id="webHookAfterTokenGrant"
+				ng-model="webHooks['afterTokenGrant']">
+			<label for="webHookAfterTokenGrant" class="{{webHooks['afterTokenGrant'] != '' ? 'active' : ''}}">After
+				token
+				grant webhook</label>
+		</div>
+	</fieldset>
+
+
+</div>

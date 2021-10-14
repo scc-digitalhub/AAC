@@ -21,7 +21,6 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
 
     private Properties loadYamlIntoProperties(EncodedResource resource) throws FileNotFoundException {
         try {
-            System.out.println("load properties from "+resource.toString());
             YamlPropertiesFactoryBean factory = new YamlPropertiesFactoryBean();
             factory.setResources(resource.getResource());
             factory.afterPropertiesSet();

@@ -1,0 +1,19 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend class="mb-4">OAuth2 configuration</legend>
+            <div class="form-check form-check-group" ng-click="realmSettings.oauthConfiguration.enableClientRegistration = !realmSettings.oauthConfiguration.enableClientRegistration ">
+                <input type="checkbox" class="form-control" id="enabledcr" ng-model="realmSettings.oauthConfiguration.enableClientRegistration">
+                <label for="enabledcr">Enable Dynamic Client Registration</label>
+                <small class="form-text">Dynamic client registration with management (OAuth2 and OIDC). 
+                Authorized parties (with a valid bearer token) will be able to register a client.</small>
+            </div>
+            <div class="form-check form-check-group" ng-click="realmSettings.oauthConfiguration.openClientRegistration = !realmSettings.oauthConfiguration.openClientRegistration ">
+                <input type="checkbox" class="form-control" id="opendcr" ng-model="realmSettings.oauthConfiguration.openClientRegistration">
+                <label for="opendcr">Enable Open Dynamic Client Registration</label>
+                <small class="form-text">Open Dynamic Registration disables authentication for DCR endpoints. 
+                Anyone will be able to register a client.</small>
+            </div>            
+        </fieldset>
+    </div>
+</div>

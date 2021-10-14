@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2015-2019 Smart Community Lab, FBK
+       Copyright 2015-2021 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -15,32 +15,71 @@
        limitations under the License.
 
 -->
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
 
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" >
-  <head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta name="description" content=""/>
-    <meta name="author" content=""/>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="-1" />
-    <!-- Bootstrap core CSS -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Custom styles for this template -->
-    <link href="../css/style.css" rel="stylesheet" />
+<head>
+   <meta charset="utf-8" />
+   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="" />
+   <meta name="author" content="" />
+   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+   <meta http-equiv="Pragma" content="no-cache" />
+   <meta http-equiv="Expires" content="-1" />
+   <!-- Design Italia -->
+   <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+   <script th:inline="javascript">
+      const contextpath = /*[[@{/}]]*/ "/";
+      window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+   </script>
+
+   <link th:href="@{/italia/style.css}" rel="stylesheet" />
+
+   <title th:text="#{label.oauth_error}">AAC Approval</title>
 </head>
 
 <body>
+   <div class="container">
 
-  <h1 th:text="#{lbl_oauth_error}">AAC OAuth2 Error</h1>
+      <div>
+         <img class="logo d-none d-md-block" th:src="@{/img/ds_logo.png}" alt="SmartCommunity" />
+         <div class="clear"></div>
+      </div>
 
-  <div id="content">
-	<p th:if="${error != null}"><span th:text="${message}">Error </span> (<span th:text="${error.summary}">Summary</span>)</p>
-	<p th:text="#{lbl_oauth_text}">Please go back to your client application and try again, or contact the administrator for support</p>
-  </div>
+      <div class="row mt-md-0 mt-5 justify-content-center">
+         <div class="confirmation-content container-fluid">
+            <div class="row justify-content-center">
+               <div class="col-md-offset-2 col-md-8">
+
+                  <div id="content">
+
+                     <div th:if="${error != null}">
+                        <div class="callout danger">
+                           <div class="callout-title">
+                              <svg class="icon">
+                                 <use th:xlink:href="@{/italia/svg/sprite.svg#it-close-circle}"></use>
+                              </svg>
+                              <span th:text="${error}">Error</span>
+                           </div>
+                           <p th:text="${errorSummary}"></p>
+                        </div>
+                     </div>
+                     <h2 th:if="${error == null}" th:text="#{label.oauth_error}">AAC OAuth2 Error</h2>
+                     <p class="mb-4" th:text="#{label.oauth_text}">Please go back to your client application and try
+                        again, or contact
+                        the administrator for support</p>
+
+                  </div>
+
+               </div>
+
+            </div>
+         </div>
+      </div>
+
+   </div>
 
 </body>
+
 </html>

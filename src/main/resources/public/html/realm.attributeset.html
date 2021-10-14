@@ -1,0 +1,205 @@
+<div class="pb-3 pt-3">
+    <div>
+        <div class="row">
+            <div class="col col-md-9">
+                <h6><a ui-sref="realm.attributesets({realmId:slug})">Attribute Sets
+                        &raquo;</a></h6>
+                <h3>{{attributeSet.name}}</h3>
+                <p class="text-monospace">{{attributeSet.identifier}}<span  ng-if="slug == attributeSet.realm">:profile.{{attributeSet.identifier}}.me</span></p>
+            </div>
+            <div class="col col-md-3 text-right">
+                <button class="btn btn-primary" type="button" ng-if="slug == attributeSet.realm" ng-click="saveAttributeSet(attributeSet)">Save</button>
+                <button class="btn btn-primary" type="button" ng-if="slug == attributeSet.realm"
+                    ng-click="editAttributeSetDlg(attributeSet)">Edit</button>
+                <button class="btn btn-info" type="button" ng-click="exportAttributeSet(attributeSet)">Export</button>
+                <button class="btn btn-danger" type="button" ng-if="slug == attributeSet.realm"
+                    ng-click="deleteAttributeSetDlg(attributeSet)">Delete</button>
+            </div>
+        </div>
+
+        <p>{{attributeSet.description}}</p>
+
+        <div class="row">
+            <div class="col-md-11">
+                <h4>Attributes</h4>
+            </div>
+            <div class="col-md-1 text-right">
+                <a class="btn btn-xs btn-primary btn-icon" ng-if="slug == attributeSet.realm" ng-click="editAttribute()">
+                    <svg class="icon icon-white">
+                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm table-hover border-bottom"
+                    ng-if="attributeSet.attributes && attributeSet.attributes.length > 0">
+                    <tr>
+                        <th>Key</th>
+                        <th>Type</th>
+                        <th></th>
+                    </tr>
+                    <tr ng-repeat="attr in attributeSet.attributes">
+                        <td>
+                            <strong>{{attr.key}}</strong>
+                            <br><span class="small">{{attr.name}}</span>
+                        </td>
+                        <td>
+                            {{attr.multiple ? ('[' + attr.type +']'): attr.type}}
+                        </td>
+                        <td class="text-right">
+                            <a class="btn btn-xs  btn-danger btn-icon pull-right" ng-if="slug == attributeSet.realm" ng-click="removeAttribute(attr)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-minus"></use>
+                                </svg></span></a>
+                            <a class="btn btn-xs btn-primary btn-icon  pull-right" ng-if="slug == attributeSet.realm" ng-click="editAttribute(attr)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                                </svg></a>
+                        </td>
+                    </tr>
+                </table>
+                <p ng-if="!attributeSet.attributes || attributeSet.attributes.length == 0">No attributes defined</p>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade bs-modal-lg" id="editAttrModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form class="needs-validation was-validated" novalidate name="attrForm">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="serviceclaim">Attribute definition</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="key">Key (Required)</label>
+                                    <input type="text" name="key" class="form-control" placeholder="Key"
+                                        ng-model="modAttr.key" required>
+                                    <div ng-if="modAttr.key.$invalid" class="invalid-feedback">Key required
+                                    </div><br>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="name">Name</label>
+                                    <input type="text" class="form-control" name="name" placeholder="Name"
+                                        ng-model="modAttr.name"></td>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="description">Name</label>
+                                    <input type="text" class="form-control" name="description" placeholder="Description"
+                                        ng-model="modAttr.description"></td>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="type">Type (Required)</label>
+                                    <div class="bootstrap-select-wrapper standard">
+                                        <select class="form-control" ng-model="modAttr.type" name="type" required>
+                                            <option value="">Select a value</option>
+                                            <option value="string" ng-selected="modAttr.type == 'string'">string
+                                            </option>
+                                            <option value="number" ng-selected="modAttr.type == 'number'">number
+                                            </option>
+                                            <option value="boolean" ng-selected="modAttr.type == 'boolean'">boolean
+                                            </option>
+                                            <option value="date" ng-selected="modAttr.type == 'date'">date</option>
+                                            <option value="object" ng-selected="modAttr.type == 'object'">object
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="multiple" ng-model="modAttr.multiple"
+                                            name="multiple">
+                                        <label for="multiple">Is array</label>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" ng-disabled="attrForm.$invalid"
+                        ng-click="saveAttribute()">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal bs-modal-lg" tabindex="-1" role="dialog" id="editAttributeSetDlg">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit attributeSet </h5>
+            </div>
+            <div class="modal-body">
+                <form name="editAttributeSetForm" class="needs-validation was-validated" novalidate>
+
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="name">Name</label>
+                        <input type="text" name="name" class="form-control form-control-sm" id="name" required
+                            ng-model="modAttributeSet.name">
+                    </div>
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="name">Description</label>
+                        <input type="text" name="description" class="form-control form-control-sm" id="description"
+                            ng-model="modAttributeSet.description">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="editAttributeSet()"
+                    ng-disabled="editAttributeSetForm.$invalid">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteAttributeSetConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to delete?</p>
+                <p>You are deleting attributeSet <span class="text-monospace">{{modAttributeSet.identifier}}</span>
+                    <br>To proceed enter the id
+                </p>
+                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+                <form name="deleteAttributeSetForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col mb-4">
+                        <label for="confirmId">AttributeSet Id*</label>
+                        <input type="text" name="confirmId" class="form-control form-control-sm" id="confirmId" required
+                            ng-model="modAttributeSet.confirmId" ng-pattern="(modAttributeSet.identifier)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="deleteAttributeSet()" type="button"
+                    ng-disabled="deleteAttributeSetForm.$invalid">Delete</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

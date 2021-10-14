@@ -16,18 +16,21 @@
 
 package it.smartcommunitylab.aac.common;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /**
  * @author raman
  *
  */
 public class InvalidDefinitionException extends Exception {
-	/**
-	 * @param string
-	 */
-	public InvalidDefinitionException(String string) {
-		super(string);
-	}
 
-	private static final long serialVersionUID = 9008934441876813382L;
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+
+    /**
+     * @param string
+     */
+    public InvalidDefinitionException(String string) {
+        super(string);
+    }
 
 }

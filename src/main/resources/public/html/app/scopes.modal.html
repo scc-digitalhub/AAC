@@ -1,0 +1,23 @@
+<div class="modal fade bs-modal-lg" id="scopesModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="modal-title">{{scopeResource.name}}</h5>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <p class="mb-4">{{scopeResource.description}}</p>
+        <form name="updateAppScopes">
+	        <div class="form-check form-check-group" ng-repeat="s in scopeResource.scopes" ng-click="s.value = !s.value ">
+	          <input class="form-check-input" type="checkbox" ng-model="s.value">
+	          <label><strong>{{s.name}}</strong></label>
+	          <small class="form-text"><span class="text-monospace"> {{s.scope}} </span></small>
+	          <small class="form-text"> {{s.description}}</small>
+	        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal" ng-click="updateClientAppScopeResource()">Update</button>
+      </div>
+    </div>
+  </div>
+</div>

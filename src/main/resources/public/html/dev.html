@@ -1,0 +1,91 @@
+<div>
+    My Realms
+    <div class="pb-3 pt-3">
+        <div class="row mb-3">
+            <div class="col col-md-6 p-3">
+                <h3>Realms</h3>
+            </div>
+            <div class="col col-md-6 text-right">
+                <button class="btn btn-primary text-right" type="button" ng-click="addRealm()">
+                    <svg class="icon icon-sm icon-white">
+                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                    </svg>
+                    New Realm</button>
+            </div>
+        </div>
+    </div>
+    <div class="accordion" id="realms">
+        <div ng-if="realms && realms.length > 0">
+            <table class="table table-hover border-bottom">
+                <thead>
+                    <tr>
+                        <th>Slug</th>
+                        <th>Name</th>
+                        <th>Public</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="item in realms">
+                    <td class="align-middle">{{item.slug}}</td>
+                    <td class="align-middle">{{item.name}}</td>
+                    <td class="align-middle"><svg ng-if="item.public" class="icon icon-sm icon-primary">
+                            <use xlink:href="./italia/svg/sprite.svg#it-check"></use>
+                        </svg></td>
+                    <td class="text-right">
+                        <button class="btn btn-primary btn-sm" ui-sref="realm({realmId:item.slug})">Manage</button>
+                        <button class="btn btn-success btn-sm" ng-click="editRealm(item)"
+                            ng-disabled="!item.editable">Edit</button>
+                        <button class="btn btn-danger btn-sm" ng-click="removeRealm(item)"
+                            ng-disabled="!item.editable">Delete</button>
+                    </td>
+                </tr>
+            </table>
+            <nav class="pagination-wrapper" aria-label="pagination">
+                <ul class="pagination">
+                    <li class="page-item" ng-class="{'disabled':realms.first}">
+                        <a class="page-link" ng-click="setPage(query.page - 1)">
+                            <svg class="icon icon-primary">
+                                <use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use>
+                            </svg>
+                            <span class="sr-only">Previous page</span>
+                        </a>
+                    </li>
+                    <li class="page-item" ng-if="realms.pageable.pageNumber - 1 > 0"><a class="page-link"
+                            ng-click="setPage(realms.pageable.pageNumber - 2)">{{realms.pageable.pageNumber - 1}}</a>
+                    </li>
+                    <li class="page-item" ng-if="realms.pageable.pageNumber > 0"><a class="page-link"
+                            ng-click="setPage(realms.pageable.pageNumber - 1)">{{realms.pageable.pageNumber}}</a></li>
+                    <li class="page-item active">
+                        <a class="page-link" aria-current="page"><span class="d-inline-block d-sm-none">Pagina
+                            </span>{{realms.pageable.pageNumber + 1}}</a>
+                    </li>
+                    <li class="page-item" ng-if="realms.pageable.pageNumber + 1 < realms.totalPages"><a
+                            class="page-link"
+                            ng-click="setPage(realms.pageable.pageNumber + 1)">{{realms.pageable.pageNumber + 2}}</a>
+                    </li>
+                    <li class="page-item" ng-if="realms.pageable.pageNumber + 2 < realms.totalPages"><a
+                            class="page-link"
+                            ng-click="setPage(realms.pageable.pageNumber + 2)">{{realms.pageable.pageNumber + 3}}</a>
+                    </li>
+                    <li class="page-item" ng-class="{'disabled':realms.last}">
+                        <a class="page-link" ng-click="setPage(query.page + 1)">
+                            <span class="sr-only">Next page</span>
+                            <svg class="icon icon-primary">
+                                <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+                            </svg>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div ng-if="realms == null || realms.length == 0">
+            <h5>No data</h5>
+        </div>
+
+    </div>
+
+
+
+
+</div>

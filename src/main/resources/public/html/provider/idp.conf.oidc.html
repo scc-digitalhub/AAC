@@ -1,0 +1,149 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+         <legend class="mb-4">OIDC RP Configuration</legend>
+         <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="oidcRedirectUrl" class="active">Redirect url</label>
+                    <input type="text" class="form-control" id="oidcRedirectUrl" ng-model="oidcRedirectUrl"
+                        readonly>
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(oidcRedirectUrl)">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>        
+        </div>    
+        <legend class="mb-4">OIDC IdP Configuration</legend>
+        <div class="form-group col ">
+            <label for="clientId">Client ID*</label>
+            <input type="text" required name="clientId" class="form-control form-control-sm" id="clientId"
+                ng-model="idp.configuration.clientId">
+        </div>
+        <div class="form-group col ">
+            <label for="clientSecret">Client Secret*</label>
+            <input type="text" required name="clientSecret" class="form-control form-control-sm input-password"
+                id="clientSecret" ng-model="idp.configuration.clientSecret">
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="clientName">Provider template</label>
+                    <select id="clientName" ng-model="idp.configuration.clientName" ng-change="applyProviderTemplate()">
+                        <option value="">Generic</option>
+                        <option ng-repeat="pt in oidcProviderTemplates" ng-value="pt.name"
+                            ng-selected="idp.configuration.clientName==pt.name">{{pt.name}}</option>
+                    </select>
+                    <small class="form-text"> Applying a template will override current configuration</small>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="form-group col  ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="clientAuthenticationMethod">Client Authentication Method*</label>
+                    <select required title="Select one" id="clientAuthenticationMethod"
+                        ng-model="idp.configuration.clientAuthenticationMethod">
+                        <option value="client_secret_basic"
+                            ng-selected="idp.configuration.clientAuthenticationMethod=='client_secret_basic'">Basic
+                        </option>
+                        <option value="client_secret_post"
+                            ng-selected="idp.configuration.clientAuthenticationMethod=='client_secret_post'">POST
+                        </option>
+                        <option value="none" ng-selected="idp.configuration.clientAuthenticationMethod=='none'">None
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col ">
+                <label for="userNameAttributeName">Username attribute*</label>
+                <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
+                    id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
+            </div>
+
+            <div class="form-group col ">
+                <label for="scope">Scopes*</label>
+                <tags-input name="scope" type="text" placeholder="Scopes" ng-model="idpOidcScope">
+                </tags-input>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col mb-3">
+                <label for="issuerUri">Metadata Discovery URL</label>
+                <input type="text" name="issuerUri" class="form-control form-control-sm" id="issuerUri"
+                    ng-model="idp.configuration.issuerUri">
+            </div>
+        </div>
+
+        <div class="pb-4 text-center"> -- OR -- </div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="authorizationUri">Authorization Endpoint</label>
+                <input type="text" name="authorizationUri" class="form-control form-control-sm" id="authorizationUri"
+                    ng-model="idp.configuration.authorizationUri">
+            </div>
+            <div class="form-group col ">
+                <label for="tokenUri">Token Endpoint</label>
+                <input type="text" name="tokenUri" class="form-control form-control-sm" id="tokenUri"
+                    ng-model="idp.configuration.tokenUri">
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="jwkSetUri">JWKS Endpoint</label>
+                <input type="text" name="authorizationUri" class="form-control form-control-sm" id="jwkSetUri"
+                    ng-model="idp.configuration.jwkSetUri">
+            </div>
+            <div class="form-group col ">
+                <label for="userInfoUri">User Info Endpoint</label>
+                <input type="text" name="userInfoUri" class="form-control form-control-sm" id="userInfoUri"
+                    ng-model="idp.configuration.userInfoUri">
+            </div>
+        </div>
+        <div class="row">
+            <div class="py-0 text-center text-danger small"
+                ng-if="!idp.configuration.issuerUri && (!idp.configuration.authorizationUri || !idp.configuration.tokenUri ||!idp.configuration.jwkSetUri || !idp.configuration.userInfoUri)">
+                Either metadata or authorization + token + JWKS + user info endpoints should be specified
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Prompt mode</label>
+                    <select title="Select" multiple="true" data-multiple-separator=""
+                        ng-model="idp.configuration.promptMode">
+                        <option ng-repeat="md in idp.schema.properties.promptMode.items.enum" ng-value="md"
+                            data-content="<span class='select-pill'><span class='select-pill-text'>{{md}}</span></span>">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.propagateEndSession = !idp.configuration.propagateEndSession">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.propagateEndSession">
+                    <label>Propagate end session to idp</label>
+                </div>
+            </div>
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.respectTokenExpiration = !idp.configuration.respectTokenExpiration">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.respectTokenExpiration">
+                    <label>Use expiration from token for session</label>
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+
+</div>

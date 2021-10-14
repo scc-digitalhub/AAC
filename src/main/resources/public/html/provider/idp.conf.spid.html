@@ -1,0 +1,199 @@
+<div class="pt-3 mb-5">
+    <fieldset>
+        <legend class="mb-4">SPID SP Configuration</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="samlMetadataUrl" class="active">Service provider metadata</label>
+                    <input type="text" class="form-control" id="samlMetadataUrl" ng-model="samlMetadataUrl"
+                        readonly>
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(samlMetadataUrl)">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>        
+        </div>
+        <div class="row">
+             <div class="form-group col">
+                <label for="entityId">Entity ID</label>
+                <input type="text" name="entityId" class="form-control form-control-sm" id="entityId"
+                    ng-model="idp.configuration.entityId">
+            </div>
+        </div>
+        <div class="py-3">Signing</div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="signingKey">Signing Key</label>
+                <textarea rows="5" name="signingKey" id="signingKey" ng-model="idp.configuration.signingKey"></textarea>
+            </div>
+            <div class="form-group col ">
+                <label for="signingCertificate">Signing Certificate</label>
+                <textarea rows="5" id="signingCertificate" name="signingCertificate"
+                    ng-model="idp.configuration.signingCertificate"></textarea>
+            </div>
+        </div>        
+    </fieldset>
+    <fieldset>
+        <legend class="mb-4">SPID Registration</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="organizationName">Organization name</label>
+                    <input type="text" required class="form-control" id="organizationName"
+                        ng-model="idp.configuration.organizationName">
+                </div>
+            </div>
+            <div class="form-group col-md-4">
+                <div class="input-group">
+                    <label for="organizationUrl">Organization url</label>
+                    <input type="text" required class="form-control" id="organizationUrl"
+                        ng-model="idp.configuration.organizationUrl">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="organizationDisplayName">Organization display name</label>
+                    <input type="text" class="form-control" id="organizationDisplayName"
+                        ng-model="idp.configuration.organizationDisplayName">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="contactPersonEmailAddress">Contact person email</label>
+                    <input type="text" required class="form-control" id="contactPersonEmailAddress"
+                        ng-model="idp.configuration.contactPersonEmailAddress">
+                </div>
+            </div>
+            <div class="form-group col-md-4">
+                <div class="input-group">
+                    <label for="contactPersonTelephoneNumber">Contact person phone</label>
+                    <input type="text" class="form-control" id="contactPersonTelephoneNumber"
+                        ng-model="idp.configuration.contactPersonTelephoneNumber">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="pt-0 pb-3 col-md-12"> Provide at least one </div>
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="contactPersonIPACode">Contact person IPAcode</label>
+                    <input type="text" class="form-control" id="contactPersonIPACode"
+                        ng-model="idp.configuration.contactPersonIPACode">
+                </div>
+            </div>
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="contactPersonVATNumber">Contact person VAT</label>
+                    <input type="text" class="form-control" id="contactPersonVATNumber"
+                        ng-model="idp.configuration.contactPersonVATNumber">
+                </div>
+            </div>
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="contactPersonFiscalCode">Contact person CF</label>
+                    <input type="text" class="form-control" id="contactPersonFiscalCode"
+                        ng-model="idp.configuration.contactPersonFiscalCode">
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend class="mb-4">SPID Advanced Configuration</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Spid level</label>
+                    <select title="Select" ng-model="idp.configuration.authnContext">
+                        <option ng-repeat="c in idp.schema.properties.authnContext.enum" value="{{c}}" ng-selected="idp.configuration.authnContext == c">{{c}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Spid user attributes</label>
+                    <select title="Select" multiple="true" data-multiple-separator=""
+                        ng-model="idp.configuration.spidAttributes">
+                        <option ng-repeat="at in idp.schema.properties.spidAttributes.items.enum"
+                            ng-value="at"
+                            data-content="<span class='select-pill'><span class='select-pill-text'>{{at}}</span></span>">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.useSpidCodeAsNameId = !idp.configuration.useSpidCodeAsNameId">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.useSpidCodeAsNameId">
+                    <label>Use spidCode as userId</label>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend class="mb-4">SPID IdP Configuration</legend>
+
+        <div class="pt-0 pb-3"> Auto-configuration will enable all idps in the SPID federation, otherwise
+            manually configure asserting parties below. </div>
+        <div class="form-group col">
+            <div class="bootstrap-select-wrapper border-bottom-0">
+                <label>IdP</label>
+                <select title="Select" multiple="true" data-multiple-separator="" ng-model="idp.configuration.idps">
+                </select>
+            </div>
+        </div>
+        <div class="pt-0 pb-3 text-center"> -- OR -- </div>
+        <div class="form-group col ">
+            <label for="idpMetadataUrl">IdP Metadata Discovery URL</label>
+            <input type="text" name="idpMetadataUrl" class="form-control form-control-sm" id="idpMetadataUrl"
+                ng-model="idp.configuration.idpMetadataUrl">
+        </div>
+
+        <div class="row">
+            <div class="form-group col-md-3">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="ssoServiceBinding">SSO Service Binding</label>
+                    <select required title="Select one" id="ssoServiceBinding"
+                        ng-model="idp.configuration.ssoServiceBinding">
+                        <option value="HTTP-POST" ng-selected="idp.configuration.ssoServiceBinding=='HTTP-POST'">POST
+                        </option>
+                        <option value="HTTP-Redirect"
+                            ng-selected="idp.configuration.ssoServiceBinding=='HTTP-Redirect'">Redirect
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+    </fieldset>    
+    <fieldset>
+        <legend class="mb-4">SAML Advanced Configuration</legend>
+        <div class="row">
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Spid username attribute</label>
+                    <select title="Select" ng-model="idp.configuration.userNameAttributeName">
+                        <option ng-repeat="at in idp.schema.properties.spidAttributes.items.enum"
+                            value="{{at}}" ng-selected="idp.configuration.userNameAttributeName==at">{{at}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+</div>

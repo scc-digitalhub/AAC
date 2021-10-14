@@ -1,0 +1,54 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-4">OAuth2 endpoints
+            <small class="form-text">
+                AAC endpoints for OAuth2 and OpenId Connect.
+            </small>
+        </legend>
+
+        <table class="table table-bordered align-middle">
+            <tr>
+                <th>Issuer</th>
+                <td>{{oauth2Metadata.issuer}}</td>
+            </tr>
+            <tr>
+                <th>Issuer metadata (OAuth2)</th>
+                <td>{{oauth2Metadata.issuer}}/.well-known/oauth-authorization-server</td>
+            </tr>
+            <tr>
+                <th>Issuer metadata (OIDC)</th>
+                <td>{{oauth2Metadata.issuer}}/.well-known/openid-configuration</td>
+            </tr>
+            <tr>
+                <th>Login url</th>
+                <td>{{oauth2Metadata.issuer}}/-/{{app.realm}}/login</td>
+            </tr>
+            <tr>
+                <th>Authorization Endpoint</th>
+                <td>{{oauth2Metadata.authorization_endpoint}}</td>
+            </tr>
+            <tr>
+                <th>Token Endpoint</th>
+                <td>{{oauth2Metadata.token_endpoint}}</td>
+            </tr>
+            <tr>
+                <th>JWKS endpoint</th>
+                <td>{{oauth2Metadata.jwks_uri}}</td>
+            </tr>
+            <tr>
+                <th>Userinfo endpoint</th>
+                <td>{{oauth2Metadata.userinfo_endpoint}}</td>
+            </tr>
+            <tr>
+                <th>Introspection endpoint</th>
+                <td>{{oauth2Metadata.introspection_endpoint}}</td>
+            </tr>
+            <tr>
+                <th>Revocation endpoint</th>
+                <td>{{oauth2Metadata.revocation_endpoint}}</td>
+            </tr>
+        </table>
+
+    </fieldset>
+</div>

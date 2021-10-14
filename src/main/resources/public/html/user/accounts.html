@@ -1,0 +1,41 @@
+<div class="pt-3">
+
+	<fieldset>
+		<legend class="mb-5">
+			Accounts
+			<small class="form-text"> Manage accounts for the current user</small>
+		</legend>
+		<div class="row">
+			<table class="table table-hover border-bottom">
+				<tr ng-repeat="item in identities">
+					<td class="align-middle">
+
+						<div class="avatar-wrapper avatar-extra-text">
+							<div class="avatar size-lg">
+								<svg aria-hidden="true" class="icon icon-secondary">
+									<use xlink:href="{{item.icon}}"></use>
+								</svg>
+							</div>
+							<div class="extra-text">
+								<span class="h6">{{item.username}}</span>
+								<br><small class=""> {{item.provider.name}}</small>
+							</div>
+						</div>
+					</td>
+					<td class="align-middle">
+						ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.userId}}</span>
+						<button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.userId)">
+							<svg class="icon icon-xs icon-black">
+								<use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+							</svg>
+						</button>
+					</td>
+					<td class="text-right">
+						<button class="btn btn-secondary btn-sm" ng-click="inspectDlg(item)">Inspect</button>
+						<button class="btn btn-danger btn-sm" ng-click="deleteAccount(item)">Delete</button>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</fieldset>
+</div>

@@ -1,96 +1,129 @@
 <div class="row">
-  <div class="col-12 text-center">
-    <h3>{{'accounts.title' | translate}}</h3>
-    <br> 
-  </div>
-</div>  
+   <div class="col-12 text-center">
+      <h3>{{'accounts.title' | translate}}</h3>
+      <br>
+   </div>
+</div>
 <div class="row">
-  <div class="col-12 col-lg-6">
-    <!--start card-->
-    <div class="card-wrapper card-space">
-      <div class="card card-bg">
-        <div class="card-body">
-          <h5 class="card-title">{{'accounts.internal_title'| translate}}</h5>
-          <p class="card-text" ng-if="accounts['internal']">{{'accounts.internal_subtitle'| translate}}</p>
-          <p class="card-text" ng-if="!accounts['internal']">{{'accounts.internal_missing'| translate}}</p>
-          <table class="table" ng-if="accounts['internal']">
-            <tr><td><b>{{'accounts.field_name' | translate}}</b></td><td>{{accounts['internal'].givenname}}</td></tr>
-              <tr><td><b>{{'accounts.field_surname' | translate}}</b></td><td>{{accounts['internal'].surname}}</td></tr>
-              <tr><td><b>{{'accounts.field_username' | translate}}</b></td><td>{{accounts['internal'].username}}</td></tr>
-          </table>
-          <a class="read-more" href="#/profile">
-            <span class="text">{{'accounts.internal_edit'| translate}}</span>
-            <svg class="icon">
-              <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
-            </svg>
-          </a>
-        </div>
+   <div class="col-12 col-lg-6">
+      <!--start card-->
+      <div class="card-wrapper card-space">
+         <div class="card card-bg">
+            <div class="card-body">
+               <h5 class="card-title">{{'accounts.internal_title'| translate}}</h5>
+               <p class="card-text">
+                  <span class="text-monospace">{{profile.subjectId}}</span>
+               </p>
+
+               <div ng-if="profiles['openid']">
+                  <p class="card-text">{{'accounts.internal_subtitle'| translate}}</p>
+                  <table class="table">
+                     <tr ng-repeat="(key, value) in profiles['openid']">
+                        <td><b>{{key | translate}}</b></td>
+                        <td>{{value}}</td>
+                     </tr>
+                  </table>
+               </div>
+
+
+               <p class="card-text" ng-if="accounts['internal']">{{'accounts.internal_subtitle'| translate}}</p>
+               <table class="table" ng-if="accounts['internal']">
+                  <tr>
+                     <td><b>{{'accounts.field_name' | translate}}</b></td>
+                     <td>{{accounts['internal'].given_name}}</td>
+                  </tr>
+                  <tr>
+                     <td><b>{{'accounts.field_surname' | translate}}</b></td>
+                     <td>{{accounts['internal'].family_name}}</td>
+                  </tr>
+                  <tr>
+                     <td><b>{{'accounts.field_username' | translate}}</b></td>
+                     <td>{{accounts['internal'].username}}</td>
+                  </tr>
+               </table>
+            </div>
+         </div>
       </div>
-    </div>
-    <!--end card-->
-  </div>
-  <div class="col-12 col-lg-6">
-    <!--start card-->
-    <div class="card-wrapper card-space">
-      <div class="card card-bg">
-        <div class="card-body">
-          <h5 class="card-title">{{'accounts.delete_title'| translate}}</h5>
-          <p class="card-text">{{'accounts.delete_subtitle'| translate}}</p>
-          
-          <a class="read-more" href="" ng-click="confirmDeleteAccount()">
-            <span class="text text-danger">{{'accounts.delete_delete'| translate}}</span>
-            <svg class="icon">
-              <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
-            </svg>
-          </a>
-        </div>
+      <!--end card-->
+   </div>
+   <div class="col-12 col-lg-6">
+      <!--start card-->
+      <div class="card-wrapper card-space">
+         <div class="card card-bg">
+            <div class="card-body">
+               <h5 class="card-title">{{'accounts.delete_title'| translate}}</h5>
+               <p class="card-text">{{'accounts.delete_subtitle'| translate}}</p>
+
+               <a class="read-more" href="" ng-click="confirmDeleteAccount()">
+                  <span class="text text-danger">{{'accounts.delete_delete'| translate}}</span>
+                  <svg class="icon">
+                     <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
+                  </svg>
+               </a>
+            </div>
+         </div>
       </div>
-    </div>
-    <!--end card-->
-  </div>
+      <!--end card-->
+   </div>
 </div>
 
 <div class="row">
-  <div class="col-12 text-center">
-    <br/>
-    <h3>{{'accounts.external' | translate}}</h3>
-  </div>
-</div>  
+   <div class="col-12 text-center">
+      <br />
+      <h3>{{'accounts.list_title' | translate}}</h3>
+   </div>
+</div>
 
 <div class="row">
-  <div class="col-12 col-lg-6" ng-repeat="provider in providers">
-    <!--start card-->
-    <div class="card-wrapper card-space">
-      <div class="card card-bg">
-        <div class="card-body">
-          <h5 class="card-title">{{provider | uppercase}}</h5>
-          <p class="card-text" ng-if="accounts[provider]">{{'accounts.external_subtitle'| translate}}</p>
-          <p class="card-text" ng-if="!accounts[provider]">{{'accounts.external_missing'| translate}}</p>
-          <table class="table" ng-if="accounts[provider]">
-            <tr ng-repeat="(k,v) in accounts[provider]">
-              <td><b>{{k}}</b></td><td>{{v}}</td>
-            </tr>
-          </table>
-          
-        </div>
+   <div class="col-12 col-lg-6" ng-repeat="account in accounts">
+      <!--start card-->
+      <div class="card-wrapper card-space">
+         <div class="card card-bg">
+            <div class="card-body">
+               <div class="categoryicon-top">
+                  <svg class="icon">
+                     <use xlink:href="{{account.provider.icon}}"></use>
+                  </svg>
+                  <span class="text">{{account.provider.name}}</span>
+               </div>
+
+               <h5 class="card-title">{{account.username}}</h5>
+               <p class="card-text">
+                  <span class="text-monospace">{{account.userId}}</span>
+               </p>
+               <table class="table" ng-if="accounts[attributes]">
+                  <tr ng-repeat="(k,v) in accounts[attributes]">
+                     <td><b>{{k}}</b></td>
+                     <td>{{v}}</td>
+                  </tr>
+               </table>
+               <a class="read-more" href="" ng-click="updateCredentials(account.userId)"
+                  ng-if="account.authority == 'internal'">
+                  <span class="text text-primary">{{'accounts.internal_edit'| translate}}</span>
+                  <svg class="icon">
+                     <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
+                  </svg>
+               </a>
+            </div>
+         </div>
       </div>
-    </div>
-    <!--end card-->
-  </div>
+      <!--end card-->
+   </div>
 </div>
 
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
-    <div class="modal-dialog" role="document">
+   <div class="modal-dialog" role="document">
       <div class="modal-content">
-          <div class="modal-body">
+         <div class="modal-body">
             <p>{{'accounts.delete_confirm' | translate}}</p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-danger btn-sm" ng-click="deleteAccount()" type="button">{{'accounts.btn_delete' | translate}}</button>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">{{'btn_cancel' | translate}}</button>
-          </div>
+         </div>
+         <div class="modal-footer">
+            <button class="btn btn-danger btn-sm" ng-click="deleteAccount()"
+               type="button">{{'accounts.btn_delete' | translate}}</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button"
+               data-dismiss="modal">{{'btn_cancel' | translate}}</button>
+         </div>
       </div>
-    </div>
+   </div>
 </div>
-        

@@ -1,0 +1,40 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-5">
+            <legend class="mb-4">Basic settings</legend>
+            <div class="form-group col">
+                <input type="text" name="name" class="form-control form-control-sm" id="name" ng-model="ap.name"
+                    required>
+                <label for="name" class="{{ap.name != '' ? 'active' : ''}}">Provider Name</label>
+            </div>
+            <div class="form-group col">
+                <textarea rows="3" name="description" id="description" ng-model="ap.description"></textarea>
+                <label for="description" class="{{ap.description != '' ? 'active' : ''}}">Description</label>
+            </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="persistence">Persistence*</label>
+                    <select id="persistence" ng-model="ap.persistence">
+                        <option value="none" ng-selected="ap.persistence=='none'">None</option>
+                        <option value="session" ng-selected="ap.persistence=='session'">Session</option>
+                        <option value="memory" ng-selected="ap.persistence=='memory'">Memory</option>
+                        <option value="repository" ng-selected="ap.persistence=='repository'">Repository</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="events">Audit events*</label>
+                    <select id="events" ng-model="ap.events">
+                        <option value="none" ng-selected="ap.events=='none'">None</option>
+                        <option value="minimal" ng-selected="ap.events=='minimal'">Minimal</option>
+                        <option value="details" ng-selected="ap.events=='details'">Details</option>
+                        <option value="full" ng-selected="ap.events=='full'">Full</option>
+                    </select>
+                </div>
+            </div>          
+        </fieldset>
+
+
+    </div>
+</div>

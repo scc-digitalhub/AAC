@@ -1,0 +1,93 @@
+<!--
+
+       Copyright 2015-2021 Smart Community Lab, FBK
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="-1" />
+  <!-- Design Italia -->
+  <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+  <script th:inline="javascript">
+    const contextpath = /*[[@{/}]]*/ "/";
+    window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+  </script>
+
+  <link th:href="@{/italia/style.css}" rel="stylesheet" />
+
+  <title th:text="#{label.login_title}">AAC Login</title>
+</head>
+
+<body>
+  <div class="container-sm">
+
+    <div class="row mt-md-0 mt-5 justify-content-center">
+      <div class="col-xl-4 col-lg-6 col-md-8 col-sm-10">
+        <div class="card mt-5">
+          <div class="card-logo">
+            <img class="" th:src="@{/img/ds_logo.png}" alt="SmartCommunity">
+            <h4 class="text-center" th:text="${displayName}">AAC</h4>            
+          </div>
+
+          <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">Error text</div>
+
+          <div class="text-center mt-4">
+            <p th:text="#{label.login_select_realm}">Login with</p>
+            <form th:action="${loginUrl}" th:object="${login}" method="get">
+
+              <div class="col-md-12 form-group mt-5 mb-2">
+                <label th:text="#{field.realm}" for="realm" class="active">: </label>
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                 <select class="" name="realm"
+                    required="required">
+                    <option value="" th:text="#{action.select}"></option>
+                    <option th:each="r : ${realms}" th:value="${r.slug}"
+                       th:text="${r.name}"></option>
+                 </select>       
+                 </div>         
+                
+              </div>
+
+              <div class="row px-2 mt-4 align-items-center">
+                <button class="btn btn-primary btn-block" th:text="#{action.continue}">Continue</button>
+              </div>
+          </form>
+
+        </div>
+        
+         <div class="text-center mt-4">
+            <p th:utext="#{label.login_dev_realm(${'/-/system'+loginUrl})}">Dev login</p>
+         </div>
+        
+        
+      </div>
+    </div>
+
+   </div>
+  </div>
+  <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
+</body>
+
+</html>

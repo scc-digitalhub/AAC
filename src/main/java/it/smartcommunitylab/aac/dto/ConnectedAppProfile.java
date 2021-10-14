@@ -16,9 +16,13 @@
 
 package it.smartcommunitylab.aac.dto;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
+import javax.validation.constraints.NotBlank;
+
+import it.smartcommunitylab.aac.scope.Scope;
 
 /**
  * @author raman
@@ -26,44 +30,57 @@ import it.smartcommunitylab.aac.dto.ServiceDTO.ServiceScopeDTO;
  */
 public class ConnectedAppProfile {
 
-	private String clientId;
-	private String appName;
-	private List<ServiceScopeDTO> scopes;
-	/**
-	 * @return the clientId
-	 */
-	public String getClientId() {
-		return clientId;
-	}
-	/**
-	 * @param clientId the clientId to set
-	 */
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-	/**
-	 * @return the appName
-	 */
-	public String getAppName() {
-		return appName;
-	}
-	/**
-	 * @param appName the appName to set
-	 */
-	public void setAppName(String appName) {
-		this.appName = appName;
-	}
-	/**
-	 * @return the resources
-	 */
-	public List<ServiceScopeDTO> getScopes() {
-		return scopes;
-	}
-	/**
-	 * @param resources the resources to set
-	 */
-	public void setScopes(List<ServiceScopeDTO> scopes) {
-		this.scopes = scopes;
-	}
-	
+    @NotBlank
+    private String clientId;
+
+    @NotBlank
+    private String realm;
+    
+    private String appName;
+    private List<Scope> scopes;
+
+    public ConnectedAppProfile() {
+
+    }
+
+    public ConnectedAppProfile(String clientId, String realm, String name, Collection<Scope> scopes) {
+        this.clientId = clientId;
+        this.realm = realm;
+        this.appName = name;
+        this.scopes = new ArrayList<>();
+        this.scopes.addAll(scopes);
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+
+    public List<Scope> getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(List<Scope> scopes) {
+        this.scopes = scopes;
+    }
+
 }

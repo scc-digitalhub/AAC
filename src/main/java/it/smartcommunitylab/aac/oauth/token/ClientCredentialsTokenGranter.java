@@ -1,16 +1,28 @@
 package it.smartcommunitylab.aac.oauth.token;
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
+import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
+import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
 
 public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
 
@@ -19,13 +31,15 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
     private static final String GRANT_TYPE = "client_credentials";
     private boolean allowRefresh = false;
 
+    private ClientDetailsService clientService;
+
     public ClientCredentialsTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
         this(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
     protected ClientCredentialsTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
     }
 
@@ -54,10 +68,45 @@ public class ClientCredentialsTokenGranter extends AbstractTokenGranter {
     }
 
     @Override
-    protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
-        OAuth2Authentication clientAuth = super.getOAuth2Authentication(client, tokenRequest);
-        logger.trace("got oauth authentication from request " + clientAuth.toString());
+    protected void validateScope(Set<String> scopes, OAuth2Authentication authentication) {
+        if (scopeRegistry != null && clientService != null) {
+            try {
+                String clientId = authentication.getOAuth2Request().getClientId();
+                it.smartcommunitylab.aac.core.ClientDetails clientDetails = clientService.loadClient(clientId);
 
-        return clientAuth;
+                // check each scope is of type client and approved
+                for (String s : scopes) {
+                    try {
+                        Scope scope = scopeRegistry.getScope(s);
+                        if (ScopeType.CLIENT != scope.getType() && ScopeType.GENERIC != scope.getType()) {
+                            throw new InvalidScopeException("Unauthorized scope: " + s);
+                        }
+
+                        ScopeApprover sa = scopeRegistry.getScopeApprover(s);
+                        if (sa == null) {
+                            // this scope is undecided so skip
+                            continue;
+                        }
+
+                        Approval approval = sa.approveClientScope(s, clientDetails, scopes);
+                        if (approval != null) {
+                            if (!approval.isApproved()) {
+                                throw new InvalidScopeException("Unauthorized scope: " + s);
+                            }
+                        }
+                    } catch (NoSuchScopeException | SystemException | InvalidDefinitionException e) {
+                        throw new InvalidScopeException("Unauthorized scope: " + s);
+                    }
+                }
+
+            } catch (NoSuchClientException e1) {
+                throw new InvalidClientException("Invalid client");
+            }
+        }
     }
+
+    public void setClientService(ClientDetailsService clientService) {
+        this.clientService = clientService;
+    }
+
 }

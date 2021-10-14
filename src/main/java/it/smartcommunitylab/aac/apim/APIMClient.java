@@ -4,16 +4,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import it.smartcommunitylab.aac.model.ClientAppBasic;
-import net.minidev.json.JSONObject;
+import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 
 ////ignore data from APIM for paramers, we can't properly deserialize it 
 //@JsonIgnoreProperties(value = { "parameters" }, allowGetters = true)
@@ -192,37 +189,41 @@ public class APIMClient {
         this.parameters = parameters;
     }
 
-    public static APIMClient from(ClientAppBasic app) {
+    public static APIMClient from(OAuth2Client app) {
         APIMClient client = new APIMClient();
         // base
         client.name = app.getName();
-        client.userName = app.getUserName();
-        client.displayName = app.getDisplayName();
+        client.userName = app.getRealm();
+        client.displayName = app.getDescription();
         // oauth
         client.clientId = app.getClientId();
-        client.clientSecret = app.getClientSecret();
-        client.grantedTypes = app.getGrantedTypes();
-        client.scope = CollectionUtils.isEmpty(app.getScope()) ? ""
-                : String.join(SEPARATOR, app.getScope());
-        client.redirectUris = CollectionUtils.isEmpty(app.getRedirectUris()) ? ""
-                : String.join(SEPARATOR, app.getRedirectUris());
+        client.clientSecret = app.getSecret();
+        client.grantedTypes = app.getConfigMap().getAuthorizedGrantTypes()
+                .stream().map(gt -> gt.getValue())
+                .collect(Collectors.toList());
+        client.scope = StringUtils.collectionToDelimitedString(app.getScopes(), SEPARATOR);
+        client.redirectUris = StringUtils.collectionToDelimitedString(app.getConfigMap().getRedirectUris(), SEPARATOR);
+
         // deprecated
         client.clientSecretMobile = "";
         client.nativeAppsAccess = false;
-        client.mobileAppSchema = app.getMobileAppSchema();
+        client.mobileAppSchema = "";
 
         Map<String, String> parameters = new HashMap<>();
         // apim expects grantTypes in parameters as a string
-        parameters.put("grant_types", String.join(SEPARATOR, app.getGrantedTypes()));
+        parameters.put("grant_types", StringUtils.collectionToDelimitedString(client.grantedTypes, SEPARATOR));
         // apim expects subject as username string in parameters
         // THIS will break since subject != username
-        parameters.put("username", app.getUserName());
+        parameters.put("username", app.getClientId());
         // additional parameters
-        parameters.put("validityPeriod", String.valueOf((int) app.getAccessTokenValidity()));
-        parameters.put("tokenScope", String.join(SEPARATOR, app.getScope()));
+        int validityPeriod = app.getConfigMap().getAccessTokenValidity() != null
+                ? app.getConfigMap().getAccessTokenValidity()
+                : -1;
+        parameters.put("validityPeriod", String.valueOf(validityPeriod));
+        parameters.put("tokenScope", client.scope);
 
-        // lets put also additional information in here even if apim doesn't use it now
-        parameters.put("refreshPeriod", String.valueOf((int) app.getRefreshTokenValidity()));
+//        // lets put also additional information in here even if apim doesn't use it now
+//        parameters.put("refreshPeriod", String.valueOf((int) app.getRefreshTokenValidity()));
         client.parameters = parameters;
 
 //        client.parametersMap = parameters;

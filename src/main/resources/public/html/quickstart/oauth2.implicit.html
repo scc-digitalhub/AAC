@@ -1,0 +1,284 @@
+<fieldset>
+    <legend class="mb-4">Implicit flow</legend>
+
+
+    <div class="steppers">
+        <ul class="steppers-header">
+            <li class="{{curStep == 1 ? 'active' : ''}}" ng-click="setStep(1)"><span class="steppers-number">1</span>
+                Get configuration
+            </li>
+            <li class="{{curStep == 2 ? 'active' : ''}}" ng-click="setStep(2)"><span class="steppers-number">2</span>
+                Retrieve a token
+            </li>
+            <li class="{{curStep == 3 ? 'active' : ''}}" ng-click="setStep(3)"><span class="steppers-number">3</span>
+                Retrieve user profile
+            </li>
+            <li class="{{curStep == 4 ? 'active' : ''}}" ng-click="setStep(4)"><span class="steppers-number">4</span>
+                Call a protected API
+            </li>
+        </ul>
+        <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 1">
+
+            <p>Get <span class="neutral-2-bg text-monospace p-1 small">client_id</span> and <span
+                    class="neutral-2-bg text-monospace p-1 small">redirect_uris</span> from OAuth2 configuration page.
+            </p>
+
+            <div class="mt-4 mb-1">
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="clientid" class="active">Client ID</label>
+                        <input type="text" class="form-control" id="clientid" ng-model="app.clientId" readonly>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(app.clientId)">
+                                <svg class="icon icon-sm icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                                </svg>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="redirectUris" class="active">Redirect uris</label>
+                        <input type="text" class="form-control" id="redirectUris"
+                            value="{{app.configuration.redirectUris.join(' ')}}" readonly>
+                    </div>
+                </div>
+
+
+                <p>Also review the scopes enabled for the current client: only scopes of type user will be available for
+                    this flow.</p>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="scopes" class="active">Scopes</label>
+                        <input type="text" class="form-control" id="scopes" value="{{app.scopes.join(' ')}}" readonly>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary btn-sm  text-right"
+                                ng-click="copyText(app.scopes.join(' '))">
+                                <svg class="icon icon-sm icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                                </svg>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="callout warning">
+                <div class="callout-title">
+                    <svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-help-circle"></use>
+                    </svg>
+                    <span>Note</span>
+                </div>
+                <p>Implicit is a legacy flow which is considered insecure. Use authorization code with PKCE for all
+                    scenarios where applications are not confidential.</p>
+            </div>
+
+
+
+        </div>
+        <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 2">
+            <p>Redirect the user to the authorization endpoint to ask for token consent, and receive a token as fragment
+                on the redirect url from the user agent.</p>
+            <p>By providing a <span class="neutral-2-bg text-monospace p-1 small">state</span> as parameter, the
+                client will be able to bind the response to the request and ensure the uniqueness of requests.</p>
+
+            <div class="callout warning">
+                <div class="callout-title">
+                    <svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-help-circle"></use>
+                    </svg>
+                    <span>Note</span>
+                </div>
+                <p>When using JWT as tokens, their size can easily exceed the space available for url fragments. In this
+                    situation either switch to opaque tokens or use another flow.</p>
+
+            </div>
+
+
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="redirectUrl" class="active">Redirect Url</label>
+                    <input type="text" class="form-control" id="redirectUrl" ng-model="oauth2RedirectUrl">
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="state" class="active">State</label>
+                    <input type="text" class="form-control" id="state" ng-model="oauth2State">
+                </div>
+            </div>
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="scopes" class="active">Scopes</label>
+                    <input type="text" class="form-control" id="scopes" ng-model="oauth2Scopes">
+                </div>
+            </div>            
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white pl-4">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+{{oauth2Metadata.authorization_endpoint}}
+?response_type=token
+&client_id={{app.clientId}}
+&state={{oauth2State}}
+&scope={{oauth2Scopes}}
+&redirect_uri={{oauth2RedirectUrl}}
+</code>
+                </pre>
+            </figure>
+
+            <p>The parameters for the token request are:</p>
+            <table class="table table-bordered">
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">response_type</span></td>
+                    <td>set to <span class="neutral-2-bg text-monospace p-1 small">token</span></td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">client_id</span></td>
+                    <td>the client identifier</td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">state</span></td>
+                    <td>an opaque value used by the client to bind response to requests</td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">redirect_uri</span></td>
+                    <td>where the user agent will be redirected after obtaining a response </td>
+                </tr>
+                <tr>
+                    <td><span class="neutral-2-bg text-monospace p-1 small">scope</span></td>
+                    <td>The list of requested scopes, among those enabled for the client. Space separated.</td>
+                </tr>
+            </table>
+
+
+            <p>On successful requests the redirect url will be called with a GET containing an access token along with
+                expiration information, passed as url fragments.</p>
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+{{oauth2RedirectUrl}}#access_token=ACCESS_TOKEN&token_type=Bearer&expires_in=300&state={{oauth2State}}
+</code>
+                </pre>
+            </figure>
+
+
+        </div>
+        <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 3">
+            <p>Use the bearer token to retrieve user information.</p>
+            <div class="callout note">
+                <div class="callout-title"><svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-info-circle"></use>
+                    </svg>Note</div>
+                <p>To access user information tokens must contain the <span
+                        class="neutral-2-bg text-monospace p-1 small">openid profile</span> scopes.</p>
+            </div>
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="accessToken" class="active">Access Token</label>
+                    <input type="text" class="form-control" id="accessToken" ng-model="oauth2AccessToken">
+                </div>
+            </div>
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white pl-4">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+curl --request GET \
+--url '{{oauth2Metadata.userinfo_endpoint}}' \
+--header 'content-type: application/x-www-form-urlencoded' \
+--header 'Authorization: Bearer {{oauth2AccessToken}}' 
+</code>
+                </pre>
+            </figure>
+
+            <p>On authorized requests the response will contain user information, according to scopes and profiles.</p>
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+    {
+        "sub": "892456-2738-...,
+        "surname": "Test",
+        "name": "User",
+        "realm": "test",
+        "preferred_username": "user",
+        "given_name": "User",
+        "family_name": "Test",
+        "email": "user@local",
+        "username": "user"
+      }
+</code>
+                </pre>
+            </figure>
+
+            <div class="callout note">
+                <div class="callout-title"><svg class="icon">
+                        <use xlink:href="./italia/svg/sprite.svg#it-info-circle"></use>
+                    </svg>Note</div>
+                <p>To uniquely identify the user use only the <span
+                        class="neutral-2-bg text-monospace p-1 small">sub</span> (subject) field, which is guaranteed to
+                    be unique within the given realm/application.</p>
+            </div>
+
+        </div>
+        <div class="steppers-content p-4" aria-live="polite" ng-if="curStep == 4">
+            <p>Use the bearer token to call a protected resource.</p>
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="accessToken" class="active">Access Token</label>
+                    <input type="text" class="form-control" id="accessToken" ng-model="oauth2AccessToken">
+                </div>
+            </div>
+
+
+            <div class="form-group mt-4">
+                <div class="input-group">
+                    <label for="endpoint" class="active">Endpoint</label>
+                    <input type="text" class="form-control" id="endpoint" ng-model="oauth2TestEndpoint">
+                </div>
+            </div>
+
+            <figure class="p-2 mb-1 neutral-1-bg text-white pl-4">
+                <pre class="pre">
+<code class="language-json text-white" data-lang="json">
+curl --request GET \
+--url '{{oauth2TestEndpoint}}' \
+--header 'Authorization: Bearer {{oauth2AccessToken}}' 
+...
+</code>
+                </pre>
+            </figure>
+
+
+
+        </div>
+
+        <nav class="steppers-nav">
+            <button type="button" class="btn btn-outline-primary btn-sm steppers-btn-prev" ng-disabled="curStep == 1"
+                ng-click="prevStep()">
+                <svg class="icon icon-primary">
+                    <use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use>
+                </svg>
+                Previous
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm steppers-btn-next" ng-disabled="curStep == 4"
+                ng-click="nextStep()">
+                Next
+                <svg class="icon icon-primary">
+                    <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+                </svg>
+            </button>
+        </nav>
+    </div>
+</fieldset>

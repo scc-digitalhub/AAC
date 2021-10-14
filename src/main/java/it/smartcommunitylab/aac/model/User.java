@@ -1,226 +1,334 @@
-/**
- *    Copyright 2015-2019 Smart Community Lab, FBK
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
-
 package it.smartcommunitylab.aac.model;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.api.client.util.Sets;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.util.Assert;
 
-/**
- * DB entity representing the user: user ID, social ID, and the attributes
- * @author raman
- *
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
+
+/*
+ * A model describing the user outside the auth/security context.
+ * 
+ * Can be safely used to manage attributes/properties, and also roles both in 
+ * same-realm and cross-realm scenarios.
+ * 
+ * Do note that in cross realm managers and builders should properly handle private attributes and 
+ * disclose only appropriate identities/properties. 
  */
-@Entity
-@Table(name="user")
-public class User implements Serializable {
+@JsonInclude(Include.NON_EMPTY)
+public class User {
 
-	private static final long serialVersionUID = 1067996326671906278L;
+    // base attributes
+    // always set
+    @NotBlank
+    private final String subjectId;
 
-	@Id
-	@GeneratedValue
-	private Long id;
+    // describes the realm responsible for this user
+    private final String source;
 
-//	@OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
-//			CascadeType.REMOVE, CascadeType.MERGE })
-	@OneToMany(fetch = FetchType.EAGER, cascade = { CascadeType.ALL})	
-	@JoinColumn(name = "USER_ID", nullable=false)
-	@JsonIgnore
-	private Set<Attribute> attributeEntities;
+    // realm describes the current user for the given realm
+    private String realm;
 
-	@OneToMany(fetch = FetchType.EAGER, cascade = { CascadeType.ALL}, orphanRemoval = true)	
-	@JoinColumn(name = "USER_ID", nullable=false)
-	private Set<Role> roles;	
-	
-	private String name; 
-	private String surname;
-	private String fullName;
-	
-	@Column(unique=true)
-	@NotNull
-	private String username;
-	
-	public User() {
-		super();
-		this.roles = Sets.newHashSet();
-		this.attributeEntities = Sets.newHashSet();
-	}
-	
-	
-	/**
-	 * Create user with the specified parameters
-	 * @param id
-	 * @param name
-	 * @param surname
-	 * @param attrs 
-	 */
-	public User(String name, String surname, HashSet<Attribute> attrs) {
-		super();
-		updateNames(name, surname);
-		this.attributeEntities = attrs;
-		this.roles = Sets.newHashSet();
-	}
+    // basic profile
+    private String username;
+    private String email;
 
-	public Long getId() {
-		return id;
-	}
+    // user status
+    private boolean blocked;
+    private boolean locked;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date expirationDate;
 
-	public Set<Attribute> getAttributeEntities() {
-		return attributeEntities;
-	}
+    // audit
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date createDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date modifiedDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Date loginDate;
+    private String loginIp;
+    private String loginProvider;
 
-	public void setAttributeEntities(Set<Attribute> attributeEntities) {
-		this.attributeEntities = attributeEntities;
-	}
+//    // could be empty
+//    private String name;
+//    private String surname;
+//    private String username;
+//    private String email;
 
-	public Set<Role> getRoles() {
-		return roles;
-	}
+    // identities associated with this user
+    // this will be populated as needed, make no assumption about being always set
+    // or complete: for example the only identity provided could be the one
+    // selected for the authentication request, or those managed by a given
+    // authority etc
+    // these could also be empty in cross-realm scenarios
+    private Set<UserIdentity> identities;
 
-	public void setRoles(Set<Role> roles) {
-		this.roles = roles;
-	}
+    // realm roles (ie authorities in AAC)
+    // these can be managed inside realms
+    // do note that the set should describe only the roles for the current context
+    private Set<GrantedAuthority> authorities;
 
-	@Override
-	public String toString() {
-		return name + " " + surname;
-	}
+    // roles are OUTSIDE aac (ie not grantedAuthorities)
+    // roles are associated to USER(=subjectId) not single identities/realms
+    // this field should be used for caching, consumers should refresh
+    // otherwise we should implement an (external) expiring + refreshing cache with
+    // locking.
+    // this field is always discosed in cross-realm scenarios
+    private Set<SpaceRole> roles;
 
-	public String getName() {
-		return name;
-	}
+    // additional attributes as UserAttributes collection
+    // these attributes should be kept consistent with the context(ie realm)
+    private List<UserAttributes> attributes;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public User(String subjectId, String source) {
+        Assert.hasText(subjectId, "subject can not be null or empty");
+        Assert.notNull(source, "source realm can not be null");
 
-	public String getSurname() {
-		return surname;
-	}
+        this.subjectId = subjectId;
+        this.source = source;
+        // set consuming realm to source
+        this.realm = source;
+        this.authorities = Collections.emptySet();
+        this.identities = new HashSet<>();
+        this.attributes = new ArrayList<>();
+        this.roles = new HashSet<>();
+    }
 
-	public void setSurname(String surname) {
-		this.surname = surname;
-	}
+    public User(UserDetails details) {
+        Assert.notNull(details, "user details can not be null");
+        this.subjectId = details.getSubjectId();
+        this.source = details.getRealm();
+        // set consuming realm to source
+        this.realm = source;
+        this.authorities = details.getAuthorities().stream()
+                .filter(a -> (a instanceof RealmGrantedAuthority))
+                .map(a -> (RealmGrantedAuthority) a)
+                .collect(Collectors.toSet());
+        this.identities = new HashSet<>(details.getIdentities());
+        this.attributes = new ArrayList<>(details.getAttributeSets(false));
+        this.roles = new HashSet<>();
 
-	public String getFullName() {
-		if (fullName == null) {
-			fullName = surname + " "+ name;
-		}
-		return fullName;
-	}
+        this.username = details.getUsername();
+//        this.name = details.getFirstName();
+//        this.surname = details.getLastName();
+//        this.email = details.getEmailAddress();
 
-	public void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public String getSubjectId() {
+        return subjectId;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public String getSource() {
+        return source;
+    }
 
+    public Set<GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
 
-	/**
-	 * Update name/surname params
-	 * @param name
-	 * @param surname
-	 */
-	public void updateNames(String name, String surname) {
-		if (name != null) setName(name);
-		if (surname != null) setSurname(surname);
-		setFullName((getName()+" "+getSurname()).trim().toLowerCase());
-	}
-	
-	public boolean hasRole(String role, String context, String space) {
-		return roles
-		.stream().anyMatch(r -> {
-			return 	   role.equals(r.getRole()) 
-					&& (context == null && r.getContext() == null || context != null && context.equals(r.getContext()))
-					&& (space == null && r.getSpace() == null || space != null && space.equals(r.getSpace()));
-		});
-	}
+    public void setAuthorities(Collection<GrantedAuthority> authorities) {
+        this.authorities = new HashSet<>();
+        if (authorities != null) {
+            this.authorities.addAll(authorities);
+        }
+    }
 
-	/**
-	 * Get all the SpaceRoles at the specified context
-	 * @param role
-	 * @param context
-	 * @return
-	 */
-	public Set<Role> contextRole(String role, String context) {
-		return roles
-		.stream()
-		.filter(r -> r.getRole().equals(role) && (context == null && r.getContext() == null || context != null && context.equals(r.getContext())) )
-		.collect(Collectors.toSet());
-	}
-	
-	/**
-	 * Get all the SpaceRoles with the specified role value
-	 * @param role
-	 * @param context
-	 * @return
-	 */
-	public Set<Role> contextRole(String role) {
-		return roles
-		.stream()
-		.filter(r -> r.getRole().equals(role))
-		.collect(Collectors.toSet());
-	}
-	/**
-	 * Get all the SpaceRoles at the specified space
-	 * @param context
-	 * @param space
-	 * @return
-	 */
-	public Set<Role> spaceRole(String context, String space) {
-		return roles
-		.stream()
-		.filter(r -> (space == null && r.getSpace() == null || space != null && space.equals(r.getSpace())) && (context == null && r.getContext() == null || context != null && context.equals(r.getContext())) )
-		.collect(Collectors.toSet());
-	}
-	
-	public String attributeValue(String authority, String key) {
-		Optional<Attribute> attr = attributeEntities
-				.stream()
-				.filter(a -> {return a.getAuthority().getName().equals(authority) && a.getKey().equals(key);})
-				.findAny();
-		if (attr.isPresent()) return attr.get().getValue();
-		return null;
-	}
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
+//
+//    public String getSurname() {
+//        return surname;
+//    }
+//
+//    public void setSurname(String surname) {
+//        this.surname = surname;
+//    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    public Date getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(Date expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public Date getLoginDate() {
+        return loginDate;
+    }
+
+    public void setLoginDate(Date loginDate) {
+        this.loginDate = loginDate;
+    }
+
+    public String getLoginIp() {
+        return loginIp;
+    }
+
+    public void setLoginIp(String loginIp) {
+        this.loginIp = loginIp;
+    }
+
+    public String getLoginProvider() {
+        return loginProvider;
+    }
+
+    public void setLoginProvider(String loginProvider) {
+        this.loginProvider = loginProvider;
+    }
+
+    public Collection<UserIdentity> getIdentities() {
+        return Collections.unmodifiableCollection(identities);
+    }
+
+    public void setIdentities(Collection<UserIdentity> identities) {
+        this.identities = new HashSet<>();
+        if (identities != null) {
+            this.identities.addAll(identities);
+            // add all attributes
+            identities.forEach(i -> attributes.addAll(i.getAttributes()));
+        }
+
+    }
+
+    public void addIdentity(UserIdentity identity) {
+        identities.add(identity);
+
+        // add all attributes
+        identities.forEach(i -> attributes.addAll(i.getAttributes()));
+    }
+
+    public Collection<UserAttributes> getAttributes() {
+        return Collections.unmodifiableCollection(attributes);
+    }
+
+    public void setAttributes(Collection<UserAttributes> attributes) {
+        this.attributes = new ArrayList<>();
+        if (attributes != null) {
+            this.attributes.addAll(attributes);
+        }
+    }
+
+    public void addAttributes(Collection<UserAttributes> attributes) {
+        this.attributes.addAll(attributes);
+    }
+
+    public void addAttributes(UserAttributes attributes) {
+        this.attributes.add(attributes);
+    }
+
+    /*
+     * Authorities (realm)
+     * 
+     */
+
+    /*
+     * Roles are mutable and comparable
+     */
+
+    public Set<SpaceRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Collection<SpaceRole> rr) {
+        this.roles = new HashSet<>();
+        addRoles(rr);
+    }
+
+    public void addRoles(Collection<SpaceRole> rr) {
+        if (rr != null) {
+            roles.addAll(rr);
+        }
+    }
+
+    public void removeRoles(Collection<SpaceRole> rr) {
+        roles.removeAll(rr);
+    }
+
+    public void addRole(SpaceRole r) {
+        this.roles.add(r);
+    }
+
+    public void removeRole(SpaceRole r) {
+        this.roles.remove(r);
+    }
 
 }

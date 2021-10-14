@@ -1,0 +1,228 @@
+<div class="pb-3 pt-3">
+  <div class="row mb-3">
+    <div class="col col-md-6 p-3">
+      <h3>Attribute Providers</h3>
+      <p>Register and manage attribute providers</p>
+    </div>
+    <div class="col col-md-6 text-right">
+      <button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <svg class="icon icon-sm icon-white">
+          <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+        </svg>
+        Add Provider
+        <svg class="icon-expand icon icon-sm icon-light">
+          <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+        </svg>
+      </button>
+      <div class="dropdown-menu">
+        <div class="link-list-wrapper">
+          <ul class="link-list">
+            <li><a class="list-item" href="" ng-click="createProviderDlg('mapper')"><span>Mapper</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('script')"><span>Script</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('internal')"><span>Internal</span></a></li>
+            <li><a class="list-item" href="" ng-click="createProviderDlg('webhook')"><span>Webhook</span></a></li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-sm" ng-click="importProviderDlg()">Import</button>
+
+    </div>
+  </div>
+</div>
+<div class="accordion" id="providers">
+  <div ng-if="providers && providers.length > 0">
+    <table class="table table-hover border-bottom">
+      <tr ng-repeat="ap in providers">
+
+        <td
+          class="align-middle {{!ap.enabled && !ap.registered ? 'text-muted' : ''}} {{ap.enabled && !ap.registered ? 'text-danger' : ''}}">
+
+          <div class="avatar-wrapper avatar-extra-text">
+            <div class="avatar size-lg">
+              <svg aria-hidden="true" class="icon icon-secondary">
+                <use xlink:href="{{ap.icon}}"></use>
+              </svg>
+            </div>
+            <div class="extra-text">
+              <span class="h6">{{ap.name}}</span>
+              <svg ng-if="ap.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                <title>Active</title>
+              </svg>
+              <svg ng-if="ap.enabled && !ap.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
+                <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
+                <title>Error</title>
+              </svg>
+              <svg ng-if="!ap.enabled && !ap.registered" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
+                <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                <title>Disabled</title>
+              </svg>
+              <br><small class=""> {{ap.authority }}</small>
+              <p>{{ap.description}}</p>
+            </div>
+
+
+        </td>
+        <td class="align-middle">
+          ID <span class="small text-monospace bg-light pl-1 pr-1">{{ap.provider}}</span>
+          <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(ap.provider)">
+            <svg class="icon icon-xs icon-black">
+              <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+            </svg>
+          </button>
+        </td>
+        <td class="align-middle">
+          <span>{{ap.attributeSets.length}} sets
+        </td>
+        <td class="text-right">
+          <button ng-if="!ap.enabled" class="btn btn-success btn-sm  text-right"
+            ng-click="toggleProviderState(ap, !ap.enabled)">
+            Enable
+          </button>
+          <button ng-if="ap.enabled" class="btn btn-warning btn-sm  text-right"
+            ng-click="toggleProviderState(ap, !ap.enabled)">
+            Disable
+          </button>
+          <button class="btn btn-primary btn-sm"
+            ui-sref="realm.ap({realmId:ap.realm, providerId:ap.provider})">Edit</button>
+          <button class="btn btn-danger btn-sm" ng-disabled="ap.enabled"
+            ng-click="deleteProviderDlg(ap)">Delete</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div ng-if="providers && providers.length == 0">
+    <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="it-hero-text-wrapper bg-dark">
+              <h1 class="no_toc">No providers registered.</h1>
+              <p class="d-none d-lg-block">Add an internal or external provider to let users sign into the realm.</p>
+              <div class="it-btn-container">
+                <button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false">
+                  <svg class="icon icon-sm">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                  </svg>
+                  Add Provider
+                  <svg class="icon-expand icon icon-sm">
+                    <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+                  </svg>
+                </button>
+                <div class="dropdown-menu">
+                  <div class="link-list-wrapper">
+                    <ul class="link-list">
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('mapper')"><span>Mapper</span></a>
+                      </li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('script')"><span>Script</span></a>
+                      </li>
+                      <li><a class="list-item" href=""
+                          ng-click="createProviderDlg('internal')"><span>Internal</span></a></li>
+                      <li><a class="list-item" href="" ng-click="createProviderDlg('webhook')"><span>Webhook</span></a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteProviderConfirm">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+        <p>You are deleting provider <span class="text-monospace">{{modProvider.provider}}</span> <br>To proceed
+          enter the id</p>
+        <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+        <form name="deleteProviderForm" class="needs-validation was-validated" novalidate>
+          <div class="form-group col mb-4">
+            <label for="confirmId">Provider Id*</label>
+            <input type="text" name="confirmId" class="form-control form-control-sm" id="confirmId" required
+              ng-model="modProvider.confirmId" ng-pattern="(modProvider.provider)">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="deleteProvider()" type="button"
+          ng-disabled="deleteProviderForm.$invalid">Delete</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importProviderDlg">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Import provider </h5>
+      </div>
+      <div class="modal-body">
+        <form name="importProviderForm" enctype="multipart/form-data" class="needs-validation was-validated" novalidate>
+          <p>Upload a valid YAML file with the full provider definition.</p>
+
+          <div class="form-group col pt-4 mb-2">
+            <label for="file">File*</label>
+            <input type="file" name="file" class="form-control form-control-sm upload" id="file" file-model="importFile"
+              required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+            <ul class="upload-file-list">
+              <li class="upload-file success" ng-if="importFile != null">
+                <p>
+                  {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                </p>
+              </li>
+            </ul>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="importProvider()"
+          ng-disabled="importFile == null">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createProviderDlg">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create provider </h5>
+      </div>
+      <div class="modal-body">
+        <form name="createProviderForm" class="needs-validation was-validated" novalidate>
+          <div class="form-group col pt-4 mb-3">
+            <label for="name">Provider Name*</label>
+            <input type="text" name="name" class="form-control form-control-sm" id="name" required
+              ng-model="modProvider.name">
+          </div>
+          <div class="form-group col pt-4 mb-2">
+            <label for="authority">Authority</label>
+            <input type="text" name="authority" class="form-control form-control-sm" id="authority" readonly
+              ng-model="modProvider.authority">
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="createProvider()"
+          ng-disabled="createProviderForm.$invalid">Create</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,10 +1,13 @@
 package it.smartcommunitylab.aac.common;
 
-public class WrapperException extends Exception {
-	private static final long serialVersionUID = -3009777112960591734L;
+import it.smartcommunitylab.aac.SystemKeys;
 
-	public WrapperException(String message, Throwable cause) {
-		super(message, cause);
-	}
+public class WrapperException extends Exception {
+
+    private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
+
+    public WrapperException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

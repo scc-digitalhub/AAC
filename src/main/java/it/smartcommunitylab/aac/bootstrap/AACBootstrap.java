@@ -1,32 +1,47 @@
 package it.smartcommunitylab.aac.bootstrap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.dto.ServiceDTO;
-import it.smartcommunitylab.aac.manager.ClientDetailsManager;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.manager.ServiceManager;
-import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.ClientAppBasic;
-import it.smartcommunitylab.aac.model.Registration;
-import it.smartcommunitylab.aac.model.Role;
-import it.smartcommunitylab.aac.model.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.core.AuthorityManager;
+import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.UserManager;
+import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
+import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
+import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.service.AttributeProviderService;
+import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.crypto.PasswordHash;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.services.ServicesManager;
 
 @Component
 public class AACBootstrap {
@@ -35,206 +50,438 @@ public class AACBootstrap {
     @Value("${bootstrap.apply}")
     private boolean apply;
 
+    @Value("${bootstrap.file}")
+    private String source;
+
     @Value("${admin.username}")
     private String adminUsername;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    @Autowired
+    @Qualifier("yamlObjectMapper")
+    private ObjectMapper yamlObjectMapper;
+
+//    @Autowired
+    private BootstrapConfig config;
+
+    @Autowired
+    private AuthorityManager authorityManager;
+
+    @Autowired
+    private RealmManager realmManager;
+
+    @Autowired
+    private ProviderManager providerManager;
+
+    @Autowired
+    private ClientManager clientManager;
+
+    @Autowired
+    private ServicesManager serviceManager;
 
     @Autowired
     private UserManager userManager;
 
     @Autowired
-    private RoleManager roleManager;
+    private UserEntityService userService;
 
     @Autowired
-    private RegistrationManager registrationManager;
+    private InternalUserAccountService internalUserService;
 
     @Autowired
-    private ClientDetailsManager clientManager;
+    private IdentityProviderService identityProviderService;
 
     @Autowired
-    private ServiceManager serviceManager;
+    private AttributeProviderService attributeProviderService;
 
-    @Autowired
-    private BootstrapConfig config;
-
-    // TODO rework with dedicated bootstrappers *per-manager*
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
-            // base initalization
+            // base initialization
             logger.debug("application init");
             initServices();
+
+            // build a security context as admin to bootstrap configs
+            // initContext(adminUsername);
+
+            // bootstrap providers
+            // TODO use a dedicated thread, or a multithread
+            bootstrapSystemProviders();
+            bootstrapIdentityProviders();
+            bootstrapAttributeProviders();
 
             // custom bootstrap
             if (apply) {
                 logger.debug("application bootstrap");
-                bootstrap();
+                bootstrapConfig();
             } else {
                 logger.debug("bootstrap disabled by config");
             }
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+            logger.error("error bootstrapping: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void bootstrap() throws Exception {
+    private void bootstrapSystemProviders() throws NoSuchRealmException {
+        Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
 
-        /*
-         * Admin
-         */
-//        Long userId = Long.valueOf(Config.ADMIN_ID);
-//        final User admin = userManager.findOne(userId);
-        final User admin = userManager.getUserByUsername(adminUsername);
+        Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(SystemKeys.REALM_SYSTEM);
 
-        logger.trace("admin user id " + String.valueOf(admin.getId()));
+        for (ConfigurableIdentityProvider idp : idps) {
+            // try register
+            if (idp.isEnabled()) {
+                try {
+                    // register via authorityManager
+//                        authorityManager.registerIdentityProvider(idp);
 
-        // DEPRECATE admin client, let regular bootstrap handle it
-//            logger.debug("create admin client as " + adminClientId);
-//            ClientAppBasic adminClient = createClient(admin.getId(),
-//                    adminClientId, adminClientId,
-//                    adminClientSecret, adminClientSecret,
-//                    adminClientGrantTypes, adminClientScopes, adminClientRedirects,
-//                    null, null, null,
-//                    true);
-//
-//            logger.trace("admin client id " + adminClient.getClientId());
+                    // register directly with authority
+                    IdentityAuthority ia = ias.get(idp.getAuthority());
+                    if (ia == null) {
+                        throw new IllegalArgumentException(
+                                "no authority for " + String.valueOf(idp.getAuthority()));
+                    }
 
-        /*
-         * Users creation
-         */
-        List<User> users = new ArrayList<>();
-        logger.debug("create bootstrap users");
-        List<BootstrapUser> bootUsers = config.getUsers();
-        for (BootstrapUser bu : bootUsers) {
-            try {
+                    ia.registerIdentityProvider(idp);
+                } catch (Exception e) {
+                    logger.error("error registering provider " + idp.getProvider() + " for realm "
+                            + idp.getRealm() + ": " + e.getMessage());
 
-                // all bootstrapped users are regular
-                User u = createUser(bu.getUsername(), bu.getPassword(), bu.getRoles(), false);
-                logger.trace("created user " + u.getName() + " with id " + u.getId());
-
-                // cache
-                users.add(u);
-
-            } catch (Exception e) {
-                logger.error("error creating user " + bu.getUsername() + ": " + e.getMessage());
-                e.printStackTrace();
+                    if (logger.isTraceEnabled()) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
 
-        /*
-         * Client creation
-         */
-        List<ClientAppBasic> clients = new ArrayList<>();
-        logger.debug("create bootstrap clients");
-        List<BootstrapClient> bootClients = config.getClients();
-        for (BootstrapClient bc : bootClients) {
-            try {
+    }
 
-                // developer should match the name of one between:
-                // - admin
-                // - bootstrapped users
-                Long developerId = null;
-                if (bc.getDeveloper().equals(admin.getName())) {
-                    developerId = admin.getId();
-                } else {
-                    for (User u : users) {
-                        if (bc.getDeveloper().equals(u.getName())) {
-                            developerId = u.getId();
-                            break;
+    private void bootstrapIdentityProviders() {
+        Map<String, IdentityAuthority> ias = authorityManager.listIdentityAuthorities().stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+
+        // load all realm providers from storage
+        Collection<Realm> realms = realmManager.listRealms();
+
+        // we iterate by realm to load consistently each realm
+        // we use parallel to leverage default threadpool, loading should be thread-safe
+        realms.parallelStream().forEach(realm -> {
+            Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(realm.getSlug());
+
+            for (ConfigurableIdentityProvider idp : idps) {
+                // try register
+                if (idp.isEnabled()) {
+                    try {
+                        // register via authorityManager
+//                        authorityManager.registerIdentityProvider(idp);
+
+                        // register directly with authority
+                        IdentityAuthority ia = ias.get(idp.getAuthority());
+                        if (ia == null) {
+                            throw new IllegalArgumentException(
+                                    "no authority for " + String.valueOf(idp.getAuthority()));
+                        }
+
+                        ia.registerIdentityProvider(idp);
+                    } catch (Exception e) {
+                        logger.error("error registering provider " + idp.getProvider() + " for realm "
+                                + idp.getRealm() + ": " + e.getMessage());
+
+                        if (logger.isTraceEnabled()) {
+                            e.printStackTrace();
                         }
                     }
                 }
+            }
+        });
+    }
 
-                if (developerId != null) {
-                    String clientName = StringUtils.hasText(bc.getName()) ? bc.getName() : bc.getId();
-                    // only clients owned by admin can be trusted
-                    boolean isTrusted = false;
-                    if (bc.isTrusted() && developerId == admin.getId()) {
-                        isTrusted = true;
+    private void bootstrapAttributeProviders() {
+        Map<String, AttributeAuthority> ias = authorityManager.listAttributeAuthorities().stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+
+        // load all realm providers from storage
+        Collection<Realm> realms = realmManager.listRealms();
+
+        // we iterate by realm to load consistently each realm
+        // we use parallel to leverage default threadpool, loading should be thread-safe
+        realms.parallelStream().forEach(realm -> {
+            Collection<ConfigurableAttributeProvider> providers = attributeProviderService
+                    .listProviders(realm.getSlug());
+
+            for (ConfigurableAttributeProvider provider : providers) {
+                // try register
+                if (provider.isEnabled()) {
+                    try {
+                        // register via authorityManager
+//                        authorityManager.registerAttributeProvider(idp);
+
+                        // register directly with authority
+                        AttributeAuthority ia = ias.get(provider.getAuthority());
+                        if (ia == null) {
+                            throw new IllegalArgumentException(
+                                    "no authority for " + String.valueOf(provider.getAuthority()));
+                        }
+
+                        ia.registerAttributeProvider(provider);
+                    } catch (Exception e) {
+                        logger.error("error registering provider " + provider.getProvider() + " for realm "
+                                + provider.getRealm() + ": " + e.getMessage());
+
+                        if (logger.isTraceEnabled()) {
+                            e.printStackTrace();
+                        }
                     }
+                }
+            }
+        });
+    }
 
-                    // code is base64encoded
-                    String claimMappingCode = null;
-                    if (StringUtils.hasText(bc.getClaimMappingFunction())) {
-                        claimMappingCode = new String(Base64.getDecoder().decode(
-                                bc.getClaimMappingFunction()),
-                                "UTF-8");
-                    }
+    // @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void bootstrapConfig() throws Exception {
 
-                    // jwks is base64encoded
-                    String jwks = null;
-                    if (StringUtils.hasText(bc.getJwks())) {
-                        jwks = new String(Base64.getDecoder().decode(
-                                bc.getJwks()),
-                                "UTF-8");
-                    }
+        // read configuration
+        Resource res = resourceLoader.getResource(source);
+        if (!res.exists()) {
+            logger.debug("no bootstrap file from " + source);
+            return;
+        }
 
-                    ClientAppBasic c = createClient(developerId,
-                            bc.getId(), clientName,
-                            bc.getSecret(),
-                            bc.getGrantTypes(), bc.getScopes(), bc.getRedirectUris(),
-                            bc.getUniqueSpaces(), bc.getRolePrefixes(), claimMappingCode, bc.getAfterApprovalWebhook(),
-                            bc.getJwtSignAlgorithm(), bc.getJwtEncMethod(), bc.getJwtEncAlgorithm(),
-                            bc.getJwks(), bc.getJwksUri(),
-                            isTrusted);
+        // read config
+        config = yamlObjectMapper.readValue(res.getInputStream(), BootstrapConfig.class);
 
-                    logger.trace("created client " + c.getName() + " with id " + c.getClientId() + " developer "
-                            + c.getUserName());
+        // TODO validation on imported beans
 
-                    // cache
-                    clients.add(c);
+        /*
+         * Realms creation
+         */
+        logger.debug("create bootstrap realms");
+
+        // keep a cache of bootstrapped realms, we
+        // will process only content related to these realms
+        Map<String, Realm> realms = new HashMap<>();
+
+        for (Realm r : config.getRealms()) {
+
+            try {
+                if (!StringUtils.hasText(r.getSlug())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating realm, missing slug");
+                    throw new IllegalArgumentException("missing slug");
                 }
 
+                logger.debug("create or update realm " + r.getSlug());
+
+                Realm realm = realmManager.findRealm(r.getSlug());
+                if (realm == null) {
+                    realm = realmManager.addRealm(r);
+                } else {
+                    realm = realmManager.updateRealm(r.getSlug(), r);
+                }
+
+                // keep in cache
+                realms.put(realm.getSlug(), realm);
+
             } catch (Exception e) {
-                logger.error("error creating client " + bc.getId() + ": " + e.getMessage());
+                logger.error("error creating provider " + String.valueOf(r.getSlug()) + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
         /*
-         * Service creation
+         * IdP
          */
-        try {
+        // keep a cache, we'll load users only to these providers
+        Map<String, ConfigurableProvider> providers = new HashMap<>();
+        for (ConfigurableProvider cp : config.getProviders()) {
 
-            // TODO define a format in bootstrap yaml for services
-            List<BootstrapService> services = config.getServices();
-            for (BootstrapService bs : services) {
-                logger.trace("found service " + bs.getServiceId());
-
-                try {
-                    ServiceDTO service = BootstrapService.toDTO(bs);
-                    String serviceId = service.getServiceId();
-
-                    // update existing or create new ones
-                    serviceManager.saveService(admin, service);
-
-                    logger.trace("created service " + serviceId + " developer " + admin.getName());
-
-                    if (service.getClaims() != null) {
-
-                        service.getClaims().forEach(claim -> {
-                            try {
-                                serviceManager.saveServiceClaim(admin, service.getServiceId(), claim);
-                            } catch (IllegalArgumentException iex) {
-                                // ignore, claim already exists
-                            }
-                        });
-                    }
-                    if (service.getScopes() != null) {
-                        service.getScopes()
-                                .forEach(scope -> serviceManager.saveServiceScope(admin, service.getServiceId(),
-                                        scope));
-                    }
-                } catch (Exception e) {
-                    logger.error("error creating service " + bs.getServiceId() + ": " + e.getMessage());
+            try {
+                if (!realms.containsKey(cp.getRealm())) {
+                    // not managed here, skip
+                    continue;
                 }
+                if (!StringUtils.hasText(cp.getProvider())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating provider, missing id");
+                    throw new IllegalArgumentException("missing id");
+                }
+                // we support only idp for now
+                if (SystemKeys.RESOURCE_IDENTITY.equals(cp.getType())) {
+                    logger.debug("create or update provider " + cp.getProvider());
+                    ConfigurableIdentityProvider provider = providerManager.findIdentityProvider(cp.getRealm(),
+                            cp.getProvider());
+
+//                    if (provider == null) {
+//                        provider = providerManager.addIdentityProvider(cp.getRealm(), cp);
+//                    } else {
+//                        provider = providerManager.unregisterIdentityProvider(cp.getRealm(), cp.getProvider());
+//                        provider = providerManager.updateIdentityProvider(cp.getRealm(), cp.getProvider(), cp);
+//                    }
+
+                    if (cp.isEnabled()) {
+                        // register
+                        if (!providerManager.isProviderRegistered(cp.getRealm(), provider)) {
+                            provider = providerManager.registerIdentityProvider(provider.getRealm(),
+                                    provider.getProvider());
+                        }
+                    }
+
+                    // keep in cache
+                    providers.put(provider.getProvider(), provider);
+
+                }
+
+            } catch (Exception e) {
+                logger.error("error creating provider " + String.valueOf(cp.getProvider()) + ": " + e.getMessage());
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
+
+        /*
+         * Services
+         */
+        for (Service s : config.getServices()) {
+
+            try {
+                if (!StringUtils.hasText(s.getRealm()) || !realms.containsKey(s.getRealm())) {
+                    // not managed here, skip
+                    continue;
+                }
+                if (!StringUtils.hasText(s.getServiceId())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating service, missing serviceId");
+                    throw new IllegalArgumentException("missing serviceId");
+                }
+
+                if (!StringUtils.hasText(s.getNamespace())) {
+                    logger.error("error creating service, missing namespace");
+                    throw new IllegalArgumentException("missing namespace");
+                }
+
+                logger.debug("create or update service " + s.getServiceId());
+                Service service = serviceManager.findService(s.getRealm(), s.getServiceId());
+
+                if (service == null) {
+                    service = serviceManager.addService(s.getRealm(), s);
+                } else {
+                    service = serviceManager.updateService(s.getRealm(), s.getServiceId(), s);
+                }
+
+            } catch (Exception e) {
+                logger.error("error creating service " + String.valueOf(s.getServiceId()) + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        /*
+         * ClientApp
+         */
+        for (ClientApp ca : config.getClients()) {
+
+            try {
+                if (!StringUtils.hasText(ca.getRealm()) || !realms.containsKey(ca.getRealm())) {
+                    // not managed here, skip
+                    continue;
+                }
+                if (!StringUtils.hasText(ca.getClientId())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating client, missing clientId");
+                    throw new IllegalArgumentException("missing clientId");
+                }
+
+                logger.debug("create or update client " + ca.getClientId());
+                ClientApp client = clientManager.findClientApp(ca.getRealm(), ca.getClientId());
+
+                if (client == null) {
+                    client = clientManager.registerClientApp(ca.getRealm(), ca);
+                } else {
+                    client = clientManager.updateClientApp(ca.getRealm(), ca.getClientId(), ca);
+                }
+
+            } catch (Exception e) {
+                logger.error("error creating client " + String.valueOf(ca.getClientId()) + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // Internal users
+
+        for (InternalUserAccount ua : config.getUsers().getInternal()) {
+            try {
+                if (!StringUtils.hasText(ua.getRealm()) || !StringUtils.hasText(ua.getProvider())) {
+                    // invalid, skip
+                    continue;
+                }
+                if (!realms.containsKey(ua.getRealm()) || !providers.containsKey(ua.getProvider())) {
+                    // not managed here, skip
+                    continue;
+                }
+                if (!StringUtils.hasText(ua.getSubject())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating user, missing subjectId");
+                    throw new IllegalArgumentException("missing subjectId");
+                }
+                if (!StringUtils.hasText(ua.getUsername())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating user, missing username");
+                    throw new IllegalArgumentException("missing username");
+                }
+                if (!StringUtils.hasText(ua.getPassword())) {
+                    // we ask id to be provided otherwise we create a new one every time
+                    logger.error("error creating user, missing password");
+                    throw new IllegalArgumentException("missing password");
+                }
+
+                logger.debug("create or update user " + ua.getSubject() + " with authority internal");
+
+                // check if user exists, recreate if needed
+                UserEntity user = userService.findUser(ua.getSubject());
+                if (user == null) {
+                    user = userService.addUser(ua.getSubject(), ua.getRealm(), ua.getUsername(), ua.getEmail());
+                } else {
+                    // check match
+                    if (!user.getRealm().equals(ua.getRealm())) {
+                        logger.error("error creating user, realm mismatch");
+                        throw new IllegalArgumentException("realm mismatch");
+                    }
+
+                    user = userService.updateUser(ua.getSubject(), ua.getUsername(), ua.getEmail());
+                }
+
+                InternalUserAccount account = internalUserService.findAccountByUsername(ua.getRealm(),
+                        ua.getUsername());
+
+                if (account == null) {
+                    account = internalUserService.addAccount(ua);
+                } else {
+                    account = internalUserService.updateAccount(account.getId(), account);
+                }
+
+                // re-set password
+                String hash = PasswordHash.createHash(ua.getPassword());
+                account.setPassword(hash);
+                account.setChangeOnFirstAccess(false);
+
+                // ensure account is unlocked
+                account.setConfirmed(true);
+                account.setConfirmationKey(null);
+                account.setConfirmationDeadline(null);
+                account.setResetKey(null);
+                account.setResetDeadline(null);
+                account = internalUserService.updateAccount(account.getId(), account);
+
+            } catch (Exception e) {
+                logger.error("error creating user " + String.valueOf(ua.getSubject()) + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // TODO oidc/saml users
+        // requires accountService extracted from idp to detach from repo
 
         /*
          * Migrations?
@@ -247,180 +494,32 @@ public class AACBootstrap {
      * in their own transaction to avoid rollback issues across services
      */
     public void initServices() throws Exception {
-        /*
-         * Base user
-         */
-        logger.trace("init user");
-        userManager.init();
-
-        logger.trace("init registration");
-        registrationManager.init();
-
-        /*
-         * Base roles
-         */
-        logger.trace("init roles");
-        roleManager.init();
-
-        /*
-         * Base services
-         */
-        logger.trace("init services");
-        serviceManager.init();
-
-        /*
-         * Base clients
-         */
-        logger.trace("init client");
-        clientManager.init();
-
-    }
-
-    public User createUser(String username, String password, String[] roles, boolean isAdmin) throws Exception {
-        Set<Role> userRoles = new HashSet<>();
-        Role role = Role.systemUser();
-        if (isAdmin) {
-            role = Role.systemAdmin();
-        }
-        userRoles.add(role);
-
-        User user = userManager.getUserByUsername(username);
-        if (user == null) {
-            logger.trace("create user as " + username);
-            Registration reg = registrationManager.registerOffline(username, username, username, password, null, false,
-                    null);
-            user = userManager.findOne(Long.parseLong(reg.getUserId()));
-        } else {
-            // reset password
-            registrationManager.updatePassword(username, password);
-        }
-
-        if (roles != null) {
-            logger.trace("user " + username + " roles " + Arrays.toString(roles));
-            Arrays.asList(roles).forEach(ctx -> userRoles.add(Role.parse(ctx)));
-        }
-
-        // merge roles
-        roleManager.updateRoles(user.getId(), userRoles, null);
-        return user;
-
-    }
-
-    public ClientAppBasic createClient(
-            long ownerId,
-            String clientId, String clientName,
-            String clientSecret,
-            String[] grantTypes,
-            String[] scopes,
-            String[] redirectUris,
-            String[] uniqueSpaces,
-            String[] rolePrefixes,
-            String claimMappingFunction,
-            String afterApprovalWebhook,
-            String jwtSignAlgo,
-            String jwtEncMethod,
-            String jwtEncAlgo,
-            String jwks,
-            String jwksUri,
-            boolean isTrusted) throws Exception {
-
-        ClientAppBasic client = clientManager.findByClientId(clientId);
-        if (client == null) {
-
-            if (isTrusted) {
-                client = clientManager.createTrusted(clientId, ownerId,
-                        clientName, clientSecret,
-                        grantTypes, scopes, redirectUris);
-            } else {
-                client = clientManager.create(clientId, ownerId,
-                        clientName, clientSecret,
-                        grantTypes, scopes, redirectUris);
-            }
-//            // create
-//            ClientAppBasic appData = new ClientAppBasic();
-//            appData.setName(clientName);
-//            appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
-//            appData.setScope(StringUtils.arrayToCommaDelimitedString(scopes));
-//            appData.setRedirectUris(StringUtils.arrayToCommaDelimitedString(redirects));
-//            // init providers
-//            appData.setIdentityProviderApproval(new HashMap<String, Boolean>());
-//            appData.setIdentityProviders(new HashMap<String, Boolean>());
-//            
-//            // always enable internal idp
-//            appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
+//        /*
+//         * Base user
+//         */
+//        logger.trace("init user");
+//        userManager.init();
 //
-//            if (isTrusted) {
-//                client = clientManager.createTrusted(appData, ownerId, clientId, clientSecret, clientSecretMobile);
-//            } else {
-//                client = clientManager.create(appData, ownerId, clientId, clientSecret, clientSecretMobile);
-//            }
-        }
-
-        if (client != null) {
-
-            clientId = client.getClientId();
-
-            // update basic
-            ClientAppBasic appData = client;
-            appData.setName(clientName);
-            if (grantTypes != null) {
-                appData.setGrantedTypes(new HashSet<>(Arrays.asList(grantTypes)));
-            }
-            if (scopes != null) {
-                appData.setScope(new HashSet<>(Arrays.asList((scopes))));
-            }
-            if (redirectUris != null) {
-                appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
-            }
-
-            // always enable internal idp
-            appData.getIdentityProviders().put(Config.IDP_INTERNAL, true);
-
-            // update extended
-            if (uniqueSpaces != null) {
-                client.setUniqueSpaces(new HashSet<>(Arrays.asList(uniqueSpaces)));
-            }
-            // update extended
-            if (rolePrefixes != null) {
-                client.setRolePrefixes(new HashSet<>(Arrays.asList(rolePrefixes)));
-            }
-
-            if (claimMappingFunction != null) {
-                client.setClaimMapping(claimMappingFunction);
-            }
-
-            if (afterApprovalWebhook != null) {
-                client.setOnAfterApprovalWebhook(afterApprovalWebhook);
-            }
-
-            if (jwtSignAlgo != null) {
-                client.setJwtSignAlgorithm(jwtSignAlgo);
-            }
-            if (jwtEncAlgo != null && jwtEncMethod != null) {
-                client.setJwtEncAlgorithm(jwtEncAlgo);
-                client.setJwtEncMethod(jwtEncMethod);
-            }
-            if (jwksUri != null) {
-                client.setJwksUri(jwksUri);
-            }
-            if (jwks != null) {
-                client.setJwks(jwks);
-            }
-
-            if (isTrusted) {
-                client = clientManager.updateTrusted(clientId, appData, clientSecret);
-            } else {
-                client = clientManager.update(clientId, appData, clientSecret);
-            }
-
-            // approve idp and scopes
-            client = clientManager.approveClientIdp(clientId);
-
-            client = clientManager.approveClientScopes(clientId);
-
-        }
-
-        return client;
+//        logger.trace("init registration");
+//        registrationManager.init();
+//
+//        /*
+//         * Base roles
+//         */
+//        logger.trace("init roles");
+//        roleManager.init();
+//
+//        /*
+//         * Base services
+//         */
+//        logger.trace("init services");
+//        serviceManager.init();
+//
+//        /*
+//         * Base clients
+//         */
+//        logger.trace("init client");
+//        clientManager.init();
 
     }
 

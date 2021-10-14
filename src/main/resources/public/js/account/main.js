@@ -1,129 +1,181 @@
 angular.module('aac.controllers.main', [])
 
-/**
- * Main layout controller
- * @param $scope
- */
-.controller('MainCtrl', function($scope, $rootScope, $location, Data, Utils) {
-    $scope.go = function(v) {
-    	$location.path(v);
-    }
+   /**
+    * Main layout controller
+    * @param $scope
+    */
+   .controller('MainCtrl', function($scope, $rootScope, $location, Data, Utils) {
+      $scope.go = function(v) {
+         $location.path(v);
+      }
 
-	
-	$scope.activeView = function(view) {
-		return view == $rootScope.currentView ? 'active' : '';
-	};
-	$scope.signOut = function() {
-	    window.document.location = "./logout";
-	};
-	
-	Data.getProfile().then(function(data) {
-		data.fullname = data.name + ' ' + data.surname;
-		$rootScope.user = data;
-	}).catch(function(err) {
-		Utils.showError(err);
-	});
-})
 
-.controller('HomeController', function($scope, $rootScope, $location) {
-})
-.controller('AccountsController', function($scope, $rootScope, $location, Data, Utils) {
-	Data.getAccounts().then(function(data) {
-		Data.getProviders().then(function(providers) {
-			providers.sort(function(a,b) {
-				if (data.accounts[a] && !data.accounts[b]) return -1;
-				if (data.accounts[b] && !data.accounts[a]) return 1;
-				return a.localeCompare(b);
-			});
-			$scope.providers = providers;
-			var accounts = {};
-			for (var p in data.accounts) {
-				var amap = {};
-				for (var k in data.accounts[p]) {
-					if (k === 'it.smartcommunitylab.aac.surname') amap['surname'] = data.accounts[p][k];
-					else if (k === 'it.smartcommunitylab.aac.givenname') amap['givenname'] = data.accounts[p][k];
-					else if (k === 'it.smartcommunitylab.aac.username') amap['username'] = data.accounts[p][k];
-					else amap[k] = data.accounts[p][k];
-				}
-				accounts[p] = amap;
-			}
-			$scope.accounts = accounts;
-		}).catch(function(err) {
-			Utils.showError(err);
-		});
-	}).catch(function(err) {
-		Utils.showError(err);
-	});
-	
-	$scope.confirmDeleteAccount = function() {
-		$('#deleteConfirm').modal({keyboard: false});
-	}
-	
-	$scope.deleteAccount = function() {
-		$('#deleteConfirm').modal('hide');
-		Data.deleteAccount().then(function() {
-			window.location.href = './logout';
-		}).catch(function(err) {
-			Utils.showError(err);
-		});
-	}
-	
-})
-.controller('ConnectionsController', function($scope, $rootScope, $location, Data, Utils) {
-	Data.getConnections().then(function(connections) {
-		$scope.connections = connections;
-	}).catch(function(err) {
-		Utils.showError(err);
-	});
-	
-	$scope.confirmDeleteApp = function(app) {
-		$scope.clientId = app.clientId;
-		$('#deleteConfirm').modal({keyboard: false});
-	}
-	
-	$scope.deleteApp = function() {
-		$('#deleteConfirm').modal('hide');
-		Data.removeConnection($scope.clientId).then(function(connections) {
-			$scope.connections = connections;
-			Utils.showSuccess();
-		}).catch(function(err) {
-			Utils.showError(err);
-		});
-	}
-	
-})
-.controller('ProfileController', function($scope, $rootScope, $location, Data, Utils) {
-	$scope.profile = Object.assign($rootScope.user);
-	Data.getAccounts().then(function(data) {
-		if (!data.accounts.internal) {
-			$scope.password_required = true;
-		}
-	}).catch(function(err) {
-		Utils.showError(err);
-	});
-	
-	$scope.cancel = function() {
-		window.history.back();
-	}
-	
-	$scope.save = function() {
-		if (!$scope.profile.name ||
-			!$scope.profile.surname ||
-			!$scope.profile.username ||
-			$scope.profile.password && $scope.profile.password != $scope.profile.password2) 
-		{
-			return;
-		}
-		Data.saveAccount($scope.profile).then(function(data) {
-			data.fullname = data.name + ' ' + data.surname;
-			$rootScope.user = data;
-			$scope.profile = Object.assign($rootScope.user);
-			$scope.password_required = false;
-			Utils.showSuccess();
-		}).catch(function(err) {
-			Utils.showError(err);
-		});
-	}
-	Utils.initUI();
-})
-;
+      $scope.activeView = function(view) {
+         return view == $rootScope.currentView ? 'active' : '';
+      };
+      $scope.signOut = function() {
+         window.document.location = "./logout";
+      };
+
+      Data.getProfile().then(function(data) {
+         $rootScope.user = data;
+         $rootScope.isDev = data.authorities.findIndex(function(a) {
+            return a.role === 'ROLE_DEVELOPER' || a.role === 'ROLE_ADMIN';
+         }) >= 0;
+      }).catch(function(err) {
+         Utils.showError(err);
+      });
+
+      //Utils.initUI();
+   })
+
+   .controller('HomeController', function($scope, $rootScope, $location) {
+   })
+   .controller('AccountsController', function($scope, $rootScope, $location, Data, Utils) {
+
+      $scope.load = function() {
+         Data.getProfile()
+            .then(function(profile) {
+               $scope.profile = profile;
+               return profile;
+            })
+            .then(function() {
+               return Data.getProfiles()
+            })
+            .then(function(profiles) {
+               $scope.profiles = profiles;
+               return profiles;
+            })
+            .then(function() {
+               return Data.getAccounts()
+            })
+            .then(function(accounts) {
+               $scope.accounts = accounts;
+               //         var providers = [];
+               //         var accounts = {};
+               //         data.forEach(function(a) {
+               //            if (a.provider !== 'internal') providers.push(a.provider);
+               //            accounts[a.provider] = Object.assign({}, a.attributes);
+               //            accounts[a.provider].username = a.username;
+               //         });
+               //         $scope.providers = providers;
+               //         $scope.accounts = accounts;
+               return accounts;
+            })
+            .then(function() {
+               return Data.getProviders()
+            })
+            .then(function(providers) {
+               var idps = providers.filter(p => p.type === 'identity');
+               idps.forEach(function(idp) {
+                  idp.icon = iconProvider(idp);
+               });
+               $scope.providers = idps;
+               return idps;
+            })
+            .then(function(providers) {
+               var map = new Map(providers.map(e => [e.provider, e]));
+               //merge with account details
+               var accounts = $scope.accounts;
+               accounts.forEach(function(ac) {
+                  var provider = map.get(ac.provider);
+                  ac.provider = provider;
+               });
+               $scope.accounts = accounts;
+
+            })
+            .catch(function(err) {
+               Utils.showError(err);
+            });
+      }
+
+      $scope.updateCredentials = function(userId) {
+         //split userid and redirect
+         var path = userId.replaceAll("|", "/");
+         window.location.href = './credentials/' + path;
+      }
+
+      $scope.confirmDeleteAccount = function() {
+         $('#deleteConfirm').modal({ keyboard: false });
+      }
+
+      $scope.deleteAccount = function() {
+         $('#deleteConfirm').modal('hide');
+         Data.deleteAccount().then(function() {
+            window.location.href = './logout';
+         }).catch(function(err) {
+            Utils.showError(err);
+         });
+      }
+
+      var iconProvider = function(idp) {
+         var icons = ['facebook', 'google', 'microsoft', 'apple', 'instagram', 'github'];
+
+         if (idp.authority === "oidc") {
+            var logo = null;
+            if ('clientName' in idp.configuration && icons.includes(idp.configuration.clientName.toLowerCase())) {
+               logo = idp.configuration.clientName.toLowerCase();
+            } else if (icons.includes(idp.name.toLowerCase())) {
+               logo = idp.name.toLowerCase();
+            }
+
+            if (logo) {
+               return './svg/sprite.svg#logo-' + logo;
+            }
+         }
+         if (idp.authority === "spid") {
+            return './spid/sprite.svg#spid-ico-circle-bb';
+         }
+         return './italia/svg/sprite.svg#it-unlocked';
+      }
+
+      $scope.load();
+   })
+   .controller('ConnectionsController', function($scope, $rootScope, $location, Data, Utils) {
+      Data.getConnections().then(function(connections) {
+         $scope.connections = connections;
+      }).catch(function(err) {
+         Utils.showError(err);
+      });
+
+      $scope.confirmDeleteApp = function(app) {
+         $scope.clientId = app.clientId;
+         $('#deleteConfirm').modal({ keyboard: false });
+      }
+
+      $scope.deleteApp = function() {
+         $('#deleteConfirm').modal('hide');
+         Data.removeConnection($scope.clientId).then(function(connections) {
+            $scope.connections = connections;
+            Utils.showSuccess();
+         }).catch(function(err) {
+            Utils.showError(err);
+         });
+      }
+
+   })
+   .controller('ProfileController', function($scope, $rootScope, $location, Data, Utils) {
+      $scope.profile = { name: $rootScope.user.firstName, surname: $rootScope.user.lastName, username: $rootScope.user.username, email: $rootScope.user.emailAddress };
+
+      $scope.cancel = function() {
+         window.history.back();
+      }
+
+      $scope.save = function() {
+         if (!$scope.profile.name ||
+            !$scope.profile.surname ||
+            !$scope.profile.username ||
+            $scope.profile.password && $scope.profile.password != $scope.profile.password2) {
+            return;
+         }
+         Data.saveAccount($scope.profile).then(function(data) {
+            $rootScope.user = data;
+            $scope.profile = Object.assign($rootScope.user);
+            Utils.showSuccess();
+         }).catch(function(err) {
+            Utils.showError(err);
+         });
+      }
+      Utils.initUI();
+   })
+   ;

@@ -16,45 +16,47 @@
 
 package it.smartcommunitylab.aac.oauth.endpoint;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.jwt.Jwt;
-import org.springframework.security.jwt.JwtHelper;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
-import org.springframework.security.oauth2.common.util.JsonParser;
-import org.springframework.security.oauth2.common.util.JsonParserFactory;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.dto.AACTokenIntrospection;
-import it.smartcommunitylab.aac.manager.RegistrationManager;
-import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
-import it.smartcommunitylab.aac.model.Registration;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
+import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
 
 /**
  * OAuth2.0 Token introspection controller as of RFC7662:
@@ -71,297 +73,257 @@ public class TokenIntrospectionEndpoint {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private ClientDetailsRepository clientDetailsRepository;
-
-    @Autowired
-    private TokenStore tokenStore;
-
-    @Autowired
-    private UserManager userManager;
-
-    @Autowired
-    private RegistrationManager registrationManager;
-
     @Value("${jwt.issuer}")
     private String issuer;
 
     @Value("${oauth2.introspection.permitAll}")
     private boolean permitAll;
 
-    private JsonParser objectMapper = JsonParserFactory.create();
-
-    // grant types bounded to user auth
-    private final String[] userGrantTypes = {
-            Config.GRANT_TYPE_AUTHORIZATION_CODE,
-            Config.GRANT_TYPE_IMPLICIT,
-            Config.GRANT_TYPE_PASSWORD
-    };
-
-    private final String[] applicationGrantTypes = {
-            Config.GRANT_TYPE_CLIENT_CREDENTIALS
-    };
+    @Autowired
+    private TokenStore tokenStore;
 
     /*
-     * TODO: evaluate if client_id should match audience, as per security
-     * considerations https://tools.ietf.org/html/rfc7662#section-4
+     * client_id should match audience, as per security considerations
+     * https://tools.ietf.org/html/rfc7662#section-4
      */
 
-    @SuppressWarnings("unchecked")
+//    @SuppressWarnings("unchecked")
     @ApiOperation(value = "Get token metadata")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_INTROSPECTION_URL)
-    public ResponseEntity<AACTokenIntrospection> getTokenInfo(
-            @RequestParam String token,
-            @RequestParam(required = false, defaultValue = "access_token") String token_type_hint) {
+    public ResponseEntity<TokenIntrospection> getTokenInfo(
+            @RequestParam(name = "token") String tokenValue,
+            @RequestParam(required = false, name = "token_type_hint") Optional<String> tokenTypeHint,
+            Authentication authentication) {
 
-        logger.debug("request introspection of token " + token + " hint " + String.valueOf(token_type_hint));
+        logger.debug("request introspection of token " + tokenValue + " hint " + String.valueOf(tokenTypeHint));
 
-        // TODO drop DTO, leverage JWT structure to output a json
-        AACTokenIntrospection result = new AACTokenIntrospection();
-
-        try {
-            OAuth2Authentication auth = null;
-            OAuth2RefreshToken refreshToken = null;
-            OAuth2AccessToken accessToken = null;
-
-            // check hint
-            if ("refresh_token".equals(token_type_hint)) {
-                // load refresh token if present
-                refreshToken = tokenStore.readRefreshToken(token);
-                if (refreshToken != null) {
-                    logger.trace("load auth for refresh token " + refreshToken.getValue());
-
-                    // load authentication
-                    auth = tokenStore.readAuthenticationForRefreshToken(refreshToken);
-                }
-            }
-
-            if (auth == null) {
-                // either token is access_token, or
-                // as per spec, try as access_token independently of hint
-                accessToken = tokenStore.readAccessToken(token);
-                if (accessToken != null) {
-                    logger.trace("load auth for access token " + accessToken.getValue());
-
-                    // load authentication
-                    auth = tokenStore.readAuthentication(accessToken);
-                }
-
-            }
-
-            if (auth == null) {
-                // not found
-                throw new InvalidTokenException("no token for value " + token);
-            }
-
-            String clientId = auth.getOAuth2Request().getClientId();
-            logger.trace("token clientId " + clientId);
-
-            // load auth from context (basic auth or post if supported)
-            Authentication cauth = SecurityContextHolder.getContext().getAuthentication();
-            logger.trace("client auth requesting introspection  " + String.valueOf(cauth.getName()));
-
-            if (permitAll || clientId.equals(cauth.getName())) {
-
-                // if token exists is valid since revoked ones are not returned from tokenStore
-                result.setActive(true);
-
-                // only bearer tokens supported
-                result.setToken_type(OAuth2AccessToken.BEARER_TYPE);
-
-                // set base claims
-                result.setClient_id(clientId);
-                result.setScope(String.join(" ", auth.getOAuth2Request().getScope()));
-                result.setIss(issuer);
-                result.setAud(new String[] { clientId });
-
-                // build response depending grant type
-                String grantType = auth.getOAuth2Request().getGrantType();
-
-                // fallback values, fetch from auth
-                String userId = auth.getName();
-                boolean applicationToken = false;
-//                String tenant = "";
-                User user = null;
-
-                if (ArrayUtils.contains(userGrantTypes, grantType)) {
-                    // fetch user and populate claims
-                    Object principal = auth.getPrincipal();
-
-                    if (principal instanceof String) {
-                        Registration reg = registrationManager.getUserByEmail((String) principal);
-                        user = userManager.findOne(Long.parseLong(reg.getUserId()));
-
-                    } else if (principal instanceof org.springframework.security.core.userdetails.User) {
-                        org.springframework.security.core.userdetails.User u = (org.springframework.security.core.userdetails.User) principal;
-                        user = userManager.findOne(Long.parseLong(u.getUsername()));
-                    }
-
-                }
-
-                if (ArrayUtils.contains(applicationGrantTypes, grantType)) {
-                    applicationToken = true;
-                    // TODO evaluate if it makes sense
-                    // fetch owner as user?
-                    ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-                    applicationToken = true;
-                    user = userManager.findOne(client.getDeveloperId());
-                }
-
-                if (user != null) {
-                    userId = Long.toString(user.getId());
-                    result.setUsername(user.getUsername());
-                    
-                    //APIM specific, deprecated in favor of customClaimMapping
-//                    // fetch AAC tenant and userName
-//                    String internalName = userManager.getUserInternalName(user.getId());
-//                    String localName = internalName.substring(0, internalName.lastIndexOf('@'));
-//                    tenant = internalName.substring(internalName.lastIndexOf('@') + 1);
-//
-//                    // TODO use userName instead of localName?
-//                    result.setUsername(localName);
-                    
-
-                }
-
-                result.setSub(userId);
-
-                // additional AAC specific claims
-                result.setAac_user_id(userId);
-                result.setAac_grantType(grantType);
-                result.setAac_applicationToken(applicationToken);
-//                result.setAac_am_tenant(tenant);
-
-                if (refreshToken != null) {
-                    // these make sense only on refresh tokens with expiration
-                    if (refreshToken instanceof ExpiringOAuth2RefreshToken) {
-                        ExpiringOAuth2RefreshToken expiringRefreshToken = (ExpiringOAuth2RefreshToken) refreshToken;
-                        result.setExp((int) (expiringRefreshToken.getExpiration().getTime() / 1000));
-                        //no iat in refreshToken..
-                    }
-                }
-
-                if (accessToken != null) {
-                    // these make sense only on access tokens
-                    result.setExp((int) (accessToken.getExpiration().getTime() / 1000));
-                    int iat = (int)(new Date().getTime() / 1000);
-                    int nbf = iat;
-
-                    if (accessToken instanceof AACOAuth2AccessToken) {
-                        iat = (int)(((AACOAuth2AccessToken)accessToken).getIssuedAt().getTime() / 1000);
-                        nbf = (int)(((AACOAuth2AccessToken)accessToken).getNotBeforeTime().getTime() / 1000);
-                    } else {
-                        iat = result.getExp() - accessToken.getExpiresIn();
-                        nbf = iat;
-                    }                 
-                    
-                    result.setIat(iat);
-                    result.setNbf(nbf);
-                    
-                    // check if token is JWT then return jti
-                    if (isJwt(accessToken.getValue())) {
-                        // TODO remove extra check, maybe not needed
-                        // check again expiration status
-                        long now = new Date().getTime() / 1000;
-                        long expiration = (accessToken.getExpiration().getTime() / 1000);
-                        if (expiration < now) {
-                            throw new InvalidTokenException("token expired");
-                        }
-
-                        // extract tokenId from jti field
-                        Jwt old = JwtHelper.decode(accessToken.getValue());
-                        Map<String, Object> claims = this.objectMapper.parseMap(old.getClaims());
-                        result.setJti((String) claims.get("jti"));
-                        // replace aud with JWT aud
-                        if (claims.get("aud") instanceof String) {
-                            result.setAud(new String[] { (String) claims.get("aud") });
-                        } else {
-                            result.setAud(((List<String>) claims.get("aud")).toArray(new String[0]));
-                        }
-
-                    }
-                }
-
-            } else {
-                throw new UnauthorizedClientException("client is not the owner of the token");
-            }
-//
-//            String userName = null;
-//            String userId = null;
-//            boolean applicationToken = false;
-//
-//            // WRONG reasoning, if auth is String for local users
-//            // this will return client owner information
-//            // need another way to check if client token
-//            if (auth.getPrincipal() instanceof User) {
-//                User principal = (User) auth.getPrincipal();
-//                userId = principal.getUsername();
-//            } else {
-//                ClientDetailsEntity client = clientDetailsRepository.findByClientId(clientId);
-//                applicationToken = true;
-//                userId = "" + client.getDeveloperId();
-//            }
-//            userName = userManager.getUserInternalName(Long.parseLong(userId));
-//            String localName = userName.substring(0, userName.lastIndexOf('@'));
-//            String tenant = userName.substring(userName.lastIndexOf('@') + 1);
-//
-//            result.setUsername(localName);
-//            result.setClient_id(clientId);
-//            result.setScope(StringUtils.collectionToDelimitedString(auth.getOAuth2Request().getScope(), " "));
-//            result.setExp((int) (storedToken.getExpiration().getTime() / 1000));
-//            result.setIat(result.getExp() - storedToken.getExpiresIn());
-//            result.setIss(issuer);
-//            result.setNbf(result.getIat());
-//            result.setSub(userId);
-//            result.setAud(new String[] { clientId });
-//
-//            // check if token is JWT then return jti
-//            if (isJwt(storedToken.getValue())) {
-//                // check again expiration status
-//                long now = new Date().getTime() / 1000;
-//                long expiration = (storedToken.getExpiration().getTime() / 1000);
-//                if (expiration < now) {
-//                    throw new InvalidTokenException("token expired");
-//                }
-//
-//                // extract tokenId from jti field
-//                Jwt old = JwtHelper.decode(storedToken.getValue());
-//                Map<String, Object> claims = this.objectMapper.parseMap(old.getClaims());
-//                result.setJti((String) claims.get("jti"));
-//                // replace aud with JWT aud
-//                if (claims.get("aud") instanceof String) {
-//                    result.setAud(new String[] { (String) claims.get("aud") });
-//                } else {
-//                    result.setAud(((List<String>) claims.get("aud")).toArray(new String[0]));
-//                }
-//
-//            }
-//
-//            // if token exists is valid since revoked ones are deleted
-//            result.setActive(true);
-//
-//            result.setAac_user_id(userId);
-//            result.setAac_grantType(auth.getOAuth2Request().getGrantType());
-//            result.setAac_applicationToken(applicationToken);
-//            result.setAac_am_tenant(tenant);
-        } catch (Exception e) {
-            logger.error("Error getting info for token: " + e.getMessage());
-            result = new AACTokenIntrospection();
-            result.setActive(false);
+        if (!(authentication instanceof OAuth2ClientAuthenticationToken) || !authentication.isAuthenticated()) {
+            throw new InsufficientAuthenticationException(
+                    "Invalid client authentication");
         }
-        return ResponseEntity.ok(result);
+
+        // clientAuth should be available
+        OAuth2ClientAuthenticationToken introspectClientAuth = (OAuth2ClientAuthenticationToken) authentication;
+        OAuth2ClientDetails introspectClientDetails = introspectClientAuth.getOAuth2ClientDetails();
+        String introspectClientId = introspectClientDetails.getClientId();
+
+        if (!StringUtils.hasText(tokenValue)) {
+            throw new InvalidRequestException("missing or invalid token");
+        }
+
+        // check hint
+        if (tokenTypeHint.isPresent()) {
+            String typeHint = tokenTypeHint.get();
+            if (!"access_token".equals(typeHint) && !"refresh_token".equals(typeHint)) {
+                // unsupported token type, drop
+                throw new InvalidRequestException("invalid token type hint");
+            }
+        }
+        // as per spec this is a suggestion, if we don't find the token we need to
+        // extend the search to all token types
+        // as such we ignore hint for now, we can distinguish tokens by looking them up
+
+        // load refresh token if present
+        OAuth2RefreshToken refreshToken = tokenStore.readRefreshToken(tokenValue);
+        if (refreshToken != null) {
+            logger.trace("load auth for refresh token " + refreshToken.getValue());
+
+            // load authentication
+            OAuth2Authentication auth = tokenStore.readAuthenticationForRefreshToken(refreshToken);
+
+            TokenIntrospection result = introspectRefreshToken(introspectClientId, auth, refreshToken);
+            return ResponseEntity.ok(result);
+        }
+
+        // as per spec, try as access_token independently of hint
+        OAuth2AccessToken accessToken = tokenStore.readAccessToken(tokenValue);
+        if (accessToken != null) {
+            logger.trace("load auth for access token " + accessToken.getValue());
+
+            // load authentication
+            OAuth2Authentication auth = tokenStore.readAuthentication(accessToken);
+
+            TokenIntrospection result = introspectAccessToken(introspectClientId, auth, accessToken);
+            return ResponseEntity.ok(result);
+        }
+
+        // no token found
+        // as per spec return a response with active=false
+        return ResponseEntity.ok(new TokenIntrospection(false));
+
     }
 
-    private boolean isJwt(String value) {
-        // simply check for format header.body.signature
-        int firstPeriod = value.indexOf('.');
-        int lastPeriod = value.lastIndexOf('.');
+    private TokenIntrospection introspectAccessToken(String introspectClientId,
+            OAuth2Authentication auth, OAuth2AccessToken accessToken) {
 
-        if (firstPeriod <= 0 || lastPeriod <= firstPeriod) {
-            return false;
-        } else {
-            return true;
+        if (accessToken == null || auth == null) {
+            throw new InvalidTokenException("invalid access token");
         }
+        Date now = new Date();
+        if (accessToken.getExpiration().before(now)) {
+            throw new InvalidTokenException("access token expired");
+        }
+        // TODO add check for notBefore
+
+        // extract request
+        OAuth2Request request = auth.getOAuth2Request();
+        String clientId = request.getClientId();
+        List<String> audience = Collections.singletonList(clientId);
+        if (accessToken instanceof AACOAuth2AccessToken) {
+            String[] aud = ((AACOAuth2AccessToken) accessToken).getAudience();
+            audience = Arrays.asList(aud);
+        }
+
+        logger.trace("token clientId " + clientId);
+        logger.trace("client auth requesting introspection  " + introspectClientId);
+
+        // spec-compliant: check client is either azp or in audience
+        // "If the token can be used only at certain resource servers, the
+        // authorization server MUST determine whether or not the token can
+        // be used at the resource server making the introspection call"
+
+        // TODO remove permitAll config
+        if (!permitAll && !clientId.equals(introspectClientId) && !audience.contains(introspectClientId)) {
+            throw new UnauthorizedClientException("client is not a valid audience");
+        }
+
+        // if token exists here is valid since revoked ones are not returned from
+        // tokenStore
+        TokenIntrospection result = new TokenIntrospection(true);
+
+        // add base response
+        result.setIssuer(issuer);
+        result.setClientId(clientId);
+
+        // add only if requesting client is in audience
+        // TODO remove when we clear permitAll shortcut
+        if (audience.contains(introspectClientId)) {
+            result.setAudience(audience);
+        }
+
+        Set<String> scopes = request.getScope();
+        result.setScope(scopes);
+
+        // TODO read from accessToken when we introduce proper support
+        result.setTokenType("bearer");
+
+        result.setExpirationTime((int) (accessToken.getExpiration().getTime() / 1000));
+        int iat = (int) (new Date().getTime() / 1000);
+        int nbf = iat;
+        iat = result.getExpirationTime() - accessToken.getExpiresIn();
+        nbf = iat;
+        result.setIssuedAt(iat);
+        result.setNotBeforeTime(nbf);
+
+        if (accessToken instanceof AACOAuth2AccessToken) {
+            AACOAuth2AccessToken token = (AACOAuth2AccessToken) accessToken;
+            result.setSubject(token.getSubject());
+            result.setAuthorizedParty(token.getAuthorizedParty());
+
+            iat = (int) (token.getIssuedAt().getTime() / 1000);
+            nbf = (int) (token.getNotBeforeTime().getTime() / 1000);
+            result.setIssuedAt(iat);
+            result.setNotBeforeTime(nbf);
+
+            // add claims only if requesting client is in audience
+            // TODO remove when we clear permitAll shortcut
+            if (audience.contains(introspectClientId)) {
+                result.setJti(token.getToken());
+                result.setClaims(token.getClaims());
+            }
+        }
+
+        return result;
+
+    }
+
+    private TokenIntrospection introspectRefreshToken(String introspectClientId,
+            OAuth2Authentication auth, OAuth2RefreshToken refreshToken) {
+
+        if (refreshToken == null || auth == null) {
+            throw new InvalidTokenException("invalid refresh token");
+        }
+
+        Date now = new Date();
+        if (refreshToken instanceof ExpiringOAuth2RefreshToken
+                && ((ExpiringOAuth2RefreshToken) refreshToken).getExpiration().before(now)) {
+            throw new InvalidTokenException("refresh token expired");
+        }
+
+        // extract request
+        OAuth2Request request = auth.getOAuth2Request();
+        String clientId = request.getClientId();
+
+        logger.trace("token clientId " + clientId);
+        logger.trace("client auth requesting introspection  " + introspectClientId);
+
+        // spec-compliant: refresh token are valid only for azp
+        if (!clientId.equals(introspectClientId)) {
+            throw new UnauthorizedClientException("client is not the owner");
+        }
+
+        // if token exists here is valid since revoked ones are not returned from
+        // tokenStore
+        TokenIntrospection result = new TokenIntrospection(true);
+
+        // add base response
+        result.setIssuer(issuer);
+        result.setClientId(clientId);
+
+        // client is the only audience
+        result.setAudience(clientId);
+
+        // we add scopes to indicate which are authorized
+        Set<String> scopes = request.getScope();
+        result.setScope(scopes);
+
+        // these make sense only on refresh tokens with expiration
+        if (refreshToken instanceof ExpiringOAuth2RefreshToken) {
+            ExpiringOAuth2RefreshToken expiringRefreshToken = (ExpiringOAuth2RefreshToken) refreshToken;
+            result.setExpirationTime((int) (expiringRefreshToken.getExpiration().getTime() / 1000));
+            // no iat in refreshToken, we should add..
+        }
+
+        // we should be able to fetch user auth since refresh_token are user only
+        if (auth.getUserAuthentication() != null) {
+            result.setSubject(auth.getUserAuthentication().getName());
+        }
+
+        return result;
+
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<TokenIntrospection> handleInvalidTokenException(InvalidTokenException e) throws Exception {
+        logger.error("Invalid token: " + e.getMessage());
+        return ResponseEntity.ok(new TokenIntrospection(false));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<TokenIntrospection> handleAuthenticationException(AuthenticationException e) throws Exception {
+        ResponseEntity<TokenIntrospection> response = buildResponse(new BadClientCredentialsException());
+        // handle 401 as per https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
+        // TODO respond with header matching authentication scheme used by client
+
+        return response;
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<TokenIntrospection> handleException(Exception e) throws Exception {
+        return buildResponse(new ServerErrorException(e.getMessage(), e));
+    }
+
+    @ExceptionHandler(OAuth2Exception.class)
+    public ResponseEntity<TokenIntrospection> handleOAuth2Exception(OAuth2Exception e) throws Exception {
+        logger.error("Invalid token: " + e.getMessage());
+        return buildResponse(e);
+    }
+
+    private ResponseEntity<TokenIntrospection> buildResponse(OAuth2Exception e) throws IOException {
+        logger.error("Error: " + e.getMessage());
+
+        // don't leak error, token is invalid
+        return ResponseEntity.ok(new TokenIntrospection(false));
     }
 
 }
