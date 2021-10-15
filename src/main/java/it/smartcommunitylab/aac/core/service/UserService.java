@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.RoleService;
@@ -270,6 +271,12 @@ public class UserService {
         u.setUsername(ue.getUsername());
         u.setEmail(ue.getEmailAddress());
 
+        // status
+        boolean locked = ue.getLocked() != null ? ue.getLocked().booleanValue() : false;
+        boolean blocked = ue.getBlocked() != null ? ue.getBlocked().booleanValue() : false;
+        u.setLocked(locked);
+        u.setBlocked(blocked);
+
         // fetch attributes
         u.setExpirationDate(ue.getExpirationDate());
         u.setCreateDate(ue.getCreateDate());
@@ -377,16 +384,29 @@ public class UserService {
      * @param roles
      * @throws NoSuchUserException
      */
-    public void updateRealmAuthorities(String slug, String subjectId, List<String> roles) throws NoSuchUserException {
-        //check role format
+    public Collection<RealmRole> updateRoles(String realm, String subjectId, Collection<String> roles)
+            throws NoSuchUserException {
+        // check role format
         roles.stream().forEach(r -> {
             if (!StringUtils.hasText(r) || !r.matches(SystemKeys.SLUG_PATTERN)) {
-                throw new IllegalArgumentException("invalid role format, valid chars "+SystemKeys.SLUG_PATTERN);
+                throw new IllegalArgumentException("invalid role format, valid chars " + SystemKeys.SLUG_PATTERN);
             }
         });
-        
-        //update
-        userService.updateRoles(subjectId, slug, roles);
+
+        // update
+        List<UserRoleEntity> realmRoles = userService.updateRoles(subjectId, realm, roles);
+        return realmRoles.stream()
+                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
+                .collect(Collectors.toList());
+    }
+
+    public Collection<RealmRole> getRoles(String realm, String subjectId)
+            throws NoSuchUserException {
+        // fetch all authoritites for realm
+        List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, realm);
+        return realmRoles.stream()
+                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -411,7 +431,7 @@ public class UserService {
             // fetch accessible
             // TODO decide policy + implement
             // CURRENTLY ONLY DROP REALM ROLES
-            updateRealmAuthorities(realm, subjectId, Collections.emptyList());
+            updateRoles(realm, subjectId, Collections.emptyList());
         }
 
     }

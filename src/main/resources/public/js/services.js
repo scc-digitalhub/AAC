@@ -387,6 +387,12 @@ angular.module('aac.services', [])
             });
         }
 
+        rService.getSubject = function (slug, subject) {
+            return $http.get('console/dev/subjects/' + subject).then(function (data) {
+                return data.data;
+            });
+        }
+
         return rService;
 
     })

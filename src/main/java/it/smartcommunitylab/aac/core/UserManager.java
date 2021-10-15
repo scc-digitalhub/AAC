@@ -32,6 +32,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
@@ -49,6 +50,7 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.Scope;
@@ -213,15 +215,17 @@ public class UserManager {
         return userService.searchUsers(r.getSlug(), keywords, pageRequest);
     }
 
-    /**
-     * @param slug
-     * @param subjectId
-     * @param roles
-     * @throws NoSuchUserException
-     * @throws NoSuchRealmException
-     */
+    @Transactional(readOnly = true)
+    public Collection<RealmRole> getRoles(String realm, String subjectId)
+            throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("get authorities for user " + String.valueOf(subjectId) + " in realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+        return userService.getRoles(r.getSlug(), subjectId);
+    }
+
     @Transactional(readOnly = false)
-    public void updateRealmAuthorities(String realm, String subjectId, List<String> roles)
+    public Collection<RealmRole> updateRoles(String realm, String subjectId, Collection<String> roles)
             throws NoSuchUserException, NoSuchRealmException {
         logger.debug("update authorities for user " + String.valueOf(subjectId) + " in realm " + realm);
         if (logger.isTraceEnabled()) {
@@ -229,7 +233,7 @@ public class UserManager {
         }
 
         Realm r = realmService.getRealm(realm);
-        userService.updateRealmAuthorities(r.getSlug(), subjectId, roles);
+        return userService.updateRoles(r.getSlug(), subjectId, roles);
     }
 
     @Transactional(readOnly = false)
@@ -302,7 +306,7 @@ public class UserManager {
             account.setRealm(realm);
 
             UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
-            updateRealmAuthorities(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
+            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
         }
 
         if (StringUtils.hasText(subjectId)) {
@@ -310,7 +314,7 @@ public class UserManager {
             if (user == null) {
                 throw new NoSuchUserException("No user with specified subjectId exist");
             }
-            updateRealmAuthorities(realm, subjectId, roles);
+            updateRoles(realm, subjectId, roles);
         }
     }
 

@@ -1,5 +1,5 @@
 <div class="pb-3 pt-3">
-    <div class="row mb-3">
+    <div class="row">
         <div class="col col-md-6 p-3">
             <h6><a ui-sref="realm.apps({realmId:app.realm})">Client applications
                     &raquo;</a></h6>
@@ -8,27 +8,42 @@
             <button class="btn btn-primary btn-sm"
                 ui-sref="realm.app({realmId:app.realm, clientId:app.clientId})">Edit</button>
         </div>
-       <div class="row mb-3">
-           <div class="col-xs-1">
-           <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.apps({realmId:app.realm})">
-            <svg class="icon icon-xl icon-primary left" aria-hidden="true"><use xlink:href="{{app.icon}}"></use></svg>
-           </a>          
-           </div>
-           <div class="col">
-              <h3>{{appname}}</h3>
-              <p class="text-monospace">{{app.clientId}}</p>
-           </div>
-       </div>         
+        <div class="row mb-3">
+            <div class="col-xs-1">
+                <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
+                    ui-sref="realm.apps({realmId:app.realm})">
+                    <svg class="icon icon-xl icon-primary left" aria-hidden="true">
+                        <use xlink:href="{{app.icon}}"></use>
+                    </svg>
+                </a>
+            </div>
+            <div class="col">
+                <h3>{{appname}}</h3>
+                <p class="text-monospace">
+                    <span class="small text-monospace bg-light pl-1 pr-1">{{app.clientId}}</span>
+                    <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(app.clientId)">
+                        <svg class="icon icon-xs icon-primary">
+                            <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                        </svg>
+                    </button>
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="accordion" id="app">
 
     <ul class="nav nav-tabs nav-fill">
+        <li class="nav-item">
+            <a class="nav-link {{activeClientView('overview')}}" href
+                ng-click="switchClientView('overview')">Overview</a>
+        </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
-            <a class="nav-link {{activeClientView('quickstart.oauth2')}}" href ng-click="switchClientView('quickstart.oauth2')">Quick
+            <a class="nav-link {{activeClientView('quickstart.oauth2')}}" href
+                ng-click="switchClientView('quickstart.oauth2')">Quick
                 start</a>
-        </li>     
+        </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
             <a class="nav-link  {{activeClientView('test.oauth2')}}" href
                 ng-click="switchClientView('test.oauth2')">Test</a>
@@ -36,7 +51,7 @@
         <li ng-if="app.type == 'oauth2'" class="nav-item">
             <a class="nav-link  {{activeClientView('credentials.oauth2')}}" href
                 ng-click="switchClientView('credentials.oauth2')">Credentials</a>
-        </li>        
+        </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
             <a class="nav-link  {{activeClientView('endpoints.oauth2')}}" href
                 ng-click="switchClientView('endpoints.oauth2')">Endpoints</a>

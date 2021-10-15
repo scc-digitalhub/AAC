@@ -46,6 +46,7 @@ import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
@@ -56,12 +57,14 @@ import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
 import it.smartcommunitylab.aac.roles.RoleManager;
 import it.smartcommunitylab.aac.scope.Resource;
@@ -98,6 +101,9 @@ public class DevController {
     private AuditManager auditManager;
     @Autowired
     private RoleManager roleManager;
+
+    @Autowired
+    private SubjectService subjectService;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -275,6 +281,19 @@ public class DevController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
             throws NoSuchResourceException {
         return ResponseEntity.ok(scopeManager.getResource(resourceId));
+    }
+
+    /*
+     * Subjects
+     * 
+     * TODO evaluate permission model
+     */
+
+    @GetMapping("/console/dev/subjects/{subjectId}")
+    public ResponseEntity<Subject> getSubject(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchSubjectException {
+        return ResponseEntity.ok(subjectService.getSubject(subjectId));
     }
 
     /*

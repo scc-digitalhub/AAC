@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col col-md-6 p-3">
             <h6><a ui-sref="realm.apps({realmId:app.realm})">Client applications
-                    &raquo;</a></h6>            
+                    &raquo;</a></h6>
         </div>
         <div class="col col-md-6 text-right">
             <button class="btn btn-secondary btn-sm"
@@ -14,15 +14,25 @@
     </div>
     <div class="row mb-3">
         <div class="col-xs-1">
-        <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.apps({realmId:app.realm})">
-         <svg class="icon icon-xl icon-primary left" aria-hidden="true"><use xlink:href="{{app.icon}}"></use></svg>
-        </a>          
+            <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active"
+                ui-sref="realm.apps({realmId:app.realm})">
+                <svg class="icon icon-xl icon-primary left" aria-hidden="true">
+                    <use xlink:href="{{app.icon}}"></use>
+                </svg>
+            </a>
         </div>
         <div class="col">
-           <h3>{{appname}}</h3>
-           <p class="text-monospace">{{app.clientId}}</p>
+            <h3>{{appname}}</h3>
+            <p class="text-monospace">
+                <span class="small text-monospace bg-light pl-1 pr-1">{{app.clientId}}</span>
+                <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(app.clientId)">
+                    <svg class="icon icon-xs icon-primary">
+                        <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                    </svg>
+                </button>
+            </p>
         </div>
-    </div>    
+    </div>
 </div>
 
 <div class="accordion" id="app">
@@ -41,8 +51,7 @@
                 ng-click="switchClientView('settings')">Settings</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link  {{activeClientView('idps')}}" href
-                ng-click="switchClientView('idps')">Providers</a>
+            <a class="nav-link  {{activeClientView('idps')}}" href ng-click="switchClientView('idps')">Providers</a>
         </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
             <a class="nav-link  {{activeClientView('conf.oauth2')}}" href
@@ -55,6 +64,9 @@
         <li class="nav-item">
             <a class="nav-link  {{activeClientView('claims')}}" href ng-click="switchClientView('claims')">Hooks &
                 Claims</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeClientView('roles')}}" href ng-click="switchClientView('roles')">Roles</a>
         </li>
     </ul>
     <div class="tab-content pt-3">

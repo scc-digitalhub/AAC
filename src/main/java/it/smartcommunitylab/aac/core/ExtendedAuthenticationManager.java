@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
@@ -444,7 +445,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             // convert to subject
             // TODO fetch subject from service
-            Subject subject = new Subject(subjectId, realm, user.getUsername());
+            Subject subject = new Subject(subjectId, realm, user.getUsername(), SystemKeys.RESOURCE_USER);
 
             // fetch global and realm authorities for subject
             List<UserRoleEntity> userRoles = userService.getRoles(subjectId);

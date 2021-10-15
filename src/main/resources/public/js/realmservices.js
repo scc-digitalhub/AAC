@@ -41,6 +41,9 @@ angular.module('aac.controllers.realmservices', [])
         return data.data;
       });
     }
+    rsService.exportService = function (realm, serviceId) {
+      window.open('console/dev/realms/' + realm + '/services/' + serviceId + '/yaml');
+    }
     rsService.checkServiceNamespace = function (realm, serviceNs) {
       return $http.get('console/dev/realms/' + realm + '/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
         return data.data;
@@ -232,6 +235,11 @@ angular.module('aac.controllers.realmservices', [])
       }
     }
 
+    $scope.exportService = function (service) {
+      if (service) {
+        RealmServices.exportService(slug, service.serviceId);
+      }
+    }
 
     $scope.changeNS = function () {
       $scope.nsError = false;
@@ -263,7 +271,7 @@ angular.module('aac.controllers.realmservices', [])
    * @param $http
    * @param $timeout
    */
-  .controller('RealmServiceController', function ($scope, $state, $stateParams, RealmServices, RealmAppsData, Utils) {
+  .controller('RealmServiceController', function ($scope, $state, $stateParams, RealmServices, RealmAppsData, RealmData, Utils) {
     var slug = $stateParams.realmId;
     var serviceId = $stateParams.serviceId;
     $scope.formView = 'overview';
@@ -299,10 +307,6 @@ angular.module('aac.controllers.realmservices', [])
         })
         .then(function (data) {
           $scope.scopes = data.scopes;
-          return data;
-        })
-        .then(function (data) {
-          $scope.approvals = data.approvals;
           return data;
         })
         .then(function (data) {
@@ -354,6 +358,10 @@ angular.module('aac.controllers.realmservices', [])
           );
         }).then(function (clients) {
           $scope.clients = clients;
+          return;
+        })
+        .then(function () {
+          $scope.loadApprovals();
         })
         .catch(function (err) {
           Utils.showError('Failed to load realm service: ' + err.data.message);
@@ -795,6 +803,23 @@ angular.module('aac.controllers.realmservices', [])
       RealmServices.getApprovals(slug, serviceId)
         .then(function (data) {
           $scope.approvals = data;
+          var ids = data.map(a => a.clientId);
+          return new Set(ids);
+        })
+        .then(function (ids) {
+          //resolve approvals subjects
+          return Promise.all(
+            Array.from(ids).map(id => {
+              return RealmData.getSubject(slug, id);
+            })
+          );
+        })
+        .then(function (data) {
+          var subjects = new Map(data.map(s => [s.subjectId, s]));
+
+          $scope.approvals.forEach(a => {
+            a.subject = subjects.get(a.clientId);
+          });
         })
         .catch(function (err) {
           Utils.showError('Failed to load service approvals: ' + err.data.message);

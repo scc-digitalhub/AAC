@@ -32,7 +32,8 @@
               <p class="pl-4 text-monospace text-muted" style="display: none;">{{realm.slug}} </p>
             </li>
             <li ng-if="(realmAdmin || realmDeveloper)">
-              <a class="list-item medium px-2 pb-2 left-icon" href ui-sref-active="active" ui-sref="realm.dashboard">
+              <a class="list-item medium px-2 pb-2 left-icon text-primary" href ui-sref-active="active"
+                ui-sref="realm.dashboard">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-star-outline"></use>
                 </svg>
@@ -42,9 +43,8 @@
 
             <li ng-if="(realmAdmin || realmDeveloper)">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
-                data-target="#collapseApps"
-                aria-expanded="{{isAnyState(['realm.apps','realm.services','realm.scopes', 'realm.app', 'realm.appstart', 'realm.service'])}}"
-                aria-controls="collapseApps">
+                data-target="#collapseApps" aria-controls="collapseApps"
+                aria-expanded="{{isAnyState(['realm.apps','realm.services','realm.scopes', 'realm.app', 'realm.appstart', 'realm.service'])}}">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use>
                 </svg>
@@ -57,18 +57,18 @@
                 <li>
                   <a class="list-item" href ui-sref="realm.apps"
                     ng-class="{active: isAnyState(['realm.apps','realm.app', 'realm.appstart'])}">
-                    <span>Client applications </span>
+                    <span class="text-800">Client applications </span>
                   </a>
                 </li>
                 <li>
                   <a class="list-item" href ui-sref="realm.services"
                     ng-class="{active: isAnyState(['realm.services','realm.service'])}">
-                    <span>Custom services </span>
+                    <span class="text-800">Custom services </span>
                   </a>
                 </li>
                 <li>
                   <a class="list-item" href ui-sref-active="active" ui-sref="realm.scopes">
-                    <span>Scopes </span>
+                    <span class="text-800">Scopes </span>
                   </a>
                 </li>
               </ul>

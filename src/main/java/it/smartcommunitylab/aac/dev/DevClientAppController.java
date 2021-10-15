@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -47,9 +50,12 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.dev.DevUsersController.RolesBean;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.model.RealmRole;
 import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
@@ -337,4 +343,51 @@ public class DevClientAppController {
         return ResponseEntity.ok(clientManager.listIdentityProviders(realm));
     }
 
+    /*
+     * Roles
+     */
+
+    @GetMapping("/realms/{realm}/apps/{clientId}/roles")
+    public ResponseEntity<Collection<RealmRole>> getRealmClientAppRoles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchRealmException, NoSuchClientException {
+        Collection<RealmRole> roles = clientManager.getRoles(realm, clientId);
+        return ResponseEntity.ok(roles);
+    }
+
+    @PutMapping("/realms/{realm}/apps/{clientId}/roles")
+    public ResponseEntity<Collection<RealmRole>> updateRealmClientAppRoles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @RequestBody RolesBean bean) throws NoSuchRealmException, NoSuchClientException {
+        // filter roles, make sure they belong to the current realm
+        Set<String> values = bean.getRoles().stream()
+                .filter(a -> realm.equals(a.getRealm()))
+                .map(a -> a.getRole())
+                .collect(Collectors.toSet());
+
+        Collection<RealmRole> roles = clientManager.updateRoles(realm, clientId,
+                values);
+        return ResponseEntity.ok(roles);
+    }
+
+    /*
+     * DTO
+     * 
+     * TODO cleanup
+     */
+    public static class RolesBean {
+
+        private List<RealmRole> roles;
+
+        public List<RealmRole> getRoles() {
+            return roles;
+        }
+
+        public void setRoles(List<RealmRole> roles) {
+            this.roles = roles;
+        }
+
+    }
 }

@@ -60,7 +60,7 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
             SamlUserAccount account = accountProvider.getAccount(userId);
 
             // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -74,7 +74,7 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
             SamlUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
             // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -117,7 +117,7 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
                 SamlUserAccount account = accountProvider.getByIdentifyingAttributes(idAttrs);
 
                 // build subject with username
-                return new Subject(account.getSubject(), getRealm(), account.getUsername());
+                return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
             } catch (NoSuchUserException nex) {
                 return null;
             }

@@ -126,7 +126,7 @@ angular.module('aac.controllers.realmproviders', [])
     /**
       * Realm identity providers controller
       */
-    .controller('RealmIdentityProvidersController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, Utils) {
+    .controller('RealmIdentityProvidersController', function ($scope, $state, $stateParams, $window, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
 
         $scope.load = function () {
@@ -254,6 +254,9 @@ angular.module('aac.controllers.realmproviders', [])
 
         }
 
+        $scope.exportProvider = function (provider) {
+            window.open('console/dev/realms/' + provider.realm + '/idps/' + provider.provider + '/export');
+        };
 
         var toChips = function (str) {
             return str.split(',').map(function (e) { return e.trim() }).filter(function (e) { return !!e });
@@ -764,7 +767,7 @@ angular.module('aac.controllers.realmproviders', [])
     /**
       * Realm attribute providers controller
       */
-    .controller('RealmAttributeProvidersController', function ($scope, $state, $stateParams, RealmData, RealmProviders, RealmAppsData, Utils) {
+    .controller('RealmAttributeProvidersController', function ($scope, $state, $stateParams, $window, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
 
         $scope.load = function () {
@@ -924,6 +927,9 @@ angular.module('aac.controllers.realmproviders', [])
             }
         }
 
+        $scope.exportProvider = function (provider) {
+            window.open('console/dev/realms/' + provider.realm + '/aps/' + provider.provider + '/export');
+        };
 
         var iconProvider = function (idp) {
             if (idp.authority === "mapper") {

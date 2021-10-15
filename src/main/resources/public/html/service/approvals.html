@@ -22,7 +22,13 @@
       <div class="col">
         <table class="table table-sm table-hover border-bottom" ng-if="approvals && approvals.length > 0">
           <tr ng-repeat="approval in approvals">
-            <td class="align-middle">{{approval.clientId}}</td>
+            <td class="align-middle">
+              <div ng-if="approval.subject">
+                <span class="h6">{{approval.subject.name}}</span>
+                <br><small class="text-muted"> {{approval.subject.type}}</small>
+              </div>
+              {{approval.clientId}}
+            </td>
             <td class="align-middle">{{approval.scope}}</td>
             <td class="text-right">
               <button class="btn btn-danger btn-sm" ng-click="removeApproval(approval)">Delete</button>

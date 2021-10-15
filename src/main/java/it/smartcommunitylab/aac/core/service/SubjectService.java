@@ -29,7 +29,7 @@ public class SubjectService {
             return null;
         }
 
-        return new Subject(s.getSubjectId(), s.getRealm(), s.getName());
+        return new Subject(s.getSubjectId(), s.getRealm(), s.getName(), s.getType());
     }
 
     public Subject getSubjectByClientId(String clientId) throws NoSuchSubjectException {
@@ -38,7 +38,7 @@ public class SubjectService {
             return null;
         }
 
-        return new Subject(s.getSubjectId(), s.getRealm(), s.getName());
+        return new Subject(s.getSubjectId(), s.getRealm(), s.getName(), s.getType());
     }
 
     public Subject getSubjectByUserId(String userId) throws NoSuchSubjectException {
@@ -47,6 +47,6 @@ public class SubjectService {
             return null;
         }
 
-        return new Subject(s.getSubjectId(), s.getRealm(), s.getName());
+        return new Subject(s.getSubjectId(), s.getRealm(), s.getName(), s.getType());
     }
 }

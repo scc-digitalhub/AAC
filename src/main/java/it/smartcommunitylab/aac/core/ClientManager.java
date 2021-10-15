@@ -455,7 +455,7 @@ public class ClientManager {
     }
 
     @Transactional(readOnly = false)
-    public Collection<RealmRole> updateRoles(String clientId, String realm, Collection<String> roles)
+    public Collection<RealmRole> updateRoles(String realm, String clientId, Collection<String> roles)
             throws NoSuchClientException, NoSuchRealmException {
         logger.debug("update roles for client " + String.valueOf(clientId) + " in realm " + realm);
 

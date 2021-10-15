@@ -60,7 +60,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
             OIDCUserAccount account = accountProvider.getAccount(userId);
 
             // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -74,7 +74,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
             OIDCUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
             // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -118,7 +118,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
                 OIDCUserAccount account = accountProvider.getByIdentifyingAttributes(idAttrs);
 
                 // build subject with username
-                return new Subject(account.getSubject(), getRealm(), account.getUsername());
+                return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
             } catch (NoSuchUserException nex) {
                 return null;
             }
