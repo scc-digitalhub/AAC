@@ -201,7 +201,7 @@ public class MyUserManager {
         }
 
         List<ConnectedAppProfile> apps = map.entrySet().stream()
-                .map(e -> new ConnectedAppProfile(e.getKey().getClientId(), e.getKey().getName(), e.getKey().getRealm(),
+                .map(e -> new ConnectedAppProfile(e.getKey().getClientId(), e.getKey().getRealm(), e.getKey().getName(),
                         e.getValue()))
                 .collect(Collectors.toList());
 
