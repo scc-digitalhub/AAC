@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -75,6 +76,7 @@ import it.smartcommunitylab.aac.openid.token.IdTokenServices;
  * https://datatracker.ietf.org/doc/html/rfc7636
  * https://openid.net/specs/openid-connect-core-1_0.html
  * https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+ * https://datatracker.ietf.org/doc/html/draft-ietf-oauth-iss-auth-resp-01
  * 
 */
 
@@ -95,6 +97,9 @@ public class AuthorizationEndpoint implements InitializingBean {
     private static final String formView = "forward:" + FORM_POST_URL;
 //    private static final String formPage = "oauth_form_post.html";
     private static final String formPage = FormPostView.VIEWNAME;
+
+    @Value("${jwt.issuer}")
+    private String issuer;
 
     @Autowired
     private OAuth2AuthorizationRequestFactory oauth2AuthorizationRequestFactory;
@@ -585,6 +590,9 @@ public class AuthorizationEndpoint implements InitializingBean {
             response.setIdToken(idToken.getValue());
         }
 
+        // set issuer
+        response.setIssuer(issuer);
+
         // append state params as per spec if provided
         // note: we append state even when empty
         if (authorizationRequest.getState() != null) {
@@ -673,6 +681,9 @@ public class AuthorizationEndpoint implements InitializingBean {
         if (authorizationResponse.getScope() != null) {
             String scope = StringUtils.collectionToDelimitedString(authorizationResponse.getScope(), " ");
             params.put("scope", scope);
+        }
+        if (authorizationResponse.getIssuer() != null) {
+            params.put("iss", authorizationResponse.getIssuer());
         }
 
         return buildUri(redirectUri, params, asFragment);
@@ -809,7 +820,9 @@ public class AuthorizationEndpoint implements InitializingBean {
             String scope = StringUtils.collectionToDelimitedString(authorizationResponse.getScope(), " ");
             params.put("scope", scope);
         }
-
+        if (authorizationResponse.getIssuer() != null) {
+            params.put("iss", authorizationResponse.getIssuer());
+        }
         return buildPost(redirectUri, params);
 
     }

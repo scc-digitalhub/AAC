@@ -43,6 +43,9 @@ public class AuthorizationResponse {
     @JsonProperty("expires_in")
     private Integer expiresIn;
 
+    @JsonProperty("iss")
+    private String issuer;
+
     @JsonIgnore
     private Map<String, Serializable> additionalInformation;
 
@@ -124,6 +127,14 @@ public class AuthorizationResponse {
 
     public void setExpiresIn(Integer expiresIn) {
         this.expiresIn = expiresIn;
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
     }
 
     public Map<String, Serializable> getAdditionalInformation() {
