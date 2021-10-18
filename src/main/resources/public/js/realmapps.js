@@ -129,9 +129,11 @@ angular.module('aac.controllers.realmapps', [])
         $scope.load = function () {
             RealmAppsData.searchClientApps(slug, $scope.query)
                 .then(function (data) {
-                    //add icon
                     data.content.forEach(function (app) {
+                        //add icon
                         app.icon = iconProvider(app);
+                        //filter authorities
+                        app._authorities = app.authorities.filter(a => slug == a.realm);
                     });
                     $scope.apps = data;
                 })
@@ -239,6 +241,51 @@ angular.module('aac.controllers.realmapps', [])
         $scope.exportClientApp = function (clientApp) {
             $window.open('console/dev/realms/' + clientApp.realm + '/apps/' + clientApp.clientId + '/export');
         };
+
+
+
+        $scope.editRoles = function (clientApp) {
+            var roles = clientApp.authorities
+                .filter(r => slug == r.realm)
+                .map(r => {
+                    return {
+                        'text': r.role
+                    };
+                });
+
+            $scope.modClient = {
+                ...clientApp,
+                'roles': roles
+            };
+
+            $('#rolesModal').modal({ backdrop: 'static', focus: true })
+
+        }
+
+        // save roles
+        $scope.updateRoles = function () {
+            $('#rolesModal').modal('hide');
+
+            if ($scope.modClient) {
+                var roles = $scope.modClient.roles.map(r => r.text);
+
+                var data = roles.map(r => {
+                    return { 'realm': slug, 'role': r }
+                });
+
+                RealmAppsData.updateRoles(slug, $scope.modClient.clientId, data)
+                    .then(function () {
+                        $scope.load();
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        Utils.showError(err);
+                    });
+
+                $scope.modClient = null;
+            }
+        }
+
 
 
         $scope.copyText = function (txt) {

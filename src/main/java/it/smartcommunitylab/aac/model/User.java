@@ -90,7 +90,7 @@ public class User {
     // this field should be used for caching, consumers should refresh
     // otherwise we should implement an (external) expiring + refreshing cache with
     // locking.
-    // this field is always discosed in cross-realm scenarios
+    // this field is always disclosed in cross-realm scenarios
     private Set<SpaceRole> roles;
 
     // additional attributes as UserAttributes collection

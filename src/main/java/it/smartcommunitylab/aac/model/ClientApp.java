@@ -2,8 +2,12 @@ package it.smartcommunitylab.aac.model;
 
 import java.io.Serializable;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotBlank;
@@ -49,8 +53,18 @@ public class ClientApp {
     // providers enabled
     private String[] providers = new String[0];
 
-    // roles
-    // TODO
+    // realm roles (ie authorities in AAC)
+    // these can be managed inside realms
+    // do note that the set should describe only the roles for the current context
+    private Set<RealmRole> authorities;
+
+    // roles are OUTSIDE aac (ie not grantedAuthorities)
+    // roles are associated to USER(=subjectId) not single identities/realms
+    // this field should be used for caching, consumers should refresh
+    // otherwise we should implement an (external) expiring + refreshing cache with
+    // locking.
+    // this field is always disclosed in cross-realm scenarios
+    private Set<SpaceRole> roles;
 
     // mappers
     // TODO
@@ -68,6 +82,8 @@ public class ClientApp {
         this.hookWebUrls = new HashMap<>();
         this.name = "";
         this.description = "";
+        this.authorities = Collections.emptySet();
+        this.roles = new HashSet<>();
     }
 
     public String getClientId() {
@@ -76,6 +92,17 @@ public class ClientApp {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public Set<RealmRole> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Collection<RealmRole> authorities) {
+        this.authorities = new HashSet<>();
+        if (authorities != null) {
+            this.authorities.addAll(authorities);
+        }
     }
 
     public String getRealm() {
@@ -195,6 +222,37 @@ public class ClientApp {
                         return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
                     }));
         }
+    }
+
+    /*
+     * Roles are mutable and comparable
+     */
+
+    public Set<SpaceRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Collection<SpaceRole> rr) {
+        this.roles = new HashSet<>();
+        addRoles(rr);
+    }
+
+    public void addRoles(Collection<SpaceRole> rr) {
+        if (rr != null) {
+            roles.addAll(rr);
+        }
+    }
+
+    public void removeRoles(Collection<SpaceRole> rr) {
+        roles.removeAll(rr);
+    }
+
+    public void addRole(SpaceRole r) {
+        this.roles.add(r);
+    }
+
+    public void removeRole(SpaceRole r) {
+        this.roles.remove(r);
     }
 
 }

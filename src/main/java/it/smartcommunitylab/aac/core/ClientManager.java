@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -103,8 +104,20 @@ public class ClientManager {
         logger.debug("list client apps for realm " + realm + " type " + type);
 
         Realm r = realmService.getRealm(realm);
+        Collection<ClientApp> apps = Collections.emptyList();
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
-            return oauthClientAppService.listClients(r.getSlug());
+            apps = oauthClientAppService.listClients(r.getSlug());
+            // load realm roles
+            apps.stream().forEach(app -> {
+                try {
+                    // load realm roles
+                    Set<RealmRole> authorities = loadClientRoles(realm, app.getClientId());
+                    app.setAuthorities(authorities);
+                } catch (NoSuchClientException e) {
+                }
+            });
+            
+            return apps;
         }
 
         throw new IllegalArgumentException("invalid client type");
@@ -126,7 +139,18 @@ public class ClientManager {
         logger.debug("search clients for realm " + realm + " with keywords " + String.valueOf(keywords));
         Realm r = realmService.getRealm(realm);
         // we support only oauth for now
-        return oauthClientAppService.searchClients(r.getSlug(), keywords, pageRequest);
+        Page<ClientApp> page = oauthClientAppService.searchClients(r.getSlug(), keywords, pageRequest);
+        // load realm roles
+        page.get().forEach(clientApp -> {
+            try {
+                // load realm roles
+                Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
+                clientApp.setAuthorities(authorities);
+            } catch (NoSuchClientException e) {
+            }
+        });
+
+        return page;
     }
 
     @Deprecated
@@ -151,6 +175,13 @@ public class ClientManager {
         // check realm match
         if (!clientApp.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm mismatch");
+        }
+
+        try {
+            // load realm roles
+            Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
+            clientApp.setAuthorities(authorities);
+        } catch (NoSuchClientException e) {
         }
 
         return clientApp;
@@ -184,6 +215,10 @@ public class ClientManager {
         if (!clientApp.getRealm().equals(r.getSlug())) {
             throw new AccessDeniedException("realm mismatch");
         }
+
+        // load realm roles
+        Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
+        clientApp.setAuthorities(authorities);
 
         return clientApp;
     }
@@ -231,7 +266,16 @@ public class ClientManager {
                 logger.trace("app :" + String.valueOf(app));
             }
 
-            return oauthClientAppService.registerClient(r.getSlug(), app);
+            ClientApp clientApp = oauthClientAppService.registerClient(r.getSlug(), app);
+            try {
+                // load realm roles
+                Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
+                clientApp.setAuthorities(authorities);
+
+            } catch (NoSuchClientException e) {
+            }
+
+            return clientApp;
         }
 
         throw new IllegalArgumentException("invalid client type");
@@ -272,6 +316,10 @@ public class ClientManager {
         if (clientApp == null) {
             throw new IllegalArgumentException("invalid client type");
         }
+
+        // load realm roles
+        Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
+        clientApp.setAuthorities(authorities);
 
         return clientApp;
     }
@@ -610,6 +658,13 @@ public class ClientManager {
             throw new IllegalArgumentException("invalid client type");
         }
 
+    }
+
+    private Set<RealmRole> loadClientRoles(String realm, String clientId) throws NoSuchClientException {
+        List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId, realm);
+        return clientRoles.stream()
+                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
+                .collect(Collectors.toSet());
     }
 
 }
