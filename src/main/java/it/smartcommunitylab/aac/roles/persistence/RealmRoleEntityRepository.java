@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.roles.persistence;
 
 import java.util.List;
 

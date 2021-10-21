@@ -35,11 +35,11 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * Services and controllers should adopt the User model.
  */
 
-//TODO evaluate remove spring Userdetails compatibility, we don't need it 
-public class UserDetails implements org.springframework.security.core.userdetails.UserDetails, CredentialsContainer {
+public class UserDetails implements CredentialsContainer, Serializable {
 
     // we do not expect this model to be serialized to disk
     // but this could be shared between nodes
+    // NOTE: with legacy oauth2 lib auth tokens are serialized to db
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // base attributes
@@ -47,25 +47,17 @@ public class UserDetails implements org.springframework.security.core.userdetail
     private final String realm;
     private String username;
 
-//    // this is mutable, we want to keep one "identity" mapped
-//    // TODO evaluate removal from here, use only attributes or drop and let
-//    // claim/attribute services handle
-//    private BasicProfile profile;
-
     // identities are stored with addressable keys (userId)
     private final Map<String, UserIdentity> identities;
 
     // we extract attributes from identities
     // sets are bound to realm, stored with addressable keys
     // plus we can have additional attributes from external providers
-    // TODO rework, only same-realm
-    // TODO evaluate removal from this context or use as request cache
     private final Map<String, UserAttributes> attributes;
 
     // authorities are roles INSIDE aac (ie user/admin/dev etc)
     // we do not want authorities modified inside session
     // note permission checks are performed on authToken authorities, not here
-    // TODO remove, should be left in token, we keep for interface compatibiilty
     private final Set<? extends GrantedAuthority> authorities;
 
     // we support account status
@@ -139,7 +131,6 @@ public class UserDetails implements org.springframework.security.core.userdetail
         this.locked = true;
     }
 
-    @Override
     public String getUsername() {
         return username;
     }
@@ -152,13 +143,6 @@ public class UserDetails implements org.springframework.security.core.userdetail
 
     }
 
-    @Override
-    public String getPassword() {
-        // no password here
-        return null;
-    }
-
-    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
@@ -223,15 +207,15 @@ public class UserDetails implements org.springframework.security.core.userdetail
         return Collections.unmodifiableCollection(identities.values());
     }
 
-    public List<UserIdentity> getIdentities(String authority) {
+    public List<UserIdentity> getIdentities(String realm) {
         return Collections.unmodifiableList(identities.values().stream()
-                .filter(u -> (authority.equals(u.getAuthority())))
+                .filter(u -> (realm.equals(u.getRealm())))
                 .collect(Collectors.toList()));
     }
 
-    public List<UserIdentity> getIdentities(String authority, String provider) {
+    public List<UserIdentity> getIdentities(String realm, String provider) {
         return Collections.unmodifiableList(identities.values().stream()
-                .filter(u -> (authority.equals(u.getAuthority())
+                .filter(u -> (realm.equals(u.getRealm())
                         && provider.equals(u.getProvider())))
                 .collect(Collectors.toList()));
     }
@@ -361,15 +345,15 @@ public class UserDetails implements org.springframework.security.core.userdetail
         }
     }
 
-    public Collection<UserAttributes> getAttributeSets(String authority) {
+    public Collection<UserAttributes> getAttributeSets(String realm) {
         return Collections.unmodifiableList(attributes.values().stream()
-                .filter(u -> (authority.equals(u.getAuthority())))
+                .filter(u -> (realm.equals(u.getRealm())))
                 .collect(Collectors.toList()));
     }
 
-    public Collection<UserAttributes> getAttributeSets(String authority, String provider) {
+    public Collection<UserAttributes> getAttributeSets(String realm, String provider) {
         return Collections.unmodifiableList(getAttributeSets().stream()
-                .filter(u -> (authority.equals(u.getAuthority())
+                .filter(u -> (realm.equals(u.getRealm())
                         && provider.equals(u.getProvider())))
                 .collect(Collectors.toList()));
     }
@@ -391,28 +375,6 @@ public class UserDetails implements org.springframework.security.core.userdetail
         attributes.remove(attributeSet.getAttributesId());
     }
 
-    /*
-     * not supported
-     */
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-
-    }
-
-    @Override
     public boolean isEnabled() {
         return enabled;
     }

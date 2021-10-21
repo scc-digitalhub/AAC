@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.roles.persistence;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,17 +9,16 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "client_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "client_id", "realm", "role" }))
-public class ClientRoleEntity {
+@Table(name = "subject_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "role" }))
+public class SubjectRoleEntity {
     @Id
     @GeneratedValue
     private Long id;
 
     @NotNull
-    @Column(name = "client_id")
-    private String clientId;
+    @Column(name = "subject_id")
+    private String subject;
 
-    @NotNull
     private String realm;
 
     @NotNull
@@ -33,12 +32,12 @@ public class ClientRoleEntity {
         this.id = id;
     }
 
-    public String getClientId() {
-        return clientId;
+    public String getSubject() {
+        return subject;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 
     public String getRealm() {
@@ -57,22 +56,21 @@ public class ClientRoleEntity {
         this.role = role;
     }
 
-    protected ClientRoleEntity() {
-
+    protected SubjectRoleEntity() {
     }
 
-    public ClientRoleEntity(String clientId) {
+    public SubjectRoleEntity(String subject) {
         super();
-        this.clientId = clientId;
+        this.subject = subject;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((clientId == null) ? 0 : clientId.hashCode());
         result = prime * result + ((realm == null) ? 0 : realm.hashCode());
         result = prime * result + ((role == null) ? 0 : role.hashCode());
+        result = prime * result + ((subject == null) ? 0 : subject.hashCode());
         return result;
     }
 
@@ -84,12 +82,7 @@ public class ClientRoleEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ClientRoleEntity other = (ClientRoleEntity) obj;
-        if (clientId == null) {
-            if (other.clientId != null)
-                return false;
-        } else if (!clientId.equals(other.clientId))
-            return false;
+        SubjectRoleEntity other = (SubjectRoleEntity) obj;
         if (realm == null) {
             if (other.realm != null)
                 return false;
@@ -100,12 +93,17 @@ public class ClientRoleEntity {
                 return false;
         } else if (!role.equals(other.role))
             return false;
+        if (subject == null) {
+            if (other.subject != null)
+                return false;
+        } else if (!subject.equals(other.subject))
+            return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "ClientRoleEntity [id=" + id + ", clientId=" + clientId + ", realm=" + realm + ", role=" + role + "]";
+        return "SubjectRoleEntity [id=" + id + ", subject=" + subject + ", realm=" + realm + ", role=" + role + "]";
     }
 
 }

@@ -1,10 +1,7 @@
-package it.smartcommunitylab.aac.roles;
+package it.smartcommunitylab.aac.roles.claims;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.stereotype.Component;
 
 import it.smartcommunitylab.aac.Config;
@@ -12,16 +9,12 @@ import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
 
 @Component
-public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvider {
+public class SpacesClaimsExtractorProvider implements ScopeClaimsExtractorProvider {
 
-    private static final Map<String, ScopeClaimsExtractor> extractors;
+    private final SpacesClaimsExtractor extractor;
 
-    static {
-        Map<String, ScopeClaimsExtractor> e = new HashMap<>();
-        e.put(Config.SCOPE_USER_ROLE, new UserRolesClaimsExtractor());
-        e.put(Config.SCOPE_CLIENT_ROLE, new ClientRolesClaimsExtractor());
-
-        extractors = e;
+    public SpacesClaimsExtractorProvider() {
+        this.extractor = new SpacesClaimsExtractor();
     }
 
     @Override
@@ -31,8 +24,9 @@ public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvide
 
     @Override
     public Collection<String> getScopes() {
-        return extractors.keySet();
+        return Collections.singleton(Config.SCOPE_USER_SPACES);
     }
+
 //    @Override
 //    public Collection<ScopeClaimsExtractor> getExtractors() {
 //        return Collections.singleton(extractor);
@@ -40,8 +34,7 @@ public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvide
 
     @Override
     public ScopeClaimsExtractor getExtractor(String scope) {
-        ScopeClaimsExtractor extractor = extractors.get(scope);
-        if (extractor == null) {
+        if (!Config.SCOPE_USER_SPACES.equals(scope)) {
             throw new IllegalArgumentException("invalid scope");
         }
 

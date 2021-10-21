@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.roles;
+package it.smartcommunitylab.aac.roles.scopes;
 
 import java.util.Collection;
 import java.util.Collections;

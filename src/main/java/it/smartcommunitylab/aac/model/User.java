@@ -29,20 +29,20 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * same-realm and cross-realm scenarios.
  * 
  * Do note that in cross realm managers and builders should properly handle private attributes and 
- * disclose only appropriate identities/properties. 
+ * disclose only appropriate identities/properties to consumers.
  */
 @JsonInclude(Include.NON_EMPTY)
 public class User {
 
-    // base attributes
-    // always set
     @NotBlank
     private final String subjectId;
 
     // describes the realm responsible for this user
+    // TODO remove field, not needed with realm-scoped resources
     private final String source;
 
     // realm describes the current user for the given realm
+    // TODO always set to subject source realm
     private String realm;
 
     // basic profile
@@ -50,6 +50,7 @@ public class User {
     private String email;
 
     // user status
+    // TODO convert to enum
     private boolean blocked;
     private boolean locked;
 
@@ -66,13 +67,11 @@ public class User {
     private String loginIp;
     private String loginProvider;
 
-//    // could be empty
-//    private String name;
-//    private String surname;
-//    private String username;
-//    private String email;
+    // authorities in AAC
+    // these are either global or realm scoped
+    private Set<GrantedAuthority> authorities;
 
-    // identities associated with this user
+    // identities associated with this user (realm scoped)
     // this will be populated as needed, make no assumption about being always set
     // or complete: for example the only identity provided could be the one
     // selected for the authentication request, or those managed by a given
@@ -80,21 +79,16 @@ public class User {
     // these could also be empty in cross-realm scenarios
     private Set<UserIdentity> identities;
 
-    // realm roles (ie authorities in AAC)
-    // these can be managed inside realms
-    // do note that the set should describe only the roles for the current context
-    private Set<GrantedAuthority> authorities;
-
     // roles are OUTSIDE aac (ie not grantedAuthorities)
     // roles are associated to USER(=subjectId) not single identities/realms
-    // this field should be used for caching, consumers should refresh
-    // otherwise we should implement an (external) expiring + refreshing cache with
-    // locking.
-    // this field is always disclosed in cross-realm scenarios
-    private Set<SpaceRole> roles;
+    // realm scoped
+    private Set<RealmRole> realmRoles;
+
+    // space roles are global
+    private Set<SpaceRole> spaceRoles;
 
     // additional attributes as UserAttributes collection
-    // these attributes should be kept consistent with the context(ie realm)
+    // realm scoped
     private List<UserAttributes> attributes;
 
     public User(String subjectId, String source) {
@@ -108,7 +102,8 @@ public class User {
         this.authorities = Collections.emptySet();
         this.identities = new HashSet<>();
         this.attributes = new ArrayList<>();
-        this.roles = new HashSet<>();
+        this.realmRoles = new HashSet<>();
+        this.spaceRoles = new HashSet<>();
     }
 
     public User(UserDetails details) {
@@ -123,7 +118,7 @@ public class User {
                 .collect(Collectors.toSet());
         this.identities = new HashSet<>(details.getIdentities());
         this.attributes = new ArrayList<>(details.getAttributeSets(false));
-        this.roles = new HashSet<>();
+        this.spaceRoles = new HashSet<>();
 
         this.username = details.getUsername();
 //        this.name = details.getFirstName();
@@ -296,39 +291,50 @@ public class User {
     }
 
     /*
-     * Authorities (realm)
+     * Authorities
      * 
      */
 
     /*
      * Roles are mutable and comparable
      */
-
-    public Set<SpaceRole> getRoles() {
-        return roles;
+    public Set<RealmRole> getRealmRoles() {
+        return realmRoles;
     }
 
-    public void setRoles(Collection<SpaceRole> rr) {
-        this.roles = new HashSet<>();
-        addRoles(rr);
+    public void setRealmRoles(Collection<RealmRole> rr) {
+        this.realmRoles = new HashSet<>();
+        realmRoles.addAll(rr);
     }
 
-    public void addRoles(Collection<SpaceRole> rr) {
-        if (rr != null) {
-            roles.addAll(rr);
-        }
+    /*
+     * Space roles
+     */
+    public Set<SpaceRole> getSpaceRoles() {
+        return spaceRoles;
     }
 
-    public void removeRoles(Collection<SpaceRole> rr) {
-        roles.removeAll(rr);
+    public void setSpaceRoles(Collection<SpaceRole> rr) {
+        this.spaceRoles = new HashSet<>();
+        spaceRoles.addAll(rr);
     }
 
-    public void addRole(SpaceRole r) {
-        this.roles.add(r);
-    }
-
-    public void removeRole(SpaceRole r) {
-        this.roles.remove(r);
-    }
+//    public void addSpaceRoles(Collection<SpaceRole> rr) {
+//        if (rr != null) {
+//            spaceRoles.addAll(rr);
+//        }
+//    }
+//
+//    public void removeSpaceRoles(Collection<SpaceRole> rr) {
+//        spaceRoles.removeAll(rr);
+//    }
+//
+//    public void addSpaceRole(SpaceRole r) {
+//        this.spaceRoles.add(r);
+//    }
+//
+//    public void removeSpaceRole(SpaceRole r) {
+//        this.spaceRoles.remove(r);
+//    }
 
 }

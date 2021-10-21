@@ -23,16 +23,17 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 
 @Service
-public class RoleManager {
+public class SpaceRoleManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private AuthenticationHelper authHelper;
 
     @Autowired
-    private RoleService roleService;
+    private SpaceRoleService roleService;
 
     @Autowired
     private SubjectService subjectService;
@@ -101,7 +102,7 @@ public class RoleManager {
         Collection<SpaceRole> spaceRoles = roles.stream().map(r -> new SpaceRole(context, space, r))
                 .collect(Collectors.toList());
 
-        Set<SpaceRole> oldRoles = roleService.getRoles(subject, context, space);
+        Collection<SpaceRole> oldRoles = roleService.getRoles(subject, context, space);
         roleService.removeRoles(subject, oldRoles);
         roleService.addRoles(subject, spaceRoles);
 

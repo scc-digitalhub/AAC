@@ -60,7 +60,7 @@ public class CoreUserTranslator implements UserTranslator {
         result.setAuthorities(authorities);
 
         // all roles
-        result.setRoles(user.getRoles());
+        result.setSpaceRoles(user.getSpaceRoles());
 
         return result;
 

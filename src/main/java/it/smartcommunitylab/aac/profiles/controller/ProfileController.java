@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.util.Collection;
 
 import javax.annotation.security.RolesAllowed;
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
@@ -29,21 +27,15 @@ import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
@@ -52,8 +44,6 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.model.ErrorInfo;
-import it.smartcommunitylab.aac.model.Response;
 import it.smartcommunitylab.aac.profiles.ProfileManager;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
@@ -254,60 +244,6 @@ public class ProfileController {
             throws NoSuchRealmException, NoSuchUserException, InvalidDefinitionException {
         Collection<AbstractProfile> profiles = profileManager.getProfiles(realm, subject, identifier);
         return new ProfileResponse(subject, profiles);
-    }
-
-    /*
-     * Exceptions
-     */
-    @ExceptionHandler(EntityNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ResponseBody
-    Response processNotFoundError(EntityNotFoundException ex) {
-        return Response.error(ex.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ResponseBody
-    Response processNotAcceptableError(MethodArgumentTypeMismatchException ex) {
-        return Response.error(ex.getMessage());
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ResponseBody
-    Response processAccessError(AccessDeniedException ex) {
-        return Response.error(ex.getMessage());
-    }
-
-    @ExceptionHandler(InsufficientAuthenticationException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ResponseBody
-    Response processAuthError(InsufficientAuthenticationException ex) {
-        return Response.error(ex.getMessage());
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public Response processValidationError(IllegalArgumentException ex) {
-        return Response.error(ex.getMessage());
-    }
-
-    @ExceptionHandler(InvalidDefinitionException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public Response processInvalidError(InvalidDefinitionException ex) {
-        return Response.error(ex.getMessage());
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(Exception.class)
-    @ResponseBody
-    ErrorInfo handleBadRequest(HttpServletRequest req, Exception ex) {
-        StackTraceElement ste = ex.getStackTrace()[0];
-        return new ErrorInfo(req.getRequestURL().toString(), ex.getClass().getTypeName(), ste.getClassName(),
-                ste.getLineNumber());
     }
 
 }

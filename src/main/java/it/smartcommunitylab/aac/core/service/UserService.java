@@ -15,15 +15,11 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.authorities.AttributeAuthority;
 import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
@@ -31,14 +27,14 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.roles.RoleService;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 
 /*
  * User management
@@ -61,13 +57,19 @@ public class UserService {
     private UserEntityService userService;
 
     @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
+    private SubjectRoleService roleService;
+
+    @Autowired
     private IdentityProviderService identityProviderService;
 
     @Autowired
     private AttributeProviderService attributeProviderService;
 
     @Autowired
-    private RoleService roleService;
+    private SpaceRoleService spaceRoleService;
 
     @Autowired
     private UserTranslatorService translator;
@@ -97,8 +99,11 @@ public class UserService {
             // refresh user attributes
             u.setAttributes(fetchUserAttributes(subjectId, realm));
 
+            // refresh realm roles
+            u.setRealmRoles(fetchUserRealmRoles(subjectId, realm));
+
             // refresh space roles
-            u.setRoles(fetchUserSpaceRoles(subjectId, realm));
+            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
@@ -135,8 +140,11 @@ public class UserService {
             // refresh user attributes
             u.setAttributes(fetchUserAttributes(subjectId, realm));
 
+            // refresh realm roles
+            u.setRealmRoles(fetchUserRealmRoles(subjectId, realm));
+
             // refresh space roles
-            u.setRoles(fetchUserSpaceRoles(subjectId, realm));
+            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -173,8 +181,11 @@ public class UserService {
             // refresh user attributes
             u.setAttributes(fetchUserAttributes(subjectId, realm));
 
+            // refresh realm roles
+            u.setRealmRoles(fetchUserRealmRoles(subjectId, realm));
+
             // refresh space roles
-            u.setRoles(fetchUserSpaceRoles(subjectId, realm));
+            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -249,8 +260,11 @@ public class UserService {
         // add user attributes
         u.addAttributes(fetchUserAttributes(subjectId, realm));
 
+        // add realm roles
+        u.setRealmRoles(fetchUserRealmRoles(subjectId, realm));
+
         // add space roles
-        u.setRoles(fetchUserSpaceRoles(subjectId, realm));
+        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
         return u;
 
@@ -323,8 +337,11 @@ public class UserService {
         // add user attributes
         u.setAttributes(fetchUserAttributes(subjectId, realm));
 
+        // add realm roles
+        u.setRealmRoles(fetchUserRealmRoles(subjectId, realm));
+
         // add space roles
-        u.setRoles(fetchUserSpaceRoles(subjectId, realm));
+        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
         return u;
 
@@ -376,38 +393,38 @@ public class UserService {
         return realmUsers;
     }
 
-    /**
-     * Update realm roles for the specified user
-     * 
-     * @param slug
-     * @param subjectId
-     * @param roles
-     * @throws NoSuchUserException
-     */
-    public Collection<RealmRole> updateRoles(String realm, String subjectId, Collection<String> roles)
-            throws NoSuchUserException {
-        // check role format
-        roles.stream().forEach(r -> {
-            if (!StringUtils.hasText(r) || !r.matches(SystemKeys.SLUG_PATTERN)) {
-                throw new IllegalArgumentException("invalid role format, valid chars " + SystemKeys.SLUG_PATTERN);
-            }
-        });
-
-        // update
-        List<UserRoleEntity> realmRoles = userService.updateRoles(subjectId, realm, roles);
-        return realmRoles.stream()
-                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
-                .collect(Collectors.toList());
-    }
-
-    public Collection<RealmRole> getRoles(String realm, String subjectId)
-            throws NoSuchUserException {
-        // fetch all authoritites for realm
-        List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, realm);
-        return realmRoles.stream()
-                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
-                .collect(Collectors.toList());
-    }
+//    /**
+//     * Update realm roles for the specified user
+//     * 
+//     * @param slug
+//     * @param subjectId
+//     * @param roles
+//     * @throws NoSuchUserException
+//     */
+//    public Collection<RealmRole> updateRoles(String realm, String subjectId, Collection<String> roles)
+//            throws NoSuchUserException {
+//        // check role format
+//        roles.stream().forEach(r -> {
+//            if (!StringUtils.hasText(r) || !r.matches(SystemKeys.SLUG_PATTERN)) {
+//                throw new IllegalArgumentException("invalid role format, valid chars " + SystemKeys.SLUG_PATTERN);
+//            }
+//        });
+//
+//        // update
+//        List<UserRoleEntity> realmRoles = userService.updateRoles(subjectId, realm, roles);
+//        return realmRoles.stream()
+//                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
+//                .collect(Collectors.toList());
+//    }
+//
+//    public Collection<RealmRole> getRoles(String realm, String subjectId)
+//            throws NoSuchUserException {
+//        // fetch all authoritites for realm
+//        List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, realm);
+//        return realmRoles.stream()
+//                .map(ur -> new RealmRole(ur.getRealm(), ur.getRole()))
+//                .collect(Collectors.toList());
+//    }
 
     /**
      * Remove a user from the given realm
@@ -431,7 +448,7 @@ public class UserService {
             // fetch accessible
             // TODO decide policy + implement
             // CURRENTLY ONLY DROP REALM ROLES
-            updateRoles(realm, subjectId, Collections.emptyList());
+//            updateRoles(realm, subjectId, Collections.emptyList());
         }
 
     }
@@ -459,7 +476,7 @@ public class UserService {
             }
         }
         // roles
-        roleService.deleteRoles(subjectId);
+        spaceRoleService.deleteRoles(subjectId);
 
         // delete user
         userService.deleteUser(subjectId);
@@ -539,27 +556,21 @@ public class UserService {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(Config.R_USER));
 
-        // fetch all authoritites for realm
-        List<UserRoleEntity> realmRoles = userService.getRoles(subjectId, realm);
-        List<RealmGrantedAuthority> realmAuthorities = realmRoles.stream()
-                .map(ur -> new RealmGrantedAuthority(ur.getRealm(), ur.getRole()))
-                .collect(Collectors.toList());
-        authorities.addAll(realmAuthorities);
-
-        // also add global authorities
-        List<UserRoleEntity> globalRoles = userService.getRoles(subjectId, SystemKeys.REALM_GLOBAL);
-        List<SimpleGrantedAuthority> globalAuthorities = globalRoles.stream()
-                .map(ur -> new SimpleGrantedAuthority(ur.getRole()))
-                .collect(Collectors.toList());
-        authorities.addAll(globalAuthorities);
+        // fetch all authorities for subject
+        Collection<GrantedAuthority> userAuthorities = subjectService.getAuthorities(subjectId);
+        authorities.addAll(userAuthorities);
 
         return authorities;
 
     }
 
+    private Collection<RealmRole> fetchUserRealmRoles(String subjectId, String realm) throws NoSuchUserException {
+        return roleService.getRoles(subjectId, realm);
+    }
+
     private Collection<SpaceRole> fetchUserSpaceRoles(String subjectId, String realm) throws NoSuchUserException {
         // we don't filter space roles per realm, so read all
-        return roleService.getRoles(subjectId);
+        return spaceRoleService.getRoles(subjectId);
     }
 
 }

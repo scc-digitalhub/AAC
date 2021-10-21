@@ -32,14 +32,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
@@ -48,11 +47,11 @@ import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.model.Subject;
 
@@ -67,22 +66,25 @@ import it.smartcommunitylab.aac.model.Subject;
  * note: we should support anonymousToken as fallback for public pages
  */
 
-public class ExtendedAuthenticationManager implements AuthenticationManager {
+public class ExtendedUserAuthenticationManager implements AuthenticationManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AuthorityManager authorityManager;
     private final UserEntityService userService;
+    private final SubjectService subjectService;
 
     private AuthenticationEventPublisher eventPublisher;
 
-    public ExtendedAuthenticationManager(
+    public ExtendedUserAuthenticationManager(
             AuthorityManager authorityManager,
-            UserEntityService userService) {
+            UserEntityService userService, SubjectService subjectService) {
         Assert.notNull(authorityManager, "authority manager is required");
         Assert.notNull(userService, "user service is required");
+        Assert.notNull(subjectService, "subject service is required");
 
         this.authorityManager = authorityManager;
         this.userService = userService;
+        this.subjectService = subjectService;
 
         logger.debug("authentication manager created");
     }
@@ -444,23 +446,19 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
             // TODO add concurrent sessions for same subject control
 
             // convert to subject
-            // TODO fetch subject from service
-            Subject subject = new Subject(subjectId, realm, user.getUsername(), SystemKeys.RESOURCE_USER);
+            // fetch subject from service
+//            Subject subject = new Subject(subjectId, realm, user.getUsername(), SystemKeys.RESOURCE_USER);
+            Subject subject = subjectService.getSubject(subjectId);
+            // update
+            subject = subjectService.updateSubject(subjectId, user.getUsername());
 
             // fetch global and realm authorities for subject
-            List<UserRoleEntity> userRoles = userService.getRoles(subjectId);
+            List<GrantedAuthority> userAuthorities = subjectService.getAuthorities(subjectId);
 
             Set<GrantedAuthority> authorities = new HashSet<>();
             // always grant user role
             authorities.add(new SimpleGrantedAuthority(Config.R_USER));
-
-            for (UserRoleEntity role : userRoles) {
-                if (StringUtils.hasText(role.getRealm())) {
-                    authorities.add(new RealmGrantedAuthority(role.getRealm(), role.getRole()));
-                } else {
-                    authorities.add(new SimpleGrantedAuthority(role.getRole()));
-                }
-            }
+            authorities.addAll(userAuthorities);
 
             logger.debug("authenticated user granted authorities are " + authorities.toString());
 
@@ -554,7 +552,7 @@ public class ExtendedAuthenticationManager implements AuthenticationManager {
 
             return result;
 
-        } catch (NoSuchUserException e) {
+        } catch (NoSuchUserException | NoSuchSubjectException e) {
             logger.error("idp could not resolve identity for user " + userId);
             throw new UsernameNotFoundException("no identity for user from provider");
         }

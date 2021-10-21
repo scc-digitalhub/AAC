@@ -1,5 +1,6 @@
-package it.smartcommunitylab.aac.core.persistence;
+package it.smartcommunitylab.aac.roles.persistence;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -11,9 +12,12 @@ import javax.validation.constraints.NotNull;
 @Table(name = "realm_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "role" }))
 public class RealmRoleEntity {
 
+    public static final String ID_PREFIX = "rr_";
+
     @Id
-    @GeneratedValue
-    private Long id;
+    @NotNull
+    @Column(name = "role_id", unique = true)
+    private String id;
 
     @NotNull
     private String realm;
@@ -21,11 +25,22 @@ public class RealmRoleEntity {
     @NotNull
     private String role;
 
-    public Long getId() {
+    private String name;
+    private String description;
+
+    public RealmRoleEntity() {
+
+    }
+
+    public RealmRoleEntity(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -43,6 +58,22 @@ public class RealmRoleEntity {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.roles.SpacesClaimsExtractor;
+import it.smartcommunitylab.aac.roles.claims.SpacesClaimsExtractor;
 
 public class SpacesApprovalHandler implements UserApprovalHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -177,7 +177,7 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
 
     private Set<String> getUniqueSpaces(UserDetails userDetails, String uniqueSpaces) {
         User user = userService.getUser(userDetails);
-        Set<SpaceRole> roles = user.getRoles();
+        Set<SpaceRole> roles = user.getSpaceRoles();
 
         // filter and flatmap everything under context
         Set<String> spaces = roles.stream()

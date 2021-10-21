@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.roles;
+package it.smartcommunitylab.aac.roles.scopes;
 
 import it.smartcommunitylab.aac.scope.Resource;
 
@@ -19,7 +19,7 @@ public class RolesResource extends Resource {
 
     @Override
     public String getDescription() {
-        return "Access roles and groups";
+        return "Access roles and authorities";
     }
 
 }

@@ -53,6 +53,7 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
+import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
@@ -109,6 +110,9 @@ public class UserManager {
 
     @Autowired
     private AttributeProviderService attributeProviderService;
+
+    @Autowired
+    private SubjectRoleService roleService;
 
 //    /*
 //     * System admin user internal usage TODO rework for non-internal providers
@@ -221,7 +225,7 @@ public class UserManager {
         logger.debug("get authorities for user " + String.valueOf(subjectId) + " in realm " + realm);
 
         Realm r = realmService.getRealm(realm);
-        return userService.getRoles(r.getSlug(), subjectId);
+        return roleService.getRoles(subjectId, r.getSlug());
     }
 
     @Transactional(readOnly = false)
@@ -233,7 +237,7 @@ public class UserManager {
         }
 
         Realm r = realmService.getRealm(realm);
-        return userService.updateRoles(r.getSlug(), subjectId, roles);
+        return roleService.updateRoles(subjectId, r.getSlug(), roles);
     }
 
     @Transactional(readOnly = false)

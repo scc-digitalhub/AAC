@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RealmRole {
 
+    private String roleId;
+
 //    @NotBlank
     private String realm;
 
@@ -26,6 +28,14 @@ public class RealmRole {
     public RealmRole(String realm, String role) {
         this.realm = realm;
         this.role = role;
+    }
+
+    public String getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(String roleId) {
+        this.roleId = roleId;
     }
 
     public String getAuthority() {

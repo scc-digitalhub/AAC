@@ -46,7 +46,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CompositeFilter;
-import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.auth.ExpiredUserAuthenticationFilter;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
@@ -132,7 +132,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //    private OAuth2ClientUserDetailsService clientUserDetailsService;
 
     @Autowired
-    private ExtendedAuthenticationManager authManager;
+    private ExtendedUserAuthenticationManager authManager;
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;

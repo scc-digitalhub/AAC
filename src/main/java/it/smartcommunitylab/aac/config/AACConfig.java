@@ -34,13 +34,14 @@ import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.AuthorityManager;
-import it.smartcommunitylab.aac.core.ExtendedAuthenticationManager;
+import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;
 import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderRepository;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
@@ -170,11 +171,14 @@ public class AACConfig {
      * authManager depends on provider + userService
      */
     @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
     private UserEntityService userService;
 
     @Bean
-    public ExtendedAuthenticationManager extendedAuthenticationManager() throws Exception {
-        return new ExtendedAuthenticationManager(authorityManager, userService);
+    public ExtendedUserAuthenticationManager extendedAuthenticationManager() throws Exception {
+        return new ExtendedUserAuthenticationManager(authorityManager, userService, subjectService);
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.roles;
+package it.smartcommunitylab.aac.roles.claims;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
             throws InvalidDefinitionException, SystemException {
 
         // we get roles from user, it should be up-to-date
-        Set<SpaceRole> roles = user.getRoles();
+        Set<SpaceRole> roles = user.getSpaceRoles();
         // export as space name
         Set<String> spaces = roles.stream().map(r -> r.getSpace()).collect(Collectors.toSet());
 

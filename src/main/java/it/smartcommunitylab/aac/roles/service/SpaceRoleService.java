@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.roles;
+package it.smartcommunitylab.aac.roles.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,13 +22,13 @@ import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntityRepository;
 
 @Service
 @Transactional
-public class RoleService {
+public class SpaceRoleService {
 
     @Autowired
     private SpaceRoleEntityRepository roleRepository;
 
     @Transactional(readOnly = true)
-    public Set<SpaceRole> getRoles(String subject) {
+    public Collection<SpaceRole> getRoles(String subject) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubject(subject);
 
         return rr.stream()
@@ -37,39 +37,39 @@ public class RoleService {
     }
 
     @Transactional(readOnly = true)
-    public Set<SpaceRole> getRoles(String subject, String context) {
+    public Collection<SpaceRole> getRoles(String subject, String context) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubjectAndContext(subject, context);
 
         return rr.stream()
                 .map(r -> addRole(subject, r.getContext(), r.getSpace(), r.getRole()))
                 .collect(Collectors.toSet());
     }
-    
+
     @Transactional(readOnly = true)
     public Page<SpaceRoles> getContextRoles(String incontext, String inspace, String q, Pageable pageRequest) {
-    	String context = StringUtils.hasText(incontext) ? incontext : null;
-    	String space = StringUtils.hasText(inspace) ? inspace : null;
-    	
-    	Page<String> rr =  StringUtils.hasText(q) 
-    			? roleRepository.findByContextAndSpaceAndSubject(context, space, q.trim().toLowerCase(), pageRequest)
-    			: roleRepository.findByContextAndSpace(context, space, pageRequest);
+        String context = StringUtils.hasText(incontext) ? incontext : null;
+        String space = StringUtils.hasText(inspace) ? inspace : null;
 
-    	return PageableExecutionUtils.getPage(
-        		rr.getContent().stream().map(r -> {
-        			Collection<SpaceRole> roles = getRoles(r, context, space);
-        			SpaceRoles res = new SpaceRoles();
-        			res.setContext(context);
-        			res.setSpace(space);
-        			res.setSubject(r);
-        			res.setRoles(roles.stream().map(sr -> sr.getRole()).collect(Collectors.toList()));
-        			return res;
-        		}).collect(Collectors.toList()),
+        Page<String> rr = StringUtils.hasText(q)
+                ? roleRepository.findByContextAndSpaceAndSubject(context, space, q.trim().toLowerCase(), pageRequest)
+                : roleRepository.findByContextAndSpace(context, space, pageRequest);
+
+        return PageableExecutionUtils.getPage(
+                rr.getContent().stream().map(r -> {
+                    Collection<SpaceRole> roles = getRoles(r, context, space);
+                    SpaceRoles res = new SpaceRoles();
+                    res.setContext(context);
+                    res.setSpace(space);
+                    res.setSubject(r);
+                    res.setRoles(roles.stream().map(sr -> sr.getRole()).collect(Collectors.toList()));
+                    return res;
+                }).collect(Collectors.toList()),
                 pageRequest,
                 () -> rr.getTotalElements());
     }
 
     @Transactional(readOnly = true)
-    public Set<SpaceRole> getRoles(String subject, String context, String space) {
+    public Collection<SpaceRole> getRoles(String subject, String context, String space) {
         List<SpaceRoleEntity> rr = roleRepository.findBySubjectAndContextAndSpace(subject, context, space);
 
         return rr.stream()
@@ -101,7 +101,7 @@ public class RoleService {
         }
     }
 
-    public Set<SpaceRole> addRoles(String subject, Collection<SpaceRole> roles) {
+    public Collection<SpaceRole> addRoles(String subject, Collection<SpaceRole> roles) {
         return roles.stream()
                 .map(r -> addRole(subject, r.getContext(), r.getSpace(), r.getRole()))
                 .collect(Collectors.toSet());
@@ -123,7 +123,7 @@ public class RoleService {
         }
     }
 
-    public Set<SpaceRole> setRoles(String subject, Collection<SpaceRole> roles) {
+    public Collection<SpaceRole> setRoles(String subject, Collection<SpaceRole> roles) {
 
         List<SpaceRoleEntity> rr = new ArrayList<>();
 

@@ -66,7 +66,7 @@ import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
-import it.smartcommunitylab.aac.roles.RoleManager;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.ServicesManager;
@@ -100,7 +100,7 @@ public class DevController {
     @Autowired
     private AuditManager auditManager;
     @Autowired
-    private RoleManager roleManager;
+    private SpaceRoleManager roleManager;
 
     @Autowired
     private SubjectService subjectService;

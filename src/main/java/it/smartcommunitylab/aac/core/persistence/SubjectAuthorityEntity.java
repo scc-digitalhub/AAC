@@ -9,13 +9,12 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "user_roles", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "role" }))
-public class UserRoleEntity {
+@Table(name = "authorities", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "role" }))
+public class SubjectAuthorityEntity {
     @Id
     @GeneratedValue
     private Long id;
 
-    // user
     @NotNull
     @Column(name = "subject_id")
     private String subject;
@@ -57,10 +56,10 @@ public class UserRoleEntity {
         this.role = role;
     }
 
-    protected UserRoleEntity() {
+    protected SubjectAuthorityEntity() {
     }
 
-    public UserRoleEntity(String subject) {
+    public SubjectAuthorityEntity(String subject) {
         super();
         this.subject = subject;
     }
@@ -83,7 +82,7 @@ public class UserRoleEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        UserRoleEntity other = (UserRoleEntity) obj;
+        SubjectAuthorityEntity other = (SubjectAuthorityEntity) obj;
         if (realm == null) {
             if (other.realm != null)
                 return false;
@@ -104,7 +103,8 @@ public class UserRoleEntity {
 
     @Override
     public String toString() {
-        return "UserRoleEntity [id=" + id + ", subject=" + subject + ", realm=" + realm + ", role=" + role + "]";
+        return "SubjectAuthorityEntity [id=" + id + ", subject=" + subject + ", realm=" + realm + ", role=" + role
+                + "]";
     }
 
 }

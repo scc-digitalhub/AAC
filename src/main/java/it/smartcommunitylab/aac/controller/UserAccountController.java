@@ -54,7 +54,7 @@ import it.smartcommunitylab.aac.profiles.model.AccountProfile;
 import it.smartcommunitylab.aac.profiles.model.BasicProfile;
 import it.smartcommunitylab.aac.profiles.model.EmailProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
-import it.smartcommunitylab.aac.roles.RoleManager;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 
 /**
  * Application controller for user UI: account
@@ -86,7 +86,7 @@ public class UserAccountController {
     private AuthorityManager authorityManager;
 
     @Autowired
-    private RoleManager roleManager;
+    private SpaceRoleManager roleManager;
 
     // TODO MANAGE accounts: add/merge, delete
 

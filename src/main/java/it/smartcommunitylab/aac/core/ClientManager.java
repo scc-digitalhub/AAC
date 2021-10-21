@@ -32,7 +32,6 @@ import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
@@ -43,6 +42,8 @@ import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 
 @Service
@@ -66,6 +67,12 @@ public class ClientManager {
     private OAuth2ClientAppService oauthClientAppService;
 
     @Autowired
+    private SpaceRoleService spaceRoleService;
+
+    @Autowired
+    private SubjectRoleService subjectRoleService;
+
+    @Autowired
     private ScopeRegistry scopeRegistry;
 
     @Autowired
@@ -79,6 +86,9 @@ public class ClientManager {
 
     @Autowired
     private IdentityProviderService providerService;
+
+    @Autowired
+    private SubjectRoleService realmRoleService;
 
     /*
      * ClientApp via appService
@@ -111,12 +121,12 @@ public class ClientManager {
             apps.stream().forEach(app -> {
                 try {
                     // load realm roles
-                    Set<RealmRole> authorities = loadClientRoles(realm, app.getClientId());
-                    app.setAuthorities(authorities);
+                    Collection<RealmRole> roles = loadClientRoles(realm, app.getClientId());
+                    app.setRealmRoles(roles);
                 } catch (NoSuchClientException e) {
                 }
             });
-            
+
             return apps;
         }
 
@@ -144,8 +154,8 @@ public class ClientManager {
         page.get().forEach(clientApp -> {
             try {
                 // load realm roles
-                Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
-                clientApp.setAuthorities(authorities);
+                Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+                clientApp.setRealmRoles(roles);
             } catch (NoSuchClientException e) {
             }
         });
@@ -179,8 +189,8 @@ public class ClientManager {
 
         try {
             // load realm roles
-            Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
-            clientApp.setAuthorities(authorities);
+            Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+            clientApp.setRealmRoles(roles);
         } catch (NoSuchClientException e) {
         }
 
@@ -217,8 +227,8 @@ public class ClientManager {
         }
 
         // load realm roles
-        Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
-        clientApp.setAuthorities(authorities);
+        Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+        clientApp.setRealmRoles(roles);
 
         return clientApp;
     }
@@ -269,8 +279,8 @@ public class ClientManager {
             ClientApp clientApp = oauthClientAppService.registerClient(r.getSlug(), app);
             try {
                 // load realm roles
-                Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
-                clientApp.setAuthorities(authorities);
+                Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+                clientApp.setRealmRoles(roles);
 
             } catch (NoSuchClientException e) {
             }
@@ -318,8 +328,8 @@ public class ClientManager {
         }
 
         // load realm roles
-        Set<RealmRole> authorities = loadClientRoles(realm, clientApp.getClientId());
-        clientApp.setAuthorities(authorities);
+        Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+        clientApp.setRealmRoles(roles);
 
         return clientApp;
     }
@@ -477,7 +487,9 @@ public class ClientManager {
     }
 
     /*
-     * Client roles
+     * Client realm roles
+     * 
+     * TODO evaluate removal from manager
      */
 
     @Transactional(readOnly = true)
@@ -485,7 +497,7 @@ public class ClientManager {
             throws NoSuchClientException, NoSuchRealmException {
         logger.debug("get roles for client " + String.valueOf(clientId) + " in realm " + realm);
 
-        Realm rlm = realmService.getRealm(realm);
+        Realm r = realmService.getRealm(realm);
 
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
@@ -493,10 +505,7 @@ public class ClientManager {
             throw new NoSuchClientException();
         }
 
-        List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId, rlm.getSlug());
-        Set<RealmRole> realmRoles = clientRoles.stream()
-                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
-                .collect(Collectors.toSet());
+        Collection<RealmRole> realmRoles = subjectRoleService.getRoles(clientId, r.getSlug());
 
         return realmRoles;
 
@@ -507,7 +516,7 @@ public class ClientManager {
             throws NoSuchClientException, NoSuchRealmException {
         logger.debug("update roles for client " + String.valueOf(clientId) + " in realm " + realm);
 
-        Realm rlm = realmService.getRealm(realm);
+        Realm r = realmService.getRealm(realm);
 
         // TODO optimize to avoid db fetch
         ClientEntity entity = findClient(clientId);
@@ -519,10 +528,7 @@ public class ClientManager {
             logger.trace("roles: " + String.valueOf(roles));
         }
 
-        List<ClientRoleEntity> clientRoles = clientService.updateRoles(clientId, rlm.getSlug(), roles);
-        Set<RealmRole> realmRoles = clientRoles.stream()
-                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
-                .collect(Collectors.toSet());
+        Collection<RealmRole> realmRoles = subjectRoleService.updateRoles(clientId, r.getSlug(), roles);
 
         return realmRoles;
     }
@@ -660,11 +666,12 @@ public class ClientManager {
 
     }
 
-    private Set<RealmRole> loadClientRoles(String realm, String clientId) throws NoSuchClientException {
-        List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId, realm);
-        return clientRoles.stream()
-                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
-                .collect(Collectors.toSet());
+    private Collection<RealmRole> loadClientRoles(String realm, String clientId) throws NoSuchClientException {
+        return realmRoleService.getRoles(clientId, realm);
+//        List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId, realm);
+//        return clientRoles.stream()
+//                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
+//                .collect(Collectors.toSet());
     }
 
 }
