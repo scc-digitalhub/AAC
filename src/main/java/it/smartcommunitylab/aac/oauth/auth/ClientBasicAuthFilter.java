@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
@@ -128,8 +129,10 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
 
         // TODO support PKCE with basic auth with only clientId
         // out of spec but possible
-        String clientId = (String) basicRequest.getPrincipal();
-        String clientSecret = (String) basicRequest.getCredentials();
+        // NOTE: as per https://www.rfc-editor.org/rfc/rfc6749#section-2.3.1
+        // both clientId and secret are form encoded
+        String clientId = decodeClientCredential((String) basicRequest.getPrincipal());
+        String clientSecret = decodeClientCredential((String) basicRequest.getCredentials());
 
         if (!StringUtils.hasText(clientId)) {
             throw new BadCredentialsException("No client credentials presented");
@@ -197,6 +200,15 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
             } else {
                 return false;
             }
+        }
+    }
+
+    private String decodeClientCredential(String credential) {
+        try {
+            return URLDecoder.decode(credential, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // not going to happen but in case we'll pass through
+            return credential;
         }
     }
 
