@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -159,7 +161,7 @@ public class AuthorizationEndpoint implements InitializingBean {
             })
     public ModelAndView authorize(@RequestParam Map<String, String> parameters,
             @PathVariable("realm") Optional<String> realmKey,
-            Authentication authentication) {
+            Authentication authentication, HttpServletRequest request) {
 
         // TODO move everything to catch block and *always* parse request via factory
 
@@ -203,6 +205,18 @@ public class AuthorizationEndpoint implements InitializingBean {
             User user = userService.getUser(userDetails, clientDetails.getRealm());
 
             try {
+                // extract unencoded parameters
+                UriComponents uc = UriComponentsBuilder.fromUri(URI.create(request.getRequestURI()))
+                        .query(request.getQueryString()).build(true);
+                String state = uc.getQueryParams().getFirst("state");
+                String nonce = uc.getQueryParams().getFirst("nonce");
+
+                if (StringUtils.hasText(state)) {
+                    parameters.put("state", state);
+                }
+                if (StringUtils.hasText(nonce)) {
+                    parameters.put("nonce", nonce);
+                }
 
                 // fetch authorizationRequest via factory
                 AuthorizationRequest authorizationRequest = oauth2AuthorizationRequestFactory
