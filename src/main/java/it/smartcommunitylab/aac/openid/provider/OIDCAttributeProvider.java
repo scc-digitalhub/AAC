@@ -43,7 +43,15 @@ public class OIDCAttributeProvider extends AbstractProvider implements Attribute
             OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
             OIDCIdentityProviderConfig providerConfig,
             String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, attributeStore, providerConfig, realm);
+    }
+
+    public OIDCAttributeProvider(
+            String authority, String providerId,
+            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
+            OIDCIdentityProviderConfig providerConfig,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");

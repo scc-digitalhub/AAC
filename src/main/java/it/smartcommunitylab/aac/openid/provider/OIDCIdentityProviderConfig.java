@@ -39,7 +39,11 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     private Map<String, String> hookFunctions;
 
     public OIDCIdentityProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, provider, realm);
+        this(SystemKeys.AUTHORITY_OIDC, provider, realm);
+    }
+
+    public OIDCIdentityProviderConfig(String authority, String provider, String realm) {
+        super(authority, provider, realm);
         this.clientRegistration = null;
         this.configMap = new OIDCIdentityProviderConfigMap();
         this.hookFunctions = Collections.emptyMap();
@@ -277,7 +281,8 @@ public class OIDCIdentityProviderConfig extends AbstractConfigurableProvider {
     }
 
     public static OIDCIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
-        OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getProvider(), cp.getRealm());
+        OIDCIdentityProviderConfig op = new OIDCIdentityProviderConfig(cp.getAuthority(), cp.getProvider(),
+                cp.getRealm());
         op.configMap = new OIDCIdentityProviderConfigMap();
         op.configMap.setConfiguration(cp.getConfiguration());
 
