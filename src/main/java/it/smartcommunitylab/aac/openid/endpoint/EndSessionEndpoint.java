@@ -163,7 +163,7 @@ public class EndSessionEndpoint {
         // are we logged in or not?
         if (userAuth == null) {
             // we're not logged in anyway, process the final redirect bits if needed
-            processLogout(null, request, response, session, auth, model);
+            processLogout(true, request, response, session, auth, model);
             return null;
         } else {
             // we are logged in, need to prompt the user before we log out
