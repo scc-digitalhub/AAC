@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -771,14 +770,21 @@ public class AuthorizationEndpoint implements InitializingBean {
             }
 
             for (String key : params.keySet()) {
-                values.add(key + "={" + key + "}");
+                if (!"state".equals(key)) {
+                    values.add(key + "={" + key + "}");
+                }
             }
 
             template.fragment(StringUtils.collectionToDelimitedString(values, "&"));
 
             // expand and encode as fragment
             UriComponents encoded = template.build().expand(params).encode();
-            builder.fragment(encoded.getFragment());
+            String fragment = encoded.getFragment();
+            // set state as pre-encoded
+            if (params.containsKey("state")) {
+                fragment = fragment.concat("&state=" + params.get("state"));
+            }
+            builder.fragment(fragment);
 
         } else {
             // append as query
@@ -793,10 +799,14 @@ public class AuthorizationEndpoint implements InitializingBean {
             // expand and encode as query
             UriComponents encoded = template.build().expand(params).encode();
             builder.query(encoded.getQuery());
+            // replace state as pre-encoded
+            if (params.containsKey("state")) {
+                builder.replaceQueryParam("state", params.get("state"));
+            }
         }
 
         // build
-        return builder.build().toUriString();
+        return builder.build(true).toUriString();
 
     }
 
