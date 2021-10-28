@@ -37,7 +37,7 @@
 
    <link th:href="@{/italia/style.css}" rel="stylesheet" />
 
-   <title th:text="#{label.generic_error}">AAC Error</title>
+   <title th:text="#{label.not_found_error}">AAC Error</title>
 </head>
 
 <body>
@@ -45,7 +45,7 @@
 
       <div class="row mt-2 mt-md-4 justify-content-center">
          <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
-            <div class="card border mb-4 border-danger border-3">
+            <div class="card border mb-4 border-secondary border-3">
 
                <!-- card header -->
                <div class="card-header pl-4 text-muted">
@@ -61,26 +61,24 @@
                   <!-- realm logo  -->
                   <div class="card-logo">
                      <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
-                     <h4 class="text-center" th:text="#{label.generic_error}">Error</h4>
+                     <h4 class="text-center" th:text="#{label.not_found_error}">Not found</h4>
                   </div>
 
                   <!-- panel text -->
                   <div class="text-center mt-4">
-                     <p th:text="#{label.generic_error_text}">
-                        An error has occurred while processing you request. Please
-                        contact the administrator.
+                     <p th:text="#{label.not_found_error_text}">The requested URI could not be found.</p>
+                     <p>
+                        <a class="btn btn-primary" href="/" th:text="#{action.continue}">Continue</a>
                      </p>
                   </div>
-                  <div class="callout callout-highlight note"
-                     th:if="${exception != null and !(exception instanceof T(java.lang.String))}">
+                  <div class="callout callout-highlight note">
                      <div class="callout-title">
                         <svg class="icon">
                            <use th:xlink:href="@{/italia/svg/sprite.svg#it-info-circle}"></use>
                         </svg>Details</div>
                      <p class="small text-monospace bg-light pl-1 pr-1">
-                        Path: <span th:text="${url}"> </span><br>
-                        Exception: <span th:text="${exception}">message</span>
-                        <br th:each="e : ${exception.stackTrace}" th:text="${e}" />
+                        Path: <span th:text="${path}"> </span><br>
+                        Timestamp: <span th:text="${timestamp}"> </span>
                      </p>
                   </div>
 
