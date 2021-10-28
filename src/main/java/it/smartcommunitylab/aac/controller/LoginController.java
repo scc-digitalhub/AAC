@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
@@ -226,6 +227,20 @@ public class LoginController {
         }
 
         return "login";
+    }
+
+    @RequestMapping(value = {
+            "/-/{realm}", "/-/{realm}/"
+    }, method = RequestMethod.GET)
+    public String realm(
+            @PathVariable("realm") String realm,
+            Authentication authentication) throws Exception {
+
+        if (authentication == null) {
+            return "redirect:/-/" + realm + "/login";
+        }
+
+        return "redirect:/";
     }
 
 }
