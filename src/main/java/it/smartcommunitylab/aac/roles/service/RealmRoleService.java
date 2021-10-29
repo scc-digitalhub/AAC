@@ -1,8 +1,11 @@
 package it.smartcommunitylab.aac.roles.service;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -14,6 +17,7 @@ import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntityRepository;
 
@@ -23,6 +27,7 @@ public class RealmRoleService {
 
     private final RealmRoleEntityRepository roleRepository;
     private final SubjectService subjectService;
+    private SearchableApprovalStore approvalStore;
 
     public RealmRoleService(RealmRoleEntityRepository roleRepository,
             SubjectService subjectService) {
@@ -31,6 +36,11 @@ public class RealmRoleService {
 
         this.roleRepository = roleRepository;
         this.subjectService = subjectService;
+    }
+
+    @Autowired
+    public void setApprovalStore(SearchableApprovalStore approvalStore) {
+        this.approvalStore = approvalStore;
     }
 
     /*
@@ -73,6 +83,16 @@ public class RealmRoleService {
         RealmRoleEntity r = roleRepository.findOne(roleId);
         if (r == null) {
             return null;
+        }
+
+        return toRole(r);
+    }
+
+    @Transactional(readOnly = true)
+    public RealmRole getRole(String roleId) throws NoSuchRoleException {
+        RealmRoleEntity r = roleRepository.findOne(roleId);
+        if (r == null) {
+            throw new NoSuchRoleException();
         }
 
         return toRole(r);
@@ -148,12 +168,28 @@ public class RealmRoleService {
 
     }
 
+//    public Collection<Approval> getApprovals(String roleId) throws NoSuchRoleException {
+//        RealmRoleEntity r = roleRepository.findOne(roleId);
+//        if (r == null) {
+//            throw new NoSuchRoleException();
+//        }
+//
+//        Collection<Approval> approvals = approvalStore.findClientApprovals(roleId);
+//        return approvals;
+//    }
+
     private RealmRole toRole(RealmRoleEntity r) {
         RealmRole role = new RealmRole(r.getRealm(), r.getRole());
         role.setRoleId(r.getId());
         String name = r.getName() != null ? r.getName() : r.getRole();
         role.setName(name);
         role.setDescription(r.getDescription());
+
+        if (approvalStore != null) {
+            Collection<Approval> approvals = approvalStore.findClientApprovals(r.getId());
+            Set<String> permissions = approvals.stream().map(a -> a.getScope()).collect(Collectors.toSet());
+            role.setPermissions(permissions);
+        }
         return role;
     }
 

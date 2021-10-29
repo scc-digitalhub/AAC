@@ -18,7 +18,7 @@ public class InternalUserAuthenticationFailureEvent extends UserAuthenticationFa
     public InternalUserAuthenticationFailureEvent(
             String authority, String provider, String realm,
             Authentication authentication, InternalAuthenticationException exception) {
-        super(authority, provider, realm, authentication, exception);
+        super(authority, provider, realm, exception.getSubject(), authentication, exception);
 
     }
 

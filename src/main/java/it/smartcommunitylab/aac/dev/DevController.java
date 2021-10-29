@@ -308,22 +308,29 @@ public class DevController {
         if (invalidOwner(context, space)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(roleManager.getContextRoles(context, space, q, pageRequest));
+        return ResponseEntity.ok(roleManager.searchRoles(context, space, q, pageRequest));
     }
 
     @PostMapping("/console/dev/rolespaces/users")
     public ResponseEntity<SpaceRoles> addRoleSpaceRoles(@RequestBody SpaceRoles roles)
-            throws NoSuchRealmException, NoSuchUserException {
+            throws NoSuchRealmException, NoSuchSubjectException {
         if (invalidOwner(roles.getContext(), roles.getSpace())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(roleManager.saveContextRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
-                roles.getRoles()));
+
+        Collection<SpaceRole> spaceRoles = roles.getRoles().stream()
+                .map(r -> new SpaceRole(roles.getContext(), roles.getSpace(), r))
+                .collect(Collectors.toList());
+        Collection<SpaceRole> result = roleManager.setRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
+                spaceRoles);
+        roles.setRoles(result.stream().map(r -> r.getRole()).collect(Collectors.toList()));
+
+        return ResponseEntity.ok(roles);
     }
 
-    private boolean invalidOwner(String context, String space) throws NoSuchUserException, NoSuchRealmException {
+    private boolean invalidOwner(String context, String space) throws NoSuchRealmException {
         // current user should be owner of the space or of the parent
-        Collection<SpaceRole> myRoles = roleManager.curUserRoles();
+        Collection<SpaceRole> myRoles = roleManager.curRoles();
         SpaceRole spaceOwner = new SpaceRole(context, space, Config.R_PROVIDER);
         SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
         return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));

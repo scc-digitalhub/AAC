@@ -46,7 +46,7 @@ public class SpaceRoleService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SpaceRoles> getContextRoles(String incontext, String inspace, String q, Pageable pageRequest) {
+    public Page<SpaceRoles> searchRoles(String incontext, String inspace, String q, Pageable pageRequest) {
         String context = StringUtils.hasText(incontext) ? incontext : null;
         String space = StringUtils.hasText(inspace) ? inspace : null;
 
@@ -129,6 +129,44 @@ public class SpaceRoleService {
 
         // we sync attributes with those received by deleting missing
         List<SpaceRoleEntity> oldRoles = roleRepository.findBySubject(subject);
+
+        List<SpaceRoleEntity> toRemove = new ArrayList<>();
+        toRemove.addAll(oldRoles);
+
+        for (SpaceRole role : roles) {
+            SpaceRoleEntity r = roleRepository.findBySubjectAndContextAndSpaceAndRole(subject, role.getContext(),
+                    role.getSpace(), role.getRole());
+
+            if (r == null) {
+                r = new SpaceRoleEntity();
+                r.setSubject(subject);
+                r.setContext(role.getContext());
+                r.setSpace(role.getSpace());
+                r.setRole(role.getRole());
+
+                r = roleRepository.save(r);
+            }
+
+            if (toRemove.contains(r)) {
+                toRemove.remove(r);
+            }
+
+            rr.add(r);
+        }
+
+        // remove orphans
+        roleRepository.deleteAll(toRemove);
+
+        return rr.stream().map(r -> toRole(r)).collect(Collectors.toSet());
+
+    }
+
+    public Collection<SpaceRole> setRoles(String subject, String context, String space, Collection<SpaceRole> roles) {
+
+        List<SpaceRoleEntity> rr = new ArrayList<>();
+
+        // we sync attributes with those received by deleting missing
+        List<SpaceRoleEntity> oldRoles = roleRepository.findBySubjectAndContextAndSpace(subject, context, space);
 
         List<SpaceRoleEntity> toRemove = new ArrayList<>();
         toRemove.addAll(oldRoles);

@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.oauth.store;
 
+import java.util.Collection;
+
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
@@ -41,4 +43,11 @@ public interface ExtTokenStore extends TokenStore {
      * @return
      */
     public OAuth2RefreshToken readRefreshTokenForAccessToken(String tokenValue);
+
+    /**
+     * @param clientId the client id to search
+     * @return a collection of access tokens
+     */
+    Collection<OAuth2AccessToken> findTokensByUserName(String userName);
+
 }

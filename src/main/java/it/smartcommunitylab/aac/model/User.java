@@ -304,7 +304,9 @@ public class User {
 
     public void setRealmRoles(Collection<RealmRole> rr) {
         this.realmRoles = new HashSet<>();
-        realmRoles.addAll(rr);
+        if (rr != null) {
+            realmRoles.addAll(rr);
+        }
     }
 
     /*
@@ -316,7 +318,9 @@ public class User {
 
     public void setSpaceRoles(Collection<SpaceRole> rr) {
         this.spaceRoles = new HashSet<>();
-        spaceRoles.addAll(rr);
+        if (rr != null) {
+            spaceRoles.addAll(rr);
+        }
     }
 
 //    public void addSpaceRoles(Collection<SpaceRole> rr) {

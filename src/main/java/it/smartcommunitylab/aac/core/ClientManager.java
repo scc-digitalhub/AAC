@@ -528,7 +528,7 @@ public class ClientManager {
             logger.trace("roles: " + String.valueOf(roles));
         }
 
-        Collection<RealmRole> realmRoles = subjectRoleService.updateRoles(clientId, r.getSlug(), roles);
+        Collection<RealmRole> realmRoles = subjectRoleService.setRoles(clientId, r.getSlug(), roles);
 
         return realmRoles;
     }

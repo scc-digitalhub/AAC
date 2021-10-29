@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.model;
 
+import java.util.Set;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
@@ -21,6 +23,9 @@ public class RealmRole {
 
     private String name;
     private String description;
+
+    // permissions are scopes
+    private Set<String> permissions;
 
     public RealmRole() {
     }
@@ -72,6 +77,14 @@ public class RealmRole {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Set<String> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Set<String> permissions) {
+        this.permissions = permissions;
     }
 
 }

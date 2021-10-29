@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.internal.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -10,7 +11,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
-public class InternalUserAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
+public class InternalUserAuthenticatedPrincipal implements UserAuthenticatedPrincipal, CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -100,6 +101,12 @@ public class InternalUserAuthenticatedPrincipal implements UserAuthenticatedPrin
     @Override
     public String getRealm() {
         return realm;
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.principal.setPassword(null);
+
     }
 
 }

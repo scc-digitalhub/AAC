@@ -136,7 +136,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
         if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
             AuthenticationException e = new BadCredentialsException("invalid user or password");
-            throw new InternalAuthenticationException(username, password, "password", e,
+            throw new InternalAuthenticationException(null, username, password, "password", e,
                     e.getMessage());
         }
 

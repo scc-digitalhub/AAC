@@ -91,10 +91,10 @@ public class ExtendedAuthenticationEventPublisher
                     token.getAuthority(), token.getProvider(), token.getRealm(),
                     userAuth);
             applicationEventPublisher.publishEvent(event);
+        } else {
+            // generic event, let default handle
+            defaultPublisher.publishAuthenticationSuccess(authentication);
         }
-
-        // generic event, let default handle
-        defaultPublisher.publishAuthenticationSuccess(authentication);
     }
 
     @Override
@@ -162,7 +162,7 @@ public class ExtendedAuthenticationEventPublisher
         }
 
         return new UserAuthenticationFailureEvent(
-                authority, provider, realm, authentication, exception);
+                authority, provider, realm, null, authentication, exception);
     }
 
 }

@@ -1,0 +1,24 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-5">
+            <legend class="mb-4">Basic settings</legend>
+            <div class="form-group col">
+                <input type="text" name="role" class="form-control form-control-sm" id="role" ng-model="role.role"
+                    required readonly disabled>
+                <label for="role" class="active">Role</label>
+            </div>
+            <div class="form-group col">
+                <input type="text" name="name" class="form-control form-control-sm" id="name" ng-model="role.name"
+                    required>
+                <label for="name" class="{{role.name != '' ? 'active' : ''}}">Name</label>
+            </div>
+            <div class="form-group col">
+                <textarea rows="3" name="description" id="description" ng-model="role.description"></textarea>
+                <label for="description" class="{{role.description != '' ? 'active' : ''}}">Description</label>
+            </div>
+
+        </fieldset>
+
+
+    </div>
+</div>

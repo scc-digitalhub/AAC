@@ -135,7 +135,7 @@ public class UserAccountController {
     @GetMapping("/account/profile/roles")
     public ResponseEntity<Collection<SpaceRole>> mySpaceRoles()
             throws InvalidDefinitionException, NoSuchUserException, NoSuchRealmException {
-        return ResponseEntity.ok(roleManager.curUserRoles());
+        return ResponseEntity.ok(roleManager.curRoles());
 
     }
 

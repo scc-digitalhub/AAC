@@ -6,6 +6,7 @@
         </div>
         <div class="col col-md-6 text-right">
             <button class="btn btn-secondary btn-sm  text-right" ng-click="inspectDlg(user)">Inspect</button>
+            <button class="btn btn-primary btn-sm  text-right" ng-click="manageAuthoritiesDlg()">Authorities</button>
 
             <button class="btn btn-warning btn-sm  text-right" ng-if="!user.locked" ng-disabled="user.blocked"
                 ng-click="lockUserDlg(user)">Lock</button>
@@ -40,6 +41,9 @@
                     </svg>
                 </button>
             </p>
+            <p>
+                <span ng-repeat="a in authorities"><span class="badge badge-primary">{{a.role}}</span> </span>
+            </p>
         </div>
     </div>
 </div>
@@ -54,10 +58,19 @@
             <a class="nav-link {{activeView('accounts')}}" href ng-click="switchView('accounts')">Accounts</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link {{activeView('audit')}}" href ng-click="switchView('audit')">Audit</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{activeView('apps')}}" href ng-click="switchView('apps')">Apps</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link {{activeView('roles')}}" href ng-click="switchView('roles')">Roles</a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{activeView('attributes')}}" href ng-click="switchView('attributes')">Attributes</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{activeView('spaceroles')}}" href ng-click="switchView('spaceroles')">SpaceRoles</a>
         </li>
     </ul>
     <div class="tab-content pt-3 pb-2">
@@ -163,6 +176,64 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade bs-modal-lg" tabindex="-1" role="dialog" id="authoritiesModal">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit authorities </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Add or remove system authorities to the current user
+                </p>
+                <form name="authoritiesForm" class="needs-validation was-validated" novalidate>
+                    <table class="table table-hover border-bottom">
+                        <tr>
+                            <td class="align-middle">
+                                <span class="h6">Realm developer</span> <br>
+                                <small class="text-muted"> ROLE_DEVELOPER</small>
+                                <p>Manage realm applications and services</p>
+                            </td>
+                            <td class="text-right">
+                                <div class="toggles">
+                                    <label>
+                                        <input type="checkbox" ng-checked="modAuthorities.developer"
+                                            ng-click="modAuthorities.developer = !modAuthorities.developer">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle">
+                                <span class="h6">Realm Administrator</span> <br>
+                                <small class="text-muted"> ROLE_ADMIN</small>
+                                <p>Manage realm settings and configuration (in addition to developer permissions)</p>
+                            </td>
+                            <td class="text-right">
+                                <div class="toggles">
+                                    <label>
+                                        <input type="checkbox" ng-checked="modAuthorities.admin"
+                                            ng-click="modAuthorities.admin = !modAuthorities.admin">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="updateAuthorities()"
+                    ng-disabled="authoritiesForm.$invalid">Update</button>
             </div>
         </div>
     </div>

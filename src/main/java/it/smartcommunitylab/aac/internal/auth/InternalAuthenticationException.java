@@ -1,41 +1,49 @@
 package it.smartcommunitylab.aac.internal.auth;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.AuthenticationException;
 import it.smartcommunitylab.aac.SystemKeys;
 
 public class InternalAuthenticationException extends AuthenticationException {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
+    private final String subject;
     private final String username;
     private final String credentials;
     private final String flow;
     private final AuthenticationException exception;
 
-    public InternalAuthenticationException(String username, String message) {
+    public InternalAuthenticationException(String subject, String message) {
         super(message);
-        this.username = username;
+        this.subject = subject;
+        this.username = null;
         this.flow = null;
         this.credentials = null;
         this.exception = null;
     }
 
-    public InternalAuthenticationException(String username, String credentials, String flow,
+    public InternalAuthenticationException(String subject, String username, String credentials, String flow,
             AuthenticationException ex) {
         super(ex.getMessage(), ex.getCause());
+        this.subject = subject;
         this.username = username;
         this.credentials = credentials;
         this.flow = flow;
         this.exception = ex;
     }
 
-    public InternalAuthenticationException(String username, String credentials, String flow, AuthenticationException ex,
+    public InternalAuthenticationException(String subject, String username, String credentials, String flow,
+            AuthenticationException ex,
             String message) {
         super(message, ex.getCause());
+        this.subject = subject;
         this.username = username;
         this.credentials = credentials;
         this.flow = flow;
         this.exception = ex;
+    }
+
+    public String getSubject() {
+        return subject;
     }
 
     public String getUsername() {

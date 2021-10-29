@@ -1,0 +1,21 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-5">
+            Connected Applications
+            <small class="form-text"> Manage connected apps for the current user</small>
+        </legend>
+        <div class="row">
+            <table class="table table-hover border-bottom">
+                <tr ng-repeat="item in apps">
+                    <td class="align-middle">
+                        <span class="h6">{{item.appName}}</span>
+                        <br><small class="text-monospace" ng-repeat="r in item.scopes">{{r.scope}} </small>
+                    </td>
+                    <td class="text-right">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </fieldset>
+</div>

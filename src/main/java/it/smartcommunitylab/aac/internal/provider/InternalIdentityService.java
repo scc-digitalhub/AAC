@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
+import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
@@ -116,9 +117,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String subjectId)
             throws NoSuchUserException {
         // extract account and attributes in raw format from authenticated principal
+        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
         String userId = principal.getUserId();
 //        String username = principal.getName();
 //
@@ -165,7 +167,8 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
         // do note returned identity has credentials populated
         // consumers will need to eraseCredentials
-        // TODO evaluate erase here
+        // we erase here
+        identity.eraseCredentials();
         return identity;
 
     }

@@ -17,6 +17,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.UserDetails;
@@ -94,7 +95,7 @@ public class UserService {
             u.setLoginProvider(ue.getLoginProvider());
 
             // refresh authorities
-            u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+            u.setAuthorities(fetchUserAuthorities(subjectId, realm));
 
             // refresh user attributes
             u.setAttributes(fetchUserAttributes(subjectId, realm));
@@ -135,7 +136,7 @@ public class UserService {
             u.setLoginProvider(ue.getLoginProvider());
 
             // refresh authorities
-            u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+            u.setAuthorities(fetchUserAuthorities(subjectId, realm));
 
             // refresh user attributes
             u.setAttributes(fetchUserAttributes(subjectId, realm));
@@ -176,7 +177,7 @@ public class UserService {
             u.setLoginProvider(ue.getLoginProvider());
 
             // refresh authorities
-            u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+            u.setAuthorities(fetchUserAuthorities(subjectId, realm));
 
             // refresh user attributes
             u.setAttributes(fetchUserAttributes(subjectId, realm));
@@ -214,7 +215,7 @@ public class UserService {
 
         // add authorities
         try {
-            user.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+            user.setAuthorities(fetchUserAuthorities(subjectId, realm));
         } catch (NoSuchUserException e) {
             // ignore
         }
@@ -255,7 +256,7 @@ public class UserService {
         }
 
         // add authorities
-        u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+        u.setAuthorities(fetchUserAuthorities(subjectId, realm));
 
         // add user attributes
         u.addAttributes(fetchUserAttributes(subjectId, realm));
@@ -332,7 +333,7 @@ public class UserService {
         }
 
         // add authorities
-        u.setAuthorities(fetchUserRealmAuthorities(subjectId, realm));
+        u.setAuthorities(fetchUserAuthorities(subjectId, realm));
 
         // add user attributes
         u.setAttributes(fetchUserAttributes(subjectId, realm));
@@ -486,6 +487,23 @@ public class UserService {
     // TODO user registration with authority via given provider
     // TODO user removal with authority via given provider
 
+    public Collection<GrantedAuthority> getUserAuthorities(String subjectId, String realm) throws NoSuchUserException {
+        UserEntity u = userService.getUser(subjectId);
+
+        return fetchUserAuthorities(u.getUuid(), realm);
+    }
+
+    public Collection<GrantedAuthority> setUserAuthorities(String subjectId, String realm, Collection<String> roles)
+            throws NoSuchUserException {
+        UserEntity u = userService.getUser(subjectId);
+
+        try {
+            return subjectService.updateAuthorities(u.getUuid(), realm, roles);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchUserException();
+        }
+    }
+
     /*
      * User Attributes
      */
@@ -551,7 +569,7 @@ public class UserService {
         return attributes;
     }
 
-    private Collection<GrantedAuthority> fetchUserRealmAuthorities(String subjectId, String realm)
+    private Collection<GrantedAuthority> fetchUserAuthorities(String subjectId, String realm)
             throws NoSuchUserException {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(Config.R_USER));
