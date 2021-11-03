@@ -140,6 +140,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST"));
+        config.setAllowedHeaders(Arrays.asList("authorization"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
