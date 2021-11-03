@@ -15,6 +15,8 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.server.resource.introspection.BadOpaqueTokenException;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.util.Assert;
+
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.api.scopes.ApiScopeProvider;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
@@ -81,6 +83,15 @@ public class InternalOpaqueTokenIntrospector implements OpaqueTokenIntrospector 
             // principal is the subject, which is the entity issuing the token
             String principal = subjectId;
             Set<GrantedAuthority> authorities = new HashSet<>();
+
+            // add base authorities - workaround
+            // TODO fetch from service
+            if (subjectId.equals(accessToken.getAuthorizedParty())) {
+                // client_credentials
+                authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
+            } else {
+                authorities.add(new SimpleGrantedAuthority(Config.R_USER));
+            }
 
             // add scopes as authorities
             for (String scope : token.getScope()) {
