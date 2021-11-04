@@ -63,7 +63,7 @@ public class AttributeEntityService {
 
     public AttributeSetEntity addAttributeSet(
             String realm,
-            String identifier, 
+            String identifier,
             String name, String description) {
         if (!StringUtils.hasText(identifier)) {
             throw new IllegalArgumentException("empty set identifier");
@@ -106,7 +106,7 @@ public class AttributeEntityService {
     public AttributeSetEntity deleteAttributeSet(String identifier) {
         AttributeSetEntity set = attributeSetRepository.findByIdentifier(identifier);
         if (set != null) {
-            List<AttributeEntity> attributes = attributeRepository.findBySet(identifier);
+            List<AttributeEntity> attributes = attributeRepository.findBySetOrderById(identifier);
             attributeRepository.deleteAll(attributes);
 
             attributeSetRepository.delete(set);
@@ -136,7 +136,7 @@ public class AttributeEntityService {
 
     @Transactional(readOnly = true)
     public List<AttributeEntity> listAttributes(String set) throws NoSuchAttributeSetException {
-        return attributeRepository.findBySet(set);
+        return attributeRepository.findBySetOrderById(set);
     }
 
     public AttributeEntity addAttribute(

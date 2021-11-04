@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -627,6 +630,19 @@ public class UserManager {
         return userService.getUserAttributes(subjectId, r.getSlug());
     }
 
+    public UserAttributes getUserAttributes(String realm, String subjectId,
+            String provider, String identifier)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
+
+        Realm r = realmService.getRealm(realm);
+
+        // get attributeSet
+        AttributeSet as = attributeService.getAttributeSet(identifier);
+
+        return userService.getUserAttributes(subjectId, r.getSlug(), provider, as.getIdentifier());
+
+    }
+
     public UserAttributes setUserAttributes(String realm, String subjectId,
             String provider, String identifier,
             Map<String, Serializable> attributes)
@@ -645,6 +661,12 @@ public class UserManager {
         }
 
         return userService.setUserAttributes(subjectId, r.getSlug(), provider, set);
+    }
+
+    public void removeUserAttributes(String realm, String subjectId,
+            String provider, String identifier)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
+        userService.removeUserAttributes(subjectId, realm, provider, identifier);
     }
 
     /*
@@ -689,4 +711,5 @@ public class UserManager {
                 }).collect(Collectors.toList());
 
     }
+
 }

@@ -9,17 +9,17 @@
             <button class="btn btn-primary btn-sm  text-right" ng-click="manageAuthoritiesDlg()">Authorities</button>
 
             <button class="btn btn-warning btn-sm  text-right" ng-if="!user.locked" ng-disabled="user.blocked"
-                ng-click="lockUserDlg(user)">Lock</button>
+                ng-click="lockUserDlg()">Lock</button>
             <button class="btn btn-success btn-sm  text-right" ng-if="user.locked" ng-disabled="user.blocked"
-                ng-click="unlockUser(user)">Unlock</button>
+                ng-click="unlockUser()">Unlock</button>
 
 
             <button class="btn btn-warning btn-sm  text-right" ng-if="!user.blocked"
-                ng-click="blockUserDlg(user)">Block</button>
+                ng-click="blockUserDlg()">Block</button>
             <button class="btn btn-success btn-sm  text-right" ng-if="user.blocked"
-                ng-click="unblockUser(user)">Unblock</button>
+                ng-click="unblockUser()">Unblock</button>
 
-            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteUserDlg(user)">Delete</button>
+            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteUserDlg()">Delete</button>
         </div>
     </div>
     <div class="row mb-3">
@@ -42,7 +42,8 @@
                 </button>
             </p>
             <p>
-                <span ng-repeat="a in authorities"><span class="badge badge-primary">{{a.role}}</span> </span>
+                <span ng-repeat="a in _authorities"><span class="badge badge-primary">{{a}}</span> </span>
+                <span ng-repeat="r in _roles"><span class="badge badge-secondary">{{r}}</span> </span>
             </p>
         </div>
     </div>
@@ -93,7 +94,7 @@
                 <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-danger btn-sm" ng-click="deleteUser()" type="button">Delete</button>
+                <button class="btn btn-danger btn-sm" ng-click="doDelete()" type="button">Delete</button>
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
             </div>
         </div>

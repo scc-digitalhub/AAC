@@ -5,59 +5,69 @@
             Permissions
             <small class="form-text"> Manage API permissions for the current role</small>
         </legend>
-        <div class="row">
-            <table class="table table-hover border-bottom">
-                <tr ng-repeat="item in approvals">
+        <div class="row ">
+            <table class="table table-hover">
+                <tr ng-repeat="service in approvals">
                     <td class="align-middle">
-                        <span class="h6">{{item.service.name}}</span>
+                        <div class="col-12 avatar-wrapper avatar-extra-text">
+                            <div class="avatar size-lg">
+                                <svg aria-hidden="true" class="icon icon-secondary">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-plug"></use>
+                                </svg>
+                            </div>
+                            <div class="extra-text">
+                                <a class="text-decoration-none"
+                                    ui-sref="realm.service({realmId:service.realm, serviceId:service.serviceId})">
+                                    <span class="h6">{{service.name}}</span>
+                                    <br> <small class="text-muted"> {{service.namespace}} </small>
+                                </a>
+                                <p>{{service.description}}</p>
+                            </div>
+                        </div>
                     </td>
                     <td class="align-middle">
-                        ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.scope}}</span>
-                        <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.scope)">
-                            <svg class="icon icon-xs icon-black">
-                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
-                            </svg>
-                        </button>
+                        <span ng-repeat="item in service.approvals"><span
+                                class="badge badge-secondary">{{item.scope}}</span> </span>
                     </td>
 
                     <td class="text-right">
-                        <button class="btn btn-danger btn-sm" ng-click="removeApproval(item)">Delete</button>
+                        <button class="btn btn-primary btn-sm" ng-click="editPermissionsDlg(service)">Edit</button>
                     </td>
                 </tr>
             </table>
-            <p ng-if="!approvals || approvals.length == 0">No permissions defined</p>
 
-            <div class="col-md-12">
-                <button class="btn btn-primary btn-sm" ng-click="addPermissionDlg()">Add permission</button>
-            </div>
         </div>
+
+
     </fieldset>
 </div>
 
-<div class="modal fade bs-modal-lg" id="permissionModal" tabindex="-1" role="dialog" aria-labelledby="permissionModal"
+<div class="modal fade bs-modal-lg" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModal"
     aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h3 class="modal-title" id="modal-title">Add Service permission</h3>
+                <h3 class="modal-title" id="modal-title">Edit Service permission</h3>
             </div>
             <form class="needs-validation was-validated" novalidate name="approvalForm">
                 <div class="modal-body" id="modal-body">
-                    <input type="hidden" class="form-control form-control-sm" id="clientId"
-                        ng-model="modApproval.clientId">
-                    <div class="form-group">
-                        <div class="bootstrap-select-wrapper border-bottom-0">
-                            <label for="scope">Scope*</label>
-                            <select title="Select a value" id="scope" ng-model="modApproval.scope" required>
-                                <option ng-repeat="s in scopes" ng-value="s.scope">{{s.scope}}</option>
-                            </select>
-                        </div>
+                    <h6>{{modApprovals.name}}</h6>
+                    <p class="mb-4">{{modApprovals.description}}</p>
+                    <input type="hidden" class="form-control form-control-sm" id="serviceId"
+                        ng-model="modApprovals.serviceId">
+                    <div class="form-check form-check-group" ng-repeat="s in modApprovals.scopes"
+                        ng-click="s.value = !s.value ">
+                        <input class="form-check-input" type="checkbox" ng-model="s.value">
+                        <label><strong>{{s.name}}</strong></label>
+                        <small class="form-text"><span class="text-monospace"> {{s.scope}} </span></small>
+                        <small class="form-text"> {{s.description}}</small>
                     </div>
+
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
-                    <button class="btn btn-primary" type="button" ng-click="saveApproval()"
-                        ng-disabled="approvalForm.$invalid">Save</button>
+                    <button class="btn btn-primary" type="button" ng-click="updatePermissions()"
+                        ng-disabled="approvalForm.$invalid">Update</button>
                 </div>
             </form>
         </div>

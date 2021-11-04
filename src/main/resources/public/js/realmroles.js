@@ -233,36 +233,6 @@ angular.module('aac.controllers.realmroles', [])
             $scope.role = data;
         }
 
-        $scope.loadApprovals = function () {
-            RealmRoles.getApprovals(slug, roleId)
-                .then(function (data) {
-                    $scope.reloadApprovals(data);
-                })
-                .catch(function (err) {
-                    Utils.showError('Failed to load realm role: ' + err.data.message);
-                });
-        }
-
-        $scope.reloadApprovals = function (data) {
-            var services = $scope.services;
-
-            var approvals = data
-                .map(a => {
-                    if (!services.has(a.userId)) {
-                        return null;
-                    }
-
-                    return {
-                        ...a,
-                        service: services.get(a.userId)
-                    }
-                })
-                .filter(a => !!a);
-
-            $scope.approvals = approvals;
-
-        }
-
         $scope.exportRole = function () {
             RealmRoles.exportRole(slug, roleId);
         }
@@ -306,6 +276,116 @@ angular.module('aac.controllers.realmroles', [])
             $('#deleteConfirm').modal({ keyboard: false });
         };
 
+
+
+        $scope.loadApprovals = function () {
+            RealmRoles.getApprovals(slug, roleId)
+                .then(function (data) {
+                    $scope.reloadApprovals(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load realm role: ' + err.data.message);
+                });
+        }
+
+        $scope.reloadApprovals = function (data) {
+            var services = $scope.services;
+
+            var approvals = Array.from(services.values()).map(s => {
+                var { serviceId, namespace, realm, name, description } = s;
+
+                //var sMap = new Map(scopes.map(e => [e.scope, e]));
+
+                return {
+                    serviceId, namespace, realm, name, description,
+                    approvals: data.filter(a => a.userId == s.serviceId)
+                }
+            });
+            $scope.approvals = approvals;
+
+            //flatten to permission for display
+            var permissions = data.map(a => a.scope);
+            $scope.permissions = permissions;
+
+        }
+
+
+        $scope.editPermissionsDlg = function (service) {
+            var { serviceId, namespace, realm, name, description } = service;
+            var scopes = $scope.services.get(serviceId).scopes;
+
+            $scope.modApprovals = {
+                serviceId, namespace, realm, name, description,
+                scopes: scopes.map(s => {
+                    return {
+                        ...s,
+                        value: service.approvals.some(a => s.scope == a.scope)
+                    }
+                }),
+                clientId: roleId,
+
+            }
+            $('#permissionsModal').modal({ keyboard: false });
+        }
+
+        $scope.updatePermissions = function () {
+            $('#permissionsModal').modal('hide');
+
+
+            if ($scope.modApprovals) {
+
+                //unpack
+                var serviceId = $scope.modApprovals.serviceId;
+                var service = $scope.services.get(serviceId);
+                var approved = $scope.modApprovals.scopes.filter(s => s.value).map(s => s.scope);
+                var unapproved = $scope.modApprovals.scopes.filter(s => !s.value).map(s => s.scope);
+
+                var approval = $scope.approvals.find(a => serviceId == a.serviceId)
+                var approvals = approval.approvals;
+
+                //build request
+                var toRemove = approvals.filter(a => !approved.includes(a.scope));
+                var toKeep = approvals.filter(a => approved.includes(a.scope)).map(s => s.scope);
+
+                var toAdd = approved.filter(a => !toKeep.includes(a)).map(s => {
+                    return {
+                        userId: serviceId,
+                        clientId: roleId,
+                        scope: s
+                    }
+                });
+
+
+                console.log(approvals);
+                console.log(approved);
+                console.log(unapproved);
+
+                console.log(toRemove);
+                console.log(toKeep);
+                console.log(toAdd);
+
+                var updates = toRemove.concat(toAdd);
+
+                Promise.all(
+                    updates
+                        .map(a => {
+                            if (a.status) {
+                                return RealmServices.deleteApproval(service.realm, serviceId, a);
+                            } else {
+                                return RealmServices.addApproval(service.realm, serviceId, a);
+                            }
+                        })
+                )
+                    .then(function () {
+                        Utils.showSuccess();
+                        $scope.loadApprovals();
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Failed to load realm role: ' + err.data.message);
+                    });
+
+            }
+        }
 
         init();
 

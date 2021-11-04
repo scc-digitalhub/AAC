@@ -236,32 +236,50 @@ public class DevUsersController {
         return ResponseEntity.ok(attributes);
     }
 
-    @PostMapping("/realms/{realm}/users/{subjectId}/attributes")
+    @PutMapping("/realms/{realm}/users/{subjectId}/attributes/{provider}/{identifier}")
     public ResponseEntity<UserAttributes> addRealmUserAttributes(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
-            @RequestBody AttributesRegistrationDTO reg)
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier,
+            @RequestBody Map<String, Serializable> attributes)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
 
         // extract registration
-        String identifier = reg.getIdentifier();
-        String provider = reg.getProvider();
         if (!StringUtils.hasText(provider)) {
             throw new IllegalArgumentException("a valid provider is required");
         }
 
-        if (reg.getAttributes() == null) {
+        if (attributes == null || attributes.isEmpty()) {
             throw new IllegalArgumentException("attributes can not be null");
         }
-
-        Map<String, Serializable> attributes = reg.getAttributes().stream()
-                .filter(a -> a.getValue() != null)
-                .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
 
         // register
         UserAttributes ua = userManager.setUserAttributes(realm, subjectId, provider, identifier, attributes);
 
         return ResponseEntity.ok(ua);
+    }
+
+    @GetMapping("/realms/{realm}/users/{subjectId}/attributes/{provider}/{identifier}")
+    public ResponseEntity<UserAttributes> getRealmUserAttributes(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+        UserAttributes ua = userManager.getUserAttributes(realm, subjectId, provider, identifier);
+        return ResponseEntity.ok(ua);
+    }
+
+    @DeleteMapping("/realms/{realm}/users/{subjectId}/attributes/{provider}/{identifier}")
+    public ResponseEntity<Void> removeRealmUserAttributes(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String provider,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String identifier)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+        userManager.removeUserAttributes(realm, subjectId, provider, identifier);
+        return ResponseEntity.ok(null);
     }
 
     @GetMapping("/realms/{realm}/users/{subjectId}/approvals")

@@ -133,6 +133,12 @@ public class InternalAttributeService extends AbstractProvider
     }
 
     @Override
+    public void deleteAttributes(String subjectId, String setId) {
+        // cleanup matching from store
+        attributeEntityService.deleteAttribute(getProvider(), subjectId, setId);
+    }
+
+    @Override
     public Collection<UserAttributes> putAttributes(String subjectId, Collection<AttributeSet> attributeSets) {
         List<UserAttributes> result = new ArrayList<>();
 

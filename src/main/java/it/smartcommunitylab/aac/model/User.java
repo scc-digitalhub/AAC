@@ -31,7 +31,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
  * Do note that in cross realm managers and builders should properly handle private attributes and 
  * disclose only appropriate identities/properties to consumers.
  */
-@JsonInclude(Include.NON_EMPTY)
+@JsonInclude(Include.NON_NULL)
 public class User {
 
     @NotBlank

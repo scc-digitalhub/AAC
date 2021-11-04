@@ -135,7 +135,16 @@ public class ServicesService {
     @Transactional(readOnly = true)
     public List<it.smartcommunitylab.aac.services.Service> listServices(String realm) {
         List<ServiceEntity> services = serviceRepository.findByRealm(realm);
-        return services.stream().map(s -> toService(s)).collect(Collectors.toList());
+        return services.stream()
+                .map(s -> {
+                    try {
+                        return toService(s, listScopes(s.getServiceId()), null, null);
+                    } catch (NoSuchServiceException e) {
+                        return null;
+                    }
+                })
+                .filter(s -> s != null)
+                .collect(Collectors.toList());
     }
 
     public it.smartcommunitylab.aac.services.Service addService(

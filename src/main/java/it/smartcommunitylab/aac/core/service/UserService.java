@@ -531,7 +531,7 @@ public class UserService {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
 
-        AttributeProvider ap = authorityManager.fetchAttributeProvider(cp.getAuthority(), provider);
+        AttributeProvider ap = authorityManager.getAttributeProvider(provider);
         return ap.getAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
                 .orElse(null);
     }
@@ -548,8 +548,21 @@ public class UserService {
             throw new IllegalArgumentException("set not enabled for this provider");
         }
 
-        AttributeService as = authorityManager.fetchAttributeService(cp.getAuthority(), provider);
+        AttributeService as = authorityManager.getAttributeService(provider);
         return as.putAttributes(subjectId, Collections.singleton(attributeSet)).stream().findFirst().orElse(null);
+    }
+
+    public void removeUserAttributes(String subjectId, String realm, String provider, String setId)
+            throws NoSuchProviderException {
+        ConfigurableAttributeProvider cp = attributeProviderService.getProvider(provider);
+        if (!cp.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+        if (!cp.getAttributeSets().contains(setId)) {
+            throw new IllegalArgumentException("set not enabled for this provider");
+        }
+        AttributeService as = authorityManager.getAttributeService(provider);
+        as.deleteAttributes(subjectId, setId);
     }
 
     /*

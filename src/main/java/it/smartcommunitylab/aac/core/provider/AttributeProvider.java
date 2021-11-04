@@ -105,4 +105,5 @@ public interface AttributeProvider extends ResourceProvider {
 //    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
 
     public void deleteAttributes(String subjectId);
+
 }
