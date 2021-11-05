@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.SpaceRole;
@@ -50,7 +49,19 @@ public class SpaceRoleManager {
         return roleService.getRoles(subjectId);
     }
 
-    public Collection<SpaceRole> getRoles(String subjectId) throws NoSuchUserException {
+    public Collection<SpaceRole> curContexts() {
+        Authentication auth = authHelper.getAuthentication();
+        if (auth == null) {
+            throw new InsufficientAuthenticationException("invalid or missing authentication");
+        }
+
+        String subjectId = auth.getName();
+        return roleService.getRoles(subjectId).stream().filter(r -> Config.R_PROVIDER.equals(r.getRole()))
+                .collect(Collectors.toList());
+
+    }
+
+    public Collection<SpaceRole> getRoles(String subjectId) throws NoSuchSubjectException {
         return roleService.getRoles(subjectId);
     }
 
@@ -110,7 +121,7 @@ public class SpaceRoleManager {
                 .collect(Collectors.toList());
 
         // any cur roles not set will be removed
-        Collection<SpaceRole> toRemove = curRoles.stream().filter(r -> values.contains(r))
+        Collection<SpaceRole> toRemove = curRoles.stream().filter(r -> !values.contains(r))
                 .collect(Collectors.toList());
         // new will be added
         Collection<SpaceRole> toAdd = values.stream().filter(r -> !curRoles.contains(r))

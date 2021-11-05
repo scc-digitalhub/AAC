@@ -8,6 +8,7 @@
             <button class="btn btn-secondary btn-sm"
                 ui-sref="realm.appstart({realmId:app.realm, clientId:app.clientId})">Use</button>
             <button class="btn btn-primary btn-sm  text-right" ng-click="saveClientApp(app)">Save</button>
+            <button class="btn btn-secondary btn-sm  text-right" ng-click="inspectDlg(app)">Inspect</button>
             <button class="btn btn-secondary btn-sm  text-right" ng-click="exportClientApp(app)">Export</button>
             <button class="btn btn-danger btn-sm  text-right" ng-click="deleteClientAppDlg(app)">Delete</button>
         </div>
@@ -31,6 +32,9 @@
                     </svg>
                 </button>
             </p>
+            <p>
+                <span ng-repeat="r in _roles"><span class="badge badge-secondary">{{r}}</span> </span>
+            </p>
         </div>
     </div>
 </div>
@@ -39,34 +43,36 @@
 
     <ul class="nav nav-tabs nav-fill">
         <li class="nav-item">
-            <a class="nav-link {{activeClientView('overview')}}" href
-                ng-click="switchClientView('overview')">Overview</a>
+            <a class="nav-link {{activeView('overview')}}" href ng-click="switchView('overview')">Overview</a>
         </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
-            <a class="nav-link  {{activeClientView('test.oauth2')}}" href
-                ng-click="switchClientView('test.oauth2')">Test</a>
+            <a class="nav-link  {{activeView('test.oauth2')}}" href ng-click="switchView('test.oauth2')">Test</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link  {{activeClientView('settings')}}" href
-                ng-click="switchClientView('settings')">Settings</a>
+            <a class="nav-link  {{activeView('settings')}}" href ng-click="switchView('settings')">Settings</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link  {{activeClientView('idps')}}" href ng-click="switchClientView('idps')">Providers</a>
+            <a class="nav-link  {{activeView('idps')}}" href ng-click="switchView('idps')">Providers</a>
         </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
-            <a class="nav-link  {{activeClientView('conf.oauth2')}}" href
-                ng-click="switchClientView('conf.oauth2')">OAuth2</a>
+            <a class="nav-link  {{activeView('conf.oauth2')}}" href ng-click="switchView('conf.oauth2')">OAuth2</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link  {{activeClientView('scopes')}}" href ng-click="switchClientView('scopes')">API
+            <a class="nav-link  {{activeView('scopes')}}" href ng-click="switchView('scopes')">API
                 Access</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link  {{activeClientView('claims')}}" href ng-click="switchClientView('claims')">Hooks &
+            <a class="nav-link  {{activeView('claims')}}" href ng-click="switchView('claims')">Hooks &
                 Claims</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link  {{activeClientView('roles')}}" href ng-click="switchClientView('roles')">Roles</a>
+            <a class="nav-link  {{activeView('roles')}}" href ng-click="switchView('roles')">Roles</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('spaceroles')}}" href ng-click="switchView('spaceroles')">Space Roles</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('audit')}}" href ng-click="switchView('audit')">Audit</a>
         </li>
     </ul>
     <div class="tab-content pt-3">
@@ -76,10 +82,8 @@
             </form>
         </div>
     </div>
-
-
-
 </div>
+
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="resetClientCredentialsConfirm">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -104,6 +108,23 @@
             <div class="modal-footer">
                 <button class="btn btn-danger btn-sm" ng-click="deleteClientApp()" type="button">Delete</button>
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bs-modal-lg" id="inspectModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">Inspect json</h3>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <h6>Raw JSON</h6>
+                <div ui-ace="aceOption" ng-model="modObj.json"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

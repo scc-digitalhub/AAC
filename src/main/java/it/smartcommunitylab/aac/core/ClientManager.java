@@ -1,22 +1,30 @@
 package it.smartcommunitylab.aac.core;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +34,10 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
@@ -38,9 +48,11 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
@@ -89,6 +101,13 @@ public class ClientManager {
 
     @Autowired
     private SubjectRoleService realmRoleService;
+    
+
+    @Autowired
+    private ExtTokenStore tokenStore;
+
+    @Autowired
+    private AuditEventStore auditStore;
 
     /*
      * ClientApp via appService
@@ -532,6 +551,44 @@ public class ClientManager {
 
         return realmRoles;
     }
+    
+    
+    
+
+    public Collection<Approval> getApprovals(String realm, String clientId) throws NoSuchClientException {
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        Collection<Approval> approvals = approvalStore.findClientApprovals(clientId);
+        return approvals;
+    }
+
+    public Collection<OAuth2AccessToken> getAccessTokens(String realm, String clientId) throws NoSuchClientException {
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByClientId(clientId);
+        return tokens;
+    }
+
+    public Collection<AuditEvent> getAudit(String realm, String clientId, Date after, Date before)
+            throws NoSuchClientException {
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+        
+        Instant now = Instant.now();
+        Instant a = after == null ? now.minus(5, ChronoUnit.DAYS) : after.toInstant();
+        Instant b = before == null ? now : before.toInstant();
+
+        return auditStore.findByPrincipal(clientId, a, b, null);
+    }
+
 
 //    // TODO evaluate removal, no reason to expose all roles
 //    @Transactional(readOnly = false)
@@ -674,4 +731,5 @@ public class ClientManager {
 //                .collect(Collectors.toSet());
     }
 
+ 
 }

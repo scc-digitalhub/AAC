@@ -16,14 +16,11 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
-import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.roles.service.RealmRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 
@@ -157,7 +154,7 @@ public class RealmRoleManager {
         return roleService.getRoles(subjectId, realm);
     }
 
-    public Collection<RealmRole> getSubjectRoles(String realm, String subjectId) throws NoSuchUserException {
+    public Collection<RealmRole> getSubjectRoles(String realm, String subjectId) throws NoSuchSubjectException {
         return roleService.getRoles(subjectId, realm);
     }
 

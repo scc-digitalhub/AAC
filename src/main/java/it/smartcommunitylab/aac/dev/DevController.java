@@ -299,6 +299,13 @@ public class DevController {
     /*
      * Spaces
      */
+
+    @GetMapping("/console/dev/rolespaces")
+    public ResponseEntity<Collection<SpaceRole>> getMyRoleSpacesContexts()
+            throws NoSuchRealmException, NoSuchUserException {
+        return ResponseEntity.ok(roleManager.curContexts());
+    }
+
     @GetMapping("/console/dev/rolespaces/users")
     public ResponseEntity<Page<SpaceRoles>> getRoleSpaceUsers(
             @RequestParam(required = false) String context,

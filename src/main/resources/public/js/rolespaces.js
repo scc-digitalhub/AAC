@@ -10,6 +10,11 @@ angular.module('aac.controllers.rolespaces', [])
 
 	.service('RoleSpaceData', function ($q, $http, $rootScope, $httpParamSerializer) {
 		var rsService = {};
+		rsService.getMySpaces = function () {
+			return $http.get('console/dev/rolespaces').then(function (data) {
+				return data.data;
+			});
+		}
 
 		rsService.getSpaceUsers = function (context, space, params) {
 			return $http.get('console/dev/rolespaces/users?context=' + (context || '') + '&space=' + (space || '') + '&' + buildQuery(params, $httpParamSerializer)).then(function (data) {

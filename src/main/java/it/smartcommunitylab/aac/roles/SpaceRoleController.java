@@ -31,7 +31,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.model.SpaceRole;
 
 @RestController
@@ -46,7 +46,7 @@ public class SpaceRoleController {
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/userroles/me")
     public Collection<SpaceRole> getUserRoles(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchUserException {
+            throws InvalidDefinitionException, NoSuchSubjectException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");
@@ -67,7 +67,7 @@ public class SpaceRoleController {
     @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENT_ROLE + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/clientroles/me")
     public Collection<SpaceRole> getClientRoles(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchUserException {
+            throws InvalidDefinitionException, NoSuchSubjectException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");
@@ -90,7 +90,7 @@ public class SpaceRoleController {
             + "'))")
     @RequestMapping(method = RequestMethod.GET, value = "/roles/me")
     public Collection<SpaceRole> getSubjectRoles(BearerTokenAuthentication auth)
-            throws InvalidDefinitionException, NoSuchUserException {
+            throws InvalidDefinitionException, NoSuchSubjectException {
         if (auth == null) {
             logger.error("invalid authentication");
             throw new IllegalArgumentException("invalid authentication");

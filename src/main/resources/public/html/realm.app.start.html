@@ -45,12 +45,12 @@
                 start</a>
         </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
-            <a class="nav-link  {{activeClientView('test.oauth2')}}" href
-                ng-click="switchClientView('test.oauth2')">Test</a>
-        </li>
-        <li ng-if="app.type == 'oauth2'" class="nav-item">
             <a class="nav-link  {{activeClientView('credentials.oauth2')}}" href
                 ng-click="switchClientView('credentials.oauth2')">Credentials</a>
+        </li>
+        <li ng-if="app.type == 'oauth2'" class="nav-item">
+            <a class="nav-link  {{activeClientView('test.oauth2')}}" href
+                ng-click="switchClientView('test.oauth2')">Test</a>
         </li>
         <li ng-if="app.type == 'oauth2'" class="nav-item">
             <a class="nav-link  {{activeClientView('endpoints.oauth2')}}" href

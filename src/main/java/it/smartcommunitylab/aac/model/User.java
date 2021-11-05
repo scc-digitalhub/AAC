@@ -16,6 +16,7 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
@@ -82,6 +83,7 @@ public class User {
     // roles are OUTSIDE aac (ie not grantedAuthorities)
     // roles are associated to USER(=subjectId) not single identities/realms
     // realm scoped
+    @JsonProperty("roles")
     private Set<RealmRole> realmRoles;
 
     // space roles are global

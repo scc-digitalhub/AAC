@@ -16,38 +16,38 @@ angular.module('aac.controllers.realmapps', [])
       * Realm Data Services
       */
     .service('RealmAppsData', function ($q, $http, $httpParamSerializer) {
-        var raService = {};
+        var service = {};
 
-        raService.getClientApps = function (slug) {
+        service.getClientApps = function (slug) {
             return $http.get('console/dev/realms/' + slug + '/apps').then(function (data) {
                 return data.data;
             });
         }
-        raService.searchClientApps = function (slug, params) {
+        service.searchClientApps = function (slug, params) {
             return $http.get('console/dev/realms/' + slug + '/apps/search?' + buildQuery(params, $httpParamSerializer)).then(function (data) {
                 return data.data;
             });
         }
-        raService.getClientApp = function (slug, clientId) {
+        service.getClientApp = function (slug, clientId) {
             return $http.get('console/dev/realms/' + slug + '/apps/' + clientId).then(function (data) {
                 return data.data;
             });
         }
 
-        raService.removeClientApp = function (slug, clientId) {
+        service.removeClientApp = function (slug, clientId) {
             return $http.delete('console/dev/realms/' + slug + '/apps/' + clientId).then(function (data) {
                 return data.data;
             });
         }
 
-        raService.resetClientAppCredentials = function (slug, clientId) {
+        service.resetClientAppCredentials = function (slug, clientId) {
             return $http.delete('console/dev/realms/' + slug + '/apps/' + clientId + '/credentials').then(function (data) {
                 return data.data;
             });
         }
 
 
-        raService.saveClientApp = function (slug, clientApp) {
+        service.saveClientApp = function (slug, clientApp) {
             if (clientApp.clientId) {
                 return $http.put('console/dev/realms/' + slug + '/apps/' + clientApp.clientId, clientApp).then(function (data) {
                     return data.data;
@@ -59,7 +59,7 @@ angular.module('aac.controllers.realmapps', [])
             }
         }
 
-        raService.importClientApp = function (slug, file, reset) {
+        service.importClientApp = function (slug, file, reset) {
             var fd = new FormData();
             fd.append('file', file);
             return $http({
@@ -73,43 +73,70 @@ angular.module('aac.controllers.realmapps', [])
 
         }
 
-        raService.testOAuth2ClientApp = function (slug, clientId, grantType) {
+        service.testOAuth2ClientApp = function (slug, clientId, grantType) {
             return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + "/oauth2/" + grantType).then(function (data) {
                 return data.data;
             });
         }
 
-        raService.testClientAppClaimMapping = function (slug, clientId, functionCode) {
+        service.testClientAppClaimMapping = function (slug, clientId, functionCode) {
             return $http.post('console/dev/realms/' + slug + '/apps/' + clientId + "/claims", functionCode).then(function (data) {
                 return data.data;
             });
         }
 
-        raService.getOAuth2Metadata = function (slug, clientId) {
+        service.getOAuth2Metadata = function (slug, clientId) {
             return $http.get('console/dev/realms/' + slug + '/well-known/oauth2').then(function (data) {
                 return data.data;
             });
         }
 
-        raService.getRoles = function (slug, clientId) {
+        service.getRoles = function (slug, clientId) {
             return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/roles').then(function (data) {
                 return data.data;
             });
         }
-        raService.updateRoles = function (slug, clientId, roles) {
-            return $http.put('console/dev/realms/' + slug + '/apps/' + clientId + '/roles', { roles: roles }).then(function (data) {
+        service.updateRoles = function (slug, clientId, roles) {
+            return $http.put('console/dev/realms/' + slug + '/apps/' + clientId + '/roles', roles).then(function (data) {
                 return data.data;
             });
         }
 
-        raService.getProviders = function (slug, clientId) {
+        service.getSpaceRoles = function (slug, clientId) {
+            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/spaceroles').then(function (data) {
+                return data.data;
+            });
+        }
+        service.updateSpaceRoles = function (slug, clientId, roles) {
+            return $http.put('console/dev/realms/' + slug + '/apps/' + clientId + '/spaceroles', roles).then(function (data) {
+                return data.data;
+            });
+        }
+
+        service.getProviders = function (slug, clientId) {
             return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/providers').then(function (data) {
                 return data.data;
             });
         }
 
+        service.getAudit = function (slug, clientId) {
+            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/audit').then(function (data) {
+                return data.data;
+            });
+        }
+        service.getApprovals = function (slug, clientId) {
+            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/approvals').then(function (data) {
+                return data.data;
+            });
+        }
+        service.getTokens = function (slug, clientId) {
+            return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/tokens').then(function (data) {
+                return data.data;
+            });
+        }
 
-        return raService;
+
+        return service;
 
     })
 
@@ -319,7 +346,7 @@ angular.module('aac.controllers.realmapps', [])
 
         init();
     })
-    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, Utils, $window) {
+    .controller('RealmAppController', function ($scope, $stateParams, $state, RealmData, RealmAppsData, RealmServices, RealmRoles, RoleSpaceData, Utils, $window) {
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
         $scope.clientView = 'overview';
@@ -332,10 +359,15 @@ angular.module('aac.controllers.realmapps', [])
             minLines: 6
         };
 
+        $scope.activeView = function (view) {
+            return view == $scope.clientView ? 'active' : '';
+        };
 
-        /**
-       * Initialize the app: load list of apps
-       */
+        $scope.switchView = function (view) {
+            $scope.clientView = view;
+            Utils.refreshFormBS(300);
+        }
+
         var init = function () {
             //we load provider resources only at first load since it's expensive
             RealmData.getResources(slug)
@@ -367,10 +399,54 @@ angular.module('aac.controllers.realmapps', [])
                     return providers;
                 })
                 .then(function () {
-                    return RealmAppsData.getClientApp(slug, clientId);
+                    return RealmServices.getServices(slug);
+                })
+                .then(function (services) {
+                    var sMap = new Map(services.map(e => [e.serviceId, e]));
+                    $scope.services = sMap;
+                })
+                .then(function () {
+                    return RealmRoles.getRoles(slug);
+                })
+                .then(function (roles) {
+                    return Promise.all(
+                        roles.map(r => {
+                            return RealmRoles.getApprovals(slug, r.roleId)
+                                .then(function (approvals) {
+                                    return {
+                                        ...r,
+                                        approvals: approvals
+                                    }
+                                });
+                        })
+                    );
+                })
+                .then(function (roles) {
+                    var rMap = new Map(roles.map(e => [e.role, e]));
+                    $scope.realmRoles = rMap;
+                })
+                .then(function () {
+                    return RoleSpaceData.getMySpaces();
                 })
                 .then(function (data) {
-                    $scope.load(data);
+                    $scope.myspaces = data.map(s =>
+                        ((s.context ? s.context + '/' : '') + s.space));
+                })
+                .then(function () {
+                    $scope.load();
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load realm client app: ' + err.data.message);
+                });
+
+
+        };
+
+
+        $scope.load = function () {
+            RealmAppsData.getClientApp(slug, clientId)
+                .then(function (data) {
+                    $scope.reload(data);
                     $scope.clientView = 'overview';
                     return data;
                 })
@@ -394,12 +470,28 @@ angular.module('aac.controllers.realmapps', [])
                 })
                 .then(function (data) {
                     $scope.authorities = data.authorities;
+                    return data;
+                })
+                .then(function (data) {
+                    $scope.reloadRoles(data.roles);
+                    return data;
+                })
+                .then(function (data) {
+                    $scope.reloadSpaceRoles(data.spaceRoles);
+                    return;
                 })
                 .then(function () {
-                    return RealmAppsData.getRoles(slug, clientId);
+                    return RealmAppsData.getAudit(slug, clientId);
                 })
-                .then(function (roles) {
-                    $scope.roles = roles;
+                .then(function (events) {
+                    $scope.audit = events;
+                    return;
+                })
+                .then(function () {
+                    return RealmAppsData.getApprovals(slug, clientId);
+                })
+                .then(function (approvals) {
+                    $scope.reloadApprovals(approvals, $scope.app.roles.map(r => r.role));
                     return;
                 })
                 .catch(function (err) {
@@ -407,16 +499,16 @@ angular.module('aac.controllers.realmapps', [])
                 });
 
 
-        };
+        }
 
-        $scope.load = function (data) {
+        $scope.reload = function (data) {
             //set
             data.icon = iconProvider(data);
             $scope.app = data;
             $scope.appname = data.name;
             $scope.configurationMap = data.configuration;
             $scope.configurationSchema = data.schema;
-
+            delete $scope.app.schema;
             // process idps
             // var idps = [];
 
@@ -429,11 +521,11 @@ angular.module('aac.controllers.realmapps', [])
             }
             $scope.appScopes = scopes;
 
-            $scope.updateResources(data.scopes);
-            $scope.updateIdps(data.providers);
+            updateResources(data.scopes);
+            updateIdps(data.providers);
 
             if (data.type == 'oauth2') {
-                $scope.initConfiguration(data.type, data.configuration, data.schema);
+                initConfiguration(data.type, data.configuration, data.schema);
             }
 
             var claimMapping = {
@@ -468,7 +560,7 @@ angular.module('aac.controllers.realmapps', [])
             return;
         }
 
-        $scope.initConfiguration = function (type, config, schema) {
+        var initConfiguration = function (type, config, schema) {
 
             if (type === 'oauth2') {
                 // grantTypes
@@ -510,7 +602,7 @@ angular.module('aac.controllers.realmapps', [])
 
 
 
-        let extractConfiguration = function (type, config) {
+        var extractConfiguration = function (type, config) {
 
             var conf = config;
 
@@ -600,7 +692,7 @@ angular.module('aac.controllers.realmapps', [])
 
             RealmAppsData.saveClientApp($scope.realm.slug, data)
                 .then(function (res) {
-                    $scope.load(res);
+                    $scope.reload(res);
                     Utils.showSuccess();
                 })
                 .catch(function (err) {
@@ -616,7 +708,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.resetClientCredentials = function () {
             $('#resetClientCredentialsConfirm').modal('hide');
             RealmAppsData.resetClientAppCredentials($scope.realm.slug, $scope.modClientApp.clientId).then(function (res) {
-                $scope.load(res);
+                $scope.reload(res);
                 Utils.showSuccess();
             }).catch(function (err) {
                 Utils.showError(err.data.message);
@@ -644,13 +736,10 @@ angular.module('aac.controllers.realmapps', [])
             $window.open('console/dev/realms/' + clientApp.realm + '/apps/' + clientApp.clientId + '/export');
         };
 
-        $scope.activeClientView = function (view) {
-            return view == $scope.clientView ? 'active' : '';
-        };
-
-        $scope.switchClientView = function (view) {
-            $scope.clientView = view;
-            Utils.refreshFormBS(300);
+        $scope.inspectDlg = function (obj) {
+            $scope.modObj = obj;
+            $scope.modObj.json = JSON.stringify(obj, null, 3);
+            $('#inspectModal').modal({ keyboard: false });
         }
 
         $scope.copyText = function (txt) {
@@ -662,7 +751,7 @@ angular.module('aac.controllers.realmapps', [])
             textField.remove();
         }
 
-        $scope.updateResources = function (scopes) {
+        var updateResources = function (scopes) {
             var resources = [];
 
             for (var res of $scope.resources) {
@@ -678,7 +767,7 @@ angular.module('aac.controllers.realmapps', [])
             $scope.scopeResources = resources;
         }
 
-        $scope.updateIdps = function (providers) {
+        var updateIdps = function (providers) {
             var idps = [];
 
             for (var idp of $scope.identityProviders) {
@@ -762,40 +851,69 @@ angular.module('aac.controllers.realmapps', [])
             return scopes;
         }
 
+        /*
+       * realm roles
+       */
+
         $scope.loadRoles = function () {
             RealmAppsData.getRoles(slug, clientId)
                 .then(function (data) {
-                    $scope.roles = data;
+                    $scope.reloadRoles(data);
                 })
                 .catch(function (err) {
                     Utils.showError('Failed to load client roles: ' + err.data.message);
                 });
         }
 
+        $scope.reloadRoles = function (data) {
+            var realmRoles = $scope.realmRoles;
+            var roles = data.map(r => {
 
-        $scope.removeRole = function (r) {
-            if (r.realm && r.realm != slug) {
+                if (!realmRoles.has(r.role)) {
+                    return null;
+                }
+
+                var { role, name, description, roleId } = realmRoles.get(r.role);
+                return {
+                    ...r,
+                    role, name, description, roleId
+                }
+            })
+            $scope.roles = roles;
+
+            //flatten for display
+            $scope._roles = roles.map(r => r.role);
+
+            //also update app model
+            $scope.app.roles = data;
+        }
+
+
+        $scope.removeRole = function (role) {
+            if (role.realm && role.realm != slug) {
                 Utils.showError('Failed to remove role');
                 return;
             }
 
-            updateRoles(null, [r]);
+            updateRoles(null, [role]);
         }
 
         $scope.addRoleDlg = function () {
             $scope.modRole = {
                 realm: slug,
-                role: ''
+                role: '',
+                roles: Array.from($scope.realmRoles.values())
             };
             $('#rolesModal').modal({ keyboard: false });
+            Utils.refreshFormBS(300);
         }
 
         $scope.addRole = function () {
             $('#rolesModal').modal('hide');
             if ($scope.modRole && $scope.modRole.role) {
-                var r = $scope.modRole.role;
+                var role = $scope.modRole.role;
 
-                updateRoles([r], null);
+                updateRoles([role], null);
                 $scope.modRole = null;
             }
         }
@@ -803,8 +921,10 @@ angular.module('aac.controllers.realmapps', [])
         // save roles
         var updateRoles = function (rolesAdd, rolesRemove) {
             //map cur realm
-            var curAuthorities = $scope.roles
+            var curRoles = $scope.roles
                 .map(a => a.role);
+
+            var realmRoles = Array.from($scope.realmRoles.values()).map(r => r.role);
 
             //handle only same realm
             var rolesToAdd = [];
@@ -814,7 +934,13 @@ angular.module('aac.controllers.realmapps', [])
                         return r.role;
                     }
                     return r;
-                }).filter(r => !curAuthorities.includes(r));
+                }).filter(r => !curRoles.includes(r));
+            }
+
+
+            if (rolesToAdd.some(r => !realmRoles.includes(r))) {
+                Utils.showError('Invalid roles');
+                return;
             }
 
             var rolesToRemove = [];
@@ -824,10 +950,10 @@ angular.module('aac.controllers.realmapps', [])
                         return r.role;
                     }
                     return r;
-                }).filter(r => curAuthorities.includes(r));
+                }).filter(r => curRoles.includes(r));
             }
 
-            var keepRoles = curAuthorities.filter(r => !rolesToRemove.includes(r));
+            var keepRoles = curRoles.filter(r => !rolesToRemove.includes(r));
             var roles = keepRoles.concat(rolesToAdd);
 
             var data = roles.map(r => {
@@ -835,9 +961,111 @@ angular.module('aac.controllers.realmapps', [])
             });
 
 
-            RealmAppsData.updateRoles($scope.realm.slug, clientId, data)
+            RealmAppsData.updateRoles(slug, clientId, data)
+                .then(function (data) {
+                    $scope.reloadRoles(data);
+                    return;
+                })
                 .then(function () {
-                    $scope.loadRoles();
+                    return RealmAppsData.getApprovals(slug, clientId);
+                })
+                .then(function (data) {
+                    $scope.reloadApprovals(data, $scope._roles);
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to update roles: ' + err.data.message);
+                });
+        }
+
+        /*
+        * space roles
+        */
+        $scope.loadSpaceRoles = function () {
+            RealmAppsData.getSpaceRoles(slug, clientId)
+                .then(function (data) {
+                    $scope.reloadSpaceRoles(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load user space roles: ' + err.data.message);
+                });
+        }
+
+        $scope.reloadSpaceRoles = function (data) {
+            var roles = data;
+            if (roles) {
+                roles.sort(function (a, b) {
+                    var authA = a.authority.toUpperCase();
+                    var authB = b.authority.toUpperCase();
+
+                    if (authA < authB) {
+                        return -1;
+                    }
+                    if (authA > authB) {
+                        return 1;
+                    }
+                    return 0;
+                })
+            }
+            $scope.spaceRoles = roles.map(r => {
+                return {
+                    ...r,
+                    namespace: ((r.context ? r.context + '/' : '') + r.space)
+                }
+            });
+
+            //also update app model
+            $scope.app.spaceRoles = data;
+        }
+
+        $scope.addSpaceRoleDlg = function () {
+            $scope.modSpaceRole = {
+                role: null,
+                spaces: $scope.myspaces
+            };
+            $('#spaceRolesModal').modal({ keyboard: false });
+            Utils.refreshFormBS(300);
+        }
+
+        $scope.addSpaceRole = function () {
+            $('#spaceRolesModal').modal('hide');
+            if ($scope.modSpaceRole && $scope.modSpaceRole.role && $scope.modSpaceRole.space) {
+                var { space, role } = $scope.modSpaceRole;
+                var authority = space + ":" + role;
+
+                updateSpaceRoles([authority], null);
+                $scope.modSpaceRole = null;
+            }
+        }
+
+        $scope.removeSpaceRole = function (authority) {
+            updateSpaceRoles(null, [authority]);
+        }
+
+
+        var updateSpaceRoles = function (rolesAdd, rolesRemove) {
+            var curRoles = $scope.spaceRoles.map(a => a.authority);
+
+            var rolesToAdd = [];
+            if (rolesAdd) {
+                rolesToAdd = rolesAdd.filter(r => !curRoles.includes(r));
+            }
+
+
+            var rolesToRemove = [];
+            if (rolesRemove) {
+                rolesToRemove = rolesRemove.filter(r => curRoles.includes(r));
+            }
+
+            var keepRoles = curRoles.filter(r => !rolesToRemove.includes(r));
+            var roles = keepRoles.concat(rolesToAdd);
+
+            var data = roles;
+
+
+            RealmAppsData.updateSpaceRoles(slug, clientId, data)
+                .then(function (data) {
+                    $scope.reloadSpaceRoles(data);
                     Utils.showSuccess();
                 })
                 .catch(function (err) {
@@ -846,6 +1074,129 @@ angular.module('aac.controllers.realmapps', [])
 
 
         }
+
+
+        /*
+        * approvals
+        */
+        $scope.loadApprovals = function () {
+            RealmAppsData.getApprovals(slug, clientId)
+                .then(function (data) {
+                    $scope.reloadApprovals(data, $scope._roles);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load approvals: ' + err.data.message);
+                });
+        }
+
+
+        $scope.reloadApprovals = function (data, rr) {
+            var services = $scope.services;
+            var realmRoles = $scope.realmRoles;
+
+            var roleApprovals = [];
+            Array.from(realmRoles.values()).filter(r => rr.includes(r.role)).forEach(r => {
+                var { roleId, role, name, description } = r;
+                r.approvals.forEach(a => {
+                    roleApprovals.push({
+                        roleId, role, name, description,
+                        ...a
+                    });
+                })
+            });
+
+
+            var approvals = Array.from(services.values()).map(s => {
+                var { serviceId, namespace, realm, name, description } = s;
+
+                var ua = data.filter(a => a.userId == s.serviceId);
+                var ra = roleApprovals.filter(a => a.userId == s.serviceId);
+                return {
+                    serviceId, namespace, realm, name, description,
+                    approvals: ua.concat(ra)
+                }
+            });
+
+            $scope.approvals = approvals;
+
+            //flatten to permission for display
+            var permissions = data.map(a => a.scope);
+            $scope.permissions = permissions;
+
+
+        }
+
+
+        $scope.editPermissionsDlg = function (service) {
+            var { serviceId, namespace, realm, name, description } = service;
+            var scopes = $scope.services.get(serviceId).scopes;
+
+            $scope.modApprovals = {
+                serviceId, namespace, realm, name, description,
+                scopes: scopes.filter(s => s.type == 'client' || s.type == 'generic').map(s => {
+                    return {
+                        ...s,
+                        value: service.approvals.some(a => s.scope == a.scope),
+                        locked: service.approvals.some(a => (s.scope == a.scope && a.role))
+
+                    }
+                }),
+                clientId: clientId,
+
+            }
+            $('#permissionsModal').modal({ keyboard: false });
+        }
+
+        $scope.updatePermissions = function () {
+            $('#permissionsModal').modal('hide');
+
+
+            if ($scope.modApprovals) {
+
+                //unpack
+                var serviceId = $scope.modApprovals.serviceId;
+                var service = $scope.services.get(serviceId);
+                var approved = $scope.modApprovals.scopes.filter(s => (s.value && !s.locked)).map(s => s.scope);
+
+                var approval = $scope.approvals.find(a => serviceId == a.serviceId)
+                var approvals = approval.approvals.filter(a => !a.role);
+
+                //build request
+                var toRemove = approvals.filter(a => !approved.includes(a.scope));
+                var toKeep = approvals.filter(a => approved.includes(a.scope)).map(s => s.scope);
+
+                var toAdd = approved.filter(a => !toKeep.includes(a)).map(s => {
+                    return {
+                        userId: serviceId,
+                        clientId: clientId,
+                        scope: s
+                    }
+                });
+
+
+                var updates = toRemove.concat(toAdd);
+
+                Promise.all(
+                    updates
+                        .map(a => {
+                            if (a.status) {
+                                return RealmServices.deleteApproval(service.realm, serviceId, a);
+                            } else {
+                                return RealmServices.addApproval(service.realm, serviceId, a);
+                            }
+                        })
+                )
+                    .then(function () {
+                        Utils.showSuccess();
+                        $scope.loadApprovals();
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Failed to load realm role: ' + err.data.message);
+                    });
+
+            }
+        }
+
 
         $scope.testOAuth2ClientApp = function (grantType) {
 
@@ -1081,7 +1432,7 @@ angular.module('aac.controllers.realmapps', [])
             $scope.appScopes = scopes;
 
             if (data.type == 'oauth2') {
-                $scope.initConfiguration(data.type, data.configuration, data.schema);
+                initConfiguration(data.type, data.configuration, data.schema);
                 //auth header
                 $scope.oauth2AuthHeader = btoa(data.clientId + ':' + data.configuration.clientSecret);
             }
@@ -1089,7 +1440,7 @@ angular.module('aac.controllers.realmapps', [])
             return;
         }
 
-        $scope.initConfiguration = function (type, config, schema) {
+        initConfiguration = function (type, config, schema) {
 
             if (type === 'oauth2') {
                 // grantTypes

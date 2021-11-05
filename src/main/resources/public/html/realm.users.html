@@ -99,26 +99,6 @@
                   </a>
                 </li>
                 <li>
-                  <a class="list-item left-icon"
-                    ui-sref="realm.useraudit({realmId:realm.slug, subjectId:item.subjectId})">
-                    <svg class="icon icon-xs icon-primary left">
-                      <use xlink:href="./italia/svg/sprite.svg#it-note"></use>
-                    </svg>
-                    <span>Audit</span>
-                  </a>
-                </li>
-                <li>
-                  <span class="divider"></span>
-                </li>
-                <li>
-                  <a class="list-item left-icon" href="" ng-click="editRoles(item)">
-                    <svg class="icon icon-xs icon-primary left">
-                      <use xlink:href="./italia/svg/sprite.svg#it-open-source"></use>
-                    </svg>
-                    <span>Roles</span>
-                  </a>
-                </li>
-                <li>
                   <a class="list-item left-icon text-warning" href="" ng-if="!item.locked && !item.blocked"
                     ng-click="lockUser(item)">
                     <svg class="icon icon-xs icon-warning left">

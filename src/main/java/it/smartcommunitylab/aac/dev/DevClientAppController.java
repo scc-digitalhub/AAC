@@ -3,8 +3,10 @@ package it.smartcommunitylab.aac.dev;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,10 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,16 +51,18 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.dev.DevUsersController.RolesBean;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.RealmRoleManager;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
@@ -71,6 +78,12 @@ public class DevClientAppController {
 
     @Autowired
     private DevManager devManager;
+
+    @Autowired
+    private RealmRoleManager roleManager;
+
+    @Autowired
+    private SpaceRoleManager spaceRoleManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -352,42 +365,90 @@ public class DevClientAppController {
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
             throws NoSuchRealmException, NoSuchClientException {
-        Collection<RealmRole> roles = clientManager.getRoles(realm, clientId);
-        return ResponseEntity.ok(roles);
+        try {
+            Collection<RealmRole> roles = roleManager.getSubjectRoles(realm, clientId);
+            return ResponseEntity.ok(roles);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchClientException();
+        }
+
     }
 
     @PutMapping("/realms/{realm}/apps/{clientId}/roles")
     public ResponseEntity<Collection<RealmRole>> updateRealmClientAppRoles(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody RolesBean bean) throws NoSuchRealmException, NoSuchClientException {
+            @RequestBody Collection<RealmRole> roles)
+            throws NoSuchRealmException, NoSuchClientException {
         // filter roles, make sure they belong to the current realm
-        Set<String> values = bean.getRoles().stream()
-                .filter(a -> realm.equals(a.getRealm()))
-                .map(a -> a.getRole())
+        Set<RealmRole> values = roles.stream()
+                .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
                 .collect(Collectors.toSet());
 
-        Collection<RealmRole> roles = clientManager.updateRoles(realm, clientId,
-                values);
-        return ResponseEntity.ok(roles);
+        try {
+            Collection<RealmRole> result = roleManager.setSubjectRoles(realm, clientId,
+                    values);
+            return ResponseEntity.ok(result);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchClientException();
+        }
+    }
+
+    @GetMapping("/realms/{realm}/apps/{clientId}/spaceroles")
+    public ResponseEntity<Collection<SpaceRole>> getRealmClientAppSpaceRoles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchRealmException, NoSuchClientException {
+        try {
+            Collection<SpaceRole> roles = spaceRoleManager.getRoles(clientId);
+            return ResponseEntity.ok(roles);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchClientException();
+        }
+    }
+
+    @PutMapping("/realms/{realm}/apps/{clientId}/spaceroles")
+    public ResponseEntity<Collection<SpaceRole>> updateRealmClientAppSpaceRoles(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @RequestBody Collection<String> roles)
+            throws NoSuchRealmException, NoSuchClientException {
+        try {
+            Set<SpaceRole> spaceRoles = roles.stream().map(r -> SpaceRole.parse(r)).collect(Collectors.toSet());
+            Collection<SpaceRole> result = spaceRoleManager.setRoles(clientId, spaceRoles);
+
+            return ResponseEntity.ok(result);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchClientException();
+        }
     }
 
     /*
-     * DTO
-     * 
-     * TODO cleanup
+     * Service approvals (permissions)
      */
-    public static class RolesBean {
 
-        private List<RealmRole> roles;
-
-        public List<RealmRole> getRoles() {
-            return roles;
-        }
-
-        public void setRoles(List<RealmRole> roles) {
-            this.roles = roles;
-        }
-
+    @GetMapping("/realms/{realm}/apps/{clientId}/approvals")
+    public ResponseEntity<Collection<Approval>> getRealmUserApprovals(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchRealmException, NoSuchClientException {
+        Collection<Approval> approvals = clientManager.getApprovals(realm, clientId);
+        return ResponseEntity.ok(approvals);
     }
+
+    /*
+     * Audit
+     */
+    @GetMapping("/realms/{realm}/apps/{clientId}/audit")
+    public ResponseEntity<Collection<AuditEvent>> getRealmUserAudit(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> after,
+            @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> before)
+            throws NoSuchRealmException, NoSuchClientException {
+        Collection<AuditEvent> result = clientManager.getAudit(realm, clientId, after.orElse(null),
+                before.orElse(null));
+        return ResponseEntity.ok(result);
+    }
+
 }
