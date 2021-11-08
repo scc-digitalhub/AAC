@@ -15,7 +15,10 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -33,6 +36,7 @@ import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
@@ -392,6 +396,24 @@ public class UserService {
 
         // TODO translate resulting users
         return realmUsers;
+    }
+
+    public List<User> findUsersByUsername(String realm, String username) {
+        return convertUsers(realm, userService.findUsersByUsername(realm, username));
+    }
+
+    public List<User> findUsersByEmailAddress(String realm, String emailAddress) {
+        return convertUsers(realm, userService.findUsersByEmailAddress(realm, emailAddress));
+    }
+
+    public List<User> listUsersByAuthority(String realm, String role) {
+        // with authority in realm
+        List<Subject> subjects = subjectService.listSubjectsByAuthorities(realm, role);
+
+        List<UserEntity> users = subjects.stream().filter(s -> SystemKeys.RESOURCE_USER.equals(s.getType()))
+                .map(s -> userService.findUser(s.getSubjectId())).filter(s -> s != null).collect(Collectors.toList());
+        return convertUsers(realm, users);
+
     }
 
 //    /**

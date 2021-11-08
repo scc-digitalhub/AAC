@@ -105,7 +105,7 @@ public class UserEntityService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserEntity> findUsersByEmailAddrss(String realm, String emailAddress) {
+    public List<UserEntity> findUsersByEmailAddress(String realm, String emailAddress) {
         return userRepository.findByRealmAndEmailAddress(realm, emailAddress);
     }
 

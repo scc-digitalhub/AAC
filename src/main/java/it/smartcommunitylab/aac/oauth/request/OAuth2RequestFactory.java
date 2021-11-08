@@ -1,9 +1,6 @@
 package it.smartcommunitylab.aac.oauth.request;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;

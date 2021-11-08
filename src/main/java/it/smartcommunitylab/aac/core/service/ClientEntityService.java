@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.core.service;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -73,8 +75,18 @@ public class ClientEntityService {
         c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
 
-        c.setHookFunctions(hookFunctions);
-        c.setHookWebUrls(hookWebUrls);
+        // cleanup maps
+        Map<String, String> hFunctions = hookFunctions == null ? null
+                : hookFunctions.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        Map<String, String> hWebUrls = hookWebUrls == null ? null
+                : hookWebUrls.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        c.setHookFunctions(hFunctions);
+        c.setHookWebUrls(hWebUrls);
         c.setHookUniqueSpaces(hookUniqueSpaces);
 
         c = clientRepository.save(c);
@@ -152,8 +164,18 @@ public class ClientEntityService {
         c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
 
-        c.setHookFunctions(hookFunctions);
-        c.setHookWebUrls(hookWebUrls);
+        // cleanup maps
+        Map<String, String> hFunctions = hookFunctions == null ? null
+                : hookFunctions.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        Map<String, String> hWebUrls = hookWebUrls == null ? null
+                : hookWebUrls.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        c.setHookFunctions(hFunctions);
+        c.setHookWebUrls(hWebUrls);
         c.setHookUniqueSpaces(hookUniqueSpaces);
         c = clientRepository.save(c);
 

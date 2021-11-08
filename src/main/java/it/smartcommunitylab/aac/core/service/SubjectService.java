@@ -155,6 +155,29 @@ public class SubjectService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<Subject> listSubjects(String realm) {
+        return subjectRepository.findByRealm(realm).stream().map(s -> toSubject(s)).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Subject> listSubjectsByAuthorities(String realm) {
+        Set<String> ids = authorityRepository.findByRealm(realm).stream().map(a -> a.getSubject())
+                .collect(Collectors.toSet());
+        List<SubjectEntity> subjects = ids.stream().map(id -> subjectRepository.findBySubjectId(id))
+                .filter(s -> s != null).collect(Collectors.toList());
+        return subjects.stream().map(s -> toSubject(s)).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Subject> listSubjectsByAuthorities(String realm, String role) {
+        Set<String> ids = authorityRepository.findByRealmAndRole(realm, role).stream().map(a -> a.getSubject())
+                .collect(Collectors.toSet());
+        List<SubjectEntity> subjects = ids.stream().map(id -> subjectRepository.findBySubjectId(id))
+                .filter(s -> s != null).collect(Collectors.toList());
+        return subjects.stream().map(s -> toSubject(s)).collect(Collectors.toList());
+    }
+
 //    @Transactional(readOnly = true)
 //    public Subject getSubjectByClientId(String clientId) throws NoSuchSubjectException {
 //        SubjectEntity s = subjectRepository.findByClientId(clientId);

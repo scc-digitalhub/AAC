@@ -2,10 +2,26 @@ angular.module('aac.controllers.realmusers', [])
     /**
       * Realm Data Services
       */
-    .service('RealmUsers', function ($q, $http, $httpParamSerializer) {
+    .service('RealmUsers', function ($http, $httpParamSerializer) {
         var service = {};
+
+
+        var buildQuery = function (params) {
+            var q = Object.assign({}, params);
+            if (q.sort) {
+                var sort = [];
+                for (var [key, value] of Object.entries(q.sort)) {
+                    var s = key + ',' + (value > 0 ? 'asc' : 'desc');
+                    sort.push(s);
+                }
+                q.sort = sort;
+            }
+            var queryString = $httpParamSerializer(q);
+            return queryString;
+        }
+
         service.getUsers = function (slug, params) {
-            return $http.get('console/dev/realms/' + slug + '/users?' + buildQuery(params, $httpParamSerializer)).then(function (data) {
+            return $http.get('console/dev/realms/' + slug + '/users?' + buildQuery(params)).then(function (data) {
                 return data.data;
             });
         }

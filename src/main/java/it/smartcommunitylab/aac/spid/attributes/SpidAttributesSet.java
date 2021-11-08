@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 @Component
 public class SpidAttributesSet implements AttributeSet {
     public static final String IDENTIFIER = "aac.spid";
-    public static final List<String> keys;
+    private static final List<String> keys;
 
     static {
         List<String> k = Arrays.stream(SpidAttribute.values()).map(a -> a.getValue()).collect(Collectors.toList());

@@ -1,6 +1,6 @@
 angular.module('aac.controllers.realmroles', [])
 
-    .service('RealmRoles', function ($q, $http) {
+    .service('RealmRoles', function ($http) {
         var service = {};
 
 
@@ -93,7 +93,7 @@ angular.module('aac.controllers.realmroles', [])
                     realm: slug
                 }
                 RealmRoles.addRole(slug, data)
-                    .then(function (res) {
+                    .then(function () {
                         $scope.load();
                         Utils.showSuccess();
                     })
@@ -118,7 +118,7 @@ angular.module('aac.controllers.realmroles', [])
                 Utils.showError("invalid file");
             } else {
                 RealmRoles.importRole(slug, file, resetID)
-                    .then(function (res) {
+                    .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
@@ -338,7 +338,7 @@ angular.module('aac.controllers.realmroles', [])
                 var serviceId = $scope.modApprovals.serviceId;
                 var service = $scope.services.get(serviceId);
                 var approved = $scope.modApprovals.scopes.filter(s => s.value).map(s => s.scope);
-                var unapproved = $scope.modApprovals.scopes.filter(s => !s.value).map(s => s.scope);
+                // var unapproved = $scope.modApprovals.scopes.filter(s => !s.value).map(s => s.scope);
 
                 var approval = $scope.approvals.find(a => serviceId == a.serviceId)
                 var approvals = approval.approvals;
@@ -354,15 +354,6 @@ angular.module('aac.controllers.realmroles', [])
                         scope: s
                     }
                 });
-
-
-                console.log(approvals);
-                console.log(approved);
-                console.log(unapproved);
-
-                console.log(toRemove);
-                console.log(toKeep);
-                console.log(toAdd);
 
                 var updates = toRemove.concat(toAdd);
 

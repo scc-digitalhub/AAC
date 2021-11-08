@@ -12,4 +12,9 @@ public interface SubjectAuthorityEntityRepository extends CustomJpaRepository<Su
     List<SubjectAuthorityEntity> findBySubject(String subject);
 
     List<SubjectAuthorityEntity> findBySubjectAndRealm(String subject, String realm);
+    
+    List<SubjectAuthorityEntity> findByRealm(String realm);
+
+    List<SubjectAuthorityEntity> findByRealmAndRole(String realm, String role);
+
 }

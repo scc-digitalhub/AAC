@@ -35,7 +35,6 @@ import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.AuthorityManager;
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.UserTranslator;

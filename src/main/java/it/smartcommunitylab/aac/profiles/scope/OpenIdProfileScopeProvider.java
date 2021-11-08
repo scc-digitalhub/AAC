@@ -21,7 +21,7 @@ public class OpenIdProfileScopeProvider implements ScopeProvider {
 
     private static final OpenIdResource resource = new OpenIdResource();
     public static final Set<Scope> scopes;
-    public static final Map<String, WhitelistScopeApprover> approvers;
+    private static final Map<String, WhitelistScopeApprover> approvers;
 
     static {
         Set<Scope> s = new HashSet<>();

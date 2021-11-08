@@ -14,7 +14,6 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 /*

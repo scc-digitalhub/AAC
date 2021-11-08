@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHe
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACApprovalHandler;

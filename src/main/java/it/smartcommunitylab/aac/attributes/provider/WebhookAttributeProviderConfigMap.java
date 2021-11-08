@@ -1,13 +1,10 @@
 package it.smartcommunitylab.aac.attributes.provider;
 
 import java.io.Serializable;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.Valid;
-
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

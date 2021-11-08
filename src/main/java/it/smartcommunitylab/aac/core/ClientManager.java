@@ -13,9 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +34,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
@@ -48,7 +44,6 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;

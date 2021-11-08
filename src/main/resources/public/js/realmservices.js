@@ -1,6 +1,6 @@
 angular.module('aac.controllers.realmservices', [])
 
-  .service('RealmServices', function ($q, $http) {
+  .service('RealmServices', function ($http) {
     var rsService = {};
 
     rsService.getServices = function (realm) {
@@ -316,37 +316,39 @@ angular.module('aac.controllers.realmservices', [])
         .then(function (data) {
 
           //extract claimMapping
-          var claimMapping = {
-            'client': {
-              enabled: false,
-              code: "",
-              context: {},
-              scopes: [],
-              result: null,
-              error: null
-            },
-            'user': {
-              enabled: false,
-              code: "",
-              context: {},
-              scopes: [],
-              result: null,
-              error: null
-            }
+          var claimMappingClient = {
+            enabled: false,
+            code: "",
+            context: {},
+            scopes: [],
+            result: null,
+            error: null
+          };
+
+          var claimMappingUser = {
+            enabled: false,
+            code: "",
+            context: {},
+            scopes: [],
+            result: null,
+            error: null
+
           };
 
 
           if (data.claimMapping && !!data.claimMapping['user']) {
-            claimMapping['user'].enabled = true;
-            claimMapping['user'].code = atob(data.claimMapping['user']);
+            claimMappingUser.enabled = true;
+            claimMappingUser.code = atob(data.claimMapping['user']);
           }
 
           if (data.claimMapping && !!data.claimMapping['client']) {
-            claimMapping['client'].enabled = true;
-            claimMapping['client'].code = atob(data.claimMapping['client']);
+            claimMappingClient.enabled = true;
+            claimMappingClient.code = atob(data.claimMapping['client']);
           }
 
-          $scope.claimMapping = claimMapping;
+          $scope.claimMappingUser = claimMappingUser;
+          $scope.claimMappingClient = claimMappingClient;
+
 
           return data;
         })
@@ -422,7 +424,7 @@ angular.module('aac.controllers.realmservices', [])
       };
 
       RealmServices.updateService(slug, data)
-        .then(function (res) {
+        .then(function () {
           Utils.showSuccess();
           $scope.reload();
         })
@@ -623,7 +625,16 @@ angular.module('aac.controllers.realmservices', [])
     // }
 
     $scope.toggleClaimMapping = function (m) {
-      var claimMapping = $scope.claimMapping[m];
+      var claimMapping = null;
+      if (m == 'user') {
+        claimMapping = $scope.claimMappingUser;
+      } else if (m == 'client') {
+        claimMapping = $scope.claimMappingClient;
+      }
+      if (!claimMapping) {
+        Utils.showError("invalid mapping");
+        return;
+      }
 
       if (claimMapping.enabled && claimMapping.code == '') {
         claimMapping.code =
@@ -635,19 +646,25 @@ angular.module('aac.controllers.realmservices', [])
       claimMapping.error = null;
       claimMapping.result = null;
 
-      $scope.claimMapping[m] = claimMapping;
+      // $scope.claimMapping[m] = claimMapping;
 
     }
 
 
     $scope.validateClaims = function (m) {
-      var mapping = $scope.claimMapping[m];
-      if (!mapping) {
+      var claimMapping = null;
+      if (m == 'user') {
+        claimMapping = $scope.claimMappingUser;
+      } else if (m == 'client') {
+        claimMapping = $scope.claimMappingClient;
+      }
+
+      if (!claimMapping) {
         Utils.showError("invalid mapping");
         return;
       }
 
-      var functionCode = mapping.code
+      var functionCode = claimMapping.code
       if (!functionCode || functionCode == '') {
         Utils.showError("empty function code");
         return;
@@ -656,15 +673,15 @@ angular.module('aac.controllers.realmservices', [])
       var data = {
         name: m,
         code: btoa(functionCode),
-        scopes: mapping.scopes.map(function (s) { return s.text })
+        scopes: claimMapping.scopes.map(function (s) { return s.text })
       };
 
       RealmServices.validateClaims($scope.service.realm, $scope.service.serviceId, data).then(function (res) {
-        $scope.claimMapping[m].result = res.result;
-        $scope.claimMapping[m].errors = res.errors;
+        claimMapping.result = res.result;
+        claimMapping.errors = res.errors;
       }).catch(function (err) {
-        $scope.claimMapping[m].result = null;
-        $scope.claimMapping[m].errors = [err.data.message];
+        claimMapping.result = null;
+        claimMapping.errors = [err.data.message];
       });
 
 
@@ -684,29 +701,27 @@ angular.module('aac.controllers.realmservices', [])
 
 
 
-    $scope.saveClaimMapping = function (m) {
+    $scope.saveClaimMapping = function () {
       var data = Object.assign({}, $scope.service);
       if (!data.claimMapping) data.claimMapping = {};
 
       //claim mapping
-      var claimMapping = $scope.claimMapping;
-      if (claimMapping['user'].enabled == true && claimMapping['user'].code != null && claimMapping['user'].code != "") {
-        data.claimMapping['user'] = btoa(claimMapping['user'].code);
+      var claimMappingUser = $scope.claimMappingUser;
+      if (claimMappingUser.enabled == true && claimMappingUser.code != null && claimMappingUser.code != "") {
+        data.claimMapping['user'] = btoa(claimMappingUser.code);
       } else {
         delete data.claimMapping['user'];
       }
-      if (claimMapping['client'].enabled == true && claimMapping['client'].code != null && claimMapping['client'].code != "") {
-        data.claimMapping['client'] = btoa(claimMapping['client'].code);
+
+      var claimMappingClient = $scope.claimMappingClient;
+      if (claimMappingClient.enabled == true && claimMappingClient.code != null && claimMappingClient.code != "") {
+        data.claimMapping['client'] = btoa(claimMappingClient.code);
       } else {
         delete data.claimMapping['client'];
       }
 
-
-      // if (!copy.claimMapping) copy.claimMapping = {};
-      // copy.claimMapping[m] = $scope.claimEnabled[m].checked ? $scope.service.claimMapping[m] : null;
-
       RealmServices.updateService($scope.service.realm, data)
-        .then(function (res) {
+        .then(function () {
           $scope.reload();
           Utils.showSuccess();
         })

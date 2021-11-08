@@ -1,0 +1,164 @@
+<div class="pt-3">
+    <fieldset>
+        <legend class="mb-5">User settings
+            <small class="form-text"> Manage realm user settings</small>
+        </legend>
+
+    </fieldset>
+</div>
+<div class="pt-3">
+    <fieldset>
+        <legend class="mb-5">Realm developers
+            <small class="form-text"> Manage realm developers, which can belong to any realm.</small>
+        </legend>
+
+        <div ng-if="users && users.length > 0">
+
+            <table class="table table-hover border-bottom">
+                <tr ng-repeat="item in users">
+                    <td class="align-middle  ">
+                        <div class="avatar-wrapper avatar-extra-text">
+                            <div class="avatar size-lg">
+                                <p> {{item.username | limitTo: 2 | uppercase}} </p>
+                            </div>
+                            <div class="extra-text">
+                                <span class="h6">{{item.username}}</span>
+                                <br>{{item.realm}}
+                                <p>{{item.email}}</p>
+                            </div>
+                    </td>
+
+                    <td class="align-middle">
+                        ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.subjectId}}</span>
+                        <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.subjectId)">
+                            <svg class="icon icon-xs icon-black">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </td>
+
+                    <td class="align-middle small">
+                        <span ng-repeat="r in item.authorities"><span class="badge badge-primary">{{r.role}}</span>
+                        </span>
+
+                    </td>
+
+                    <td class="text-right">
+                        <button class="btn btn-primary btn-sm text-right" type="button"
+                            ng-click="manageAuthoritiesDlg(item)"> Edit </button>
+                    </td>
+
+                </tr>
+            </table>
+
+            <p>
+                <button class="btn btn-primary btn-sm text-right" type="button" ng-click="inviteDeveloperDlg(item)">
+                    Invite </button>
+            </p>
+    </fieldset>
+</div>
+
+<div class="modal fade bs-modal-lg" tabindex="-1" role="dialog" id="authoritiesModal">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit authorities </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Add or remove system authorities to the current user
+                </p>
+                <form name="authoritiesForm" class="needs-validation was-validated" novalidate>
+                    <input type="hidden" name="subject" value="{{modAuthorities.subject}}">
+                    <table class="table table-hover border-bottom">
+                        <tr>
+                            <td class="align-middle">
+                                <span class="h6">Realm developer</span> <br>
+                                <small class="text-muted"> ROLE_DEVELOPER</small>
+                                <p>Manage realm applications and services</p>
+                            </td>
+                            <td class="text-right">
+                                <div class="toggles">
+                                    <label>
+                                        <input type="checkbox" ng-checked="modAuthorities.developer"
+                                            ng-click="modAuthorities.developer = !modAuthorities.developer">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle">
+                                <span class="h6">Realm Administrator</span> <br>
+                                <small class="text-muted"> ROLE_ADMIN</small>
+                                <p>Manage realm settings and configuration (in addition to developer permissions)</p>
+                            </td>
+                            <td class="text-right">
+                                <div class="toggles">
+                                    <label>
+                                        <input type="checkbox" ng-checked="modAuthorities.admin"
+                                            ng-click="modAuthorities.admin = !modAuthorities.admin">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="updateAuthorities()"
+                    ng-disabled="authoritiesForm.$invalid">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade bs-modal-lg" id="inviteModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header ">
+                <h3 class="modal-title">Invite Developer</h3>
+            </div>
+            <div class="modal-body">
+                <p>Invite an existing or new user as developer in the current realm</p>
+                <form name="userForm" novalidate class="was-validated">
+                    <div class="row">
+                        <div class="form-group col mb-0">
+                            <label for="username">User (email)*</label>
+                            <input type="email" required name="username" class="form-control form-control-sm"
+                                id="username" ng-model="modInvite.username" ng-disabled="modInvite.external">
+                            <div ng-if="!modInvite.external && userForm.username.$invalid" class="invalid-feedback">
+                                Valid email address required</div><br>
+                        </div>
+                        <div class="form-check">
+                            <div class="toggles">
+                                <label for="toggletype">
+                                    <input type="checkbox" name="invtype" id="toggletype" ng-model="modInvite.external">
+                                    <span class="lever"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group col mb-0">
+                            <label for="subjectId">User (subjectId)*</label>
+                            <input type="text" required name="subjectId" class="form-control form-control-sm"
+                                id="subjectId" ng-model="modInvite.subjectId" ng-disabled="!modInvite.external">
+                            <div ng-if="modInvite.external && userForm.subjectId.$invalid" class="invalid-feedback">
+                                Subject ID required</div><br>
+                        </div>
+                    </div>
+                </form>
+
+
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="inviteDeveloper()"
+                    ng-disabled="!modInvite.external && userForm.username.$invalid || modInvite.external && userForm.subjectId.$invalid ">Invite</button>
+            </div>
+        </div>
+    </div>
+</div>

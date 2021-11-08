@@ -1,5 +1,91 @@
 angular.module('aac.controllers.realm', [])
+   /**
+    * Realm Data Services
+    */
+   .service('RealmData', function ($http) {
+      var rService = {};
 
+      rService.getRealm = function (slug) {
+         return $http.get('console/dev/realms/' + slug).then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.updateRealm = function (slug, r) {
+         return $http.put('console/dev/realms/' + slug, r).then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.removeRealm = function (slug) {
+         return $http.delete('console/dev/realms/' + slug).then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.previewRealm = function (slug, template, cb) {
+         return $http.post('console/dev/realms/' + slug + '/custom?template=' + template, cb).then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.getRealmStats = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/stats').then(function (data) {
+            return data.data;
+         });
+      }
+      rService.getMyRealms = function () {
+         return $http.get('console/dev/realms').then(function (data) {
+            return data.data;
+         });
+      }
+      rService.getResources = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/resources').then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.getUrl = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/well-known/url').then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.getOAuth2Metadata = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/well-known/oauth2').then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.getSubject = function (slug, subject) {
+         return $http.get('console/dev/subjects/' + subject).then(function (data) {
+            return data.data;
+         });
+      }
+
+      rService.getDevelopers = function (slug) {
+         return $http.get('console/dev/realms/' + slug + '/developers').then(function (data) {
+            return data.data;
+         });
+      }
+      rService.updateDeveloper = function (slug, subject, authorities) {
+         return $http.put('console/dev/realms/' + slug + '/developers/' + subject, authorities).then(function (data) {
+            return data.data;
+         });
+      }
+      rService.removeDeveloper = function (slug, subject) {
+         return $http.delete('console/dev/realms/' + slug + '/developers/' + subject).then(function (data) {
+            return data.data;
+         });
+      }
+      rService.inviteDeveloper = function (slug, invite) {
+         return $http.post('console/dev/realms/' + slug + '/developers', invite).then(function (data) {
+            return data.data;
+         });
+      }
+      return rService;
+
+   })
    /**
     * Main realm layout controller
     */
@@ -339,17 +425,24 @@ angular.module('aac.controllers.realm', [])
 
 
       var init = function () {
+         $scope.load();
+      };
+
+      $scope.load = function () {
          RealmData.getRealm(slug)
             .then(function (data) {
-               $scope.load(data);
+               $scope.reload(data);
                return data;
+            })
+            .then(function () {
+               $scope.loadDevelopers();
             })
             .catch(function (err) {
                Utils.showError('Failed to load realm : ' + err.data.message);
             });
-      };
+      }
 
-      $scope.load = function (data) {
+      $scope.reload = function (data) {
          $scope.realmSettings = data;
          Utils.refreshFormBS(300);
       };
@@ -359,7 +452,7 @@ angular.module('aac.controllers.realm', [])
 
          RealmData.updateRealm($scope.realm.slug, data)
             .then(function (res) {
-               $scope.load(res);
+               $scope.reload(res);
                $scope['$parent'].refresh();
                Utils.showSuccess();
             })
@@ -397,6 +490,92 @@ angular.module('aac.controllers.realm', [])
             Utils.showError("confirmId not valid");
          }
       }
+
+      $scope.loadDevelopers = function () {
+         RealmData.getDevelopers(slug)
+            .then(function (data) {
+               $scope.users = data;
+               return data;
+            })
+            .catch(function (err) {
+               Utils.showError('Failed to load realm : ' + err.data.message);
+            });
+      }
+
+
+      $scope.inviteDeveloperDlg = function () {
+
+         $scope.modInvite = {
+            external: false,
+            username: null,
+            subjectId: null,
+         };
+         $('#inviteModal').modal({ keyboard: false });
+      }
+
+      $scope.inviteDeveloper = function () {
+         $('#inviteModal').modal('hide');
+         if ($scope.modInvite) {
+            var { username, subjectId } = $scope.modInvite;
+            var data = {
+               username, subjectId,
+               roles: ['ROLE_DEVELOPER']
+            };
+
+            RealmData.inviteDeveloper(slug, data)
+               .then(function () {
+                  $scope.loadDevelopers();
+                  Utils.showSuccess();
+               })
+               .catch(function (err) {
+                  Utils.showError('Failed to invite user: ' + err.data.message);
+               });
+
+
+         }
+      }
+
+      $scope.manageAuthoritiesDlg = function (user) {
+         var authorities = user.authorities;
+         var roles = authorities.map(a => a.role);
+
+         $scope.modAuthorities = {
+            realm: slug,
+            subject: user.subjectId,
+            admin: roles.includes('ROLE_ADMIN'),
+            developer: roles.includes('ROLE_DEVELOPER')
+         };
+         $('#authoritiesModal').modal({ keyboard: false });
+      }
+
+      $scope.updateAuthorities = function () {
+         $('#authoritiesModal').modal('hide');
+         if ($scope.modAuthorities) {
+            var subjectId = $scope.modAuthorities.subject;
+            var roles = $scope.modAuthorities;
+            var authorities = [];
+
+
+            if (roles.admin === true) {
+               authorities.push('ROLE_ADMIN');
+            }
+            if (roles.developer === true) {
+               authorities.push('ROLE_DEVELOPER');
+            }
+
+
+            RealmData.updateDeveloper(slug, subjectId, authorities)
+               .then(function () {
+                  $scope.loadDevelopers();
+                  Utils.showSuccess();
+               })
+               .catch(function (err) {
+                  Utils.showError('Failed to update authorities: ' + err.data.message);
+               });
+
+         }
+      }
+
 
 
       init();

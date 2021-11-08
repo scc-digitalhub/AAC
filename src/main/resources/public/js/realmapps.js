@@ -15,8 +15,22 @@ angular.module('aac.controllers.realmapps', [])
     /**
       * Realm Data Services
       */
-    .service('RealmAppsData', function ($q, $http, $httpParamSerializer) {
+    .service('RealmAppsData', function ($http, $httpParamSerializer) {
         var service = {};
+
+        var buildQuery = function (params) {
+            var q = Object.assign({}, params);
+            if (q.sort) {
+                var sort = [];
+                for (var [key, value] of Object.entries(q.sort)) {
+                    var s = key + ',' + (value > 0 ? 'asc' : 'desc');
+                    sort.push(s);
+                }
+                q.sort = sort;
+            }
+            var queryString = $httpParamSerializer(q);
+            return queryString;
+        }
 
         service.getClientApps = function (slug) {
             return $http.get('console/dev/realms/' + slug + '/apps').then(function (data) {
@@ -24,7 +38,7 @@ angular.module('aac.controllers.realmapps', [])
             });
         }
         service.searchClientApps = function (slug, params) {
-            return $http.get('console/dev/realms/' + slug + '/apps/search?' + buildQuery(params, $httpParamSerializer)).then(function (data) {
+            return $http.get('console/dev/realms/' + slug + '/apps/search?' + buildQuery(params)).then(function (data) {
                 return data.data;
             });
         }
@@ -143,7 +157,7 @@ angular.module('aac.controllers.realmapps', [])
     /**
    * Realm client controller
    */
-    .controller('RealmAppsController', function ($scope, $stateParams, $state, $window, RealmData, RealmAppsData, Utils) {
+    .controller('RealmAppsController', function ($scope, $stateParams, $state, $window, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
         $scope.query = {
             page: 0,
@@ -254,7 +268,7 @@ angular.module('aac.controllers.realmapps', [])
                 Utils.showError("invalid file");
             } else {
                 RealmAppsData.importClientApp(slug, file, resetID)
-                    .then(function (res) {
+                    .then(function () {
                         $scope.importFile = null;
                         $scope.load();
                         Utils.showSuccess();
@@ -508,7 +522,6 @@ angular.module('aac.controllers.realmapps', [])
             $scope.appname = data.name;
             $scope.configurationMap = data.configuration;
             $scope.configurationSchema = data.schema;
-            delete $scope.app.schema;
             // process idps
             // var idps = [];
 
@@ -549,19 +562,17 @@ angular.module('aac.controllers.realmapps', [])
                 "afterTokenGrant": null
             }
             if (data.hookWebUrls != null) {
-                for (var h in data.hookWebUrls) {
-                    if (h in webHooks) {
-                        webHooks[h] = data.hookWebUrls[h];
-                    }
+                if ("afterTokenGrant" in data.hookWebUrls) {
+                    webHooks["afterTokenGrant"] = data.hookWebUrls["afterTokenGrant"];
                 }
             }
+
             $scope.webHooks = webHooks;
 
             return;
         }
 
         var initConfiguration = function (type, config, schema) {
-
             if (type === 'oauth2') {
                 // grantTypes
                 var grantTypes = [];
@@ -666,14 +677,7 @@ angular.module('aac.controllers.realmapps', [])
             }
 
             var hookWebUrls = clientApp.hookWebUrls != null ? clientApp.hookWebUrls : {};
-            for (var h in $scope.webHooks) {
-                if ($scope.webHooks[h] != null && $scope.webHooks[h] != '') {
-                    hookWebUrls[h] = $scope.webHooks[h];
-                } else {
-                    delete hookWebUrls[h];
-                }
-            }
-
+            hookWebUrls["afterTokenGrant"] = $scope.webHooks["afterTokenGrant"];
 
             var data = {
                 realm: clientApp.realm,
@@ -1319,7 +1323,7 @@ angular.module('aac.controllers.realmapps', [])
 
         init();
     })
-    .controller('RealmAppStartController', function ($scope, $stateParams, $state, RealmAppsData, Utils) {
+    .controller('RealmAppStartController', function ($scope, $stateParams, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
         var clientId = $stateParams.clientId;
         $scope.clientView = 'overview';
@@ -1404,7 +1408,7 @@ angular.module('aac.controllers.realmapps', [])
 
                     return data;
                 })
-                .then(function (data) {
+                .then(function () {
                     //$scope.clientView = 'quickstart.' + data.type;
                     $scope.reloadQuickstart();
                 })
@@ -1432,7 +1436,7 @@ angular.module('aac.controllers.realmapps', [])
             $scope.appScopes = scopes;
 
             if (data.type == 'oauth2') {
-                initConfiguration(data.type, data.configuration, data.schema);
+                initConfiguration(data.type, data.configuration);
                 //auth header
                 $scope.oauth2AuthHeader = btoa(data.clientId + ':' + data.configuration.clientSecret);
             }
@@ -1440,7 +1444,7 @@ angular.module('aac.controllers.realmapps', [])
             return;
         }
 
-        initConfiguration = function (type, config, schema) {
+        var initConfiguration = function (type, config) {
 
             if (type === 'oauth2') {
                 // grantTypes

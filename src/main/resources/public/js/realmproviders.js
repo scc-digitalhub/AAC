@@ -2,7 +2,7 @@ angular.module('aac.controllers.realmproviders', [])
     /**
       * Realm Data Services
       */
-    .service('RealmProviders', function ($q, $http) {
+    .service('RealmProviders', function ($http) {
         var rService = {};
         rService.getIdentityProvider = function (slug, providerId) {
             return $http.get('console/dev/realms/' + slug + '/idps/' + providerId).then(function (data) {

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntityRepository;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntity;
