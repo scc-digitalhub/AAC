@@ -125,6 +125,11 @@ angular.module('aac.controllers.realmusers', [])
                 return data.data;
             });
         }
+        service.revokeApp = function (slug, subject, clientId) {
+            return $http.delete('console/dev/realms/' + slug + '/users/' + subject + '/apps/' + clientId).then(function (data) {
+                return data.data;
+            });
+        }
         service.getAudit = function (slug, subject) {
             return $http.get('console/dev/realms/' + slug + '/users/' + subject + '/audit').then(function (data) {
                 return data.data;
@@ -474,8 +479,8 @@ angular.module('aac.controllers.realmusers', [])
                 .then(function () {
                     return RealmUsers.getApps(slug, subjectId);
                 })
-                .then(function (apps) {
-                    $scope.apps = apps;
+                .then(function (data) {
+                    $scope.reloadApps(data);
                     return;
                 })
                 .then(function () {
@@ -759,6 +764,37 @@ angular.module('aac.controllers.realmusers', [])
             }
         }
 
+        /*
+        * connected apps
+        */
+        $scope.loadApps = function () {
+            RealmUsers.getApps(slug, subjectId)
+                .then(function (data) {
+                    $scope.reloadApps(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load apps: ' + err.data.message);
+                });
+
+        }
+
+        $scope.reloadApps = function (data) {
+            //TODO load client details
+            $scope.apps = data;
+        }
+
+        $scope.revokeApp = function (app) {
+            if (app && app.clientId) {
+                RealmUsers.revokeApp(slug, subjectId, app.clientId)
+                    .then(function () {
+                        $scope.loadApps();
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Failed to load apps: ' + err.data.message);
+                    });
+            }
+        }
 
         /*
         * realm roles

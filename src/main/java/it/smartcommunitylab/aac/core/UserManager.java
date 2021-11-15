@@ -481,8 +481,7 @@ public class UserManager {
             }
         }
 
-        ConnectedAppProfile app = new ConnectedAppProfile(clientId, client.getName(), client.getRealm(),
-                scopes);
+        ConnectedAppProfile app = new ConnectedAppProfile(clientId, client.getRealm(), client.getName(), scopes);
 
         return app;
     }

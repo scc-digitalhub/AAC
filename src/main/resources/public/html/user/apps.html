@@ -9,11 +9,30 @@
             <table class="table table-hover border-bottom">
                 <tr ng-repeat="item in apps">
                     <td class="align-middle">
-                        <span class="h6">{{item.appName}}</span>
-                        <br><small class="text-monospace" ng-repeat="r in item.scopes">{{r.scope}} </small>
+                        <div class="col-12 avatar-wrapper avatar-extra-text">
+                            <div class="avatar size-lg">
+                                <svg aria-hidden="true" class="icon icon-secondary">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use>
+                                </svg>
+                            </div>
+                            <div class="extra-text">
+                                <a class="text-decoration-none"
+                                    ui-sref="realm.app({realmId:item.realm, clientId:item.clientId})">
+                                    <span class="h6">{{item.appName}}</span>
+                                </a>
+                            </div>
+                        </div>
                     </td>
+
+                    <td class="align-middle">
+                        <span ng-repeat="s in item.scopes"><span class="badge badge-secondary">{{s.scope}}</span>
+                        </span>
+                    </td>
+
                     <td class="text-right">
+                        <button class="btn btn-danger btn-sm" ng-click="revokeApp(item)">Remove</button>
                     </td>
+
                 </tr>
             </table>
         </div>

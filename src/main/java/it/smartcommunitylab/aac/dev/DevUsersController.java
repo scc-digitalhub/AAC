@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
@@ -315,6 +316,16 @@ public class DevUsersController {
             throws NoSuchRealmException, NoSuchUserException {
         Collection<ConnectedAppProfile> result = userManager.getConnectedApps(realm, subjectId);
         return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/realms/{realm}/users/{subjectId}/apps/{clientId}")
+    public ResponseEntity<Void> revokeRealmUserApps(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchClientException {
+        userManager.deleteConnectedApp(realm, subjectId, clientId);
+        return ResponseEntity.ok(null);
     }
 
     /*
