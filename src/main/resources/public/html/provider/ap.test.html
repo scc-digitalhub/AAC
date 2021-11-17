@@ -1,0 +1,55 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-4">Test</legend>
+        <p>Test attribute provider with the current user.</p>
+
+        <div class="container-fluid p-1">
+            <div class="row mb-2">
+                <div class="col text-right">
+                    <button class="btn btn-secondary btn-sm text-right" ng-click="testProvider(ap)"
+                        ng-disabled="!ap.registered">Test</button>
+                </div>
+            </div>
+            <div class="row">
+
+                <div ng-if="test.result" class="col-md-12">
+                    <figure class="neutral-2-bg p-2 mb-0">
+                        <h6>Test context</h6>
+                        <pre class="pre-scrollable">
+<code class="language-json" data-lang="json">
+{{test.context | json:4}}
+</code>
+                        </pre>
+                    </figure>
+
+                </div>
+
+            </div>
+
+            <div class="row">
+                <div class="alert alert-danger" ng-if="test.errors && test.errors.length > 0">
+                    <h6 class="alert-heading text-danger">Error</h6>
+                    <div class="text-danger" ng-repeat="err in test.errors">{{err}}</div>
+                </div>
+
+                <div ng-if="test.result" class="col-md-12">
+                    <figure class="neutral-2-bg p-2 mb-0">
+                        <h6>Test results</h6>
+                        <pre class="pre-scrollable">
+<code class="language-json" data-lang="json">
+{{test.result | json:4}}
+</code>
+						</pre>
+                    </figure>
+
+                </div>
+
+            </div>
+        </div>
+
+    </fieldset>
+
+
+
+</div>

@@ -1,0 +1,211 @@
+<div class="pb-3 pt-3">
+  <div class="row mb-3">
+    <div class="col col-md-6 p-3">
+      <h3>Realm roles</h3>
+      <p>Register and manage realm roles.</p>
+    </div>
+    <div class="col col-md-6 text-right">
+      <button class="btn btn-primary text-right" type="button" ng-click="createRoleDlg()">
+        <svg class="icon icon-sm icon-white">
+          <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+        </svg>
+        New Role</button>
+      <button class="btn btn-secondary btn-sm" ng-click="importRoleDlg()">Import</button>
+    </div>
+  </div>
+</div>
+<div class="accordion" id="roles">
+  <div ng-if="roles && roles.length > 0">
+    <table class="table table-hover border-bottom">
+      <tr ng-repeat="item in roles">
+
+        <td class="align-middle">
+          <div class="extra-text">
+            <a class="text-decoration-none" ui-sref="realm.role({realmId:item.realm, roleId:item.roleId})">
+              <span class="h6">{{item.name}}</span>
+              <br> <small class="text-muted"> {{item.role}} </small>
+            </a>
+            <p>{{item.description}}</p>
+          </div>
+        </td>
+
+        <td class="align-middle">
+          ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.roleId}}</span>
+          <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.roleId)">
+            <svg class="icon icon-xs icon-primary">
+              <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+            </svg>
+          </button>
+        </td>
+
+        <td class="align-middle">
+          <span ng-if="item.permissions">{{item.permissions.length}} permissions
+        </td>
+
+        <td class="text-right">
+          <button class="btn btn-primary btn-sm text-right dropdown-toggle" type="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+
+            Actions
+            <svg class="icon-expand icon icon-sm icon-light">
+              <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <div class="link-list-wrapper">
+              <ul class="link-list">
+                <li>
+                  <a class="list-item left-icon" ui-sref="realm.role({realmId:item.realm, roleId:item.roleId})">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                    </svg>
+                    <span>Edit</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-primary" href="" ng-click="exportRole(item)">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-download"></use>
+                    </svg>
+                    Export
+                  </a>
+                </li>
+                <li>
+                  <span class="divider"></span>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-danger" href="" ng-click="deleteRoleDlg(item)">
+                    <svg class="icon icon-xs icon-danger left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
+                    </svg>
+                    Delete
+                  </a>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+
+        </td>
+
+
+      </tr>
+    </table>
+  </div>
+
+  <div ng-if="roles && roles.length == 0">
+    <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <div class="it-hero-text-wrapper bg-dark">
+              <h1 class="no_toc">No roles registered.</h1>
+              <p class="d-none d-lg-block">Create a realm role to manage permissions.</p>
+              <div class="it-btn-container">
+                <button class="btn btn-primary text-right" type="button" ng-click="createRoleDlg()">
+                  <svg class="icon icon-sm">
+                    <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                  </svg>
+                  New role</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="createRoleModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create role </h5>
+      </div>
+      <div class="modal-body">
+        <form name="createRoleForm" class="needs-validation was-validated" novalidate>
+          <div class="form-group col pt-4 mb-2">
+            <label for="name">Role Name*</label>
+            <input type="text" name="name" class="form-control form-control-sm" id="name" required
+              ng-model="modRole.name">
+          </div>
+          <div class="form-group col pt-4 mb-2">
+            <label for="role">Role authority*</label>
+            <input type="text" name="role" class="form-control form-control-sm" id="role" required
+              ng-model="modRole.role">
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="createRole()"
+          ng-disabled="createRoleForm.$invalid">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="importRoleModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Import role </h5>
+      </div>
+      <div class="modal-body">
+        <form name="importRoleForm" enctype="multipart/form-data" class="needs-validation was-validated" novalidate>
+          <p>Upload a valid YAML file with the full realm role definition.</p>
+
+          <div class="form-group col pt-4 mb-2">
+            <label for="file">File*</label>
+            <input type="file" name="file" class="form-control form-control-sm upload" id="file" file-model="importFile"
+              required accept=".yaml,.yml,text/yaml,text/yml,application/x-yaml" />
+            <ul class="upload-file-list">
+              <li class="upload-file success" ng-if="importFile != null">
+                <p>
+                  {{importFile.name}} <span class="upload-file-weight">{{importFile.size}}</span>
+                </p>
+              </li>
+            </ul>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="importRole()"
+          ng-disabled="importFile == null">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteRoleModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+        <p>You are deleting role <span class="text-monospace">{{modRole.roleId}}</span> <br>To proceed
+          enter the id</p>
+        <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+        <form name="deleteRoleForm" class="needs-validation was-validated" novalidate>
+          <div class="form-group col mb-4">
+            <label for="confirmId">Role Id*</label>
+            <input type="text" name="confirmId" class="form-control form-control-sm" id="confirmId" required
+              ng-model="modRole.confirmId" ng-pattern="(modRole.roleId)">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="deleteRole()" type="button"
+          ng-disabled="deleteRoleForm.$invalid">Delete</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

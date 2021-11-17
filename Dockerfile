@@ -1,11 +1,12 @@
 # syntax=docker/dockerfile:experimental
-FROM maven:3-jdk-8 as mvn
+FROM maven:3-openjdk-11 as mvn
 COPY src /tmp/src
 COPY pom.xml /tmp/pom.xml
 WORKDIR /tmp
-RUN --mount=type=bind,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache-alpine mvn package -DskipTests
+#RUN --mount=type=bind,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache-alpine mvn package -DskipTests
+RUN mvn package -DskipTests
 
-FROM adoptopenjdk/openjdk8:alpine
+FROM adoptopenjdk/openjdk11:alpine
 ARG VER=0.1
 ARG USER=aac
 ARG USER_ID=805

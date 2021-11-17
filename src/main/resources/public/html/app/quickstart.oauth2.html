@@ -1,0 +1,20 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-4">Quickstart</legend>
+        <p>Select an authorization flow and follow the steps to integrate the application</p>
+        <div class="bootstrap-select-wrapper">
+            <select title="Select flow" id="quickstart" ng-model="quickstart.view" ng-change="reloadQuickstart()">
+                <option ng-selected="!quickstart.view" disabled>Select...</option>               
+                <option ng-repeat="qs in quickstarters" ng-value="qs.key" ng-selected="quickstart == qs.key">{{qs.name}}</option>
+            </select>
+        </div>
+
+
+    </fieldset>
+
+    <div ng-if="quickstartView" class="mt-4 mb-3">
+        <div ng-include="'./html/quickstart/'+quickstartView+'.html'"></div>
+    </div>
+
+</div>

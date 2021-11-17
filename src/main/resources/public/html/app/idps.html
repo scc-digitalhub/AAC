@@ -1,0 +1,56 @@
+<div class="pt-3">
+  <div class="row">
+    <fieldset>
+      <legend class="mb-4">Providers
+        <small class="form-text">
+          Identity providers are used to authenticate users via login. Only enabled (and active) providers will be
+          available for this client.
+        </small>
+
+      </legend>
+
+      <div ng-if="identityProviders && identityProviders.length > 0">
+        <table class="table table-hover border-bottom">
+          <tr ng-repeat="item in identityProviders" class="{{item.enabled ? '' : 'text-muted'}}">
+            <td
+              class="align-middle {{!item.enabled ? 'text-muted' : ''}}">
+              <div class="avatar-wrapper avatar-extra-text">
+                <div class="avatar size-lg">
+                  <svg aria-hidden="true" class="icon icon-secondary">
+                    <use xlink:href="{{item.icon}}"></use>
+                  </svg>
+                </div>
+                <div class="extra-text">
+                  <span class="h6">{{item.name}}</span>
+                  <svg ng-if="item.enabled" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                    <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                    <title>Enabled</title>
+                  </svg>                 
+                  <svg ng-if="!item.enabled" aria-hidden="true"
+                    class="icon icon-sm icon-secondary mx-3">
+                    <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                    <title>Disabled</title>
+                  </svg>
+                  <br><small class=""> {{item.authority}}</small>
+                  <p>{{item.description}}</p>
+                </div>
+            </td>
+
+            <td class="text-right">
+              <div class="toggles">
+                <label>
+                  <input type="checkbox" ng-checked="item.value" ng-click="toggleIdp(item)" ng-disabled="!(item.enabled)">
+                  <span class="lever"></span>
+                </label>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p ng-if="!identityProviders || identityProviders.length == 0">No identity provider available for this realm,
+        register one to enable user login.</p>
+
+    </fieldset>
+  </div>
+</div>

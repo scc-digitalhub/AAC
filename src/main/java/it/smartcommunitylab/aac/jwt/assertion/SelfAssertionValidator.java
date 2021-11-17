@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import com.google.common.base.Strings;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -66,7 +66,7 @@ public class SelfAssertionValidator {
 		}
 
 		// make sure the issuer exists
-		if (Strings.isNullOrEmpty(claims.getIssuer())) {
+		if (!StringUtils.hasText(claims.getIssuer())) {
 			logger.debug("No issuer for assertion, rejecting");
 			return false;
 		}

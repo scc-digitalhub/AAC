@@ -1,0 +1,57 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-5">
+            <legend class="mb-4">Basic settings</legend>
+            <div class="form-group col">
+                <input type="text" name="name" class="form-control form-control-sm" id="name" ng-model="idp.name"
+                    required>
+                <label for="name" class="{{idp.name != '' ? 'active' : ''}}">Provider Name</label>
+            </div>
+            <div class="form-group col">
+                <textarea rows="3" name="description" id="description" ng-model="idp.description"></textarea>
+                <label for="description" class="{{idp.description != '' ? 'active' : ''}}">Description</label>
+            </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="displayMode">Display mode</label>
+                    <select id="displayMode" ng-model="idp.displayMode">
+                        <option value="" ng-selected="idp.displayMode==''">Default</option>
+                        <option value="button" ng-selected="idp.displayMode=='button'">Button</option>
+                        <option value="form" ng-selected="idp.displayMode=='form'">Form</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="persistence">Persistence*</label>
+                    <select id="persistence" ng-model="idp.persistence">
+                        <option value="none" ng-selected="idp.persistence=='none'">None</option>
+                        <option value="session" ng-selected="idp.persistence=='session'">Session</option>
+                        <option value="memory" ng-selected="idp.persistence=='memory'">Memory</option>
+                        <option value="repository" ng-selected="idp.persistence=='repository'">Repository</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col ">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="events">Audit events*</label>
+                    <select id="events" ng-model="idp.events">
+                        <option value="none" ng-selected="idp.events=='none'">None</option>
+                        <option value="minimal" ng-selected="idp.events=='minimal'">Minimal</option>
+                        <option value="details" ng-selected="idp.events=='details'">Details</option>
+                        <option value="full" ng-selected="idp.events=='full'">Full</option>
+                    </select>
+                </div>
+            </div>  
+            <div class="form-group col ">
+               <div class="form-check">
+                    <input class="form-check-input" name="linkable" id="linkable" type="checkbox"
+                        ng-model="idp.linkable">
+                    <label for="linkable">Enable account linking</label>
+                </div>            
+            </div>          
+        </fieldset>
+
+
+    </div>
+</div>

@@ -1,0 +1,20 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">Mapper AP Configuration</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label for="type">Mapper type</label>
+                    <select id="type" ng-model="ap.configuration.type">
+                        <option value="default" ng-selected="ap.configuration.type == 'default'">Default mapping</option>
+                        <option value="exact" ng-selected="ap.configuration.type == 'exact'">Exact mapping</option>
+                    </select>
+                    <small class="form-text"> Select a mapper type to define the way attribute names are handled</small>
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+
+</div>

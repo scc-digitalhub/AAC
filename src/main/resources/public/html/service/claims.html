@@ -1,0 +1,261 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">
+            Service claims
+            <small class="form-text">
+                Claims are used to carry authorization info with access and/or id tokens.
+            </small>
+        </legend>
+
+
+        <div class="row">
+            <div class="col col-12 text-right">
+                <button class="btn btn-primary text-right" type="button" ng-click="createClaimDlg()">
+                    <svg class="icon icon-sm icon-white">
+                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm table-hover border-bottom"
+                    ng-if="claims && claims.length > 0">
+                    <tr>
+                        <th>Claim</th>
+                        <th>Type</th>
+                        <th></th>
+                    </tr>
+                    <tr ng-repeat="claim in claims">
+                        <td>
+                            <strong>{{claim.key}}</strong>
+                            <br><span class="small">{{claim.name}}</span>
+                        </td>
+                        <td>
+                            {{claim.multiple ? ('[' + claim.type +']'): claim.type}}
+                        </td>
+                        <td class="text-right">
+                            <a class="btn btn-xs btn-primary btn-icon  pull-right" ng-click="editClaimDlg(claim)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                                </svg></a>
+                            <a class="btn btn-xs  btn-danger btn-icon pull-right" ng-click="removeClaim(claim)"><svg
+                                    class="icon icon-white">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-minus"></use>
+                                </svg></span></a>
+
+                        </td>
+                    </tr>
+                </table>
+                <p ng-if="!claims || claims.length == 0">No claims defined</p>
+
+            </div>
+        </div>
+
+
+    </fieldset>
+</div>
+
+<div ng-if="claims && claims.length > 0">
+
+    <fieldset>
+        <legend class="mb-4">
+            User claim mapping
+            <small class="form-text">
+                Claim mapping function should return fully-qualified claims of the current service ONLY. Service
+                namespace is
+                enforced when claims are added to tokens.
+            </small>
+        </legend>
+
+
+        <div class="row">
+            <div class="col col-12 text-right">
+                <button class="btn btn-primary" type="button" ng-click="saveClaimMapping('user')">Update
+                    mapping</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <table class="table">
+                    <tr>
+                        <td width="60%">
+                            <div class="form-check form-check-inline">
+                                <input id="userclaimenabled" class="form-check-input" type="checkbox"
+                                    ng-model="claimMapping['user'].enabled" ng-change="toggleClaimMapping('user')">
+                                <label for="userclaimenabled">Enable</label>
+                            </div>
+                            <div ui-ace="aceOption" ng-model="claimMapping['user'].code"></div>
+                        </td>
+
+                        <th>
+                            <div ng-if="claimMapping['user'].enabled">
+                                <button class="btn btn-secondary btn-sm text-right"
+                                    ng-click="validateClaims('user')">Validate</button>
+                                <br /><br />
+                                <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm"
+                                    ng-model="claimMapping['user'].scopes"></tags-input>
+                                <br>
+                                <div ng-if="claimMapping['user'].result" class="mt-5 mb-5 border p-2">
+                                    <figure class="highlight mb-0">
+                                        <code class="language-json" data-lang="json">
+                              <pre class="mb-0">{{claimMapping['user'].result | json:4}}</pre>
+                            </code>
+                                    </figure>
+                                </div>
+                                <div class="text-danger" ng-repeat="err in claimMapping['user'].errors">{{err}}</div>
+                            </div>
+                        </th>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+
+    </fieldset>
+
+    <fieldset>
+        <legend class="mb-4">
+            Client claim mapping
+            <small class="form-text">
+                Claim mapping function should return fully-qualified claims of the current service ONLY. Service
+                namespace is
+                enforced when claims are added to tokens.
+            </small>
+        </legend>
+
+
+        <div class="row">
+
+            <div class="col col-12 text-right">
+                <button class="btn btn-primary" type="button" ng-click="saveClaimMapping('client')">Update
+                    mapping</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <table class="table">
+                    <tr>
+                        <td width="60%">
+                            <div class="form-check form-check-inline">
+                                <input id="clientclaimenabled" class="form-check-input" type="checkbox"
+                                    ng-model="claimMapping['client'].enabled" ng-change="toggleClaimMapping('client')">
+                                <label for="clientclaimenabled">Enable</label>
+                            </div>
+                            <div ui-ace="aceOption" ng-model="claimMapping['client'].code"></div>
+                        </td>
+
+                        <th>
+                            <div ng-if="claimMapping['client'].enabled">
+                                <button class="btn btn-secondary btn-sm text-right"
+                                    ng-click="validateClaims('client')">Validate</button>
+                                <br /><br />
+                                <tags-input type="url" placeholder="Add scopes" class="form-control form-control-sm"
+                                    ng-model="claimMapping['client'].scopes"></tags-input>
+                                <br>
+                                <div ng-if="claimMapping['client'].result" class="mt-5 mb-5 border p-2">
+                                    <figure class="highlight mb-0">
+                                        <code class="language-json" data-lang="json">
+                      <pre class="mb-0">{{claimMapping['client'].result | json:4}}</pre>
+                    </code>
+                                    </figure>
+                                </div>
+                                <div class="text-danger" ng-repeat="err in claimMapping['client'].errors">{{err}}
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+<div class="modal fade bs-modal-lg" id="claimModal" tabindex="-1" role="dialog" aria-labelledby="serviceclaim"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="serviceclaim">Claim definition</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form class="needs-validation was-validated" novalidate name="claimForm">
+                            <input type="hidden" name="id" value="{{modClaim.id}}">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="key">Claim (Required)</label>
+                                    <input ng-if="!(modClaim.id)" type="text" name="key" class="form-control"
+                                        placeholder="Claim" ng-model="modClaim.key" required>
+                                    <input ng-if="modClaim.id" type="text" name="key" class="form-control"
+                                        placeholder="Claim" ng-model="modClaim.key" disabled readonly>
+                                    <div ng-if="claimForm.key.$invalid" class="invalid-feedback">Claim key
+                                        required
+                                    </div><br>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="name">Name (Required)</label>
+                                    <input type="text" class="form-control" name="name" placeholder="Claim name"
+                                        ng-model="modClaim.name" required></td>
+                                    <div ng-if="claimForm.name.$invalid" class="invalid-feedback">Claim name
+                                        required</div><br>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="description">Description</label>
+                                    <input type="text" class="form-control" name="description"
+                                        placeholder="Claim description" ng-model="modClaim.description"></td>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="type">Type (Required)</label>
+                                    <div class="bootstrap-select-wrapper standard">
+                                        <select class="form-control" ng-model="modClaim.type" name="type" required>
+                                            <option value="">Select a value</option>
+                                            <option value="string" ng-selected="modClaim.type == 'string'">string
+                                            </option>
+                                            <option value="number" ng-selected="modClaim.type == 'number'">number
+                                            </option>
+                                            <option value="boolean" ng-selected="modClaim.type == 'boolean'">boolean
+                                            </option>
+                                            <option value="date" ng-selected="modClaim.type == 'date'">date</option>
+                                            <option value="object" ng-selected="modClaim.type == 'object'">object
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="claimmulti" ng-model="modClaim.multiple"
+                                            name="multiple">
+                                        <label for="multiple">Is array</label>
+                                    </div>
+                                    <br>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-disabled="claimForm.$invalid"
+                    ng-click="saveClaim()">Save</button>
+            </div>
+        </div>
+    </div>

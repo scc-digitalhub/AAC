@@ -1,9 +1,9 @@
 <div class="row">
   <div class="col-12 text-center">
     <h3>{{'connections.title' | translate}}</h3>
-    <br> 
+    <br>
   </div>
-</div>  
+</div>
 
 <div class="row">
   <div class="col-12 col-lg-6" ng-repeat="c in connections">
@@ -11,20 +11,24 @@
     <div class="card-wrapper card-space">
       <div class="card card-bg">
         <div class="card-body">
-          <div class="card-title"  data-toggle="collapse" data-target="#collapse{{c.clientId}}" aria-expanded="false" aria-controls="collapse{{c.clientId}}">
+          <div class="card-title" data-toggle="collapse" data-target="#collapse{{c.clientId}}" aria-expanded="false"
+            aria-controls="collapse{{c.clientId}}">
+            <div class="categoryicon-top mb-2">
+              <span class="text">{{c.realm}}</span>
+            </div>
             <h5>{{c.appName}}</h5>
             <p class="card-text">{{'connections.scopes'| translate}}
-            <svg class="icon icon-xs">
-              <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
-            </svg>
+              <svg class="icon icon-xs">
+                <use xlink:href="./italia/svg/sprite.svg#it-arrow-right"></use>
+              </svg>
             </p>
           </div>
           <div class="collapse multi-collapse" id="collapse{{c.clientId}}">
-          <table class="table table-sm">
-            <tr ng-repeat="r in c.scopes">
-              <td><label>{{r.name}}</label><br><small>{{r.description}}</small></td>
-            </tr>
-          </table>
+            <table class="table table-sm">
+              <tr ng-repeat="r in c.scopes">
+                <td><label>{{r.name}}</label><br><small>{{r.description}}</small></td>
+              </tr>
+            </table>
           </div>
           <a class="read-more" href="" ng-click="confirmDeleteApp(c)">
             <span class="text text-danger">{{'connections.delete_app'| translate}}</span>
@@ -38,16 +42,17 @@
 
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-body">
-            <p>{{'connections.delete_confirm' | translate}}</p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-danger btn-sm" ng-click="deleteApp()" type="button">{{'connections.btn_delete' | translate}}</button>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">{{'btn_cancel' | translate}}</button>
-          </div>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>{{'connections.delete_confirm' | translate}}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="deleteApp()" type="button">{{'connections.btn_delete' |
+          translate}}</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">{{'btn_cancel' |
+          translate}}</button>
       </div>
     </div>
+  </div>
 </div>
-        

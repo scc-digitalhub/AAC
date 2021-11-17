@@ -1,0 +1,37 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-4">Custom attribute mapping</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="row mb-2">
+                    <div class="form-check form-check-inline col">
+                        <input id="idpAttributeMappingenabled" class="form-check-input" type="checkbox"
+                            ng-model="attributeMapping.enabled" ng-change="toggleProviderAttributeMapping()">
+                        <label for="idpAttributeMappingenabled">Enable</label>
+                    </div>
+                    <div class="col text-right">
+                        <button class="btn btn-secondary btn-sm text-right" ng-click="testProviderAttributeMapping()"
+                            ng-disabled="!attributeMapping.enabled">Test</button>
+                    </div>
+                </div>
+                <div ui-ace="aceOption" ng-model="attributeMapping.code"></div>
+            </div>
+            <div class="col">
+                <div ng-if="attributeMapping.result" class="mt-5 mb-5 border p-2">
+                    <figure class="highlight mb-0">
+                        <code class="language-json" data-lang="json">
+                    <pre class="mb-0">{{attributeMapping.result | json:4}}</pre>
+                    </code>
+                    </figure>
+
+                </div>
+                <div class="text-danger" ng-repeat="err in attributeMapping.errors">{{err}}</div>
+            </div>
+        </div>
+    </fieldset>
+
+
+
+
+</div>

@@ -11,8 +11,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
-import com.google.common.base.Strings;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSSigner;
@@ -81,7 +81,7 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
             for (JWK key : keyStore.getKeys()) {
                 // check if key is for sign
                 if (key.getKeyUse() == null || key.getKeyUse().equals(KeyUse.SIGNATURE)) {
-                    if (!Strings.isNullOrEmpty(key.getKeyID())) {
+                    if (StringUtils.hasText(key.getKeyID())) {
                         // use the key ID that's built into the key itself
                         this.keys.put(key.getKeyID(), key);
                     } else {

@@ -1,0 +1,104 @@
+<div class="pt-3">
+	<fieldset>
+		<legend class="mb-5">
+			Identity Attributes
+			<small class="form-text"> Review attributes for the current user, as received from identity
+				providers.</small>
+		</legend>
+		<div class="row" ng-repeat="identity in identities">
+			<div class="col-12">
+				<div class="avatar-wrapper avatar-extra-text">
+					<div class="avatar size-lg">
+						<svg aria-hidden="true" class="icon icon-secondary">
+							<use xlink:href="{{identity.icon}}"></use>
+						</svg>
+					</div>
+					<div class="extra-text">
+						<span class="h6">{{identity.username}}</span>
+						<br><small class=""> {{identity.provider.name}}</small>
+					</div>
+				</div>
+			</div>
+
+			<table class="table table-hover border-bottom">
+				<tr ng-repeat="item in identity.attributes">
+					<td class="align-middle">
+						<h6>{{item.name}}</h6>
+						<p>{{item.description}}</p>
+					</td>
+					<td class="align-middle">
+						ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.attributesId}}</span>
+						<button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.attributesId)">
+							<svg class="icon icon-xs icon-black">
+								<use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+							</svg>
+						</button>
+					</td>
+					<td class="text-right">
+						<button class="btn btn-secondary btn-sm" ng-click="inspectDlg(item)">Inspect</button>
+						<button class="btn btn-primary btn-sm" ng-click="viewAttributes(item)">View</button>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend class="mb-5">
+			Additional Attributes
+			<small class="form-text"> Review and manage additional attributes for the current user.</small>
+		</legend>
+		<div class="row">
+			<table class="table table-hover border-bottom">
+				<tr ng-repeat="item in attributes">
+					<td class="align-middle">
+						<h6>{{item.name}}</h6>
+						<p>{{item.description}}</p>
+					</td>
+					<td class="align-middle">
+						ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.attributesId}}</span>
+						<button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.attributesId)">
+							<svg class="icon icon-xs icon-black">
+								<use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+							</svg>
+						</button>
+					</td>
+					<td class="text-right">
+						<button class="btn btn-secondary btn-sm" ng-click="inspectDlg(item)">Inspect</button>
+						<button class="btn btn-primary btn-sm" ng-click="viewAttributes(item)">View</button>
+						<button class="btn btn-secondary btn-sm" ng-if="item.authority == 'internal'"
+							ng-click="editAttributesDlg(item)">Edit</button>
+						<button class="btn btn-danger btn-sm" ng-if="item.authority == 'internal'"
+							ng-click="deleteAttributesDlg(item)">Delete</button>
+
+					</td>
+				</tr>
+			</table>
+			<div class="col-md-12" ng-if="editAttributes && editAttributes.length > 0">
+				<button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
+					aria-haspopup="true" aria-expanded="false">
+					<svg class="icon icon-sm icon-white">
+						<use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+					</svg>
+					Add Attributes
+					<svg class="icon-expand icon icon-sm icon-light">
+						<use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+					</svg>
+				</button>
+				<div class="dropdown-menu">
+					<div class="link-list-wrapper">
+						<ul class="link-list">
+							<li ng-repeat="item in editAttributes">
+								<a class="list-item" href=""
+									ng-click="editAttributesDlg(item)"><span>{{item.name}}</span></a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</fieldset>
+</div>
+
+<div ng-include="'./html/user/modal.attributes.html'"></div>

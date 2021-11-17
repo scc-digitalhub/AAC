@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
@@ -17,6 +16,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class ImplicitTokenGranter extends AbstractTokenGranter {
 
@@ -25,12 +25,12 @@ public class ImplicitTokenGranter extends AbstractTokenGranter {
     private static final String GRANT_TYPE = "implicit";
 
     public ImplicitTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
         this(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
     protected ImplicitTokenGranter(AuthorizationServerTokenServices tokenServices,
-            ClientDetailsService clientDetailsService,
+            OAuth2ClientDetailsService clientDetailsService,
             OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
     }

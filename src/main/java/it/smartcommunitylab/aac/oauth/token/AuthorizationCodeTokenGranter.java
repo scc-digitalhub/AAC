@@ -13,13 +13,14 @@ import org.springframework.security.oauth2.common.exceptions.InvalidRequestExcep
 import org.springframework.security.oauth2.common.exceptions.RedirectMismatchException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 
 public class AuthorizationCodeTokenGranter extends AbstractTokenGranter {
     
@@ -30,14 +31,14 @@ public class AuthorizationCodeTokenGranter extends AbstractTokenGranter {
     private final AuthorizationCodeServices authorizationCodeServices;
 
     public AuthorizationCodeTokenGranter(AuthorizationServerTokenServices tokenServices,
-            AuthorizationCodeServices authorizationCodeServices, ClientDetailsService clientDetailsService,
+            AuthorizationCodeServices authorizationCodeServices, OAuth2ClientDetailsService clientDetailsService,
             OAuth2RequestFactory requestFactory) {
         this(tokenServices, authorizationCodeServices, clientDetailsService, requestFactory, GRANT_TYPE);
     }
 
     protected AuthorizationCodeTokenGranter(AuthorizationServerTokenServices tokenServices,
             AuthorizationCodeServices authorizationCodeServices,
-            ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
+            OAuth2ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
         this.authorizationCodeServices = authorizationCodeServices;
     }

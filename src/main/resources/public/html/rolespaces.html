@@ -1,0 +1,46 @@
+<div class="pb-3 pt-3" ng-if="spaceRoles && spaceRoles.length > 0">
+  <div class="row mb-3">
+    <div class="col col-md-6 p-3">
+      <h3>Role Spaces</h3>
+    </div>
+    <div class="col col-md-6 text-right">
+      <button class="btn btn-primary text-right" type="button" ng-click="addSubject()">
+         <svg class="icon icon-sm icon-white"><use xlink:href="./italia/svg/sprite.svg#it-plus"></use></svg>
+        Add subject</button>
+    </div>
+  </div>
+  <div class="row mb-0">
+    <div class="col p-3">
+		  <div class="form-group mb-0">
+      <div class="bootstrap-select-wrapper border-bottom-0">
+		    <label >Role Space</label>
+		    <select ng-model="currentSpaceRole" id="context" ng-change="changeSpace(currentSpaceRole)" ng-options="ctx as ctx.label for ctx in spaceRoles track by ctx.strId">
+		    </select>
+		  </div>
+      </div>
+      </div>
+  </div>
+  
+  <table class="table table-hover align-middle border-bottom">
+   <tr ng-repeat="user in users.content track by $index" ng-click="changeRoles(user)">
+     <td class="align-middle">
+       <a href><strong>{{user.subject}}</strong></a>
+     </td>
+     <td class="align-middle">
+      {{user.roles.join(', ')}}
+     </td>
+     <td class="text-right"><button class="btn btn-link">Edit</td>
+   </tr>
+ </table>
+
+  
+  <div ng-if="users == null || users.content.length == 0">
+    <h5>No data</h5>
+  </div>   
+     
+
+</div>
+
+
+
+<div ng-include="'./html/rolespaces.subject.modal.html'"></div>

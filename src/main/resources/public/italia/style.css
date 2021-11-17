@@ -1,3 +1,5 @@
+
+
 /**
  *    Copyright 2015-2019 Smart Community Lab, FBK
  *
@@ -19,6 +21,15 @@
 body {
 	background-size: 100% auto;
 	margin: 0 auto;
+}
+
+.sidebar-wrapper {
+  height: 100%;
+  min-height: calc(100vh - 57px - 48px);
+}
+
+.nav-link a {
+  color: inherit !important;
 }
 
 .confirmation-content {
@@ -116,20 +127,34 @@ input.form-control-sm  {
 	    max-width: 1140px;
 	}
 }
-
-.alert {
+.alert-container {
   position: fixed;
-  bottom: 4rem;
+  bottom: 60px;
   width: 100%;
-  background-color: #fff;
-  margin-left: 1rem;
-  margin-right: 1rem;
-  box-shadow: 0 0 1rem rgba(0,0,0,.15);
-  border-radius: 4px;
-  border-right: 0!important;
-  border-top: 0!important;
-  border-bottom: 0!important;
+  z-index: 100;
+} 
+
+.alert-container .alert {
+  background-color: white !important;
 }
+
+.page-item {
+  cursor: pointer !important;
+}
+
+/* .alert { */
+/*   position: fixed; */
+/*   bottom: 4rem; */
+/*   width: 100%; */
+/*   background-color: #fff; */
+/*   margin-left: 1rem; */
+/*   margin-right: 1rem; */
+/*   box-shadow: 0 0 1rem rgba(0,0,0,.15); */
+/*   border-radius: 4px; */
+/*   border-right: 0!important; */
+/*   border-top: 0!important; */
+/*   border-bottom: 0!important; */
+/* } */
 
 
 .ace_editor {
@@ -185,3 +210,37 @@ tags-input {
 .loginbtn  {
   padding: 12px !important; 
 }
+
+.customization-block {
+}
+
+form .invalid-feedback {
+  display: initial;
+} 
+
+.card.border {
+    border-width: 2px !important;
+    border-radius: 5px;
+}
+
+.card.border::after {
+   margin: 0;
+}
+.card.border.border-3 {
+    border-width:3px !important;
+}
+
+.card-logo {
+   background: transparent;
+   text-align: center;
+}
+.card-logo > img {
+   height: 96px;
+   display: inline-flex;
+   object-fit: contain;
+}
+
+.permission .toggles label input[type="checkbox"][disabled]:checked + .lever::after {
+   background-color: #06c;
+}
+

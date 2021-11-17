@@ -1,0 +1,211 @@
+<div class="row">
+  <div class="col-md-2">
+    <div class="sidebar-wrapper it-line-right-side">
+      <div class="sidebar-linklist-wrapper">
+        <div class="link-list-wrapper">
+          <ul class="link-list">
+            <li>
+              <div>
+                <div ng-if="realms.length > 1">
+                  <a class="font-weight-semibold dropdown-toggle px-1 pb-1" href="" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    <span class="text-primary h3">{{realm.name | limitTo: 12}}{{realm.name.length > 12 ? '...' : ''}}
+                    </span>
+                    <svg class="icon icon-sm icon-primary">
+                      <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+                    </svg>
+                  </a>
+                  <div class="dropdown-menu dark">
+                    <div class="link-list-wrapper">
+                      <ul class="link-list">
+                        <li ng-repeat="r in realms"><a class="list-item" href=""
+                            ng-click="selectRealm(r)"><span>{{r.name | limitTo: 17}}{{r.name.length > 17 ? '...' :
+                              ''}}</span></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 ng-if="realms.length == 1">{{realm.name | limitTo: 12}}{{realm.name.length > 12 ? '...' : ''}}</h3>
+
+              </div>
+              <p class="pl-4 text-monospace text-muted" style="display: none;">{{realm.slug}} </p>
+            </li>
+            <li ng-if="(realmAdmin || realmDeveloper)">
+              <a class="list-item medium px-2 pb-2 left-icon text-primary" href ui-sref-active="active"
+                ui-sref="realm.dashboard">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-star-outline"></use>
+                </svg>
+                <span>Dashboard</span>
+              </a>
+            </li>
+
+            <li ng-if="(realmAdmin || realmDeveloper)">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
+                data-target="#collapseApps" aria-controls="collapseApps"
+                aria-expanded="{{isAnyState(['realm.apps','realm.services','realm.scopes', 'realm.app', 'realm.appstart', 'realm.service'])}}">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-piattaforme"></use>
+                </svg>
+                <span>App and services</span>
+              </a>
+
+              <ul class="link-sublist collapse"
+                ng-class="{show: isAnyState(['realm.apps','realm.services','realm.scopes', 'realm.app', 'realm.appstart', 'realm.service'])}"
+                id="collapseApps">
+                <li>
+                  <a class="list-item" href ui-sref="realm.apps"
+                    ng-class="{active: isAnyState(['realm.apps','realm.app', 'realm.appstart'])}">
+                    <span class="text-800">Client applications </span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item" href ui-sref="realm.services"
+                    ng-class="{active: isAnyState(['realm.services','realm.service'])}">
+                    <span class="text-800">Custom services </span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item" href ui-sref-active="active" ui-sref="realm.scopes">
+                    <span class="text-800">Scopes </span>
+                  </a>
+                </li>
+              </ul>
+
+            </li>
+
+
+            <li ng-if="realmAdmin">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
+                data-target="#collapseUsers"
+                aria-expanded="{{isAnyState(['realm.users','realm.user','realm.roles','realm.role'])}}"
+                aria-controls="collapseUsers">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-user"></use>
+                </svg>
+                <span>Users and roles</span>
+              </a>
+
+              <ul class="link-sublist collapse"
+                ng-class="{show: isAnyState(['realm.users','realm.user','realm.roles','realm.role'])}"
+                id="collapseUsers">
+                <li>
+                  <a class="list-item" href ui-sref="realm.users"
+                    ng-class="{active: isAnyState(['realm.users','realm.user'])}">
+                    <span>Users </span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item" href ui-sref="realm.roles"
+                    ng-class="{active: isAnyState(['realm.roles','realm.role'])}">
+                    <span>Roles </span>
+                  </a>
+                </li>
+              </ul>
+
+            </li>
+
+            <li ng-if="realmAdmin && !realmImmutable">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
+                data-target="#collapseProviders"
+                aria-expanded="{{isAnyState(['realm.idps','realm.idp','realm.aps','realm.ap'])}}"
+                aria-controls="collapseProviders">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                </svg>
+                <span>Authentication</span>
+              </a>
+
+              <ul class="link-sublist collapse"
+                ng-class="{show: isAnyState(['realm.idps','realm.idp','realm.aps','realm.ap'])}" id="collapseProviders">
+                <li>
+                  <a class="list-item" href ui-sref="realm.idps"
+                    ng-class="{active: isAnyState(['realm.idps','realm.idp'])}">
+                    <span>Identity Providers </span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item" href ui-sref="realm.aps"
+                    ng-class="{active: isAnyState(['realm.aps','realm.ap'])}">
+                    <span>Attribute Providers </span>
+                  </a>
+                </li>
+              </ul>
+
+            </li>
+
+            <li ng-if="realmAdmin && !realmImmutable">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
+                data-target="#collapseAttributes"
+                aria-expanded="{{isAnyState(['realm.attributesets','realm.attributeset','realm.profiles', 'realm.profile'])}}"
+                aria-controls="collapseAttributes">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-box"></use>
+                </svg>
+                <span>Attributes</span>
+              </a>
+
+              <ul class="link-sublist collapse"
+                ng-class="{show: isAnyState(['realm.attributesets','realm.attributeset','realm.profiles', 'realm.profile'])}"
+                id="collapseAttributes">
+                <li>
+                  <a class="list-item" href ui-sref="realm.attributesets"
+                    ng-class="{active: isAnyState(['realm.attributesets','realm.attributeset'])}">
+                    <span>Attribute Sets </span>
+                  </a>
+                </li>
+                <!-- <li>
+                  <a class="list-item" href ui-sref="realm.profiles"
+                    ng-class="{active: isAnyState(['realm.profiles','realm.profile'])}">
+                    <span>Custom profiles </span>
+                  </a>
+                </li> -->
+              </ul>
+
+            </li>
+
+            <li ng-if="realmAdmin">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href ui-sref-active="active" ui-sref="realm.audit">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-note"></use>
+                </svg>
+                <span> Audit </span>
+              </a>
+            </li>
+
+            <li ng-if="realmAdmin && !realmImmutable">
+              <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
+                data-target="#collapseSettings" aria-expanded="{{isAnyState(['realm.settings','realm.custom'])}}"
+                aria-controls="collapseSettings">
+                <svg class="icon icon-sm icon-primary left" aria-hidden="true">
+                  <use xlink:href="./italia/svg/sprite.svg#it-settings"></use>
+                </svg>
+                <span>Configuration</span>
+              </a>
+
+              <ul class="link-sublist collapse" ng-class="{show: isAnyState(['realm.settings','realm.custom'])}"
+                id="collapseSettings">
+                <li>
+                  <a class="list-item" href ui-sref-active="active" ui-sref="realm.custom">
+                    <span>Customization </span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item" href ui-sref-active="active" ui-sref="realm.settings">
+                    <span>Settings </span>
+                  </a>
+                </li>
+              </ul>
+
+            </li>
+
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-10">
+    <ui-view></ui-view>
+  </div>
+</div>

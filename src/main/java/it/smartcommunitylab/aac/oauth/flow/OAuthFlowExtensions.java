@@ -16,24 +16,63 @@
 
 package it.smartcommunitylab.aac.oauth.flow;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import java.util.Collection;
+import java.util.Map;
+
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 
 /**
- * OAuth 2.0 Flow extensions manager. Handles specific Flow phases, in particular
- * AfterApproval - immediately after the user has approved the requested scopes and before the code/token is emitted.
- *  
+ * OAuth 2.0 Flow extensions manager. Handles specific Flow phases, in
+ * particular AfterApproval - immediately after the user has approved the
+ * requested scopes and before the code/token is emitted.
+ * 
  * @author raman
  *
  */
 public interface OAuthFlowExtensions {
 
-	/**
-	 * Event triggered immediately after the user has approved the requested scopes and before the code/token is emitted.
-	 * @param authorizadtionRequest
-	 * @param userAuthentication
-	 * @throws FlowExecutionException
-	 */
-	public void onAfterApproval(AuthorizationRequest authorizadtionRequest, Authentication userAuthentication) throws FlowExecutionException;
-	
+    public static final String BEFORE_USER_APPROVAL = "beforeUserApproval";
+    public static final String AFTER_USER_APPROVAL = "afterUserApproval";
+
+    public static final String BEFORE_TOKEN_GRANT = "beforeTokenGrant";
+    public static final String AFTER_TOKEN_GRANT = "afterTokenGrant";
+
+    /**
+     * Event triggered immediately before the user approves the requested scopes and
+     * before the code/token is emitted.
+     * 
+     * The returned parameters can be modified to alter the process
+     */
+    public Map<String, String> onBeforeUserApproval(Map<String, String> requestParameters, User user,
+            OAuth2ClientDetails client)
+            throws FlowExecutionException;
+
+    /**
+     * Event triggered immediately after the user has approved the requested scopes
+     * and before the code/token is emitted.
+     * 
+     * The returned request can have the authorized status changed from true to
+     * false, any other modifications will be discarded
+     */
+    public Boolean onAfterUserApproval(Collection<String> scopes, User user,
+            OAuth2ClientDetails client)
+            throws FlowExecutionException;
+
+    /**
+     * Event triggered immediately before the token generation
+     * 
+     * The returned parameters can be modified to alter the process
+     */
+    public Map<String, String> onBeforeTokenGrant(Map<String, String> requestParameters, OAuth2ClientDetails client)
+            throws FlowExecutionException;
+
+    /*
+     * Event triggered immediately after the token generation
+     */
+
+    public void onAfterTokenGrant(OAuth2AccessToken accessToken, OAuth2ClientDetails client)
+            throws FlowExecutionException;
+
 }

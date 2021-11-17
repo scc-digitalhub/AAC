@@ -1,0 +1,71 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-5">
+            Space Roles
+            <small class="form-text"> Manage space roles for the current user</small>
+        </legend>
+        <div class="row">
+            <table class="table table-hover border-bottom">
+                <tr ng-repeat="item in spaceRoles">
+                    <td class="align-middle">
+                        <h6>{{item.authority}}</h6>
+                    </td>
+                    <td class="align-middle">
+                        ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.authority}}</span>
+                        <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.authority)">
+                            <svg class="icon icon-xs icon-black">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </td>
+                    <td class="text-right">
+                        <button ng-if="myspaces.includes(item.namespace)" class="btn btn-danger btn-sm"
+                            ng-click="removeSpaceRole(item.authority)">Remove</button>
+                    </td>
+                </tr>
+            </table>
+            <div class="col-md-12">
+                <button class="btn btn-primary btn-sm" ng-click="addSpaceRoleDlg()">Add space role</button>
+            </div>
+        </div>
+    </fieldset>
+
+
+</div>
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="spaceRolesModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add space role </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Add a role in a provided space
+                </p>
+                <form name="roleForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col pt-4 mb-2">
+                        <div class="bootstrap-select-wrapper border-bottom-0">
+                            <label class="active" for="space">Space</label>
+                            <select required title="Select one" id="role" ng-model="modSpaceRole.space">
+                                <option ng-repeat="s in modSpaceRole.spaces" value="{{s}}">{{s}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col pt-4 mb-2">
+                        <label for="role">Role*</label>
+                        <input type="text" name="role" class="form-control form-control-sm" id="role" required
+                            ng-model="modSpaceRole.role">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="addSpaceRole()"
+                    ng-disabled="roleForm.$invalid">Add</button>
+            </div>
+        </div>
+    </div>
+</div>

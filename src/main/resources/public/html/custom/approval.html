@@ -1,0 +1,32 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="container-fluid">
+            <legend class="mb-4">
+                <span>Approval page </span> <br>
+                <a class="small" href="" ng-click="previewRealmCustom('approval')">
+                    <svg class="icon icon-xs">
+                        <use xlink:href="./italia/svg/sprite.svg#it-external-link"></use>
+                    </svg>
+                    <span>preview</span>
+                </a>
+            </legend>
+
+            <div class="row mb-5" ng-repeat="res in realmCustom.approval">
+
+                <div class="form-group col">
+                    <div ui-ace="aceOption" ng-model="res.value"></div>
+                    <label class="active">{{res.key}}</label>
+                </div>
+
+                <div class="col-md-6 border">
+                    <figure class="highlight mb-0">
+                        <div ng-bind-html="res.value"></div>
+                    </figure>
+                </div>
+
+            </div>
+
+        </fieldset>
+
+    </div>
+</div>

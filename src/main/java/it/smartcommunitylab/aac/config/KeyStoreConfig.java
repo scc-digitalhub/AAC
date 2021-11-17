@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 
 import com.nimbusds.jose.JOSEException;
@@ -13,7 +14,12 @@ import com.nimbusds.jose.jwk.JWKSet;
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.jwt.JWKUtils;
 
+/*
+ * Keystore is @2, we need this to build security services and config
+ */
+
 @Configuration
+@Order(2)
 public class KeyStoreConfig {
 
     @Value("${security.keystore}")
@@ -21,7 +27,7 @@ public class KeyStoreConfig {
 
     private JWKSetKeyStore keyStore;
 
-    @Bean()
+    @Bean
     @Primary
     public JWKSetKeyStore getJWKSetKeyStore() {
         if (keyStore == null) {

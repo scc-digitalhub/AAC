@@ -1,0 +1,94 @@
+<div class="pb-3 pt-3">
+    <div class="row">
+        <div class="col col-md-6 p-3">
+            <h6><a ui-sref="realm.idps({realmId:idp.realm})">Identity providers
+                    &raquo;</a></h6>
+        </div>
+        <div class="col col-md-6 text-right">
+            <button ng-if="!idp.enabled" class="btn btn-success btn-sm  text-right" ng-click="toggleProviderState(idp)">
+                Enable
+            </button>
+            <button ng-if="idp.enabled" class="btn btn-warning btn-sm  text-right" ng-click="toggleProviderState(idp)">
+                Disable
+            </button>
+            <button class="btn btn-primary btn-sm  text-right" ng-click="saveProvider(idp)"
+                ng-disabled="idp.enabled">Save</button>
+            <button class="btn btn-secondary btn-sm  text-right" ng-click="exportProvider(idp)">Export</button>
+            <button class="btn btn-danger btn-sm  text-right" ng-click="deleteProviderDlg(idp)"
+                ng-disabled="idp.enabled">Delete</button>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-xs-1 p-2">
+            <svg class="icon icon-xl icon-primary left" aria-hidden="true">
+                <use xlink:href="{{providerIcon}}"></use>
+            </svg>
+        </div>
+        <div class="col">
+            <h3>{{providerName}}</h3>
+            <p class="text-monospace">
+                <span class="small text-monospace bg-light pl-1 pr-1">{{idp.authority}}:{{idp.provider}}</span>
+                <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(idp.provider)">
+                    <svg class="icon icon-xs icon-primary">
+                        <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                    </svg>
+                </button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="accordion" id="provider">
+    <ul class="nav nav-tabs nav-fill">
+        <li class="nav-item">
+            <a class="nav-link {{activeView('overview')}}" href ng-click="switchView('overview')">Overview</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('settings')}}" href ng-click="switchView('settings')">Settings</a>
+        </li>
+        <li ng-if="idp.authority == 'internal'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.internal')}}" href ng-click="switchView('conf.internal')">Internal
+                Configuration</a>
+        </li>
+        <li ng-if="idp.authority == 'oidc'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.oidc')}}" href ng-click="switchView('conf.oidc')">OIDC
+                Configuration</a>
+        </li>
+        <li ng-if="idp.authority == 'saml'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.saml')}}" href ng-click="switchView('conf.saml')">SAML
+                Configuration</a>
+        </li>
+        <li ng-if="idp.authority == 'spid'" class="nav-item">
+            <a class="nav-link  {{activeView('conf.spid')}}" href ng-click="switchView('conf.spid')">SPID
+                Configuration</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('hooks')}}" href ng-click="switchView('hooks')">Hooks</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('apps')}}" href ng-click="switchView('apps')">Apps</a>
+        </li>
+    </ul>
+    <div class="tab-content pt-3">
+        <div class="tab-pane fade show active">
+            <form role="form" name="providerForm" class="needs-validation was-validated" novalidate>
+                <div ng-include="'./html/provider/idp.'+formView+'.html'"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteProviderConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to delete?</p>
+                <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="deleteProvider()" type="button">Delete</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,55 @@
+<div class="modal fade bs-modal-lg" tabindex="-1" role="dialog" id="editAttributesDlg">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit user attributes </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Review and update custom user attributes.
+                </p>
+                <form name="attributesForm" class="needs-validation was-validated" novalidate>
+                    <input type="hidden" name="authority" value="{{modAttributes.authority}}">
+                    <input type="hidden" name="provider" value="{{modAttributes.provider}}">
+                    <input type="hidden" name="userId" value="{{modAttributes.userId}}">
+                    <input type="hidden" name="setId" value="{{modAttributes.setId}}">
+
+                    <div class="pt-3">
+                        <fieldset>
+                            <legend class="mb-5">
+                                {{modAttributes.name}}
+                                <small class="form-text">{{modAttributes.description}}</small>
+                            </legend>
+                            <div class="row" ng-repeat="attr in modAttributes.attributes">
+                                <div class="form-group col" ng-if="attr.field != 'checkbox'">
+                                    <div class="input-group">
+                                        <label for="{{attr.key}}"
+                                            class="active">{{attr.name}}</label>
+                                        <input type="{{attr.field}}" class="form-control" id="{{attr.key}}"
+                                            ng-model="attr.value">
+                                        <small ng-if="attr.description"
+                                            class="w-100">{{attr.description}}</small>
+
+                                    </div>
+                                </div>
+                                <div class="col p-2" ng-if="attr.field == 'checkbox'">
+                                    <div class="checkbox">
+                                        <input type="{{attr.field}}" class="" id="{{attr.key}}" ng-model="attr.value">
+                                        <label for="{{attr.key}}"
+                                            class="{{attr.value ? 'active' : ''}}">{{attr.name}}</label>
+                                        <small ng-if="attr.description"
+                                            class="form-text">{{attr.description}}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="addOrUpdateAttributes()"
+                    ng-disabled="attributesForm.$invalid">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

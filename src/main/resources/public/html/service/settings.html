@@ -1,0 +1,26 @@
+<div class="pt-3">
+    <div class="row">
+        <fieldset class="col-md-5">
+            <legend class="mb-4">Basic settings</legend>
+            <div class="form-group col">
+                <input type="text" name="namespace" class="form-control form-control-sm" id="name"
+                    ng-model="service.namespace" disabled readonly>
+                <label for="namespace" class="active">Namespace</label>
+            </div>
+            <div class="form-group col">
+                <input type="text" name="name" class="form-control form-control-sm" id="name" ng-model="service.name"
+                    required>
+                <label for="name" class="{{service.name != '' ? 'active' : ''}}">Service Name</label>
+            </div>
+            <div class="form-group col">
+                <textarea rows="3" name="description" id="description" ng-model="service.description"></textarea>
+                <label for="description" class="{{service.description != '' ? 'active' : ''}}">Description</label>
+            </div>
+
+            <button class="btn btn-primary" type="button" ng-click="saveService()">Save</button>
+
+        </fieldset>
+
+
+    </div>
+</div>

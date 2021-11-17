@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,11 +18,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.manager.ClientDetailsManager;
-import it.smartcommunitylab.aac.manager.ServiceManager;
-import it.smartcommunitylab.aac.model.ClientAppBasic;
-import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.repository.UserRepository;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.core.AuthorityManager;
+import it.smartcommunitylab.aac.core.ProviderManager;
+import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
+import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
+import it.smartcommunitylab.aac.oauth.model.ApplicationType;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
+import it.smartcommunitylab.aac.oauth.model.TokenType;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 
 /*
  * APIM manager -
@@ -31,15 +38,19 @@ import it.smartcommunitylab.aac.repository.UserRepository;
  */
 
 @Component
+@Deprecated
 //@Transactional
 public class APIMProviderService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private ClientDetailsManager clientManager;
+    private OAuth2ClientService clientService;
 
     @Autowired
-    private UserRepository userRepository;
+    private ProviderManager providerManager;
+
+    @Autowired
+    private AuthorityManager authorityManager;
 
 //    @Autowired
 //    private ServiceManager serviceManager;
@@ -58,6 +69,7 @@ public class APIMProviderService {
     };
 
     public APIMClient createClient(
+            String realm,
             String clientId,
             String userName,
             String clientName,
@@ -65,15 +77,7 @@ public class APIMProviderService {
             String clientSecret,
             Collection<String> grantTypes,
             String[] scopes,
-            String[] redirectUris) throws RuntimeException {
-        User user = userRepository.findByUsername(userName);
-
-        if (user == null) {
-            return null;
-        }
-
-        Long userId = user.getId();
-        ClientAppBasic client = null;
+            String[] redirectUris) throws RuntimeException, NoSuchClientException, NoSuchRealmException {
 
         // always assign CLIENT_CREDENTIALS if nothing requested
         if (grantTypes == null || grantTypes.isEmpty()) {
@@ -85,59 +89,88 @@ public class APIMProviderService {
         Set<String> grantedTypes = grantTypes.stream().filter(gt -> ArrayUtils.contains(GRANT_TYPES, gt))
                 .collect(Collectors.toSet());
 
+        OAuth2Client client = null;
+
         // check if exists by id
         if (StringUtils.hasText(clientId)) {
-            client = clientManager.findByClientId(clientId);
+            client = clientService.findClient(clientId);
         }
         // check if exists by developer and name
         if (client == null && StringUtils.hasText(clientName)) {
-            client = clientManager.findByNameAndUserId(clientName, userId);
+            Collection<OAuth2Client> clients = clientService.findClient(realm, clientName);
+            client = clients != null ? clients.stream().findFirst().orElse(null) : null;
         }
 
         if (client == null) {
             // create
-            client = clientManager.create(userId,
-                    clientName, clientSecret,
-                    grantedTypes.toArray(new String[0]), scopes, redirectUris);
+            client = clientService.addClient(realm, clientName);
 
-            // fetch clientSecret, if generated
-            clientSecret = client.getClientSecret();
+//            // fetch clientSecret, if generated
+//            clientSecret = client.getSecret();
 
         }
 
         // always update, we need to ensure client is valid
         clientId = client.getClientId();
 
-        // update basic
-        ClientAppBasic appData = client;
-        appData.setName(clientName);
-        appData.setDisplayName(displayName);
-        appData.setGrantedTypes(grantedTypes);
-        appData.setScope(new HashSet<>(Arrays.asList((scopes))));
-        appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
+        // get current config
+        OAuth2ClientConfigMap configMap = client.getConfigMap();
 
-        // NOTE: APIM client need manual Idp and scope approval from AAC
+        // fetch and add all realm providers
+        List<String> providers = authorityManager.getIdentityProviders(realm).stream().map(idp -> idp.getProvider())
+                .collect(Collectors.toList());
 
-        client = clientManager.update(clientId, appData, clientSecret);
+        Set<AuthenticationMethod> authenticationMethods = new HashSet<>();
+        authenticationMethods.add(AuthenticationMethod.CLIENT_SECRET_BASIC);
+        authenticationMethods.add(AuthenticationMethod.CLIENT_SECRET_POST);
+
+        Set<AuthorizationGrantType> authorizedGrantTypes = grantedTypes.stream()
+                .map(gt -> AuthorizationGrantType.parse(gt)).collect(Collectors.toSet());
+
+        // update
+        client = clientService.updateClient(
+                clientId,
+                clientName, displayName,
+                Arrays.asList(scopes), null,
+                providers,
+                null, null, null,
+                authorizedGrantTypes,
+                Arrays.asList(redirectUris),
+                ApplicationType.WEB, TokenType.JWT, null,
+                authenticationMethods,
+                false, false,
+                null, null,
+                null,
+                null, null, null,
+                null);
 
         return APIMClient.from(client);
     }
 
     public APIMClient updateClient(
+            String realm,
             String clientId,
             String clientName,
             String displayName,
             String clientSecret,
             Collection<String> grantTypes,
-            String[] scopes,
-            String[] redirectUris) throws EntityNotFoundException, RuntimeException {
+            String[] scope,
+            String[] redirectUris)
+            throws EntityNotFoundException, RuntimeException, NoSuchClientException, NoSuchRealmException {
 
         // check if exists by id
-        ClientAppBasic client = clientManager.findByClientId(clientId);
-        if (client == null) {
+        OAuth2Client client = clientService.findClient(clientId);
+        if (client == null || !client.getRealm().equals(realm)) {
             // error
             throw new EntityNotFoundException("no client with id " + clientId);
         }
+
+        // fetch and add all realm providers
+        List<String> providers = authorityManager.getIdentityProviders(realm).stream().map(idp -> idp.getProvider())
+                .collect(Collectors.toList());
+
+        // get current config
+        OAuth2ClientConfigMap configMap = client.getConfigMap();
 
         // always assign CLIENT_CREDENTIALS if nothing requested
         if (grantTypes == null || grantTypes.isEmpty()) {
@@ -146,74 +179,113 @@ public class APIMProviderService {
 
         // filter grant types and accept only those supported, apim tries to assign
         // non-standard types
+        // NOTE: if APIm does not provide these values we will reset them to null
         Set<String> grantedTypes = grantTypes.stream().filter(gt -> ArrayUtils.contains(GRANT_TYPES, gt))
                 .collect(Collectors.toSet());
 
-        // update basic
-        ClientAppBasic appData = client;
-        appData.setName(clientName);
-        appData.setDisplayName(displayName);
-        // NOTE: if APIm does not provide these values we will reset them to null
-        appData.setGrantedTypes(grantedTypes);
+        Set<AuthorizationGrantType> authorizedGrantTypes = grantedTypes.stream()
+                .map(gt -> AuthorizationGrantType.parse(gt)).collect(Collectors.toSet());
+
         // TODO check, looks like apim wants to use custom method for scopes
-        if (scopes != null) {
-            appData.setScope(new HashSet<>(Arrays.asList((scopes))));
+        Set<String> scopes = client.getScopes();
+        if (scope != null) {
+            scopes = new HashSet<>(Arrays.asList((scope)));
         }
         if (redirectUris != null) {
-            appData.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
+            configMap.setRedirectUris(new HashSet<>(Arrays.asList((redirectUris))));
         }
-        // NOTE: APIM client need manual Idp and scope approval from AAC
 
-        client = clientManager.update(clientId, appData, clientSecret);
+        // update
+        client = clientService.updateClient(clientId,
+                clientName, displayName,
+                scopes, client.getResourceIds(),
+                providers,
+                client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
+                authorizedGrantTypes, configMap.getRedirectUris(),
+                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(), configMap.getFirstParty(),
+                configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
+                configMap.getIdTokenValidity(),
+                configMap.getJwks(), configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
+                configMap.getAdditionalInformation());
 
         return APIMClient.from(client);
     }
 
-    public APIMClient updateValidity(String clientId, Integer validity)
-            throws EntityNotFoundException, RuntimeException {
+    public APIMClient updateValidity(String realm, String clientId, Integer validity)
+            throws EntityNotFoundException, RuntimeException, NoSuchClientException {
 
         // check if exists by id
-        ClientAppBasic client = clientManager.findByClientId(clientId);
-        if (client == null) {
+        OAuth2Client client = clientService.findClient(clientId);
+        if (client == null || !client.getRealm().equals(realm)) {
             // error
             throw new EntityNotFoundException("no client with id " + clientId);
         }
 
-        ClientAppBasic appData = client;
-        // set both to the requested value, workaround for client credentials token
-        // TODO fix wrong handling of client credentials token duration
-        appData.setAccessTokenValidity(validity);
-        appData.setRefreshTokenValidity(validity);
+        // get current config
+        OAuth2ClientConfigMap configMap = client.getConfigMap();
 
-        client = clientManager.update(clientId, appData);
+        // update
+        client = clientService.updateClient(clientId,
+                client.getName(), client.getDescription(),
+                client.getScopes(), client.getResourceIds(),
+                client.getProviders(),
+                client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
+                configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
+                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(), configMap.getFirstParty(),
+                validity, configMap.getRefreshTokenValidity(),
+                validity,
+                configMap.getJwks(), configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
+                configMap.getAdditionalInformation());
 
         return APIMClient.from(client);
 
     }
 
-    public APIMClient updateScope(String clientId, String scope) throws EntityNotFoundException, RuntimeException {
+    public APIMClient updateScope(String realm, String clientId, String scope)
+            throws EntityNotFoundException, RuntimeException, NoSuchClientException {
 
         // check if exists by id
-        ClientAppBasic client = clientManager.findByClientId(clientId);
-        if (client == null) {
+        OAuth2Client client = clientService.findClient(clientId);
+        if (client == null || !client.getRealm().equals(realm)) {
             // error
             throw new EntityNotFoundException("no client with id " + clientId);
         }
 
         String[] scopes = scope != null ? scope.split(APIMClient.SEPARATOR) : null;
 
-        ClientAppBasic appData = client;
-        appData.setScope(new HashSet<>(Arrays.asList((scopes))));
+        // get current config
+        OAuth2ClientConfigMap configMap = client.getConfigMap();
 
-        client = clientManager.update(clientId, appData);
+        // update
+        client = clientService.updateClient(clientId,
+                client.getName(), client.getDescription(),
+                Arrays.asList(scopes), client.getResourceIds(),
+                client.getProviders(),
+                client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
+                configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),
+                configMap.getApplicationType(), configMap.getTokenType(), configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(),
+                configMap.getFirstParty(),
+                configMap.getAccessTokenValidity(), configMap.getRefreshTokenValidity(),
+                configMap.getIdTokenValidity(),
+                configMap.getJwks(), configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
+                configMap.getAdditionalInformation());
 
         return APIMClient.from(client);
 
     }
 
-    public APIMClient getClient(String clientId) throws EntityNotFoundException, RuntimeException {
-        ClientAppBasic client = clientManager.findByClientId(clientId);
-        if (client == null) {
+    public APIMClient getClient(String realm, String clientId) throws EntityNotFoundException, RuntimeException {
+        OAuth2Client client = clientService.findClient(clientId);
+        if (client == null || !client.getRealm().equals(realm)) {
             // error
             throw new EntityNotFoundException("no client with id " + clientId);
         }
@@ -222,15 +294,15 @@ public class APIMProviderService {
 
     }
 
-    public void deleteClient(String clientId) throws EntityNotFoundException, RuntimeException {
+    public void deleteClient(String realm, String clientId) throws EntityNotFoundException, RuntimeException {
         // TODO check if client is owned!
-        ClientAppBasic client = clientManager.findByClientId(clientId);
-        if (client == null) {
+        OAuth2Client client = clientService.findClient(clientId);
+        if (client == null || !client.getRealm().equals(realm)) {
             // error
             throw new EntityNotFoundException("no client with id " + clientId);
         }
 
-        clientManager.delete(clientId);
+        clientService.deleteClient(clientId);
     }
 
     // DEPRECATED, dangerous direct access to repository!

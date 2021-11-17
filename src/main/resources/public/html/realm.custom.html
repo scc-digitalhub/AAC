@@ -1,0 +1,62 @@
+<div class="pb-3 pt-3">
+    <div class="row mb-3">
+        <div class="col col-md-6 p-3">
+            <h3>Customization</h3>
+            <p>Customize appearance and messages</p>
+        </div>
+        <div class="col col-md-6 text-right">
+            <button class="btn btn-primary btn-sm  text-right" ng-click="saveRealmCustom()">Save</button>
+            <button class="btn btn-secondary btn-sm  text-right" ng-click="exportRealmCustom()">Export</button>
+        </div>
+    </div>
+</div>
+
+<div class="accordion" id="app">
+
+    <ul class="nav nav-tabs nav-fill">
+        <li class="nav-item">
+            <a class="nav-link {{activeView('global')}}" href ng-click="switchView('global')">Global</a>
+        </li>    
+        <li class="nav-item">
+            <a class="nav-link {{activeView('login')}}" href ng-click="switchView('login')">Login</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('registration')}}" href ng-click="switchView('registration')">Registration</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('approval')}}" href ng-click="switchView('approval')">Approval</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  {{activeView('endsession')}}" href ng-click="switchView('endsession')">EndSession</a>
+        </li>
+
+
+    </ul>
+    <div class="tab-content pt-3">
+        <div class="tab-pane fade show active">
+            <form role="form" name="appForm" class="needs-validation was-validated" novalidate>
+                <div ng-include="'./html/custom/'+formView+'.html'"></div>
+            </form>
+        </div>
+    </div>
+
+
+
+</div>
+
+
+<div class="modal fade bs-modal-lg" tabindex="-1" role="dialog" id="customPreview">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                 <h3 class="modal-title" >Preview</h3>
+            </div>
+            <div class="modal-body">
+                <div ng-bind-html="customPreview"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

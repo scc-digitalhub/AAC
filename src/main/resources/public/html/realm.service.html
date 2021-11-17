@@ -1,0 +1,86 @@
+<div class="pb-3 pt-3">
+  <div class="row">
+    <div class="col col-md-6 p-3">
+      <h6><a ui-sref="realm.services({realmId:service.realm})">Custom services
+          &raquo;</a></h6>
+    </div>
+    <div class="col col-md-6 text-right">
+      <button class="btn btn-info" type="button" ng-click="exportService()">Export</button>
+      <button class="btn btn-danger" type="button" ng-click="removeService()">Delete</button>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-xs-1 p-2">
+      <svg class="icon icon-xl icon-primary left" aria-hidden="true">
+        <use xlink:href="./italia/svg/sprite.svg#it-plug"></use>
+      </svg>
+    </div>
+    <div class="col">
+      <h3>{{servicename}}</h3>
+      <p class="text-monospace">
+        <span class="small text-monospace bg-light pl-1 pr-1">{{service.namespace}}</span>
+        <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(service.namespace)">
+          <svg class="icon icon-xs icon-primary">
+            <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+          </svg>
+        </button>
+        <br>
+        <span class="small text-monospace bg-light pl-1 pr-1">{{service.serviceId}}</span>
+        <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(service.serviceId)">
+          <svg class="icon icon-xs icon-primary">
+            <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+          </svg>
+        </button>
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<p>{{servicedescription}}</p>
+
+
+<div class="accordion" id="service">
+  <ul class="nav nav-tabs nav-fill">
+    <li class="nav-item">
+      <a class="nav-link {{activeView('overview')}}" href ng-click="switchView('overview')">Overview</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link  {{activeView('settings')}}" href ng-click="switchView('settings')">Settings</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link  {{activeView('scopes')}}" href ng-click="switchView('scopes')">Scopes</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link  {{activeView('claims')}}" href ng-click="switchView('claims')">Claims</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link  {{activeView('clients')}}" href ng-click="switchView('clients')">Clients</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link  {{activeView('approvals')}}" href ng-click="switchView('approvals')">Approvals</a>
+    </li>
+  </ul>
+  <div class="tab-content pt-3">
+    <div class="tab-pane fade show active">
+      <form role="form" name="providerForm" class="needs-validation was-validated" novalidate>
+        <div ng-include="'./html/service/'+formView+'.html'"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteConfirm">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+        <p class="text-danger">ATTENTION: This operation cannot be undone!</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" ng-click="doDelete()" type="button">Delete</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

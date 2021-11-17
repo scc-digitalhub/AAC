@@ -13,7 +13,7 @@
   "btn_cancel": "Cancel",
   "btn_confirm": "Confirm",
   "home": {
-    "welcome" : "Welcome, {{fullname}}!",
+    "welcome" : "Welcome, {{fullName || username}}!",
     "account_card_title": "Account Info",
     "account_card_text": "View associated account information, merge and connect social accounts, etc.",
     "account_card_more": "Manage Accounts",
@@ -30,6 +30,7 @@
     "delete_title": "Delete Account",
     "delete_subtitle": "Remove your account and all the associated information",
     "delete_delete": "Delete",
+    "list_title": "Linked accounts", 
     "external": "External associated accounts",
     "external_subtitle": "You personal data extracted from this account",
     "external_missing": "No account associated",

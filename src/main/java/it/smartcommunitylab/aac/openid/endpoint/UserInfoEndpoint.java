@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.openid.endpoint;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,32 +26,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.jwt.ClientKeyCacheService;
-import it.smartcommunitylab.aac.jwt.JWTService;
-import it.smartcommunitylab.aac.manager.RoleManager;
-import it.smartcommunitylab.aac.manager.UserManager;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
+import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.service.ClientDetailsService;
+import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.User;
-import it.smartcommunitylab.aac.openid.view.HttpCodeView;
-import it.smartcommunitylab.aac.openid.view.UserInfoJWTView;
-import it.smartcommunitylab.aac.openid.view.UserInfoView;
-import it.smartcommunitylab.aac.repository.ClientDetailsRepository;
+import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
 
 /**
  * @author raman
@@ -63,17 +67,23 @@ public class UserInfoEndpoint {
 
     public static final String USERINFO_URL = "/userinfo";
 
-    @Autowired
-    private UserManager userManager;
+    public static final String JOSE_MEDIA_TYPE_VALUE = "application/jwt";
+    public static final MediaType JOSE_MEDIA_TYPE = new MediaType("application", "jwt");
 
     @Autowired
-    private RoleManager roleManager;
+    private UserService userService;
 
     @Autowired
-    private JWTService jwtService;
+    private ClientDetailsService clientService;
 
     @Autowired
-    private ClientDetailsRepository clientRepo;
+    private OAuth2ClientDetailsService oauth2ClientService;
+
+    @Autowired
+    private ExtTokenStore tokenStore;
+
+    @Autowired
+    private ClaimsTokenEnhancer claimsEnhancer;
 
     /**
      * Get information about the user as specified in the accessToken included in
@@ -82,78 +92,109 @@ public class UserInfoEndpoint {
 //	@PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + Config.OPENID_SCOPE + "')")
     @ApiOperation(value = "Get info about the authenticated End-User")
     @RequestMapping(value = USERINFO_URL, method = { RequestMethod.GET, RequestMethod.POST }, produces = {
-            MediaType.APPLICATION_JSON_VALUE, UserInfoJWTView.JOSE_MEDIA_TYPE_VALUE })
-    public String getInfo(
+            MediaType.APPLICATION_JSON_VALUE, JOSE_MEDIA_TYPE_VALUE })
+    public @ResponseBody Map<String, Object> getUserInfo(
             @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader,
-            OAuth2Authentication auth, Model model) {
+            BearerTokenAuthentication auth)
+            throws NoSuchUserException, NoSuchRealmException, ClientRegistrationException, NoSuchClientException {
 
         if (auth == null) {
             logger.error("getInfo failed; no principal. Requester is not authorized.");
-            model.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
-            return HttpCodeView.VIEWNAME;
+            throw new IllegalArgumentException("invalid authentication");
         }
 
-        User user = userManager.getUser();
-        if (user == null) {
-            logger.error("getInfo failed; user not found: " + user);
-            model.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-            return HttpCodeView.VIEWNAME;
+        // fetch token from store
+        OAuth2AccessToken token = tokenStore.readAccessToken(auth.getToken().getTokenValue());
+        if (token == null) {
+            throw new IllegalArgumentException("invalid token");
         }
 
-        // refresh authorities since authentication could be stale (stored in db)
-        List<GrantedAuthority> userAuthorities = roleManager.buildAuthorities(user);
+        // check if openid scope is in request
+        if (!token.getScope().contains(Config.SCOPE_OPENID)) {
+            throw new IllegalArgumentException("invalid token");
+        }
 
-        model.addAttribute(UserInfoView.SCOPE, auth.getOAuth2Request().getScope());
+        OAuth2Authentication oauthAuth = tokenStore.readAuthentication(token);
+        if (oauthAuth == null) {
+            throw new IllegalArgumentException("invalid token");
+        }
 
-        model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.getOAuth2Request().getExtensions().get("claims"));
+        // TODO refresh authentication to update userDetails + authorities etc.
 
-        model.addAttribute(UserInfoView.USER_INFO, user);
+        String clientId = oauthAuth.getOAuth2Request().getClientId();
+        ClientDetails clientDetails = clientService.loadClient(clientId);
 
-        model.addAttribute(UserInfoView.SELECTED_AUTHORITIES, userAuthorities);
+        // principal name is userid for user tokens
+        // we don't know yet if this is a client token...
+        String subjectId = auth.getName();
+        String realm = clientDetails.getRealm();
+
+        // fetch user, translated for client realm
+        User user = userService.getUser(subjectId, realm);
+
         // content negotiation
-
+        boolean useJwt = false;
         // start off by seeing if the client has registered for a signed/encrypted JWT
         // from here
-        ClientDetailsEntity client = clientRepo.findByClientId(auth.getOAuth2Request().getClientId());
-        model.addAttribute(UserInfoJWTView.CLIENT, client);
+        OAuth2ClientDetails oauth2ClientDetails = oauth2ClientService.loadClientByClientId(clientId);
 
-        String signedResponseAlg = jwtService.getSigningAlgorithm(client);
-        String encResponseAlg = jwtService.getEncryptAlgorithm(client);
-        String encResponseEnc = jwtService.getEncryptMethod(client);
+        String signedResponseAlg = oauth2ClientDetails.getJwtSignAlgorithm();
+        String encResponseAlg = oauth2ClientDetails.getJwtEncAlgorithm();
+        String encResponseEnc = oauth2ClientDetails.getJwtEncMethod();
 
         List<MediaType> mediaTypes = MediaType.parseMediaTypes(acceptHeader);
         MediaType.sortBySpecificityAndQuality(mediaTypes);
 
+        // TODO rework
         if (StringUtils.hasText(signedResponseAlg)
                 || (StringUtils.hasText(encResponseAlg)) && StringUtils.hasText(encResponseEnc)) {
 
             // client has a preference, see if they ask for plain JSON specifically on this
             // request
             for (MediaType m : mediaTypes) {
-                if (!m.isWildcardType() && m.isCompatibleWith(UserInfoJWTView.JOSE_MEDIA_TYPE)) {
-                    return UserInfoJWTView.VIEWNAME;
+                if (!m.isWildcardType() && m.isCompatibleWith(JOSE_MEDIA_TYPE)) {
+                    useJwt = true;
                 } else if (!m.isWildcardType() && m.isCompatibleWith(MediaType.APPLICATION_JSON)) {
-                    return UserInfoView.VIEWNAME;
+                    useJwt = false;
                 }
             }
 
             // otherwise return JWT
-            return UserInfoJWTView.VIEWNAME;
+            useJwt = true;
         } else {
             // client has no preference, see if they asked for JWT specifically on this
             // request
             for (MediaType m : mediaTypes) {
                 if (!m.isWildcardType() && m.isCompatibleWith(MediaType.APPLICATION_JSON)) {
-                    return UserInfoView.VIEWNAME;
-                } else if (!m.isWildcardType() && m.isCompatibleWith(UserInfoJWTView.JOSE_MEDIA_TYPE)) {
-                    return UserInfoJWTView.VIEWNAME;
+                    useJwt = false;
+                } else if (!m.isWildcardType() && m.isCompatibleWith(JOSE_MEDIA_TYPE)) {
+                    useJwt = true;
                 }
             }
 
             // otherwise return JSON
-            return UserInfoView.VIEWNAME;
+            useJwt = false;
         }
+
+        // build response
+        Map<String, Object> userInfo = new HashMap<>();
+
+        // we rebuild all claims
+        AACOAuth2AccessToken accessToken = claimsEnhancer.enhance(token, oauthAuth);
+
+        userInfo.putAll(accessToken.getClaims());
+
+        // TODO handle jwt/jwe response types
+
+        return userInfo;
 
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(exception.getMessage());
+    }
 }

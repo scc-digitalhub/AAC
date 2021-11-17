@@ -2,22 +2,18 @@ package it.smartcommunitylab.aac.jwt;
 
 import java.text.ParseException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
@@ -26,10 +22,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.util.Base64URL;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
-import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
-import it.smartcommunitylab.aac.model.ClientDetailsEntity;
 
 /**
  *
@@ -37,48 +30,31 @@ import it.smartcommunitylab.aac.model.ClientDetailsEntity;
  * client's registered key types.
  *
  * @author jricher
+ * @author mat
  *
  */
-@Service
+
 public class ClientKeyCacheService {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientKeyCacheService.class);
 
-    @Autowired
-    private JWKSetCacheService jwksUriCache = new JWKSetCacheService();
-
-//	@Autowired
-//	private SymmetricKeyJWTValidatorCacheService symmetricCache = new SymmetricKeyJWTValidatorCacheService();
+    private final JWKSetCacheService jwksUriCache = new JWKSetCacheService();
 
     // cache of validators for by-value JWKs
-    private LoadingCache<JWKSet, JWTSigningAndValidationService> jwksValidators;
+    private final LoadingCache<JWKSet, JWTSigningAndValidationService> jwksValidators = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(new JWKSetVerifierBuilder());
 
     // cache of encryptors for by-value JWKs
-    private LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> jwksEncrypters;
-
-    public ClientKeyCacheService() {
-        this.jwksValidators = CacheBuilder.newBuilder()
-                .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-                .maximumSize(100)
-                .build(new JWKSetVerifierBuilder());
-        this.jwksEncrypters = CacheBuilder.newBuilder()
-                .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-                .maximumSize(100)
-                .build(new JWKSetEncryptorBuilder());
-    }
+    private final LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> jwksEncrypters = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(new JWKSetEncryptorBuilder());
 
     /*
      * Get client specific signer
      */
-
-//    public JWTSigningAndValidationService getSigner(ClientDetailsEntity client) {
-//        JWSAlgorithm signingAlg = getSignedResponseAlg(client);
-//        if (signingAlg != null) {
-//            return getSigner(client, signingAlg);
-//        } else {
-//            return null;
-//        }
-//    }
 
     public JWTSigningAndValidationService getSigner(
             String algorithm,
@@ -239,70 +215,6 @@ public class ClientKeyCacheService {
         } else {
             return null;
         }
-    }
-
-//    // TODO cleanup and integrate with JWTservice
-//    private String getJwksUri(ClientDetailsEntity client) {
-//        return (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWKS_URI);
-//    }
-//
-//    private String getJwks(ClientDetailsEntity client) {
-//        return (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWKS);
-//    }
-//
-//    private JWSAlgorithm getSignedResponseAlg(ClientDetailsEntity client) {
-//        String signedResponseAlg = (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWT_SIGN_ALG);
-//        return signedResponseAlg != null ? JWSAlgorithm.parse(signedResponseAlg) : null;
-//
-//    }
-//
-//    private JWEAlgorithm getEncryptedResponseAlg(ClientDetailsEntity client) {
-//        String encResponseAlg = (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWT_ENC_ALG);
-//        return encResponseAlg != null ? JWEAlgorithm.parse(encResponseAlg) : null;
-//    }
-//
-//    private EncryptionMethod getEncryptedResponseEnc(ClientDetailsEntity client) {
-//        String encResponseEnc = (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWT_ENC_METHOD);
-//        return encResponseEnc != null ? EncryptionMethod.parse(encResponseEnc) : null;
-//    }
-
-    /*
-     * Static helpers to access client properties TODO move to util class or make
-     * private
-     */
-
-//    public static String getJwksUri(ClientDetailsEntity client) {
-//        return (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWKS_URI);
-//    }
-//
-//    public static String getJwks(ClientDetailsEntity client) {
-//        return (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWKS);
-//    }
-//
-//    public static JWSAlgorithm getSignedResponseAlg(ClientDetailsEntity client) {
-//        String signedResponseAlg = (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWT_SIGN_ALG);
-//        return signedResponseAlg != null ? JWSAlgorithm.parse(signedResponseAlg) : null;
-//
-//    }
-//
-//    public static JWEAlgorithm getEncryptedResponseAlg(ClientDetailsEntity client) {
-//        String encResponseAlg = (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWT_ENC_ALG);
-//        return encResponseAlg != null ? JWEAlgorithm.parse(encResponseAlg) : null;
-//    }
-//
-//    public static EncryptionMethod getEncryptedResponseEnc(ClientDetailsEntity client) {
-//        String encResponseEnc = (String) client.getAdditionalInformation().get(Config.CLIENT_INFO_JWT_ENC_METHOD);
-//        return encResponseEnc != null ? EncryptionMethod.parse(encResponseEnc) : null;
-//    }
-
-    public static int getAccessTokenValiditySeconds(ClientDetailsEntity client) {
-        Integer validity = client.getAccessTokenValiditySeconds();
-        return validity != null ? validity : -1;
-    }
-
-    public static int getRefreshTokenValiditySeconds(ClientDetailsEntity client) {
-        Integer validity = client.getRefreshTokenValiditySeconds();
-        return validity != null ? validity : -1;
     }
 
     /*

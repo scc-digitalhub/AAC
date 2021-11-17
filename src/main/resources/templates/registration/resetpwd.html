@@ -1,6 +1,6 @@
 <!--
 
-       Copyright 2015-2019 Smart Community Lab, FBK
+       Copyright 2015-2021 Smart Community Lab, FBK
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -16,51 +16,96 @@
 
 -->
 
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" >
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="-1" />        
-        <title th:text="#{lbl_login_title}"></title>
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
 
-    <!-- Design Italia -->
-    <link rel="stylesheet" href="../italia/css/bootstrap-italia.min.css"/>   
-    <script>window.__PUBLIC_PATH__ = '../italia/fonts'</script>    
-    <link href="../italia/style.css" rel="stylesheet" />
-    <script src="../italia/js/bootstrap-italia.bundle.min.js"  type="text/javascript" charset="utf-8"></script>    
-  
-    </head>
-    <body>
-      <div class="container">
-	      <img class="logo" src="../img/ls_logo.png" alt="SmartCommunity" />
-	      <div class="clear"></div>
-        <div class="row justify-content-center">
-          <div class="col-md-offset-4 col-md-4">
-            <div class="panel panel-default">
-            <h4 style="text-align:center" th:text="#{lbl_reset_title}"></h4>
-            <form action="reset" method="post">
-                <div class="error text-center" th:if="${error} != null" th:text="#{${error}}">Error text</div>
-                <div>&nbsp;</div>
-                <div class="col-md-12 form-group"><label th:text="#{lbl_user}" >: </label><input class="form-control" type="text" name="username"/></div>
-                <div class="row">
-                <div class="col-md-6 form-group">
-                  <button class="btn btn-block btn-primary"  th:text="#{lbl_reset_btn}" ></button>
-                </div>  
-                <div class="col-md-6 form-group">
-                  <a class="btn btn-block" href="../login"  th:text="#{lbl_cancel}" ></a>
-                </div>  
-                </div>
-                <div>&nbsp;</div>
-            </form>
-            </div>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="-1" />
+  <!-- Design Italia -->
+  <link rel="stylesheet" th:href="@{/italia/css/bootstrap-italia.min.css}" />
+  <script th:inline="javascript">
+    const contextpath = /*[[@{/}]]*/ "/";
+    window.__PUBLIC_PATH__ = contextpath + 'italia/fonts'
+  </script>
+  <link th:href="@{/italia/style.css}" rel="stylesheet" />
+
+  <title th:text="#{label.resetpwd_title}">AAC Reset Account</title>
+</head>
+
+<body>
+  <div class="container-sm">
+
+    <div class="row mt-2 mt-md-4 justify-content-center">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 card-wrapper card-space">
+        <div class="card border border-primary mb-4">
+
+          <!-- card header -->
+          <div class="card-header pl-4 text-muted">
+            <span>
+              <svg class="icon icon-secondary icon-sm">
+                <use th:xlink:href="@{/italia/svg/sprite.svg#it-unlocked}"></use>
+              </svg>
+            </span>
+            <span class="ml-1" th:text="#{label.resetpwd_title}"></span>
           </div>
+
+
+          <div class="card-body align-items-center">
+            <!-- realm logo  -->
+            <div class="card-logo">
+              <img class="" th:src="@{/img/ds_logo.png}" th:alt="${displayName}">
+              <h4 class="text-center" th:text="${displayName}">AAC</h4>
+            </div>
+
+            <p class="text-center" th:text="#{label.resetpwd_text}">Reset account</p>
+            <form action="#" th:action="${resetUrl}" th:object="${reg}" method="post">
+
+              <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
+                            Error text</div>
+                            
+              <div class="col-md-12 form-group">
+                <label th:text="#{field.username} + '*: '"></label>
+                <input type="text" class="form-control" th:field="*{username}" />
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+              </div>
+
+              <div class="col-md-12 form-group">
+                <label th:text="#{field.email} + '*: '"></label>
+                <input type="text" class="form-control" th:field="*{email}" />
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+              </div>
+
+              <div class="row">
+                <div class="col-6 text-right">
+                  <button class="btn btn-primary" th:text="#{action.reset}"></button>
+                </div>
+                <div class="col-6">
+                  <a class="btn" th:href="${loginUrl}" th:text="#{action.cancel}"></a>
+                </div>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- realm footer  -->
+          <div class="card-footer bg-primary text-white customization-block"
+            th:if="${customization != null && customization.get('footerText') != null}"
+            th:utext="${customization.get('footerText')}"></div>
+
         </div>
-      </div>  
-    </body>
+      </div>
+    </div>
+
+
+  </div>
+  <script th:src="@{/italia/js/bootstrap-italia.bundle.min.js}" type="text/javascript" charset="utf-8"></script>
+</body>
+
 </html>
