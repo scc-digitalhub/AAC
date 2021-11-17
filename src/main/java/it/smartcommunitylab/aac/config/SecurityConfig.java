@@ -95,12 +95,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${application.url}")
     private String applicationURL;
 
-    @Value("${security.restricted}")
-    private boolean restrictedAccess;
-
-    @Value("${security.rememberme.key}")
-    private String remembermeKey;
-
     private String loginPath = "/login";
     private String logoutPath = "/logout";
 
