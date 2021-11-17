@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -42,6 +41,9 @@ public class AuthorizationResponse {
 
     @JsonProperty("expires_in")
     private Integer expiresIn;
+
+    @JsonProperty("iss")
+    private String issuer;
 
     @JsonIgnore
     private Map<String, Serializable> additionalInformation;
@@ -124,6 +126,14 @@ public class AuthorizationResponse {
 
     public void setExpiresIn(Integer expiresIn) {
         this.expiresIn = expiresIn;
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
     }
 
     public Map<String, Serializable> getAdditionalInformation() {

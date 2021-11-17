@@ -1,14 +1,16 @@
 package it.smartcommunitylab.aac.saml.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -19,29 +21,30 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
 @Entity
+@IdClass(SamlUserAccountId.class)
 @Table(name = "saml_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "provider_id", "user_id" }))
 @EntityListeners(AuditingEntityListener.class)
-public class SamlUserAccount implements UserAccount {
+public class SamlUserAccount implements UserAccount, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     @Id
-    @GeneratedValue
-    private Long id;
-
-    // entity
-    @NotNull
-    @Column(name = "subject_id")
-    private String subject;
-
+    @NotBlank
     @Column(name = "provider_id")
     private String provider;
 
+    @Id
+    @NotBlank
     private String realm;
 
-    // account details
+    @Id
+    @NotBlank
     @Column(name = "user_id")
     private String userId;
+
+    @NotNull
+    @Column(name = "subject_id")
+    private String subject;
 
     @Column(name = "username")
     private String username;
@@ -85,11 +88,6 @@ public class SamlUserAccount implements UserAccount {
 
     @Override
     public String getUserId() {
-        if (userId == null) {
-            // use our id at authority level is the internal id
-            return String.valueOf(id);
-        }
-
         return userId;
     }
 
@@ -110,14 +108,6 @@ public class SamlUserAccount implements UserAccount {
     /*
      * fields
      */
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getSubject() {
         return subject;
@@ -189,7 +179,7 @@ public class SamlUserAccount implements UserAccount {
 
     @Override
     public String toString() {
-        return "SamlUserAccount [id=" + id + ", subject=" + subject + ", provider=" + provider + ", realm=" + realm
+        return "SamlUserAccount [subject=" + subject + ", provider=" + provider + ", realm=" + realm
                 + ", userId=" + userId + ", username=" + username + ", issuer=" + issuer + ", email=" + email
                 + ", name=" + name + ", lang=" + lang + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate
                 + "]";

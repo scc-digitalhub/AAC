@@ -1,10 +1,7 @@
 package it.smartcommunitylab.aac.core.service;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -16,12 +13,10 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
-import it.smartcommunitylab.aac.core.persistence.ClientRoleEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.SubjectEntity;
-import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
+import it.smartcommunitylab.aac.model.Subject;
 
 /*
  * Manage persistence for client entities and roles
@@ -31,30 +26,21 @@ import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
 public class ClientEntityService {
 
     private final ClientEntityRepository clientRepository;
-    private final ClientRoleEntityRepository clientRoleRepository;
-    private final SubjectEntityRepository subjectRepository;
+
+    // TODO move to clientService when implemented properly
+    private final SubjectService subjectService;
 
     public ClientEntityService(ClientEntityRepository clientRepository,
-            ClientRoleEntityRepository clientRoleRepository,
-            SubjectEntityRepository subjectRepository) {
+            SubjectService subjectService) {
         Assert.notNull(clientRepository, "client repository is mandatory");
-        Assert.notNull(clientRoleRepository, "client roles repository is mandatory");
-        Assert.notNull(subjectRepository, "subject repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
 
         this.clientRepository = clientRepository;
-        this.clientRoleRepository = clientRoleRepository;
-        this.subjectRepository = subjectRepository;
+        this.subjectService = subjectService;
     }
 
     public ClientEntity createClient() {
-        // generate random
-        // TODO ensure unique on multi node deploy: replace with idGenerator
-        // (given that UUID is derived from timestamp we consider this safe enough)
-        String uuid = UUID.randomUUID().toString();
-
-        // we prepend a fixed prefix to enable discovery of entity type from uuid
-        String id = ClientEntity.ID_PREFIX + uuid;
-
+        String id = subjectService.generateUuid(SystemKeys.RESOURCE_CLIENT);
         ClientEntity c = new ClientEntity(id);
 
         return c;
@@ -75,12 +61,8 @@ public class ClientEntityService {
             throw new IllegalArgumentException("client already exists with the same id");
         }
 
-        // create a subject, will throw error if exists
-        SubjectEntity s = new SubjectEntity(clientId);
-        s.setRealm(realm);
-        s.setType(SystemKeys.RESOURCE_CLIENT);
-        s.setName(name);
-        s = subjectRepository.save(s);
+        // create subject
+        Subject s = subjectService.addSubject(clientId, realm, SystemKeys.RESOURCE_CLIENT, name);
 
         // create client
         c = new ClientEntity(clientId);
@@ -93,8 +75,18 @@ public class ClientEntityService {
         c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
 
-        c.setHookFunctions(hookFunctions);
-        c.setHookWebUrls(hookWebUrls);
+        // cleanup maps
+        Map<String, String> hFunctions = hookFunctions == null ? null
+                : hookFunctions.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        Map<String, String> hWebUrls = hookWebUrls == null ? null
+                : hookWebUrls.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        c.setHookFunctions(hFunctions);
+        c.setHookWebUrls(hWebUrls);
         c.setHookUniqueSpaces(hookUniqueSpaces);
 
         c = clientRepository.save(c);
@@ -172,20 +164,31 @@ public class ClientEntityService {
         c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));
         c.setProviders(StringUtils.collectionToCommaDelimitedString(providers));
 
-        c.setHookFunctions(hookFunctions);
-        c.setHookWebUrls(hookWebUrls);
+        // cleanup maps
+        Map<String, String> hFunctions = hookFunctions == null ? null
+                : hookFunctions.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        Map<String, String> hWebUrls = hookWebUrls == null ? null
+                : hookWebUrls.entrySet().stream()
+                        .filter(e -> StringUtils.hasText(e.getValue()))
+                        .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        c.setHookFunctions(hFunctions);
+        c.setHookWebUrls(hWebUrls);
         c.setHookUniqueSpaces(hookUniqueSpaces);
         c = clientRepository.save(c);
 
         // check if subject exists and update name
-        SubjectEntity s = subjectRepository.findBySubjectId(clientId);
+        Subject s = subjectService.findSubject(clientId);
         if (s == null) {
-            s = new SubjectEntity(clientId);
-            s.setRealm(c.getRealm());
-            s.setType(SystemKeys.RESOURCE_CLIENT);
+            s = subjectService.addSubject(clientId, c.getRealm(), SystemKeys.RESOURCE_CLIENT, name);
+        } else {
+            try {
+                s = subjectService.updateSubject(clientId, name);
+            } catch (NoSuchSubjectException e) {
+            }
         }
-        s.setName(name);
-        s = subjectRepository.save(s);
 
         return c;
 
@@ -194,102 +197,96 @@ public class ClientEntityService {
     public void deleteClient(String clientId) {
         ClientEntity c = clientRepository.findByClientId(clientId);
         if (c != null) {
-            // also search roles
-            List<ClientRoleEntity> roles = clientRoleRepository.findByClientId(clientId);
-            clientRoleRepository.deleteAll(roles);
-
             // remove entity
             clientRepository.delete(c);
 
             // remove subject if exists
-            if (subjectRepository.findOne(clientId) != null) {
-                subjectRepository.deleteById(clientId);
-            }
+            subjectService.deleteSubject(clientId);
         }
     }
 
-    /*
-     * Client roles
-     */
-    @Transactional(readOnly = true)
-    public List<ClientRoleEntity> getRoles(String clientId) throws NoSuchClientException {
-        ClientEntity c = getClient(clientId);
-        return clientRoleRepository.findByClientId(c.getClientId());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ClientRoleEntity> getRoles(String clientId, String realm) throws NoSuchClientException {
-        ClientEntity c = getClient(clientId);
-        return clientRoleRepository.findByClientIdAndRealm(c.getClientId(), realm);
-    }
-
-    /*
-     * Update client roles per realm
-     */
-
-    public List<ClientRoleEntity> updateRoles(String clientId, String realm, Collection<String> roles)
-            throws NoSuchClientException {
-
-        ClientEntity c = clientRepository.findByClientId(clientId);
-        if (c == null) {
-            throw new NoSuchClientException();
-        }
-
-        // fetch current roles
-        List<ClientRoleEntity> oldRoles = clientRoleRepository.findByClientIdAndRealm(clientId, realm);
-
-        // unpack roles
-        Set<ClientRoleEntity> newRoles = roles.stream().map(r -> {
-            ClientRoleEntity re = new ClientRoleEntity(clientId);
-            re.setRealm(realm);
-            re.setRole(r);
-            return re;
-        }).collect(Collectors.toSet());
-
-        // update
-        Set<ClientRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r))
-                .collect(Collectors.toSet());
-        Set<ClientRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
-
-        clientRoleRepository.deleteAll(toDelete);
-        clientRoleRepository.saveAll(toAdd);
-
-        return clientRoleRepository.findByClientIdAndRealm(clientId, realm);
-
-    }
-
-    /*
-     * Update all client roles at once
-     */
-    public List<ClientRoleEntity> updateRoles(String clientId, Collection<Map.Entry<String, String>> roles)
-            throws NoSuchClientException {
-
-        ClientEntity c = clientRepository.findByClientId(clientId);
-        if (c == null) {
-            throw new NoSuchClientException();
-        }
-
-        // fetch current roles
-        List<ClientRoleEntity> oldRoles = clientRoleRepository.findByClientId(clientId);
-
-        // unpack roles
-        Set<ClientRoleEntity> newRoles = roles.stream().map(e -> {
-            ClientRoleEntity re = new ClientRoleEntity(clientId);
-            re.setRealm(e.getKey());
-            re.setRole(e.getValue());
-            return re;
-        }).collect(Collectors.toSet());
-
-        // update
-        Set<ClientRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r))
-                .collect(Collectors.toSet());
-        Set<ClientRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
-
-        clientRoleRepository.deleteAll(toDelete);
-        clientRoleRepository.saveAll(toAdd);
-
-        return clientRoleRepository.findByClientId(clientId);
-
-    }
+//    /*
+//     * Client authorities
+//     */
+//    @Transactional(readOnly = true)
+//    public List<GrantedAuthority> getAuthorities(String clientId) throws NoSuchClientException {
+//        ClientEntity c = getClient(clientId);
+//        return clientRoleRepository.findByClientId(c.getClientId());
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public List<ClientRoleEntity> getRoles(String clientId, String realm) throws NoSuchClientException {
+//        ClientEntity c = getClient(clientId);
+//        return clientRoleRepository.findByClientIdAndRealm(c.getClientId(), realm);
+//    }
+//
+//    /*
+//     * Update client roles per realm
+//     */
+//
+//    public List<ClientRoleEntity> updateRoles(String clientId, String realm, Collection<String> roles)
+//            throws NoSuchClientException {
+//
+//        ClientEntity c = clientRepository.findByClientId(clientId);
+//        if (c == null) {
+//            throw new NoSuchClientException();
+//        }
+//
+//        // fetch current roles
+//        List<ClientRoleEntity> oldRoles = clientRoleRepository.findByClientIdAndRealm(clientId, realm);
+//
+//        // unpack roles
+//        Set<ClientRoleEntity> newRoles = roles.stream().map(r -> {
+//            ClientRoleEntity re = new ClientRoleEntity(clientId);
+//            re.setRealm(realm);
+//            re.setRole(r);
+//            return re;
+//        }).collect(Collectors.toSet());
+//
+//        // update
+//        Set<ClientRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r))
+//                .collect(Collectors.toSet());
+//        Set<ClientRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
+//
+//        clientRoleRepository.deleteAll(toDelete);
+//        clientRoleRepository.saveAll(toAdd);
+//
+//        return clientRoleRepository.findByClientIdAndRealm(clientId, realm);
+//
+//    }
+//
+//    /*
+//     * Update all client roles at once
+//     */
+//    public List<ClientRoleEntity> updateRoles(String clientId, Collection<Map.Entry<String, String>> roles)
+//            throws NoSuchClientException {
+//
+//        ClientEntity c = clientRepository.findByClientId(clientId);
+//        if (c == null) {
+//            throw new NoSuchClientException();
+//        }
+//
+//        // fetch current roles
+//        List<ClientRoleEntity> oldRoles = clientRoleRepository.findByClientId(clientId);
+//
+//        // unpack roles
+//        Set<ClientRoleEntity> newRoles = roles.stream().map(e -> {
+//            ClientRoleEntity re = new ClientRoleEntity(clientId);
+//            re.setRealm(e.getKey());
+//            re.setRole(e.getValue());
+//            return re;
+//        }).collect(Collectors.toSet());
+//
+//        // update
+//        Set<ClientRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r))
+//                .collect(Collectors.toSet());
+//        Set<ClientRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
+//
+//        clientRoleRepository.deleteAll(toDelete);
+//        clientRoleRepository.saveAll(toAdd);
+//
+//        return clientRoleRepository.findByClientId(clientId);
+//
+//    }
 
 }

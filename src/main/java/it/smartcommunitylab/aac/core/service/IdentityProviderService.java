@@ -389,6 +389,20 @@ public class IdentityProviderService {
      * Configuration schemas
      */
 
+    public ConfigurableProperties getConfigurableProperties(String authority) {
+        if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
+            return new InternalIdentityProviderConfigMap();
+        } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
+            return new OIDCIdentityProviderConfigMap();
+        } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
+            return new SamlIdentityProviderConfigMap();
+        } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
+            return new SpidIdentityProviderConfigMap();
+        }
+
+        throw new IllegalArgumentException("invalid authority");
+    }
+
     public JsonSchema getConfigurationSchema(String authority) {
         try {
             if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
@@ -401,7 +415,6 @@ public class IdentityProviderService {
                 return SpidIdentityProviderConfigMap.getConfigurationSchema();
             }
         } catch (JsonMappingException e) {
-            e.printStackTrace();
             return null;
         }
 

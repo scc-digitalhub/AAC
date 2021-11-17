@@ -1,8 +1,0 @@
-mappings:
-  - attribute: accounts.google.OIDC_CLAIM_email
-    value: (.)*
-    mock:
-      pat_attribute_codicefiscale: ABCDEF12G34H567I
-      pat_attribute_email: example@example.com
-      pat_attribute_nome: MARIO
-      pat_attribute_cognome: ROSSI

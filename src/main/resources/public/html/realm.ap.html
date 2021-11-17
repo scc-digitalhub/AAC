@@ -26,7 +26,14 @@
         </div>
         <div class="col">
             <h3>{{providerName}}</h3>
-            <p class="text-monospace">{{ap.authority }}:{{ap.provider}}</p>
+            <p class="text-monospace">
+                <span class="small text-monospace bg-light pl-1 pr-1">{{ap.authority}}:{{ap.provider}}</span>
+                <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(ap.provider)">
+                    <svg class="icon icon-xs icon-primary">
+                        <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                    </svg>
+                </button>
+            </p>
         </div>
     </div>
 </div>

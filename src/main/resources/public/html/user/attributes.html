@@ -50,7 +50,7 @@
 		</legend>
 		<div class="row">
 			<table class="table table-hover border-bottom">
-				<tr ng-repeat="item in user.attributes">
+				<tr ng-repeat="item in attributes">
 					<td class="align-middle">
 						<h6>{{item.name}}</h6>
 						<p>{{item.description}}</p>
@@ -74,7 +74,7 @@
 					</td>
 				</tr>
 			</table>
-			<div class="col-md-12" ng-if="editAttributes">
+			<div class="col-md-12" ng-if="editAttributes && editAttributes.length > 0">
 				<button class="btn btn-primary text-right dropdown-toggle" type="button" data-toggle="dropdown"
 					aria-haspopup="true" aria-expanded="false">
 					<svg class="icon icon-sm icon-white">

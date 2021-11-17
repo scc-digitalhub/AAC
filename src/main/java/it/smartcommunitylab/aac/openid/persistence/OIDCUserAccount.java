@@ -1,14 +1,16 @@
 package it.smartcommunitylab.aac.openid.persistence;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -19,29 +21,30 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
 @Entity
+@IdClass(OIDCUserAccountId.class)
 @Table(name = "oidc_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "provider_id", "user_id" }))
 @EntityListeners(AuditingEntityListener.class)
-public class OIDCUserAccount implements UserAccount {
+public class OIDCUserAccount implements UserAccount, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
     @Id
-    @GeneratedValue
-    private Long id;
-
-    // entity
-    @NotNull
-    @Column(name = "subject_id")
-    private String subject;
-
+    @NotBlank
     @Column(name = "provider_id")
     private String provider;
 
+    @Id
+    @NotBlank
     private String realm;
 
-    // account details
+    @Id
+    @NotBlank
     @Column(name = "user_id")
     private String userId;
+
+    @NotNull
+    @Column(name = "subject_id")
+    private String subject;
 
     @Column(name = "username")
     private String username;
@@ -94,11 +97,6 @@ public class OIDCUserAccount implements UserAccount {
 
     @Override
     public String getUserId() {
-        if (userId == null) {
-            // use our id at authority level is the internal id
-            return String.valueOf(id);
-        }
-
         return userId;
     }
 
@@ -119,14 +117,6 @@ public class OIDCUserAccount implements UserAccount {
     /*
      * fields
      */
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getSubject() {
         return subject;
@@ -243,7 +233,7 @@ public class OIDCUserAccount implements UserAccount {
 
     @Override
     public String toString() {
-        return "OIDCUserAccount [id=" + id + ", subject=" + subject + ", provider=" + provider + ", realm=" + realm
+        return "OIDCUserAccount [subject=" + subject + ", provider=" + provider + ", realm=" + realm
                 + ", username=" + username + ", issuer=" + issuer + ", email=" + email + ", emailVerified="
                 + emailVerified + ", name=" + name + ", givenName=" + givenName + ", familyName=" + familyName
                 + ", lang=" + lang + ", createDate="

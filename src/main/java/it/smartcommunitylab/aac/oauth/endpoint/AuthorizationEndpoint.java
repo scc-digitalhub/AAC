@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -75,6 +77,7 @@ import it.smartcommunitylab.aac.openid.token.IdTokenServices;
  * https://datatracker.ietf.org/doc/html/rfc7636
  * https://openid.net/specs/openid-connect-core-1_0.html
  * https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
+ * https://datatracker.ietf.org/doc/html/draft-ietf-oauth-iss-auth-resp-01
  * 
 */
 
@@ -95,6 +98,9 @@ public class AuthorizationEndpoint implements InitializingBean {
     private static final String formView = "forward:" + FORM_POST_URL;
 //    private static final String formPage = "oauth_form_post.html";
     private static final String formPage = FormPostView.VIEWNAME;
+
+    @Value("${jwt.issuer}")
+    private String issuer;
 
     @Autowired
     private OAuth2AuthorizationRequestFactory oauth2AuthorizationRequestFactory;
@@ -154,7 +160,7 @@ public class AuthorizationEndpoint implements InitializingBean {
             })
     public ModelAndView authorize(@RequestParam Map<String, String> parameters,
             @PathVariable("realm") Optional<String> realmKey,
-            Authentication authentication) {
+            Authentication authentication, HttpServletRequest request) {
 
         // TODO move everything to catch block and *always* parse request via factory
 
@@ -198,6 +204,18 @@ public class AuthorizationEndpoint implements InitializingBean {
             User user = userService.getUser(userDetails, clientDetails.getRealm());
 
             try {
+                // extract unencoded parameters
+                UriComponents uc = UriComponentsBuilder.fromUri(URI.create(request.getRequestURI()))
+                        .query(request.getQueryString()).build(true);
+                String state = uc.getQueryParams().getFirst("state");
+                String nonce = uc.getQueryParams().getFirst("nonce");
+
+                if (StringUtils.hasText(state)) {
+                    parameters.put("state", state);
+                }
+                if (StringUtils.hasText(nonce)) {
+                    parameters.put("nonce", nonce);
+                }
 
                 // fetch authorizationRequest via factory
                 AuthorizationRequest authorizationRequest = oauth2AuthorizationRequestFactory
@@ -585,6 +603,9 @@ public class AuthorizationEndpoint implements InitializingBean {
             response.setIdToken(idToken.getValue());
         }
 
+        // set issuer
+        response.setIssuer(issuer);
+
         // append state params as per spec if provided
         // note: we append state even when empty
         if (authorizationRequest.getState() != null) {
@@ -674,6 +695,9 @@ public class AuthorizationEndpoint implements InitializingBean {
             String scope = StringUtils.collectionToDelimitedString(authorizationResponse.getScope(), " ");
             params.put("scope", scope);
         }
+        if (authorizationResponse.getIssuer() != null) {
+            params.put("iss", authorizationResponse.getIssuer());
+        }
 
         return buildUri(redirectUri, params, asFragment);
 
@@ -746,14 +770,21 @@ public class AuthorizationEndpoint implements InitializingBean {
             }
 
             for (String key : params.keySet()) {
-                values.add(key + "={" + key + "}");
+                if (!"state".equals(key)) {
+                    values.add(key + "={" + key + "}");
+                }
             }
 
             template.fragment(StringUtils.collectionToDelimitedString(values, "&"));
 
             // expand and encode as fragment
             UriComponents encoded = template.build().expand(params).encode();
-            builder.fragment(encoded.getFragment());
+            String fragment = encoded.getFragment();
+            // set state as pre-encoded
+            if (params.containsKey("state")) {
+                fragment = fragment.concat("&state=" + params.get("state"));
+            }
+            builder.fragment(fragment);
 
         } else {
             // append as query
@@ -768,10 +799,14 @@ public class AuthorizationEndpoint implements InitializingBean {
             // expand and encode as query
             UriComponents encoded = template.build().expand(params).encode();
             builder.query(encoded.getQuery());
+            // replace state as pre-encoded
+            if (params.containsKey("state")) {
+                builder.replaceQueryParam("state", params.get("state"));
+            }
         }
 
         // build
-        return builder.build().toUriString();
+        return builder.build(true).toUriString();
 
     }
 
@@ -809,7 +844,9 @@ public class AuthorizationEndpoint implements InitializingBean {
             String scope = StringUtils.collectionToDelimitedString(authorizationResponse.getScope(), " ");
             params.put("scope", scope);
         }
-
+        if (authorizationResponse.getIssuer() != null) {
+            params.put("iss", authorizationResponse.getIssuer());
+        }
         return buildPost(redirectUri, params);
 
     }

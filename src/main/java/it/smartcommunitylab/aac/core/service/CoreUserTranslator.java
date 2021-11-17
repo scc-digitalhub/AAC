@@ -25,8 +25,9 @@ public class CoreUserTranslator implements UserTranslator {
         User result = new User(user.getSubjectId(), user.getSource());
         result.setRealm(realm);
 
-        // pass only username
+        // pass only username+email
         result.setUsername(user.getUsername());
+        result.setEmail(user.getEmail());
 
         // filter identities
         List<UserIdentity> identities = user.getIdentities().stream()
@@ -60,7 +61,7 @@ public class CoreUserTranslator implements UserTranslator {
         result.setAuthorities(authorities);
 
         // all roles
-        result.setRoles(user.getRoles());
+        result.setSpaceRoles(user.getSpaceRoles());
 
         return result;
 

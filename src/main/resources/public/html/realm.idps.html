@@ -50,21 +50,24 @@
               </svg>
             </div>
             <div class="extra-text">
-              <span class="h6">{{item.name}}</span>
-              <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
-                <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
-                <title>Active</title>
-              </svg>
-              <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
-                <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
-                <title>Error</title>
-              </svg>
-              <svg ng-if="!item.enabled && !item.registered" aria-hidden="true"
-                class="icon icon-sm icon-secondary mx-3">
-                <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
-                <title>Disabled</title>
-              </svg>
-              <br><small class=""> {{item.authority}}</small>
+              <a class="text-decoration-none {{!item.enabled && !item.registered ? 'text-muted' : ''}} {{item.enabled && !item.registered ? 'text-danger' : ''}}"
+                ui-sref="realm.idp({realmId:item.realm, providerId:item.provider})">
+                <span class="h6">{{item.name}}</span>
+                <svg ng-if="item.registered" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                  <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                  <title>Active</title>
+                </svg>
+                <svg ng-if="item.enabled && !item.registered" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
+                  <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
+                  <title>Error</title>
+                </svg>
+                <svg ng-if="!item.enabled && !item.registered" aria-hidden="true"
+                  class="icon icon-sm icon-secondary mx-3">
+                  <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                  <title>Disabled</title>
+                </svg>
+                <br><small class=""> {{item.authority}}</small>
+              </a>
               <p>{{item.description}}</p>
             </div>
         </td>
@@ -83,18 +86,65 @@
         </td>
 
         <td class="text-right">
-          <button ng-if="!item.enabled" class="btn btn-success btn-sm  text-right"
-            ng-click="toggleProviderState(item, !item.enabled)">
-            Enable
+          <button class="btn btn-primary btn-sm text-right dropdown-toggle" type="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+
+            Actions
+            <svg class="icon-expand icon icon-sm icon-light">
+              <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+            </svg>
           </button>
-          <button ng-if="item.enabled" class="btn btn-warning btn-sm  text-right"
-            ng-click="toggleProviderState(item, !item.enabled)">
-            Disable
-          </button>
-          <button class="btn btn-primary btn-sm"
-            ui-sref="realm.idp({realmId:item.realm, providerId:item.provider})">Edit</button>
-          <button class="btn btn-danger btn-sm" ng-disabled="item.enabled"
-            ng-click="deleteProviderDlg(item)">Delete</button>
+          <div class="dropdown-menu">
+            <div class="link-list-wrapper">
+              <ul class="link-list">
+                <li>
+                  <a class="list-item left-icon text-success" href="" ng-if="!item.enabled"
+                    ng-click="toggleProviderState(item, !item.enabled)">
+                    <svg class="icon icon-xs icon-success left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                    </svg>
+                    Enable
+                  </a>
+                  <a class="list-item left-icon text-warning" href="" ng-if="item.enabled"
+                    ng-click="toggleProviderState(item, !item.enabled)">
+                    <svg class="icon icon-xs icon-warning left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                    </svg>
+                    Disable
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item left-icon" ui-sref="realm.idp({realmId:item.realm, providerId:item.provider})">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                    </svg>
+                    <span>Edit</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-primary" href="" ng-click="exportProvider(item)">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-download"></use>
+                    </svg>
+                    Export
+                  </a>
+                </li>
+                <li>
+                  <span class="divider"></span>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-danger" href="" ng-click="deleteProviderDlg(item)">
+                    <svg class="icon icon-xs icon-danger left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
+                    </svg>
+                    Delete
+                  </a>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+
         </td>
 
       </tr>

@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.internal;
 
 import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,13 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.roles.RoleService;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 
 @Service
 public class InternalUserManager {
@@ -37,7 +37,10 @@ public class InternalUserManager {
     private UserEntityService userService;
 
     @Autowired
-    private RoleService roleService;
+    private SubjectService subjectService;
+
+    @Autowired
+    private SpaceRoleService roleService;
 
     /*
      * User store init
@@ -99,37 +102,29 @@ public class InternalUserManager {
         account.setResetDeadline(null);
         account = accountService.updateAccount(account.getId(), account);
 
-        // assign authorities as roles
+        // assign authorities
         // at minimum we set ADMIN+DEV global, and ADMIN+DEV in SYSTEM realm
         Set<Map.Entry<String, String>> roles = new HashSet<>();
         roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_ADMIN));
         roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, Config.R_DEVELOPER));
         roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_SYSTEM, Config.R_ADMIN));
         roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_SYSTEM, Config.R_DEVELOPER));
-        // admin roles are global,ie they are valid for any realm
+        // admin roles are global, ie they are valid for any realm
         for (String role : adminRoles) {
             roles.add(new AbstractMap.SimpleEntry<>(SystemKeys.REALM_GLOBAL, role));
 
         }
 
-        // merge roles
-        List<UserRoleEntity> curRoles = userService.getRoles(subjectId);
-        for (UserRoleEntity ur : curRoles) {
-            roles.add(new AbstractMap.SimpleEntry<>(ur.getRealm(), ur.getRole()));
-        }
-
-        // set
-        List<UserRoleEntity> userRoles = userService.updateRoles(subjectId, roles);
+        subjectService.addAuthorities(subjectId, roles);
 
         // set minimal space roles
-        Set<SpaceRole> spaceRoles = roleService.getRoles(subjectId);
+        Collection<SpaceRole> spaceRoles = roleService.getRoles(subjectId);
         if (spaceRoles.isEmpty()) {
             roleService.addRole(subjectId, null, "", Config.R_PROVIDER);
         }
 
         logger.debug("admin user id " + String.valueOf(account.getId()));
         logger.debug("admin user " + user.toString());
-        logger.debug("admin user roles " + userRoles.toString());
         logger.debug("admin account " + account.toString());
     }
 

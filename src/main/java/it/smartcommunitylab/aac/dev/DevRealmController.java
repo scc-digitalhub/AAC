@@ -25,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,13 +38,17 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.dev.DevUsersController.InvitationBean;
+import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -178,6 +183,45 @@ public class DevRealmController {
                 .ok(auditManager.findRealmEvents(realm,
                         type.orElse(null), after.orElse(null), before.orElse(null)));
 
+    }
+
+    /*
+     * Dev console users
+     */
+    @GetMapping("/realms/{realm}/developers")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public ResponseEntity<Collection<Developer>> getDevelopers(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
+        Collection<Developer> developers = realmManager.getDevelopers(realm);
+        return ResponseEntity
+                .ok(developers);
+    }
+
+    @PostMapping("/realms/{realm}/developers")
+    public ResponseEntity<Developer> inviteDeveloper(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody InvitationBean bean) throws NoSuchRealmException, NoSuchUserException {
+        Developer developer = realmManager.inviteDeveloper(realm, bean.getSubjectId(), bean.getUsername());
+        return ResponseEntity.ok(developer);
+    }
+
+    @PutMapping("/realms/{realm}/developers/{subjectId}")
+    public ResponseEntity<Developer> updateDeveloper(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @RequestBody Collection<String> roles) throws NoSuchRealmException, NoSuchUserException {
+        Developer developer = realmManager.updateDeveloper(realm, subjectId, roles);
+        return ResponseEntity.ok(developer);
+    }
+
+    @DeleteMapping("/realms/{realm}/developers/{subjectId}")
+    public ResponseEntity<Void> removeDeveloper(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        realmManager.removeDeveloper(realm, subjectId);
+        return ResponseEntity.ok(null);
     }
 
 }

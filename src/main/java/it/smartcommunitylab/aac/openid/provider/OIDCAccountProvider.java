@@ -25,7 +25,13 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     protected OIDCAccountProvider(String providerId, OIDCUserAccountRepository accountRepository,
             OIDCIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, config, realm);
+    }
+
+    protected OIDCAccountProvider(String authority, String providerId, OIDCUserAccountRepository accountRepository,
+            OIDCIdentityProviderConfig config,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 

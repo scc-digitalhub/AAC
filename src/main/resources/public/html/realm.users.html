@@ -35,17 +35,30 @@
 
     <table class="table table-hover border-bottom">
       <tr ng-repeat="item in users.content">
-        <td class="align-middle">
+        <td
+          class="align-middle {{item.blocked ? 'text-danger' : ''}}  {{item.locked && !item.blocked ? 'text-muted' : ''}} ">
           <div class="avatar-wrapper avatar-extra-text">
             <div class="avatar size-lg">
               <p> {{item.username | limitTo: 2 | uppercase}} </p>
             </div>
             <div class="extra-text">
-              <span class="h6">{{item.username}}</span> <br>
-              <div ng-if="item.source == realm.slug">
-                <small class="text-muted" ng-repeat="p in item._providers">{{p}}</span>
-              </div>
-              <small class="text-muted"> {{item.type }}</small>
+              <a class="text-decoration-none {{item.blocked ? 'text-danger' : ''}}  {{item.locked && !item.blocked ? 'text-muted' : ''}}"
+                ui-sref="realm.user({realmId:realm.slug, subjectId:item.subjectId})">
+                <span class="h6">{{item.username}}</span>
+                <svg ng-if="item.blocked" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
+                  <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
+                  <title>Blocked</title>
+                </svg>
+                <svg ng-if="item.locked && !item.blocked" aria-hidden="true" class="icon icon-sm icon-secondary mx-3">
+                  <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                  <title>Locked</title>
+                </svg>
+
+                <div ng-if="item.source == realm.slug">
+                  <small class="text-muted" ng-repeat="p in item._providers">{{p}}</span>
+                </div>
+                <small class="text-muted"> {{item.type }}</small>
+              </a>
               <p>{{item.email}}</p>
             </div>
         </td>
@@ -60,14 +73,88 @@
         </td>
 
         <td class="align-middle small">
-          <span ng-repeat="a in item._authorities"><span class="badge badge-secondary">{{a}}</span> </span>
+          <span ng-repeat="r in item._roles"><span class="badge badge-secondary">{{r}}</span> </span>
+          <span ng-repeat="r in item.authorities"><span class="badge badge-primary">{{r.role}}</span> </span>
+
         </td>
 
         <td class="text-right">
-          <button class="btn btn-primary btn-sm"
-            ui-sref="realm.user({realmId:realm.slug, subjectId:item.subjectId})">Manage</button>
-          <button class="btn btn-danger btn-sm" ng-click="deleteUserDlg(item)">Delete</button>
+          <button class="btn btn-primary btn-sm text-right dropdown-toggle" type="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+
+            Actions
+            <svg class="icon-expand icon icon-sm icon-light">
+              <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <div class="link-list-wrapper">
+              <ul class="link-list">
+                <li>
+                  <a class="list-item left-icon" ui-sref="realm.user({realmId:realm.slug, subjectId:item.subjectId})">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-password-visible"></use>
+                    </svg>
+                    <span>View</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-warning" href="" ng-if="!item.locked && !item.blocked"
+                    ng-click="lockUser(item)">
+                    <svg class="icon icon-xs icon-warning left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-locked"></use>
+                    </svg>
+                    Lock
+                  </a>
+                  <a class="list-item left-icon text-warning" href="" ng-if="item.locked && !item.blocked"
+                    ng-click="unlockUser(item)">
+                    <svg class="icon icon-xs icon-warning left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
+                    </svg>
+                    Unlock
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-warning" href="" ng-if="!item.blocked" ng-click="blockUser(item)">
+                    <svg class="icon icon-xs icon-warning left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-ban"></use>
+                    </svg>
+                    Block
+                  </a>
+                  <a class="list-item left-icon text-warning" href="" ng-if="item.blocked" ng-click="unblockUser(item)">
+                    <svg class="icon icon-xs icon-warning left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                    </svg>
+                    Unblock
+                  </a>
+                </li>
+
+                <li>
+                  <span class="divider"></span>
+                </li>
+                <li>
+                  <a class="list-item left-icon" href="" ng-click="inspectDlg(item)">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-code-circle"></use>
+                    </svg>
+                    <span>Inspect</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-danger" href="" ng-click="deleteUserDlg(item)">
+                    <svg class="icon icon-xs icon-danger left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
+                    </svg>
+                    Delete
+                  </a>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+
         </td>
+
       </tr>
     </table>
 
@@ -172,48 +259,15 @@
   </div>
 </div>
 
-
-
-<div class="modal fade bs-modal-lg" id="userJsonModal" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade bs-modal-lg" id="inspectModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h3 class="modal-title" id="modal-title">User json</h3>
+        <h3 class="modal-title" id="modal-title">Inspect json</h3>
       </div>
       <div class="modal-body" id="modal-body">
-
         <h6>Raw JSON</h6>
-        <figure class="neutral-2-bg p-2 mb-0">
-          <pre>
-<code class="language-json" data-lang="json">
-{{modUser | json:4}}
-</code>
-                </pre>
-        </figure>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade bs-modal-lg" id="attributesJsonModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h3 class="modal-title" id="modal-title">User attributes json</h3>
-      </div>
-      <div class="modal-body" id="modal-body">
-
-        <h6>Raw JSON</h6>
-        <figure class="neutral-2-bg p-2 mb-0">
-          <pre>
-<code class="language-json" data-lang="json">
-{{modAttributes | json:4}}
-</code>
-                </pre>
-        </figure>
+        <div ui-ace="aceOption" ng-model="modObj.json"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary btn-sm" type="button" data-dismiss="modal">Close</button>

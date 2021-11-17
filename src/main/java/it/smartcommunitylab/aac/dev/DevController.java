@@ -46,6 +46,7 @@ import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
@@ -56,14 +57,16 @@ import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.dto.RealmStatsBean;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
-import it.smartcommunitylab.aac.roles.RoleManager;
+import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.ServicesManager;
@@ -97,7 +100,10 @@ public class DevController {
     @Autowired
     private AuditManager auditManager;
     @Autowired
-    private RoleManager roleManager;
+    private SpaceRoleManager roleManager;
+
+    @Autowired
+    private SubjectService subjectService;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -278,8 +284,28 @@ public class DevController {
     }
 
     /*
+     * Subjects
+     * 
+     * TODO evaluate permission model
+     */
+
+    @GetMapping("/console/dev/subjects/{subjectId}")
+    public ResponseEntity<Subject> getSubject(
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchSubjectException {
+        return ResponseEntity.ok(subjectService.getSubject(subjectId));
+    }
+
+    /*
      * Spaces
      */
+
+    @GetMapping("/console/dev/rolespaces")
+    public ResponseEntity<Collection<SpaceRole>> getMyRoleSpacesContexts()
+            throws NoSuchRealmException, NoSuchUserException {
+        return ResponseEntity.ok(roleManager.curContexts());
+    }
+
     @GetMapping("/console/dev/rolespaces/users")
     public ResponseEntity<Page<SpaceRoles>> getRoleSpaceUsers(
             @RequestParam(required = false) String context,
@@ -289,22 +315,29 @@ public class DevController {
         if (invalidOwner(context, space)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(roleManager.getContextRoles(context, space, q, pageRequest));
+        return ResponseEntity.ok(roleManager.searchRoles(context, space, q, pageRequest));
     }
 
     @PostMapping("/console/dev/rolespaces/users")
     public ResponseEntity<SpaceRoles> addRoleSpaceRoles(@RequestBody SpaceRoles roles)
-            throws NoSuchRealmException, NoSuchUserException {
+            throws NoSuchRealmException, NoSuchSubjectException {
         if (invalidOwner(roles.getContext(), roles.getSpace())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(roleManager.saveContextRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
-                roles.getRoles()));
+
+        Collection<SpaceRole> spaceRoles = roles.getRoles().stream()
+                .map(r -> new SpaceRole(roles.getContext(), roles.getSpace(), r))
+                .collect(Collectors.toList());
+        Collection<SpaceRole> result = roleManager.setRoles(roles.getSubject(), roles.getContext(), roles.getSpace(),
+                spaceRoles);
+        roles.setRoles(result.stream().map(r -> r.getRole()).collect(Collectors.toList()));
+
+        return ResponseEntity.ok(roles);
     }
 
-    private boolean invalidOwner(String context, String space) throws NoSuchUserException, NoSuchRealmException {
+    private boolean invalidOwner(String context, String space) throws NoSuchRealmException {
         // current user should be owner of the space or of the parent
-        Collection<SpaceRole> myRoles = roleManager.curUserRoles();
+        Collection<SpaceRole> myRoles = roleManager.curRoles();
         SpaceRole spaceOwner = new SpaceRole(context, space, Config.R_PROVIDER);
         SpaceRole parentOwner = context != null ? SpaceRole.ownerOf(context) : null;
         return myRoles.stream().noneMatch(r -> r.equals(spaceOwner) || r.equals(parentOwner));

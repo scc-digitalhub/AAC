@@ -12,4 +12,7 @@ public interface AttributeService extends AttributeProvider {
      */
 
     public Collection<UserAttributes> putAttributes(String subjectId, Collection<AttributeSet> attributes);
+
+    public void deleteAttributes(String subjectId, String setId);
+
 }

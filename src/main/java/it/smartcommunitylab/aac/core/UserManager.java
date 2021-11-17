@@ -1,9 +1,12 @@
 package it.smartcommunitylab.aac.core;
 
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +16,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +31,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -50,6 +57,7 @@ import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
@@ -107,6 +115,12 @@ public class UserManager {
 
     @Autowired
     private AttributeProviderService attributeProviderService;
+
+    @Autowired
+    private ExtTokenStore tokenStore;
+
+    @Autowired
+    private AuditEventStore auditStore;
 
 //    /*
 //     * System admin user internal usage TODO rework for non-internal providers
@@ -193,11 +207,6 @@ public class UserManager {
         return userService.listUsers(r.getSlug());
     }
 
-    /**
-     * @param realm
-     * @return
-     * @throws NoSuchRealmException
-     */
     @Transactional(readOnly = true)
     public long countUsers(String realm) throws NoSuchRealmException {
         logger.debug("count users for realm " + realm);
@@ -213,15 +222,21 @@ public class UserManager {
         return userService.searchUsers(r.getSlug(), keywords, pageRequest);
     }
 
-    /**
-     * @param slug
-     * @param subjectId
-     * @param roles
-     * @throws NoSuchUserException
-     * @throws NoSuchRealmException
+    /*
+     * Authorities
      */
+
+    @Transactional(readOnly = true)
+    public Collection<GrantedAuthority> getAuthorities(String realm, String subjectId)
+            throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("get authorities for user " + String.valueOf(subjectId) + " in realm " + realm);
+
+        Realm r = realmService.getRealm(realm);
+        return userService.getUserAuthorities(subjectId, r.getSlug());
+    }
+
     @Transactional(readOnly = false)
-    public void updateRealmAuthorities(String realm, String subjectId, List<String> roles)
+    public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
             throws NoSuchUserException, NoSuchRealmException {
         logger.debug("update authorities for user " + String.valueOf(subjectId) + " in realm " + realm);
         if (logger.isTraceEnabled()) {
@@ -229,7 +244,7 @@ public class UserManager {
         }
 
         Realm r = realmService.getRealm(realm);
-        userService.updateRealmAuthorities(r.getSlug(), subjectId, roles);
+        return userService.setUserAuthorities(subjectId, r.getSlug(), roles);
     }
 
     @Transactional(readOnly = false)
@@ -277,7 +292,7 @@ public class UserManager {
         userService.deleteUser(subjectId);
     }
 
-    public void inviteUser(String realm, String username, String subjectId, List<String> roles)
+    public void inviteUser(String realm, String username, String subjectId)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
 
         logger.debug("invite user to realm" + realm);
@@ -288,6 +303,8 @@ public class UserManager {
             Collection<IdentityProvider> providers = authorityManager.getIdentityProviders(r.getSlug());
 
             // Assume internal provider exists and is unique
+            // TODO rework, register only subject + dedicated "invite" model with
+            // link/code/expire etc? or register internalUser without password
             Optional<IdentityProvider> internalProvider = providers.stream()
                     .filter(p -> p.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL)).findFirst();
             if (!internalProvider.isPresent()) {
@@ -302,7 +319,7 @@ public class UserManager {
             account.setRealm(realm);
 
             UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
-            updateRealmAuthorities(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
+//            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
         }
 
         if (StringUtils.hasText(subjectId)) {
@@ -310,7 +327,7 @@ public class UserManager {
             if (user == null) {
                 throw new NoSuchUserException("No user with specified subjectId exist");
             }
-            updateRealmAuthorities(realm, subjectId, roles);
+//            updateRoles(realm, subjectId, roles);
         }
     }
 
@@ -464,8 +481,7 @@ public class UserManager {
             }
         }
 
-        ConnectedAppProfile app = new ConnectedAppProfile(clientId, client.getName(), client.getRealm(),
-                scopes);
+        ConnectedAppProfile app = new ConnectedAppProfile(clientId, client.getRealm(), client.getName(), scopes);
 
         return app;
     }
@@ -495,8 +511,8 @@ public class UserManager {
         }
 
         List<ConnectedAppProfile> apps = map.entrySet().stream()
-                .map(e -> new ConnectedAppProfile(e.getKey().getClientId(), e.getKey().getName(), e.getKey().getRealm(),
-                        e.getValue()))
+                .map(e -> new ConnectedAppProfile(e.getKey().getClientId(), e.getKey().getRealm(),
+                        e.getKey().getName(), e.getValue()))
                 .collect(Collectors.toList());
 
         return apps;
@@ -524,6 +540,40 @@ public class UserManager {
             approvalStore.revokeApprovals(approvals);
         }
 
+    }
+
+    public Collection<Approval> getApprovals(String realm, String subjectId) throws NoSuchUserException {
+        User user = userService.findUser(subjectId);
+        if (user == null) {
+            throw new NoSuchUserException();
+        }
+
+        Collection<Approval> approvals = approvalStore.findClientApprovals(subjectId);
+        return approvals;
+    }
+
+    public Collection<OAuth2AccessToken> getAccessTokens(String realm, String subjectId) throws NoSuchUserException {
+        User user = userService.findUser(subjectId);
+        if (user == null) {
+            throw new NoSuchUserException();
+        }
+
+        Collection<OAuth2AccessToken> tokens = tokenStore.findTokensByUserName(subjectId);
+        return tokens;
+    }
+
+    public Collection<AuditEvent> getAudit(String realm, String subjectId, Date after, Date before)
+            throws NoSuchUserException {
+        User user = userService.findUser(subjectId);
+        if (user == null) {
+            throw new NoSuchUserException();
+        }
+
+        Instant now = Instant.now();
+        Instant a = after == null ? now.minus(5, ChronoUnit.DAYS) : after.toInstant();
+        Instant b = before == null ? now : before.toInstant();
+
+        return auditStore.findByPrincipal(subjectId, a, b, null);
     }
 
 //	/**
@@ -572,6 +622,19 @@ public class UserManager {
         return userService.getUserAttributes(subjectId, r.getSlug());
     }
 
+    public UserAttributes getUserAttributes(String realm, String subjectId,
+            String provider, String identifier)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
+
+        Realm r = realmService.getRealm(realm);
+
+        // get attributeSet
+        AttributeSet as = attributeService.getAttributeSet(identifier);
+
+        return userService.getUserAttributes(subjectId, r.getSlug(), provider, as.getIdentifier());
+
+    }
+
     public UserAttributes setUserAttributes(String realm, String subjectId,
             String provider, String identifier,
             Map<String, Serializable> attributes)
@@ -590,6 +653,12 @@ public class UserManager {
         }
 
         return userService.setUserAttributes(subjectId, r.getSlug(), provider, set);
+    }
+
+    public void removeUserAttributes(String realm, String subjectId,
+            String provider, String identifier)
+            throws NoSuchUserException, NoSuchProviderException, NoSuchRealmException, NoSuchAttributeSetException {
+        userService.removeUserAttributes(subjectId, realm, provider, identifier);
     }
 
     /*
@@ -634,4 +703,5 @@ public class UserManager {
                 }).collect(Collectors.toList());
 
     }
+
 }

@@ -1,9 +1,12 @@
 <div class="pt-3">
 
 	<fieldset>
-		<legend class="mb-4">Custom claim mapping</legend>
-		<p>Custom mapping for claims generation, executed after token grants. The result will be used as provided to
-			build client responses.</p>
+		<legend class="mb-4">Custom claim mapping
+			<small class="form-text">Custom mapping for claims generation, executed after token grants. The result will
+				be used as provided to
+				build client responses.</small>
+		</legend>
+
 
 		<div class="row">
 			<div class="form-check form-check-inline col">
@@ -55,7 +58,9 @@
 
 
 	<fieldset>
-		<legend class="mb-4">Hooks</legend>
+		<legend class="mb-4">Hooks
+		   <small class="form-text">Hooks are used to alter the token flow by performing actions and/or web calls</small>
+		</legend>
 		<div class="form-group col">
 			<input type="text" name="hookUniqueSpaces" class="form-control" id="hookUniqueSpaces"
 				ng-model="app.hookUniqueSpaces">

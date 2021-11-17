@@ -15,11 +15,13 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
     private final String subjectId;
     private final String realm;
     private final String name;
+    private final String type;
 
-    public Subject(String subject, String realm, String name) {
+    public Subject(String subject, String realm, String name, String type) {
         Assert.notNull(subject, "subject can not be null");
         this.subjectId = subject;
         this.realm = realm;
+        this.type = type;
         if (StringUtils.hasText(name)) {
             this.name = name;
         } else {
@@ -38,6 +40,10 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
 
     public String getRealm() {
         return realm;
+    }
+
+    public String getType() {
+        return type;
     }
 
     @Override

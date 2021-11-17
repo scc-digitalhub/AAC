@@ -1,10 +1,10 @@
 package it.smartcommunitylab.aac.core.service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,48 +15,54 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.persistence.ClientRoleEntity;
-import it.smartcommunitylab.aac.roles.RoleService;
+import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 
 @Service
-public class ClientDetailsService {
+public class ClientDetailsService implements InitializingBean {
 
     // TODO add attributes service
     private final ClientEntityService clientService;
+    private final SubjectService subjectService;
 
-    private RoleService roleService;
+    private SpaceRoleService spaceRoleService;
+    private SubjectRoleService subjectRoleService;
 
-    public ClientDetailsService(ClientEntityService clientService) {
-        Assert.notNull(clientService, "client service is mandatoy");
+    public ClientDetailsService(ClientEntityService clientService, SubjectService subjectService) {
+        Assert.notNull(clientService, "client service is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
+
         this.clientService = clientService;
+        this.subjectService = subjectService;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+
     }
 
     @Autowired
-    public void setRoleService(RoleService roleService) {
-        this.roleService = roleService;
+    public void setSpaceRoleService(SpaceRoleService spaceRoleService) {
+        this.spaceRoleService = spaceRoleService;
+    }
+
+    @Autowired
+    public void setSubjectRoleService(SubjectRoleService subjectRoleService) {
+        this.subjectRoleService = subjectRoleService;
     }
 
     public ClientDetails loadClient(String clientId) throws NoSuchClientException {
         ClientEntity client = clientService.getClient(clientId);
 
+        List<GrantedAuthority> clientAuthorities = subjectService.getAuthorities(clientId);
+
         // always set role_client
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(Config.R_CLIENT));
-
-        // load additional realm roles
-        List<ClientRoleEntity> clientRoles = clientService.getRoles(clientId);
-
-        authorities.addAll(clientRoles.stream()
-                .filter(r -> !StringUtils.hasText(r.getRealm()))
-                .map(r -> new SimpleGrantedAuthority(r.getRole()))
-                .collect(Collectors.toSet()));
-
-        authorities.addAll(clientRoles.stream()
-                .filter(r -> StringUtils.hasText(r.getRealm()))
-                .map(r -> new RealmGrantedAuthority(r.getRealm(), r.getRole()))
-                .collect(Collectors.toSet()));
+        authorities.addAll(clientAuthorities);
 
         ClientDetails details = new ClientDetails(
                 client.getClientId(), client.getRealm(),
@@ -71,12 +77,22 @@ public class ClientDetailsService {
         details.setHookFunctions(client.getHookFunctions());
         details.setHookWebUrls(client.getHookWebUrls());
         details.setHookUniqueSpaces(client.getHookUniqueSpaces());
-        // TODO client attributes from attr providers
+
+        // TODO client attributes from attr providers?
+
+        // load additional realm roles
+        if (subjectRoleService != null) {
+            // clientId is our subjectId
+            Collection<RealmRole> clientRoles = subjectRoleService.getRoles(clientId);
+            details.setRealmRoles(clientRoles);
+
+        }
 
         // load space roles
-        if (roleService != null) {
+        if (spaceRoleService != null) {
             // clientId is our subjectId
-            details.setRoles(roleService.getRoles(clientId));
+            Collection<SpaceRole> spaceRoles = spaceRoleService.getRoles(clientId);
+            details.setSpaceRoles(spaceRoles);
         }
 
         return details;

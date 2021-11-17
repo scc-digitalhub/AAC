@@ -61,26 +61,85 @@
                             </svg>
                         </div>
                         <div class="extra-text">
-                            <span class="h6">{{item.name}}</span> <br>
-                            <small class="text-muted"> {{item.type }} <span
-                                    ng-if="item.type == 'oauth2'">{{item.configuration.applicationType}}</span></small>
+                            <a class="text-decoration-none"
+                                ui-sref="realm.appstart({realmId:item.realm, clientId:item.clientId})">
+                                <span class="h6">{{item.name}}</span> <br>
+                                <small class="text-muted"> {{item.type }} <span
+                                        ng-if="item.type == 'oauth2'">{{item.configuration.applicationType}}</span></small>
+                            </a>
                             <div>{{item.description}}</div>
                         </div>
                 </td>
                 <td class="align-middle">
                     ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.clientId}}</span>
                     <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.clientId)">
-                        <svg class="icon icon-xs icon-black">
+                        <svg class="icon icon-xs icon-primary">
                             <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
                         </svg>
                     </button>
                 </td>
+
+                <td class="align-middle small">
+                    <span ng-repeat="a in item._authorities"><span class="badge badge-secondary">{{a.role}}</span>
+                    </span>
+                </td>
+
                 <td class="text-right">
-                    <button class="btn btn-secondary btn-sm"
-                        ui-sref="realm.appstart({realmId:item.realm, clientId:item.clientId})">Use</button>
-                    <button class="btn btn-primary btn-sm"
-                        ui-sref="realm.app({realmId:item.realm, clientId:item.clientId})">Edit</button>
-                    <button class="btn btn-danger btn-sm" ng-click="deleteClientAppDlg(item)">Delete</button>
+                    <button class="btn btn-primary btn-sm text-right dropdown-toggle" type="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+                        Actions
+                        <svg class="icon-expand icon icon-sm icon-light">
+                            <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="link-list-wrapper">
+                            <ul class="link-list">
+                                <li>
+                                    <a class="list-item left-icon"
+                                        ui-sref="realm.appstart({realmId:item.realm, clientId:item.clientId})">
+                                        <svg class="icon icon-xs icon-primary left">
+                                            <use xlink:href="./italia/svg/sprite.svg#it-password-visible"></use>
+                                        </svg>
+                                        <span>View</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="list-item left-icon"
+                                        ui-sref="realm.app({realmId:item.realm, clientId:item.clientId})">
+                                        <svg class="icon icon-xs icon-primary left">
+                                            <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                                        </svg>
+                                        <span>Edit</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="list-item left-icon text-primary" href=""
+                                        ng-click="exportClientApp(item)">
+                                        <svg class="icon icon-xs icon-primary left">
+                                            <use xlink:href="./italia/svg/sprite.svg#it-download"></use>
+                                        </svg>
+                                        Export
+                                    </a>
+                                </li>
+                                <li>
+                                    <span class="divider"></span>
+                                </li>
+                                <li>
+                                    <a class="list-item left-icon text-danger" href=""
+                                        ng-click="deleteClientAppDlg(item)">
+                                        <svg class="icon icon-xs icon-danger left">
+                                            <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
+                                        </svg>
+                                        Delete
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+
                 </td>
             </tr>
         </table>
@@ -259,5 +318,27 @@
                     ng-disabled="importFile == null">Import</button>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="modal fade bs-modal-lg" id="rolesModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">Change roles</h3>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <div class="form-group col">
+                    <label class="active">Custom roles</label>
+                    <tags-input type="text" placeholder="Add custom roles" ng-model="modClient.roles">
+                    </tags-input>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="updateRoles()">Update</button>
+            </div>
+        </div>
+
     </div>
 </div>

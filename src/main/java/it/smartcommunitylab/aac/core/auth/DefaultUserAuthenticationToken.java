@@ -22,6 +22,7 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
 
     // subject userDetails with multiple identities bound
     private UserDetails details;
+
     // we collect authentications for identities
     // this way consumers will be able to verify if a identity is authenticated
     // (by default only authenticated identities should populate userDetails)

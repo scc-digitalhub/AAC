@@ -9,6 +9,9 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.AttributeType;
 
@@ -16,6 +19,7 @@ public class DateTimeAttribute extends AbstractAttribute {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
+    @JsonIgnore
     private LocalDateTime value;
 
     public DateTimeAttribute(String key) {
@@ -39,6 +43,12 @@ public class DateTimeAttribute extends AbstractAttribute {
 
     public void setValue(LocalDateTime value) {
         this.value = value;
+    }
+
+    @JsonGetter("value")
+    public String getIsoDateTimeValue() {
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+        return formatter.format(value);
     }
 
     public static LocalDateTime parseValue(Serializable value) throws ParseException {

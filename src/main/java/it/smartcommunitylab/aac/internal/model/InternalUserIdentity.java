@@ -17,7 +17,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     // use a global version as serial uid
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final UserAuthenticatedPrincipal principal;
+    private final InternalUserAuthenticatedPrincipal principal;
 
     private InternalUserAccount account;
 
@@ -41,7 +41,7 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     }
 
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
-            UserAuthenticatedPrincipal principal) {
+            InternalUserAuthenticatedPrincipal principal) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.account = account;
 //        this.provider = provider;
@@ -196,6 +196,9 @@ public class InternalUserIdentity extends BaseIdentity implements CredentialsCon
     @Override
     public void eraseCredentials() {
         this.account.setPassword(null);
+        if (this.principal != null) {
+            this.principal.eraseCredentials();
+        }
     }
 
     public Object getCredentials() {

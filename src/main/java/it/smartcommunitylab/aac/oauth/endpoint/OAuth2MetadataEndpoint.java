@@ -94,7 +94,12 @@ public class OAuth2MetadataEndpoint {
              code_challenge_methods_supported
                      OPTIONAL.  JSON array containing a list of Proof Key for Code
                      Exchange (PKCE) [RFC7636] code challenge methods supported by this
-                     authorization server.
+                     authorization server.                   
+             authorization_response_iss_parameter_supported
+                   Boolean parameter indicating whether the authorization server provides the "iss"
+                   parameter in the authorization response as defined in Section 2.
+                   If omitted, the default value is false.
+
          */
         //@formatter:on
         // load all signing alg
@@ -118,6 +123,8 @@ public class OAuth2MetadataEndpoint {
         m.put("introspection_endpoint_auth_signing_alg_values_supported", signAlgorithms);
 
         m.put("code_challenge_methods_supported", Collections.singleton("S256")); // as per spec do not expose plain
+
+        m.put("authorization_response_iss_parameter_supported", true);
         return m;
     }
 

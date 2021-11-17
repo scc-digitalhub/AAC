@@ -17,7 +17,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 @Component
 public class EmailAttributesSet implements AttributeSet {
     public static final String IDENTIFIER = "aac.email";
-    public static final List<String> keys;
+    private static final List<String> keys;
 
     private Map<String, Attribute> attributes;
 

@@ -32,7 +32,7 @@ public class ProfileScopeProvider implements ScopeProvider {
 
     private final ProfileResource resource = new ProfileResource();
     public static final Set<Scope> scopes;
-    public static final Map<String, WhitelistScopeApprover> approvers;
+    private static final Map<String, WhitelistScopeApprover> approvers;
 
     static {
         Set<Scope> s = new HashSet<>();

@@ -16,7 +16,7 @@ public class OIDCUserAuthenticationFailureEvent extends UserAuthenticationFailur
     public OIDCUserAuthenticationFailureEvent(
             String authority, String provider, String realm,
             Authentication authentication, OIDCAuthenticationException exception) {
-        super(authority, provider, realm, authentication, exception);
+        super(authority, provider, realm, null, authentication, exception);
 
     }
 

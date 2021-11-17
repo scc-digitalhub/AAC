@@ -329,67 +329,7 @@ angular.module('aac.services', [])
         return aService;
     })
 
-    /**
-     * Realm Data Services
-     */
-    .service('RealmData', function ($q, $http, $httpParamSerializer) {
-        var rService = {};
 
-        rService.getRealm = function (slug) {
-            return $http.get('console/dev/realms/' + slug).then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.updateRealm = function (slug, r) {
-            return $http.put('console/dev/realms/' + slug, r).then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.removeRealm = function (slug) {
-            return $http.delete('console/dev/realms/' + slug).then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.previewRealm = function (slug, template, cb) {
-            return $http.post('console/dev/realms/' + slug + '/custom?template=' + template, cb).then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.getRealmStats = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/stats').then(function (data) {
-                return data.data;
-            });
-        }
-        rService.getMyRealms = function () {
-            return $http.get('console/dev/realms').then(function (data) {
-                return data.data;
-            });
-        }
-        rService.getResources = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/resources').then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.getUrl = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/well-known/url').then(function (data) {
-                return data.data;
-            });
-        }
-
-        rService.getOAuth2Metadata = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/well-known/oauth2').then(function (data) {
-                return data.data;
-            });
-        }
-
-        return rService;
-
-    })
     /**
      * Utility functions
      */

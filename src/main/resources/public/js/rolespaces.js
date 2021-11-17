@@ -10,6 +10,11 @@ angular.module('aac.controllers.rolespaces', [])
 
 	.service('RoleSpaceData', function ($q, $http, $rootScope, $httpParamSerializer) {
 		var rsService = {};
+		rsService.getMySpaces = function () {
+			return $http.get('console/dev/rolespaces').then(function (data) {
+				return data.data;
+			});
+		}
 
 		rsService.getSpaceUsers = function (context, space, params) {
 			return $http.get('console/dev/rolespaces/users?context=' + (context || '') + '&space=' + (space || '') + '&' + buildQuery(params, $httpParamSerializer)).then(function (data) {
@@ -114,8 +119,16 @@ angular.module('aac.controllers.rolespaces', [])
 		// save roles
 		$scope.updateRoles = function () {
 			var roles = [];
-			for (var k in $scope.roles.system_map) if ($scope.roles.system_map[k]) roles.push(k);
-			for (var k in $scope.roles.map) if ($scope.roles.map[k]) roles.push(k);
+			for (var k1 in $scope.roles.system_map) {
+				if ($scope.roles.system_map[k1]) {
+					roles.push(k1);
+				}
+			}
+			for (var k2 in $scope.roles.map) {
+				if ($scope.roles.map[k2]) {
+					roles.push(k2);
+				}
+			}
 
 			$('#rolesModal').modal('hide');
 			var context = $scope.currentSpaceRole.context;

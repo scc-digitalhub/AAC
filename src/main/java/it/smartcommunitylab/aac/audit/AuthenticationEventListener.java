@@ -57,7 +57,7 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
     private void onUserAuthenticationFailureEvent(UserAuthenticationFailureEvent event) {
         AuthenticationException ex = event.getException();
         Authentication authentication = event.getAuthentication();
-        String principal = authentication.getName();
+        String principal = event.getSubject();
 
         String authority = event.getAuthority();
         String provider = event.getProvider();
@@ -138,6 +138,8 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
         if (SystemKeys.EVENTS_LEVEL_FULL.equals(level)) {
             // persist full authentication token
             // TODO add export
+            // make sure credentials are cleared from this context
+            auth.eraseCredentials();
             data.put("authentication", auth);
         }
 

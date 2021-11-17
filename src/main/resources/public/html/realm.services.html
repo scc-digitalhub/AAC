@@ -1,7 +1,7 @@
 <div class="pb-3 pt-3">
   <div class="row mb-3">
     <div class="col col-md-6 p-3">
-      <h3>Services</h3>
+      <h3>Custom services</h3>
       <p>Register and manage custom services for APIs.</p>
     </div>
     <div class="col col-md-6 text-right">
@@ -27,25 +27,70 @@
               </svg>
             </div>
             <div class="extra-text">
-              <span class="h6">{{service.name}}</span>
-              <br> <small class="text-muted"> {{service.namespace}} </small>
+              <a class="text-decoration-none"
+                ui-sref="realm.service({realmId:service.realm, serviceId:service.serviceId})">
+                <span class="h6">{{service.name}}</span>
+                <br> <small class="text-muted"> {{service.namespace}} </small>
+              </a>
               <p>{{service.description}}</p>
             </div>
+          </div>
         </td>
 
         <td class="align-middle">
           ID <span class="small text-monospace bg-light pl-1 pr-1">{{service.serviceId}}</span>
           <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(service.serviceId)">
-            <svg class="icon icon-xs icon-black">
+            <svg class="icon icon-xs icon-primary">
               <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
             </svg>
           </button>
         </td>
 
         <td class="text-right">
-          <button class="btn btn-primary btn-sm"
-            ui-sref="realm.service({realmId:service.realm, serviceId:service.serviceId})">Manage</button>
-          <button class="btn btn-danger btn-sm" ng-click="deleteServiceDlg(service)">Delete</button>
+          <button class="btn btn-primary btn-sm text-right dropdown-toggle" type="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+
+            Actions
+            <svg class="icon-expand icon icon-sm icon-light">
+              <use xlink:href="italia/svg/sprite.svg#it-expand"></use>
+            </svg>
+          </button>
+          <div class="dropdown-menu">
+            <div class="link-list-wrapper">
+              <ul class="link-list">
+                <li>
+                  <a class="list-item left-icon"
+                    ui-sref="realm.service({realmId:service.realm, serviceId:service.serviceId})">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-pencil"></use>
+                    </svg>
+                    <span>Edit</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-primary" href="" ng-click="exportService(service)">
+                    <svg class="icon icon-xs icon-primary left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-download"></use>
+                    </svg>
+                    Export
+                  </a>
+                </li>
+                <li>
+                  <span class="divider"></span>
+                </li>
+                <li>
+                  <a class="list-item left-icon text-danger" href="" ng-click="deleteServiceDlg(service)">
+                    <svg class="icon icon-xs icon-danger left">
+                      <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
+                    </svg>
+                    Delete
+                  </a>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+
         </td>
 
       </tr>

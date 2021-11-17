@@ -1,13 +1,7 @@
 package it.smartcommunitylab.aac.core.service;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,13 +11,11 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.persistence.SubjectEntity;
-import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.persistence.UserEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.UserRoleEntity;
-import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
+import it.smartcommunitylab.aac.model.Subject;
 
 /*
  * Manage persistence for user entities and authorities (roles) 
@@ -33,30 +25,21 @@ import it.smartcommunitylab.aac.core.persistence.UserRoleEntityRepository;
 public class UserEntityService {
 
     private final UserEntityRepository userRepository;
-    private final UserRoleEntityRepository userRoleRepository;
-    private final SubjectEntityRepository subjectRepository;
+
+    // TODO move to userService when possible
+    private final SubjectService subjectService;
 
     public UserEntityService(UserEntityRepository userRepository,
-            UserRoleEntityRepository userRoleRepository,
-            SubjectEntityRepository subjectRepository) {
+            SubjectService subjectService) {
         Assert.notNull(userRepository, "user repository is mandatory");
-        Assert.notNull(userRoleRepository, "user roles repository is mandatory");
-        Assert.notNull(subjectRepository, "subject repository is mandatory");
+        Assert.notNull(subjectService, "subject service is mandatory");
 
         this.userRepository = userRepository;
-        this.userRoleRepository = userRoleRepository;
-        this.subjectRepository = subjectRepository;
+        this.subjectService = subjectService;
     }
 
     public UserEntity createUser(String realm) {
-        // generate random
-        // TODO ensure unique on multi node deploy: replace with idGenerator
-        // (given that UUID is derived from timestamp we consider this safe enough)
-        String uuid = UUID.randomUUID().toString();
-
-        // we prepend a fixed prefix to enable discovery of entity type from uuid
-        String id = UserEntity.ID_PREFIX + uuid;
-
+        String id = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
         UserEntity u = new UserEntity(id, realm);
 
         return u;
@@ -71,12 +54,8 @@ public class UserEntityService {
             throw new AlreadyRegisteredException("user already exists");
         }
 
-        // create a subject, will throw error if exists
-        SubjectEntity s = new SubjectEntity(uuid);
-        s.setRealm(realm);
-        s.setType(SystemKeys.RESOURCE_USER);
-        s.setName(username);
-        s = subjectRepository.save(s);
+        // create subject
+        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_USER, username);
 
         // create user
         u = new UserEntity(uuid, realm);
@@ -89,23 +68,6 @@ public class UserEntityService {
         u = userRepository.save(u);
         return u;
     }
-
-//    public UserEntity addUser(
-//            String uuid, String realm,
-//            String username, String emailAddress,
-//            List<String> roles)
-//            throws AlreadyRegisteredException {
-//        UserEntity u = addUser(uuid, realm, username, emailAddress);
-//
-//        // add roles
-//        for (String role : roles) {
-//            UserRoleEntity r = new UserRoleEntity(uuid);
-//            r.setRealm(SystemKeys.REALM_GLOBAL);
-//            r.setRole(role);
-//            userRoleRepository.save(r);
-//        }
-//        return u;
-//    }
 
     @Transactional(readOnly = true)
     public UserEntity findUser(String uuid) {
@@ -143,27 +105,20 @@ public class UserEntityService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserEntity> findUsersByEmailAddrss(String realm, String emailAddress) {
+    public List<UserEntity> findUsersByEmailAddress(String realm, String emailAddress) {
         return userRepository.findByRealmAndEmailAddress(realm, emailAddress);
     }
 
     @Transactional(readOnly = true)
     public Page<UserEntity> searchUsers(String realm, String q, Pageable pageRequest) {
-        Page<UserEntity> page = StringUtils.hasText(q) ? userRepository.findByRealm(realm.toLowerCase(), q, pageRequest)
+        Page<UserEntity> page = StringUtils.hasText(q) ? userRepository
+                .findByRealmAndUsernameContainingIgnoreCaseOrRealmAndUuidContainingIgnoreCaseOrRealmAndEmailAddressContainingIgnoreCase(
+                        realm, q,
+                        realm, q,
+                        realm, q,
+                        pageRequest)
                 : userRepository.findByRealm(realm.toLowerCase(), pageRequest);
         return page;
-    }
-
-    @Transactional(readOnly = true)
-    public List<UserRoleEntity> getRoles(String uuid) throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
-        return userRoleRepository.findBySubject(u.getUuid());
-    }
-
-    @Transactional(readOnly = true)
-    public List<UserRoleEntity> getRoles(String uuid, String realm) throws NoSuchUserException {
-        UserEntity u = getUser(uuid);
-        return userRoleRepository.findBySubjectAndRealm(u.getUuid(), realm);
     }
 
     public UserEntity updateUser(String uuid, String username, String emailAddress) throws NoSuchUserException {
@@ -177,78 +132,93 @@ public class UserEntityService {
         u = userRepository.save(u);
 
         // check if subject exists and update name
-        SubjectEntity s = subjectRepository.findBySubjectId(uuid);
+        Subject s = subjectService.findSubject(uuid);
         if (s == null) {
-            s = new SubjectEntity(uuid);
-            s.setRealm(u.getRealm());
-            s.setType(SystemKeys.RESOURCE_USER);
+            s = subjectService.addSubject(uuid, u.getRealm(), SystemKeys.RESOURCE_USER, username);
+        } else {
+            try {
+                s = subjectService.updateSubject(uuid, username);
+            } catch (NoSuchSubjectException e) {
+            }
         }
-        s.setName(username);
-        s = subjectRepository.save(s);
 
         return u;
 
     }
 
-    public List<UserRoleEntity> updateRoles(String uuid, String realm, Collection<String> roles)
-            throws NoSuchUserException {
+//    @Transactional(readOnly = true)
+//    public List<UserRoleEntity> getRoles(String uuid) throws NoSuchUserException {
+//        UserEntity u = getUser(uuid);
+//        return userRoleRepository.findBySubject(u.getUuid());
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public List<UserRoleEntity> getRoles(String uuid, String realm) throws NoSuchUserException {
+//        UserEntity u = getUser(uuid);
+//        return userRoleRepository.findBySubjectAndRealm(u.getUuid(), realm);
+//    }
+//
 
-        UserEntity u = userRepository.findByUuid(uuid);
-        if (u == null) {
-            throw new NoSuchUserException("no user for subject " + uuid);
-        }
-
-        // fetch current roles
-        List<UserRoleEntity> oldRoles = userRoleRepository.findBySubjectAndRealm(uuid, realm);
-
-        // unpack roles
-        Set<UserRoleEntity> newRoles = roles.stream().map(r -> {
-            UserRoleEntity re = new UserRoleEntity(uuid);
-            re.setRealm(realm);
-            re.setRole(r);
-            return re;
-        }).collect(Collectors.toSet());
-
-        // update
-        Set<UserRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r)).collect(Collectors.toSet());
-        Set<UserRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
-
-        userRoleRepository.deleteAll(toDelete);
-        userRoleRepository.saveAll(toAdd);
-
-        return userRoleRepository.findBySubjectAndRealm(uuid, realm);
-
-    }
-
-    public List<UserRoleEntity> updateRoles(String uuid, Collection<Map.Entry<String, String>> roles)
-            throws NoSuchUserException {
-
-        UserEntity u = userRepository.findByUuid(uuid);
-        if (u == null) {
-            throw new NoSuchUserException("no user for subject " + uuid);
-        }
-
-        // fetch current roles
-        List<UserRoleEntity> oldRoles = userRoleRepository.findBySubject(uuid);
-
-        // unpack roles
-        Set<UserRoleEntity> newRoles = roles.stream().map(e -> {
-            UserRoleEntity re = new UserRoleEntity(uuid);
-            re.setRealm(e.getKey());
-            re.setRole(e.getValue());
-            return re;
-        }).collect(Collectors.toSet());
-
-        // update
-        Set<UserRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r)).collect(Collectors.toSet());
-        Set<UserRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
-
-        userRoleRepository.deleteAll(toDelete);
-        userRoleRepository.saveAll(toAdd);
-
-        return userRoleRepository.findBySubject(uuid);
-
-    }
+//
+//    public List<UserRoleEntity> updateRoles(String uuid, String realm, Collection<String> roles)
+//            throws NoSuchUserException {
+//
+//        UserEntity u = userRepository.findByUuid(uuid);
+//        if (u == null) {
+//            throw new NoSuchUserException("no user for subject " + uuid);
+//        }
+//
+//        // fetch current roles
+//        List<UserRoleEntity> oldRoles = userRoleRepository.findBySubjectAndRealm(uuid, realm);
+//
+//        // unpack roles
+//        Set<UserRoleEntity> newRoles = roles.stream().map(r -> {
+//            UserRoleEntity re = new UserRoleEntity(uuid);
+//            re.setRealm(realm);
+//            re.setRole(r);
+//            return re;
+//        }).collect(Collectors.toSet());
+//
+//        // update
+//        Set<UserRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r)).collect(Collectors.toSet());
+//        Set<UserRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
+//
+//        userRoleRepository.deleteAll(toDelete);
+//        userRoleRepository.saveAll(toAdd);
+//
+//        return userRoleRepository.findBySubjectAndRealm(uuid, realm);
+//
+//    }
+//
+//    public List<UserRoleEntity> updateRoles(String uuid, Collection<Map.Entry<String, String>> roles)
+//            throws NoSuchUserException {
+//
+//        UserEntity u = userRepository.findByUuid(uuid);
+//        if (u == null) {
+//            throw new NoSuchUserException("no user for subject " + uuid);
+//        }
+//
+//        // fetch current roles
+//        List<UserRoleEntity> oldRoles = userRoleRepository.findBySubject(uuid);
+//
+//        // unpack roles
+//        Set<UserRoleEntity> newRoles = roles.stream().map(e -> {
+//            UserRoleEntity re = new UserRoleEntity(uuid);
+//            re.setRealm(e.getKey());
+//            re.setRole(e.getValue());
+//            return re;
+//        }).collect(Collectors.toSet());
+//
+//        // update
+//        Set<UserRoleEntity> toDelete = oldRoles.stream().filter(r -> !newRoles.contains(r)).collect(Collectors.toSet());
+//        Set<UserRoleEntity> toAdd = newRoles.stream().filter(r -> !oldRoles.contains(r)).collect(Collectors.toSet());
+//
+//        userRoleRepository.deleteAll(toDelete);
+//        userRoleRepository.saveAll(toAdd);
+//
+//        return userRoleRepository.findBySubject(uuid);
+//
+//    }
 
     public UserEntity updateLogin(String uuid, String provider, Date loginDate, String loginIp)
             throws NoSuchUserException {
@@ -310,17 +280,13 @@ public class UserEntityService {
     public UserEntity deleteUser(String uuid) {
         UserEntity u = userRepository.findByUuid(uuid);
         if (u != null) {
-            // also search roles
-            List<UserRoleEntity> roles = userRoleRepository.findBySubject(uuid);
-            userRoleRepository.deleteAll(roles);
 
             // remove entity
             userRepository.delete(u);
 
             // remove subject if exists
-            if (subjectRepository.findOne(uuid) != null) {
-                subjectRepository.deleteById(uuid);
-            }
+            subjectService.deleteSubject(uuid);
+
         }
 
         return u;

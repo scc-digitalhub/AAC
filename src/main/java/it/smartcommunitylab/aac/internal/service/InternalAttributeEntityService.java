@@ -147,6 +147,18 @@ public class InternalAttributeEntityService {
 
     }
 
+    public void deleteAttribute(
+            String provider, String subjectId,
+            String setId) {
+
+        List<InternalAttributeEntity> attributes = attributeRepository.findByProviderAndSubjectIdAndSet(provider,
+                subjectId, setId);
+        if (!attributes.isEmpty()) {
+            attributeRepository.deleteAll(attributes);
+        }
+
+    }
+
     public void deleteAttributes(String provider, String subjectId) {
         List<InternalAttributeEntity> attributes = attributeRepository.findByProviderAndSubjectId(provider, subjectId);
         if (!attributes.isEmpty()) {

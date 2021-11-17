@@ -11,6 +11,6 @@ public interface AttributeEntityRepository extends CustomJpaRepository<Attribute
 
     AttributeEntity findBySetAndKey(String id, String key);
 
-    List<AttributeEntity> findBySet(String id);
+    List<AttributeEntity> findBySetOrderById(String id);
 
 }

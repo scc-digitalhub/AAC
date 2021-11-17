@@ -16,6 +16,7 @@ var app = angular.module('dev', [
     'aac.controllers.realmservices',
     'aac.controllers.realmaudit',
     'aac.controllers.rolespaces',
+    'aac.controllers.realmroles',
     'aac.controllers.realmattributesets',
     'ui.ace',
     'ngSanitize'
@@ -160,6 +161,16 @@ app.config(function ($stateProvider) {
             url: '/attributeset?setId',
             templateUrl: 'html/realm.attributeset.html',
             controller: 'RealmAttributeSetController',
+        })
+        .state('realm.roles', {
+            url: '/roles',
+            templateUrl: 'html/realm.roles.html',
+            controller: 'RealmRolesController',
+        })
+        .state('realm.role', {
+            url: '/role?roleId',
+            templateUrl: 'html/realm.role.html',
+            controller: 'RealmRoleController',
         })
         .state('rolespaces', {
             url: '/rolespaces',

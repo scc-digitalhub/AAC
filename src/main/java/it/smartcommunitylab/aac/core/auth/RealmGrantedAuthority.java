@@ -19,6 +19,11 @@ public class RealmGrantedAuthority implements GrantedAuthority {
         this.role = role;
     }
 
+    protected RealmGrantedAuthority() {
+        this.realm = null;
+        this.role = null;
+    }
+    
     public String getRealm() {
         return realm;
     }

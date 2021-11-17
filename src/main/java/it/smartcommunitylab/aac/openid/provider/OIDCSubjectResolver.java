@@ -33,11 +33,18 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
 
     private final OIDCAccountProvider accountProvider;
     private final OIDCIdentityProviderConfig providerConfig;
+    // TODO add subjectService?
 
-    protected OIDCSubjectResolver(String providerId, OIDCUserAccountRepository accountRepository,
+    public OIDCSubjectResolver(String providerId, OIDCUserAccountRepository accountRepository,
             OIDCIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, config, realm);
+    }
+
+    public OIDCSubjectResolver(String authority, String providerId, OIDCUserAccountRepository accountRepository,
+            OIDCIdentityProviderConfig config,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
@@ -60,7 +67,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
             OIDCUserAccount account = accountProvider.getAccount(userId);
 
             // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -74,7 +81,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
             OIDCUserAccount account = accountProvider.getByIdentifyingAttributes(attributes);
 
             // build subject with username
-            return new Subject(account.getSubject(), getRealm(), account.getUsername());
+            return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
         } catch (NoSuchUserException nex) {
             return null;
         }
@@ -118,7 +125,7 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
                 OIDCUserAccount account = accountProvider.getByIdentifyingAttributes(idAttrs);
 
                 // build subject with username
-                return new Subject(account.getSubject(), getRealm(), account.getUsername());
+                return new Subject(account.getSubject(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
             } catch (NoSuchUserException nex) {
                 return null;
             }

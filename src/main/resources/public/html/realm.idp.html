@@ -26,7 +26,14 @@
         </div>
         <div class="col">
             <h3>{{providerName}}</h3>
-            <p class="text-monospace">{{idp.authority }}:{{idp.provider}}</p>
+            <p class="text-monospace">
+                <span class="small text-monospace bg-light pl-1 pr-1">{{idp.authority}}:{{idp.provider}}</span>
+                <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(idp.provider)">
+                    <svg class="icon icon-xs icon-primary">
+                        <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                    </svg>
+                </button>
+            </p>
         </div>
     </div>
 </div>
@@ -54,13 +61,13 @@
         <li ng-if="idp.authority == 'spid'" class="nav-item">
             <a class="nav-link  {{activeView('conf.spid')}}" href ng-click="switchView('conf.spid')">SPID
                 Configuration</a>
-        </li>            
+        </li>
         <li class="nav-item">
             <a class="nav-link  {{activeView('hooks')}}" href ng-click="switchView('hooks')">Hooks</a>
         </li>
         <li class="nav-item">
             <a class="nav-link  {{activeView('apps')}}" href ng-click="switchView('apps')">Apps</a>
-        </li>           
+        </li>
     </ul>
     <div class="tab-content pt-3">
         <div class="tab-pane fade show active">

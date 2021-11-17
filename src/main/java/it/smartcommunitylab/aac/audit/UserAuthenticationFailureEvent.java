@@ -22,9 +22,10 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
     private final String authority;
     private final String provider;
     private final String realm;
+    private final String subject;
 
     public UserAuthenticationFailureEvent(
-            String authority, String provider, String realm,
+            String authority, String provider, String realm, String subject,
             Authentication authentication, AuthenticationException exception) {
         super(authentication, exception);
 
@@ -34,6 +35,7 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
         this.authority = authority;
         this.provider = provider;
         this.realm = realm;
+        this.subject = subject != null ? subject : authentication.getName();
 
     }
 
@@ -47,6 +49,10 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
 
     public String getRealm() {
         return realm;
+    }
+
+    public String getSubject() {
+        return subject;
     }
 
     public Map<String, Serializable> exportException() {
@@ -64,9 +70,9 @@ public class UserAuthenticationFailureEvent extends AbstractAuthenticationFailur
         if (auth instanceof WrappedAuthenticationToken) {
             auth = ((WrappedAuthenticationToken) getAuthentication()).getAuthenticationToken();
         }
-        
+
         data.put("type", auth.getClass().getName());
-        data.put("principal", auth.getName());
+        data.put("principal", subject);
 
         return data;
     }

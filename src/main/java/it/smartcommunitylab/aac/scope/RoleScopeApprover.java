@@ -57,7 +57,7 @@ public class RoleScopeApprover implements ScopeApprover {
             return null;
         }
 
-        Set<String> userRoles = user.getRoles().stream().map(r -> r.getAuthority())
+        Set<String> userRoles = user.getRealmRoles().stream().map(r -> r.getAuthority())
                 .collect(Collectors.toSet());
 
         boolean approved = false;

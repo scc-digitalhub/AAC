@@ -1,0 +1,75 @@
+<div class="pt-3">
+
+    <fieldset class="mt-3">
+        <legend class="mb-5">
+            Permissions
+            <small class="form-text"> Manage API permissions for the current role</small>
+        </legend>
+        <div class="row ">
+            <table class="table table-hover">
+                <tr ng-repeat="service in approvals">
+                    <td class="align-middle">
+                        <div class="col-12 avatar-wrapper avatar-extra-text">
+                            <div class="avatar size-lg">
+                                <svg aria-hidden="true" class="icon icon-secondary">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-plug"></use>
+                                </svg>
+                            </div>
+                            <div class="extra-text">
+                                <a class="text-decoration-none"
+                                    ui-sref="realm.service({realmId:service.realm, serviceId:service.serviceId})">
+                                    <span class="h6">{{service.name}}</span>
+                                    <br> <small class="text-muted"> {{service.namespace}} </small>
+                                </a>
+                                <p>{{service.description}}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="align-middle">
+                        <span ng-repeat="item in service.approvals"><span
+                                class="badge badge-secondary">{{item.scope}}</span> </span>
+                    </td>
+
+                    <td class="text-right">
+                        <button class="btn btn-primary btn-sm" ng-click="editPermissionsDlg(service)">Edit</button>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+
+    </fieldset>
+</div>
+
+<div class="modal fade bs-modal-lg" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">Edit Service permission</h3>
+            </div>
+            <form class="needs-validation was-validated" novalidate name="approvalForm">
+                <div class="modal-body" id="modal-body">
+                    <h6>{{modApprovals.name}}</h6>
+                    <p class="mb-4">{{modApprovals.description}}</p>
+                    <input type="hidden" class="form-control form-control-sm" id="serviceId"
+                        ng-model="modApprovals.serviceId">
+                    <div class="form-check form-check-group" ng-repeat="s in modApprovals.scopes"
+                        ng-click="s.value = !s.value ">
+                        <input class="form-check-input" type="checkbox" ng-model="s.value">
+                        <label><strong>{{s.name}}</strong></label>
+                        <small class="form-text"><span class="text-monospace"> {{s.scope}} </span></small>
+                        <small class="form-text"> {{s.description}}</small>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="button" ng-click="updatePermissions()"
+                        ng-disabled="approvalForm.$invalid">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -19,8 +17,10 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.ScopeType;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimRepository;
 import it.smartcommunitylab.aac.services.persistence.ServiceClientEntity;
@@ -39,21 +39,26 @@ public class ServicesService {
     private final ServiceClaimRepository claimRepository;
     private final ServiceClientRepository clientRepository;
 
+    private final SubjectService subjectService;
+
     public ServicesService(
             ServiceEntityRepository serviceRepository,
             ServiceScopeRepository scopeRepository,
             ServiceClaimRepository claimRepository,
-            ServiceClientRepository clientRepository) {
+            ServiceClientRepository clientRepository,
+            SubjectService subjectService) {
         Assert.notNull(serviceRepository, "service repository is required");
         Assert.notNull(scopeRepository, "scope repository is required");
         Assert.notNull(claimRepository, "claim repository is required");
         Assert.notNull(clientRepository, "client repository is required");
+        Assert.notNull(subjectService, "subject service is mandatory");
 
         this.serviceRepository = serviceRepository;
         this.scopeRepository = scopeRepository;
         this.claimRepository = claimRepository;
         this.clientRepository = clientRepository;
 
+        this.subjectService = subjectService;
     }
 
     /*
@@ -128,7 +133,16 @@ public class ServicesService {
     @Transactional(readOnly = true)
     public List<it.smartcommunitylab.aac.services.Service> listServices(String realm) {
         List<ServiceEntity> services = serviceRepository.findByRealm(realm);
-        return services.stream().map(s -> toService(s)).collect(Collectors.toList());
+        return services.stream()
+                .map(s -> {
+                    try {
+                        return toService(s, listScopes(s.getServiceId()), null, null);
+                    } catch (NoSuchServiceException e) {
+                        return null;
+                    }
+                })
+                .filter(s -> s != null)
+                .collect(Collectors.toList());
     }
 
     public it.smartcommunitylab.aac.services.Service addService(
@@ -150,16 +164,11 @@ public class ServicesService {
         }
 
         if (!StringUtils.hasText(serviceId)) {
-            // generate unique serviceId
-            String uuid = UUID.randomUUID().toString();
-
-            // we prepend a fixed prefix to enable discovery of entity type from uuid
-            serviceId = ServiceEntity.ID_PREFIX + uuid;
-        } else {
-            if (serviceId.length() < 8 || !Pattern.matches(SystemKeys.SLUG_PATTERN, serviceId)) {
-                throw new IllegalArgumentException("invalid service id");
-            }
+            serviceId = subjectService.generateUuid(SystemKeys.RESOURCE_SERVICE);
         }
+
+        // create subject
+        Subject s = subjectService.addSubject(serviceId, realm, SystemKeys.RESOURCE_SERVICE, namespace);
 
         se = new ServiceEntity();
         se.setServiceId(serviceId);
@@ -188,6 +197,13 @@ public class ServicesService {
         se.setClaimMappings(claimMapping);
 
         se = serviceRepository.save(se);
+
+        // check if subject exists
+        Subject s = subjectService.findSubject(serviceId);
+        if (s == null) {
+            s = subjectService.addSubject(serviceId, se.getRealm(), SystemKeys.RESOURCE_SERVICE, se.getNamespace());
+        }
+
         return toService(se);
     }
 
@@ -212,6 +228,9 @@ public class ServicesService {
         if (s != null) {
             serviceRepository.delete(s);
         }
+
+        // remove subject if exists
+        subjectService.deleteSubject(serviceId);
 
     }
 

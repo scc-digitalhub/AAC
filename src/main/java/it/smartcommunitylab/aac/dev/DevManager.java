@@ -183,7 +183,8 @@ public class DevManager {
 
             if (!approvedScopes.contains(Config.SCOPE_USER_ROLE)) {
                 user.setAuthorities(null);
-                user.setRoles(null);
+                user.setRealmRoles(null);
+                user.setSpaceRoles(null);
             }
 
             // build context to populate result

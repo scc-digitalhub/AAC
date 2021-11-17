@@ -16,7 +16,7 @@ public class SamlUserAuthenticationFailureEvent extends UserAuthenticationFailur
     public SamlUserAuthenticationFailureEvent(
             String authority, String provider, String realm,
             Authentication authentication, SamlAuthenticationException exception) {
-        super(authority, provider, realm, authentication, exception);
+        super(authority, provider, realm, null, authentication, exception);
 
     }
 

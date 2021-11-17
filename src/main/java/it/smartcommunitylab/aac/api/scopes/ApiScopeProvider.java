@@ -18,7 +18,7 @@ public class ApiScopeProvider implements ScopeProvider {
 
     private static final ApiResource resource = new ApiResource();
     private static final Map<String, ApiScope> scopes;
-    public static final Map<String, ScopeApprover> approvers;
+    private static final Map<String, ScopeApprover> approvers;
 
     static {
         Map<String, ApiScope> s = new HashMap<>();
@@ -27,7 +27,7 @@ public class ApiScopeProvider implements ScopeProvider {
         s.put(ApiProviderScope.SCOPE, new ApiProviderScope());
         s.put(ApiServicesScope.SCOPE, new ApiServicesScope());
         s.put(ApiUsersScope.SCOPE, new ApiUsersScope());
-        s.put(ApiAttributesScope.SCOPE, new ApiAttributesScope());       
+        s.put(ApiAttributesScope.SCOPE, new ApiAttributesScope());
         s.put(ApiRealmScope.SCOPE, new ApiRealmScope());
 
         scopes = Collections.unmodifiableMap(s);

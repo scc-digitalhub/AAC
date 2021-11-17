@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
 
@@ -62,6 +63,7 @@ public class UserProfile {
     private Set<String> authorities;
 
     private Set<String> roles;
+    private Set<String> spaceRoles;
 
     // attributes are exposed as sets to keep identifiers private
     private Set<AttributeSet> attributes;
@@ -78,7 +80,7 @@ public class UserProfile {
         this.username = user.getUsername();
 
         setAuthorities(user.getAuthorities());
-        setRoles(user.getRoles());
+        setRoles(user.getRealmRoles());
         setAttributes(user.getAttributes());
     }
 
@@ -118,8 +120,20 @@ public class UserProfile {
         this.roles = roles;
     }
 
-    public void setRoles(Collection<SpaceRole> roles) {
+    public void setRoles(Collection<RealmRole> roles) {
         this.roles = roles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
+    }
+
+    public Set<String> getSpaceRoles() {
+        return spaceRoles;
+    }
+
+    public void setSpaceRoles(Set<String> spaceRoles) {
+        this.spaceRoles = roles;
+    }
+
+    public void setSpaceRoles(Collection<SpaceRole> spaceRoles) {
+        this.spaceRoles = spaceRoles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
     }
 
     public Set<AttributeSet> getAttributes() {

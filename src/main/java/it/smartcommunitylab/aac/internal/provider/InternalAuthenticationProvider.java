@@ -71,6 +71,9 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
         String credentials = String
                 .valueOf(authentication.getCredentials());
 
+        InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
+        String subject = account.getSubject();
+
         // TODO check if providers are available
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
 
@@ -83,32 +86,31 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
 
                 // rebuild token to include account
                 username = token.getName();
-                InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(account,
                         token.getCredentials(), token.getAuthorities());
                 auth.setDetails(token.getDetails());
                 return auth;
             } catch (AuthenticationException e) {
-                throw new InternalAuthenticationException(username, credentials, "password", e,
+                throw new InternalAuthenticationException(subject, username, credentials, "password", e,
                         e.getMessage());
             }
         } else if (authentication instanceof ConfirmKeyAuthenticationToken) {
             try {
                 return confirmKeyProvider.authenticate(authentication);
             } catch (AuthenticationException e) {
-                throw new InternalAuthenticationException(username, credentials, "confirmKey", e,
+                throw new InternalAuthenticationException(subject, username, credentials, "confirmKey", e,
                         e.getMessage());
             }
         } else if (authentication instanceof ResetKeyAuthenticationToken) {
             try {
                 return resetKeyProvider.authenticate(authentication);
             } catch (AuthenticationException e) {
-                throw new InternalAuthenticationException(username, credentials, "resetKey", e,
+                throw new InternalAuthenticationException(subject, username, credentials, "resetKey", e,
                         e.getMessage());
             }
         }
-        throw new InternalAuthenticationException(username, credentials, "unknown",
+        throw new InternalAuthenticationException(subject, username, credentials, "unknown",
                 new BadCredentialsException("invalid request"));
     }
 

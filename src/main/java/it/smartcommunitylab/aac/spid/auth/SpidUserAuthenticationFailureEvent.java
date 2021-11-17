@@ -16,7 +16,7 @@ public class SpidUserAuthenticationFailureEvent extends UserAuthenticationFailur
     public SpidUserAuthenticationFailureEvent(
             String authority, String provider, String realm,
             Authentication authentication, SpidAuthenticationException exception) {
-        super(authority, provider, realm, authentication, exception);
+        super(authority, provider, realm, null, authentication, exception);
 
     }
 

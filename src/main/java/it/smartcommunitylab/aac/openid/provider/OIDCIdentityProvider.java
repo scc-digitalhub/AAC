@@ -57,11 +57,19 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
     private ScriptExecutionService executionService;
 
     public OIDCIdentityProvider(
-            String providerId, String providerName,
+            String providerId,
             OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
             OIDCIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, providerId, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, accountRepository, attributeStore, config, realm);
+    }
+
+    public OIDCIdentityProvider(
+            String authority, String providerId,
+            OIDCUserAccountRepository accountRepository, AttributeStore attributeStore,
+            OIDCIdentityProviderConfig config,
+            String realm) {
+        super(authority, providerId, realm);
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
         Assert.notNull(config, "provider config is mandatory");
@@ -77,11 +85,13 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         this.providerConfig = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.accountProvider = new OIDCAccountProvider(providerId, accountRepository, config, realm);
-        this.attributeProvider = new OIDCAttributeProvider(providerId, accountRepository, attributeStore, config,
+        this.accountProvider = new OIDCAccountProvider(authority, providerId, accountRepository, config, realm);
+        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, accountRepository, attributeStore,
+                config,
                 realm);
-        this.authenticationProvider = new OIDCAuthenticationProvider(providerId, accountRepository, config, realm);
-        this.subjectResolver = new OIDCSubjectResolver(providerId, accountRepository, config, realm);
+        this.authenticationProvider = new OIDCAuthenticationProvider(authority, providerId, accountRepository, config,
+                realm);
+        this.subjectResolver = new OIDCSubjectResolver(authority, providerId, accountRepository, config, realm);
 
     }
 

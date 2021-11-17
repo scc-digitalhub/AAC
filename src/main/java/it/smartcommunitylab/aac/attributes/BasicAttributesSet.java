@@ -16,7 +16,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 @Component
 public class BasicAttributesSet implements AttributeSet {
     public static final String IDENTIFIER = "aac.basic";
-    public static final List<String> keys;
+    private static final List<String> keys;
 
     private Map<String, Attribute> attributes;
 

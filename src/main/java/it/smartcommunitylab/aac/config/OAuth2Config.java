@@ -29,7 +29,7 @@ import it.smartcommunitylab.aac.claims.ClaimsService;
 import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHelper;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACApprovalHandler;
@@ -213,7 +213,8 @@ public class OAuth2Config {
             it.smartcommunitylab.aac.core.service.ClientDetailsService clientDetailsService,
             UserService userService,
             FlowExtensionsService flowExtensionsService) {
-        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService, scopeRegistry);
+        ApprovalStoreUserApprovalHandler userHandler = userApprovalHandler(approvalStore, oauthClientDetailsService,
+                scopeRegistry);
         ScopeApprovalHandler scopeHandler = scopeApprovalHandler(scopeRegistry, clientDetailsService,
                 userService);
         SpacesApprovalHandler spacesHandler = spacesApprovalHandler(clientDetailsService, userService);
@@ -391,10 +392,9 @@ public class OAuth2Config {
 
     @Bean
     public InternalOpaqueTokenIntrospector tokenIntrospector(ExtTokenStore tokenStore,
-            UserEntityService userService, ClientEntityService clientService) {
+            SubjectService subjectService) {
         InternalOpaqueTokenIntrospector introspector = new InternalOpaqueTokenIntrospector(tokenStore);
-        introspector.setUserService(userService);
-        introspector.setClientService(clientService);
+        introspector.setSubjectService(subjectService);
 
         return introspector;
     }
