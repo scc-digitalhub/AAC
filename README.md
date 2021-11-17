@@ -3,6 +3,7 @@
 # AAC
 Authentication and Authorization Control Module.
 
+
 This module exposes the OAuth2.0 protocol functionality for user authentication and
 for the authorization of resource access (e.g., APIs). The module allows for managing 
 user registration and for authenticating user using social accounts, in particular Google+ and Facebook. 
@@ -117,7 +118,7 @@ The following properties refer to the configuration of the OAuth2.0 protocol. Sp
 
 
 | Property    | Description              | Default | ENV Variable |
-| ----------- | ------------------------ | ------- |
+| ----------- | ------------------------ | ------- | ------------ |
 | `oauth2.redirects.matchports` | Whether strictly match ports in redirect URLs | true | `REDIRECT_MATCH_PORTS` |
 | `oauth2.redirects.matchdomains` | Whether strictly match domains in redirect URLs | true | `REDIRECT_MATCH_SUBDOMAINS` |
 | `oauth2.jwt` | Enable use of JWT tokens | true | `ENABLE_JWT` |
