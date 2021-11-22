@@ -268,9 +268,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/spid/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 // whitelist swagger
-                .antMatchers("/v2/api-docs",
+                .antMatchers(
+                		"/v3/api-docs",
+                		"/v3/api-docs/*",
                         "/configuration/ui",
                         "/swagger-resources/**",
+                        "/swagger-ui/**",
                         "/configuration/**",
                         "/swagger-ui.html",
                         "/webjars/**")

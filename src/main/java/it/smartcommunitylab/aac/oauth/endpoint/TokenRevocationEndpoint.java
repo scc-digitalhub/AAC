@@ -24,8 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
@@ -36,7 +36,7 @@ import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
  *
  */
 @Controller
-@Api(tags = { "OAuth 2.0 Token Revocation" })
+@Tag(name= "OAuth 2.0 Token Revocation" )
 public class TokenRevocationEndpoint {
 
     public static final String TOKEN_REVOCATION_URL = "/oauth/revoke";
@@ -51,7 +51,7 @@ public class TokenRevocationEndpoint {
      * 
      * @param token
      */
-    @ApiOperation(value = "Revoke token")
+    @Operation(summary = "Revoke token")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_REVOCATION_URL)
     public ResponseEntity<String> revokeTokenWithParam(
             @RequestParam(name = "token") String token,

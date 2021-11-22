@@ -39,10 +39,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.oauth.auth.DefaultOAuth2AuthenticatedPrincipal;
-import springfox.documentation.annotations.ApiIgnore;
 
 /*
  * Legacy integration with WSO2 apiManager 2.6
@@ -51,7 +51,7 @@ import springfox.documentation.annotations.ApiIgnore;
  * Should be deprecated in favor of OAuth2 DCR
  */
 
-@ApiIgnore
+@Hidden
 @Controller
 public class APIMClientController {
     private final Logger logger = LoggerFactory.getLogger(getClass());

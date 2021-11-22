@@ -36,8 +36,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -56,7 +57,7 @@ import it.smartcommunitylab.aac.profiles.model.ProfileResponse;
  *
  */
 @RestController
-@Api(tags = { "AAC User profile" })
+@Tag(name= "AAC User profile" )
 public class ProfileController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -69,7 +70,7 @@ public class ProfileController {
      */
 
     @Deprecated()
-    @ApiOperation(value = "Get basic profile of the current user")
+    @Operation(summary= "Get basic profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE + "')")
     @GetMapping(value = "/basicprofile/me")
     public @ResponseBody ProfileResponse myBasicProfile(BearerTokenAuthentication auth)
@@ -92,7 +93,7 @@ public class ProfileController {
     }
 
     @Deprecated()
-    @ApiOperation(value = "Get openid profile of the current user")
+    @Operation(summary= "Get openid profile of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_PROFILE + "')")
     @GetMapping(value = "/openidprofile/me")
     public @ResponseBody ProfileResponse myOpenIdProfile(BearerTokenAuthentication auth)
@@ -115,7 +116,7 @@ public class ProfileController {
     }
 
     @Deprecated()
-    @ApiOperation(value = "Get account profiles of the current user")
+    @Operation(summary= "Get account profiles of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE
             + "')")
     @GetMapping(value = "/accountprofile/me")
@@ -138,7 +139,7 @@ public class ProfileController {
         return new ProfileResponse(subject, profiles);
     }
 
-    @ApiOperation(value = "Get profiles of the current user")
+    @Operation(summary= "Get profiles of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_profile.'+#identifier+'.me')")
     @GetMapping(value = "/profile/{identifier}/me")
     public @ResponseBody ProfileResponse myProfiles(
@@ -194,7 +195,7 @@ public class ProfileController {
     /*
      * Api operations
      */
-    @ApiOperation(value = "Get basic profile of a user")
+    @Operation(summary= "Get basic profile of a user")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_BASIC_PROFILE_ALL
             + "')")
@@ -207,7 +208,7 @@ public class ProfileController {
         return new ProfileResponse(subject, profile);
     }
 
-    @ApiOperation(value = "Get openid profile of a user")
+    @Operation(summary= "Get openid profile of a user")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_OPENID_PROFILE_ALL
             + "')")
@@ -220,7 +221,7 @@ public class ProfileController {
         return new ProfileResponse(subject, profile);
     }
 
-    @ApiOperation(value = "Get account profiles of a user")
+    @Operation(summary= "Get account profiles of a user")
     @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_" + Config.SCOPE_ACCOUNT_PROFILE_ALL
             + "')")
@@ -233,7 +234,7 @@ public class ProfileController {
         return new ProfileResponse(subject, profiles);
     }
 
-    @ApiOperation(value = "Get custom profiles of a user")
+    @Operation(summary= "Get custom profiles of a user")
 //    @PreAuthorize("(hasAuthority('" + Config.R_ADMIN
 //            + "') or hasAuthority(#realm+':ROLE_ADMIN')) and hasAuthority('SCOPE_profile.#identifier.all')")
     @GetMapping(value = "/api/profiles/{realm}/{identifier}/{subject}")

@@ -50,8 +50,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
@@ -66,7 +66,7 @@ import it.smartcommunitylab.aac.oauth.model.TokenIntrospection;
  *
  */
 @Controller
-@Api(tags = { "OAuth 2.0 Token Introspection" })
+@Tag(name = "OAuth 2.0 Token Introspection" )
 public class TokenIntrospectionEndpoint {
 
     public final static String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
@@ -88,7 +88,7 @@ public class TokenIntrospectionEndpoint {
      */
 
 //    @SuppressWarnings("unchecked")
-    @ApiOperation(value = "Get token metadata")
+    @Operation(summary = "Get token metadata")
     @RequestMapping(method = RequestMethod.POST, value = TOKEN_INTROSPECTION_URL)
     public ResponseEntity<TokenIntrospection> getTokenInfo(
             @RequestParam(name = "token") String tokenValue,

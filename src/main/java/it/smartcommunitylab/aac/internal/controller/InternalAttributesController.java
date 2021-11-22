@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.internal.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.InvalidDataException;
@@ -30,7 +33,6 @@ import it.smartcommunitylab.aac.dto.CustomizationBean;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
 import it.smartcommunitylab.aac.model.Realm;
-import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
 @RequestMapping
@@ -49,7 +51,7 @@ public class InternalAttributesController {
     /**
      * Redirect to registration page
      */
-    @ApiIgnore
+    @Hidden
     @RequestMapping(value = "/attrs/internal/edit/{providerId}/{setId}", method = RequestMethod.GET)
     public String registrationPage(
             @PathVariable("providerId") String providerId,
@@ -100,7 +102,7 @@ public class InternalAttributesController {
     /**
      * Update user attributes
      */
-    @ApiIgnore
+    @Hidden
     @RequestMapping(value = "/attrs/internal/edit/{providerId}/{setId}", method = RequestMethod.POST)
     public String register(Model model,
             @PathVariable("providerId") String providerId,
