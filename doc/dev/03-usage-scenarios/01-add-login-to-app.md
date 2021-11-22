@@ -8,5 +8,5 @@ The scenario relies on the OAuth2.0 / OpenID Connect protocol and may be enabled
 situations: 
 
 * [Regular Web Application](./01-add-login-to-app-web.md)
-* [Single Page Application](./01-add-login-to-app-spa.md)
-* [Native / mobile Apps](./01-add-login-to-app-native.md) 
+* [Single Page Application](./02-add-login-to-app-spa.md)
+* [Native / mobile Apps](./03-add-login-to-app-native.md) 

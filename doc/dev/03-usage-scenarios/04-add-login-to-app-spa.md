@@ -1,15 +1,15 @@
-# Add Login to Regular Web App
+# Add Login to Single Page Application
 
-The authentication relies on the **OAuth2.0 Authorization Code Flow**.
+Single Page Applications (SPA for short) represent a modern pattern for the Web UI implementation, where all the UI page renderings and interactions take place client-side, while the data is retrieved from server API using the access token. In this case, the authentication process does not necessarily involve the server. In this case, the login process and the access to the user information should happen on the client, and the implementation should rely on either OAuth2.0 Implicit Flow (deprecated for potential security flaws) or on on the OAuth2.0 **Authorization Code Flow with PKCE**. 
 
 ## Overview
 
-In the regular Web app:
+In the SPA:
 
-1. The user accesses a protected resource and the app redirects to the AAC Authorization Server.
+1. The user accesses a protected route and the app redirects to the AAC Authorization Server.
 2. The user is presented the login page with one or more Identity Providers configured for you app (e.g., username/password login, external login with Google, etc.).
 3. The user authenticates and authorizes your app for the information access and your app is granted with the possibility to obtain the token.
-4. Your app requests and obtains the token necessary to retrieve relevant user info (e.g., ID token).
+4. AAC redirects to the page and your app requests and obtains the token necessary to retrieve relevant user info (e.g., ID token).
 
 ## Implementation
 
@@ -28,16 +28,17 @@ In AAC it is possible to enable different Identity Provider for user to login. T
 
 ### 3. Use OAuth2.0/OpenID Connect SDK 
 
-To complete the implementation, you may use an arbitrary OAuth2.0/OpenID Connect SDK for the language of your choice. For example in case of Java/Spring, the [spring-security-oauth2](https://spring.io/guides/tutorials/spring-boot-oauth2/) project can be used for the login integration implementation. See also [here](https://github.com/scc-digitalhub/spring-oauth2-starter) for the starter project that showcases such an integration. 
+To complete the implementation, you may use an arbitrary OAuth2.0/OpenID Connect client SDK for framework you use. For example in case of vanilla JavaScript it is possible to use [oidc-client-js](https://github.com/IdentityModel/oidc-client-js) library
+or [AppAuth](https://github.com/openid/AppAuth-JS) library for JavaScript. 
 
 To perform the configuration you will need the following information:
 
 * Issuer URI. Can be found under the endpoints of your Client app configuration (your app / view / endpoints / Issuer metadata (OIDC));
 * Callback URL. Corresponds to the URL of your application as of integration. Should be registered in the Client App configuration in AAC under OAuth2 / Redirect URIs;
 * Logout URL (optional) to return to your app landing page after the user performs the logout from AAC. Should be registered in the same way as the callback URL;
-* Client Id and Client Secret as provided by AAC.
+* Client Id as provided by AAC.
 
 
-See also: [Auth0 Regular Web app quick starts](https://auth0.com/docs/quickstart/webapp).
+See also: [AppAuth for JS](https://github.com/openid/AppAuth-JS).
 
 
