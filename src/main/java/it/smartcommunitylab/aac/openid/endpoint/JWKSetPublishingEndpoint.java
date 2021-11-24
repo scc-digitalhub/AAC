@@ -18,13 +18,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import net.minidev.json.JSONObject;
 
 @Controller
-@Api(tags = { "OpenID Connect Discovery" })
+@Tag(name= "OpenID Connect Discovery" )
 public class JWKSetPublishingEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -36,7 +37,7 @@ public class JWKSetPublishingEndpoint {
     @Autowired
     private JWTSigningAndValidationService jwtService;
 
-    @ApiOperation(value = "JSON Web Key Set")
+    @Operation(summary = "JSON Web Key Set")
     @RequestMapping(method = RequestMethod.GET, value = JWKS_URL, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JSONObject> getJwks() {
 

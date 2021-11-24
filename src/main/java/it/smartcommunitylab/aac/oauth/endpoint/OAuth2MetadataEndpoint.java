@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
  * extends OIDC discovery metadata 
  */
 @Controller
-@Api(tags = { "OAuth 2.0 Authorization Server Metadata" })
+@Tag(name = "OAuth 2.0 Authorization Server Metadata" )
 public class OAuth2MetadataEndpoint {
 
     public static final String OAUTH2_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/oauth-authorization-server";
@@ -44,7 +44,7 @@ public class OAuth2MetadataEndpoint {
     @Autowired
     private JWTSigningAndValidationService signService;
 
-    @ApiOperation(value = "Get authorization server metadata")
+    @Operation(summary = "Get authorization server metadata")
     @RequestMapping(method = RequestMethod.GET, value = OAUTH2_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody Map<String, Object> serverMetadata() {
         return getConfiguration();

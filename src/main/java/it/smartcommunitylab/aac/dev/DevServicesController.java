@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -50,10 +51,9 @@ import it.smartcommunitylab.aac.services.ServiceClaim;
 import it.smartcommunitylab.aac.services.ServiceClient;
 import it.smartcommunitylab.aac.services.ServiceScope;
 import it.smartcommunitylab.aac.services.ServicesManager;
-import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
-@ApiIgnore
+@Hidden
 @RequestMapping("/console/dev")
 public class DevServicesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());

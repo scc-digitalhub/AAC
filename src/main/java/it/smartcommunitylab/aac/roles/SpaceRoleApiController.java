@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
@@ -34,14 +35,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.SpaceRole;
 
 @RestController
-@Api(tags = { "AAC SpaceRoles" })
+@Tag(name= "AAC SpaceRoles" )
 public class SpaceRoleApiController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -54,7 +55,7 @@ public class SpaceRoleApiController {
      * TODO evaluate dedicated role or resolve authorization via spaces ownership
      */
 
-    @ApiOperation(value = "Get roles of a specific subject")
+    @Operation(summary = "Get roles of a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/api/roles/{subjectId}")
@@ -70,7 +71,7 @@ public class SpaceRoleApiController {
         return roleManager.getRoles(subjectId);
     }
 
-    @ApiOperation(value = "Add roles to a specific subject")
+    @Operation(summary = "Add roles to a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/api/roles/{subjectId}")
@@ -95,7 +96,7 @@ public class SpaceRoleApiController {
         return roleManager.addRoles(subjectId, spaceRoles);
     }
 
-    @ApiOperation(value = "Delete roles for a specific subject")
+    @Operation(summary = "Delete roles for a specific subject")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') and hasAuthority('SCOPE_" + Config.SCOPE_ROLEMANAGEMENT
             + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/api/roles/{subjectId}")
