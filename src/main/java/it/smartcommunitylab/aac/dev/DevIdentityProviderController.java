@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.dev;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -76,7 +77,7 @@ public class DevIdentityProviderController {
 
     @GetMapping("/realms/{realm}/idps")
     public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
 
         List<ConfigurableIdentityProvider> providers = providerManager
@@ -92,7 +93,7 @@ public class DevIdentityProviderController {
 
     @GetMapping("/realms/{realm}/providertemplates")
     public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviderTemplates(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
 
         List<ConfigurableProvider> providers = providerManager
@@ -109,8 +110,8 @@ public class DevIdentityProviderController {
 
     @GetMapping("/realms/{realm}/idps/{providerId}")
     public ResponseEntity<ConfigurableIdentityProvider> getRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
@@ -136,8 +137,8 @@ public class DevIdentityProviderController {
 
     @DeleteMapping("/realms/{realm}/idps/{providerId}")
     public ResponseEntity<Void> deleteRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
         providerManager.deleteIdentityProvider(realm, providerId);
         return ResponseEntity.ok(null);
@@ -145,8 +146,8 @@ public class DevIdentityProviderController {
 
     @PostMapping("/realms/{realm}/idps")
     public ResponseEntity<ConfigurableIdentityProvider> createRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @Valid @RequestBody ConfigurableIdentityProvider registration)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
         // unpack and build model
         String authority = registration.getAuthority();
@@ -178,9 +179,9 @@ public class DevIdentityProviderController {
 
     @PutMapping("/realms/{realm}/idps/{providerId}")
     public ResponseEntity<ConfigurableIdentityProvider> updateRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @Valid @RequestBody ConfigurableIdentityProvider registration)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
@@ -222,9 +223,9 @@ public class DevIdentityProviderController {
 
     @PutMapping("/realms/{realm}/idps/{providerId}/state")
     public ResponseEntity<ConfigurableIdentityProvider> updateRealmProviderState(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody ConfigurableIdentityProvider registration)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration)
             throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
@@ -245,8 +246,8 @@ public class DevIdentityProviderController {
 
     @GetMapping("/realms/{realm}/idps/{providerId}/export")
     public void exportRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             HttpServletResponse res)
             throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
@@ -258,7 +259,7 @@ public class DevIdentityProviderController {
         res.setContentType("text/yaml");
         res.setHeader("Content-Disposition", "attachment;filename=idp-" + provider.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
-        out.print(s);
+        out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
 
@@ -266,18 +267,21 @@ public class DevIdentityProviderController {
 
     @PutMapping("/realms/{realm}/idps")
     public ResponseEntity<Collection<ConfigurableIdentityProvider>> importRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
 
-        if (file.getContentType() != null &&
-                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString())
-                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString())
-                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_XYAML.toString()))) {
+        if (file.getContentType() == null) {
             throw new IllegalArgumentException("invalid file");
         }
+
+        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
+            throw new IllegalArgumentException("invalid file");
+        }
+
         try {
             List<ConfigurableIdentityProvider> providers = new ArrayList<>();
             boolean multiple = false;
@@ -368,10 +372,10 @@ public class DevIdentityProviderController {
 
     @PutMapping("/realms/{realm}/idps/{providerId}/apps/{clientId}")
     public ResponseEntity<ClientApp> updateRealmProviderClientApp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody ClientApp app)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @RequestBody @Valid @NotNull ClientApp app)
             throws NoSuchRealmException, NoSuchUserException, NoSuchClientException, SystemException,
             NoSuchProviderException {
 

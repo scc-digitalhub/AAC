@@ -3,11 +3,13 @@ package it.smartcommunitylab.aac.api;
 import java.util.Collection;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,22 +41,28 @@ public class ScopesController {
 
     @GetMapping("/scope/{scope}")
     public Scope getScope(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) throws NoSuchScopeException {
-        logger.debug("get scope " + String.valueOf(scope));
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+            throws NoSuchScopeException {
+        logger.debug("get scope {}",
+                StringUtils.trimAllWhitespace(scope));
+
         return scopeManager.getScope(scope);
     }
 
     @GetMapping("/resources")
     public Collection<Resource> listResources() {
         logger.debug("list resources");
+
         return scopeManager.listResources();
     }
 
     @GetMapping("/resources/{resourceId}")
     public Resource listResources(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
             throws NoSuchResourceException {
-        logger.debug("get resource " + String.valueOf(resourceId));
+        logger.debug("get resource {}",
+                StringUtils.trimAllWhitespace(resourceId));
+
         return scopeManager.getResource(resourceId);
     }
 

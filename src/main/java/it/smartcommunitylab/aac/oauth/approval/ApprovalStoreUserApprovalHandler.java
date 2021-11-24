@@ -115,7 +115,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             throw new InvalidRequestException("invalid client");
         }
 
-        logger.debug("requested scopes for client " + clientId + ": " + requestedScopes.toString());
+        logger.debug("requested scopes for client " + clientId + ": " + String.valueOf(requestedScopes));
 
         // we have 2 sets of approved scopes
         // firstParty handling: autoApprove for same realm user with autoApprove scopes
@@ -146,7 +146,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         approvedScopes.addAll(autoApprovedScopes);
         approvedScopes.addAll(userApprovedScopes);
 
-        if (approvedScopes.containsAll(requestedScopes)) {
+        if (requestedScopes != null && approvedScopes.containsAll(requestedScopes)) {
             // no need to ask user consent, we can approve here
             request.setApproved(true);
         }

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,8 +58,10 @@ public class IdentityProviderController {
      */
     @GetMapping("/idp/{realm}")
     public Collection<ConfigurableIdentityProvider> listIdps(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
-        logger.debug("list idp for realm " + String.valueOf(realm));
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
+        logger.debug("list idp for realm {}",
+                StringUtils.trimAllWhitespace(realm));
 
         return providerManager.listIdentityProviders(realm)
                 .stream()
@@ -70,11 +73,11 @@ public class IdentityProviderController {
 
     @GetMapping("/idp/{realm}/{providerId}")
     public ConfigurableIdentityProvider getIdp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-
-        logger.debug("get idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("get idp {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
@@ -82,24 +85,15 @@ public class IdentityProviderController {
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
         provider.setRegistered(isRegistered);
 
-//        // if registered fetch active configuration
-//        if (isRegistered) {
-//            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
-//            Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
-//            // we replace config instead of merging, when active config can not be
-//            // modified anyway
-//            provider.setConfiguration(configMap);
-//        }
-
         return provider;
     }
 
     @PostMapping("/idp/{realm}")
     public ConfigurableIdentityProvider addIdp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @Valid @RequestBody ConfigurableIdentityProvider registration) throws NoSuchRealmException {
-
-        logger.debug("add idp to realm " + String.valueOf(realm));
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration) throws NoSuchRealmException {
+        logger.debug("add idp to realm {}",
+                StringUtils.trimAllWhitespace(realm));
 
         // unpack and build model
         String id = registration.getProvider();
@@ -125,7 +119,7 @@ public class IdentityProviderController {
         provider.setHookFunctions(hookFunctions);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("idp bean: " + String.valueOf(provider));
+            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
         }
 
         provider = providerManager.addIdentityProvider(realm, provider);
@@ -135,12 +129,13 @@ public class IdentityProviderController {
 
     @PutMapping("/idp/{realm}/{providerId}")
     public ConfigurableIdentityProvider updateIdp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @Valid @RequestBody ConfigurableIdentityProvider registration,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
             throws NoSuchRealmException, NoSuchProviderException {
-        logger.debug("update idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("update idp {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
 
@@ -171,7 +166,7 @@ public class IdentityProviderController {
         provider.setConfiguration(configuration);
 
         if (logger.isTraceEnabled()) {
-            logger.trace("idp bean: " + String.valueOf(provider));
+            logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
         }
 
         provider = providerManager.updateIdentityProvider(realm, providerId, provider);
@@ -194,29 +189,36 @@ public class IdentityProviderController {
 
     @DeleteMapping("/idp/{realm}/{providerId}")
     public void deleteIdp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        logger.debug("delete idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("delete idp {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+
         providerManager.deleteIdentityProvider(realm, providerId);
 
     }
 
     @PutMapping("/idp/{realm}")
     public ConfigurableIdentityProvider importIdp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
-        logger.debug("import idp to realm " + String.valueOf(realm));
+        logger.debug("import idp to realm {}",
+                StringUtils.trimAllWhitespace(realm));
 
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
 
-        if (file.getContentType() != null &&
-                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString()) &&
-                        !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString()))) {
+        if (file.getContentType() == null) {
             throw new IllegalArgumentException("invalid file");
         }
+
+        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
+            throw new IllegalArgumentException("invalid file");
+        }
+
         try {
             ConfigurableIdentityProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
                     ConfigurableIdentityProvider.class);
@@ -244,7 +246,7 @@ public class IdentityProviderController {
             provider.setHookFunctions(hookFunctions);
 
             if (logger.isTraceEnabled()) {
-                logger.trace("idp bean: " + String.valueOf(provider));
+                logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
             }
 
             provider = providerManager.addIdentityProvider(realm, provider);
@@ -264,10 +266,11 @@ public class IdentityProviderController {
 
     @PutMapping("/idp/{realm}/{providerId}/status")
     public ConfigurableIdentityProvider registerIdp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        logger.debug("register idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("register idp {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
         provider = providerManager.registerIdentityProvider(realm, providerId);
@@ -282,10 +285,11 @@ public class IdentityProviderController {
 
     @DeleteMapping("/idp/{realm}/{providerId}/status")
     public ConfigurableIdentityProvider unregisterIdp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        logger.debug("unregister idp " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("unregister idp {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
         provider = providerManager.unregisterIdentityProvider(realm, providerId);
@@ -303,23 +307,14 @@ public class IdentityProviderController {
      */
     @GetMapping("/idp/{realm}/{providerId}/schema")
     public JsonSchema getIdpConfigurationSchema(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-
-        logger.debug("get idp config schema for " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("get idp config schema for {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
         return providerManager.getConfigurationSchema(realm, SystemKeys.RESOURCE_IDENTITY, provider.getAuthority());
     }
-
-//    @GetMapping("/idp_schema/{authority}")
-//    public JsonSchema getConfigurationSchema(
-//            @PathVariable(required = true) @Valid @NotBlank String authority)
-//            throws IllegalArgumentException {
-//        logger.debug("get idp config schema  for authority " + String.valueOf(authority));
-//
-//        return providerManager.getConfigurationSchema(SystemKeys.RESOURCE_IDENTITY, authority);
-//    }
 
 }

@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
@@ -96,7 +97,6 @@ public class ClientManager {
 
     @Autowired
     private SubjectRoleService realmRoleService;
-    
 
     @Autowired
     private ExtTokenStore tokenStore;
@@ -111,7 +111,7 @@ public class ClientManager {
      */
     @Transactional(readOnly = true)
     public Collection<ClientApp> listClientApps(String realm) throws NoSuchRealmException {
-        logger.debug("list client apps for realm " + realm);
+        logger.debug("list client apps for realm " + StringUtils.trimAllWhitespace(realm));
 
         Realm r = realmService.getRealm(realm);
         List<ClientApp> apps = new ArrayList<>();
@@ -125,7 +125,8 @@ public class ClientManager {
 
     @Transactional(readOnly = true)
     public Collection<ClientApp> listClientApps(String realm, String type) throws NoSuchRealmException {
-        logger.debug("list client apps for realm " + realm + " type " + type);
+        logger.debug("list client apps for realm " + StringUtils.trimAllWhitespace(realm) + " type "
+                + StringUtils.trimAllWhitespace(type));
 
         Realm r = realmService.getRealm(realm);
         Collection<ClientApp> apps = Collections.emptyList();
@@ -194,6 +195,10 @@ public class ClientManager {
 
         if (SystemKeys.CLIENT_TYPE_OAUTH2.equals(type)) {
             clientApp = oauthClientAppService.findClient(clientId);
+        }
+
+        if (clientApp == null) {
+            return null;
         }
 
         // check realm match
@@ -546,9 +551,6 @@ public class ClientManager {
 
         return realmRoles;
     }
-    
-    
-    
 
     public Collection<Approval> getApprovals(String realm, String clientId) throws NoSuchClientException {
         ClientEntity entity = findClient(clientId);
@@ -576,14 +578,13 @@ public class ClientManager {
         if (entity == null) {
             throw new NoSuchClientException();
         }
-        
+
         Instant now = Instant.now();
         Instant a = after == null ? now.minus(5, ChronoUnit.DAYS) : after.toInstant();
         Instant b = before == null ? now : before.toInstant();
 
         return auditStore.findByPrincipal(clientId, a, b, null);
     }
-
 
 //    // TODO evaluate removal, no reason to expose all roles
 //    @Transactional(readOnly = false)
@@ -726,5 +727,4 @@ public class ClientManager {
 //                .collect(Collectors.toSet());
     }
 
- 
 }

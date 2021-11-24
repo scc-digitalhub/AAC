@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,8 +60,10 @@ public class AttributeProviderController {
 
     @GetMapping("/ap/{realm}")
     public Collection<ConfigurableAttributeProvider> listAps(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
-        logger.debug("list ap for realm " + String.valueOf(realm));
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
+        logger.debug("list ap for realm {}",
+                StringUtils.trimAllWhitespace(realm));
 
         return providerManager.listAttributeProviders(realm)
                 .stream()
@@ -72,11 +75,12 @@ public class AttributeProviderController {
 
     @GetMapping("/ap/{realm}/{providerId}")
     public ConfigurableAttributeProvider getAp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-
-        logger.debug("get ap " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("get ap {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId),
+                StringUtils.trimAllWhitespace(realm));
 
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
 
@@ -84,24 +88,15 @@ public class AttributeProviderController {
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
         provider.setRegistered(isRegistered);
 
-//        // if registered fetch active configuration
-//        if (isRegistered) {
-//            AttributeProvider ap = providerManager.getAttributeProvider(providerId);
-//            Map<String, Serializable> configMap = ap.getConfiguration().getConfiguration();
-//            // we replace config instead of merging, when active config can not be
-//            // modified anyway
-//            provider.setConfiguration(configMap);
-//        }
-
         return provider;
     }
 
     @PostMapping("/ap/{realm}")
     public ConfigurableAttributeProvider addAp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @Valid @RequestBody ConfigurableAttributeProvider registration) throws NoSuchRealmException {
-
-        logger.debug("add ap to realm " + String.valueOf(realm));
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration) throws NoSuchRealmException {
+        logger.debug("add ap to realm {}",
+                StringUtils.trimAllWhitespace(realm));
 
         // unpack and build model
         String id = registration.getProvider();
@@ -133,12 +128,13 @@ public class AttributeProviderController {
 
     @PutMapping("/ap/{realm}/{providerId}")
     public ConfigurableAttributeProvider updateAp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @Valid @RequestBody ConfigurableAttributeProvider registration,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
             @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
             throws NoSuchRealmException, NoSuchProviderException {
-        logger.debug("update ap " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("update ap {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
 
@@ -189,29 +185,36 @@ public class AttributeProviderController {
 
     @DeleteMapping("/ap/{realm}/{providerId}")
     public void deleteAp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        logger.debug("delete ap " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("delete ap {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+
         providerManager.deleteAttributeProvider(realm, providerId);
 
     }
 
     @PutMapping("/ap/{realm}")
     public ConfigurableAttributeProvider importAp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
-        logger.debug("import ap to realm " + String.valueOf(realm));
+        logger.debug("import ap to realm [}",
+                StringUtils.trimAllWhitespace(realm));
 
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
 
-        if (file.getContentType() != null &&
-                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString()) &&
-                        !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString()))) {
+        if (file.getContentType() == null) {
             throw new IllegalArgumentException("invalid file");
         }
+
+        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
+            throw new IllegalArgumentException("invalid file");
+        }
+
         try {
             ConfigurableAttributeProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
                     ConfigurableAttributeProvider.class);
@@ -256,10 +259,11 @@ public class AttributeProviderController {
 
     @PutMapping("/ap/{realm}/{providerId}/status")
     public ConfigurableAttributeProvider registerAp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        logger.debug("register ap " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("register ap {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
         provider = providerManager.registerAttributeProvider(realm, providerId);
@@ -274,10 +278,11 @@ public class AttributeProviderController {
 
     @DeleteMapping("/ap/{realm}/{providerId}/status")
     public ConfigurableAttributeProvider unregisterAp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        logger.debug("unregister ap " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("unregister ap {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
         provider = providerManager.unregisterAttributeProvider(realm, providerId);
@@ -295,11 +300,11 @@ public class AttributeProviderController {
      */
     @GetMapping("/ap/{realm}/{providerId}/schema")
     public JsonSchema getApConfigurationSchema(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-
-        logger.debug("get ap config schema for " + String.valueOf(providerId) + " for realm " + String.valueOf(realm));
+        logger.debug("get ap config schema for {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
         return providerManager.getConfigurationSchema(realm, SystemKeys.RESOURCE_ATTRIBUTES, provider.getAuthority());

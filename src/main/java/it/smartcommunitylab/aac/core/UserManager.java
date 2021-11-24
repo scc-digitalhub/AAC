@@ -190,7 +190,7 @@ public class UserManager {
     // per-realm view, partial and translated
     @Transactional(readOnly = true)
     public User getUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("get user " + String.valueOf(subjectId) + " for realm " + realm);
+        logger.debug("get user {} for realm {}", String.valueOf(subjectId), realm);
 
         Realm r = realmService.getRealm(realm);
         // TODO evaluate if every user is globally accessible via translation or if we
@@ -201,7 +201,7 @@ public class UserManager {
     // per realm view, lists both owned and proxied
     @Transactional(readOnly = true)
     public List<User> listUsers(String realm) throws NoSuchRealmException {
-        logger.debug("list users for realm " + realm);
+        logger.debug("list users for realm {}", realm);
 
         Realm r = realmService.getRealm(realm);
         return userService.listUsers(r.getSlug());
@@ -209,7 +209,7 @@ public class UserManager {
 
     @Transactional(readOnly = true)
     public long countUsers(String realm) throws NoSuchRealmException {
-        logger.debug("count users for realm " + realm);
+        logger.debug("count users for realm {}", realm);
 
         Realm r = realmService.getRealm(realm);
         return userService.countUsers(r.getSlug());
@@ -217,7 +217,7 @@ public class UserManager {
 
     @Transactional(readOnly = true)
     public Page<User> searchUsers(String realm, String keywords, Pageable pageRequest) throws NoSuchRealmException {
-        logger.debug("search users for realm " + realm + " with keywords " + String.valueOf(keywords));
+        logger.debug("search users for realm {} with keywords {}", realm, String.valueOf(keywords));
         Realm r = realmService.getRealm(realm);
         return userService.searchUsers(r.getSlug(), keywords, pageRequest);
     }
@@ -229,7 +229,7 @@ public class UserManager {
     @Transactional(readOnly = true)
     public Collection<GrantedAuthority> getAuthorities(String realm, String subjectId)
             throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("get authorities for user " + String.valueOf(subjectId) + " in realm " + realm);
+        logger.debug("get authorities for user {} in realm {}", String.valueOf(subjectId), realm);
 
         Realm r = realmService.getRealm(realm);
         return userService.getUserAuthorities(subjectId, r.getSlug());
@@ -238,7 +238,7 @@ public class UserManager {
     @Transactional(readOnly = false)
     public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
             throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("update authorities for user " + String.valueOf(subjectId) + " in realm " + realm);
+        logger.debug("update authorities for user {} in realm {}", String.valueOf(subjectId), realm);
         if (logger.isTraceEnabled()) {
             logger.trace("authorities: " + String.valueOf(roles));
         }
@@ -249,7 +249,7 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public void removeUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("remove user " + String.valueOf(subjectId) + " from realm " + realm);
+        logger.debug("remove user {} from realm {}", String.valueOf(subjectId), realm);
 
         Realm r = realmService.getRealm(realm);
 
@@ -265,7 +265,7 @@ public class UserManager {
     }
 
     private void deleteUser(String subjectId) throws NoSuchUserException {
-        logger.debug("delete user " + String.valueOf(subjectId));
+        logger.debug("delete user {}", String.valueOf(subjectId));
 
         User user = userService.findUser(subjectId);
         if (user == null) {
@@ -295,7 +295,7 @@ public class UserManager {
     public void inviteUser(String realm, String username, String subjectId)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
 
-        logger.debug("invite user to realm" + realm);
+        logger.debug("invite user to realm {}", realm);
 
         Realm r = realmService.getRealm(realm);
 
@@ -320,6 +320,7 @@ public class UserManager {
 
             UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
 //            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
+            logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
         }
 
         if (StringUtils.hasText(subjectId)) {
@@ -333,7 +334,7 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public User blockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("block user " + String.valueOf(subjectId) + " from realm " + realm);
+        logger.debug("block user {} from realm {}", String.valueOf(subjectId), realm);
 
         Realm r = realmService.getRealm(realm);
 
@@ -349,7 +350,7 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public User unblockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("block user " + String.valueOf(subjectId) + " from realm " + realm);
+        logger.debug("unblock user {} from realm {}", String.valueOf(subjectId), realm);
 
         Realm r = realmService.getRealm(realm);
 
@@ -365,7 +366,7 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public User lockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("lock user " + String.valueOf(subjectId) + " from realm " + realm);
+        logger.debug("lock user {} from realm {}", String.valueOf(subjectId), realm);
 
         Realm r = realmService.getRealm(realm);
 
@@ -381,7 +382,7 @@ public class UserManager {
 
     @Transactional(readOnly = false)
     public User unlockUser(String realm, String subjectId) throws NoSuchUserException, NoSuchRealmException {
-        logger.debug("lock user " + String.valueOf(subjectId) + " from realm " + realm);
+        logger.debug("unlock user {} from realm {}", realm);
 
         Realm r = realmService.getRealm(realm);
 

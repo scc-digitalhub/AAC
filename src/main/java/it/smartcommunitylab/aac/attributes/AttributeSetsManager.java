@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
         + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
-public class AttributeManager {
+public class AttributeSetsManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -85,7 +85,7 @@ public class AttributeManager {
             throw new IllegalArgumentException("invalid set identifier");
         }
 
-        logger.debug("update attribute set " + identifier);
+        logger.debug("update attribute set " + StringUtils.trimAllWhitespace(identifier));
 
         // TODO move back here registration of attributes for the set
         AttributeSet se = attributeService.updateAttributeSet(identifier, set);

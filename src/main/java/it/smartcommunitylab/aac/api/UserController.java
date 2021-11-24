@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
@@ -46,29 +47,36 @@ public class UserController {
 
     @GetMapping("{realm}")
     public Collection<User> listUser(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
+        logger.debug("list users for realm {}",
+                StringUtils.trimAllWhitespace(realm));
+
         // list users owned or accessible by this realm
-        logger.debug("list users for realm " + String.valueOf(realm));
         return userManager.listUsers(realm);
     }
 
     @GetMapping("{realm}/{userId}")
     public User getUser(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
         // get the user as visible from the given realm
-        logger.debug("get user " + String.valueOf(userId) + " for realm " + String.valueOf(realm));
+        logger.debug("get user {} for realm {}",
+                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+
         return userManager.getUser(realm, userId);
     }
 
     @DeleteMapping("{realm}/{userId}")
     public void deleteUser(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
         // remove user for this realm, will delete if owned
-        logger.debug("delete user " + String.valueOf(userId) + " for realm " + String.valueOf(realm));
+        logger.debug("delete user {} for realm {}",
+                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+
         userManager.removeUser(realm, userId);
     }
 
@@ -78,11 +86,13 @@ public class UserController {
      */
     @PostMapping("{realm}")
     public User registerUser(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid UserAccount account) throws NoSuchRealmException {
-        logger.debug("register user for realm " + String.valueOf(realm));
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid @NotNull UserAccount account) throws NoSuchRealmException {
+        logger.debug("register user for realm {}",
+                StringUtils.trimAllWhitespace(realm));
+
         if (logger.isTraceEnabled()) {
-            logger.trace("registration bean " + String.valueOf(account));
+            logger.trace("registration bean " + StringUtils.trimAllWhitespace(account.toString()));
         }
 
         return null;
@@ -91,10 +101,12 @@ public class UserController {
     // TODO evaluate, are UserAccounts editable?
     @PutMapping("{realm}/{userId}")
     public User updateUser(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-            @RequestBody @Valid UserAccount account) throws NoSuchClientException, NoSuchRealmException {
-        logger.debug("update user " + String.valueOf(userId) + " for realm " + String.valueOf(realm));
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
+            @RequestBody @Valid @NotNull UserAccount account) throws NoSuchClientException, NoSuchRealmException {
+        logger.debug("update user {} for realm {}",
+                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
+
         return null;
     }
 
@@ -106,19 +118,24 @@ public class UserController {
 
     @GetMapping("{realm}/{userId}/attributes")
     public Collection<UserAttributes> getRealmUserAttributes(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
             throws NoSuchRealmException, NoSuchUserException {
+        logger.debug("get attributes for user {} for realm {}",
+                StringUtils.trimAllWhitespace(subjectId), StringUtils.trimAllWhitespace(realm));
+
         Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, subjectId);
         return attributes;
     }
 
     @PostMapping("{realm}/{userId}/attributes")
     public UserAttributes addRealmUserAttributes(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
-            @RequestBody AttributesRegistrationDTO reg)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @RequestBody @Valid @NotNull AttributesRegistrationDTO reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
+        logger.debug("update attributes for user {} for realm {}",
+                StringUtils.trimAllWhitespace(subjectId), StringUtils.trimAllWhitespace(realm));
 
         // extract registration
         String identifier = reg.getIdentifier();
@@ -139,33 +156,5 @@ public class UserController {
         UserAttributes ua = userManager.setUserAttributes(realm, subjectId, provider, identifier, attributes);
         return ua;
     }
-
-//    @GetMapping("{realm}/{userId}/attributes")
-//    public Collection<UserAttributes> getUserAttributes(
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
-//            throws NoSuchRealmException, NoSuchUserException {
-//        // get the user attributes as visible from the given realm
-//        return userManager.getUserAttributes(realm, userId);
-//    }
-//
-//    // TODO evaluate, can we register attributes?
-//    @PostMapping("{realm}/{userId}/attributes")
-//    public User addUserAttributes(
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @RequestBody @Valid UserAttributes attributes) throws NoSuchRealmException {
-//
-//        return null;
-//    }
-//
-//    // TODO evaluate, can we update attributes?
-//    @PostMapping("{realm}/{userId}/attributes/{setId}")
-//    public User updateUserAttributes(
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-//            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String setId,
-//            @RequestBody @Valid UserAttributes attributes) throws NoSuchClientException, NoSuchRealmException {
-//        return null;
-//    }
 
 }

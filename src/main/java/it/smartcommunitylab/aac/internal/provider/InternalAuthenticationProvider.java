@@ -72,6 +72,10 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
                 .valueOf(authentication.getCredentials());
 
         InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
+        if (account == null) {
+            throw new InternalAuthenticationException(username, username, credentials, "unknown",
+                    new BadCredentialsException("invalid user or password"));
+        }
         String subject = account.getSubject();
 
         // TODO check if providers are available

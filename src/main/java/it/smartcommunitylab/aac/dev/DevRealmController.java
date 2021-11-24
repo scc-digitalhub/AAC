@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.dev;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
@@ -48,7 +50,6 @@ import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.dev.DevUsersController.InvitationBean;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -107,14 +108,16 @@ public class DevRealmController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Realm> getRealm(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
         return ResponseEntity.ok(realmManager.getRealm(realm));
     }
 
     @PutMapping("/realms/{realm}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Realm> updateRealm(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @RequestBody Realm r)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid @NotNull Realm r)
             throws NoSuchRealmException {
         return ResponseEntity.ok(realmManager.updateRealm(realm, r));
     }
@@ -122,7 +125,8 @@ public class DevRealmController {
     @DeleteMapping("/realms/{realm}")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Void> deleteRealm(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
         realmManager.deleteRealm(realm, true);
         return ResponseEntity.ok(null);
     }
@@ -130,7 +134,7 @@ public class DevRealmController {
     @GetMapping("/realms/{realm}/export")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void exportRealm(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean custom,
             @RequestParam(required = false, defaultValue = "false") boolean full,
             HttpServletResponse res)
@@ -160,7 +164,7 @@ public class DevRealmController {
         res.setContentType("text/yaml");
         res.setHeader("Content-Disposition", "attachment;filename=realm-" + key + ".yaml");
         ServletOutputStream out = res.getOutputStream();
-        out.print(s);
+        out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
 
@@ -173,7 +177,7 @@ public class DevRealmController {
     @GetMapping("/realms/{realm}/audit")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Collection<RealmAuditEvent>> findEvents(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, name = "type") Optional<String> type,
             @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> after,
             @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<Date> before)
@@ -191,7 +195,7 @@ public class DevRealmController {
     @GetMapping("/realms/{realm}/developers")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public ResponseEntity<Collection<Developer>> getDevelopers(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
         Collection<Developer> developers = realmManager.getDevelopers(realm);
         return ResponseEntity
@@ -200,25 +204,25 @@ public class DevRealmController {
 
     @PostMapping("/realms/{realm}/developers")
     public ResponseEntity<Developer> inviteDeveloper(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody InvitationBean bean) throws NoSuchRealmException, NoSuchUserException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid @NotNull InvitationBean bean) throws NoSuchRealmException, NoSuchUserException {
         Developer developer = realmManager.inviteDeveloper(realm, bean.getSubjectId(), bean.getUsername());
         return ResponseEntity.ok(developer);
     }
 
     @PutMapping("/realms/{realm}/developers/{subjectId}")
     public ResponseEntity<Developer> updateDeveloper(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
-            @RequestBody Collection<String> roles) throws NoSuchRealmException, NoSuchUserException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @RequestBody @Valid @NotNull Collection<String> roles) throws NoSuchRealmException, NoSuchUserException {
         Developer developer = realmManager.updateDeveloper(realm, subjectId, roles);
         return ResponseEntity.ok(developer);
     }
 
     @DeleteMapping("/realms/{realm}/developers/{subjectId}")
     public ResponseEntity<Void> removeDeveloper(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
             throws NoSuchRealmException, NoSuchUserException {
         realmManager.removeDeveloper(realm, subjectId);
         return ResponseEntity.ok(null);

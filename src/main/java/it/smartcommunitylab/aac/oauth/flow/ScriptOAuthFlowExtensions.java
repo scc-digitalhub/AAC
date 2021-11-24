@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.StringUtils;
@@ -71,16 +72,16 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public Boolean onAfterUserApproval(Collection<String> scopes, User user, OAuth2ClientDetails client)
+    public Optional<Boolean> onAfterUserApproval(Collection<String> scopes, User user, OAuth2ClientDetails client)
             throws FlowExecutionException {
         if (executionService == null || client.getHookFunctions() == null) {
-            return null;
+            return Optional.empty();
         }
 
         String functionName = OAuthFlowExtensions.AFTER_USER_APPROVAL;
         String functionCode = client.getHookFunctions().get(functionName);
         if (!StringUtils.hasText(functionCode)) {
-            return null;
+            return Optional.empty();
         }
 
         // convert to profile beans
@@ -101,7 +102,7 @@ public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
             // convert back
             ApprovalResult result = mapper.convertValue(customParams, ApprovalResult.class);
 
-            return result.approved;
+            return Optional.ofNullable(result.approved);
 
         } catch (SystemException | InvalidDefinitionException e) {
             throw new FlowExecutionException(e.getMessage());

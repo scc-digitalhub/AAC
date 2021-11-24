@@ -267,6 +267,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/italia/**").permitAll()
                 .antMatchers("/spid/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
+                // whitelist docs
+                .antMatchers("/docs/**").permitAll()
                 // whitelist swagger
                 .antMatchers("/v2/api-docs",
                         "/configuration/ui",
