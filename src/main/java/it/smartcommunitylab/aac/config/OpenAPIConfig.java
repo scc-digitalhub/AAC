@@ -42,7 +42,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
  */
 @Configuration
 @Order(20)
-public class OpenAPIConfiguration {
+public class OpenAPIConfig {
 
     @Autowired
     private OpenAPIConf conf;
@@ -60,27 +60,31 @@ public class OpenAPIConfiguration {
     public OpenAPI aacOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-	        		.title("AAC API")
-	        		.description("Authorization and Authentication Control APIs")
-	        		.version(conf.version)
-	        		.license(new License().name(conf.license).url(conf.licenseUrl))
-	        		.contact(new Contact().url(conf.contact.get("url")).name(conf.contact.get("name")).email(conf.contact.get("email"))))
+                        .title("AAC API")
+                        .description("Authorization and Authentication Control APIs")
+                        .version(conf.version)
+                        .license(new License().name(conf.license).url(conf.licenseUrl))
+                        .contact(new Contact().url(conf.contact.get("url")).name(conf.contact.get("name"))
+                                .email(conf.contact.get("email"))))
                 .components(new Components()
-            	    .addSecuritySchemes("oauth2", new SecurityScheme().type(SecurityScheme.Type.OAUTH2).scheme("bearer").flows(new OAuthFlows()
-        	    		.authorizationCode(new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token").authorizationUrl(AUTH_SERVER + "/oauth/authorize").scopes(new Scopes()
-        	    				.addString("aac.api.provider", "Manage identity and attribute providers")
-        	    				.addString("aac.api.attributes", "Manage custom attribute sets definitions")
-        	    				.addString("aac.api.audit", "Read audit log")
-        	    				.addString("aac.api.clientapp", "Manage client apps")
-        	    				.addString("aac.api.realm", "Manage realms")
-        	    				.addString("aac.api.services", "Manage custom services")
-        	    				.addString("aac.api.users", "Manage user identities, accounts, and attributes"))
-        	    				)
-        	    		.clientCredentials(new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token"))
-        	    		))
-            	);
+                        .addSecuritySchemes("oauth2", new SecurityScheme().type(SecurityScheme.Type.OAUTH2)
+                                .scheme("bearer").flows(new OAuthFlows()
+                                        .authorizationCode(new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")
+                                                .authorizationUrl(AUTH_SERVER + "/oauth/authorize").scopes(scopes()))
+                                        .clientCredentials(new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")))));
     }
-    
+
+    private Scopes scopes() {
+        return new Scopes()
+                .addString("aac.api.provider", "Manage identity and attribute providers")
+                .addString("aac.api.attributes", "Manage custom attribute sets definitions")
+                .addString("aac.api.audit", "Read audit log")
+                .addString("aac.api.clientapp", "Manage client apps")
+                .addString("aac.api.realm", "Manage realms")
+                .addString("aac.api.services", "Manage custom services")
+                .addString("aac.api.users", "Manage user identities, accounts, and attributes");
+    }
+
     @Bean
     public GroupedOpenApi apiCore() {
         return GroupedOpenApi.builder()
@@ -88,11 +92,10 @@ public class OpenAPIConfiguration {
                 .packagesToScan("it.smartcommunitylab.aac.api")
                 .pathsToExclude("/api/realm", "/api/realm/**")
                 .addOperationCustomizer((operation, handlerMethod) -> {
-					operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
-					return operation;
-				})
-                .build()
-                ;
+                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
+                    return operation;
+                })
+                .build();
     }
 
     @Bean
@@ -101,11 +104,10 @@ public class OpenAPIConfiguration {
                 .group("AAC Admin API")
                 .pathsToMatch("/api/realm", "/api/realm/**")
                 .addOperationCustomizer((operation, handlerMethod) -> {
-					operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
-					return operation;
-				})
-                .build()
-                ;
+                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
+                    return operation;
+                })
+                .build();
     }
 
     @Bean
@@ -114,15 +116,16 @@ public class OpenAPIConfiguration {
                 .group("AAC OpenID Connect API")
                 .packagesToScan("it.smartcommunitylab.aac.openid")
                 .addOpenApiCustomiser(customizer -> {
-                	customizer.components(new Components()
-                			.addSecuritySchemes("openid", new SecurityScheme().type(SecurityScheme.Type.OPENIDCONNECT).scheme("bearer").openIdConnectUrl(AUTH_SERVER + "/.well-known/openid-configuration")));
+                    customizer.components(new Components()
+                            .addSecuritySchemes("openid",
+                                    new SecurityScheme().type(SecurityScheme.Type.OPENIDCONNECT).scheme("bearer")
+                                            .openIdConnectUrl(AUTH_SERVER + "/.well-known/openid-configuration")));
                 })
                 .addOperationCustomizer((operation, handlerMethod) -> {
-					operation.addSecurityItem(new SecurityRequirement().addList("openid"));
-					return operation;
-				})
-                .build()
-                ;
+                    operation.addSecurityItem(new SecurityRequirement().addList("openid"));
+                    return operation;
+                })
+                .build();
     }
 
     @Bean
@@ -131,24 +134,22 @@ public class OpenAPIConfiguration {
                 .group("AAC OAuth API")
                 .packagesToScan("it.smartcommunitylab.aac.oauth")
                 .addOperationCustomizer((operation, handlerMethod) -> {
-					operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
-					return operation;
-				})
-                .build()
-                ;
+                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
+                    return operation;
+                })
+                .build();
     }
-    
+
     @Bean
     public GroupedOpenApi profile() {
         return GroupedOpenApi.builder()
                 .group("AAC User Profile API")
                 .packagesToScan("it.smartcommunitylab.aac.profiles")
                 .addOperationCustomizer((operation, handlerMethod) -> {
-					operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
-					return operation;
-				})
-                .build()
-                ;
+                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
+                    return operation;
+                })
+                .build();
     }
 
     @Bean
@@ -157,13 +158,12 @@ public class OpenAPIConfiguration {
                 .group("AAC Role API")
                 .packagesToScan("it.smartcommunitylab.aac.roles")
                 .addOperationCustomizer((operation, handlerMethod) -> {
-					operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
-					return operation;
-				})
-                .build()
-                ;
+                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
+                    return operation;
+                })
+                .build();
     }
-    
+
     public static class OpenAPIConf {
         private HashMap<String, String> title;
         private HashMap<String, String> description;

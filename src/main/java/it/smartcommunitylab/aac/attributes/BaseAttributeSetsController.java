@@ -26,11 +26,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiAttributesScope;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 
+/*
+ * Base controller for attributeSets
+ */
 @PreAuthorize("hasAuthority(this.authority)")
 public abstract class BaseAttributeSetsController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
