@@ -15,6 +15,7 @@ variables:
   DS_JAVA_VERSION: 11
   DOCKER_DRIVER: overlay
   CONTAINER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  CONTAINER_IMAGE_LATEST: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-latest
   # MAVEN_CLI_OPTS: -DskipTests --batch-mode
   SAST_JAVA_VERSION: 11
 
@@ -25,7 +26,7 @@ variables:
 #     - mvn $MAVEN_REPO test
 
 maven-build:
-  image: maven:3-openjdk-8
+  image: maven:3-openjdk-11
   stage: build
   # only:
   #   refs:
@@ -40,10 +41,11 @@ backend-container-build:
     name: $CI_COMMIT_REF_NAME
   script:
     - docker login -u $DHUB_USER -p $DHUB_PASS
-    - DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $CONTAINER_IMAGE .
+    - DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $CONTAINER_IMAGE -t $CONTAINER_IMAGE_LATEST .
     - docker push $CONTAINER_IMAGE
-  # only:
-  #   - adc-aac-test
+    - docker push $CONTAINER_IMAGE_LATEST
+  only:
+    - 4.x-platform
 
 include:
   - template: Security/Container-Scanning.gitlab-ci.yml
@@ -73,10 +75,10 @@ deploy:
   stage: deploy
   image: smartcommunitylab/kubectl-alpine:latest
   environment:
-    name: develop
+    name: platform-test
   script:
     - echo "deploy backend"
-    - kubectl -n default set image deployments/aac-adc aac=$CONTAINER_IMAGE --record=true
-    - kubectl -n default rollout status deployment aac-adc
+    - kubectl -n global set image deployments/aac4 aac=$CONTAINER_IMAGE --record=true
+    - kubectl -n global rollout status deployment aac4
   only:
-    - adc-aac-test
+    - 4.x-platform
