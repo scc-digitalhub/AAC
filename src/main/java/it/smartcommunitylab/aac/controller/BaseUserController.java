@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.api;
+package it.smartcommunitylab.aac.controller;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -20,11 +20,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiUsersScope;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -36,16 +33,21 @@ import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.dto.AttributesRegistrationDTO;
 import it.smartcommunitylab.aac.model.User;
 
-@RestController
-@RequestMapping("api/users")
-@PreAuthorize("hasAuthority('SCOPE_" + ApiUsersScope.SCOPE + "')")
-public class UserController {
+/*
+ * Base controller for users
+ */
+@PreAuthorize("hasAuthority(this.authority)")
+public class BaseUserController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private UserManager userManager;
 
-    @GetMapping("{realm}")
+    public String getAuthority() {
+        return Config.R_USER;
+    }
+
+    @GetMapping("/user/{realm}")
     public Collection<User> listUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
@@ -56,7 +58,7 @@ public class UserController {
         return userManager.listUsers(realm);
     }
 
-    @GetMapping("{realm}/{userId}")
+    @GetMapping("/user/{realm}/{userId}")
     public User getUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -68,7 +70,7 @@ public class UserController {
         return userManager.getUser(realm, userId);
     }
 
-    @DeleteMapping("{realm}/{userId}")
+    @DeleteMapping("/user/{realm}/{userId}")
     public void deleteUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
@@ -84,7 +86,7 @@ public class UserController {
      * User management
      * 
      */
-    @PostMapping("{realm}")
+    @PostMapping("/user/{realm}")
     public User registerUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull UserAccount account) throws NoSuchRealmException {
@@ -99,7 +101,7 @@ public class UserController {
     }
 
     // TODO evaluate, are UserAccounts editable?
-    @PutMapping("{realm}/{userId}")
+    @PutMapping("/user/{realm}/{userId}")
     public User updateUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
@@ -116,7 +118,7 @@ public class UserController {
      * TODO
      */
 
-    @GetMapping("{realm}/{userId}/attributes")
+    @GetMapping("/user/{realm}/{userId}/attributes")
     public Collection<UserAttributes> getRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
@@ -128,7 +130,7 @@ public class UserController {
         return attributes;
     }
 
-    @PostMapping("{realm}/{userId}/attributes")
+    @PostMapping("/user/{realm}/{userId}/attributes")
     public UserAttributes addRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,

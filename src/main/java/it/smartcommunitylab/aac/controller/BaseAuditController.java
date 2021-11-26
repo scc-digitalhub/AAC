@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.api;
+package it.smartcommunitylab.aac.controller;
 
 import java.util.Collection;
 import java.util.Date;
@@ -16,24 +16,27 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiAuditScope;
 import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 
-@RestController
-@RequestMapping("api")
-@PreAuthorize("hasAuthority('SCOPE_" + ApiAuditScope.SCOPE + "')")
-public class AuditController {
+/*
+ * Base controller for audit
+ */
+
+@PreAuthorize("hasAuthority(this.authority)")
+public class BaseAuditController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private AuditManager auditManager;
+
+    public String getAuthority() {
+        return Config.R_USER;
+    }
 
     @GetMapping("/audit/{realm}")
     public Collection<RealmAuditEvent> findEvents(

@@ -1,6 +1,7 @@
-package it.smartcommunitylab.aac.api;
+package it.smartcommunitylab.aac.controller;
 
 import java.util.Collection;
+
 import java.util.Map;
 
 import javax.validation.Valid;
@@ -20,16 +21,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiClientAppScope;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ClientManager;
@@ -37,12 +36,10 @@ import it.smartcommunitylab.aac.core.model.ClientCredentials;
 import it.smartcommunitylab.aac.model.ClientApp;
 
 /*
- * API controller for clientApp
+ * Base controller for client app
  */
-@RestController
-@RequestMapping("api")
-@PreAuthorize("hasAuthority('SCOPE_" + ApiClientAppScope.SCOPE + "')")
-public class ClientAppController {
+@PreAuthorize("hasAuthority(this.authority)")
+public class BaseClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -51,6 +48,10 @@ public class ClientAppController {
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
+
+    public String getAuthority() {
+        return Config.R_USER;
+    }
 
     @GetMapping("/app/{realm}")
     public Collection<ClientApp> listApp(

@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.api;
+package it.smartcommunitylab.aac.controller;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -23,25 +23,25 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 
-@RestController
-@RequestMapping("api")
-@PreAuthorize("hasAuthority('SCOPE_" + ApiProviderScope.SCOPE + "')")
-public class IdentityProviderController {
+/*
+ * Base controller for identity providers
+ */
+
+@PreAuthorize("hasAuthority(this.authority)")
+public class BaseIdentityProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -50,6 +50,10 @@ public class IdentityProviderController {
     @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
+
+    public String getAuthority() {
+        return Config.R_USER;
+    }
 
     /*
      * Identity providers
