@@ -45,6 +45,7 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.oauth.model.ClientSecret;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
@@ -249,6 +250,8 @@ public class ClientManager {
         Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
         clientApp.setRealmRoles(roles);
 
+        Collection<SpaceRole> spaceRoles = loadClientSpaceRoles(realm, clientApp.getClientId());
+        clientApp.setSpaceRoles(spaceRoles);        
         return clientApp;
     }
 
@@ -727,4 +730,7 @@ public class ClientManager {
 //                .collect(Collectors.toSet());
     }
 
+    private Collection<SpaceRole> loadClientSpaceRoles(String realm, String clientId) throws NoSuchClientException {
+        return spaceRoleService.getRoles(clientId);
+    }
 }
