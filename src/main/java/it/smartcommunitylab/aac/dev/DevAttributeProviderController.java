@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +27,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,10 +46,9 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
 import it.smartcommunitylab.aac.core.AuthorityManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
@@ -60,12 +59,11 @@ import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
-public class DevAttributeProviderController {
+public class DevAttributeProviderController extends BaseAttributeProviderController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {
     };
-
-    @Autowired
-    private ProviderManager providerManager;
 
     @Autowired
     private AuthorityManager authorityManager;
@@ -78,163 +76,116 @@ public class DevAttributeProviderController {
      * Providers
      */
 
-    @GetMapping("/realms/{realm}/aps")
-    public ResponseEntity<Collection<ConfigurableAttributeProvider>> getRealmProviders(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
-
-        List<ConfigurableAttributeProvider> providers = providerManager
-                .listAttributeProviders(realm)
-                .stream()
-                .map(cp -> {
-                    cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
-                    return cp;
-                }).collect(Collectors.toList());
-
-        return ResponseEntity.ok(providers);
-    }
-
-    @GetMapping("/realms/{realm}/aps/{providerId}")
-    public ResponseEntity<ConfigurableAttributeProvider> getRealmProvider(
+    @Override
+    @GetMapping("/ap/{realm}/{providerId}")
+    public ConfigurableAttributeProvider getAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        provider.setRegistered(isRegistered);
+        ConfigurableAttributeProvider provider = super.getAp(realm, providerId);
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
         provider.setSchema(schema);
 
-        return ResponseEntity.ok(provider);
+        return provider;
     }
 
-    @DeleteMapping("/realms/{realm}/aps/{providerId}")
-    public ResponseEntity<Void> deleteRealmProvider(
+    @Override
+    @PostMapping("/ap/{realm}")
+    public ConfigurableAttributeProvider addAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-        providerManager.deleteAttributeProvider(realm, providerId);
-        return ResponseEntity.ok(null);
-    }
-
-    @PostMapping("/realms/{realm}/aps")
-    public ResponseEntity<ConfigurableAttributeProvider> createRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-        // unpack and build model
-        String authority = registration.getAuthority();
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String persistence = registration.getPersistence();
-        String events = registration.getEvents();
-        Set<String> attributeSets = registration.getAttributeSets();
-        Map<String, Serializable> configuration = registration.getConfiguration();
-
-        ConfigurableAttributeProvider provider = new ConfigurableAttributeProvider(authority, null, realm);
-        provider.setName(name);
-        provider.setDescription(description);
-        provider.setEnabled(false);
-        provider.setPersistence(persistence);
-        provider.setEvents(events);
-        provider.setAttributeSets(attributeSets);
-        provider.setConfiguration(configuration);
-
-        provider = providerManager.addAttributeProvider(realm, provider);
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration) throws NoSuchRealmException {
+        ConfigurableAttributeProvider provider = super.addAp(realm, registration);
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
         provider.setSchema(schema);
 
-        return ResponseEntity.ok(provider);
+        return provider;
     }
 
-    @PutMapping("/realms/{realm}/aps/{providerId}")
-    public ResponseEntity<ConfigurableAttributeProvider> updateRealmProvider(
+    @Override
+    @PutMapping("/ap/{realm}/{providerId}")
+    public ConfigurableAttributeProvider updateAp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-
-        // we update only configuration
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String persistence = registration.getPersistence();
-        String events = registration.getEvents();
-        Set<String> attributeSets = registration.getAttributeSets();
-        Map<String, Serializable> configuration = registration.getConfiguration();
-
-        provider.setName(name);
-        provider.setDescription(description);
-        provider.setPersistence(persistence);
-        provider.setEvents(events);
-        provider.setAttributeSets(attributeSets);
-        provider.setConfiguration(configuration);
-
-        provider = providerManager.updateAttributeProvider(realm, providerId, provider);
-
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        provider.setRegistered(isRegistered);
+            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
+            @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
+            throws NoSuchRealmException, NoSuchProviderException {
+        ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
         provider.setSchema(schema);
 
-        return ResponseEntity.ok(provider);
+        return provider;
     }
 
-    @PutMapping("/realms/{realm}/aps/{providerId}/state")
-    public ResponseEntity<ConfigurableAttributeProvider> updateRealmProviderState(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+//    @PutMapping("/realms/{realm}/aps/{providerId}")
+//    public ResponseEntity<ConfigurableAttributeProvider> updateRealmProvider(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+//            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
+//            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+//
+//        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+//
+//        // we update only configuration
+//        String name = registration.getName();
+//        String description = registration.getDescription();
+//        String persistence = registration.getPersistence();
+//        String events = registration.getEvents();
+//        Set<String> attributeSets = registration.getAttributeSets();
+//        Map<String, Serializable> configuration = registration.getConfiguration();
+//
+//        provider.setName(name);
+//        provider.setDescription(description);
+//        provider.setPersistence(persistence);
+//        provider.setEvents(events);
+//        provider.setAttributeSets(attributeSets);
+//        provider.setConfiguration(configuration);
+//
+//        provider = providerManager.updateAttributeProvider(realm, providerId, provider);
+//
+//        // check if registered
+//        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
+//        provider.setRegistered(isRegistered);
+//
+//        // fetch also configuration schema
+//        JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
+//        provider.setSchema(schema);
+//
+//        return ResponseEntity.ok(provider);
+//    }
 
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-        boolean enabled = registration.isEnabled();
+//    @PutMapping("/realms/{realm}/aps/{providerId}/state")
+//    public ResponseEntity<ConfigurableAttributeProvider> updateRealmProviderState(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+//            @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration)
+//            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
+//
+//        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+//        boolean enabled = registration.isEnabled();
+//
+//        if (enabled) {
+//            provider = providerManager.registerAttributeProvider(realm, providerId);
+//        } else {
+//            provider = providerManager.unregisterAttributeProvider(realm, providerId);
+//        }
+//
+//        // check if registered
+//        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
+//        provider.setRegistered(isRegistered);
+//
+//        return ResponseEntity.ok(provider);
+//    }
 
-        if (enabled) {
-            provider = providerManager.registerAttributeProvider(realm, providerId);
-        } else {
-            provider = providerManager.unregisterAttributeProvider(realm, providerId);
-        }
-
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        provider.setRegistered(isRegistered);
-
-        return ResponseEntity.ok(provider);
-    }
-
-    @GetMapping("/realms/{realm}/aps/{providerId}/export")
-    public void exportRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-
-//      String s = yaml.dump(clientApp);
-        String s = yamlObjectMapper.writeValueAsString(provider);
-
-        // write as file
-        res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=ap-" + provider.getName() + ".yaml");
-        ServletOutputStream out = res.getOutputStream();
-        out.write(s.getBytes(StandardCharsets.UTF_8));
-        out.flush();
-        out.close();
-
-    }
-
-    @GetMapping("/realms/{realm}/aps/{providerId}/test")
+    /*
+     * Test
+     */
+    @GetMapping("/ap/{realm}/{providerId}/test")
     public ResponseEntity<FunctionValidationBean> testRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
@@ -300,8 +251,32 @@ public class DevAttributeProviderController {
 
     }
 
-    @PutMapping("/realms/{realm}/aps")
-    public ResponseEntity<Collection<ConfigurableAttributeProvider>> importRealmProvider(
+    /*
+     * Import/export for console
+     */
+    @GetMapping("/ap/{realm}/{providerId}/export")
+    public void exportRealmProvider(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            HttpServletResponse res)
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
+        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+
+//      String s = yaml.dump(clientApp);
+        String s = yamlObjectMapper.writeValueAsString(provider);
+
+        // write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=ap-" + provider.getName() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.write(s.getBytes(StandardCharsets.UTF_8));
+        out.flush();
+        out.close();
+
+    }
+
+    @PutMapping("/ap/{realm}")
+    public Collection<ConfigurableAttributeProvider> importRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
         if (file == null || file.isEmpty()) {
@@ -313,7 +288,8 @@ public class DevAttributeProviderController {
         }
 
         if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
+                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
             throw new IllegalArgumentException("invalid file");
         }
 
@@ -391,10 +367,10 @@ public class DevAttributeProviderController {
                 provider.setSchema(schema);
                 providers.add(provider);
             }
-            return ResponseEntity.ok(providers);
+            return providers;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("error importing providers: " + e.getMessage());
             throw e;
         }
 

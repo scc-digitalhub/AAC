@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -25,8 +24,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
@@ -46,11 +43,7 @@ public class BaseAttributeProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private ProviderManager providerManager;
-
-    @Autowired
-    @Qualifier("yamlObjectMapper")
-    private ObjectMapper yamlObjectMapper;
+    protected ProviderManager providerManager;
 
     public String getAuthority() {
         return Config.R_USER;
@@ -196,64 +189,6 @@ public class BaseAttributeProviderController {
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         providerManager.deleteAttributeProvider(realm, providerId);
-
-    }
-
-    @PutMapping("/ap/{realm}")
-    public ConfigurableAttributeProvider importAp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
-        logger.debug("import ap to realm [}",
-                StringUtils.trimAllWhitespace(realm));
-
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        try {
-            ConfigurableAttributeProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
-                    ConfigurableAttributeProvider.class);
-
-            // unpack and build model
-            String id = registration.getProvider();
-            String authority = registration.getAuthority();
-            String name = registration.getName();
-            String description = registration.getDescription();
-            String persistence = registration.getPersistence();
-            String events = registration.getEvents();
-            Set<String> attributeSets = registration.getAttributeSets();
-            Map<String, Serializable> configuration = registration.getConfiguration();
-
-            ConfigurableAttributeProvider provider = new ConfigurableAttributeProvider(authority, id, realm);
-            provider.setName(name);
-            provider.setDescription(description);
-            provider.setEnabled(false);
-            provider.setPersistence(persistence);
-            provider.setEvents(events);
-            provider.setAttributeSets(attributeSets);
-            provider.setConfiguration(configuration);
-
-            if (logger.isTraceEnabled()) {
-                logger.trace("ap bean: " + String.valueOf(provider));
-            }
-
-            provider = providerManager.addAttributeProvider(realm, provider);
-
-            return provider;
-
-        } catch (Exception e) {
-            logger.error("import ap error: " + e.getMessage());
-            throw e;
-        }
 
     }
 

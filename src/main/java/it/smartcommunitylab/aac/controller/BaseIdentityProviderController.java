@@ -7,14 +7,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,9 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.Config;
@@ -45,11 +40,7 @@ public class BaseIdentityProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private ProviderManager providerManager;
-
-    @Autowired
-    @Qualifier("yamlObjectMapper")
-    private ObjectMapper yamlObjectMapper;
+    protected ProviderManager providerManager;
 
     public String getAuthority() {
         return Config.R_USER;
@@ -152,6 +143,7 @@ public class BaseIdentityProviderController {
         // we update only configuration
         String name = registration.getName();
         String description = registration.getDescription();
+        String displayMode = registration.getDisplayMode();
         String persistence = registration.getPersistence();
         boolean enabled = registration.isEnabled();
         String events = registration.getEvents();
@@ -162,9 +154,12 @@ public class BaseIdentityProviderController {
 
         provider.setName(name);
         provider.setDescription(description);
+        provider.setDisplayMode(displayMode);
+
         provider.setEnabled(enabled);
         provider.setPersistence(persistence);
         provider.setLinkable(linkable);
+
         provider.setEvents(events);
         provider.setHookFunctions(hookFunctions);
         provider.setConfiguration(configuration);
@@ -200,67 +195,6 @@ public class BaseIdentityProviderController {
                 StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
 
         providerManager.deleteIdentityProvider(realm, providerId);
-
-    }
-
-    @PutMapping("/idp/{realm}")
-    public ConfigurableIdentityProvider importIdp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
-        logger.debug("import idp to realm {}",
-                StringUtils.trimAllWhitespace(realm));
-
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        try {
-            ConfigurableIdentityProvider registration = yamlObjectMapper.readValue(file.getInputStream(),
-                    ConfigurableIdentityProvider.class);
-
-            // unpack and build model
-            String id = registration.getProvider();
-            String authority = registration.getAuthority();
-            String name = registration.getName();
-            String description = registration.getDescription();
-            String persistence = registration.getPersistence();
-            String events = registration.getEvents();
-            boolean linkable = registration.isLinkable();
-
-            Map<String, Serializable> configuration = registration.getConfiguration();
-            Map<String, String> hookFunctions = registration.getHookFunctions();
-
-            ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, id, realm);
-            provider.setName(name);
-            provider.setDescription(description);
-            provider.setEnabled(false);
-            provider.setPersistence(persistence);
-            provider.setLinkable(linkable);
-            provider.setEvents(events);
-            provider.setConfiguration(configuration);
-            provider.setHookFunctions(hookFunctions);
-
-            if (logger.isTraceEnabled()) {
-                logger.trace("idp bean: " + StringUtils.trimAllWhitespace(provider.toString()));
-            }
-
-            provider = providerManager.addIdentityProvider(realm, provider);
-
-            return provider;
-
-        } catch (Exception e) {
-            logger.error("import idp error: " + e.getMessage());
-            throw e;
-        }
 
     }
 
