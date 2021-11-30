@@ -66,70 +66,74 @@ public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthentication
             throw new BadCredentialsException("missing required parameters in request");
         }
 
-        // load details, we need to check request
-        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
+        try {
+            // load details, we need to check request
+            OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
-        // check if client can authenticate with this scheme
-        if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
-            this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
+            // check if client can authenticate with this scheme
+            if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
+                this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
+                throw new BadCredentialsException("invalid authentication");
+            }
+
+            /*
+             * We authenticate clients by checking if code exists, verifier matches code and
+             * if the code is assigned to the same client
+             */
+
+            OAuth2Authentication oauth = authCodeServices.peekAuthorizationCode(code);
+            if (oauth == null) {
+                // don't leak
+                throw new BadCredentialsException("invalid request");
+            }
+
+            OAuth2Request pendingOAuth2Request = oauth.getOAuth2Request();
+
+            if (!pendingOAuth2Request.getClientId().equals(clientId)) {
+                // client id does not match
+                throw new BadCredentialsException("invalid request");
+            }
+
+            // check challenge
+            String codeChallenge = pendingOAuth2Request.getRequestParameters().get(PkceParameterNames.CODE_CHALLENGE);
+            String codeChallengeMethod = pendingOAuth2Request.getRequestParameters()
+                    .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
+
+            // we need to be sure this is a PKCE request
+            if (!StringUtils.hasText(codeChallenge) || !StringUtils.hasText(codeChallengeMethod)) {
+                // this is NOT a PKCE authcode
+                throw new BadCredentialsException("invalid request");
+            }
+
+            // validate challenge+verifier
+            if (!getCodeChallenge(codeVerifier, codeChallengeMethod).equals(codeChallenge)) {
+                throw new BadCredentialsException("invalid request");
+            }
+
+            // load authorities from clientService
+            Collection<GrantedAuthority> authorities;
+            try {
+                ClientDetails clientDetails = clientService.loadClient(clientId);
+                authorities = clientDetails.getAuthorities();
+            } catch (NoSuchClientException e) {
+                throw new ClientRegistrationException("invalid client");
+            }
+
+            // result contains credentials, someone later on will need to call
+            // eraseCredentials
+            OAuth2ClientPKCEAuthenticationToken result = new OAuth2ClientPKCEAuthenticationToken(clientId, code,
+                    codeVerifier, authenticationMethod,
+                    authorities);
+
+            // save details
+            // TODO add ClientDetails in addition to oauth2ClientDetails
+            result.setOAuth2ClientDetails(client);
+            result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
+
+            return result;
+        } catch (ClientRegistrationException e) {
             throw new BadCredentialsException("invalid authentication");
         }
-
-        /*
-         * We authenticate clients by checking if code exists, verifier matches code and
-         * if the code is assigned to the same client
-         */
-
-        OAuth2Authentication oauth = authCodeServices.peekAuthorizationCode(code);
-        if (oauth == null) {
-            // don't leak
-            throw new BadCredentialsException("invalid request");
-        }
-
-        OAuth2Request pendingOAuth2Request = oauth.getOAuth2Request();
-
-        if (!pendingOAuth2Request.getClientId().equals(clientId)) {
-            // client id does not match
-            throw new BadCredentialsException("invalid request");
-        }
-
-        // check challenge
-        String codeChallenge = pendingOAuth2Request.getRequestParameters().get(PkceParameterNames.CODE_CHALLENGE);
-        String codeChallengeMethod = pendingOAuth2Request.getRequestParameters()
-                .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
-
-        // we need to be sure this is a PKCE request
-        if (!StringUtils.hasText(codeChallenge) || !StringUtils.hasText(codeChallengeMethod)) {
-            // this is NOT a PKCE authcode
-            throw new BadCredentialsException("invalid request");
-        }
-
-        // validate challenge+verifier
-        if (!getCodeChallenge(codeVerifier, codeChallengeMethod).equals(codeChallenge)) {
-            throw new BadCredentialsException("invalid request");
-        }
-
-        // load authorities from clientService
-        Collection<GrantedAuthority> authorities;
-        try {
-            ClientDetails clientDetails = clientService.loadClient(clientId);
-            authorities = clientDetails.getAuthorities();
-        } catch (NoSuchClientException e) {
-            throw new ClientRegistrationException("invalid client");
-        }
-
-        // result contains credentials, someone later on will need to call
-        // eraseCredentials
-        OAuth2ClientPKCEAuthenticationToken result = new OAuth2ClientPKCEAuthenticationToken(clientId, code,
-                codeVerifier, authenticationMethod,
-                authorities);
-
-        // save details
-        // TODO add ClientDetails in addition to oauth2ClientDetails
-        result.setOAuth2ClientDetails(client);
-        result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
-
-        return result;
     }
 
     @Override
