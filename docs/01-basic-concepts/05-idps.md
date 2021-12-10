@@ -1,4 +1,4 @@
-# Identity providers
+# Identity Providers
 
 Identity providers are the entities responsible for providing AAC with user identities, and also for validating such identities via authentication.
 

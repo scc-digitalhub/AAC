@@ -1,4 +1,4 @@
-# Custom services (APIs)
+# Custom Services (APIs)
 
 Backend services, or APIs, can define a representation in AAC useful to manage resources and scopes, with the objective to properly separate frontend and backend clients and to apply authorization restrictions to resource access.
 

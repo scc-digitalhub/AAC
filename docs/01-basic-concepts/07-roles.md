@@ -1,4 +1,4 @@
-# Roles and authorities
+# Roles and Authorities
 
 AAC handles users and roles according to various logical schemas, in accordance with different usage scenarios.
 
