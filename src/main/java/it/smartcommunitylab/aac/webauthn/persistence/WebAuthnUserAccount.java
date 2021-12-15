@@ -11,8 +11,6 @@ import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
-import com.yubico.webauthn.data.ByteArray;
-
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -31,7 +29,6 @@ public class WebAuthnUserAccount implements UserAccount {
 
     private String username;
     private String displayName;
-    private ByteArray userHandle;
     @Embedded
     WebAuthnCredential credential;
     private boolean hasCompletedRegistration = false;
@@ -41,8 +38,6 @@ public class WebAuthnUserAccount implements UserAccount {
     private String subject;
     private String emailAddress;
     private String realm;
-    @Transient
-    private String userId;
     @Transient
     private String provider;
 
@@ -82,14 +77,6 @@ public class WebAuthnUserAccount implements UserAccount {
         this.displayName = displayName;
     }
 
-    public ByteArray getUserHandle() {
-        return userHandle;
-    }
-
-    public void setUserHandle(ByteArray userHandle) {
-        this.userHandle = userHandle;
-    }
-
     public WebAuthnCredential getCredential() {
         return credential;
     }
@@ -115,20 +102,6 @@ public class WebAuthnUserAccount implements UserAccount {
     }
 
     @Override
-    public String getUserId() {
-        if (userId == null) {
-            // use our id at authority level is the internal id
-            return String.valueOf(id);
-        }
-
-        return userId;
-    }
-
-    public void setUserId(String id) {
-        userId = id;
-    }
-
-    @Override
     public String getProvider() {
         return provider == null ? SystemKeys.AUTHORITY_WEBAUTHN : provider;
     }
@@ -145,5 +118,14 @@ public class WebAuthnUserAccount implements UserAccount {
     @Override
     public String getAuthority() {
         return SystemKeys.AUTHORITY_WEBAUTHN;
+    }
+
+    @Override
+    public String getUserId() {
+        if (subject == null) {
+            // use our id at authority level is the internal id
+            return String.valueOf(id);
+        }
+        return subject;
     }
 }
