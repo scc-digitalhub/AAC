@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.provider;
+package it.smartcommunitylab.aac.webauthn.provider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,40 +20,37 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
-import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.utils.MailService;
+import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserIdentity;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
-public class InternalIdentityService extends AbstractProvider implements IdentityService {
-
-    // services
+public class WebAuthnIdentityService extends AbstractProvider implements IdentityService {
     private final UserEntityService userEntityService;
 
     // provider configuration
-    private final InternalIdentityProviderConfig config;
+    private final WebAuthnIdentityProviderConfig config;
 
     // providers
-    private final InternalAccountService accountService;
-    private final InternalAttributeProvider attributeProvider;
-    private final InternalAuthenticationProvider authenticationProvider;
-    private final InternalSubjectResolver subjectResolver;
-    private final InternalPasswordService passwordService;
+    private final WebAuthnAccountService accountService;
+    private final WebAuthnAttributeProvider attributeProvider;
+    private final WebAuthnAuthenticationProvider authenticationProvider;
+    private final WebAuthnSubjectResolver subjectResolver;
+    private final WebAuthnCredentialsService credentialService;
 
-    public InternalIdentityService(
+    public WebAuthnIdentityService(
             String providerId,
-            InternalUserAccountService userAccountService, UserEntityService userEntityService,
-            InternalIdentityProviderConfig config,
+            WebAuthnUserAccountService userAccountService, UserEntityService userEntityService,
+            WebAuthnIdentityProviderConfig config,
             String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
+        super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
@@ -62,32 +59,19 @@ public class InternalIdentityService extends AbstractProvider implements Identit
                 "configuration does not match this provider");
         Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
 
-        // internal data repositories
-        // TODO replace with service to support external repo
+        // webauthn data repositories
+        // TODO: replace with service to support external repo
         // this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
-        this.attributeProvider = new InternalAttributeProvider(providerId, userAccountService, config, realm);
-        this.accountService = new InternalAccountService(providerId, userAccountService, config, realm);
-        this.passwordService = new InternalPasswordService(providerId, userAccountService, config, realm);
-        this.authenticationProvider = new InternalAuthenticationProvider(providerId, userAccountService, accountService,
-                passwordService, config, realm);
-        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, config, realm);
-
-    }
-
-    public void setMailService(MailService mailService) {
-        // assign to services
-        this.accountService.setMailService(mailService);
-        this.passwordService.setMailService(mailService);
-    }
-
-    public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
-        // also assign to services
-        this.accountService.setUriBuilder(uriBuilder);
-        this.passwordService.setUriBuilder(uriBuilder);
+        this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
+        this.accountService = new WebAuthnAccountService(providerId, userAccountService, config, realm);
+        this.credentialService = new WebAuthnCredentialsService(providerId, userAccountService, config, realm);
+        this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, userAccountService, accountService,
+                credentialService, config, realm);
+        this.subjectResolver = new WebAuthnSubjectResolver(providerId, userAccountService, config, realm);
     }
 
     @Override
@@ -101,26 +85,81 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
-    public InternalAccountService getAccountProvider() {
+    public WebAuthnAccountService getAccountProvider() {
         return accountService;
     }
 
     @Override
-    public InternalAttributeProvider getAttributeProvider() {
+    public WebAuthnAttributeProvider getAttributeProvider() {
         return attributeProvider;
     }
 
     @Override
-    public InternalSubjectResolver getSubjectResolver() {
+    public WebAuthnSubjectResolver getSubjectResolver() {
         return subjectResolver;
     }
 
     @Override
+    public boolean canRegister() {
+        return config.getConfigMap().isEnableRegistration();
+    }
+
+    @Override
+    public boolean canUpdate() {
+        return config.getConfigMap().isEnableUpdate();
+
+    }
+
+    @Override
+    public WebAuthnAccountService getAccountService() {
+        return accountService;
+    }
+
+    @Override
+    public WebAuthnCredentialsService getCredentialsService() {
+        return credentialService;
+    }
+
+    @Override
+    public String getName() {
+        return config.getName();
+    }
+
+    @Override
+    public String getDescription() {
+        return config.getDescription();
+    }
+
+    @Override
+    public ConfigurableProperties getConfiguration() {
+        return config;
+    }
+
+    @Override
+    public String getDisplayMode() {
+        return config.getDisplayMode() != null ? config.getDisplayMode() : SystemKeys.DISPLAY_MODE_FORM;
+    }
+
+    public String getResetUrl() {
+        return getCredentialsService().getResetUrl();
+    }
+
+    @Override
+    public Map<String, String> getActionUrls() {
+        Map<String, String> map = new HashMap<>();
+        map.put(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
+        map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
+        map.put(SystemKeys.ACTION_RESET, getResetUrl());
+
+        return map;
+    }
+
+    @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String subjectId)
+    public UserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String subjectId)
             throws NoSuchUserException {
         // extract account and attributes in raw format from authenticated principal
-        InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
+        WebAuthnUserAuthenticatedPrincipal principal = (WebAuthnUserAuthenticatedPrincipal) userPrincipal;
         String userId = principal.getUserId();
         // String username = principal.getName();
         //
@@ -135,8 +174,8 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
         }
 
-        // get the internal account entity
-        InternalUserAccount account = accountService.getAccount(userId);
+        // get the webauthn account entity
+        WebAuthnUserAccount account = accountService.getAccount(userId);
 
         if (account == null) {
             // error, user should already exists for authentication
@@ -156,10 +195,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         }
 
         // store and update attributes
-        // TODO, we shouldn't have additional attributes for internal
+        // TODO, we shouldn't have additional attributes for webauthn
 
         // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account, principal);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account, principal);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, subjectId);
@@ -170,27 +209,24 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         // we erase here
         identity.eraseCredentials();
         return identity;
-
     }
 
     @Override
     @Transactional(readOnly = true)
-    public InternalUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
+    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
         return getIdentity(subject, userId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public InternalUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
-            throws NoSuchUserException {
-
+    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException {
         // check if we are the providers
         if (!getProvider().equals(parseProviderId(userId))) {
             throw new IllegalArgumentException("invalid provider key in userId");
         }
 
         // lookup a matching account
-        InternalUserAccount account = accountService.getAccount(userId);
+        WebAuthnUserAccount account = accountService.getAccount(userId);
 
         // check subject
         if (!account.getSubject().equals(subject)) {
@@ -198,10 +234,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         }
 
         // fetch attributes
-        // TODO, we shouldn't have additional attributes for internal
+        // TODO, we shouldn't have additional attributes for WebAuthn
 
         // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
@@ -213,32 +249,33 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         identity.eraseCredentials();
 
         return identity;
+
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<InternalUserIdentity> listIdentities(String subject) {
+    public Collection<? extends UserIdentity> listIdentities(String subject) {
         return listIdentities(subject, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<InternalUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
+    public Collection<? extends UserIdentity> listIdentities(String subject, boolean fetchAttributes) {
         // lookup for matching accounts
-        List<InternalUserAccount> accounts = accountService.listAccounts(subject);
+        List<WebAuthnUserAccount> accounts = accountService.listAccounts(subject);
         if (accounts.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<InternalUserIdentity> identities = new ArrayList<>();
+        List<WebAuthnUserIdentity> identities = new ArrayList<>();
 
-        for (InternalUserAccount account : accounts) {
+        for (WebAuthnUserAccount account : accounts) {
 
             // fetch attributes
-            // TODO, we shouldn't have additional attributes for internal
+            // TODO, we shouldn't have additional attributes for WebAuthn
 
             // use builder to properly map attributes
-            InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
             if (fetchAttributes) {
                 // convert attribute sets
                 Collection<UserAttributes> identityAttributes = attributeProvider
@@ -262,49 +299,28 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             // action url for receiving post
             return getLoginUrl();
         } else {
-            // display url for internal form
+            // display url for webauthn form
             return getFormUrl();
         }
     }
 
-    // @Override
-    // public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-    // // we don't have one
-    // // TODO add
-    // return null;
-    // }
-
-    public void shutdown() {
-        // cleanup ourselves
-        // nothing to do
+    @Override
+    public String getRegistrationUrl() {
+        return WebAuthnIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
     }
 
-    @Override
-    public boolean canRegister() {
-        return config.getConfigMap().isEnableRegistration();
+    public String getLoginUrl() {
+        // we use an address bound to provider, no reason to expose realm
+        return WebAuthnIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
     }
 
-    @Override
-    public boolean canUpdate() {
-        return config.getConfigMap().isEnableUpdate();
-
-    }
-
-    @Override
-    public InternalAccountService getAccountService() {
-        return accountService;
-    }
-
-    @Override
-    public InternalPasswordService getCredentialsService() {
-        return passwordService;
+    public String getFormUrl() {
+        return WebAuthnIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
     }
 
     @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity registerIdentity(
-            String subject, UserAccount reg,
-            Collection<UserAttributes> attributes)
+    public WebAuthnUserIdentity registerIdentity(String subject, UserAccount reg, Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
         if (!config.getConfigMap().isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
@@ -338,20 +354,20 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         }
 
         try {
-            // create internal account
-            InternalUserAccount account = accountService.registerAccount(subject, reg);
+            // create webauthn account
+            WebAuthnUserAccount account = accountService.registerAccount(subject, reg);
 
-            // set providerId since all internal accounts have the same
+            // set providerId since all webauthn accounts have the same
             account.setProvider(getProvider());
 
-            // rewrite internal userId
+            // rewrite webauthn userId
             account.setUserId(exportInternalId(username));
 
             // store and update attributes
-            // TODO, we shouldn't have additional attributes for internal
+            // TODO, we shouldn't have additional attributes for webauthn
 
             // use builder to properly map attributes
-            InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
 
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(account.getUserId());
@@ -368,16 +384,12 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
             throw e;
         }
-
     }
 
     @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity updateIdentity(
-            String subject,
-            String userId, UserAccount reg,
-            Collection<UserAttributes> attributes)
-            throws NoSuchUserException, RegistrationException {
+    public WebAuthnUserIdentity updateIdentity(String subject, String userId, UserAccount reg,
+            Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException {
         if (!config.getConfigMap().isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
@@ -391,10 +403,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             throw new IllegalArgumentException("invalid subjectId");
         }
 
-        UserEntity user = userEntityService.getUser(subject);
+        userEntityService.getUser(subject);
 
-        // get the internal account entity
-        InternalUserAccount account = accountService.getAccount(userId);
+        // get the webauthn account entity
+        WebAuthnUserAccount account = accountService.getAccount(userId);
 
         // check subject
         if (!account.getSubject().equals(subject)) {
@@ -404,10 +416,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         account = accountService.updateAccount(subject, reg);
 
         // store and update attributes
-        // TODO, we shouldn't have additional attributes for internal
+        // TODO, we shouldn't have additional attributes for webauthn
 
         // use builder to properly map attributes
-        InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
@@ -426,8 +438,8 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
-        // get the internal account entity
-        InternalUserAccount account = accountService.getAccount(userId);
+        // get the webauthn account entity
+        WebAuthnUserAccount account = accountService.getAccount(userId);
 
         // check subject
         if (!account.getSubject().equals(subject)) {
@@ -444,62 +456,12 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
-        List<InternalUserAccount> accounts = accountService.listAccounts(subjectId);
+        List<WebAuthnUserAccount> accounts = accountService.listAccounts(subjectId);
         for (UserAccount account : accounts) {
             try {
                 accountService.deleteAccount(account.getUserId());
             } catch (NoSuchUserException e) {
             }
         }
-    }
-
-    @Override
-    public String getRegistrationUrl() {
-        // TODO filter
-        // TODO build a realm-bound url, need updates on filters
-        return InternalIdentityAuthority.AUTHORITY_URL + "register/" + getProvider();
-    }
-
-    public String getResetUrl() {
-        return getCredentialsService().getResetUrl();
-    }
-
-    public String getLoginUrl() {
-        // we use an address bound to provider, no reason to expose realm
-        return InternalIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
-    }
-
-    public String getFormUrl() {
-        return InternalIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
-    }
-
-    @Override
-    public String getName() {
-        return config.getName();
-    }
-
-    @Override
-    public String getDescription() {
-        return config.getDescription();
-    }
-
-    @Override
-    public ConfigurableProperties getConfiguration() {
-        return config;
-    }
-
-    @Override
-    public String getDisplayMode() {
-        return config.getDisplayMode() != null ? config.getDisplayMode() : SystemKeys.DISPLAY_MODE_FORM;
-    }
-
-    @Override
-    public Map<String, String> getActionUrls() {
-        Map<String, String> map = new HashMap<>();
-        map.put(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
-        map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
-        map.put(SystemKeys.ACTION_RESET, getResetUrl());
-
-        return map;
     }
 }

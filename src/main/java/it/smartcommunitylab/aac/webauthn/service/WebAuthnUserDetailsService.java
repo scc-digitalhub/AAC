@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.internal.service;
+package it.smartcommunitylab.aac.webauthn.service;
 
 import java.util.Collections;
 import java.util.Set;
@@ -14,16 +14,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
-public class InternalUserDetailsService implements UserDetailsService {
+public class WebAuthnUserDetailsService implements UserDetailsService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final String realm;
 
-    private final InternalUserAccountService userAccountService;
+    private final WebAuthnUserAccountService userAccountService;
 
-    public InternalUserDetailsService(InternalUserAccountService userAccountService, String realm) {
+    public WebAuthnUserDetailsService(WebAuthnUserAccountService userAccountService, String realm) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         this.userAccountService = userAccountService;
         this.realm = realm;
@@ -36,10 +36,10 @@ public class InternalUserDetailsService implements UserDetailsService {
         // expected that the user name is already unwrapped ready for repository
         String username = userId;
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
         if (account == null) {
             throw new UsernameNotFoundException(
-                    "Internal user with username " + username + " does not exist for realm " + realm);
+                    "WebAuthn user with username " + username + " does not exist for realm " + realm);
         }
 
         // always grant user role
@@ -49,10 +49,9 @@ public class InternalUserDetailsService implements UserDetailsService {
 
         // we set the id as username in result
         // also map notConfirmed to locked
-        return new User(account.getUsername(), account.getPassword(),
+        return new User(account.getUsername(), account.getCredential().toJSON(),
                 true, true, true,
-                account.isConfirmed(),
+                account.getHasCompletedRegistration(),
                 authorities);
     }
-
 }
