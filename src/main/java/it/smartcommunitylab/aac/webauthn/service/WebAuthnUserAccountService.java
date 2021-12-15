@@ -5,9 +5,9 @@ import java.util.stream.Collectors;
 
 import com.yubico.webauthn.data.ByteArray;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -18,8 +18,13 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 @Transactional
 public class WebAuthnUserAccountService {
 
-    @Autowired
-    private WebAuthnUserAccountRepository accountRepository;
+    // TODO: civts, try to Autowire this
+    private final WebAuthnUserAccountRepository accountRepository;
+
+    public WebAuthnUserAccountService(WebAuthnUserAccountRepository accountRepository) {
+        Assert.notNull(accountRepository, "accountRepository is mandatory");
+        this.accountRepository = accountRepository;
+    }
 
     @Transactional(readOnly = true)
     public WebAuthnUserAccount getAccount(long id) throws NoSuchUserException {
@@ -32,7 +37,7 @@ public class WebAuthnUserAccountService {
 
     @Transactional(readOnly = true)
     public WebAuthnUserAccount getAccount(String userId) throws NoSuchUserException {
-        WebAuthnUserAccount account = accountRepository.findByUserId(userId);
+        WebAuthnUserAccount account = accountRepository.findBySubject(userId);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -68,7 +73,7 @@ public class WebAuthnUserAccountService {
 
     @Transactional(readOnly = true)
     public WebAuthnUserAccount findByEmail(String realm, String email) {
-        WebAuthnUserAccount account = accountRepository.findByRealmAndEmail(realm, email);
+        WebAuthnUserAccount account = accountRepository.findByRealmAndEmailAddress(realm, email);
         if (account == null) {
             return null;
         }
@@ -78,7 +83,7 @@ public class WebAuthnUserAccountService {
 
     @Transactional(readOnly = true)
     public WebAuthnUserAccount findByCredentialId(ByteArray credentialId) {
-        WebAuthnUserAccount account = accountRepository.findByCredentialId(credentialId);
+        WebAuthnUserAccount account = accountRepository.findByCredentialCredentialId(credentialId);
         if (account == null) {
             return null;
         }
@@ -99,10 +104,8 @@ public class WebAuthnUserAccountService {
             account.setRealm(reg.getRealm());
             account.setUsername(reg.getUsername());
             account.setDisplayName(reg.getDisplayName());
-            account.setUserHandle(reg.getUserHandle());
             account.setCredential(reg.getCredential());
             account.setEmailAddress(reg.getEmailAddress());
-            account.setUserId(reg.getUserId());
             account.setSubject(reg.getSubject());
 
             account = accountRepository.saveAndFlush(account);
@@ -131,10 +134,8 @@ public class WebAuthnUserAccountService {
             account.setRealm(reg.getRealm());
             account.setUsername(reg.getUsername());
             account.setDisplayName(reg.getDisplayName());
-            account.setUserHandle(reg.getUserHandle());
             account.setCredential(reg.getCredential());
             account.setEmailAddress(reg.getEmailAddress());
-            account.setUserId(reg.getUserId());
             account.setSubject(reg.getSubject());
 
             account = accountRepository.saveAndFlush(account);
@@ -147,7 +148,7 @@ public class WebAuthnUserAccountService {
     }
 
     public void deleteAccount(String userId) throws NoSuchUserException {
-        WebAuthnUserAccount account = accountRepository.findByUserId(userId);
+        WebAuthnUserAccount account = accountRepository.findBySubject(userId);
         if (account != null) {
             accountRepository.delete(account);
         } else {

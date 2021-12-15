@@ -88,7 +88,11 @@ authorities:
         reset:
           enabled: true
           validity: 86400
-
+   webauthn:
+        rpid: localhost:8080
+        enableRegistration: true
+        enableUpdate: false
+        maxSessionDuration: 86400
 
 providers:
   identity:

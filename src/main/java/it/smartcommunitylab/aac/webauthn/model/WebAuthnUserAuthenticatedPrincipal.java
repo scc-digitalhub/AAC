@@ -85,7 +85,7 @@ public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrin
             if (StringUtils.hasText(credential)) {
                 attributes.put("credential", credential);
             }
-            String userHandle = principal.getUserHandle().getBase64Url();
+            String userHandle = principal.getCredential().getUserHandle().getBase64Url();
             if (StringUtils.hasText(userHandle)) {
                 attributes.put("userHandle", userHandle);
             }

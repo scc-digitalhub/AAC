@@ -361,7 +361,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
             account.setProvider(getProvider());
 
             // rewrite webauthn userId
-            account.setUserId(exportInternalId(username));
+            account.setSubject(exportInternalId(username));
 
             // store and update attributes
             // TODO, we shouldn't have additional attributes for webauthn

@@ -6,7 +6,6 @@ import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
-import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -17,7 +16,6 @@ import com.yubico.webauthn.RegisteredCredential;
 import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
 
-@Entity
 @Embeddable
 public class WebAuthnCredential {
 
@@ -26,8 +24,18 @@ public class WebAuthnCredential {
 
     private ByteArray userHandle;
 
+    /**
+     * A custom name the user can associate to this credential
+     * It can be used, for example, to help distinguishing authenticators.
+     * 
+     * E.g., a credential may be called 'Yubico 5c' to make it obvious in the web
+     * interface that it is relative to that authenticator
+     */
     private String nickname;
 
+    /**
+     * Public key of this credential
+     */
     private ByteArray publicKeyCose;
 
     private Long signatureCount = 0L;
