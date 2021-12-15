@@ -29,6 +29,7 @@ public class SystemKeys {
     public static final String AUTHORITY_WEBHOOK = "webhook";
     public static final String AUTHORITY_OAUTH2 = "oauth2";
     public static final String AUTHORITY_APPLE = "apple";
+    public static final String AUTHORITY_WEBAUTHN = "webauthn";
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";

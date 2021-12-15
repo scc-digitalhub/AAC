@@ -64,6 +64,11 @@ public class InternalIdentityService extends AbstractProvider
         Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
 
         // internal data repositories
+<<<<<<< HEAD
+=======
+        // TODO replace with service to support external repo
+        // this.accountRepository = accountRepository;
+>>>>>>> Define most entities needed for webauthn
         this.userEntityService = userEntityService;
         this.config = config;
 
@@ -152,12 +157,22 @@ public class InternalIdentityService extends AbstractProvider
         // userId is always present, is derived from the same account table
         String curUserId = account.getUserId();
 
+<<<<<<< HEAD
         if (!curUserId.equals(userId)) {
 //            // force link
 //            // TODO re-evaluate
 //            account.setSubject(subjectId);
 //            account = accountRepository.save(account);
             throw new IllegalArgumentException("user mismatch");
+=======
+        if (!curSubjectId.equals(subjectId)) {
+            // // force link
+            // // TODO re-evaluate
+            // account.setSubject(subjectId);
+            // account = accountRepository.save(account);
+            throw new IllegalArgumentException("subject mismatch");
+
+>>>>>>> Define most entities needed for webauthn
         }
 
         // store and update attributes
