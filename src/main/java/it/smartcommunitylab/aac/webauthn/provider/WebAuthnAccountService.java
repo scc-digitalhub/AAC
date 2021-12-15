@@ -50,7 +50,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         // we need to fix ids
         return accounts.stream().map(a -> {
             a.setProvider(getProvider());
-            a.setUserId(exportInternalId(a.getUsername()));
+            a.setSubject(exportInternalId(a.getUsername()));
             return a;
         }).collect(Collectors.toList());
     }
@@ -104,7 +104,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         account.setProvider(getProvider());
 
         // rewrite webauthn userId
-        account.setUserId(exportInternalId(username));
+        account.setSubject(exportInternalId(username));
 
         return account;
     }
@@ -182,13 +182,13 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         String userId = this.exportInternalId(username);
 
-        account.setUserId(userId);
+        account.setSubject(userId);
 
         // set providerId since all webauthn accounts have the same
         account.setProvider(getProvider());
 
         // rewrite webauthn userId
-        account.setUserId(exportInternalId(username));
+        account.setSubject(exportInternalId(username));
 
         return account;
 
@@ -230,7 +230,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         account.setProvider(getProvider());
 
         // rewrite webauthn userId
-        account.setUserId(exportInternalId(username));
+        account.setSubject(exportInternalId(username));
 
         return account;
     }

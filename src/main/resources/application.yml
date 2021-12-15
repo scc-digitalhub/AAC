@@ -127,9 +127,12 @@ authorities:
       authnContext: SPID_L2
    saml:
       signAuthNRequest: true
-      ssoServiceBinding: HTTP-POST
-      
-
+      ssoServiceBinding: HTTP-POST     
+   webauthn:
+        rpid: localhost:8080
+        enableRegistration: true
+        enableUpdate: false
+        maxSessionDuration: 86400
 
 providers:
   identity:
