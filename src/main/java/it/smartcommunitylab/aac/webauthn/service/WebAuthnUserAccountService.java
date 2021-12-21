@@ -76,7 +76,7 @@ public class WebAuthnUserAccountService {
 
     @Transactional(readOnly = true)
     public WebAuthnUserAccount findByCredentialId(ByteArray credentialId) {
-        WebAuthnCredential cred = credentialRepository.findByCredentialId(credentialId);
+        WebAuthnCredential cred = credentialRepository.findByCredentialId(credentialId.getBase64());
         if (cred == null) {
             return null;
         }

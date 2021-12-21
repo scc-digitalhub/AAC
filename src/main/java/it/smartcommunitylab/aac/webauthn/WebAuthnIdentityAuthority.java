@@ -488,7 +488,7 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
                     .response(pkc).build());
             if (result.isSuccess() && result.isSignatureCounterValid()) {
                 final WebAuthnUserAccount account = webAuthnUserAccountRepository
-                        .findByUserHandle(result.getUserHandle());
+                        .findByUserHandle(result.getUserHandle().getBase64());
                 Set<WebAuthnCredential> credentials = account.getCredentials();
                 Optional<WebAuthnCredential> toUpdate = Optional.empty();
                 ByteArray resultCredentialId = result.getCredentialId();

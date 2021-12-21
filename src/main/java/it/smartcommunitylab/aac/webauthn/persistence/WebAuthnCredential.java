@@ -1,10 +1,11 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
+import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -20,17 +21,18 @@ import com.yubico.webauthn.RegisteredCredential;
 import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
 
-@Embeddable
+@Entity
 public class WebAuthnCredential {
 
     @Id
-    private ByteArray credentialId;
+    private String credentialId;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "webauth_acc_id", nullable = false)
     private WebAuthnUserAccount parentAccount;
 
+    // TODO: civts, use converters
     /**
      * A custom name the user can associate to this credential
      * It can be used, for example, to help distinguishing authenticators.
@@ -45,15 +47,17 @@ public class WebAuthnCredential {
      */
     private boolean hasCompletedRegistration = false;
 
+    // TODO: civts, use converters
     /**
      * Public key of this credential
      */
-    private ByteArray publicKeyCose;
+    private String publicKeyCose;
 
     private Long signatureCount = 0L;
 
+    // TODO: use converters
     @ElementCollection
-    private Set<AuthenticatorTransport> transports;
+    private Set<String> transports;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdOn;
@@ -61,8 +65,8 @@ public class WebAuthnCredential {
     private Date lastUsedOn;
 
     public RegisteredCredential getRegisteredCredential() {
-        return RegisteredCredential.builder().credentialId(credentialId).userHandle(parentAccount.getUserHandle())
-                .publicKeyCose(publicKeyCose).signatureCount(signatureCount).build();
+        return RegisteredCredential.builder().credentialId(getCredentialId()).userHandle(parentAccount.getUserHandle())
+                .publicKeyCose(getPublicKeyCose()).signatureCount(signatureCount).build();
     }
 
     public Date getCreatedOn() {
@@ -83,27 +87,45 @@ public class WebAuthnCredential {
 
     // Getters and setters
     public void setCredentialId(ByteArray credentialId) {
-        this.credentialId = credentialId;
+        this.credentialId = credentialId.getBase64();
     }
 
     public ByteArray getCredentialId() {
-        return credentialId;
+        return ByteArray.fromBase64(credentialId);
     }
 
     public void setPublicKeyCose(ByteArray publicKeyCose) {
-        this.publicKeyCose = publicKeyCose;
+        this.publicKeyCose = publicKeyCose.getBase64();
     }
 
     public ByteArray getPublicKeyCose() {
-        return publicKeyCose;
+        return ByteArray.fromBase64(publicKeyCose);
     }
 
     public Set<AuthenticatorTransport> getTransports() {
-        return transports;
+        final Set<AuthenticatorTransport> result = new HashSet<>();
+        for (final String code : transports) {
+            result.add(AuthenticatorTransport.valueOf(code));
+        }
+        return result;
     }
 
     public void setTransports(Set<AuthenticatorTransport> transports) {
-        this.transports = transports;
+        final Set<String> result = new HashSet<>();
+        for (final AuthenticatorTransport t : transports) {
+            if (t == AuthenticatorTransport.USB) {
+                result.add("USB");
+            } else if (t == AuthenticatorTransport.BLE) {
+                result.add("BLE");
+            } else if (t == AuthenticatorTransport.NFC) {
+                result.add("NFC");
+            } else if (t == AuthenticatorTransport.INTERNAL) {
+                result.add("INTERNAL");
+            } else {
+                throw new IllegalArgumentException("Transport not found: " + t);
+            }
+        }
+        this.transports = result;
     }
 
     public void setSignatureCount(Long signatureCount) {
