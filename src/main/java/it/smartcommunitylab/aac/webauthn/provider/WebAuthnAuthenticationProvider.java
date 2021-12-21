@@ -54,7 +54,8 @@ public class WebAuthnAuthenticationProvider extends ExtendedAuthenticationProvid
     protected Authentication doAuthenticate(Authentication authentication) {
         String username = authentication.getName();
 
-        WebAuthnUserAccount account = userAccountService.findByUsername(getRealm(), username);
+        WebAuthnUserAccount account = userAccountService
+                .findByRealmAndUsername(getRealm(), username);
         if (account == null) {
             throw new WebAuthnAuthenticationException(
                     "authentication failed");

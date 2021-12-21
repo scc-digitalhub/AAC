@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.yubico.webauthn.data.ByteArray;
@@ -45,7 +47,9 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
     @Override
     public List<WebAuthnUserAccount> listAccounts(String subject) {
-        List<WebAuthnUserAccount> accounts = userAccountService.findBySubject(getRealm(), subject);
+        WebAuthnUserAccount account = userAccountService.findBySubject(subject, getRealm());
+        final List<WebAuthnUserAccount> accounts = new LinkedList<>();
+        accounts.add(account);
 
         // we need to fix ids
         return accounts.stream().map(a -> {
@@ -70,13 +74,14 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         WebAuthnUserAccount account = null;
         if (attributes.containsKey("userId")) {
             String username = parseResourceId(attributes.get("userId"));
-            account = userAccountService.findByUsername(realm, username);
+            account = userAccountService.findByRealmAndUsername(realm, username);
         }
 
         if (account == null
                 && attributes.keySet().containsAll(Arrays.asList("realm", "username"))
                 && realm.equals((attributes.get("realm")))) {
-            account = userAccountService.findByUsername(realm, attributes.get("username"));
+            account = userAccountService
+                    .findByRealmAndUsername(realm, attributes.get("username"));
         }
 
         if (account == null
@@ -110,8 +115,8 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public void deleteAccount(String userId) throws NoSuchUserException {
-        userAccountService.deleteAccount(userId);
+    public void deleteAccount(String subject) throws NoSuchUserException {
+        userAccountService.deleteAccount(subject);
     }
 
     @Override
@@ -147,18 +152,19 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
             throw new RegistrationException("missing-username");
         }
 
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService
+                .findByRealmAndUsername(realm, username);
         if (account != null) {
             throw new AlreadyRegisteredException("duplicate-registration");
         }
 
         // check type and extract our parameters if present
-        WebAuthnCredential credential = null;
+        Set<WebAuthnCredential> credentials = null;
         String email = null;
 
         if (reg instanceof WebAuthnUserAccount) {
             WebAuthnUserAccount ireg = (WebAuthnUserAccount) reg;
-            credential = ireg.getCredential();
+            credentials = ireg.getCredentials();
             email = ireg.getEmailAddress();
 
             if (StringUtils.hasText(email)) {
@@ -167,7 +173,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         }
 
-        if (credential == null) {
+        if (credentials.isEmpty()) {
             throw new IllegalArgumentException("Missing credential");
         }
 
@@ -175,7 +181,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         account.setSubject(subjectId);
         account.setRealm(realm);
         account.setUsername(username);
-        account.setCredential(credential);
+        account.setCredentials(credentials);
         account.setEmailAddress(email);
 
         account = userAccountService.addAccount(account);
@@ -204,7 +210,8 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         String username = parseResourceId(userId);
         String realm = getRealm();
 
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService
+                .findByRealmAndUsername(realm, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -213,7 +220,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         if (reg instanceof WebAuthnUserAccount) {
             WebAuthnUserAccount ireg = (WebAuthnUserAccount) reg;
             String email = ireg.getEmailAddress();
-            WebAuthnCredential credential = ireg.getCredential();
+            Set<WebAuthnCredential> credentials = ireg.getCredentials();
 
             if (StringUtils.hasText(email)) {
                 email = Jsoup.clean(email, Safelist.none());
@@ -221,7 +228,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
             // we update all props, even if empty or null
             account.setEmailAddress(email);
-            account.setCredential(credential);
+            account.setCredentials(credentials);
 
             account = userAccountService.updateAccount(account.getId(), account);
         }
@@ -234,4 +241,5 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         return account;
     }
+
 }

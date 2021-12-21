@@ -62,7 +62,7 @@ public class WebAuthnAttributeProvider extends AbstractProvider implements Attri
         String username = parseResourceId(userId);
         String realm = getRealm();
 
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService.findByRealmAndUsername(realm, username);
         if (account == null) {
             return null;
         }
@@ -91,7 +91,7 @@ public class WebAuthnAttributeProvider extends AbstractProvider implements Attri
         String username = parseResourceId(userId);
         String realm = getRealm();
 
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService.findByRealmAndUsername(realm, username);
         if (account == null) {
             return null;
         }

@@ -1,8 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.yubico.webauthn.data.ByteArray;
 
 import org.springframework.stereotype.Service;
@@ -11,6 +8,8 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountRepository;
 
@@ -20,10 +19,14 @@ public class WebAuthnUserAccountService {
 
     // TODO: civts, try to Autowire this
     private final WebAuthnUserAccountRepository accountRepository;
+    // TODO: civts, try to Autowire this
+    private final WebAuthnCredentialsRepository credentialRepository;
 
-    public WebAuthnUserAccountService(WebAuthnUserAccountRepository accountRepository) {
+    public WebAuthnUserAccountService(WebAuthnUserAccountRepository accountRepository,
+            WebAuthnCredentialsRepository credentialRepository) {
         Assert.notNull(accountRepository, "accountRepository is mandatory");
         this.accountRepository = accountRepository;
+        this.credentialRepository = credentialRepository;
     }
 
     @Transactional(readOnly = true)
@@ -38,9 +41,6 @@ public class WebAuthnUserAccountService {
     @Transactional(readOnly = true)
     public WebAuthnUserAccount getAccount(String userId) throws NoSuchUserException {
         WebAuthnUserAccount account = accountRepository.findBySubject(userId);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
         return accountRepository.detach(account);
     }
 
@@ -54,41 +54,33 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserAccount findByUsername(String realm, String username) {
+    public WebAuthnUserAccount findByRealmAndUsername(String realm, String username) {
         WebAuthnUserAccount account = accountRepository.findByRealmAndUsername(realm, username);
         if (account == null) {
             return null;
         }
-
         return accountRepository.detach(account);
     }
 
     @Transactional(readOnly = true)
-    public List<WebAuthnUserAccount> findBySubject(String subject, String realm) {
-        List<WebAuthnUserAccount> accounts = accountRepository.findBySubjectAndRealm(subject, realm);
-        return accounts.stream().map(a -> {
-            return accountRepository.detach(a);
-        }).collect(Collectors.toList());
+    public WebAuthnUserAccount findBySubject(String subject, String realm) {
+        WebAuthnUserAccount account = accountRepository.findBySubjectAndRealm(subject, realm);
+        return accountRepository.detach(account);
     }
 
     @Transactional(readOnly = true)
     public WebAuthnUserAccount findByEmail(String realm, String email) {
         WebAuthnUserAccount account = accountRepository.findByRealmAndEmailAddress(realm, email);
-        if (account == null) {
-            return null;
-        }
-
         return accountRepository.detach(account);
     }
 
     @Transactional(readOnly = true)
     public WebAuthnUserAccount findByCredentialId(ByteArray credentialId) {
-        WebAuthnUserAccount account = accountRepository.findByCredentialCredentialId(credentialId);
-        if (account == null) {
+        WebAuthnCredential cred = credentialRepository.findByCredentialId(credentialId);
+        if (cred == null) {
             return null;
         }
-
-        return accountRepository.detach(account);
+        return accountRepository.detach(cred.getParentAccount());
     }
 
     /*
@@ -101,12 +93,12 @@ public class WebAuthnUserAccountService {
             // we explode model
             WebAuthnUserAccount account = new WebAuthnUserAccount();
 
-            account.setRealm(reg.getRealm());
-            account.setUsername(reg.getUsername());
-            account.setDisplayName(reg.getDisplayName());
-            account.setCredential(reg.getCredential());
+            account.setCredentials(reg.getCredentials());
             account.setEmailAddress(reg.getEmailAddress());
-            account.setSubject(reg.getSubject());
+            account.setProvider(reg.getProvider());
+            account.setRealm(reg.getRealm());
+            account.setUserHandle(reg.getUserHandle());
+            account.setUsername(reg.getUsername());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
@@ -131,12 +123,12 @@ public class WebAuthnUserAccountService {
 
         try {
             // we explode model and update every field
-            account.setRealm(reg.getRealm());
-            account.setUsername(reg.getUsername());
-            account.setDisplayName(reg.getDisplayName());
-            account.setCredential(reg.getCredential());
+            account.setCredentials(reg.getCredentials());
             account.setEmailAddress(reg.getEmailAddress());
-            account.setSubject(reg.getSubject());
+            account.setProvider(reg.getProvider());
+            account.setRealm(reg.getRealm());
+            account.setUserHandle(reg.getUserHandle());
+            account.setUsername(reg.getUsername());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);
@@ -147,8 +139,8 @@ public class WebAuthnUserAccountService {
         }
     }
 
-    public void deleteAccount(String userId) throws NoSuchUserException {
-        WebAuthnUserAccount account = accountRepository.findBySubject(userId);
+    public void deleteAccount(String subject) throws NoSuchUserException {
+        WebAuthnUserAccount account = accountRepository.findBySubject(subject);
         if (account != null) {
             accountRepository.delete(account);
         } else {

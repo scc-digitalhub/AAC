@@ -33,8 +33,7 @@ public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrin
 
     @Override
     public void eraseCredentials() {
-        this.principal.setCredential(null);
-
+        this.principal.setUserHandle(null);
     }
 
     @Override
@@ -77,15 +76,7 @@ public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrin
             if (StringUtils.hasText(username)) {
                 attributes.put("username", username);
             }
-            String displayName = principal.getDisplayName();
-            if (StringUtils.hasText(displayName)) {
-                attributes.put("displayName", displayName);
-            }
-            String credential = principal.getCredential().toString();
-            if (StringUtils.hasText(credential)) {
-                attributes.put("credential", credential);
-            }
-            String userHandle = principal.getCredential().getUserHandle().getBase64Url();
+            String userHandle = principal.getUserHandle().getBase64Url();
             if (StringUtils.hasText(userHandle)) {
                 attributes.put("userHandle", userHandle);
             }

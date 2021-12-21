@@ -222,6 +222,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/italia/**").permitAll()
                 .antMatchers("/spid/**").permitAll()
+                .antMatchers("/webauthn/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 // whitelist swagger
                 .antMatchers(
@@ -265,7 +266,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/auth/oidc/**",
                         "/auth/saml/**",
                         "/auth/spid/**",
-                        "/auth/apple/**")
+                        "/auth/apple/**",
+                        "/auth/webauthn/**")
                 .and()
 //                .disable()
 //                // TODO replace with filterRegistrationBean and explicitely map urls
