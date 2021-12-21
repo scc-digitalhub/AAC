@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,6 +59,7 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.model.ClientApp;
@@ -357,6 +359,32 @@ public class DevClientAppController {
         return ResponseEntity.ok(clientManager.listIdentityProviders(realm));
     }
 
+    @GetMapping("/realms/{realm}/apps/{clientId}/authorities")
+    public ResponseEntity<Collection<GrantedAuthority>> getRealmAppAuthorities(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId)
+            throws NoSuchRealmException, NoSuchClientException {
+        Collection<GrantedAuthority> authorities = clientManager.getAuthorities(realm, clientId);
+        return ResponseEntity.ok(authorities);
+    }
+
+    @PutMapping("/realms/{realm}/apps/{clientId}/authorities")
+    public ResponseEntity<Collection<GrantedAuthority>> updateRealmAppAuthorities(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @RequestBody @Valid @NotNull Collection<RealmGrantedAuthority> roles)
+            throws NoSuchRealmException, NoSuchClientException {
+        // filter roles, make sure they belong to the current realm
+        Set<String> values = roles.stream()
+                .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
+                .map(a -> a.getRole())
+                .collect(Collectors.toSet());
+
+        Collection<GrantedAuthority> authorities = clientManager.setAuthorities(realm, clientId, values);
+
+        return ResponseEntity.ok(authorities);
+    }    
+    
     /*
      * Roles
      */

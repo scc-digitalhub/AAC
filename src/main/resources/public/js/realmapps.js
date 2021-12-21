@@ -116,6 +116,17 @@ angular.module('aac.controllers.realmapps', [])
             });
         }
 
+        service.getAuthorities = function (slug, subject) {
+            return $http.get('console/dev/realms/' + slug + '/apps/' + subject + '/authorities').then(function (data) {
+                return data.data;
+            });
+        }
+        service.updateAuthorities = function (slug, subject, authorities) {
+            return $http.put('console/dev/realms/' + slug + '/apps/' + subject + '/authorities', authorities).then(function (data) {
+                return data.data;
+            });
+        }
+
         service.getSpaceRoles = function (slug, clientId) {
             return $http.get('console/dev/realms/' + slug + '/apps/' + clientId + '/spaceroles').then(function (data) {
                 return data.data;
@@ -1322,6 +1333,82 @@ angular.module('aac.controllers.realmapps', [])
                 return './spid/sprite.svg#spid-ico-circle-bb';
             }
             return './italia/svg/sprite.svg#it-unlocked';
+        }
+
+
+        /*
+        * authorities
+        */
+        $scope.reloadAuthorities = function (data) {
+            var authorities = data.filter(a => a.realm && slug == a.realm).map(auth => {
+                var a = {
+                    ...auth,
+                    name: auth.role.replaceAll("_", " ").slice(5).toUpperCase(),
+                    description: '',
+                }
+
+                if (a.role == 'ROLE_DEVELOPER') {
+                    a.description = 'Manage realm applications and services';
+                }
+                if (a.role == 'ROLE_ADMIN') {
+                    a.description = "Manage realm settings and configuration (in addition to developer permissions)";
+                }
+
+                return a;
+            });
+
+            $scope.authorities = authorities;
+
+            //flatten for display
+            $scope._authorities = authorities.map(a => a.role);
+
+            //also update user model
+            $scope.user.authorities = data;
+        }
+
+        $scope.manageAuthoritiesDlg = function () {
+            var authorities = $scope.authorities;
+            var roles = authorities.map(a => a.role);
+
+            $scope.modAuthorities = {
+                realm: slug,
+                admin: roles.includes('ROLE_ADMIN'),
+                developer: roles.includes('ROLE_DEVELOPER')
+            };
+            $('#authoritiesModal').modal({ keyboard: false });
+        }
+
+        $scope.updateAuthorities = function () {
+            $('#authoritiesModal').modal('hide');
+            if ($scope.modAuthorities) {
+                var roles = $scope.modAuthorities;
+                var authorities = [];
+
+
+                if (roles.admin === true) {
+                    authorities.push({
+                        realm: slug,
+                        role: 'ROLE_ADMIN'
+                    });
+                }
+                if (roles.developer === true) {
+                    authorities.push({
+                        realm: slug,
+                        role: 'ROLE_DEVELOPER'
+                    });
+                }
+
+
+                RealmAppsData.updateAuthorities(slug, clientId, authorities)
+                    .then(function (data) {
+                        $scope.reloadAuthorities(data);
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Failed to update authorities: ' + err.data.message);
+                    });
+
+            }
         }
 
         init();

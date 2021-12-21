@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.model.ClientCredentials;
@@ -42,6 +44,7 @@ import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.service.ClientEntityService;
 import it.smartcommunitylab.aac.core.service.IdentityProviderService;
 import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
@@ -80,6 +83,9 @@ public class ClientManager {
 
     @Autowired
     private SubjectRoleService subjectRoleService;
+
+    @Autowired
+    private SubjectService subjectService;
 
     @Autowired
     private ScopeRegistry scopeRegistry;
@@ -251,7 +257,10 @@ public class ClientManager {
         clientApp.setRealmRoles(roles);
 
         Collection<SpaceRole> spaceRoles = loadClientSpaceRoles(realm, clientApp.getClientId());
-        clientApp.setSpaceRoles(spaceRoles);        
+        clientApp.setSpaceRoles(spaceRoles);
+        
+        clientApp.setAuthorities(getAuthorities(realm, clientApp.getClientId()));
+        
         return clientApp;
     }
 
@@ -732,5 +741,46 @@ public class ClientManager {
 
     private Collection<SpaceRole> loadClientSpaceRoles(String realm, String clientId) throws NoSuchClientException {
         return spaceRoleService.getRoles(clientId);
+    }
+
+	/**
+	 * @param realm
+	 * @param clientId
+	 * @return
+	 * @throws NoSuchRealmException 
+	 * @throws NoSuchClientException 
+	 */
+    @Transactional(readOnly = true)
+	public Collection<GrantedAuthority> getAuthorities(
+			String realm, String clientId) throws NoSuchRealmException, NoSuchClientException {
+        logger.debug("get authorities for app {} in realm {}", String.valueOf(clientId), realm);
+
+        Realm r = realmService.getRealm(realm);
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        return subjectService.getAuthorities(clientId, realm);
+	}
+    
+    @Transactional(readOnly = false)
+    public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
+            throws NoSuchRealmException, NoSuchClientException {
+        logger.debug("update authorities for app {} in realm {}", String.valueOf(subjectId), realm);
+        if (logger.isTraceEnabled()) {
+            logger.trace("authorities: " + String.valueOf(roles));
+        }
+
+        Realm r = realmService.getRealm(realm);
+        ClientEntity entity = findClient(subjectId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+        try {
+			return subjectService.updateAuthorities(subjectId, r.getSlug(), roles);
+		} catch (NoSuchSubjectException e) {
+			throw new NoSuchClientException();
+		}
     }
 }
