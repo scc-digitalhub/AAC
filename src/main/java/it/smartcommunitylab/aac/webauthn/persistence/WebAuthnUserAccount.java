@@ -32,9 +32,10 @@ public class WebAuthnUserAccount implements UserAccount {
     @GeneratedValue
     private Long id;
 
+    // TODO: civts, use converter
     @Column(unique = true)
-    private ByteArray userHandle;
-    @OneToMany(mappedBy = "parentAcc", fetch = FetchType.LAZY, orphanRemoval = true)
+    private String userHandle;
+    @OneToMany(mappedBy = "parentAccount", fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<WebAuthnCredential> credentials;
 
     @NotNull
@@ -52,7 +53,7 @@ public class WebAuthnUserAccount implements UserAccount {
     }
 
     public ByteArray getUserHandle() {
-        return userHandle;
+        return ByteArray.fromBase64(userHandle);
     }
 
     public String getEmailAddress() {
@@ -80,7 +81,7 @@ public class WebAuthnUserAccount implements UserAccount {
     }
 
     public void setUserHandle(ByteArray userHandle) {
-        this.userHandle = userHandle;
+        this.userHandle = userHandle.getBase64();
     }
 
     public void setEmailAddress(String emailAddress) {
