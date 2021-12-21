@@ -36,7 +36,8 @@ public class WebAuthnUserDetailsService implements UserDetailsService {
         // expected that the user name is already unwrapped ready for repository
         String username = userId;
 
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService
+                .findByRealmAndUsername(realm, username);
         if (account == null) {
             throw new UsernameNotFoundException(
                     "WebAuthn user with username " + username + " does not exist for realm " + realm);
@@ -49,9 +50,13 @@ public class WebAuthnUserDetailsService implements UserDetailsService {
 
         // we set the id as username in result
         // also map notConfirmed to locked
-        return new User(account.getUsername(), account.getCredential().toJSON(),
-                true, true, true,
-                account.getHasCompletedRegistration(),
+        return new User(
+                account.getUsername(),
+                account.getUserHandle().getBase64Url(),
+                true,
+                true,
+                true,
+                true,
                 authorities);
     }
 }
