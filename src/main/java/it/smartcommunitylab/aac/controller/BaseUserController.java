@@ -12,6 +12,8 @@ import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
@@ -48,14 +52,15 @@ public class BaseUserController {
     }
 
     @GetMapping("/user/{realm}")
-    public Collection<User> listUser(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+    public Page<User> listUser(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = false) String q, Pageable pageRequest)
             throws NoSuchRealmException {
         logger.debug("list users for realm {}",
                 StringUtils.trimAllWhitespace(realm));
 
         // list users owned or accessible by this realm
-        return userManager.listUsers(realm);
+        return userManager.searchUsers(realm, q, pageRequest);
     }
 
     @GetMapping("/user/{realm}/{userId}")
