@@ -11,6 +11,6 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface WebAuthnCredentialsRepository
         extends CustomJpaRepository<WebAuthnCredential, ByteArray>, DetachableJpaRepository<WebAuthnCredential> {
 
-    WebAuthnCredential findByCredentialId(ByteArray credentialId);
+    WebAuthnCredential findByCredentialId(String credentialId);
 
 }

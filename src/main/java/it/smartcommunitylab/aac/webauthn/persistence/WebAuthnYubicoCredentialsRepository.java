@@ -72,7 +72,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     @Override
     public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
         try {
-            WebAuthnUserAccount account = userAccountRepository.findByUserHandle(userHandle);
+            WebAuthnUserAccount account = userAccountRepository.findByUserHandle(userHandle.getBase64());
             if (account == null) {
                 return Optional.empty();
             }
@@ -84,7 +84,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     @Override
     public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-        WebAuthnUserAccount acc = userAccountRepository.findByUserHandle(userHandle);
+        WebAuthnUserAccount acc = userAccountRepository.findByUserHandle(userHandle.getBase64());
         if (acc == null) {
             return Optional.empty();
         }
@@ -101,7 +101,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
         // In our database the credentialID already has a unique constraint
         Set<RegisteredCredential> s = new HashSet<>();
-        WebAuthnCredential cred = webAuthnCredentialsRepository.findByCredentialId(credentialId);
+        WebAuthnCredential cred = webAuthnCredentialsRepository.findByCredentialId(credentialId.getBase64());
         if (cred != null) {
             s.add(cred.getRegisteredCredential());
         }

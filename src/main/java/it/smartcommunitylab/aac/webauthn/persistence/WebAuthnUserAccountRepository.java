@@ -2,8 +2,6 @@ package it.smartcommunitylab.aac.webauthn.persistence;
 
 import java.util.List;
 
-import com.yubico.webauthn.data.ByteArray;
-
 import org.springframework.stereotype.Repository;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
@@ -19,7 +17,7 @@ public interface WebAuthnUserAccountRepository
 
         List<WebAuthnUserAccount> findByRealm(String realm);
 
-        WebAuthnUserAccount findByUserHandle(ByteArray userHandle);
+        WebAuthnUserAccount findByUserHandle(String userHandle);
 
         WebAuthnUserAccount findBySubject(String userId);
 
