@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.webauthn.model;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.security.core.CredentialsContainer;
 
@@ -87,14 +88,14 @@ public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsCon
 
     @Override
     public void eraseCredentials() {
-        this.account.setCredential(null);
+        this.account.setCredentials(null);
         if (this.principal != null) {
             this.principal.eraseCredentials();
         }
     }
 
-    public WebAuthnCredential getCredentials() {
-        return this.account.getCredential();
+    public Set<WebAuthnCredential> getCredentials() {
+        return this.account.getCredentials();
     }
 
     @Override

@@ -15,16 +15,13 @@ public interface WebAuthnUserAccountRepository
 
         WebAuthnUserAccount findByRealmAndUsername(String realm, String username);
 
-        List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm);
-
-        WebAuthnUserAccount findByCredentialCredentialId(ByteArray credentialId);
+        WebAuthnUserAccount findBySubjectAndRealm(String subject, String realm);
 
         List<WebAuthnUserAccount> findByRealm(String realm);
 
-        WebAuthnUserAccount findByCredentialUserHandle(ByteArray userHandle);
+        WebAuthnUserAccount findByUserHandle(ByteArray userHandle);
 
         WebAuthnUserAccount findBySubject(String userId);
 
         WebAuthnUserAccount findByRealmAndEmailAddress(String realm, String email);
-
 }

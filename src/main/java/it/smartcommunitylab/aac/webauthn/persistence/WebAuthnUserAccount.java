@@ -1,15 +1,20 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
+import java.util.Set;
+
 import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
+
+import com.yubico.webauthn.data.ByteArray;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -27,74 +32,55 @@ public class WebAuthnUserAccount implements UserAccount {
     @GeneratedValue
     private Long id;
 
-    private String username;
-    private String displayName;
-    @Embedded
-    WebAuthnCredential credential;
-    private boolean hasCompletedRegistration = false;
+    @Column(unique = true)
+    private ByteArray userHandle;
+    @OneToMany(mappedBy = "parentAcc", fetch = FetchType.LAZY, orphanRemoval = true)
+    private Set<WebAuthnCredential> credentials;
 
     @NotNull
     @Column(name = "subject_id")
     private String subject;
     private String emailAddress;
     private String realm;
+    private String username;
+
     @Transient
     private String provider;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public String getRealm() {
-        return realm;
+    public ByteArray getUserHandle() {
+        return userHandle;
+    }
+
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public Set<WebAuthnCredential> getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(Set<WebAuthnCredential> credentials) {
+        this.credentials = credentials;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setRealm(String realm) {
         this.realm = realm;
     }
 
-    public String getUsername() {
-        return username;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public void setUsername(String userName) {
-        this.username = userName;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public WebAuthnCredential getCredential() {
-        return credential;
-    }
-
-    public void setCredential(WebAuthnCredential credential) {
-        this.credential = credential;
-    }
-
-    public boolean getHasCompletedRegistration() {
-        return hasCompletedRegistration;
-    }
-
-    public void setHasCompletedRegistration(boolean hasCompletedRegistration) {
-        this.hasCompletedRegistration = hasCompletedRegistration;
-    }
-
-    public String getEmailAddress() {
-        return emailAddress;
+    public void setUserHandle(ByteArray userHandle) {
+        this.userHandle = userHandle;
     }
 
     public void setEmailAddress(String emailAddress) {
@@ -108,6 +94,14 @@ public class WebAuthnUserAccount implements UserAccount {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getSubject() {
+        return this.subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 
     @Override
@@ -127,5 +121,15 @@ public class WebAuthnUserAccount implements UserAccount {
             return String.valueOf(id);
         }
         return subject;
+    }
+
+    @Override
+    public String getRealm() {
+        return realm;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 }

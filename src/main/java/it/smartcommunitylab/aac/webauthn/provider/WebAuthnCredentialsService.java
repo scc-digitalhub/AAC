@@ -8,7 +8,6 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.webauthn.model.UserWebAuthnCredentials;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -52,7 +51,8 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
         // fetch user
         String username = parseResourceId(userId);
         String realm = getRealm();
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService
+                .findByRealmAndUsername(realm, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -61,7 +61,6 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
         credentials.setUserId(userId);
         credentials.setCanReset(canReset());
         credentials.setCanSet(canSet());
-        credentials.setCredential(account.getCredential());
 
         return credentials;
     }
@@ -78,9 +77,9 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
             throw new IllegalArgumentException("invalid credentials");
         }
 
-        WebAuthnCredential credentialJSON = ((UserWebAuthnCredentials) credentials).getCredential();
+        String userHandle = ((UserWebAuthnCredentials) credentials).getCredentials();
 
-        setCredential(userId, credentialJSON);
+        setCredential(userId, userHandle);
 
         // we return a placeholder to describe config
         UserWebAuthnCredentials result = new UserWebAuthnCredentials();
@@ -93,12 +92,13 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
 
     public WebAuthnUserAccount setCredential(
             String userId,
-            WebAuthnCredential credential) throws NoSuchUserException {
+            String userHandle) throws NoSuchUserException {
 
         // fetch user
         String username = parseResourceId(userId);
         String realm = getRealm();
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService
+                .findByRealmAndUsername(realm, username);
         if (account == null) {
             throw new NoSuchUserException();
         }

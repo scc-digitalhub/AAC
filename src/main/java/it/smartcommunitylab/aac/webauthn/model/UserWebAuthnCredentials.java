@@ -6,14 +6,13 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import it.smartcommunitylab.aac.core.model.UserCredentials;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 
 @Valid
 public class UserWebAuthnCredentials implements UserCredentials {
 
     @NotBlank
     private String userId;
-    private WebAuthnCredential credential;
+    private String userHandle;
 
     private boolean canReset = false;
     private boolean canSet = false;
@@ -26,12 +25,12 @@ public class UserWebAuthnCredentials implements UserCredentials {
         this.userId = userId;
     }
 
-    public WebAuthnCredential getCredential() {
-        return credential;
+    public String getUserHandle() {
+        return userHandle;
     }
 
-    public void setCredential(WebAuthnCredential credential) {
-        this.credential = credential;
+    public void setUserHandle(String userHandle) {
+        this.userHandle = userHandle;
     }
 
     public void setCanReset(boolean canReset) {
@@ -45,7 +44,7 @@ public class UserWebAuthnCredentials implements UserCredentials {
     @Override
     @JsonIgnore
     public String getCredentials() {
-        return credential.toJSON();
+        return userHandle;
     }
 
     @Override

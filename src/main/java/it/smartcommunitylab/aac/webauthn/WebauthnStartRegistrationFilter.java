@@ -131,7 +131,7 @@ public class WebauthnStartRegistrationFilter extends AbstractAuthenticationProce
         // fetch account to check
         // if this does not exists we'll let authProvider handle the error to ensure
         // proper audit
-        WebAuthnUserAccount account = userAccountService.findByUsername(realm, username);
+        WebAuthnUserAccount account = userAccountService.findByRealmAndUsername(realm, username);
 
         if (account == null) {
             AuthenticationException e = new BadCredentialsException("invalid username");
