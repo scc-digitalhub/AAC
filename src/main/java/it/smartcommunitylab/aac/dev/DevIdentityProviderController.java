@@ -98,7 +98,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     }
 
     @Override
-    @PostMapping("/realms/{realm}/idps")
+    @PostMapping("/idp/{realm}")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration) throws NoSuchRealmException {

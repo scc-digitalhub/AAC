@@ -217,7 +217,7 @@ angular.module('aac.controllers.realmusers', [])
 
         $scope.deleteUser = function () {
             $('#deleteConfirm').modal('hide');
-            RealmUsers.removeUser($scope.realm.slug, $scope.modUser).then(function () {
+            RealmUsers.removeUser($scope.realm.slug, $scope.modUser.subjectId).then(function () {
                 $scope.load();
                 Utils.showSuccess();
             }).catch(function (err) {
