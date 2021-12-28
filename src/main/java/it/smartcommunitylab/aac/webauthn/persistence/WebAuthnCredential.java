@@ -42,11 +42,6 @@ public class WebAuthnCredential {
      */
     private String displayName;
 
-    /**
-     * Wether the registration ceremony has been completed or it has just started
-     */
-    private boolean hasCompletedRegistration = false;
-
     // TODO: civts, use converters
     /**
      * Public key of this credential
@@ -142,14 +137,6 @@ public class WebAuthnCredential {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    public boolean getHasCompletedRegistration() {
-        return hasCompletedRegistration;
-    }
-
-    public void setHasCompletedRegistration(boolean hasCompletedRegistration) {
-        this.hasCompletedRegistration = hasCompletedRegistration;
     }
 
     @Override

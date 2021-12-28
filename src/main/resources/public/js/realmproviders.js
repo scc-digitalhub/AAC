@@ -320,6 +320,17 @@ angular.module('aac.controllers.realmproviders', [])
             Utils.refreshFormBS();
         }
 
+        $scope.webAuthnProviderDlg = function (provider) {
+            $scope.providerId = provider ? provider.provider : null;
+            $scope.providerAuthority = 'webauthn';
+            $scope.provider = provider ? Object.assign({}, provider.configuration) :
+                { signAuthNRequest: 'true', ssoServiceBinding: 'HTTP-POST' };
+            $scope.provider.name = provider ? provider.name : null;
+            $scope.provider.persistence = provider ? provider.persistence : 'none';
+            $('#webAuthnModal').modal({ backdrop: 'static', focus: true })
+            Utils.refreshFormBS();
+        }
+
         $scope.saveProvider = function () {
             $('#' + $scope.providerAuthority + 'Modal').modal('hide');
 

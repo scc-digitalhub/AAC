@@ -6,9 +6,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import com.yubico.webauthn.AssertionRequest;
+import com.yubico.webauthn.RelyingParty;
+import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
+import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
+import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
+import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
+import com.yubico.webauthn.data.PublicKeyCredential;
+import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -27,12 +38,17 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnRpRegistrationRepository;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserIdentity;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
 public class WebAuthnIdentityService extends AbstractProvider implements IdentityService {
+    @Autowired
+    private WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository;
+
     private final UserEntityService userEntityService;
 
     // provider configuration
@@ -44,6 +60,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     private final WebAuthnAuthenticationProvider authenticationProvider;
     private final WebAuthnSubjectResolver subjectResolver;
     private final WebAuthnCredentialsService credentialService;
+    private final WebAuthnRpService webAuthnRpService;
 
     public WebAuthnIdentityService(
             String providerId,
@@ -72,6 +89,32 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, userAccountService, accountService,
                 credentialService, config, realm);
         this.subjectResolver = new WebAuthnSubjectResolver(providerId, userAccountService, config, realm);
+        final Optional<RelyingParty> optionalRp = webAuthnRpRegistrationRepository.getRpByProviderId(providerId);
+        final WebAuthnIdentityProviderConfigMap configMap = config.getConfigMap();
+        final RelyingParty rp = optionalRp
+                .orElse(webAuthnRpRegistrationRepository.addRp(providerId, configMap.getRpid(), configMap.getRpName()));
+        this.webAuthnRpService = new WebAuthnRpService(rp, configMap.isTrustUnverifiedAuthenticatorResponses());
+    }
+
+    public PublicKeyCredentialCreationOptions startRegistration(String username, String sessionId,
+            Optional<String> displayName) {
+        return webAuthnRpService.startRegistration(username, getRealm(), sessionId, displayName, getProvider());
+    }
+
+    public Optional<String> finishRegistration(
+            PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc,
+            String sessionId) {
+        return webAuthnRpService.finishRegistration(getProvider(), pkc, sessionId, getRealm());
+    }
+
+    public AssertionRequest startLogin(String username, String sessionId) {
+        return webAuthnRpService.startLogin(username, getRealm(), sessionId, getProvider());
+    }
+
+    public Optional<String> finishLogin(
+            PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc,
+            String sessionId) {
+        return webAuthnRpService.finishLogin(pkc, sessionId, getProvider());
     }
 
     @Override
@@ -434,9 +477,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentity(String subject, String userId) throws NoSuchUserException {
-        if (!config.getConfigMap().isEnableDelete()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
-        }
 
         // get the webauthn account entity
         WebAuthnUserAccount account = accountService.getAccount(userId);
@@ -452,9 +492,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentities(String subjectId) {
-        if (!config.getConfigMap().isEnableDelete()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
-        }
 
         List<WebAuthnUserAccount> accounts = accountService.listAccounts(subjectId);
         for (UserAccount account : accounts) {
