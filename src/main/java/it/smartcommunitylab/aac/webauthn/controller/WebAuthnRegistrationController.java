@@ -42,9 +42,6 @@ public class WebAuthnRegistrationController {
     @Autowired
     private WebAuthnIdentityAuthority webAuthnAuthority;
 
-    @Autowired
-    private WebAuthnIdentityAuthority webauthnIdentityAuthority;
-
     /**
      * Serves the page to register a new WebAuthn credential.
      * Ensure the request mapping value matches the one returned from
@@ -80,8 +77,6 @@ public class WebAuthnRegistrationController {
                 throw new RegistrationException("registration is disabled");
             }
 
-            String realm = idp.getRealm();
-
             String username;
             final HttpSession session = ControllerUtils.getSession();
             Object _userName = body.get("username");
@@ -100,8 +95,7 @@ public class WebAuthnRegistrationController {
             }
 
             try {
-                PublicKeyCredentialCreationOptions options = webauthnIdentityAuthority.startRegistration(username,
-                        realm,
+                PublicKeyCredentialCreationOptions options = idp.startRegistration(username,
                         session.getId(),
                         displayName);
                 // session.setAttribute(currentRegistrationKeyFieldName, session.getId());
@@ -132,8 +126,6 @@ public class WebAuthnRegistrationController {
                 throw new RegistrationException("registration is disabled");
             }
 
-            String realm = idp.getRealm();
-
             Object attestationMap = body.get("attestation");
             ObjectMapper mapper = new ObjectMapper();
             ResponseStatusException invalidAttestationException = new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -146,8 +138,7 @@ public class WebAuthnRegistrationController {
                 PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
                         .parseRegistrationResponseJson(attestationString);
                 final HttpSession session = ControllerUtils.getSession();
-                final Optional<String> authenticatedUser = webAuthnAuthority.finishRegistration(pkc, session.getId(),
-                        realm);
+                final Optional<String> authenticatedUser = idp.finishRegistration(pkc, session.getId());
                 if (authenticatedUser.isPresent()) {
                     // TODO: civts, time to authenticate the session
                     return "Welcome " + authenticatedUser.get() + ". Next step is to authenticate your session";

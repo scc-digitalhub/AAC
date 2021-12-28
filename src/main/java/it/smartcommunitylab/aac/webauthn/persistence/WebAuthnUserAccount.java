@@ -10,7 +10,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
@@ -45,7 +44,7 @@ public class WebAuthnUserAccount implements UserAccount {
     private String realm;
     private String username;
 
-    @Transient
+    @Column(name = "provider_id")
     private String provider;
 
     public Long getId() {

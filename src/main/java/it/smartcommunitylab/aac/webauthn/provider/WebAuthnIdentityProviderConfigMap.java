@@ -26,6 +26,8 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private String rpid = "https://localhost";
+    private String rpName = "AAC";
+
     private boolean enableRegistration = false;
     /**
      * If the user can update the credential to a new one. In this case is false
@@ -37,13 +39,10 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
      * In our case this is false, since we can not reset a WebAuthn credential
      */
     private boolean enableReset = false;
-    /**
-     * If the user can delete the credential.
-     * The default value is true.
-     */
-    private boolean enableDelete = true;
 
     private int maxSessionDuration = 24 * 60 * 60; // 24h
+
+    private boolean trustUnverifiedAuthenticatorResponses;
 
     private static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
@@ -98,10 +97,6 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
         return enableUpdate;
     }
 
-    public boolean isEnableDelete() {
-        return enableDelete;
-    }
-
     public boolean isEnableReset() {
         return enableReset;
     }
@@ -114,7 +109,19 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
         this.maxSessionDuration = maxSessionDuration;
     }
 
-    public void setEnableDelete(boolean enableDelete) {
-        this.enableDelete = enableDelete;
+    public String getRpName() {
+        return this.rpName;
+    }
+
+    public void setRpName(String rpName) {
+        this.rpName = rpName;
+    }
+
+    public boolean isTrustUnverifiedAuthenticatorResponses() {
+        return trustUnverifiedAuthenticatorResponses;
+    }
+
+    public void setTrustUnverifiedAuthenticatorResponses(boolean trustUnverifiedAuthenticatorResponses) {
+        this.trustUnverifiedAuthenticatorResponses = trustUnverifiedAuthenticatorResponses;
     }
 }
