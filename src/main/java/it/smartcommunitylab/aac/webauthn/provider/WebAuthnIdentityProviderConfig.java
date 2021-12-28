@@ -122,7 +122,7 @@ public class WebAuthnIdentityProviderConfig extends AbstractConfigurableProvider
     }
 
     public static ConfigurableIdentityProvider toConfigurableProvider(WebAuthnIdentityProviderConfig ip) {
-        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_INTERNAL,
+        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_WEBAUTHN,
                 ip.getProvider(),
                 ip.getRealm());
         cp.setType(SystemKeys.RESOURCE_IDENTITY);

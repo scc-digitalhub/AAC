@@ -13,6 +13,8 @@ public interface WebAuthnUserAccountRepository
 
         WebAuthnUserAccount findByRealmAndUsername(String realm, String username);
 
+        WebAuthnUserAccount findByProviderAndUsername(String provider, String username);
+
         WebAuthnUserAccount findBySubjectAndRealm(String subject, String realm);
 
         List<WebAuthnUserAccount> findByRealm(String realm);

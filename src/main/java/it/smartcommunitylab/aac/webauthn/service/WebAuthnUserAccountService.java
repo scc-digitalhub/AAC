@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.webauthn.service;
 
 import com.yubico.webauthn.data.ByteArray;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -17,9 +18,9 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 @Transactional
 public class WebAuthnUserAccountService {
 
-    // TODO: civts, try to Autowire this
+    @Autowired
     private final WebAuthnUserAccountRepository accountRepository;
-    // TODO: civts, try to Autowire this
+    @Autowired
     private final WebAuthnCredentialsRepository credentialRepository;
 
     public WebAuthnUserAccountService(WebAuthnUserAccountRepository accountRepository,
