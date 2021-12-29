@@ -324,9 +324,15 @@ angular.module('aac.controllers.realmproviders', [])
             $scope.providerId = provider ? provider.provider : null;
             $scope.providerAuthority = 'webauthn';
             $scope.provider = provider ? Object.assign({}, provider.configuration) :
-                { signAuthNRequest: 'true', ssoServiceBinding: 'HTTP-POST' };
+                {
+                    rpid: 'localhost',
+                    rpName: 'AAC',
+                    enableRegistration: true,
+                    trustUnverifiedAuthenticatorResponses: false,
+                    enableUpdate: false,
+                    maxSessionDuration: 86400,
+                };
             $scope.provider.name = provider ? provider.name : null;
-            $scope.provider.persistence = provider ? provider.persistence : 'none';
             $('#webAuthnModal').modal({ backdrop: 'static', focus: true })
             Utils.refreshFormBS();
         }
