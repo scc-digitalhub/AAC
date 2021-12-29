@@ -181,6 +181,7 @@
                       </li>
                       <li><a class="list-item" href="" ng-click="oidcProviderDlg()">OpenID Connect</a></li>
                       <li><a class="list-item" href="" ng-click="samlProviderDlg()">SAML</a></li>
+                      <li><a class="list-item" href="" ng-click="webAuthnProviderDlg()"><span>WebAuthn</span></a></li>
 
                     </ul>
                   </div>
@@ -196,11 +197,10 @@
 
 </div>
 
-
-
 <div ng-include="'./html/realm.providers.internal.modal.html'"></div>
 <div ng-include="'./html/realm.providers.oidc.modal.html'"></div>
 <div ng-include="'./html/realm.providers.saml.modal.html'"></div>
+<div ng-include="'./html/realm.providers.webauthn.modal.html'"></div>
 
 <div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="deleteProviderConfirm">
   <div class="modal-dialog" role="document">
