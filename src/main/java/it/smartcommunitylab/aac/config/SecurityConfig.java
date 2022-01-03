@@ -81,6 +81,7 @@ import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.WebauthnStartRegistrationFilter;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnRpRegistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -121,6 +122,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private InternalUserAccountService internalUserAccountService;
+    
+    @Qualifier("webAuthnRpRegistrationRepository")
+    private WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository;
+
+    @Autowired
+    private OAuth2ClientDetailsService oauth2ClientDetailsService;
+
+    @Autowired
+    private OAuth2ClientService oauth2ClientService;
 
     @Autowired
     private InternalUserPasswordRepository passwordRepository;
@@ -531,6 +541,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filter.setFilters(filters);
 
         return filter;
+    }
+    
+    /*
+     * WebAuthn
+     */
+
+    public CompositeFilter getWebAuthnAuthorityFilters(AuthenticationManager authManager,
+                    ProviderRepository<WebAuthnIdentityProviderConfig> providerRepository,
+                    WebAuthnRpRegistrationRepository relyingPartyRegistrationRepository) {
+
+            // TODO: civts, build filters
+
+            List<Filter> filters = new ArrayList<>();
+
+            CompositeFilter filter = new CompositeFilter();
+            filter.setFilters(filters);
+
+            return filter;
     }
 
     /*

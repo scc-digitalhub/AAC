@@ -72,6 +72,7 @@ import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
         "it.smartcommunitylab.aac.groups.persistence",
         "it.smartcommunitylab.aac.repository",
         "it.smartcommunitylab.aac.webauthn.persistence",
+        "it.smartcommunitylab.aac.webauthn.auth"
 }, queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND)
 @EnableJpaAuditing
 public class DatabaseConfig {

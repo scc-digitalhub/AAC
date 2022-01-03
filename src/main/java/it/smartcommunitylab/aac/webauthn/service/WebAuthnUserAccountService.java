@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.webauthn.service;
 
 import com.yubico.webauthn.data.ByteArray;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -18,14 +17,14 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 @Transactional
 public class WebAuthnUserAccountService {
 
-    @Autowired
     private final WebAuthnUserAccountRepository accountRepository;
-    @Autowired
+
     private final WebAuthnCredentialsRepository credentialRepository;
 
     public WebAuthnUserAccountService(WebAuthnUserAccountRepository accountRepository,
             WebAuthnCredentialsRepository credentialRepository) {
         Assert.notNull(accountRepository, "accountRepository is mandatory");
+        Assert.notNull(credentialRepository, "credentialRepository is mandatory");
         this.accountRepository = accountRepository;
         this.credentialRepository = credentialRepository;
     }

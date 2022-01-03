@@ -14,6 +14,8 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -28,6 +30,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnRpRegistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
@@ -62,6 +65,10 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
     private final WebAuthnUserAccountService userAccountService;
 
     private final UserEntityService userEntityService;
+
+    @Autowired
+    @Qualifier("webAuthnRpRegistrationRepository")
+    private WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository;
 
     public WebAuthnIdentityAuthority(
             WebAuthnUserAccountService userAccountService,
@@ -120,6 +127,7 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
                     }
 
                     WebAuthnIdentityService idp = new WebAuthnIdentityService(id, userAccountService, userEntityService,
+                            webAuthnRpRegistrationRepository,
                             config, config.getRealm());
 
                     return idp;
