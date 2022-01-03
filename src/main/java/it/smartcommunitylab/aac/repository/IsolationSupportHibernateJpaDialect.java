@@ -22,10 +22,12 @@ import java.sql.SQLException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 
+import org.springframework.jdbc.datasource.ConnectionHandle;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionSystemException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
@@ -36,8 +38,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 public class IsolationSupportHibernateJpaDialect extends HibernateJpaDialect {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>();
-    ThreadLocal<Integer> originalIsolation = new ThreadLocal<Integer>();
+    private ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>();
+    private ThreadLocal<Integer> originalIsolation = new ThreadLocal<Integer>();
 
     @Override
     public Object beginTransaction(EntityManager entityManager,
@@ -45,8 +47,11 @@ public class IsolationSupportHibernateJpaDialect extends HibernateJpaDialect {
             SQLException, TransactionException {
 
         boolean readOnly = definition.isReadOnly();
-        Connection connection = this.getJdbcConnection(entityManager, readOnly)
-                .getConnection();
+        ConnectionHandle handle = this.getJdbcConnection(entityManager, readOnly);
+        if (handle == null) {
+            throw new TransactionSystemException("invalid connection handle");
+        }
+        Connection connection = handle.getConnection();
         connectionThreadLocal.set(connection);
         originalIsolation.set(DataSourceUtils.prepareConnectionForTransaction(
                 connection, definition));

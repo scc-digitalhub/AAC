@@ -181,16 +181,6 @@ logging:
       ROOT: INFO
       it.smartcommunitylab.aac: ${LOG_LEVEL:INFO}
 
-# SWAGGER
-swagger:
-   version: 1.0.0
-   license: Apache License, Version 2.0
-   licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
-   contact:
-      name: DS Lab
-      url: www.smartcommunitylab.it
-      email: info@smartcommunitylab.it
-
 # SPRING
 spring:
    messages:
@@ -238,4 +228,20 @@ management:
         enabled: true
       health:
         enabled: true
-              
+
+
+# Open API
+openapi:
+   version: 1.0.0
+   license: Apache License, Version 2.0
+   licenseUrl: http://www.apache.org/licenses/LICENSE-2.0
+   contact:
+      name: DS Lab
+      url: www.smartcommunitylab.it
+      email: info@smartcommunitylab.it
+                      
+springdoc:
+  swagger-ui:
+    disable-swagger-default-url: true
+
+    

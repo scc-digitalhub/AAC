@@ -75,6 +75,7 @@ public class SystemKeys {
     public static final String ACTION_DISABLE = "disable";
 
     public static final String SLUG_PATTERN = "^[a-zA-Z0-9_-]+$";
+    public static final String ID_PATTERN = "^[a-zA-Z0-9_-|]+$";
     public static final String SCOPE_PATTERN = "^[a-zA-Z.:]{3,}$";
     public static final String NAMESPACE_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public static final String KEY_PATTERN = "^[a-zA-Z0-9._]+$";

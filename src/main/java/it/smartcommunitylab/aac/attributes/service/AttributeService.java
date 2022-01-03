@@ -51,7 +51,7 @@ public class AttributeService {
      */
 
     public AttributeSet getAttributeSet(String identifier) throws NoSuchAttributeSetException {
-        logger.debug("get attribute set for id " + identifier);
+        logger.debug("get attribute set for id " + StringUtils.trimAllWhitespace(identifier));
 
         if (systemAttributeSets.containsKey(identifier)) {
             return systemAttributeSets.get(identifier);
@@ -104,7 +104,7 @@ public class AttributeService {
     }
 
     public Collection<AttributeSet> listAttributeSets(String realm) {
-        logger.debug("list attribute sets for realm " + realm);
+        logger.debug("list attribute sets for realm " + StringUtils.trimAllWhitespace(realm));
 
         // TODO add static (internal) attribute sets to list
         return attributeService.listAttributeSets(realm).stream().map(s -> {
@@ -152,7 +152,7 @@ public class AttributeService {
     public AttributeSet updateAttributeSet(String identifier, AttributeSet set)
             throws NoSuchAttributeSetException {
 
-        logger.debug("update attribute set " + identifier);
+        logger.debug("update attribute set " + StringUtils.trimAllWhitespace(identifier));
 
         if (systemAttributeSets.containsKey(identifier)) {
             throw new IllegalArgumentException("system attribute sets are unmodifiable");

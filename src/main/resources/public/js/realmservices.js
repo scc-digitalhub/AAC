@@ -464,6 +464,7 @@ angular.module('aac.controllers.realmservices', [])
           ...scope
         }
         $scope.approvalFunction = { checked: !!scope.approvalFunction };
+        if (scope.approvalFunction) $scope.modScope.approvalFunction = atob(scope.approvalFunction);
 
         $('#scopeModal').modal({ keyboard: false });
         Utils.refreshFormBS();
@@ -474,6 +475,7 @@ angular.module('aac.controllers.realmservices', [])
       $('#scopeModal').modal('hide');
       if ($scope.modScope) {
         var scope = $scope.modScope;
+        if (scope.approvalFunction) scope.approvalFunction = btoa(scope.approvalFunction);
         if (scope.id) {
           RealmServices.updateScope($scope.service.realm, $scope.service.serviceId, scope.id, scope)
             .then(function () {
@@ -500,13 +502,13 @@ angular.module('aac.controllers.realmservices', [])
 
     $scope.toggleScopeApprovalFunction = function () {
       if (!$scope.approvalFunction.checked) {
-        $scope.scope.approvalFunction = null;
+        $scope.modScope.approvalFunction = null;
       } else {
-        $scope.scope.approvalFunction =
+        $scope.modScope.approvalFunction =
           '/**\n * DEFINE YOUR OWN APPROVAL FUNCTION HERE\n' +
           ' * input is a map containing user, client, and scopes\n' +
           '**/\n' +
-          'function approver(inputData) {\n   return {};\n}';
+          'function approver(inputData) {\n   return {approved: false, expiresAt: null};\n}';
       }
     }
 

@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.oauth.flow;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import it.smartcommunitylab.aac.model.User;
@@ -56,7 +57,7 @@ public interface OAuthFlowExtensions {
      * The returned request can have the authorized status changed from true to
      * false, any other modifications will be discarded
      */
-    public Boolean onAfterUserApproval(Collection<String> scopes, User user,
+    public Optional<Boolean> onAfterUserApproval(Collection<String> scopes, User user,
             OAuth2ClientDetails client)
             throws FlowExecutionException;
 

@@ -257,7 +257,7 @@ public class APIMProviderService {
             throw new EntityNotFoundException("no client with id " + clientId);
         }
 
-        String[] scopes = scope != null ? scope.split(APIMClient.SEPARATOR) : null;
+        List<String> scopes = scope != null ? Arrays.asList(scope.split(APIMClient.SEPARATOR)) : null;
 
         // get current config
         OAuth2ClientConfigMap configMap = client.getConfigMap();
@@ -265,7 +265,7 @@ public class APIMProviderService {
         // update
         client = clientService.updateClient(clientId,
                 client.getName(), client.getDescription(),
-                Arrays.asList(scopes), client.getResourceIds(),
+                scopes, client.getResourceIds(),
                 client.getProviders(),
                 client.getHookFunctions(), client.getHookWebUrls(), client.getHookUniqueSpaces(),
                 configMap.getAuthorizedGrantTypes(), configMap.getRedirectUris(),

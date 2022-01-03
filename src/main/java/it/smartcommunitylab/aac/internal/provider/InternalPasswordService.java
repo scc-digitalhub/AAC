@@ -44,6 +44,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
+    private PasswordHash hasher;
 
     public InternalPasswordService(String providerId, InternalUserAccountService userAccountService,
             InternalIdentityProviderConfig providerConfig,
@@ -54,6 +55,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         this.userAccountService = userAccountService;
         this.providerConfig = providerConfig;
         this.config = providerConfig.getConfigMap();
+        this.hasher = new PasswordHash();
     }
 
     public void setMailService(MailService mailService) {
@@ -202,7 +204,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
 
         try {
             // verify match
-            return PasswordHash.validatePassword(password, account.getPassword());
+            return hasher.validatePassword(password, account.getPassword());
 
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new SystemException(e.getMessage());
@@ -225,7 +227,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
 
         try {
             // encode password
-            String hash = PasswordHash.createHash(password);
+            String hash = hasher.createHash(password);
 
             // set password already hashed
             account.setPassword(hash);
@@ -330,7 +332,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         // we want to lock login with old password from now on
         String password = null;
         try {
-            password = PasswordHash.createHash(generatePassword());
+            password = hasher.createHash(generatePassword());
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             logger.error(e.getMessage());
         }

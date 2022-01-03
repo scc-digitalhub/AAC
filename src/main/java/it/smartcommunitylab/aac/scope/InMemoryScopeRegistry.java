@@ -54,6 +54,9 @@ public class InMemoryScopeRegistry implements ScopeRegistry {
     public void unregisterScopeProvider(ScopeProvider sp) {
         // check if aac scope, we don't want dynamic registration of core
         String resourceId = sp.getResourceId();
+        if (resourceId == null) {
+            throw new IllegalArgumentException("can't register scopes not bount to a resource");
+        }
         if (resourceId != null && resourceId.startsWith("aac.")) {
             throw new IllegalArgumentException("can't register core scopes");
         }

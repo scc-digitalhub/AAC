@@ -63,7 +63,7 @@ public enum SpidError {
 
     public static SpidError parse(Integer value) {
         for (SpidError t : SpidError.values()) {
-            if (t.value == value) {
+            if (t.value.equals(value)) {
                 return t;
             }
         }

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
@@ -24,7 +25,9 @@ import it.smartcommunitylab.aac.oauth.model.ResponseType;
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OAuth2ClientAdditionalConfig {
+public class OAuth2ClientAdditionalConfig implements Serializable {
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
+
     private static ObjectMapper mapper = new ObjectMapper();
 
     @JsonProperty("response_types")

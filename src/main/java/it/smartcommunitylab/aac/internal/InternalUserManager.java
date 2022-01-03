@@ -90,7 +90,8 @@ public class InternalUserManager {
         user = userService.updateUser(subjectId, adminUsername, adminEmail);
 
         // re-set password
-        String hash = PasswordHash.createHash(adminPassword);
+        PasswordHash hasher = new PasswordHash();
+        String hash = hasher.createHash(adminPassword);
         account.setPassword(hash);
         account.setChangeOnFirstAccess(false);
 

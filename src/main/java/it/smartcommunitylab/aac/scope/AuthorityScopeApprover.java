@@ -119,9 +119,26 @@ public class AuthorityScopeApprover implements ScopeApprover {
             return null;
         }
 
-        Set<String> clientAuthorities = client.getAuthorities().stream().map(a -> a.getAuthority())
+//        Set<String> clientAuthorities = client.getAuthorities().stream().map(a -> a.getAuthority())
+//                .collect(Collectors.toSet());
+//
+        String rlm = realm != null ? realm : client.getRealm();
+        Set<String> clientAuthorities = client.getAuthorities().stream()
+                .map(a -> {
+                    if (a instanceof SimpleGrantedAuthority) {
+                        return a.getAuthority();
+                    } else if (a instanceof RealmGrantedAuthority) {
+                        if (((RealmGrantedAuthority) a).getRealm().equals(rlm)) {
+                            return ((RealmGrantedAuthority) a).getRole();
+                        }
+                    }
+
+                    return null;
+                })
+                .filter(a -> StringUtils.hasText(a))
                 .collect(Collectors.toSet());
 
+        
         boolean approved = false;
         if (requireAll) {
             // client needs to possess all the defined authorities

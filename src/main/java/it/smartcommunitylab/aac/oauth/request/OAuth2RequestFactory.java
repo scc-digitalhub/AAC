@@ -275,7 +275,7 @@ public class OAuth2RequestFactory
         String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
         String responseMode = readParameter(requestParameters, "response_mode", STRING_PATTERN);
         if (responseMode == null) {
-            responseMode = (responseTypes.contains("token") | responseTypes.contains("id_token")) ? "fragment"
+            responseMode = (responseTypes.contains("token") || responseTypes.contains("id_token")) ? "fragment"
                     : "query";
         }
 

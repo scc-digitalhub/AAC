@@ -15,7 +15,7 @@ import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
 
 @Entity
-@Table(name = "providers")
+@Table(name = "identity_providers")
 public class IdentityProviderEntity {
 
 //    @Id

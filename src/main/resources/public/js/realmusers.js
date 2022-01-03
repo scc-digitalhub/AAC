@@ -217,7 +217,7 @@ angular.module('aac.controllers.realmusers', [])
 
         $scope.deleteUser = function () {
             $('#deleteConfirm').modal('hide');
-            RealmUsers.removeUser($scope.realm.slug, $scope.modUser).then(function () {
+            RealmUsers.removeUser($scope.realm.slug, $scope.modUser.subjectId).then(function () {
                 $scope.load();
                 Utils.showSuccess();
             }).catch(function (err) {
@@ -575,7 +575,7 @@ angular.module('aac.controllers.realmusers', [])
                 })
                 .then(function (data) {
                     $scope.myspaces = data.map(s =>
-                        ((s.context ? s.context + '/' : '') + s.space));
+                        ((s.context ? s.context + '/' : '') + (s.space || '')));
                 })
                 .then(function () {
                     $scope.load();
@@ -955,7 +955,7 @@ angular.module('aac.controllers.realmusers', [])
             $scope.spaceRoles = roles.map(r => {
                 return {
                     ...r,
-                    namespace: ((r.context ? r.context + '/' : '') + r.space)
+                    namespace: ((r.context ? r.context + '/' : '') + (r.space || ''))
                 }
             });
 
@@ -976,7 +976,10 @@ angular.module('aac.controllers.realmusers', [])
             $('#spaceRolesModal').modal('hide');
             if ($scope.modSpaceRole && $scope.modSpaceRole.role && $scope.modSpaceRole.space) {
                 var { space, role } = $scope.modSpaceRole;
-                var authority = space + ":" + role;
+                // workaround for root space
+                if (space == '-- ROOT --') space = '';
+                
+                var authority = (space ? (space + ':') : '') + role.trim();
 
                 updateSpaceRoles([authority], null);
                 $scope.modSpaceRole = null;

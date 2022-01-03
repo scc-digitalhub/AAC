@@ -258,7 +258,7 @@ public class OAuth2RequestValidator implements OAuth2TokenRequestValidator, OAut
     private void validateScope(Set<String> requestScopes, Set<String> clientScopes, boolean isClient) {
 
         logger.trace("validate scopes requested " + String.valueOf(requestScopes.toString())
-                + " against client " + String.valueOf(clientScopes.toString()));
+                + " against client " + String.valueOf(clientScopes));
 
         // check if scopes are valid via registry
         Set<String> existingScopes = (scopeRegistry == null) ? requestScopes

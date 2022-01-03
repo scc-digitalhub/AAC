@@ -84,7 +84,7 @@ public class SpaceRoleService {
             r = new SpaceRoleEntity();
             r.setSubject(subject);
             r.setContext(context);
-            r.setSpace(space);
+            r.setSpace(space == null ? "" : space);
             r.setRole(role);
 
             r = roleRepository.save(r);

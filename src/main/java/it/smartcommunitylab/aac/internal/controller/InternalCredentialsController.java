@@ -38,10 +38,10 @@ public class InternalCredentialsController {
     @Autowired
     private InternalIdentityAuthority internalAuthority;
 
-    @GetMapping("/changepwd/{providerId}/{username}")
+    @GetMapping("/changepwd/{providerId}/{userId}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String username,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId,
             Model model)
             throws NoSuchProviderException, NoSuchUserException {
         // first check userid vs user
@@ -50,8 +50,6 @@ public class InternalCredentialsController {
             throw new InsufficientAuthenticationException("User must be authenticated");
         }
 
-        // export id
-        String userId = SystemKeys.AUTHORITY_INTERNAL + "|" + providerId + "|" + username;
         UserIdentity identity = user.getIdentity(userId);
         if (identity == null) {
             throw new IllegalArgumentException("userid invalid");
@@ -82,35 +80,33 @@ public class InternalCredentialsController {
         UserPasswordCredentials cred = service.getUserCredentials(userId);
         UserPasswordBean reg = new UserPasswordBean();
         reg.setUserId(userId);
-        reg.setPassword("");
-        reg.setVerifyPassword(null);
+//        reg.setPassword("");
+//        reg.setVerifyPassword(null);
 
         // expose password policy by passing idp config
         PasswordPolicy policy = service.getPasswordPolicy();
 
         // build model
-        model.addAttribute("username", username);
+        model.addAttribute("userId", userId);
+        model.addAttribute("username", account.getUsername());
         model.addAttribute("credentials", cred);
         model.addAttribute("reg", reg);
         model.addAttribute("policy", policy);
         model.addAttribute("accountUrl", "/account");
-        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
+        model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + userId);
         return "registration/changepwd";
     }
 
-    @PostMapping("/changepwd/{providerId}/{username}")
+    @PostMapping("/changepwd/{providerId}/{userId}")
     public String changepwd(
             @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String username,
+            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId,
             Model model,
             @ModelAttribute("reg") @Valid UserPasswordBean reg,
             BindingResult result)
             throws NoSuchProviderException, NoSuchUserException {
 
         try {
-            // unpack
-            String userId = reg.getUserId();
-
             // first check userid vs user
             UserDetails user = authHelper.getUserDetails();
             if (user == null) {
@@ -146,6 +142,7 @@ public class InternalCredentialsController {
 
             // get current password
             UserPasswordCredentials cur = service.getUserCredentials(userId);
+            model.addAttribute("userId", userId);
             model.addAttribute("username", account.getUsername());
             model.addAttribute("credentials", cur);
 
@@ -154,7 +151,7 @@ public class InternalCredentialsController {
             model.addAttribute("policy", policy);
 
             model.addAttribute("accountUrl", "/account");
-            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + username);
+            model.addAttribute("changeUrl", "/changepwd/" + providerId + "/" + userId);
 
             if (result.hasErrors()) {
                 return "registration/changepwd";

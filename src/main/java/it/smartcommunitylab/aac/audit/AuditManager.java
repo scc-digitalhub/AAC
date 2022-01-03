@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
@@ -27,7 +28,8 @@ public class AuditManager {
         Instant a = after == null ? null : after.toInstant();
         Instant b = before == null ? null : before.toInstant();
 
-        logger.debug("count audit events for realm " + realm + " type " + String.valueOf(type) + " interval after "
+        logger.debug("count audit events for realm " + StringUtils.trimAllWhitespace(realm) + " type "
+                + StringUtils.trimAllWhitespace(String.valueOf(type)) + " interval after "
                 + String.valueOf(a) + " before " + String.valueOf(b));
         return auditStore.countByRealm(realm, a, b, type);
     }
@@ -37,7 +39,8 @@ public class AuditManager {
         Instant b = before == null ? null : before.toInstant();
 
         logger.debug(
-                "count audit events for principal " + principal + " type " + String.valueOf(type) + " interval after "
+                "count audit events for principal " + StringUtils.trimAllWhitespace(principal) + " type "
+                        + StringUtils.trimAllWhitespace(String.valueOf(type)) + " interval after "
                         + String.valueOf(a) + " before " + String.valueOf(b));
         return auditStore.countByPrincipal(principal, a, b, type);
     }
@@ -46,7 +49,8 @@ public class AuditManager {
         Instant a = after == null ? null : after.toInstant();
         Instant b = before == null ? null : before.toInstant();
 
-        logger.debug("find audit events for realm " + realm + " type " + String.valueOf(type) + " interval after "
+        logger.debug("find audit events for realm " + StringUtils.trimAllWhitespace(realm) + " type "
+                + StringUtils.trimAllWhitespace(String.valueOf(type)) + " interval after "
                 + String.valueOf(a) + " before " + String.valueOf(b));
         return auditStore.findByRealm(realm, a, b, type);
     }
@@ -56,7 +60,8 @@ public class AuditManager {
         Instant b = before == null ? null : before.toInstant();
 
         logger.debug(
-                "find audit events for principal " + principal + " type " + String.valueOf(type) + " interval after "
+                "find audit events for principal " + StringUtils.trimAllWhitespace(principal) + " type "
+                        + StringUtils.trimAllWhitespace(String.valueOf(type)) + " interval after "
                         + String.valueOf(a) + " before " + String.valueOf(b));
         return auditStore.findByPrincipal(principal, a, b, type);
     }

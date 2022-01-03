@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.util.Assert;
@@ -46,17 +47,20 @@ public class DelegateOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public Boolean onAfterUserApproval(Collection<String> scopes, User user, OAuth2ClientDetails client)
+    public Optional<Boolean> onAfterUserApproval(Collection<String> scopes, User user, OAuth2ClientDetails client)
             throws FlowExecutionException {
         // iterate and let all extensions process hook
         // null by default, we don't want to modify the decision
         Boolean result = null;
 
         for (OAuthFlowExtensions fe : flowExtensions) {
-            result = fe.onAfterUserApproval(scopes, user, client);
+            Optional<Boolean> r = fe.onAfterUserApproval(scopes, user, client);
+            if (r.isPresent()) {
+                result = r.get();
+            }
         }
 
-        return result;
+        return Optional.ofNullable(result);
     }
 
     @Override

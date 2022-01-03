@@ -90,9 +90,9 @@ angular.module('aac.controllers.main', [])
       }
 
       $scope.updateCredentials = function(userId) {
-         //split userid and redirect
-         var path = userId.replaceAll("|", "/");
-         window.location.href = './credentials/' + path;
+//         //split userid and redirect
+//         var path = userId.replaceAll("|", "/");
+         window.location.href = './credentials/' + userId;
       }
 
       $scope.confirmDeleteAccount = function() {

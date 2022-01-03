@@ -40,8 +40,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -61,7 +61,7 @@ import it.smartcommunitylab.aac.oauth.token.ClaimsTokenEnhancer;
  *
  */
 @Controller
-@Api(tags = { "OpenID Connect Core" })
+@Tag(name= "OpenID Connect Core" )
 public class UserInfoEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -90,7 +90,7 @@ public class UserInfoEndpoint {
      * this request
      */
 //	@PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + Config.OPENID_SCOPE + "')")
-    @ApiOperation(value = "Get info about the authenticated End-User")
+    @Operation(summary = "Get info about the authenticated End-User")
     @RequestMapping(value = USERINFO_URL, method = { RequestMethod.GET, RequestMethod.POST }, produces = {
             MediaType.APPLICATION_JSON_VALUE, JOSE_MEDIA_TYPE_VALUE })
     public @ResponseBody Map<String, Object> getUserInfo(

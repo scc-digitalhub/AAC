@@ -2,15 +2,15 @@ package it.smartcommunitylab.aac.dev;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,29 +38,27 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
 import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
-import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
-@ApiIgnore
+@Hidden
 @RequestMapping("/console/dev")
-public class DevIdentityProviderController {
+public class DevIdentityProviderController extends BaseIdentityProviderController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef = new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {
     };
-
-    @Autowired
-    private ProviderManager providerManager;
 
     @Autowired
     private ClientManager clientManager;
@@ -74,179 +71,70 @@ public class DevIdentityProviderController {
      * Providers
      */
 
-    @GetMapping("/realms/{realm}/idps")
-    public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+    @GetMapping("/idptemplates/{realm}")
+    public Collection<ConfigurableProvider> getRealmProviderTemplates(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
             throws NoSuchRealmException {
 
-        List<ConfigurableIdentityProvider> providers = providerManager
-                .listIdentityProviders(realm)
-                .stream()
-                .map(cp -> {
-                    cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
-                    return cp;
-                }).collect(Collectors.toList());
+        Collection<ConfigurableProvider> providers = providerManager
+                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY);
 
-        return ResponseEntity.ok(providers);
+        return providers;
     }
 
-    @GetMapping("/realms/{realm}/providertemplates")
-    public ResponseEntity<Collection<ConfigurableProvider>> getRealmProviderTemplates(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
-
-        List<ConfigurableProvider> providers = providerManager
-                .listProviderConfigurationTemplates(realm, ConfigurableProvider.TYPE_IDENTITY)
-                .stream()
-//                .map(cp -> {
-//                    cp.setRegistered(providerManager.isProviderRegistered(cp));
-//                    return cp;
-//                })
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(providers);
-    }
-
-    @GetMapping("/realms/{realm}/idps/{providerId}")
-    public ResponseEntity<ConfigurableIdentityProvider> getRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+    @Override
+    @GetMapping("/idp/{realm}/{providerId}")
+    public ConfigurableIdentityProvider getIdp(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
             throws NoSuchProviderException, NoSuchRealmException {
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        provider.setRegistered(isRegistered);
-
-//        // if registered fetch active configuration
-//        if (isRegistered) {
-//            IdentityProvider idp = providerManager.getIdentityProvider(providerId);
-//            Map<String, Serializable> configMap = idp.getConfiguration().getConfiguration();
-//            // we replace config instead of merging, when active config can not be
-//            // modified anyway
-//            provider.setConfiguration(configMap);
-//        }
+        ConfigurableIdentityProvider provider = super.getIdp(realm, providerId);
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
         provider.setSchema(schema);
 
-        return ResponseEntity.ok(provider);
+        return provider;
     }
 
-    @DeleteMapping("/realms/{realm}/idps/{providerId}")
-    public ResponseEntity<Void> deleteRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-        providerManager.deleteIdentityProvider(realm, providerId);
-        return ResponseEntity.ok(null);
-    }
-
-    @PostMapping("/realms/{realm}/idps")
-    public ResponseEntity<ConfigurableIdentityProvider> createRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @Valid @RequestBody ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-        // unpack and build model
-        String authority = registration.getAuthority();
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String persistence = registration.getPersistence();
-        String events = registration.getEvents();
-        boolean linkable = registration.isLinkable();
-
-        Map<String, Serializable> configuration = registration.getConfiguration();
-
-        ConfigurableIdentityProvider provider = new ConfigurableIdentityProvider(authority, null, realm);
-        provider.setName(name);
-        provider.setDescription(description);
-        provider.setEnabled(false);
-        provider.setPersistence(persistence);
-        provider.setLinkable(linkable);
-        provider.setEvents(events);
-        provider.setConfiguration(configuration);
-
-        provider = providerManager.addIdentityProvider(realm, provider);
+    @Override
+    @PostMapping("/idp/{realm}")
+    public ConfigurableIdentityProvider addIdp(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration) throws NoSuchRealmException {
+        ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
         provider.setSchema(schema);
 
-        return ResponseEntity.ok(provider);
+        return provider;
     }
 
-    @PutMapping("/realms/{realm}/idps/{providerId}")
-    public ResponseEntity<ConfigurableIdentityProvider> updateRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @Valid @RequestBody ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-
-        // we update only configuration
-        String name = registration.getName();
-        String description = registration.getDescription();
-        String displayMode = registration.getDisplayMode();
-        String persistence = registration.getPersistence();
-        String events = registration.getEvents();
-        boolean linkable = registration.isLinkable();
-
-        Map<String, Serializable> configuration = registration.getConfiguration();
-        Map<String, String> hookFunctions = registration.getHookFunctions();
-
-        provider.setName(name);
-        provider.setDescription(description);
-        provider.setDisplayMode(displayMode);
-
-        provider.setPersistence(persistence);
-        provider.setLinkable(linkable);
-
-        provider.setEvents(events);
-        provider.setConfiguration(configuration);
-        provider.setHookFunctions(hookFunctions);
-
-        provider = providerManager.updateIdentityProvider(realm, providerId, provider);
-
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        provider.setRegistered(isRegistered);
+    @Override
+    @PutMapping("/idp/{realm}/{providerId}")
+    public ConfigurableIdentityProvider updateIdp(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
+            @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force)
+            throws NoSuchRealmException, NoSuchProviderException {
+        ConfigurableIdentityProvider provider = super.updateIdp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
         JsonSchema schema = providerManager.getConfigurationSchema(realm, provider.getType(), provider.getAuthority());
         provider.setSchema(schema);
 
-        return ResponseEntity.ok(provider);
+        return provider;
     }
 
-    @PutMapping("/realms/{realm}/idps/{providerId}/state")
-    public ResponseEntity<ConfigurableIdentityProvider> updateRealmProviderState(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @RequestBody ConfigurableIdentityProvider registration)
-            throws NoSuchRealmException, NoSuchUserException, SystemException, NoSuchProviderException {
-
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-        boolean enabled = registration.isEnabled();
-
-        if (enabled) {
-            provider = providerManager.registerIdentityProvider(realm, providerId);
-        } else {
-            provider = providerManager.unregisterIdentityProvider(realm, providerId);
-        }
-
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        provider.setRegistered(isRegistered);
-
-        return ResponseEntity.ok(provider);
-    }
-
-    @GetMapping("/realms/{realm}/idps/{providerId}/export")
+    /*
+     * Import/export for console
+     */
+    @GetMapping("/idp/{realm}/{providerId}/export")
     public void exportRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
             HttpServletResponse res)
             throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
         ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
@@ -258,26 +146,30 @@ public class DevIdentityProviderController {
         res.setContentType("text/yaml");
         res.setHeader("Content-Disposition", "attachment;filename=idp-" + provider.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
-        out.print(s);
+        out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
 
     }
 
-    @PutMapping("/realms/{realm}/idps")
-    public ResponseEntity<Collection<ConfigurableIdentityProvider>> importRealmProvider(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    @PutMapping("/idp/{realm}")
+    public Collection<ConfigurableIdentityProvider> importRealmProvider(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
 
-        if (file.getContentType() != null &&
-                (!file.getContentType().equals(SystemKeys.MEDIA_TYPE_YAML.toString())
-                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_YML.toString())
-                        && !file.getContentType().equals(SystemKeys.MEDIA_TYPE_XYAML.toString()))) {
+        if (file.getContentType() == null) {
             throw new IllegalArgumentException("invalid file");
         }
+
+        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
+            throw new IllegalArgumentException("invalid file");
+        }
+
         try {
             List<ConfigurableIdentityProvider> providers = new ArrayList<>();
             boolean multiple = false;
@@ -357,21 +249,24 @@ public class DevIdentityProviderController {
                 provider.setSchema(schema);
                 providers.add(provider);
             }
-            return ResponseEntity.ok(providers);
+            return providers;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("error importing providers: " + e.getMessage());
             throw e;
         }
 
     }
 
-    @PutMapping("/realms/{realm}/idps/{providerId}/apps/{clientId}")
+    /*
+     * Clients
+     */
+    @PutMapping("/idp/{realm}/{providerId}/apps/{clientId}")
     public ResponseEntity<ClientApp> updateRealmProviderClientApp(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-            @RequestBody ClientApp app)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+            @RequestBody @Valid @NotNull ClientApp app)
             throws NoSuchRealmException, NoSuchUserException, NoSuchClientException, SystemException,
             NoSuchProviderException {
 

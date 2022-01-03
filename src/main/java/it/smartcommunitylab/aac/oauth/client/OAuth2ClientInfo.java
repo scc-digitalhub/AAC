@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.client;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /*
  * Additional information holder with mapping 
  * 
@@ -17,7 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OAuth2ClientInfo {
+public class OAuth2ClientInfo implements Serializable {
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
 

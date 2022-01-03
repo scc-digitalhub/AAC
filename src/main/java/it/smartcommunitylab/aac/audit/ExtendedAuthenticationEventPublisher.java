@@ -87,6 +87,10 @@ public class ExtendedAuthenticationEventPublisher
             // we expect a single token event for audit, otherwise the first should be the
             // one matching the request
             ExtendedAuthenticationToken token = CollectionUtils.firstElement(userAuth.getAuthentications());
+            if (token == null) {
+                logger.error("empty token on authentication success");
+                return;
+            }
             UserAuthenticationSuccessEvent event = new UserAuthenticationSuccessEvent(
                     token.getAuthority(), token.getProvider(), token.getRealm(),
                     userAuth);

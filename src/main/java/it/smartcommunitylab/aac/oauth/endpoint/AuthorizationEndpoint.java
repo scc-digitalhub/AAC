@@ -338,7 +338,8 @@ public class AuthorizationEndpoint implements InitializingBean {
         }
     }
 
-    @RequestMapping(value = AUTHORIZED_URL)
+    @RequestMapping(value = AUTHORIZED_URL, method = {
+            RequestMethod.GET, RequestMethod.POST })
     public View authorized(@RequestParam String key,
             Authentication authentication) {
 
@@ -428,7 +429,8 @@ public class AuthorizationEndpoint implements InitializingBean {
         }
     }
 
-    @RequestMapping(value = FORM_POST_URL)
+    @RequestMapping(value = FORM_POST_URL, method = {
+            RequestMethod.GET, RequestMethod.POST })
     public ModelAndView authorizedFormPost(@RequestParam String key,
             Authentication authentication) {
 

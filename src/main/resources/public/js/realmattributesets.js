@@ -2,43 +2,43 @@ angular.module('aac.controllers.realmattributesets', [])
     /**
       * Realm Data Services
       */
-    .service('RealmAttributeSets', function ($q, $http) {
-        var rService = {};
-        rService.getAttributeSet = function (slug, identifier) {
-            return $http.get('console/dev/realms/' + slug + '/attributeset/' + identifier).then(function (data) {
+    .service('RealmAttributeSets', function ($http, $window) {
+        var service = {};
+        service.getAttributeSets = function (slug) {
+            return $http.get('console/dev/attributeset/' + slug + '?system=true').then(function (data) {
                 return data.data;
             });
         }
 
-        rService.getAttributeSets = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/attributeset').then(function (data) {
+        service.getAttributeSet = function (slug, identifier) {
+            return $http.get('console/dev/attributeset/' + slug + '/' + identifier).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.removeAttributeSet = function (slug, identifier) {
-            return $http.delete('console/dev/realms/' + slug + '/attributeset/' + identifier).then(function (data) {
+        service.addAttributeSet = function (slug, attributeSet) {
+            return $http.post('console/dev/attributeset/' + slug, attributeSet).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.addAttributeSet = function (slug, attributeSet) {
-            return $http.post('console/dev/realms/' + slug + '/attributeset', attributeSet).then(function (data) {
+        service.updateAttributeSet = function (slug, identifier, attributeSet) {
+            return $http.put('console/dev/attributeset/' + slug + '/' + identifier, attributeSet).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.updateAttributeSet = function (slug, identifier, attributeSet) {
-            return $http.put('console/dev/realms/' + slug + '/attributeset/' + attributeSet.identifier, attributeSet).then(function (data) {
+        service.removeAttributeSet = function (slug, identifier) {
+            return $http.delete('console/dev/attributeset/' + slug + '/' + identifier).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.importAttributeSet = function (slug, file) {
+        service.importAttributeSet = function (slug, file) {
             var fd = new FormData();
             fd.append('file', file);
             return $http({
-                url: 'console/dev/realms/' + slug + '/attributesets',
+                url: 'console/dev/attributeset/' + slug,
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -48,7 +48,11 @@ angular.module('aac.controllers.realmattributesets', [])
 
         }
 
-        return rService;
+        service.exportAttributeSet = function (slug, identifier) {
+            $window.open('console/dev/attributeset/' + slug + '/' + identifier + '/export');
+        }
+
+        return service;
 
     })
     .controller('RealmAttributeSetsController', function ($scope, $state, $stateParams, RealmData, RealmAttributeSets, Utils) {
@@ -150,7 +154,7 @@ angular.module('aac.controllers.realmattributesets', [])
         }
 
         $scope.exportAttributeSet = function (attributeSet) {
-            window.open('console/dev/realms/' + slug + '/attributeset/' + attributeSet.identifier + '/yaml');
+            RealmAttributeSets.exportAttributeSet(slug, attributeSet.identifier);
         };
 
 

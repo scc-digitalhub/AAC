@@ -19,8 +19,10 @@ package it.smartcommunitylab.aac.internal.controller;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -49,7 +53,6 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalPasswordService;
 import it.smartcommunitylab.aac.model.Realm;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * @author raman
@@ -69,7 +72,7 @@ public class InternalRegistrationController {
     /**
      * Redirect to registration page
      */
-    @ApiIgnore
+    @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(
             @PathVariable("providerId") String providerId,
@@ -128,7 +131,7 @@ public class InternalRegistrationController {
     /**
      * Register the user and redirect to the 'registersuccess' page
      */
-    @ApiIgnore
+    @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
     public String register(Model model,
             @PathVariable("providerId") String providerId,
@@ -343,7 +346,7 @@ public class InternalRegistrationController {
 //
 //    }
 
-    @ApiIgnore
+    @Hidden
     @RequestMapping(value = "/auth/internal/reset/{providerId}", method = RequestMethod.GET)
     public String resetPage(
             @PathVariable("providerId") String providerId,
@@ -391,7 +394,7 @@ public class InternalRegistrationController {
         return "registration/resetpwd";
     }
 
-    @ApiIgnore
+    @Hidden
     @RequestMapping(value = "/auth/internal/reset/{providerId}", method = RequestMethod.POST)
     public String reset(Model model,
             @PathVariable("providerId") String providerId,

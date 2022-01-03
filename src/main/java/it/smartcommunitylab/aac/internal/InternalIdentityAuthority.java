@@ -212,11 +212,17 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
             String providerId = cp.getProvider();
             String realm = cp.getRealm();
 
-            // check if id clashes with another provider from a different realm
+            // check if exists or id clashes with another provider from a different realm
             InternalIdentityProviderConfig e = registrationRepository.findByProviderId(providerId);
-            if (e != null && !realm.equals(e.getRealm())) {
-                // name clash
-                throw new RegistrationException("a provider with the same id already exists under a different realm");
+            if (e != null) {
+                if (!realm.equals(e.getRealm())) {
+                    // name clash
+                    throw new RegistrationException(
+                            "a provider with the same id already exists under a different realm");
+                }
+
+                // same realm, unload and reload
+                unregisterIdentityProvider(providerId);
             }
 
             // we also enforce a single internal idp per realm

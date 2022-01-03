@@ -10,7 +10,8 @@
 	        <div class="form-check form-check-group" ng-repeat="s in scopeResource.scopes" ng-click="s.value = !s.value ">
 	          <input class="form-check-input" type="checkbox" ng-model="s.value">
 	          <label><strong>{{s.name}}</strong></label>
-	          <small class="form-text"><span class="text-monospace"> {{s.scope}} </span></small>
+	          <small class="form-text"><span class="text-monospace"> {{s.scope}} </span>&nbsp;&nbsp;(<b>{{s.type}}</b>)</small>
+            <small ng-if="s.authorities" class="form-text">Authorities: <b>{{s.authorities.join(', ')}}</b></small>
 	          <small class="form-text"> {{s.description}}</small>
 	        </div>
         </form>
