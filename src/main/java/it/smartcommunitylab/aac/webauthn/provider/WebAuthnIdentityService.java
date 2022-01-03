@@ -19,7 +19,6 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -46,8 +45,6 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
 public class WebAuthnIdentityService extends AbstractProvider implements IdentityService {
-    @Autowired
-    private WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository;
 
     private final UserEntityService userEntityService;
 
@@ -65,6 +62,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     public WebAuthnIdentityService(
             String providerId,
             WebAuthnUserAccountService userAccountService, UserEntityService userEntityService,
+            WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository,
             WebAuthnIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
