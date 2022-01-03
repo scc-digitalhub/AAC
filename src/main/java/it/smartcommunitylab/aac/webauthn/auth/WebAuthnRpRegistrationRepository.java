@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.auth;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -10,11 +11,8 @@ import java.util.regex.Pattern;
 import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 
-import org.springframework.stereotype.Service;
-
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnYubicoCredentialsRepository;
 
-@Service
 public class WebAuthnRpRegistrationRepository {
     private final Map<String, RelyingParty> rps;
 
@@ -27,14 +25,15 @@ public class WebAuthnRpRegistrationRepository {
      * previously added.
      */
     public Optional<RelyingParty> getRpByProviderId(String providerId) {
-        return Optional.of(rps.get(providerId));
+        return Optional.ofNullable(rps.get(providerId));
     }
 
     public RelyingParty addRp(String providerId, String rpid, String rpName) {
         final Pattern localhostPattern = Pattern.compile("^(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0)$");
         final Matcher localhostMatcher = localhostPattern.matcher(rpid);
         final boolean isRpidLocalhost = localhostMatcher.matches();
-        Set<String> origins = Set.of("https://" + rpid);
+        Set<String> origins = new HashSet<>();
+        origins.add("https://" + rpid);
         if (isRpidLocalhost) {
             origins.add("http://" + rpid);
         }

@@ -51,6 +51,7 @@ import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnRpRegistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
 /*
@@ -208,6 +209,12 @@ public class AACConfig {
     @Qualifier("spidRelyingPartyRegistrationRepository")
     public SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository() {
         return new SamlRelyingPartyRegistrationRepository();
+    }
+
+    @Bean
+    @Qualifier("webAuthnRpRegistrationRepository")
+    public WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository() {
+        return new WebAuthnRpRegistrationRepository();
     }
 
     @Bean

@@ -78,6 +78,7 @@ import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.WebauthnStartRegistrationFilter;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnRpRegistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -111,6 +112,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     @Qualifier("spidRelyingPartyRegistrationRepository")
     private SamlRelyingPartyRegistrationRepository spidRelyingPartyRegistrationRepository;
+
+    @Autowired
+    @Qualifier("webAuthnRpRegistrationRepository")
+    private WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository;
 
     @Autowired
     private OAuth2ClientDetailsService oauth2ClientDetailsService;
@@ -273,6 +278,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(
                         getSpidAuthorityFilters(authManager, spidProviderRepository,
                                 spidRelyingPartyRegistrationRepository),
+                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        getWebAuthnAuthorityFilters(authManager, webauthnProviderRepository,
+                                webAuthnRpRegistrationRepository),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(
                         getOIDCAuthorityFilters(authManager, oidcProviderRepository, clientRegistrationRepository),
@@ -508,6 +517,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         filter.setFilters(filters);
 
         return filter;
+    }
+    
+    /*
+     * WebAuthn
+     */
+
+    public CompositeFilter getWebAuthnAuthorityFilters(AuthenticationManager authManager,
+                    ProviderRepository<WebAuthnIdentityProviderConfig> providerRepository,
+                    WebAuthnRpRegistrationRepository relyingPartyRegistrationRepository) {
+
+            // TODO: civts, build filters
+
+            List<Filter> filters = new ArrayList<>();
+
+            CompositeFilter filter = new CompositeFilter();
+            filter.setFilters(filters);
+
+            return filter;
     }
 
     /*
