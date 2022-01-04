@@ -70,7 +70,7 @@ public class WebAuthnRpService {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
-        final UserIdentity user = getUserIdentityOrGenerate(username, realm, displayName, optSub);
+        final UserIdentity user = getUserIdentityOrGenerate(username, realm, displayName, optSub, providerId);
         final StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder().user(user)
                 .authenticatorSelection(authenticatorSelection).timeout(TIMEOUT).build();
         final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
@@ -185,7 +185,7 @@ public class WebAuthnRpService {
     }
 
     UserIdentity getUserIdentityOrGenerate(String username, String realm, Optional<String> displayNameOpt,
-            Optional<Subject> optSub) {
+            Optional<Subject> optSub, String provider) {
         String displayName = displayNameOpt.orElse("");
         Optional<UserIdentity> option = getUserIdentity(username, realm, displayName);
         if (option.isPresent()) {
@@ -210,6 +210,7 @@ public class WebAuthnRpService {
             }
             account.setSubject(subject);
             account.setUserHandle(userHandleBA);
+            account.setProvider(provider);
             webAuthnUserAccountRepository.save(account);
             return newUserIdentity;
         }

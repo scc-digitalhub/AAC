@@ -58,6 +58,7 @@ async function performAuthentication() {
         }
     );
     if (finishLoginResp.status == 200) {
+        alert(await finishLoginResp.text());
         window.location.href = "/index.html"
     } else {
         alert(finishLoginResp.status, await finishLoginResp.text())
