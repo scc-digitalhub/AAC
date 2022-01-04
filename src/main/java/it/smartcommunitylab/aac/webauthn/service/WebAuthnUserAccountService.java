@@ -41,7 +41,11 @@ public class WebAuthnUserAccountService {
     @Transactional(readOnly = true)
     public WebAuthnUserAccount getAccount(String userId) throws NoSuchUserException {
         WebAuthnUserAccount account = accountRepository.findBySubject(userId);
-        return accountRepository.detach(account);
+        if (account != null) {
+            return accountRepository.detach(account);
+        } else {
+            throw new NoSuchUserException();
+        }
     }
 
     @Transactional(readOnly = true)

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -69,6 +70,9 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
     @Autowired
     @Qualifier("webAuthnRpRegistrationRepository")
     private WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository;
+
+    @Autowired
+    private AutowireCapableBeanFactory autowireCapableBeanFactory;
 
     public WebAuthnIdentityAuthority(
             WebAuthnUserAccountService userAccountService,
@@ -128,7 +132,8 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
 
                     WebAuthnIdentityService idp = new WebAuthnIdentityService(id, userAccountService, userEntityService,
                             webAuthnRpRegistrationRepository,
-                            config, config.getRealm());
+                            config, config.getRealm(),
+                            autowireCapableBeanFactory);
 
                     return idp;
 
