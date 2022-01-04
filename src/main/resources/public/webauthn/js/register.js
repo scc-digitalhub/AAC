@@ -54,7 +54,7 @@ async function performRegistration() {
         clientExtensionResults: publicKeyCredential.getClientExtensionResults(),
     }
     const finalResult = await fetch(
-        `/auth/webauthn/assertions/${providerId}`,
+        `/auth/webauthn/attestations/${providerId}`,
         {
             method: 'POST',
             headers: {

@@ -113,7 +113,7 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
 
     @Override
     public String getResetUrl() {
-        throw new IllegalArgumentException("reset is disabled for this provider");
+        return null;
     }
 
     @Override

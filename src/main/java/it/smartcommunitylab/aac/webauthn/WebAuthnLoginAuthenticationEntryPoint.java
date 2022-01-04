@@ -14,15 +14,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 
 public class WebAuthnLoginAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
     public static final String DEFAULT_FILTER_URI = WebAuthnIdentityAuthority.AUTHORITY_URL
             + "startRegistration/{" + WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME + "}";
-    public static final String DEFAULT_LOGIN_URI = InternalIdentityAuthority.AUTHORITY_URL + "form/{"
+    public static final String DEFAULT_LOGIN_URI = WebAuthnIdentityAuthority.AUTHORITY_URL + "form/{"
             + WebAuthnLoginAuthenticationEntryPoint.PROVIDER_URI_VARIABLE_NAME + "}";
-    public static final String SUPER_LOGIN_URI = "/startRegistration";
+    public static final String SUPER_LOGIN_URI = "/webauthn/authenticate";
 
     public static final String PROVIDER_URI_VARIABLE_NAME = "registrationId";
 

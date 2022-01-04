@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnYubicoCredentialsRepository;
 
 public class WebAuthnRpRegistrationRepository {
@@ -28,7 +30,8 @@ public class WebAuthnRpRegistrationRepository {
         return Optional.ofNullable(rps.get(providerId));
     }
 
-    public RelyingParty addRp(String providerId, String rpid, String rpName) {
+    public RelyingParty addRp(String providerId, String rpid, String rpName,
+            AutowireCapableBeanFactory autowireCapableBeanFactory) {
         final Pattern localhostPattern = Pattern.compile("^(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0)$");
         final Matcher localhostMatcher = localhostPattern.matcher(rpid);
         final boolean isRpidLocalhost = localhostMatcher.matches();
@@ -41,6 +44,7 @@ public class WebAuthnRpRegistrationRepository {
                 .build();
         final WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
                 providerId);
+        autowireCapableBeanFactory.autowireBean(webauthnRepository);
         RelyingParty rp = RelyingParty.builder().identity(rpIdentity).credentialRepository(webauthnRepository)
                 .allowUntrustedAttestation(true).allowOriginPort(true).allowOriginSubdomain(false).origins(origins)
                 .build();
