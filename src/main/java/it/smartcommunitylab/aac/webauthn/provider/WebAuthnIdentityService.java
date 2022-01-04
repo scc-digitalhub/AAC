@@ -19,6 +19,7 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -36,6 +37,7 @@ import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnRpRegistrationRepository;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
@@ -45,6 +47,8 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
 public class WebAuthnIdentityService extends AbstractProvider implements IdentityService {
+
+    private final AutowireCapableBeanFactory autowireCapableBeanFactory;
 
     private final UserEntityService userEntityService;
 
@@ -64,7 +68,8 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
             WebAuthnUserAccountService userAccountService, UserEntityService userEntityService,
             WebAuthnRpRegistrationRepository webAuthnRpRegistrationRepository,
             WebAuthnIdentityProviderConfig config,
-            String realm) {
+            String realm,
+            AutowireCapableBeanFactory autowireCapableBeanFactory) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
@@ -81,6 +86,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         this.config = config;
 
         // build resource providers, we use our providerId to ensure consistency
+        this.autowireCapableBeanFactory = autowireCapableBeanFactory;
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
         this.accountService = new WebAuthnAccountService(providerId, userAccountService, config, realm);
         this.credentialService = new WebAuthnCredentialsService(providerId, userAccountService, config, realm);
@@ -90,13 +96,16 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         final Optional<RelyingParty> optionalRp = webAuthnRpRegistrationRepository.getRpByProviderId(providerId);
         final WebAuthnIdentityProviderConfigMap configMap = config.getConfigMap();
         final RelyingParty rp = optionalRp
-                .orElse(webAuthnRpRegistrationRepository.addRp(providerId, configMap.getRpid(), configMap.getRpName()));
+                .orElse(webAuthnRpRegistrationRepository.addRp(providerId, configMap.getRpid(), configMap.getRpName(),
+                        autowireCapableBeanFactory));
         this.webAuthnRpService = new WebAuthnRpService(rp, configMap.isTrustUnverifiedAuthenticatorResponses());
+        this.autowireCapableBeanFactory.autowireBean(this.webAuthnRpService);
     }
 
     public PublicKeyCredentialCreationOptions startRegistration(String username, String sessionId,
-            Optional<String> displayName) {
-        return webAuthnRpService.startRegistration(username, getRealm(), sessionId, displayName, getProvider());
+            Optional<String> displayName, Optional<Subject> subjectOpt) {
+        return webAuthnRpService.startRegistration(username, getRealm(), sessionId, displayName, getProvider(),
+                subjectOpt);
     }
 
     public Optional<String> finishRegistration(
@@ -336,13 +345,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
     @Override
     public String getAuthenticationUrl() {
-        if (SystemKeys.DISPLAY_MODE_FORM.equals(getDisplayMode())) {
-            // action url for receiving post
-            return getLoginUrl();
-        } else {
-            // display url for webauthn form
-            return getFormUrl();
-        }
+        return getLoginUrl();
     }
 
     @Override
@@ -353,10 +356,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     public String getLoginUrl() {
         // we use an address bound to provider, no reason to expose realm
         return WebAuthnIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
-    }
-
-    public String getFormUrl() {
-        return WebAuthnIdentityAuthority.AUTHORITY_URL + "form/" + getProvider();
     }
 
     @Override

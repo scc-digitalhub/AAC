@@ -32,6 +32,9 @@ import com.yubico.webauthn.exception.RegistrationFailedException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
@@ -40,9 +43,13 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 public class WebAuthnRpService {
 
     @Autowired
-    private WebAuthnUserAccountRepository webAuthnUserAccountRepository;
+    WebAuthnUserAccountRepository webAuthnUserAccountRepository;
+
     @Autowired
-    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
+    WebAuthnCredentialsRepository webAuthnCredentialsRepository;
+
+    @Autowired
+    SubjectService subjectService;
 
     final boolean trustUnverifiedAuthenticatorResponses;
     final private RelyingParty rp;
@@ -59,11 +66,11 @@ public class WebAuthnRpService {
     }
 
     public PublicKeyCredentialCreationOptions startRegistration(String username, String realm, String sessionId,
-            Optional<String> displayName, String providerId) {
+            Optional<String> displayName, String providerId, Optional<Subject> optSub) {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
-        final UserIdentity user = getUserIdentityOrGenerate(username, realm, displayName);
+        final UserIdentity user = getUserIdentityOrGenerate(username, realm, displayName, optSub);
         final StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder().user(user)
                 .authenticatorSelection(authenticatorSelection).timeout(TIMEOUT).build();
         final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
@@ -107,9 +114,9 @@ public class WebAuthnRpService {
                 newCred.setParentAccount(account);
 
                 previousCredentials.add(newCred);
+                webAuthnCredentialsRepository.save(newCred);
                 account.setCredentials(previousCredentials);
                 webAuthnUserAccountRepository.save(account);
-                webAuthnCredentialsRepository.save(newCred);
                 activeRegistrations.remove(sessionId);
                 return Optional.of(username);
             }
@@ -177,7 +184,8 @@ public class WebAuthnRpService {
         return Optional.empty();
     }
 
-    UserIdentity getUserIdentityOrGenerate(String username, String realm, Optional<String> displayNameOpt) {
+    UserIdentity getUserIdentityOrGenerate(String username, String realm, Optional<String> displayNameOpt,
+            Optional<Subject> optSub) {
         String displayName = displayNameOpt.orElse("");
         Optional<UserIdentity> option = getUserIdentity(username, realm, displayName);
         if (option.isPresent()) {
@@ -194,6 +202,13 @@ public class WebAuthnRpService {
             account.setUsername(username);
             account.setCredentials(new HashSet<>());
             account.setRealm(realm);
+            String subject;
+            if (optSub.isPresent()) {
+                subject = optSub.get().getSubjectId();
+            } else {
+                subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
+            }
+            account.setSubject(subject);
             account.setUserHandle(userHandleBA);
             webAuthnUserAccountRepository.save(account);
             return newUserIdentity;

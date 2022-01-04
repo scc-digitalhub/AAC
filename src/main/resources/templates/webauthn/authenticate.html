@@ -18,7 +18,12 @@
         <input type="text" id="username" placeholder="Username" autofocus>
         <input type="submit" value="Login" id="submit">
     </form>
-    <a href="/register.html">Need an account? Register</a>
+    <a href="#" onclick="
+    const s=document.location.pathname.split('/')
+    document.location='/auth/webauthn/register/'+s[s.length-1]
+    ">
+        Need an account? Register
+    </a>
 </body>
 
 </html>
