@@ -1,39 +1,39 @@
 angular.module('aac.controllers.realmservices', [])
 
   .service('RealmServices', function ($http) {
-    var rsService = {};
+    var service = {};
 
-    rsService.getServices = function (realm) {
-      return $http.get('console/dev/realms/' + realm + '/services').then(function (data) {
+    service.getServices = function (realm) {
+      return $http.get('console/dev/services/' + realm).then(function (data) {
         return data.data;
       });
     }
-    rsService.getService = function (realm, serviceId) {
-      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId).then(function (data) {
+    service.getService = function (realm, serviceId) {
+      return $http.get('console/dev/services/' + realm + '/' + serviceId).then(function (data) {
         return data.data;
       });
     }
 
-    rsService.addService = function (realm, service) {
-      return $http.post('console/dev/realms/' + realm + '/services', service).then(function (data) {
+    service.addService = function (realm, service) {
+      return $http.post('console/dev/services/' + realm, service).then(function (data) {
         return data.data;
       });
     }
-    rsService.updateService = function (realm, service) {
-      return $http.put('console/dev/realms/' + realm + '/services/' + service.serviceId, service).then(function (data) {
+    service.updateService = function (realm, service) {
+      return $http.put('console/dev/services/' + realm + '/' + service.serviceId, service).then(function (data) {
         return data.data;
       });
     }
-    rsService.deleteService = function (realm, serviceId) {
-      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId).then(function (data) {
+    service.deleteService = function (realm, serviceId) {
+      return $http.delete('console/dev/services/' + realm + '/' + serviceId).then(function (data) {
         return data.data;
       });
     }
-    rsService.importService = function (realm, file) {
+    service.importService = function (realm, file) {
       var fd = new FormData();
       fd.append('file', file);
       return $http({
-        url: 'console/dev/realms/' + realm + '/services',
+        url: 'console/dev/services/' + realm,
         headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
         data: fd,
         method: "PUT"
@@ -41,105 +41,105 @@ angular.module('aac.controllers.realmservices', [])
         return data.data;
       });
     }
-    rsService.exportService = function (realm, serviceId) {
-      window.open('console/dev/realms/' + realm + '/services/' + serviceId + '/yaml');
+    service.exportService = function (realm, serviceId) {
+      window.open('console/dev/services/' + realm + '/' + serviceId + '/yaml');
     }
-    rsService.checkServiceNamespace = function (realm, serviceNs) {
+    service.checkServiceNamespace = function (realm, serviceNs) {
       return $http.get('console/dev/realms/' + realm + '/nsexists?ns=' + encodeURIComponent(serviceNs)).then(function (data) {
         return data.data;
       });
     }
 
     //claims
-    rsService.getClaims = function (realm, serviceId) {
-      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/claims').then(function (data) {
+    service.getClaims = function (realm, serviceId) {
+      return $http.get('console/dev/services/' + realm + '/' + serviceId + '/claims').then(function (data) {
         return data.data;
       });
     }
-    rsService.addClaim = function (realm, serviceId, claim) {
-      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/claims', claim).then(function (data) {
+    service.addClaim = function (realm, serviceId, claim) {
+      return $http.post('console/dev/services/' + realm + '/' + serviceId + '/claims', claim).then(function (data) {
         return data.data;
       });
     }
-    rsService.updateClaim = function (realm, serviceId, id, claim) {
-      return $http.put('console/dev/realms/' + realm + '/services/' + serviceId + '/claims/' + id, claim).then(function (data) {
+    service.updateClaim = function (realm, serviceId, id, claim) {
+      return $http.put('console/dev/services/' + realm + '/' + serviceId + '/claims/' + id, claim).then(function (data) {
         return data.data;
       });
     }
-    rsService.deleteClaim = function (realm, serviceId, key) {
-      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/claims/' + key).then(function (data) {
+    service.deleteClaim = function (realm, serviceId, key) {
+      return $http.delete('console/dev/services/' + realm + '/' + serviceId + '/claims/' + key).then(function (data) {
         return data.data;
       });
     }
-    rsService.validateClaims = function (realm, serviceId, mapping) {
-      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/claims/validate', mapping).then(function (data) {
+    service.validateClaims = function (realm, serviceId, mapping) {
+      return $http.post('console/dev/services/' + realm + '/' + serviceId + '/claims/validate', mapping).then(function (data) {
         return data.data;
       });
     }
 
     //scopes
-    rsService.getScopes = function (realm, serviceId) {
-      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes').then(function (data) {
+    service.getScopes = function (realm, serviceId) {
+      return $http.get('console/dev/services/' + realm + '/' + serviceId + '/scopes').then(function (data) {
         return data.data;
       });
     }
-    rsService.addScope = function (realm, serviceId, scope) {
-      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes', scope).then(function (data) {
+    service.addScope = function (realm, serviceId, scope) {
+      return $http.post('console/dev/services/' + realm + '/' + serviceId + '/scopes', scope).then(function (data) {
         return data.data;
       });
     }
-    rsService.updateScope = function (realm, serviceId, id, scope) {
-      return $http.put('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + id, scope).then(function (data) {
+    service.updateScope = function (realm, serviceId, id, scope) {
+      return $http.put('console/dev/services/' + realm + '/' + serviceId + '/scopes/' + id, scope).then(function (data) {
         return data.data;
       });
     }
-    rsService.deleteScope = function (realm, serviceId, scope) {
-      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + scope).then(function (data) {
+    service.deleteScope = function (realm, serviceId, scope) {
+      return $http.delete('console/dev/services/' + realm + '/' + serviceId + '/scopes/' + scope).then(function (data) {
         return data.data;
       });
     }
 
     //approvals
-    rsService.getApprovals = function (realm, serviceId) {
-      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/approvals').then(function (data) {
+    service.getApprovals = function (realm, serviceId) {
+      return $http.get('console/dev/services/' + realm + '/' + serviceId + '/approvals').then(function (data) {
         return data.data;
       });
     }
 
-    rsService.addApproval = function (realm, serviceId, approval) {
-      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + approval.scope + '/approvals?clientId=' + approval.clientId).then(function (data) {
+    service.addApproval = function (realm, serviceId, approval) {
+      return $http.post('console/dev/services/' + realm + '/' + serviceId + '/scopes/' + approval.scope + '/approvals?clientId=' + approval.clientId).then(function (data) {
         return data.data;
       });
     }
-    rsService.deleteApproval = function (realm, serviceId, approval) {
-      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/scopes/' + approval.scope + '/approvals?clientId=' + approval.clientId).then(function (data) {
+    service.deleteApproval = function (realm, serviceId, approval) {
+      return $http.delete('console/dev/services/' + realm + '/' + serviceId + '/scopes/' + approval.scope + '/approvals?clientId=' + approval.clientId).then(function (data) {
         return data.data;
       });
     }
 
     //clients
-    rsService.getClients = function (realm, serviceId) {
-      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/clients').then(function (data) {
+    service.getClients = function (realm, serviceId) {
+      return $http.get('console/dev/services/' + realm + '/' + serviceId + '/clients').then(function (data) {
         return data.data;
       });
     }
-    rsService.getClient = function (realm, serviceId, clientId) {
-      return $http.get('console/dev/realms/' + realm + '/services/' + serviceId + '/clients/' + clientId).then(function (data) {
+    service.getClient = function (realm, serviceId, clientId) {
+      return $http.get('console/dev/services/' + realm + '/' + serviceId + '/clients/' + clientId).then(function (data) {
         return data.data;
       });
     }
-    rsService.addClient = function (realm, serviceId, client) {
-      return $http.post('console/dev/realms/' + realm + '/services/' + serviceId + '/clients', client).then(function (data) {
+    service.addClient = function (realm, serviceId, client) {
+      return $http.post('console/dev/services/' + realm + '/' + serviceId + '/clients', client).then(function (data) {
         return data.data;
       });
     }
-    rsService.deleteClient = function (realm, serviceId, clientId) {
-      return $http.delete('console/dev/realms/' + realm + '/services/' + serviceId + '/clients/' + clientId).then(function (data) {
+    service.deleteClient = function (realm, serviceId, clientId) {
+      return $http.delete('console/dev/services/' + realm + '/' + serviceId + '/clients/' + clientId).then(function (data) {
         return data.data;
       });
     }
 
-    return rsService;
+    return service;
   })
 
   /**
