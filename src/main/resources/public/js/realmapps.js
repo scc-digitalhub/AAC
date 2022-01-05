@@ -911,7 +911,7 @@ angular.module('aac.controllers.realmapps', [])
             $scope._authorities = authorities.map(a => a.role);
 
             //also update client model
-            $scope.client.authorities = data;
+            $scope.app.authorities = data;
         }
 
         $scope.manageAuthoritiesDlg = function () {
