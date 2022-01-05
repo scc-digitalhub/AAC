@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,6 +47,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
 import it.smartcommunitylab.aac.core.AuthorityManager;
@@ -254,31 +256,14 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     /*
      * Import/export for console
      */
-    @GetMapping("/ap/{realm}/{providerId}/export")
-    public void exportRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
-        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
-
-//      String s = yaml.dump(clientApp);
-        String s = yamlObjectMapper.writeValueAsString(provider);
-
-        // write as file
-        res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=ap-" + provider.getName() + ".yaml");
-        ServletOutputStream out = res.getOutputStream();
-        out.write(s.getBytes(StandardCharsets.UTF_8));
-        out.flush();
-        out.close();
-
-    }
 
     @PutMapping("/ap/{realm}")
     public Collection<ConfigurableAttributeProvider> importRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+            @RequestParam(required = false, defaultValue = "false") boolean reset,
+            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+        logger.debug("import ap(s) to realm {}", StringUtils.trimAllWhitespace(realm));
+
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
@@ -310,6 +295,10 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 for (ConfigurableAttributeProvider registration : list.get("providers")) {
                     // unpack and build model
                     String id = registration.getProvider();
+                    if (reset) {
+                        // reset id
+                        id = null;
+                    }
                     String authority = registration.getAuthority();
                     String name = registration.getName();
                     String description = registration.getDescription();
@@ -342,6 +331,10 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
 
                 // unpack and build model
                 String id = registration.getProvider();
+                if (reset) {
+                    // reset id
+                    id = null;
+                }
                 String authority = registration.getAuthority();
                 String name = registration.getName();
                 String description = registration.getDescription();
@@ -371,8 +364,32 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
 
         } catch (Exception e) {
             logger.error("error importing providers: " + e.getMessage());
-            throw e;
+            throw new RegistrationException(e.getMessage());
         }
+
+    }
+
+    @GetMapping("/ap/{realm}/{providerId}/export")
+    public void exportRealmProvider(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            HttpServletResponse res)
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
+        logger.debug("export ap {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+
+        ConfigurableAttributeProvider provider = providerManager.getAttributeProvider(realm, providerId);
+
+//      String s = yaml.dump(clientApp);
+        String s = yamlObjectMapper.writeValueAsString(provider);
+
+        // write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=ap-" + provider.getName() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.write(s.getBytes(StandardCharsets.UTF_8));
+        out.flush();
+        out.close();
 
     }
 

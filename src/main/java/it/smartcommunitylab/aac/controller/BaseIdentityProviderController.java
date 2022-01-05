@@ -66,23 +66,6 @@ public class BaseIdentityProviderController {
                 }).collect(Collectors.toList());
     }
 
-    @GetMapping("/idp/{realm}/{providerId}")
-    public ConfigurableIdentityProvider getIdp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
-            throws NoSuchProviderException, NoSuchRealmException {
-        logger.debug("get idp {} for realm {}",
-                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
-
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        provider.setRegistered(isRegistered);
-
-        return provider;
-    }
-
     @PostMapping("/idp/{realm}")
     public ConfigurableIdentityProvider addIdp(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -118,6 +101,23 @@ public class BaseIdentityProviderController {
         }
 
         provider = providerManager.addIdentityProvider(realm, provider);
+
+        return provider;
+    }
+
+    @GetMapping("/idp/{realm}/{providerId}")
+    public ConfigurableIdentityProvider getIdp(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId)
+            throws NoSuchProviderException, NoSuchRealmException {
+        logger.debug("get idp {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+
+        // check if registered
+        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
+        provider.setRegistered(isRegistered);
 
         return provider;
     }

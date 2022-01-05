@@ -184,8 +184,16 @@ angular.module('aac.controllers.realmapps', [])
                     data.content.forEach(function (app) {
                         //add icon
                         app.icon = iconProvider(app);
-                        //filter authorities
-                        app._authorities = app.authorities.filter(a => slug == a.realm);
+                        if ('roles' in app) {
+                            app._roles = app.roles
+                                .filter(function (a) { return slug == a.realm })
+                                .map(function (a) { return a.role });
+                        }
+                        if ('authorities' in app) {
+                            app._authorities = app.authorities
+                                .filter(function (a) { return slug == a.realm })
+                                .map(function (a) { return a.role });
+                        }
                     });
                     $scope.apps = data;
                 })
@@ -494,7 +502,8 @@ angular.module('aac.controllers.realmapps', [])
                     return data;
                 })
                 .then(function (data) {
-                    $scope.authorities = data.authorities;
+                    //authorities
+                    $scope.reloadAuthorities(data.authorities);
                     return data;
                 })
                 .then(function (data) {
@@ -867,6 +876,90 @@ angular.module('aac.controllers.realmapps', [])
         }
 
         /*
+        * authorities
+        */
+        $scope.loadAuthorities = function () {
+            RealmAppsData.getAuthorities(slug, clientId)
+                .then(function (data) {
+                    $scope.reloadAuthorities(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load client authorities: ' + err.data.message);
+                });
+        }
+        $scope.reloadAuthorities = function (data) {
+            var authorities = data.filter(a => a.realm && slug == a.realm).map(auth => {
+                var a = {
+                    ...auth,
+                    name: auth.role.replaceAll("_", " ").slice(5).toUpperCase(),
+                    description: '',
+                }
+
+                if (a.role == 'ROLE_DEVELOPER') {
+                    a.description = 'Manage realm applications and services';
+                }
+                if (a.role == 'ROLE_ADMIN') {
+                    a.description = "Manage realm settings and configuration (in addition to developer permissions)";
+                }
+
+                return a;
+            });
+
+            $scope.authorities = authorities;
+
+            //flatten for display
+            $scope._authorities = authorities.map(a => a.role);
+
+            //also update client model
+            $scope.app.authorities = data;
+        }
+
+        $scope.manageAuthoritiesDlg = function () {
+            var authorities = $scope.authorities;
+            var roles = authorities.map(a => a.role);
+
+            $scope.modAuthorities = {
+                realm: slug,
+                admin: roles.includes('ROLE_ADMIN'),
+                developer: roles.includes('ROLE_DEVELOPER')
+            };
+            $('#authoritiesModal').modal({ keyboard: false });
+        }
+
+        $scope.updateAuthorities = function () {
+            $('#authoritiesModal').modal('hide');
+            if ($scope.modAuthorities) {
+                var roles = $scope.modAuthorities;
+                var authorities = [];
+
+
+                if (roles.admin === true) {
+                    authorities.push({
+                        realm: slug,
+                        role: 'ROLE_ADMIN'
+                    });
+                }
+                if (roles.developer === true) {
+                    authorities.push({
+                        realm: slug,
+                        role: 'ROLE_DEVELOPER'
+                    });
+                }
+
+
+                RealmAppsData.updateAuthorities(slug, clientId, authorities)
+                    .then(function (data) {
+                        $scope.reloadAuthorities(data);
+                        Utils.showSuccess();
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Failed to update authorities: ' + err.data.message);
+                    });
+
+            }
+        }
+
+        /*
        * realm roles
        */
 
@@ -1048,7 +1141,7 @@ angular.module('aac.controllers.realmapps', [])
                 var { space, role } = $scope.modSpaceRole;
                 // workaround for root space
                 if (space == '-- ROOT --') space = '';
-                
+
                 var authority = (space ? (space + ':') : '') + role.trim();
 
                 updateSpaceRoles([authority], null);
@@ -1335,81 +1428,6 @@ angular.module('aac.controllers.realmapps', [])
             return './italia/svg/sprite.svg#it-unlocked';
         }
 
-
-        /*
-        * authorities
-        */
-        $scope.reloadAuthorities = function (data) {
-            var authorities = data.filter(a => a.realm && slug == a.realm).map(auth => {
-                var a = {
-                    ...auth,
-                    name: auth.role.replaceAll("_", " ").slice(5).toUpperCase(),
-                    description: '',
-                }
-
-                if (a.role == 'ROLE_DEVELOPER') {
-                    a.description = 'Manage realm applications and services';
-                }
-                if (a.role == 'ROLE_ADMIN') {
-                    a.description = "Manage realm settings and configuration (in addition to developer permissions)";
-                }
-
-                return a;
-            });
-
-            $scope.authorities = authorities;
-
-            //flatten for display
-            $scope._authorities = authorities.map(a => a.role);
-
-            //also update user model
-            $scope.user.authorities = data;
-        }
-
-        $scope.manageAuthoritiesDlg = function () {
-            var authorities = $scope.authorities;
-            var roles = authorities.map(a => a.role);
-
-            $scope.modAuthorities = {
-                realm: slug,
-                admin: roles.includes('ROLE_ADMIN'),
-                developer: roles.includes('ROLE_DEVELOPER')
-            };
-            $('#authoritiesModal').modal({ keyboard: false });
-        }
-
-        $scope.updateAuthorities = function () {
-            $('#authoritiesModal').modal('hide');
-            if ($scope.modAuthorities) {
-                var roles = $scope.modAuthorities;
-                var authorities = [];
-
-
-                if (roles.admin === true) {
-                    authorities.push({
-                        realm: slug,
-                        role: 'ROLE_ADMIN'
-                    });
-                }
-                if (roles.developer === true) {
-                    authorities.push({
-                        realm: slug,
-                        role: 'ROLE_DEVELOPER'
-                    });
-                }
-
-
-                RealmAppsData.updateAuthorities(slug, clientId, authorities)
-                    .then(function (data) {
-                        $scope.reloadAuthorities(data);
-                        Utils.showSuccess();
-                    })
-                    .catch(function (err) {
-                        Utils.showError('Failed to update authorities: ' + err.data.message);
-                    });
-
-            }
-        }
 
         init();
     })
