@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
@@ -48,6 +49,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -369,6 +371,8 @@ public class DevClientAppController {
     }
 
     @PutMapping("/realms/{realm}/apps/{clientId}/authorities")
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
+            + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
     public ResponseEntity<Collection<GrantedAuthority>> updateRealmAppAuthorities(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
@@ -383,8 +387,8 @@ public class DevClientAppController {
         Collection<GrantedAuthority> authorities = clientManager.setAuthorities(realm, clientId, values);
 
         return ResponseEntity.ok(authorities);
-    }    
-    
+    }
+
     /*
      * Roles
      */

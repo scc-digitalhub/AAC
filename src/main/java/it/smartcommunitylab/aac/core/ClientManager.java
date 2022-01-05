@@ -258,9 +258,9 @@ public class ClientManager {
 
         Collection<SpaceRole> spaceRoles = loadClientSpaceRoles(realm, clientApp.getClientId());
         clientApp.setSpaceRoles(spaceRoles);
-        
+
         clientApp.setAuthorities(getAuthorities(realm, clientApp.getClientId()));
-        
+
         return clientApp;
     }
 
@@ -743,16 +743,14 @@ public class ClientManager {
         return spaceRoleService.getRoles(clientId);
     }
 
-	/**
-	 * @param realm
-	 * @param clientId
-	 * @return
-	 * @throws NoSuchRealmException 
-	 * @throws NoSuchClientException 
-	 */
+    /**
+     * Client authorities
+     * 
+     * do note access should be restricted to ADMIN
+     */
     @Transactional(readOnly = true)
-	public Collection<GrantedAuthority> getAuthorities(
-			String realm, String clientId) throws NoSuchRealmException, NoSuchClientException {
+    public Collection<GrantedAuthority> getAuthorities(
+            String realm, String clientId) throws NoSuchRealmException, NoSuchClientException {
         logger.debug("get authorities for app {} in realm {}", String.valueOf(clientId), realm);
 
         Realm r = realmService.getRealm(realm);
@@ -762,8 +760,8 @@ public class ClientManager {
         }
 
         return subjectService.getAuthorities(clientId, realm);
-	}
-    
+    }
+
     @Transactional(readOnly = false)
     public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
             throws NoSuchRealmException, NoSuchClientException {
@@ -778,9 +776,9 @@ public class ClientManager {
             throw new NoSuchClientException();
         }
         try {
-			return subjectService.updateAuthorities(subjectId, r.getSlug(), roles);
-		} catch (NoSuchSubjectException e) {
-			throw new NoSuchClientException();
-		}
+            return subjectService.updateAuthorities(subjectId, r.getSlug(), roles);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchClientException();
+        }
     }
 }
