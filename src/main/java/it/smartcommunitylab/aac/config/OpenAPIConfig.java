@@ -67,11 +67,17 @@ public class OpenAPIConfig {
                         .contact(new Contact().url(conf.contact.get("url")).name(conf.contact.get("name"))
                                 .email(conf.contact.get("email"))))
                 .components(new Components()
-                        .addSecuritySchemes("oauth2", new SecurityScheme().type(SecurityScheme.Type.OAUTH2)
-                                .scheme("bearer").flows(new OAuthFlows()
-                                        .authorizationCode(new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")
-                                                .authorizationUrl(AUTH_SERVER + "/oauth/authorize").scopes(scopes()))
-                                        .clientCredentials(new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")))));
+                        .addSecuritySchemes("oauth2",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.OAUTH2)
+//                                .scheme("bearer")
+                                        .flows(new OAuthFlows()
+                                                .authorizationCode(
+                                                        new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")
+                                                                .authorizationUrl(AUTH_SERVER + "/oauth/authorize")
+                                                                .scopes(scopes()))
+                                                .clientCredentials(
+                                                        new OAuthFlow().tokenUrl(AUTH_SERVER + "/oauth/token")))));
     }
 
     private Scopes scopes() {

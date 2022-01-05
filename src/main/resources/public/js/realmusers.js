@@ -185,6 +185,11 @@ angular.module('aac.controllers.realmusers', [])
                                 .filter(function (a) { return slug == a.realm })
                                 .map(function (a) { return a.role });
                         }
+                        if ('authorities' in u) {
+                            u._authorities = u.authorities
+                                .filter(function (a) { return slug == a.realm })
+                                .map(function (a) { return a.role });
+                        }
                     });
                 })
                 .catch(function (err) {
@@ -978,7 +983,7 @@ angular.module('aac.controllers.realmusers', [])
                 var { space, role } = $scope.modSpaceRole;
                 // workaround for root space
                 if (space == '-- ROOT --') space = '';
-                
+
                 var authority = (space ? (space + ':') : '') + role.trim();
 
                 updateSpaceRoles([authority], null);

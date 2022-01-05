@@ -3,30 +3,29 @@ angular.module('aac.controllers.realmroles', [])
     .service('RealmRoles', function ($http) {
         var service = {};
 
-
         service.getRoles = function (realm) {
-            return $http.get('console/dev/realms/' + realm + '/roles').then(function (data) {
+            return $http.get('console/dev/roles/' + realm).then(function (data) {
                 return data.data;
             });
         }
         service.getRole = function (realm, roleId) {
-            return $http.get('console/dev/realms/' + realm + '/roles/' + roleId).then(function (data) {
+            return $http.get('console/dev/roles/' + realm + '/' + roleId).then(function (data) {
                 return data.data;
             });
         }
 
         service.addRole = function (realm, role) {
-            return $http.post('console/dev/realms/' + realm + '/roles', role).then(function (data) {
+            return $http.post('console/dev/roles/' + realm, role).then(function (data) {
                 return data.data;
             });
         }
         service.updateRole = function (realm, role) {
-            return $http.put('console/dev/realms/' + realm + '/roles/' + role.roleId, role).then(function (data) {
+            return $http.put('console/dev/roles/' + realm + '/' + role.roleId, role).then(function (data) {
                 return data.data;
             });
         }
         service.deleteRole = function (realm, roleId) {
-            return $http.delete('console/dev/realms/' + realm + '/roles/' + roleId).then(function (data) {
+            return $http.delete('console/dev/roles/' + realm + '/' + roleId).then(function (data) {
                 return data.data;
             });
         }
@@ -34,7 +33,7 @@ angular.module('aac.controllers.realmroles', [])
             var fd = new FormData();
             fd.append('file', file);
             return $http({
-                url: 'console/dev/realms/' + realm + '/roles',
+                url: 'console/dev/roles/' + realm,
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -43,10 +42,10 @@ angular.module('aac.controllers.realmroles', [])
             });
         }
         service.exportRole = function (realm, roleId) {
-            window.open('console/dev/realms/' + realm + '/roles/' + roleId + '/yaml');
+            window.open('console/dev/roles/' + realm + '/' + roleId + '/export');
         }
         service.getApprovals = function (slug, roleId) {
-            return $http.get('console/dev/realms/' + slug + '/roles/' + roleId + '/approvals').then(function (data) {
+            return $http.get('console/dev/roles/' + slug + '/' + roleId + '/approvals').then(function (data) {
                 return data.data;
             });
         }

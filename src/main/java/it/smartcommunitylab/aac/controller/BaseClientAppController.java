@@ -119,40 +119,6 @@ public class BaseClientAppController {
         clientManager.deleteClientApp(realm, clientId);
     }
 
-    @PutMapping("/app/{realm}")
-    public ClientApp importApp(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
-        logger.debug("import client app for realm {}",
-                StringUtils.trimAllWhitespace(realm));
-
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("empty file");
-        }
-
-        if (file.getContentType() == null) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
-            throw new IllegalArgumentException("invalid file");
-        }
-
-        try {
-            ClientApp reg = yamlObjectMapper.readValue(file.getInputStream(), ClientApp.class);
-            reg.setRealm(realm);
-            if (logger.isTraceEnabled()) {
-                logger.trace("app bean: " + StringUtils.trimAllWhitespace(reg.toString()));
-            }
-            return clientManager.registerClientApp(realm, reg);
-        } catch (Exception e) {
-            logger.error("import client app error: " + e.getMessage());
-
-            throw e;
-        }
-    }
-
     /*
      * Credentials
      */

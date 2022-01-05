@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +45,7 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
 import it.smartcommunitylab.aac.core.ClientManager;
@@ -131,31 +133,13 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     /*
      * Import/export for console
      */
-    @GetMapping("/idp/{realm}/{providerId}/export")
-    public void exportRealmProvider(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-            HttpServletResponse res)
-            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
-        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
-
-//      String s = yaml.dump(clientApp);
-        String s = yamlObjectMapper.writeValueAsString(provider);
-
-        // write as file
-        res.setContentType("text/yaml");
-        res.setHeader("Content-Disposition", "attachment;filename=idp-" + provider.getName() + ".yaml");
-        ServletOutputStream out = res.getOutputStream();
-        out.write(s.getBytes(StandardCharsets.UTF_8));
-        out.flush();
-        out.close();
-
-    }
-
     @PutMapping("/idp/{realm}")
     public Collection<ConfigurableIdentityProvider> importRealmProvider(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+            @RequestParam(required = false, defaultValue = "false") boolean reset,
+            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+        logger.debug("import idp(s) to realm {}", StringUtils.trimAllWhitespace(realm));
+
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
@@ -186,6 +170,10 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 for (ConfigurableIdentityProvider registration : list.get("providers")) {
                     // unpack and build model
                     String id = registration.getProvider();
+                    if (reset) {
+                        // reset id
+                        id = null;
+                    }
                     String authority = registration.getAuthority();
                     String name = registration.getName();
                     String description = registration.getDescription();
@@ -220,6 +208,10 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
 
                 // unpack and build model
                 String id = registration.getProvider();
+                if (reset) {
+                    // reset id
+                    id = null;
+                }
                 String authority = registration.getAuthority();
                 String type = registration.getType();
                 String name = registration.getName();
@@ -253,8 +245,32 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
 
         } catch (Exception e) {
             logger.error("error importing providers: " + e.getMessage());
-            throw e;
+            throw new RegistrationException(e.getMessage());
         }
+
+    }
+
+    @GetMapping("/idp/{realm}/{providerId}/export")
+    public void exportRealmProvider(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+            HttpServletResponse res)
+            throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException {
+        logger.debug("export idp {} for realm {}",
+                StringUtils.trimAllWhitespace(providerId), StringUtils.trimAllWhitespace(realm));
+
+        ConfigurableIdentityProvider provider = providerManager.getIdentityProvider(realm, providerId);
+
+//      String s = yaml.dump(clientApp);
+        String s = yamlObjectMapper.writeValueAsString(provider);
+
+        // write as file
+        res.setContentType("text/yaml");
+        res.setHeader("Content-Disposition", "attachment;filename=idp-" + provider.getName() + ".yaml");
+        ServletOutputStream out = res.getOutputStream();
+        out.write(s.getBytes(StandardCharsets.UTF_8));
+        out.flush();
+        out.close();
 
     }
 

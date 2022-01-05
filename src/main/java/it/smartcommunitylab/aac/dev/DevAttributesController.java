@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.attributes.BaseAttributeSetsController;
 import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 
 @RestController
@@ -49,9 +50,8 @@ public class DevAttributesController extends BaseAttributeSetsController {
     @PutMapping("/attributeset/{realm}")
     public AttributeSet importAttributeSet(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
-        logger.debug("import attribute set to realm {}",
-                StringUtils.trimAllWhitespace(realm));
+            @RequestParam("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+        logger.debug("import attribute set to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
@@ -79,7 +79,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
 
         } catch (Exception e) {
             logger.error("import attribute set error: " + e.getMessage());
-            throw e;
+            throw new RegistrationException(e.getMessage());
         }
 
     }

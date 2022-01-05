@@ -145,6 +145,10 @@ public class ClientManager {
                     // load realm roles
                     Collection<RealmRole> roles = loadClientRoles(realm, app.getClientId());
                     app.setRealmRoles(roles);
+
+                    // load authorities
+                    Collection<GrantedAuthority> authorities = loadClientAuthorities(realm, app.getClientId());
+                    app.setAuthorities(authorities);
                 } catch (NoSuchClientException e) {
                 }
             });
@@ -178,6 +182,10 @@ public class ClientManager {
                 // load realm roles
                 Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
                 clientApp.setRealmRoles(roles);
+
+                // load authorities
+                Collection<GrantedAuthority> authorities = loadClientAuthorities(realm, clientApp.getClientId());
+                clientApp.setAuthorities(authorities);
             } catch (NoSuchClientException e) {
             }
         });
@@ -258,9 +266,9 @@ public class ClientManager {
 
         Collection<SpaceRole> spaceRoles = loadClientSpaceRoles(realm, clientApp.getClientId());
         clientApp.setSpaceRoles(spaceRoles);
-        
+
         clientApp.setAuthorities(getAuthorities(realm, clientApp.getClientId()));
-        
+
         return clientApp;
     }
 
@@ -564,6 +572,45 @@ public class ClientManager {
         return realmRoles;
     }
 
+    /**
+     * Client authorities
+     * 
+     * do note access should be restricted to ADMIN
+     */
+    @Transactional(readOnly = true)
+    public Collection<GrantedAuthority> getAuthorities(
+            String realm, String clientId) throws NoSuchRealmException, NoSuchClientException {
+        logger.debug("get authorities for app {} in realm {}", String.valueOf(clientId), realm);
+
+        Realm r = realmService.getRealm(realm);
+        ClientEntity entity = findClient(clientId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+
+        return subjectService.getAuthorities(clientId, realm);
+    }
+
+    @Transactional(readOnly = false)
+    public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
+            throws NoSuchRealmException, NoSuchClientException {
+        logger.debug("update authorities for app {} in realm {}", String.valueOf(subjectId), realm);
+        if (logger.isTraceEnabled()) {
+            logger.trace("authorities: " + String.valueOf(roles));
+        }
+
+        Realm r = realmService.getRealm(realm);
+        ClientEntity entity = findClient(subjectId);
+        if (entity == null) {
+            throw new NoSuchClientException();
+        }
+        try {
+            return subjectService.updateAuthorities(subjectId, r.getSlug(), roles);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchClientException();
+        }
+    }
+
     public Collection<Approval> getApprovals(String realm, String clientId) throws NoSuchClientException {
         ClientEntity entity = findClient(clientId);
         if (entity == null) {
@@ -743,44 +790,9 @@ public class ClientManager {
         return spaceRoleService.getRoles(clientId);
     }
 
-	/**
-	 * @param realm
-	 * @param clientId
-	 * @return
-	 * @throws NoSuchRealmException 
-	 * @throws NoSuchClientException 
-	 */
-    @Transactional(readOnly = true)
-	public Collection<GrantedAuthority> getAuthorities(
-			String realm, String clientId) throws NoSuchRealmException, NoSuchClientException {
-        logger.debug("get authorities for app {} in realm {}", String.valueOf(clientId), realm);
-
-        Realm r = realmService.getRealm(realm);
-        ClientEntity entity = findClient(clientId);
-        if (entity == null) {
-            throw new NoSuchClientException();
-        }
-
+    private Collection<GrantedAuthority> loadClientAuthorities(String realm, String clientId)
+            throws NoSuchClientException {
         return subjectService.getAuthorities(clientId, realm);
-	}
-    
-    @Transactional(readOnly = false)
-    public Collection<GrantedAuthority> setAuthorities(String realm, String subjectId, Collection<String> roles)
-            throws NoSuchRealmException, NoSuchClientException {
-        logger.debug("update authorities for app {} in realm {}", String.valueOf(subjectId), realm);
-        if (logger.isTraceEnabled()) {
-            logger.trace("authorities: " + String.valueOf(roles));
-        }
-
-        Realm r = realmService.getRealm(realm);
-        ClientEntity entity = findClient(subjectId);
-        if (entity == null) {
-            throw new NoSuchClientException();
-        }
-        try {
-			return subjectService.updateAuthorities(subjectId, r.getSlug(), roles);
-		} catch (NoSuchSubjectException e) {
-			throw new NoSuchClientException();
-		}
     }
+
 }

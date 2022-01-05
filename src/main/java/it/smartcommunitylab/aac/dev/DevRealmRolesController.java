@@ -18,14 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.provider.approval.Approval;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -43,74 +39,30 @@ import it.smartcommunitylab.aac.common.NoSuchRoleException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.roles.RealmRoleManager;
-import it.smartcommunitylab.aac.roles.SpaceRoleManager;
+import it.smartcommunitylab.aac.roles.BaseRealmRolesController;
 
 @RestController
 @Hidden
 @RequestMapping("/console/dev")
-public class DevRoleController {
-
+public class DevRealmRolesController extends BaseRealmRolesController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<RealmRole>>> typeRef = new TypeReference<Map<String, List<RealmRole>>>() {
     };
 
     @Autowired
-    private RealmRoleManager roleManager;
-
-    @Autowired
-    private SpaceRoleManager spaceRoleManager;
-
-    @Autowired
     @Qualifier("yamlObjectMapper")
     private ObjectMapper yamlObjectMapper;
 
-    @GetMapping("/realms/{realm}/roles")
-    public ResponseEntity<Collection<RealmRole>> getRealmRoles(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
-            throws NoSuchRealmException {
-        return ResponseEntity.ok(roleManager.getRealmRoles(realm));
-    }
-
-    @PostMapping("/realms/{realm}/roles")
-    public ResponseEntity<RealmRole> createRealmRole(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestBody @Valid @NotNull RealmRole reg)
-            throws NoSuchRealmException, NoSuchRoleException {
-        return ResponseEntity.ok(roleManager.addRealmRole(realm, reg));
-    }
-
-    @GetMapping("/realms/{realm}/roles/{roleId}")
-    public ResponseEntity<RealmRole> getRealmRole(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId)
-            throws NoSuchRealmException, NoSuchRoleException {
-        return ResponseEntity.ok(roleManager.getRealmRole(realm, roleId));
-    }
-
-    @PutMapping("/realms/{realm}/roles/{roleId}")
-    public ResponseEntity<RealmRole> getRealmRole(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
-            @RequestBody @Valid @NotNull RealmRole reg)
-            throws NoSuchRealmException, NoSuchRoleException {
-        return ResponseEntity.ok(roleManager.updateRealmRole(realm, roleId, reg));
-    }
-
-    @DeleteMapping("/realms/{realm}/roles/{roleId}")
-    public ResponseEntity<Void> removeRealmRole(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId)
-            throws NoSuchRealmException, NoSuchRoleException {
-        roleManager.deleteRealmRole(realm, roleId);
-        return ResponseEntity.ok(null);
-    }
-
-    @PutMapping("/realms/{realm}/roles")
-    public ResponseEntity<Collection<RealmRole>> importRealmRoles(
+    /*
+     * Import/export for console
+     */
+    @PutMapping("/roles/{realm}")
+    public Collection<RealmRole> importRealmRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, defaultValue = "false") boolean reset,
-            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws Exception {
+            @RequestPart("file") @Valid @NotNull @NotBlank MultipartFile file) throws RegistrationException {
+        logger.debug("import role(s) to realm {}", StringUtils.trimAllWhitespace(realm));
+
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("empty file");
         }
@@ -120,7 +72,8 @@ public class DevRoleController {
         }
 
         if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
+                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
             throw new IllegalArgumentException("invalid file");
         }
 
@@ -159,21 +112,22 @@ public class DevRoleController {
                 roles.add(role);
             }
 
-            return ResponseEntity.ok(roles);
+            return roles;
         } catch (Exception e) {
-            if (logger.isTraceEnabled()) {
-                e.printStackTrace();
-            }
+            logger.error("error importing roles: " + e.getMessage());
+
             throw new RegistrationException(e.getMessage());
         }
     }
 
-    @GetMapping("/realms/{realm}/roles/{roleId}/yaml")
+    @GetMapping("/roles/{realm}/{roleId}/export")
     public void exportRealmRole(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId,
             HttpServletResponse res)
             throws NoSuchRealmException, SystemException, IOException, NoSuchRoleException {
+        logger.debug("export role {} for realm {}",
+                StringUtils.trimAllWhitespace(roleId), StringUtils.trimAllWhitespace(realm));
 
         RealmRole role = roleManager.getRealmRole(realm, roleId);
         String s = yamlObjectMapper.writeValueAsString(role);
@@ -185,15 +139,6 @@ public class DevRoleController {
         out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
-    }
-
-    @GetMapping("/realms/{realm}/roles/{roleId}/approvals")
-    public ResponseEntity<Collection<Approval>> getRealmRoleApprovals(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String roleId)
-            throws NoSuchRealmException, NoSuchRoleException {
-        Collection<Approval> approvals = roleManager.getRealmRoleApprovals(realm, roleId);
-        return ResponseEntity.ok(approvals);
     }
 
 }

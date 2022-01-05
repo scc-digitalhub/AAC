@@ -192,9 +192,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/endsession").permitAll()
                 // whitelist auth providers pages (login,registration etc)
                 .antMatchers("/auth/**").permitAll()
-                // whitelist public
-                .antMatchers("/.well-known/**").permitAll()
-                .antMatchers("/jwk").permitAll()
+//                // whitelist public
+//                .antMatchers("/.well-known/**").permitAll()
+//                .antMatchers("/jwk").permitAll()
                 // whitelist assets
                 // TODO change path to /assets (and build)
                 .antMatchers("/svg/**").permitAll()
