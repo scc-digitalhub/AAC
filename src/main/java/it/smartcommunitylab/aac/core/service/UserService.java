@@ -11,10 +11,12 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -371,6 +373,14 @@ public class UserService {
 
     public Page<User> searchUsers(String realm, String q, Pageable pageRequest) {
         Page<UserEntity> page = userService.searchUsers(realm, q, pageRequest);
+        return PageableExecutionUtils.getPage(
+                convertUsers(realm, page.getContent()),
+                pageRequest,
+                () -> page.getTotalElements());
+    }
+    
+    public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest) {
+        Page<UserEntity> page = userService.searchUsersWithSpec(spec, pageRequest);
         return PageableExecutionUtils.getPage(
                 convertUsers(realm, page.getContent()),
                 pageRequest,

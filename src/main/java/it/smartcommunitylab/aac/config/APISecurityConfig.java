@@ -75,6 +75,7 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
     public RequestMatcher getRequestMatcher() {
         return new OrRequestMatcher(
                 new AntPathRequestMatcher(API_PREFIX + "/**"),
+                new AntPathRequestMatcher("/scim/**"),
                 new AntPathRequestMatcher("/profile/**"),
                 new AntPathRequestMatcher("/roles/**"),
                 // TODO remove legacy paths
