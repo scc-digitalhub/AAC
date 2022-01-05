@@ -49,7 +49,7 @@ public class ClientDetails {
     // authorities are roles INSIDE aac (ie user/admin/dev etc)
     // we do not want authorities modified inside session
     // note permission checks are performed on authToken authorities, not here
-    private final Collection<GrantedAuthority> authorities;
+    private final Set<GrantedAuthority> authorities;
 
     // roles are OUTSIDE aac (ie not grantedAuthorities)
     // roles are associated to CLIENT(=subjectId)
@@ -77,7 +77,7 @@ public class ClientDetails {
         this.realm = realm;
         this.type = type;
 
-        this.authorities = Collections.unmodifiableCollection(authorities);
+        this.authorities = Collections.unmodifiableSet(new HashSet<>(authorities));
         this.enabled = true;
 
         this.realmRoles = new HashSet<>();
@@ -153,7 +153,7 @@ public class ClientDetails {
         return type;
     }
 
-    public Collection<GrantedAuthority> getAuthorities() {
+    public Set<GrantedAuthority> getAuthorities() {
         return authorities;
     }
 
