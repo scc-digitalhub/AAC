@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.scim.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -65,7 +67,7 @@ public class SCIMUserController extends SCIMResourceController {
 			@PathVariable String realm,
 			@Parameter(description = SCIMProviderConstants.ATTRIBUTES_DESC) @RequestParam(value=SCIMProviderConstants.ATTRIBUTES, required=false) String attribute,
 			@Parameter(description = SCIMProviderConstants.EXCLUDED_ATTRIBUTES_DESC) @RequestParam(value=SCIMProviderConstants.EXCLUDE_ATTRIBUTES, required=false) String excludedAttributes,
-			@Parameter(description = SCIMProviderConstants.FILTER_DESC) @RequestParam(value=SCIMProviderConstants.FILTER) String filter,
+			@Parameter(description = SCIMProviderConstants.FILTER_DESC) @RequestParam(value=SCIMProviderConstants.FILTER, required = false) String filter,
 			@Parameter(description = SCIMProviderConstants.START_INDEX_DESC) @RequestParam(value=SCIMProviderConstants.START_INDEX, defaultValue="1", required=false) int startIndex,
 			@Parameter(description = SCIMProviderConstants.COUNT_DESC) @RequestParam(value=SCIMProviderConstants.COUNT, defaultValue="20", required=false) int count,
 			@Parameter(description = SCIMProviderConstants.SORT_BY_DESC) @RequestParam(value=SCIMProviderConstants.SORT_BY, required=false,defaultValue="username") String sortBy,
@@ -138,14 +140,79 @@ public class SCIMUserController extends SCIMResourceController {
 			throw new CharonException(e.getDetail(), e);
 		}
 	}
-	
-//	@RequestMapping(value="/{realm}/Me", produces = {"application/json", "application/scim+json"}, consumes= {"application/scim+json"})
-//	public @ResponseBody ResponseEntity<?> me() {
-//		ResponseEntity.BodyBuilder builder = ResponseEntity.status(ResponseCodeConstants.CODE_NOT_IMPLEMENTED);
-//        builder.header(SCIMConstants.CONTENT_TYPE_HEADER, SCIMConstants.APPLICATION_JSON);
-//        return builder.body(ResponseCodeConstants.DESC_NOT_IMPLEMENTED);
-//		
-//	}
 
+	
+	@Operation(summary = "Create and return the user which was created", description = "Return the user which was created. Returns HTTP 201 if the user is successfully created.")
+	@PostMapping(value="/{realm}/Users", produces = {"application/json", "application/scim+json"}, consumes= {"application/scim+json"})
+	public @ResponseBody ResponseEntity<?> createUser(
+			@PathVariable String realm,
+			@RequestBody String requestString,
+			@Parameter(description = SCIMProviderConstants.ATTRIBUTES_DESC) @RequestParam(value=SCIMProviderConstants.ATTRIBUTES, required=false) String attribute,
+			@Parameter(description = SCIMProviderConstants.EXCLUDED_ATTRIBUTES_DESC) @RequestParam(value=SCIMProviderConstants.EXCLUDE_ATTRIBUTES, required=false) String excludedAttributes) throws CharonException {
+		
+		try {
+			// obtain the user store manager
+			UserManager userManager = tenantManager.getUserManager(realm);
+
+			// create charon-SCIM user resource manager and hand-over the request.
+			UserResourceManager userResourceManager = tenantManager.getUserResourceManager(realm);
+
+			SCIMResponse scimResponse = userResourceManager.create(requestString, userManager, attribute, excludedAttributes);
+
+			return buildResponse(realm, scimResponse);
+
+		} catch (CharonException e) {
+			throw new CharonException(e.getDetail(), e);
+		}
+	}
+
+
+	@Operation(summary = "Update and return the updated user", description = "Return the updated user. Returns HTTP 404 if the user is not found.")
+	@PutMapping(value="/{realm}/Users/{id}", produces = {"application/json", "application/scim+json"}, consumes= {"application/scim+json"})
+	public @ResponseBody ResponseEntity<?> updateUser(
+			@PathVariable String realm,
+			@Parameter(description = SCIMProviderConstants.ID_DESC) @PathVariable String id,
+			@RequestBody String requestString,
+			@Parameter(description = SCIMProviderConstants.ATTRIBUTES_DESC) @RequestParam(value=SCIMProviderConstants.ATTRIBUTES, required=false) String attribute,
+			@Parameter(description = SCIMProviderConstants.EXCLUDED_ATTRIBUTES_DESC) @RequestParam(value=SCIMProviderConstants.EXCLUDE_ATTRIBUTES, required=false) String excludedAttributes) throws CharonException {
+		
+		try {
+			// obtain the user store manager
+			UserManager userManager = tenantManager.getUserManager(realm);
+
+			// create charon-SCIM user resource manager and hand-over the request.
+			UserResourceManager userResourceManager = tenantManager.getUserResourceManager(realm);
+
+			SCIMResponse scimResponse = userResourceManager.updateWithPUT(id, requestString, userManager, attribute, excludedAttributes);
+
+			return buildResponse(realm, scimResponse);
+
+		} catch (CharonException e) {
+			throw new CharonException(e.getDetail(), e);
+		}
+	}
+
+	@Operation(summary = "Delete the user with the given id", description = "Delete the user with the given id.Returns HTTP 204 if the user is successfully deleted.")
+	@DeleteMapping(value="/{realm}/Users/{id}", produces = {"application/json", "application/scim+json"})
+	public @ResponseBody ResponseEntity<?> deleteUser(
+			@PathVariable String realm,
+			@Parameter(description = SCIMProviderConstants.ID_DESC) @PathVariable String id)
+			throws FormatNotSupportedException, CharonException {
+
+		try {
+			// obtain the user store manager
+			UserManager userManager = tenantManager.getUserManager(realm);
+
+			// create charon-SCIM user resource manager and hand-over the request.
+			UserResourceManager userResourceManager = tenantManager.getUserResourceManager(realm);
+
+			SCIMResponse scimResponse = userResourceManager.delete(id, userManager);
+
+			return buildResponse(realm, scimResponse);
+
+		} catch (CharonException e) {
+			throw new CharonException(e.getDetail(), e);
+		}
+	}	
 
 }

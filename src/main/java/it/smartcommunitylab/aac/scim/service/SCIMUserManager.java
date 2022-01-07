@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.util.StringUtils;
 import org.wso2.charon3.core.attributes.Attribute;
 import org.wso2.charon3.core.attributes.ComplexAttribute;
 import org.wso2.charon3.core.attributes.MultiValuedAttribute;
@@ -59,7 +58,9 @@ import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 
 /**
  * WSO2 Charon extenstion for User management. 
- * TODO use standard AAC set of components: attribute set (realm-specific), mapper, extractor, provider (based on internal storage)
+ * TODO 
+ * - use standard AAC set of components: attribute set (realm-specific), mapper, extractor, provider (based on internal storage)
+ * - improve / extend conversion of attributes
  * @author raman
  *
  */
@@ -110,7 +111,7 @@ public class SCIMUserManager implements UserManager {
 		if (user.getEmail() != null) {
 			scimUser.replaceEmails(Collections.singletonList(new MultiValuedComplexType(null, true, null, user.getEmail(), null)));
 		}
-		user.getAttributes().forEach(ua -> {
+		user.getIdentities().forEach(id -> id.getAttributes().forEach(ua -> {
 			if (OpenIdAttributesSet.IDENTIFIER.equals(ua.getIdentifier())) {
 				ScimName name = new ScimName();
 				ua.getAttributes().forEach(a -> {
@@ -128,9 +129,8 @@ public class SCIMUserManager implements UserManager {
 					}
 				});
 				scimUser.replaceName(name);
-				
 			}
-		});
+		}));
 		List<MultiValuedComplexType> roles = user.getAuthorities().stream().filter(r -> r instanceof RealmGrantedAuthority && ((RealmGrantedAuthority)r).getRealm().equals(realm)).map(r -> new MultiValuedComplexType(null, true, null, ((RealmGrantedAuthority)r).getRole(), null)).collect(Collectors.toList());
 		if (roles.size() > 0)  {
 			scimUser.replaceRoles(roles);
@@ -170,23 +170,17 @@ public class SCIMUserManager implements UserManager {
             throws CharonException, ConflictException, BadRequestException {
 		
 		// ignore readonly ID attribute
-		if (user.getId() != null) user.setId(null);
+		if (user.getId() != null) user.deleteAttribute("id");
 		// set username lowercase
 		user.setUserName(user.getUsername().toLowerCase());
 		
 		try {
 			List<it.smartcommunitylab.aac.model.User> list = userManager.findUsersByUsername(realm, user.getUsername().trim());
 			if (list != null && !list.isEmpty()) {
-				it.smartcommunitylab.aac.model.User newUser = list.get(0);
-				user.setId(newUser.getSubjectId());
-				return updateUser(user, map);
+				throw new ConflictException("The user with the specified userName already exists");
 			}
 		} catch (NoSuchRealmException e) {
 			 throw new BadRequestException("Realm not found");
-		} catch (NotFoundException e) {
-			throw new CharonException(e.getMessage());
-		} catch (NotImplementedException e) {
-			throw new CharonException(e.getMessage());
 		}
 		
 		try {
@@ -257,8 +251,10 @@ public class SCIMUserManager implements UserManager {
     			String name = user.getName() != null ? user.getName().getGivenName() : null;
     			String surname = user.getName() != null ? user.getName().getFamilyName() : null;
     		    userManager.updateUser(realm, user.getId(), name, surname, user.getPreferredLanguage());
-    		    if (user.getActive()) userManager.unlockUser(realm, user.getId());
-    		    else userManager.lockUser(realm, user.getId());
+    		    if (user.isAttributeExist(SCIMConstants.UserSchemaConstants.ACTIVE)) {
+        		    if (user.getActive()) userManager.unlockUser(realm, user.getId());
+        		    else userManager.lockUser(realm, user.getId());
+    		    }
     		    // TODO update groups
     		    return getUser(user.getId(), map);
    			} catch (NoSuchUserException | NoSuchRealmException | NoSuchProviderException e) {
