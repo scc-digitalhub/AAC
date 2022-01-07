@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -45,6 +46,7 @@ import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
@@ -222,6 +224,13 @@ public class UserManager {
         return userService.searchUsers(r.getSlug(), keywords, pageRequest);
     }
 
+
+    @Transactional(readOnly = true)
+    public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest) throws NoSuchRealmException {
+        logger.debug("search users for realm {} with spec {}", realm, String.valueOf(spec));
+        Realm r = realmService.getRealm(realm);
+        return userService.searchUsersWithSpec(r.getSlug(), spec, pageRequest);
+    }
     /*
      * Authorities
      */

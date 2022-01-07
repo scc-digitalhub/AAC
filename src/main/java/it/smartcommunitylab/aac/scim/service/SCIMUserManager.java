@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.scim.provider;
+package it.smartcommunitylab.aac.scim.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +44,7 @@ import org.wso2.charon3.core.objects.User;
 import org.wso2.charon3.core.objects.plainobjects.MultiValuedComplexType;
 import org.wso2.charon3.core.objects.plainobjects.ScimName;
 import org.wso2.charon3.core.protocol.ResponseCodeConstants;
+import org.wso2.charon3.core.protocol.SCIMResponse;
 import org.wso2.charon3.core.schema.SCIMConstants;
 import org.wso2.charon3.core.schema.SCIMDefinitions.DataType;
 import org.wso2.charon3.core.utils.CopyUtil;
@@ -51,28 +52,31 @@ import org.wso2.charon3.core.utils.codeutils.Node;
 import org.wso2.charon3.core.utils.codeutils.SearchRequest;
 
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.service.UserService;
 
 /**
+ * WSO2 Charon extenstion for User management. 
+ * TODO use standard AAC set of components: attribute set (realm-specific), mapper, extractor, provider (based on internal storage)
  * @author raman
  *
  */
 public class SCIMUserManager implements UserManager {
 	
 	private String realm;
-	private UserService userService;
+	private it.smartcommunitylab.aac.core.UserManager userManager;
 	
 	private static final Logger logger = LoggerFactory.getLogger(SCIMUserManager.class);
     //in memory user manager stores users
     ConcurrentHashMap<String, User> inMemoryUserList = new ConcurrentHashMap<String, User>();
     ConcurrentHashMap<String, Group> inMemoryGroupList = new ConcurrentHashMap<String, Group>();
 
-	public SCIMUserManager(String realm, UserService userService) {
+	public SCIMUserManager(String realm, it.smartcommunitylab.aac.core.UserManager userManager) {
 		super();
 		this.realm = realm;
-		this.userService = userService;
+		this.userManager = userManager;
 	}
 
 	@Override
@@ -80,8 +84,8 @@ public class SCIMUserManager implements UserManager {
 			throws CharonException, BadRequestException, NotFoundException {
 		it.smartcommunitylab.aac.model.User user;
 		try {
-			user = userService.getUser(id);
-		} catch (NoSuchUserException e) {
+			user = userManager.getUser(realm, id);
+		} catch (NoSuchUserException | NoSuchRealmException e) {
 			 throw new NotFoundException("User not found");
 		}
 		if (!user.getRealm().equals(realm)) throw new NotFoundException("User not found");
@@ -133,8 +137,6 @@ public class SCIMUserManager implements UserManager {
 		}
 		
 		adjustAttributes(scimUser);
-		
-		// TODO other attributes
 		return scimUser;
 	}
 
@@ -166,6 +168,9 @@ public class SCIMUserManager implements UserManager {
 	@Override
     public User createUser(User user, Map<String, Boolean> map)
             throws CharonException, ConflictException, BadRequestException {
+		
+//		if (userManager.getu)
+		
     	// TODO
         if (inMemoryUserList.get(user.getId()) != null) {
             throw new ConflictException("User with the id : " + user.getId() + "already exists");
@@ -178,12 +183,11 @@ public class SCIMUserManager implements UserManager {
     @Override
     public void deleteUser(String id)
             throws NotFoundException, CharonException, NotImplementedException, BadRequestException {
-    	// TODO
-        if (inMemoryUserList.get(id) == null) {
+    	try {
+			userManager.removeUser(realm, id);
+		} catch (NoSuchUserException | NoSuchRealmException e) {
             throw new NotFoundException("No user with the id : " + id);
-        } else {
-            inMemoryUserList.remove(id);
-        }
+		}
     }
 
     @Override
@@ -195,10 +199,12 @@ public class SCIMUserManager implements UserManager {
     	Page<it.smartcommunitylab.aac.model.User> page;
 		try {
 			page = rootNode != null 
-					? userService.searchUsersWithSpec(realm, FilterManager.buildQuery(rootNode), pageRequest)
-					: userService.searchUsers(realm, null, pageRequest);
+					? userManager.searchUsersWithSpec(realm, FilterManager.buildQuery(rootNode), pageRequest)
+					: userManager.searchUsers(realm, null, pageRequest);
 		} catch (IllegalArgumentException e) {
 			throw new BadRequestException(e.getMessage(), ResponseCodeConstants.INVALID_FILTER);
+		} catch (NoSuchRealmException e) {
+			 throw new BadRequestException("Realm not found", ResponseCodeConstants.INVALID_REQUEST);
 		}
     	if (!page.hasContent()) return Collections.emptyList();
     	int idx = startIndex - startIndex / count - 1;
@@ -248,28 +254,23 @@ public class SCIMUserManager implements UserManager {
     @Override
     public User getMe(String s, Map<String, Boolean> map)
             throws CharonException, BadRequestException, NotFoundException {
-    	// TODO
         return null;
     }
 
     @Override
     public User createMe(User user, Map<String, Boolean> map)
             throws CharonException, ConflictException, BadRequestException {
-    	// TODO
         return null;
     }
 
     @Override
     public void deleteMe(String s)
             throws NotFoundException, CharonException, NotImplementedException, BadRequestException {
-    	// TODO
-
     }
 
     @Override
     public User updateMe(User user, Map<String, Boolean> map)
             throws NotImplementedException, CharonException, BadRequestException, NotFoundException {
-    	// TODO
     	return null;
     }
 

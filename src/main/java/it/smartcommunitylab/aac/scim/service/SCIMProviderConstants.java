@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.scim.provider;
+package it.smartcommunitylab.aac.scim.service;
 
 /**
  * @author raman

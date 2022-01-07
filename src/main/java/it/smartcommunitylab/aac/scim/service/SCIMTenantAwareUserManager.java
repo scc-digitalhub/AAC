@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.scim.provider;
+package it.smartcommunitylab.aac.scim.service;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public class SCIMTenantAwareUserManager {
 	
 	
 	@Autowired
-	private UserService userService;
+	private it.smartcommunitylab.aac.core.UserManager userManager;
 
 	@PostConstruct
 	public void init() {
@@ -64,7 +64,7 @@ public class SCIMTenantAwareUserManager {
 	public UserManager getUserManager(String realm) {
 		UserManager manager = managers.get(realm);
 		if (manager == null) {
-			manager = new SCIMUserManager(realm, userService);
+			manager = new SCIMUserManager(realm, userManager);
 			managers.put(realm, manager);
 		}
 		return manager;

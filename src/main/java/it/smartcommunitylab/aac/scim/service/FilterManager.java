@@ -15,7 +15,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.scim.provider;
+package it.smartcommunitylab.aac.scim.service;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
