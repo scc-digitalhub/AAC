@@ -1241,6 +1241,7 @@ angular.module('aac.controllers.realmusers', [])
             $scope.modAttributes = {
                 ...attributes,
                 attributes: attributes.attributes.map(at => {
+                    if (at.value && at.type === 'object') at.value = JSON.stringify(at.value); 
                     return {
                         ...at,
                         field: attributeField(at)
@@ -1258,6 +1259,7 @@ angular.module('aac.controllers.realmusers', [])
                 //build attribute dto
                 var attributes = {};
                 $scope.modAttributes.attributes.forEach(a => {
+                    if (a.type === 'object') a.value = a.value ? JSON.parse(a.value) : null; 
                     attributes[a.key] = a.value;
                 });
 
