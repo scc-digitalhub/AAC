@@ -44,7 +44,6 @@ import org.wso2.charon3.core.objects.User;
 import org.wso2.charon3.core.objects.plainobjects.MultiValuedComplexType;
 import org.wso2.charon3.core.objects.plainobjects.ScimName;
 import org.wso2.charon3.core.protocol.ResponseCodeConstants;
-import org.wso2.charon3.core.protocol.SCIMResponse;
 import org.wso2.charon3.core.schema.SCIMConstants;
 import org.wso2.charon3.core.schema.SCIMDefinitions.DataType;
 import org.wso2.charon3.core.utils.CopyUtil;
@@ -52,10 +51,11 @@ import org.wso2.charon3.core.utils.codeutils.Node;
 import org.wso2.charon3.core.utils.codeutils.SearchRequest;
 
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
-import it.smartcommunitylab.aac.core.service.UserService;
 
 /**
  * WSO2 Charon extenstion for User management. 
@@ -70,7 +70,6 @@ public class SCIMUserManager implements UserManager {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SCIMUserManager.class);
     //in memory user manager stores users
-    ConcurrentHashMap<String, User> inMemoryUserList = new ConcurrentHashMap<String, User>();
     ConcurrentHashMap<String, Group> inMemoryGroupList = new ConcurrentHashMap<String, Group>();
 
 	public SCIMUserManager(String realm, it.smartcommunitylab.aac.core.UserManager userManager) {
@@ -89,6 +88,7 @@ public class SCIMUserManager implements UserManager {
 			 throw new NotFoundException("User not found");
 		}
 		if (!user.getRealm().equals(realm)) throw new NotFoundException("User not found");
+		// TODO groups
 		return convertUser(user, requiredAttributes);
 	}
 
@@ -169,15 +169,33 @@ public class SCIMUserManager implements UserManager {
     public User createUser(User user, Map<String, Boolean> map)
             throws CharonException, ConflictException, BadRequestException {
 		
-//		if (userManager.getu)
+		// ignore readonly ID attribute
+		if (user.getId() != null) user.setId(null);
+		// set username lowercase
+		user.setUserName(user.getUsername().toLowerCase());
 		
-    	// TODO
-        if (inMemoryUserList.get(user.getId()) != null) {
-            throw new ConflictException("User with the id : " + user.getId() + "already exists");
-        } else {
-            inMemoryUserList.put(user.getId(), user);
-            return (User) CopyUtil.deepCopy(user);
-        }
+		try {
+			List<it.smartcommunitylab.aac.model.User> list = userManager.findUsersByUsername(realm, user.getUsername().trim());
+			if (list != null && !list.isEmpty()) {
+				it.smartcommunitylab.aac.model.User newUser = list.get(0);
+				user.setId(newUser.getSubjectId());
+				return updateUser(user, map);
+			}
+		} catch (NoSuchRealmException e) {
+			 throw new BadRequestException("Realm not found");
+		} catch (NotFoundException e) {
+			throw new CharonException(e.getMessage());
+		} catch (NotImplementedException e) {
+			throw new CharonException(e.getMessage());
+		}
+		
+		try {
+			String id = userManager.inviteUser(realm, user.getUserName(), null);
+			user.setId(id);
+			return updateUser(user, map);
+		} catch (RegistrationException | NoSuchRealmException | NoSuchProviderException | NoSuchUserException | NotFoundException | NotImplementedException e) {
+			throw new CharonException(e.getMessage());
+		}
     }
 
     @Override
@@ -210,6 +228,7 @@ public class SCIMUserManager implements UserManager {
     	int idx = startIndex - startIndex / count - 1;
     	List<it.smartcommunitylab.aac.model.User> list = page.getContent().subList(idx, Math.min(idx + count, page.getContent().size()));
     	List<Object> result = new LinkedList<>();
+    	// TODO groups
     	for (it.smartcommunitylab.aac.model.User u : list) {
     		result.add(convertUser(u, requiredAttributes));
     	}
@@ -232,23 +251,22 @@ public class SCIMUserManager implements UserManager {
             throws NotImplementedException, CharonException, BadRequestException, NotFoundException {
     	// TODO
        if (user.getId() != null) {
-           inMemoryUserList.replace(user.getId(), user);
-           return (User) CopyUtil.deepCopy(user);
+    	   try {
+    		    it.smartcommunitylab.aac.model.User existing = userManager.getUser(realm, user.getId());
+    		    if (!existing.getRealm().equals(realm)) throw new NotFoundException("User not found");
+    			String name = user.getName() != null ? user.getName().getGivenName() : null;
+    			String surname = user.getName() != null ? user.getName().getFamilyName() : null;
+    		    userManager.updateUser(realm, user.getId(), name, surname, user.getPreferredLanguage());
+    		    if (user.getActive()) userManager.unlockUser(realm, user.getId());
+    		    else userManager.lockUser(realm, user.getId());
+    		    // TODO update groups
+    		    return getUser(user.getId(), map);
+   			} catch (NoSuchUserException | NoSuchRealmException | NoSuchProviderException e) {
+   				throw new NotFoundException("User not found");
+			}
        } else {
            throw new NotFoundException("No user with the id : " + user.getId());
        }
-    }
-
-    public User updateUser(User user, Map<String, Boolean> requiredAttributes,
-                           List<String> allSimpleMultiValuedAttributes)
-            throws CharonException, BadRequestException, NotFoundException {
-    	// TODO
-
-        if (StringUtils.isEmpty(user.getId())) {
-            throw new NotFoundException("No user found. User id is empty.");
-        }
-        inMemoryUserList.replace(user.getId(), user);
-        return (User) CopyUtil.deepCopy(user);
     }
 
     @Override
