@@ -64,7 +64,7 @@ public class AttributeSetsManager {
         }
     }
 
-    public AttributeSet addAttributeSet(String realm, DefaultAttributesSet set) {
+    public AttributeSet addAttributeSet(String realm, AttributeSet set) {
 
         String identifier = set.getIdentifier();
         if (!StringUtils.hasText(identifier) || isReserved(identifier)) {
@@ -78,7 +78,7 @@ public class AttributeSetsManager {
 
     }
 
-    public AttributeSet updateAttributeSet(String realm, String identifier, DefaultAttributesSet set)
+    public AttributeSet updateAttributeSet(String realm, String identifier, AttributeSet set)
             throws NoSuchAttributeSetException {
 
         if (!StringUtils.hasText(identifier) || isReserved(identifier)) {

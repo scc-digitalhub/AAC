@@ -118,7 +118,7 @@ public class AttributeService {
         }).collect(Collectors.toList());
     }
 
-    public AttributeSet addAttributeSet(String realm, DefaultAttributesSet set) {
+    public AttributeSet addAttributeSet(String realm, AttributeSet set) {
 
         String identifier = set.getIdentifier();
         if (!StringUtils.hasText(identifier)) {
@@ -150,7 +150,7 @@ public class AttributeService {
 
     }
 
-    public AttributeSet updateAttributeSet(String identifier, DefaultAttributesSet set)
+    public AttributeSet updateAttributeSet(String identifier, AttributeSet set)
             throws NoSuchAttributeSetException {
 
         logger.debug("update attribute set " + StringUtils.trimAllWhitespace(identifier));
