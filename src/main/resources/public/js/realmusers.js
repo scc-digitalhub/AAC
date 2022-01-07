@@ -1259,7 +1259,7 @@ angular.module('aac.controllers.realmusers', [])
                 //build attribute dto
                 var attributes = {};
                 $scope.modAttributes.attributes.forEach(a => {
-                    if (a.type === 'object') a.value = JSON.parse(a.value); 
+                    if (a.type === 'object') a.value = a.value ? JSON.parse(a.value) : null; 
                     attributes[a.key] = a.value;
                 });
 
