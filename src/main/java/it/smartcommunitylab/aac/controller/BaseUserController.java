@@ -126,23 +126,23 @@ public class BaseUserController {
     @GetMapping("/user/{realm}/{userId}/attributes")
     public Collection<UserAttributes> getRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId)
             throws NoSuchRealmException, NoSuchUserException {
         logger.debug("get attributes for user {} for realm {}",
-                StringUtils.trimAllWhitespace(subjectId), StringUtils.trimAllWhitespace(realm));
+                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 
-        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, subjectId);
+        Collection<UserAttributes> attributes = userManager.getUserAttributes(realm, userId);
         return attributes;
     }
 
     @PostMapping("/user/{realm}/{userId}/attributes")
     public UserAttributes addRealmUserAttributes(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
             @RequestBody @Valid @NotNull AttributesRegistrationDTO reg)
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException, NoSuchAttributeSetException {
         logger.debug("update attributes for user {} for realm {}",
-                StringUtils.trimAllWhitespace(subjectId), StringUtils.trimAllWhitespace(realm));
+                StringUtils.trimAllWhitespace(userId), StringUtils.trimAllWhitespace(realm));
 
         // extract registration
         String identifier = reg.getIdentifier();
@@ -160,7 +160,7 @@ public class BaseUserController {
                 .collect(Collectors.toMap(a -> a.getKey(), a -> a.getValue()));
 
         // register
-        UserAttributes ua = userManager.setUserAttributes(realm, subjectId, provider, identifier, attributes);
+        UserAttributes ua = userManager.setUserAttributes(realm, userId, provider, identifier, attributes);
         return ua;
     }
 

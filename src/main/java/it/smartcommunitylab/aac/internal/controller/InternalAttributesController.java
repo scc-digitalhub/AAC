@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.internal.controller;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -126,7 +127,7 @@ public class InternalAttributesController {
             AttributesRegistrationDTO dto = AttributesRegistrationDTO.from(attributeSet);
             // extract values sent
             // TODO support multiple values as enum
-            Map<String, String> values = new HashMap<>();
+            Map<String, Serializable> values = new HashMap<>();
             if (reg.getAttributes() != null) {
                 for (AttributeDTO ad : reg.getAttributes()) {
                     if (ad.getKey() != null) {

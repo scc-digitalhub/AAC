@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.dto;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -83,7 +84,7 @@ public class AttributesRegistrationDTO {
         @NotBlank
         private String key;
         private String type;
-        private String value;
+        private Serializable value;
 
         private String name;
         private String description;
@@ -104,11 +105,11 @@ public class AttributesRegistrationDTO {
             this.type = type;
         }
 
-        public String getValue() {
+        public Serializable getValue() {
             return value;
         }
 
-        public void setValue(String value) {
+        public void setValue(Serializable value) {
             this.value = value;
         }
 
