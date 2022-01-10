@@ -16,12 +16,10 @@
 
 package it.smartcommunitylab.aac.scim.service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -38,6 +36,7 @@ import org.wso2.charon3.core.exceptions.ConflictException;
 import org.wso2.charon3.core.exceptions.NotFoundException;
 import org.wso2.charon3.core.exceptions.NotImplementedException;
 import org.wso2.charon3.core.extensions.UserManager;
+import org.wso2.charon3.core.objects.AbstractSCIMObject;
 import org.wso2.charon3.core.objects.Group;
 import org.wso2.charon3.core.objects.User;
 import org.wso2.charon3.core.objects.plainobjects.MultiValuedComplexType;
@@ -45,7 +44,6 @@ import org.wso2.charon3.core.objects.plainobjects.ScimName;
 import org.wso2.charon3.core.protocol.ResponseCodeConstants;
 import org.wso2.charon3.core.schema.SCIMConstants;
 import org.wso2.charon3.core.schema.SCIMDefinitions.DataType;
-import org.wso2.charon3.core.utils.CopyUtil;
 import org.wso2.charon3.core.utils.codeutils.Node;
 import org.wso2.charon3.core.utils.codeutils.SearchRequest;
 
@@ -55,6 +53,8 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+import it.smartcommunitylab.aac.group.GroupManager;
+import it.smartcommunitylab.aac.group.model.NoSuchGroupException;
 
 /**
  * WSO2 Charon extenstion for User management. 
@@ -68,15 +68,17 @@ public class SCIMUserManager implements UserManager {
 	
 	private String realm;
 	private it.smartcommunitylab.aac.core.UserManager userManager;
+	private GroupManager groupManager;
+	private String applicationUrl;
 	
 	private static final Logger logger = LoggerFactory.getLogger(SCIMUserManager.class);
-    //in memory user manager stores users
-    ConcurrentHashMap<String, Group> inMemoryGroupList = new ConcurrentHashMap<String, Group>();
 
-	public SCIMUserManager(String realm, it.smartcommunitylab.aac.core.UserManager userManager) {
+	public SCIMUserManager(String realm, it.smartcommunitylab.aac.core.UserManager userManager, GroupManager groupManager, String applicationUrl) {
 		super();
 		this.realm = realm;
 		this.userManager = userManager;
+		this.groupManager = groupManager;
+		this.applicationUrl = applicationUrl;
 	}
 
 	@Override
@@ -85,27 +87,30 @@ public class SCIMUserManager implements UserManager {
 		it.smartcommunitylab.aac.model.User user;
 		try {
 			user = userManager.getUser(realm, id);
+			List<it.smartcommunitylab.aac.group.model.Group> subjectGroups = groupManager.getSubjectGroups(id, realm);
+			if (!user.getRealm().equals(realm)) throw new NotFoundException("User not found");
+			return convertUser(user, subjectGroups, requiredAttributes);
 		} catch (NoSuchUserException | NoSuchRealmException e) {
 			 throw new NotFoundException("User not found");
 		}
-		if (!user.getRealm().equals(realm)) throw new NotFoundException("User not found");
-		// TODO groups
-		return convertUser(user, requiredAttributes);
 	}
 
 	/**
 	 * @param user
+	 * @param subjectGroups 
 	 * @param requiredAttributes 
 	 * @return
 	 * @throws BadRequestException 
 	 * @throws CharonException 
 	 */
-	private User convertUser(it.smartcommunitylab.aac.model.User user, Map<String, Boolean> requiredAttributes) throws CharonException, BadRequestException {
+	private User convertUser(it.smartcommunitylab.aac.model.User user, List<it.smartcommunitylab.aac.group.model.Group> subjectGroups, Map<String, Boolean> requiredAttributes) throws CharonException, BadRequestException {
 		User scimUser = new User();
 		scimUser.setSchemas();
 		scimUser.setId(user.getSubjectId());
 		scimUser.setCreatedInstant(user.getCreateDate().toInstant());
 		scimUser.setLastModifiedInstant(user.getModifiedDate().toInstant());
+		scimUser.setLocation(createRef(user.getSubjectId(), "Users"));
+		scimUser.setResourceType(SCIMConstants.USER);
 		scimUser.setUserName(user.getUsername());
 		scimUser.replaceActive(!user.isLocked());
 		if (user.getEmail() != null) {
@@ -135,6 +140,10 @@ public class SCIMUserManager implements UserManager {
 		if (roles.size() > 0)  {
 			scimUser.replaceRoles(roles);
 		}
+		List<MultiValuedComplexType> groups = subjectGroups.stream().map(g -> new MultiValuedComplexType(null, false, g.getDisplayName(), g.getGroupId(), createRef(g.getGroupId(), "Groups"))).collect(Collectors.toList());
+		if (groups.size() > 0) {
+			scimUser.replaceGroups(groups);
+		}
 		
 		adjustAttributes(scimUser);
 		return scimUser;
@@ -142,11 +151,11 @@ public class SCIMUserManager implements UserManager {
 
     /**
      * Hack to overcome the bug caused by validator - missing type in the attributes of complex types.
-	 * @param scimUser
+	 * @param obj
 	 */
-	private void adjustAttributes(User scimUser) {
-        scimUser.getAttributeList().keySet().forEach(key -> {
-        	Attribute a = scimUser.getAttribute(key);
+	private void adjustAttributes(AbstractSCIMObject obj) {
+        obj.getAttributeList().keySet().forEach(key -> {
+        	Attribute a = obj.getAttribute(key);
         	if (a instanceof ComplexAttribute) {
         		((ComplexAttribute)a).setType(DataType.COMPLEX);
         		((ComplexAttribute) a).getSubAttributesList().values().forEach(sa -> {
@@ -197,6 +206,7 @@ public class SCIMUserManager implements UserManager {
             throws NotFoundException, CharonException, NotImplementedException, BadRequestException {
     	try {
 			userManager.removeUser(realm, id);
+			groupManager.deleteUserFromGroups(id, realm);
 		} catch (NoSuchUserException | NoSuchRealmException e) {
             throw new NotFoundException("No user with the id : " + id);
 		}
@@ -211,22 +221,23 @@ public class SCIMUserManager implements UserManager {
     	Page<it.smartcommunitylab.aac.model.User> page;
 		try {
 			page = rootNode != null 
-					? userManager.searchUsersWithSpec(realm, FilterManager.buildQuery(rootNode), pageRequest)
+					? userManager.searchUsersWithSpec(realm, FilterManager.buildQuery(rootNode, realm), pageRequest)
 					: userManager.searchUsers(realm, null, pageRequest);
+			
+	    	if (!page.hasContent()) return Collections.emptyList();
+	    	int idx = startIndex - startIndex / count - 1;
+	    	List<it.smartcommunitylab.aac.model.User> list = page.getContent().subList(idx, Math.min(idx + count, page.getContent().size()));
+	    	List<Object> result = new LinkedList<>();
+	    	for (it.smartcommunitylab.aac.model.User u : list) {
+				List<it.smartcommunitylab.aac.group.model.Group> subjectGroups = groupManager.getSubjectGroups(u.getSubjectId(), realm);
+	    		result.add(convertUser(u, subjectGroups, requiredAttributes));
+	    	}
+	    	return result;
 		} catch (IllegalArgumentException e) {
 			throw new BadRequestException(e.getMessage(), ResponseCodeConstants.INVALID_FILTER);
 		} catch (NoSuchRealmException e) {
 			 throw new BadRequestException("Realm not found", ResponseCodeConstants.INVALID_REQUEST);
 		}
-    	if (!page.hasContent()) return Collections.emptyList();
-    	int idx = startIndex - startIndex / count - 1;
-    	List<it.smartcommunitylab.aac.model.User> list = page.getContent().subList(idx, Math.min(idx + count, page.getContent().size()));
-    	List<Object> result = new LinkedList<>();
-    	// TODO groups
-    	for (it.smartcommunitylab.aac.model.User u : list) {
-    		result.add(convertUser(u, requiredAttributes));
-    	}
-    	return result;
     	
     }
 
@@ -243,7 +254,6 @@ public class SCIMUserManager implements UserManager {
     @Override
     public User updateUser(User user, Map<String, Boolean> map)
             throws NotImplementedException, CharonException, BadRequestException, NotFoundException {
-    	// TODO
        if (user.getId() != null) {
     	   try {
     		    it.smartcommunitylab.aac.model.User existing = userManager.getUser(realm, user.getId());
@@ -255,7 +265,11 @@ public class SCIMUserManager implements UserManager {
         		    if (user.getActive()) userManager.unlockUser(realm, user.getId());
         		    else userManager.lockUser(realm, user.getId());
     		    }
-    		    // TODO update groups
+    		    // Group membership is modifiable only through group resource
+//    		    if (user.isAttributeExist(SCIMConstants.UserSchemaConstants.GROUP) && user.getGroups() != null) {
+//    		    	List<String> groups = user.getGroups().stream().map(v -> v.getValue()).collect(Collectors.toList());
+//        		    groupManager.setSubjectGroups(user.getId(), realm, groups);
+//    		    }
     		    return getUser(user.getId(), map);
    			} catch (NoSuchUserException | NoSuchRealmException | NoSuchProviderException e) {
    				throw new NotFoundException("User not found");
@@ -291,75 +305,107 @@ public class SCIMUserManager implements UserManager {
     @Override
     public Group createGroup(Group group, Map<String, Boolean> map)
             throws CharonException, ConflictException, NotImplementedException, BadRequestException {
-    	// TODO
-        inMemoryGroupList.put(group.getId(), group);
-        return (Group) CopyUtil.deepCopy(group);
+    	try {
+			it.smartcommunitylab.aac.group.model.Group created = groupManager.createGroup(realm, group.getDisplayName(), group.getExternalId());
+			if (group.isAttributeExist(SCIMConstants.GroupSchemaConstants.MEMBERS) && group.getMembers() != null) {
+				List<String> members = group.getMembers().stream().map(m -> m.toString()).collect(Collectors.toList());
+			    groupManager.setGroupMembers(created.getGroupId(), realm, members);
+			}
+
+			return getGroup(created.getGroupId(), map);
+		} catch (NotFoundException | NoSuchRealmException | NoSuchGroupException | NoSuchUserException e) {
+			throw new CharonException(e.getMessage());
+		}
     }
 
     @Override
     public Group getGroup(String id, Map<String, Boolean> map)
             throws NotImplementedException, BadRequestException, CharonException, NotFoundException {
-    	// TODO
-        if (inMemoryGroupList.get(id) != null) {
-            return (Group) CopyUtil.deepCopy(inMemoryGroupList.get(id));
-        } else {
-            throw new NotFoundException("No user with the id : " + id);
-        }
+    	
+		try {
+	    	it.smartcommunitylab.aac.group.model.Group group = groupManager.getGroup(id, realm);
+	    	return convertGroup(group, map);
+		} catch (NoSuchRealmException | NoSuchGroupException e) {
+			throw new NotFoundException("Group not found");
+		}
     }
 
-    @Override
+    /**
+	 * @param group
+	 * @param map
+     * @throws BadRequestException 
+     * @throws CharonException 
+	 */
+	private Group convertGroup(it.smartcommunitylab.aac.group.model.Group group, Map<String, Boolean> map) throws CharonException, BadRequestException {
+		Group sciGroup = new Group();
+		sciGroup.setSchemas();
+		sciGroup.setId(group.getGroupId());
+		sciGroup.setExternalId(group.getExternalId());
+		sciGroup.setDisplayName(group.getDisplayName());
+		sciGroup.setCreatedInstant(group.getCreateDate().toInstant());
+		sciGroup.setLastModifiedInstant(group.getModifiedDate().toInstant());
+		sciGroup.setLocation(createRef(group.getGroupId(), "Groups"));
+		sciGroup.setResourceType(SCIMConstants.GROUP);
+		if (group.getMembers().size() > 0) {
+			for (String m : group.getMembers()) {
+				sciGroup.setMember(m, null, createRef(m, "Users"), null);
+			}
+		}
+		adjustAttributes(sciGroup);
+		return sciGroup;		
+	}
+
+	@Override
     public void deleteGroup(String id)
             throws NotFoundException, CharonException, NotImplementedException, BadRequestException {
-    	// TODO
-        if (inMemoryGroupList.get(id) == null) {
-            throw new NotFoundException("No user with the id : " + id);
-        } else {
-            inMemoryGroupList.remove(id);
-        }
+		try {
+			groupManager.deleteGroup(id, realm);
+		} catch (NoSuchRealmException | NoSuchGroupException e) {
+			throw new NotFoundException("Group not found");
+		}
     }
 
     @Override
     public List<Object> listGroupsWithGET(Node rootNode, int startIndex, int count, String sortBy, String sortOrder,
                                           String domainName, Map<String, Boolean> requiredAttributes)
             throws CharonException, NotImplementedException, BadRequestException {
-        if (sortBy != null || sortOrder != null) {
-            throw new NotImplementedException("Sorting is not supported");
-        }  else if (startIndex != 1) {
-            throw new NotImplementedException("Pagination is not supported");
-        } else if (rootNode != null) {
-            throw new NotImplementedException("Filtering is not supported");
-        } else {
-            return listGroups(requiredAttributes);
-        }
-    }
+    	PageRequest pageRequest = PageRequest.of(startIndex / count, count * 2, SCIMConstants.OperationalConstants.ASCENDING.equals(sortOrder) ? Direction.ASC : Direction.DESC, sortBy);
+    	Page<it.smartcommunitylab.aac.group.model.Group> page;
+		try {
+			page = rootNode != null 
+					? groupManager.searchGroupsWithSpec(realm, FilterManager.buildQuery(rootNode, realm), pageRequest)
+					: groupManager.getRealmGroups(realm, pageRequest);
+			
+	    	if (!page.hasContent()) return Collections.emptyList();
+	    	int idx = startIndex - startIndex / count - 1;
+	    	List<it.smartcommunitylab.aac.group.model.Group> list = page.getContent().subList(idx, Math.min(idx + count, page.getContent().size()));
+	    	List<Object> result = new LinkedList<>();
+	    	for (it.smartcommunitylab.aac.group.model.Group g : list) {
+	    		result.add(convertGroup(g, requiredAttributes));
+	    	}
+	    	return result;
+		} catch (IllegalArgumentException e) {
+			throw new BadRequestException(e.getMessage(), ResponseCodeConstants.INVALID_FILTER);
+		} catch (NoSuchRealmException e) {
+			 throw new BadRequestException("Realm not found", ResponseCodeConstants.INVALID_REQUEST);
+		}    
+	}
 
-    private List<Object> listGroups(Map<String, Boolean> requiredAttributes) {
-    	// TODO
-        List<Object> groupList = new ArrayList<>();
-        groupList.add(0, 0);
-        for (Group group : inMemoryGroupList.values()) {
-            groupList.add(group);
-        }
-        groupList.set(0, groupList.size() - 1);
-        try {
-            return (List<Object>) CopyUtil.deepCopy(groupList);
-        } catch (CharonException e) {
-            logger.error("Error in listing groups");
-            return  null;
-        }
 
-    }
 
     @Override
     public Group updateGroup(Group group, Group group1, Map<String, Boolean> map)
             throws NotImplementedException, BadRequestException, CharonException, NotFoundException {
-    	// TODO
-        if (group.getId() != null) {
-            inMemoryGroupList.replace(group.getId(), group);
-            return (Group) CopyUtil.deepCopy(group);
-        } else {
-            throw new NotFoundException("No user with the id : " + group.getId());
-        }
+    	try {
+			groupManager.updateGroup(group.getId(), realm, group1.getDisplayName(), group.getExternalId());
+			if (group1.isAttributeExist(SCIMConstants.GroupSchemaConstants.MEMBERS) && group1.getMembers() != null) {
+				List<String> members = group1.getMembers().stream().map(m -> m.toString()).collect(Collectors.toList());
+			    groupManager.setGroupMembers(group1.getId(), realm, members);
+			}
+		} catch (NoSuchRealmException | NoSuchGroupException | NoSuchUserException e) {
+			throw new NotFoundException("Group not found");
+		}
+	    return getGroup(group1.getId(), map);
     }
 
     @Override
@@ -370,4 +416,9 @@ public class SCIMUserManager implements UserManager {
                 searchRequest.getCount(), searchRequest.getSortBy(), searchRequest.getSortOder(),
                 searchRequest.getDomainName(), requiredAttributes);
     }
+    
+    private String createRef(String id, String type) {
+    	return (applicationUrl.endsWith("/") ? applicationUrl.substring(0, applicationUrl.length()-1) : applicationUrl) + "/scim/v2/" + realm + "/" + type + "/" + id;
+    }
+    
 }

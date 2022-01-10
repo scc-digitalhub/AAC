@@ -18,20 +18,15 @@ package it.smartcommunitylab.aac.scim.controller;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.wso2.charon3.core.exceptions.CharonException;
 import org.wso2.charon3.core.protocol.SCIMResponse;
-import org.wso2.charon3.core.schema.SCIMConstants;
 
 /**
  * @author raman
  *
  */
 public class SCIMResourceController {
-
-	@Value("${application.url:}")
-	private String applicationUrl;
 
 	
 	public ResponseEntity<?> buildResponse(String realm, SCIMResponse scimResponse) throws CharonException {
@@ -42,11 +37,7 @@ public class SCIMResourceController {
         Map<String, String> httpHeaders = scimResponse.getHeaderParamMap();
         if (httpHeaders != null && !httpHeaders.isEmpty()) {
             for (Map.Entry<String, String> entry : httpHeaders.entrySet()) {
-            	if (entry.getKey().equals(SCIMConstants.LOCATION_HEADER)) {
-                    builder.header(entry.getKey(), (applicationUrl.endsWith("/") ? applicationUrl.substring(0, applicationUrl.length()-1) : applicationUrl) + "/scim/v2/" + realm + entry.getValue());
-            	} else {
-                    builder.header(entry.getKey(), entry.getValue());
-            	}
+                builder.header(entry.getKey(), entry.getValue());
             }
         }
         //set the payload of the response, if available.

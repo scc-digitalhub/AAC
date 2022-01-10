@@ -38,8 +38,11 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         // match only token endpoints
-        http.requestMatcher(getRequestMatcher())
-                .authorizeRequests((authorizeRequests) -> authorizeRequests
+        http
+        .requestMatcher(getRequestMatcher())
+                .authorizeRequests((authorizeRequests) -> 
+                		authorizeRequests
+                		.requestMatchers(getPublicRequestMatcher()).permitAll()
                         .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_CLIENT"))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .opaqueToken(opaqueToken -> opaqueToken
@@ -87,6 +90,16 @@ public class APISecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
+    public RequestMatcher getPublicRequestMatcher() {
+        return new OrRequestMatcher(
+                new AntPathRequestMatcher("/scim/v2/*/ServiceProviderConfig"),
+                new AntPathRequestMatcher("/scim/v2/*/ResourceTypes"),
+                new AntPathRequestMatcher("/scim/v2/*/Schemas"),
+                new AntPathRequestMatcher("/scim/v2/*/Schemas/**")
+                );
+
+    }
+    
     public static final String API_PREFIX = "/api";
 
 }

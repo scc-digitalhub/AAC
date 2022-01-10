@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.persistence.SubjectAuthorityEntityRepositor
 import it.smartcommunitylab.aac.core.persistence.SubjectEntity;
 import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.group.persistence.GroupEntity;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntity;
@@ -71,6 +72,8 @@ public class SubjectService {
             prefix = RealmRoleEntity.ID_PREFIX;
         } else if (SystemKeys.RESOURCE_SERVICE.equals(type)) {
             prefix = ServiceEntity.ID_PREFIX;
+        } else if (SystemKeys.RESOURCE_GROUP.equals(type)) {
+            prefix = GroupEntity.ID_PREFIX;
         }
 
         // we prepend a fixed prefix to enable discovery of entity type from uuid

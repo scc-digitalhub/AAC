@@ -35,7 +35,6 @@ import org.wso2.charon3.core.utils.codeutils.ExpressionNode;
 import org.wso2.charon3.core.utils.codeutils.Node;
 import org.wso2.charon3.core.utils.codeutils.OperationNode;
 
-import it.smartcommunitylab.aac.core.persistence.UserEntity;
 
 /**
  * @author raman
@@ -44,12 +43,14 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 public class FilterManager {
 
 	@SuppressWarnings("serial")
-	public static Specification<UserEntity> buildQuery(Node root) {
-		Specification<UserEntity> spec = new Specification<UserEntity>() {
+	public static <T> Specification<T> buildQuery(Node root, String realm) {
+		Specification<T> spec = new Specification<T>() {
 
 			@Override
-			public Predicate toPredicate(Root<UserEntity> entityRoot, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-				return createPredicate(root, entityRoot, criteriaBuilder);
+			public Predicate toPredicate(Root<T> entityRoot, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+				return criteriaBuilder.and(
+						createPredicate(root, entityRoot, criteriaBuilder),
+						criteriaBuilder.equal(entityRoot.get("realm"), criteriaBuilder.literal(realm)));
 			}
 			
 		};
@@ -63,7 +64,7 @@ public class FilterManager {
 	 * @return
 	 * @throws BadRequestException 
 	 */
-	protected static Predicate createPredicate(Node root, Root<UserEntity> er, CriteriaBuilder cb) {
+	protected static <T>  Predicate createPredicate(Node root, Root<T> er, CriteriaBuilder cb) {
 		if (root instanceof OperationNode) {
 			switch(((OperationNode) root).getOperation()) {
 			case SCIMConstants.OperationalConstants.AND:
@@ -128,9 +129,11 @@ public class FilterManager {
 		case SCIMConstants.CommonSchemaConstants.ID_URI: return "uuid";
 		case SCIMConstants.CommonSchemaConstants.CREATED_URI: return "createDate";
 		case SCIMConstants.CommonSchemaConstants.LAST_MODIFIED_URI: return "modifiedDate";
+		case SCIMConstants.CommonSchemaConstants.EXTERNAL_ID_URI: return "externalId";
 		case SCIMConstants.UserSchemaConstants.USER_NAME_URI: return "username";
 		case SCIMConstants.UserSchemaConstants.EMAILS_VALUE_URI: return "emailAddress";
 		case SCIMConstants.UserSchemaConstants.ACTIVE_URI: return "locked";
+		case SCIMConstants.GroupSchemaConstants.DISPLAY_NAME_URI: return "displayName";
 		}
 		throw new IllegalArgumentException("Invalid attribute: " + attribute);
 	}
@@ -140,7 +143,7 @@ public class FilterManager {
 	 * @param cb
 	 * @return
 	 */
-	private static Expression<Boolean> createRestriction(Node node, Root<UserEntity> er, CriteriaBuilder cb) {
+	private static <T> Expression<Boolean> createRestriction(Node node, Root<T> er, CriteriaBuilder cb) {
 		return createPredicate(node, er, cb);
 	}
 	
