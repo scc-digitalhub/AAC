@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,7 +134,7 @@ public class AttributeService {
                 for (Attribute attr : set.getAttributes()) {
 
                     AttributeEntity ae = attributeService.addAttribute(identifier, attr.getKey(),
-                            attr.getType(), null,
+                            attr.getType(), attr.getIsMultiple(),
                             attr.getName(), attr.getDescription());
 
                     attrs.add(toAttribute(ae));
@@ -174,12 +175,12 @@ public class AttributeService {
                 AttributeEntity ae = attributeService.findAttribute(identifier, attr.getKey());
                 if (ae == null) {
                     ae = attributeService.addAttribute(identifier, attr.getKey(),
-                            attr.getType(), null,
+                            attr.getType(), attr.getIsMultiple(),
                             attr.getName(), attr.getDescription());
                 } else {
                     try {
                         ae = attributeService.updateAttribute(identifier, attr.getKey(),
-                                attr.getType(), null,
+                                attr.getType(), attr.getIsMultiple(),
                                 attr.getName(), attr.getDescription());
                     } catch (NoSuchAttributeException e) {
                     }
@@ -284,6 +285,7 @@ public class AttributeService {
 
         attr.setName(ae.getName());
         attr.setDescription(ae.getDescription());
+        attr.setIsMultiple(ae.isMultiple());
 
         return attr;
     }
