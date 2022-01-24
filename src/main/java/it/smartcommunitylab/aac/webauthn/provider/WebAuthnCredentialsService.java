@@ -50,9 +50,9 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
     public UserWebAuthnCredentials getUserCredentials(String userId) throws NoSuchUserException {
         // fetch user
         String username = parseResourceId(userId);
-        String realm = getRealm();
+        String provider = getProvider();
         WebAuthnUserAccount account = userAccountService
-                .findByRealmAndUsername(realm, username);
+                .findByProviderAndUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -96,9 +96,9 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
 
         // fetch user
         String username = parseResourceId(userId);
-        String realm = getRealm();
+        String provider = getProvider();
         WebAuthnUserAccount account = userAccountService
-                .findByRealmAndUsername(realm, username);
+                .findByProviderAndSubject(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }

@@ -14,7 +14,9 @@ async function performAuthentication() {
             ),
         }
     );
-    const credentialGetJson = await starLoginResp.json()
+    const assertionRequestAndKey = await starLoginResp.json();
+    const loginKey = assertionRequestAndKey.key;
+    const credentialGetJson = assertionRequestAndKey.assertionRequest;
     const credentialGetOptions = {
         publicKey: {
             ...credentialGetJson.publicKey,
@@ -52,6 +54,7 @@ async function performAuthentication() {
             },
             body: JSON.stringify(
                 {
+                    "key": loginKey,
                     "assertion": authenticatorReponse
                 }
             ),

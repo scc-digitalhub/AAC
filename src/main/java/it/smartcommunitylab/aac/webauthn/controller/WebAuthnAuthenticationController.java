@@ -3,9 +3,10 @@ package it.smartcommunitylab.aac.webauthn.controller;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
-import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.impl.Pair;
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
 import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
@@ -24,8 +25,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnRpServiceReigistrationRepository;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 
 /**
  * Manages the endpoints connected to the authentication ceremony of WebAuthn.
@@ -38,8 +42,10 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
 @RequestMapping
 public class WebAuthnAuthenticationController {
 
+    private ObjectMapper mapper = new ObjectMapper();
+
     @Autowired
-    private WebAuthnIdentityAuthority webAuthnAuthority;
+    private WebAuthnRpServiceReigistrationRepository webAuthnRpServiceReigistrationRepository;
 
     /**
      * Serves the page to start a new WebAuthn authentication ceremony.
@@ -65,11 +71,10 @@ public class WebAuthnAuthenticationController {
     public String generateAssertionOptions(@RequestBody LinkedHashMap<String, Object> body,
             @PathVariable("providerId") String providerId) {
         try {
-            // resolve provider
-            WebAuthnIdentityService idp = webAuthnAuthority.getIdentityService(providerId);
+            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
+            final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
 
             String username;
-            final HttpSession session = ControllerUtils.getSession();
             Object _userName = body.get("username");
             if (ControllerUtils.isValidUsername(_userName)) {
                 username = (String) _userName;
@@ -77,9 +82,11 @@ public class WebAuthnAuthenticationController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
 
-            AssertionRequest req = idp.startLogin(username,
-                    session.getId());
-            return req.toCredentialsGetJson();
+            Pair<AssertionRequest, String> reqAndKey = rps.startLogin(username, realm);
+            final WebAuthnLoginResponse response = new WebAuthnLoginResponse();
+            response.setAssertionRequest(reqAndKey.first);
+            response.setKey(reqAndKey.second);
+            return mapper.writeValueAsString(response);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -92,22 +99,21 @@ public class WebAuthnAuthenticationController {
     @Hidden
     @RequestMapping(value = "/auth/webauthn/assertions/{providerId}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String verifyAssertion(@RequestBody LinkedHashMap<String, Object> body,
+    public String verifyAssertion(@RequestBody @Valid WebAuthnAssertionResponse body,
             @PathVariable("providerId") String providerId) {
-        Object assertionJSON = body.get("assertion");
+        Object assertionJSON = body.getAssertion();
+        final String key = body.getKey();
         if (assertionJSON == null || !(assertionJSON instanceof LinkedHashMap)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
         }
         try {
-            WebAuthnIdentityService idp = webAuthnAuthority.getIdentityService(providerId);
+            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
 
-            ObjectMapper mapper = new ObjectMapper();
             String assertionString = mapper.writeValueAsString(assertionJSON);
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
                     .parseAssertionResponseJson((String) assertionString);
-            final HttpSession session = ControllerUtils.getSession();
 
-            final Optional<String> authenticatedUser = idp.finishLogin(pkc, session.getId());
+            final Optional<String> authenticatedUser = rps.finishLogin(pkc, key);
             if (authenticatedUser.isPresent()) {
                 return "Welcome " + authenticatedUser.get();
             } else {

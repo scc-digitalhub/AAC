@@ -8,6 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.auth.RegisterCredentialAuthenticationToken;
@@ -54,8 +55,12 @@ public class WebAuthnAuthenticationProvider extends ExtendedAuthenticationProvid
     protected Authentication doAuthenticate(Authentication authentication) {
         String username = authentication.getName();
 
-        WebAuthnUserAccount account = userAccountService
-                .findByRealmAndUsername(getRealm(), username);
+        WebAuthnUserAccount account = null;
+        try {
+            account = userAccountService
+                    .findByProviderAndUsername(getProvider(), username);
+        } catch (NoSuchUserException _e) {
+        }
         if (account == null) {
             throw new WebAuthnAuthenticationException(
                     "authentication failed");
