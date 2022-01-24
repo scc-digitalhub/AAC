@@ -415,8 +415,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         startRegistrationFilter.setAuthenticationSuccessHandler(successHandler());
         filters.add(startRegistrationFilter);
 
-        //TODO: civts, add WebAuthnFinishRegistrationFilter, WebAuthnStartAssertionFilter, WebAuthnFinishAssertionFilter
-
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);
 
