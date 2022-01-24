@@ -23,7 +23,9 @@ async function performRegistration() {
         alert("Could not register this username");
         return;
     }
-    const credentialCreateJson = await startRegistrationResp.json()
+    const optionsAndRegistrationKey = await startRegistrationResp.json();
+    const registrationKey = optionsAndRegistrationKey.key;
+    const credentialCreateJson = optionsAndRegistrationKey.options;
     const decodedChallenge = base64URLStringToBuffer(credentialCreateJson.publicKey.challenge);
     const credentialCreateOptions = {
         publicKey: {
@@ -61,6 +63,7 @@ async function performRegistration() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                "key": registrationKey,
                 "attestation": payload,
             }),
         }

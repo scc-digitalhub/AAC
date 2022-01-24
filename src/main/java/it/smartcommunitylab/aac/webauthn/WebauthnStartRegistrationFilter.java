@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
@@ -119,6 +120,7 @@ public class WebauthnStartRegistrationFilter extends AbstractAuthenticationProce
         }
 
         String realm = providerConfig.getRealm();
+        String provider = providerConfig.getProvider();
         request.setAttribute("realm", realm);
 
         String username = request.getParameter("username");
@@ -131,7 +133,12 @@ public class WebauthnStartRegistrationFilter extends AbstractAuthenticationProce
         // fetch account to check
         // if this does not exists we'll let authProvider handle the error to ensure
         // proper audit
-        WebAuthnUserAccount account = userAccountService.findByRealmAndUsername(realm, username);
+        WebAuthnUserAccount account = null;
+
+        try {
+            account = userAccountService.findByProviderAndUsername(provider, username);
+        } catch (NoSuchUserException _e) {
+        }
 
         if (account == null) {
             AuthenticationException e = new BadCredentialsException("invalid username");

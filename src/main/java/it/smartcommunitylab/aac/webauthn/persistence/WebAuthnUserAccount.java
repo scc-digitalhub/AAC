@@ -21,7 +21,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
 @Entity
-@Table(name = "webauthn_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "username" }))
+@Table(name = "webauthn_users", uniqueConstraints = @UniqueConstraint(columnNames = { "provider_id", "username" }))
 @EntityListeners(AuditingEntityListener.class)
 public class WebAuthnUserAccount implements UserAccount {
 

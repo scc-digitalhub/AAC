@@ -10,8 +10,6 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
  * For this class, everytime we should use the 'username', we
  * will instead use a string in the following format:
@@ -22,12 +20,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String providerId;
-    @Autowired
     WebAuthnUserAccountRepository userAccountRepository;
-    @Autowired
     WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
-    public WebAuthnYubicoCredentialsRepository(String provider) {
+    public WebAuthnYubicoCredentialsRepository(String provider,
+            WebAuthnUserAccountRepository userAccountRepository,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository) {
+        this.userAccountRepository = userAccountRepository;
+        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
         this.providerId = provider;
     }
 

@@ -47,9 +47,12 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
     @Override
     public List<WebAuthnUserAccount> listAccounts(String subject) {
-        WebAuthnUserAccount account = userAccountService.findBySubject(subject, getRealm());
-        final List<WebAuthnUserAccount> accounts = new LinkedList<>();
-        accounts.add(account);
+        List<WebAuthnUserAccount> accounts;
+        try {
+            accounts = userAccountService.findBySubjectAndRealm(subject, getRealm());
+        } catch (NoSuchUserException e) {
+            accounts = new LinkedList<>();
+        }
 
         // we need to fix ids
         return accounts.stream().map(a -> {
@@ -61,33 +64,27 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
     @Override
     public WebAuthnUserAccount getAccount(String userId) throws NoSuchUserException {
-        return userAccountService.getAccount(userId);
+        return userAccountService.findByProviderAndSubject(getProvider(), userId);
     }
 
     @Override
     public WebAuthnUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
-        String realm = getRealm();
+        String provider = getProvider();
 
         // check if passed map contains at least one valid set and fetch account
         // TODO rewrite less hardcoded
         // note AVOID reflection, we want native image support
         WebAuthnUserAccount account = null;
         if (attributes.containsKey("userId")) {
-            String username = parseResourceId(attributes.get("userId"));
-            account = userAccountService.findByRealmAndUsername(realm, username);
+            String subject = parseResourceId(attributes.get("userId"));
+            account = userAccountService.findByProviderAndSubject(provider, subject);
         }
 
         if (account == null
                 && attributes.keySet().containsAll(Arrays.asList("realm", "username"))
-                && realm.equals((attributes.get("realm")))) {
+                && provider.equals((attributes.get("provider")))) {
             account = userAccountService
-                    .findByRealmAndUsername(realm, attributes.get("username"));
-        }
-
-        if (account == null
-                && attributes.keySet().containsAll(Arrays.asList("realm", "email"))
-                && realm.equals((attributes.get("realm")))) {
-            account = userAccountService.findByEmail(realm, attributes.get("email"));
+                    .findByProviderAndUsername(provider, attributes.get("username"));
         }
 
         if (account == null
@@ -116,7 +113,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
     @Override
     public void deleteAccount(String subject) throws NoSuchUserException {
-        userAccountService.deleteAccount(subject);
+        userAccountService.deleteAccount(getProvider(), subject);
     }
 
     @Override
@@ -142,7 +139,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         }
 
-        String realm = getRealm();
+        String provider = getProvider();
 
         // extract base fields
         String username = Jsoup.clean(reg.getUsername(), Safelist.none());
@@ -153,7 +150,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         }
 
         WebAuthnUserAccount account = userAccountService
-                .findByRealmAndUsername(realm, username);
+                .findByProviderAndUsername(provider, username);
         if (account != null) {
             throw new AlreadyRegisteredException("duplicate-registration");
         }
@@ -179,7 +176,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         account = new WebAuthnUserAccount();
         account.setSubject(subjectId);
-        account.setRealm(realm);
+        account.setRealm(getRealm());
         account.setUsername(username);
         account.setCredentials(credentials);
         account.setEmailAddress(email);
@@ -208,10 +205,10 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         }
 
         String username = parseResourceId(userId);
-        String realm = getRealm();
+        String provider = getProvider();
 
         WebAuthnUserAccount account = userAccountService
-                .findByRealmAndUsername(realm, username);
+                .findByProviderAndSubject(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }

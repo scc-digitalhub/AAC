@@ -3,9 +3,10 @@ package it.smartcommunitylab.aac.webauthn.controller;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
-import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.impl.Pair;
 import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
 import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
@@ -27,8 +28,12 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnRpServiceReigistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnSubjectResolver;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 
 /**
  * Manages the endpoints connected to the registration ceremony of WebAuthn.
@@ -40,8 +45,13 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnSubjectResolver;
 @RequestMapping
 public class WebAuthnRegistrationController {
 
+    private ObjectMapper mapper = new ObjectMapper();
+
     @Autowired
-    private WebAuthnIdentityAuthority webAuthnAuthority;
+    private WebAuthnRpServiceReigistrationRepository webAuthnRpServiceReigistrationRepository;
+
+    @Autowired
+    private WebAuthnIdentityAuthority webAuthnIdentityAuthority;
 
     /**
      * Serves the page to register a new WebAuthn credential.
@@ -51,11 +61,17 @@ public class WebAuthnRegistrationController {
     @Hidden
     @RequestMapping(value = "/auth/webauthn/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(@PathVariable("providerId") String providerId) {
-        WebAuthnIdentityService idp = webAuthnAuthority.getIdentityService(providerId);
-        if (!idp.canRegister()) {
-            throw new RegistrationException("registration is disabled");
+        try {
+            final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
+                    .getConfigMap()
+                    .isEnableRegistration();
+            if (!canRegister) {
+                throw new RegistrationException("registration is disabled");
+            }
+            return "webauthn/register";
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return "webauthn/register";
     }
 
     /**
@@ -71,15 +87,15 @@ public class WebAuthnRegistrationController {
     public String generateAttestationOptions(@RequestBody LinkedHashMap<String, Object> body,
             @PathVariable("providerId") String providerId) {
         try {
-            // resolve provider
-            WebAuthnIdentityService idp = webAuthnAuthority.getIdentityService(providerId);
-
-            if (!idp.canRegister()) {
+            final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
+                    .getConfigMap()
+                    .isEnableRegistration();
+            if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
+            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
 
             String username;
-            final HttpSession session = ControllerUtils.getSession();
             Object _userName = body.get("username");
             if (ControllerUtils.isValidUsername(_userName)) {
                 username = (String) _userName;
@@ -95,16 +111,23 @@ public class WebAuthnRegistrationController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid displayName");
             }
 
-            final WebAuthnSubjectResolver subjectResolver = idp.getSubjectResolver();
+            final WebAuthnIdentityService webAuthnIdentityService = webAuthnIdentityAuthority
+                    .getIdentityService(providerId);
+            final WebAuthnSubjectResolver subjectResolver = webAuthnIdentityService.getSubjectResolver();
             Subject resolvedUserId = subjectResolver
                     .resolveByUserId(username);
             final Optional<Subject> subjectOpt = Optional
                     .ofNullable(resolvedUserId);
-            PublicKeyCredentialCreationOptions options = idp.startRegistration(username,
-                    session.getId(),
+            final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
+            Pair<PublicKeyCredentialCreationOptions, String> optionsAndKey = rps.startRegistration(
+                    username,
+                    realm,
                     displayName,
                     subjectOpt);
-            return options.toCredentialsCreateJson();
+            final WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse();
+            response.setOptions(optionsAndKey.first);
+            response.setKey(optionsAndKey.second);
+            return mapper.writeValueAsString(response);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -117,28 +140,25 @@ public class WebAuthnRegistrationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/attestations/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String verifyAttestation(@RequestBody LinkedHashMap<String, Object> body,
+    public String verifyAttestation(@RequestBody @Valid WebAuthnAttestationResponse body,
             @PathVariable("providerId") String providerId) {
         final ResponseStatusException invalidAttestationException = new ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "Invalid attestation");
         try {
-            // resolve provider
-            WebAuthnIdentityService idp = webAuthnAuthority.getIdentityService(providerId);
-
-            if (!idp.canRegister()) {
+            final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
+                    .getConfigMap()
+                    .isEnableRegistration();
+            if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
+            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
+            final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
 
-            Object attestationMap = body.get("attestation");
-            ObjectMapper mapper = new ObjectMapper();
-            if (attestationMap == null || !(attestationMap instanceof LinkedHashMap)) {
-                throw invalidAttestationException;
-            }
-            String attestationString = mapper.writeValueAsString(attestationMap);
+            String key = body.getKey();
+            String attestationString = mapper.writeValueAsString(body.getAttestation());
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
                     .parseRegistrationResponseJson(attestationString);
-            final HttpSession session = ControllerUtils.getSession();
-            final Optional<String> authenticatedUser = idp.finishRegistration(pkc, session.getId());
+            final Optional<String> authenticatedUser = rps.finishRegistration(pkc, realm, key);
             if (authenticatedUser.isPresent()) {
                 // TODO: civts, time to authenticate the session
                 return "Welcome " + authenticatedUser.get() + ". Next step is to authenticate your session";

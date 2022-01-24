@@ -81,7 +81,6 @@ import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.WebauthnStartRegistrationFilter;
-import it.smartcommunitylab.aac.webauthn.auth.WebAuthnRpRegistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -548,8 +547,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getWebAuthnAuthorityFilters(AuthenticationManager authManager,
-                    ProviderRepository<WebAuthnIdentityProviderConfig> providerRepository,
-                    WebAuthnRpRegistrationRepository relyingPartyRegistrationRepository) {
+                    ProviderRepository<WebAuthnIdentityProviderConfig> providerRepository
+                    ) {
 
             // TODO: civts, build filters
 
