@@ -14,19 +14,20 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 public class WebAuthnUserDetailsService implements UserDetailsService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final String realm;
+    private final String provider;
 
     private final WebAuthnUserAccountService userAccountService;
 
-    public WebAuthnUserDetailsService(WebAuthnUserAccountService userAccountService, String realm) {
+    public WebAuthnUserDetailsService(WebAuthnUserAccountService userAccountService, String provider) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         this.userAccountService = userAccountService;
-        this.realm = realm;
+        this.provider = provider;
     }
 
     @Override
@@ -36,11 +37,16 @@ public class WebAuthnUserDetailsService implements UserDetailsService {
         // expected that the user name is already unwrapped ready for repository
         String username = userId;
 
-        WebAuthnUserAccount account = userAccountService
-                .findByRealmAndUsername(realm, username);
+        WebAuthnUserAccount account = null;
+        try {
+            account = userAccountService
+                    .findByProviderAndUsername(provider, username);
+        } catch (NoSuchUserException _e) {
+        }
+
         if (account == null) {
             throw new UsernameNotFoundException(
-                    "WebAuthn user with username " + username + " does not exist for realm " + realm);
+                    "WebAuthn user with username " + username + " does not exist for realm " + provider);
         }
 
         // always grant user role

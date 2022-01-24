@@ -2,13 +2,15 @@ package it.smartcommunitylab.aac.webauthn.service;
 
 import java.security.SecureRandom;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.ibm.icu.impl.Pair;
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
 import com.yubico.webauthn.FinishAssertionOptions;
@@ -28,13 +30,11 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.data.UserVerificationRequirement;
-import com.yubico.webauthn.exception.RegistrationFailedException;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
@@ -42,67 +42,74 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 
 public class WebAuthnRpService {
 
-    @Autowired
     WebAuthnUserAccountRepository webAuthnUserAccountRepository;
 
-    @Autowired
     WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
-    @Autowired
     SubjectService subjectService;
 
-    final boolean trustUnverifiedAuthenticatorResponses;
     final private RelyingParty rp;
+    final String provider;
 
     private static Long TIMEOUT = 9000L;
 
     // TODO: civts make it so this gets cleaned from time to time
-    private Map<String, CredentialCreationInfo> activeRegistrations = new HashMap<>();
-    private Map<String, AssertionRequest> activeAuthentications = new HashMap<>();
+    private Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
+    private Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
 
-    public WebAuthnRpService(RelyingParty rp, boolean trustUnverifiedAuthenticatorResponses) {
+    public WebAuthnRpService(RelyingParty rp,
+            WebAuthnUserAccountRepository webAuthnUserAccountRepository,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository,
+            SubjectService subjectService,
+            String provider) {
         this.rp = rp;
-        this.trustUnverifiedAuthenticatorResponses = trustUnverifiedAuthenticatorResponses;
+        this.provider = provider;
+        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
+        this.webAuthnUserAccountRepository = webAuthnUserAccountRepository;
+        this.subjectService = subjectService;
     }
 
-    public PublicKeyCredentialCreationOptions startRegistration(String username, String realm, String sessionId,
-            Optional<String> displayName, String providerId, Optional<Subject> optSub) {
+    public Pair<PublicKeyCredentialCreationOptions, String> startRegistration(String username, String realm,
+            Optional<String> displayName, Optional<Subject> optSub) {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
-        final UserIdentity user = getUserIdentityOrGenerate(username, realm, displayName, optSub, providerId);
+        final UserIdentity user = getUserIdentityOrGenerate(username, realm, displayName, optSub);
         final StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder().user(user)
                 .authenticatorSelection(authenticatorSelection).timeout(TIMEOUT).build();
         final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
-        final CredentialCreationInfo info = new CredentialCreationInfo();
+        final WebAuthnCredentialCreationInfo info = new WebAuthnCredentialCreationInfo();
         info.username = username;
         info.realm = realm;
         info.options = options;
-        info.providerId = providerId;
-        activeRegistrations.put(sessionId, info);
-        return options;
+        info.providerId = provider;
+        final String key = generateNewKey();
+        activeRegistrations.put(key, info);
+        return Pair.of(options, key);
     }
 
     /**
      * Returns the username of the user on successful authentication or null if the
      * authentication was not successful
      */
-    public Optional<String> finishRegistration(String providerId,
+    public Optional<String> finishRegistration(
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc,
-            String sessionId, String realm) {
+            String realm,
+            String key) {
         try {
-            final CredentialCreationInfo info = activeRegistrations.get(sessionId);
+            final WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
             if (info == null || info.realm != realm) {
                 return Optional.empty();
             }
             final String username = info.username;
-            final WebAuthnUserAccount account = webAuthnUserAccountRepository.findByRealmAndUsername(realm, username);
+            final WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
+                    username);
             assert (account != null);
             final PublicKeyCredentialCreationOptions options = info.options;
             RegistrationResult result = rp
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
             boolean attestationIsTrusted = result.isAttestationTrusted();
-            if (attestationIsTrusted || trustUnverifiedAuthenticatorResponses) {
+            if (attestationIsTrusted) {
                 final Set<WebAuthnCredential> previousCredentials = account.getCredentials();
                 final WebAuthnCredential newCred = new WebAuthnCredential();
                 newCred.setCreatedOn(new Date());
@@ -117,23 +124,29 @@ public class WebAuthnRpService {
                 webAuthnCredentialsRepository.save(newCred);
                 account.setCredentials(previousCredentials);
                 webAuthnUserAccountRepository.save(account);
-                activeRegistrations.remove(sessionId);
+                activeRegistrations.remove(key);
                 return Optional.of(username);
             }
-        } catch (RegistrationFailedException e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
         return Optional.empty();
     }
 
-    public AssertionRequest startLogin(String username, String realm, String mapKey, String providerId) {
-        WebAuthnUserAccount account = webAuthnUserAccountRepository.findByRealmAndUsername(realm, username);
+    public Pair<AssertionRequest, String> startLogin(String username, String realm) {
+        WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
                 .userHandle(account.getUserHandle()).timeout(TIMEOUT)
                 .userVerification(UserVerificationRequirement.REQUIRED).username(username).build();
         AssertionRequest startAssertion = rp.startAssertion(startAssertionOptions);
-        activeAuthentications.put(mapKey, startAssertion);
-        return startAssertion;
+        final String key = generateNewKey();
+        activeAuthentications.put(key, startAssertion);
+        return Pair.of(startAssertion, key);
+    }
+
+    String generateNewKey() {
+        String uuid = UUID.randomUUID().toString();
+        return uuid;
     }
 
     // public AssertionRequest startLoginUsernameless(String sessionId) {
@@ -151,7 +164,7 @@ public class WebAuthnRpService {
      */
     public Optional<String> finishLogin(
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc,
-            String sessionId, String providerId) {
+            String sessionId) {
         try {
             AssertionRequest assertionRequest = activeAuthentications.get(sessionId);
             AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
@@ -185,9 +198,9 @@ public class WebAuthnRpService {
     }
 
     UserIdentity getUserIdentityOrGenerate(String username, String realm, Optional<String> displayNameOpt,
-            Optional<Subject> optSub, String provider) {
+            Optional<Subject> optSub) {
         String displayName = displayNameOpt.orElse("");
-        Optional<UserIdentity> option = getUserIdentity(username, realm, displayName);
+        Optional<UserIdentity> option = getUserIdentity(username, displayName);
         if (option.isPresent()) {
             return option.get();
         } else {
@@ -216,8 +229,8 @@ public class WebAuthnRpService {
         }
     }
 
-    Optional<UserIdentity> getUserIdentity(String username, String realm, String displayName) {
-        WebAuthnUserAccount account = webAuthnUserAccountRepository.findByRealmAndUsername(realm, username);
+    Optional<UserIdentity> getUserIdentity(String username, String displayName) {
+        WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
         if (account == null) {
             return Optional.empty();
         }
@@ -225,11 +238,4 @@ public class WebAuthnRpService {
         return Optional.of(UserIdentity.builder().name(account.getUsername()).displayName(displayName)
                 .id(account.getUserHandle()).build());
     }
-}
-
-class CredentialCreationInfo {
-    PublicKeyCredentialCreationOptions options;
-    String username;
-    String realm;
-    String providerId;
 }

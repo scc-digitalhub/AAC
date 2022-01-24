@@ -11,17 +11,17 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 public interface WebAuthnUserAccountRepository
                 extends CustomJpaRepository<WebAuthnUserAccount, Long>, DetachableJpaRepository<WebAuthnUserAccount> {
 
-        WebAuthnUserAccount findByRealmAndUsername(String realm, String username);
+        // WebAuthnUserAccount findByRealmAndUsername(String realm, String username);
+        // use findByProviderAndUsername
 
         WebAuthnUserAccount findByProviderAndUsername(String provider, String username);
 
-        WebAuthnUserAccount findBySubjectAndRealm(String subject, String realm);
+        WebAuthnUserAccount findByProviderAndSubject(String provider, String subject);
 
-        List<WebAuthnUserAccount> findByRealm(String realm);
+        // A subject can have more accounts
+        List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm);
 
         WebAuthnUserAccount findByUserHandle(String userHandle);
 
-        WebAuthnUserAccount findBySubject(String userId);
-
-        WebAuthnUserAccount findByRealmAndEmailAddress(String realm, String email);
+        List<WebAuthnUserAccount> findBySubject(String subject);
 }

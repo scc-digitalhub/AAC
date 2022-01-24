@@ -1,5 +1,8 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.yubico.webauthn.data.ByteArray;
 
 import org.springframework.stereotype.Service;
@@ -39,13 +42,16 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserAccount getAccount(String userId) throws NoSuchUserException {
-        WebAuthnUserAccount account = accountRepository.findBySubject(userId);
-        if (account != null) {
-            return accountRepository.detach(account);
-        } else {
+    public List<WebAuthnUserAccount> getAccounts(String userId) throws NoSuchUserException {
+        List<WebAuthnUserAccount> accounts = accountRepository.findBySubject(userId);
+        List<WebAuthnUserAccount> result = new LinkedList<>();
+        for (WebAuthnUserAccount account : accounts) {
+            result.add(accountRepository.detach(account));
+        }
+        if (result.isEmpty()) {
             throw new NoSuchUserException();
         }
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -58,23 +64,33 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserAccount findByRealmAndUsername(String realm, String username) {
-        WebAuthnUserAccount account = accountRepository.findByRealmAndUsername(realm, username);
+    public List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm) throws NoSuchUserException {
+        List<WebAuthnUserAccount> accounts = accountRepository.findBySubjectAndRealm(subject, realm);
+        List<WebAuthnUserAccount> result = new LinkedList<>();
+        for (WebAuthnUserAccount account : accounts) {
+            result.add(accountRepository.detach(account));
+        }
+        if (result.isEmpty()) {
+            throw new NoSuchUserException();
+        }
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public WebAuthnUserAccount findByProviderAndUsername(String provider, String username) throws NoSuchUserException {
+        WebAuthnUserAccount account = accountRepository.findByProviderAndUsername(provider, username);
         if (account == null) {
-            return null;
+            throw new NoSuchUserException();
         }
         return accountRepository.detach(account);
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserAccount findBySubject(String subject, String realm) {
-        WebAuthnUserAccount account = accountRepository.findBySubjectAndRealm(subject, realm);
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public WebAuthnUserAccount findByEmail(String realm, String email) {
-        WebAuthnUserAccount account = accountRepository.findByRealmAndEmailAddress(realm, email);
+    public WebAuthnUserAccount findByProviderAndSubject(String provider, String subject) throws NoSuchUserException {
+        WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
         return accountRepository.detach(account);
     }
 
@@ -143,12 +159,9 @@ public class WebAuthnUserAccountService {
         }
     }
 
-    public void deleteAccount(String subject) throws NoSuchUserException {
-        WebAuthnUserAccount account = accountRepository.findBySubject(subject);
-        if (account != null) {
-            accountRepository.delete(account);
-        } else {
-            throw new NoSuchUserException();
-        }
+    public void deleteAccount(String provider, String subject) {
+        WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
+        accountRepository.delete(account);
     }
+
 }
