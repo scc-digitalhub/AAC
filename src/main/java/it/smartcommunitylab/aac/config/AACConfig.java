@@ -235,8 +235,6 @@ public class AACConfig {
         return new InMemoryProviderRepository<SpidIdentityProviderConfig>();
     }
 
-    // TODO: civts add Rp registration repository
-
     @Bean
     public InMemoryProviderRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
         return new InMemoryProviderRepository<MapperAttributeProviderConfig>();

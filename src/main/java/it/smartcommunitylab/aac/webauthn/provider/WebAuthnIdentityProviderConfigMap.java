@@ -57,6 +57,7 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
         this.rpid = map.getRpid();
         this.enableRegistration = map.isEnableRegistration();
         this.enableUpdate = map.isEnableUpdate();
+        this.trustUnverifiedAuthenticatorResponses = map.isTrustUnverifiedAuthenticatorResponses();
 
     }
 
