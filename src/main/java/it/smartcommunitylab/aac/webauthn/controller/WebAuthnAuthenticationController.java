@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.util.LinkedHashMap;
-import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -23,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
@@ -108,10 +108,12 @@ public class WebAuthnAuthenticationController {
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
                     .parseAssertionResponseJson((String) assertionString);
 
-            final Optional<String> authenticatedUser = rps.finishLogin(pkc, key);
-            if (authenticatedUser.isPresent()) {
-                return "Welcome " + authenticatedUser.get();
-            } else {
+            try {
+                final String authenticatedUser = rps.finishLogin(pkc, key);
+
+                return "Welcome " + authenticatedUser;
+            } catch (WebAuthnAuthenticationException e) {
+
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
             }
         } catch (Exception e) {
