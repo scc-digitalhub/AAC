@@ -24,7 +24,7 @@ public class WebAuthnLoginResponse {
     @JsonProperty("assertionRequest")
     @JsonSerialize(using = AssertionRequestSerializer.class)
     @NotNull
-    AssertionRequest assertionrequest;
+    private AssertionRequest assertionrequest;
 
     public String getKey() {
         return this.key;
