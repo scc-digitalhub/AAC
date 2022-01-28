@@ -31,7 +31,6 @@ public class WebAuthnCredential {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "webauth_acc_id", nullable = false)
-    @Column(name = "parent_account")
     private WebAuthnUserAccount parentAccount;
 
     // TODO: civts, use converters
