@@ -21,6 +21,9 @@ import org.springframework.validation.SmartValidator;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
