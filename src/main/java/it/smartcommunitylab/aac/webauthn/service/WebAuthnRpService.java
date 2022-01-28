@@ -3,10 +3,12 @@ package it.smartcommunitylab.aac.webauthn.service;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +24,7 @@ import com.yubico.webauthn.StartRegistrationOptions;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
 import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
 import com.yubico.webauthn.data.AuthenticatorSelectionCriteria;
+import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
 import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
@@ -117,7 +120,13 @@ public class WebAuthnRpService {
                 newCred.setCredentialId(result.getKeyId().getId().getBase64());
                 newCred.setPublicKeyCose(result.getPublicKeyCose().getBase64());
                 newCred.setSignatureCount(result.getSignatureCount());
-                newCred.setTransports(result.getKeyId().getTransports().orElse(new TreeSet<>()));
+                final Optional<SortedSet<AuthenticatorTransport>> transportsOpt = result.getKeyId().getTransports();
+                if (transportsOpt.isPresent()) {
+                    newCred.setTransports(
+                            convertTransportsToString(transportsOpt.get()));
+                } else {
+                    newCred.setTransports("");
+                }
                 newCred.setParentAccount(account);
 
                 previousCredentials.add(newCred);
@@ -131,6 +140,24 @@ public class WebAuthnRpService {
             System.out.println(e);
         }
         return Optional.empty();
+    }
+
+    private String convertTransportsToString(Set<AuthenticatorTransport> transports) {
+        final List<String> result = new LinkedList<>();
+        for (final AuthenticatorTransport t : transports) {
+            if (t == AuthenticatorTransport.USB) {
+                result.add("USB");
+            } else if (t == AuthenticatorTransport.BLE) {
+                result.add("BLE");
+            } else if (t == AuthenticatorTransport.NFC) {
+                result.add("NFC");
+            } else if (t == AuthenticatorTransport.INTERNAL) {
+                result.add("INTERNAL");
+            } else {
+                throw new IllegalArgumentException("Transport not found: " + t);
+            }
+        }
+        return String.join(",", result);
     }
 
     public Pair<AssertionRequest, String> startLogin(String username, String realm) {

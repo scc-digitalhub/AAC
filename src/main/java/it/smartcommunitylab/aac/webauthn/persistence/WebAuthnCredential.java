@@ -1,11 +1,8 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -17,7 +14,6 @@ import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yubico.webauthn.RegisteredCredential;
-import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
 
 @Entity
@@ -54,10 +50,11 @@ public class WebAuthnCredential {
     @Column(name = "signature_count")
     private Long signatureCount = 0L;
 
-    // TODO: use converters
-    @ElementCollection
+    /**
+     * Comma-separated list of the transports
+     */
     @Column(name = "transports")
-    private Set<String> transports;
+    private String transports;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_on")
@@ -105,30 +102,12 @@ public class WebAuthnCredential {
         return publicKeyCose;
     }
 
-    public Set<AuthenticatorTransport> getTransports() {
-        final Set<AuthenticatorTransport> result = new HashSet<>();
-        for (final String code : transports) {
-            result.add(AuthenticatorTransport.valueOf(code));
-        }
-        return result;
+    public String getTransports() {
+        return transports;
     }
 
-    public void setTransports(Set<AuthenticatorTransport> transports) {
-        final Set<String> result = new HashSet<>();
-        for (final AuthenticatorTransport t : transports) {
-            if (t == AuthenticatorTransport.USB) {
-                result.add("USB");
-            } else if (t == AuthenticatorTransport.BLE) {
-                result.add("BLE");
-            } else if (t == AuthenticatorTransport.NFC) {
-                result.add("NFC");
-            } else if (t == AuthenticatorTransport.INTERNAL) {
-                result.add("INTERNAL");
-            } else {
-                throw new IllegalArgumentException("Transport not found: " + t);
-            }
-        }
-        this.transports = result;
+    public void setTransports(String transports) {
+        this.transports = transports;
     }
 
     public void setSignatureCount(Long signatureCount) {
