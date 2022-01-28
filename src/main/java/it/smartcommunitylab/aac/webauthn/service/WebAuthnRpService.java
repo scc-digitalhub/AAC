@@ -1,8 +1,8 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
 import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -213,7 +213,7 @@ public class WebAuthnRpService {
                     .id(userHandleBA).build();
             final WebAuthnUserAccount account = new WebAuthnUserAccount();
             account.setUsername(username);
-            account.setCredentials(new HashSet<>());
+            account.setCredentials(Collections.emptySet());
             account.setRealm(realm);
             String subject;
             if (optSub.isPresent()) {

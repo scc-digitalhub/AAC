@@ -1,6 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,7 +36,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         try {
             WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
             final Set<WebAuthnCredential> credentials = account.getCredentials();
-            Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<PublicKeyCredentialDescriptor>();
+            Set<PublicKeyCredentialDescriptor> descriptors = Collections.emptySet();
             for (WebAuthnCredential c : credentials) {
                 PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
                         .id(c.getCredentialId()).type(PublicKeyCredentialType.PUBLIC_KEY).transports(c.getTransports())
@@ -46,7 +46,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
             return descriptors;
         } catch (Exception e) {
         }
-        return new HashSet<>();
+        return Collections.emptySet();
     }
 
     @Override
@@ -89,7 +89,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     @Override
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
         // In our database the credentialID already has a unique constraint
-        Set<RegisteredCredential> s = new HashSet<>();
+        Set<RegisteredCredential> s = Collections.emptySet();
         WebAuthnCredential cred = webAuthnCredentialsRepository.findByCredentialId(credentialId.getBase64());
         if (cred != null) {
             s.add(cred.getRegisteredCredential());
