@@ -24,7 +24,6 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
@@ -44,6 +43,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     private final WebAuthnAccountService accountService;
     private final WebAuthnAttributeProvider attributeProvider;
     private final WebAuthnSubjectResolver subjectResolver;
+    private final WebAuthnCredentialsService credentialService;
 
     public WebAuthnIdentityService(
             String providerId,
@@ -68,6 +68,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
         this.accountService = new WebAuthnAccountService(providerId, userAccountService, config, realm);
+        this.credentialService = new WebAuthnCredentialsService(providerId, userAccountService, config, realm);
         this.subjectResolver = new WebAuthnSubjectResolver(providerId, userAccountService, config, realm);
 
     }
@@ -114,8 +115,8 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
-    public CredentialsService getCredentialsService() {
-        return null;
+    public WebAuthnCredentialsService getCredentialsService() {
+        return credentialService;
     }
 
     @Override
