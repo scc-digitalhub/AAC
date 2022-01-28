@@ -64,7 +64,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
         // internal data repositories
         // TODO replace with service to support external repo
-        // this.accountRepository = accountRepository;
+//        this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
         this.config = config;
 
@@ -122,12 +122,12 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         // extract account and attributes in raw format from authenticated principal
         InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
         String userId = principal.getUserId();
-        // String username = principal.getName();
-        //
-        // // userId should be username, check
-        // if (!parseResourceId(userId).equals(username)) {
-        // throw new NoSuchUserException();
-        // }
+//        String username = principal.getName();
+//
+//        // userId should be username, check
+//        if (!parseResourceId(userId).equals(username)) {
+//            throw new NoSuchUserException();
+//        }
 
         if (subjectId == null) {
             // this better exists
@@ -147,10 +147,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         String curSubjectId = account.getSubject();
 
         if (!curSubjectId.equals(subjectId)) {
-            // // force link
-            // // TODO re-evaluate
-            // account.setSubject(subjectId);
-            // account = accountRepository.save(account);
+//            // force link
+//            // TODO re-evaluate
+//            account.setSubject(subjectId);
+//            account = accountRepository.save(account);
             throw new IllegalArgumentException("subject mismatch");
 
         }
@@ -267,12 +267,12 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         }
     }
 
-    // @Override
-    // public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-    // // we don't have one
-    // // TODO add
-    // return null;
-    // }
+//    @Override
+//    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
+//        // we don't have one
+//        // TODO add
+//        return null;
+//    }
 
     public void shutdown() {
         // cleanup ourselves

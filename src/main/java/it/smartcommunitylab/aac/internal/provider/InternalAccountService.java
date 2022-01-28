@@ -348,7 +348,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     public InternalUserAccount updateAccount(String userId, UserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
-            throw new IllegalArgumentException("update is disabled for this provider");
+            throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
         String username = parseResourceId(userId);
