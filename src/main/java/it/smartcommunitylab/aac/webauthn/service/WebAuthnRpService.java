@@ -12,7 +12,6 @@ import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.ibm.icu.impl.Pair;
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
 import com.yubico.webauthn.FinishAssertionOptions;
@@ -38,6 +37,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
@@ -72,7 +73,7 @@ public class WebAuthnRpService {
         this.subjectService = subjectService;
     }
 
-    public Pair<PublicKeyCredentialCreationOptions, String> startRegistration(String username, String realm,
+    public WebAuthnRegistrationResponse startRegistration(String username, String realm,
             Optional<String> displayName, Optional<Subject> optSub) {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
@@ -88,7 +89,10 @@ public class WebAuthnRpService {
         info.setProviderId(provider);
         final String key = generateNewKey();
         activeRegistrations.put(key, info);
-        return Pair.of(options, key);
+        final WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse();
+        response.setKey(key);
+        response.setOptions(options);
+        return response;
     }
 
     /**
@@ -160,7 +164,7 @@ public class WebAuthnRpService {
         return String.join(",", result);
     }
 
-    public Pair<AssertionRequest, String> startLogin(String username, String realm) {
+    public WebAuthnLoginResponse startLogin(String username, String realm) {
         WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
                 .userHandle(ByteArray.fromBase64(account.getUserHandle())).timeout(TIMEOUT)
@@ -168,7 +172,10 @@ public class WebAuthnRpService {
         AssertionRequest startAssertion = rp.startAssertion(startAssertionOptions);
         final String key = generateNewKey();
         activeAuthentications.put(key, startAssertion);
-        return Pair.of(startAssertion, key);
+        final WebAuthnLoginResponse response = new WebAuthnLoginResponse();
+        response.setAssertionRequest(startAssertion);
+        response.setKey(key);
+        return response;
     }
 
     private String generateNewKey() {
