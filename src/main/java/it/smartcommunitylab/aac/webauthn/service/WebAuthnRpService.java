@@ -114,8 +114,8 @@ public class WebAuthnRpService {
                 final WebAuthnCredential newCred = new WebAuthnCredential();
                 newCred.setCreatedOn(new Date());
                 newCred.setLastUsedOn(new Date());
-                newCred.setCredentialId(result.getKeyId().getId());
-                newCred.setPublicKeyCose(result.getPublicKeyCose());
+                newCred.setCredentialId(result.getKeyId().getId().getBase64());
+                newCred.setPublicKeyCose(result.getPublicKeyCose().getBase64());
                 newCred.setSignatureCount(result.getSignatureCount());
                 newCred.setTransports(result.getKeyId().getTransports().orElse(new TreeSet<>()));
                 newCred.setParentAccount(account);
@@ -177,7 +177,7 @@ public class WebAuthnRpService {
                 Optional<WebAuthnCredential> toUpdate = Optional.empty();
                 ByteArray resultCredentialId = result.getCredentialId();
                 for (WebAuthnCredential c : credentials) {
-                    ByteArray cCredentialId = c.getCredentialId();
+                    ByteArray cCredentialId = ByteArray.fromBase64(c.getCredentialId());
                     if (cCredentialId.equals(resultCredentialId)) {
                         toUpdate = Optional.of(c);
                     }
