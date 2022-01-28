@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.util.LinkedHashMap;
-import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -26,6 +25,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
@@ -151,11 +151,14 @@ public class WebAuthnRegistrationController {
             String attestationString = mapper.writeValueAsString(body.getAttestation());
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
                     .parseRegistrationResponseJson(attestationString);
-            final Optional<String> authenticatedUser = rps.finishRegistration(pkc, realm, key);
-            if (authenticatedUser.isPresent()) {
-                // TODO: civts, time to authenticate the session
-                return "Welcome " + authenticatedUser.get() + ". Next step is to authenticate your session";
+
+            try {
+                final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
+                return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";
+            } catch (WebAuthnAuthenticationException e) {
+                throw invalidAttestationException;
             }
+
         } catch (Exception e) {
         }
         throw invalidAttestationException;

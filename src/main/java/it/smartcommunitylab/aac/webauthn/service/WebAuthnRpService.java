@@ -36,6 +36,7 @@ import com.yubico.webauthn.data.UserVerificationRequirement;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
@@ -99,14 +100,15 @@ public class WebAuthnRpService {
      * Returns the username of the user on successful authentication or null if the
      * authentication was not successful
      */
-    public Optional<String> finishRegistration(
+    public String finishRegistration(
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc,
             String realm,
-            String key) {
+            String key) throws WebAuthnAuthenticationException {
         try {
             final WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
             if (info == null || info.getRealm() != realm) {
-                return Optional.empty();
+                throw new WebAuthnAuthenticationException("_",
+                        "Can not find matching active registration request");
             }
             final String username = info.getUsername();
             final WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
@@ -138,12 +140,17 @@ public class WebAuthnRpService {
                 account.setCredentials(previousCredentials);
                 webAuthnUserAccountRepository.save(account);
                 activeRegistrations.remove(key);
-                return Optional.of(username);
+                if (username != null) {
+                    return username;
+                } else {
+                    throw new WebAuthnAuthenticationException("_",
+                            "Could not register user " + username + " with subject " + account.getSubject());
+                }
             }
         } catch (Exception e) {
-            System.out.println(e);
         }
-        return Optional.empty();
+        throw new WebAuthnAuthenticationException("_",
+                "Registration failed" );
     }
 
     private String convertTransportsToString(Set<AuthenticatorTransport> transports) {
@@ -196,9 +203,9 @@ public class WebAuthnRpService {
      * @return the authenticated username if authentication was successful, else
      *         null
      */
-    public Optional<String> finishLogin(
+    public String finishLogin(
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc,
-            String sessionId) {
+            String sessionId) throws WebAuthnAuthenticationException{
         try {
             AssertionRequest assertionRequest = activeAuthentications.get(sessionId);
             AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
@@ -217,18 +224,27 @@ public class WebAuthnRpService {
                     }
                 }
                 if (toUpdate.isEmpty()) {
-                    return Optional.empty();
+                    throw new WebAuthnAuthenticationException(account.getSubject(),
+                            "Could not find the requested credential in the account");
                 }
                 WebAuthnCredential credential = toUpdate.get();
                 credentials.remove(credential);
                 credential.setSignatureCount(result.getSignatureCount());
                 credential.setLastUsedOn(new Date());
                 webAuthnCredentialsRepository.save(credential);
-                return Optional.of(account.getUsername());
+                final String username = account.getUsername();
+                if (username != null) {
+                    return username;
+                } else {
+                    throw new WebAuthnAuthenticationException(account.getSubject(),
+                            "Could not find the requested credential in the account");
+                }
+
             }
         } catch (Exception e) {
         }
-        return Optional.empty();
+        throw new WebAuthnAuthenticationException("_",
+                "Login failed");
     }
 
     UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayNameOrNull,
@@ -249,9 +265,8 @@ public class WebAuthnRpService {
             account.setUsername(username);
             account.setCredentials(Collections.emptySet());
             account.setRealm(realm);
-            String subject
-            ;
-            if (subjectOrNull!=null) {
+            String subject;
+            if (subjectOrNull != null) {
                 subject = subjectOrNull.getSubjectId();
             } else {
                 subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
