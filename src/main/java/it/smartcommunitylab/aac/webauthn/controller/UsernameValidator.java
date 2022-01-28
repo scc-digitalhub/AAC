@@ -3,16 +3,7 @@ package it.smartcommunitylab.aac.webauthn.controller;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpSession;
-
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-public class ControllerUtils {
-    public static HttpSession getSession() {
-        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-        return attr.getRequest().getSession(true); // true == allow create
-    }
+public class UsernameValidator {
 
     /**
      * Checks if the provided object can be used as a valid username

@@ -30,38 +30,7 @@ public class WebAuthnUserAccountService {
         Assert.notNull(credentialRepository, "credentialRepository is mandatory");
         this.accountRepository = accountRepository;
         this.credentialRepository = credentialRepository;
-    }
-
-    @Transactional(readOnly = true)
-    public WebAuthnUserAccount getAccount(long id) throws NoSuchUserException {
-        WebAuthnUserAccount account = accountRepository.findOne(id);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserAccount> getAccounts(String userId) throws NoSuchUserException {
-        List<WebAuthnUserAccount> accounts = accountRepository.findBySubject(userId);
-        List<WebAuthnUserAccount> result = new LinkedList<>();
-        for (WebAuthnUserAccount account : accounts) {
-            result.add(accountRepository.detach(account));
-        }
-        if (result.isEmpty()) {
-            throw new NoSuchUserException();
-        }
-        return result;
-    }
-
-    @Transactional(readOnly = true)
-    public WebAuthnUserAccount find(long id) {
-        WebAuthnUserAccount account = accountRepository.findOne(id);
-        if (account == null) {
-            return null;
-        }
-        return accountRepository.detach(account);
-    }
+    } 
 
     @Transactional(readOnly = true)
     public List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm) throws NoSuchUserException {
@@ -102,7 +71,7 @@ public class WebAuthnUserAccountService {
         }
         return accountRepository.detach(cred.getParentAccount());
     }
-
+ 
     /*
      * CRUD
      */

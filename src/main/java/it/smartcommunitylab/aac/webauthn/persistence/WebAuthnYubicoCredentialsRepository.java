@@ -96,8 +96,4 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         }
         return s;
     }
-
-    public WebAuthnUserAccount save(WebAuthnUserAccount infos) {
-        return userAccountRepository.save(infos);
-    }
 }

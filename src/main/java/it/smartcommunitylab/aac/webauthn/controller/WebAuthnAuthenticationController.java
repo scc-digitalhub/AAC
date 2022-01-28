@@ -76,7 +76,7 @@ public class WebAuthnAuthenticationController {
 
             String username;
             Object _userName = body.get("username");
-            if (ControllerUtils.isValidUsername(_userName)) {
+            if (UsernameValidator.isValidUsername(_userName)) {
                 username = (String) _userName;
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");

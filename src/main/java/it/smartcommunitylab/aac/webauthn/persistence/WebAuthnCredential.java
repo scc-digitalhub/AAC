@@ -14,9 +14,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yubico.webauthn.RegisteredCredential;
 import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
@@ -137,26 +134,6 @@ public class WebAuthnCredential {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    @Override
-    public String toString() {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return "Exception while converting to String:" + e.getMessage();
-        }
-    }
-
-    public String toJSON() {
-        return toString();
-    }
-
-    static WebAuthnCredential fromJSON(String s) throws JsonMappingException, JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(s, WebAuthnCredential.class);
     }
 
     public WebAuthnUserAccount getParentAccount() {
