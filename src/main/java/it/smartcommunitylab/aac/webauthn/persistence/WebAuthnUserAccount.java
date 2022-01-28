@@ -93,7 +93,7 @@ public class WebAuthnUserAccount implements UserAccount {
 
     @Override
     public String getProvider() {
-        return provider == null ? SystemKeys.AUTHORITY_WEBAUTHN : provider;
+        return provider;
     }
 
     public void setProvider(String provider) {
