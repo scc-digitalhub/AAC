@@ -144,7 +144,7 @@ public class WebAuthnRpService {
         return Pair.of(startAssertion, key);
     }
 
-    String generateNewKey() {
+    private String generateNewKey() {
         String uuid = UUID.randomUUID().toString();
         return uuid;
     }

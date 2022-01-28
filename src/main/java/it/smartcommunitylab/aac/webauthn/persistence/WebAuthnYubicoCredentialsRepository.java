@@ -20,8 +20,8 @@ import com.yubico.webauthn.data.PublicKeyCredentialType;
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String providerId;
-    WebAuthnUserAccountRepository userAccountRepository;
-    WebAuthnCredentialsRepository webAuthnCredentialsRepository;
+    private WebAuthnUserAccountRepository userAccountRepository;
+    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     public WebAuthnYubicoCredentialsRepository(String provider,
             WebAuthnUserAccountRepository userAccountRepository,
