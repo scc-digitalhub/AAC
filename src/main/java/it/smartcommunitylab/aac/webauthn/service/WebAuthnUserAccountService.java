@@ -1,9 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.util.LinkedList;
 import java.util.List;
-
-import com.yubico.webauthn.data.ByteArray;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,14 +33,7 @@ public class WebAuthnUserAccountService {
     @Transactional(readOnly = true)
     public List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm) throws NoSuchUserException {
         List<WebAuthnUserAccount> accounts = accountRepository.findBySubjectAndRealm(subject, realm);
-        List<WebAuthnUserAccount> result = new LinkedList<>();
-        for (WebAuthnUserAccount account : accounts) {
-            result.add(accountRepository.detach(account));
-        }
-        if (result.isEmpty()) {
-            throw new NoSuchUserException();
-        }
-        return result;
+        return accounts.stream().map(a -> accountRepository.detach(a)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -64,8 +55,8 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserAccount findByCredentialId(ByteArray credentialId) {
-        WebAuthnCredential cred = credentialRepository.findByCredentialId(credentialId.getBase64());
+    public WebAuthnUserAccount findByCredentialId(String credentialId) {
+        WebAuthnCredential cred = credentialRepository.findByCredentialId(credentialId);
         if (cred == null) {
             return null;
         }
@@ -129,7 +120,10 @@ public class WebAuthnUserAccountService {
     }
 
     public void deleteAccount(String provider, String subject) {
-        WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
+        final WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
+        for (final WebAuthnCredential c : credentialRepository.findByParentAccount(account)) {
+            credentialRepository.delete(c);
+        }
         accountRepository.delete(account);
     }
 
