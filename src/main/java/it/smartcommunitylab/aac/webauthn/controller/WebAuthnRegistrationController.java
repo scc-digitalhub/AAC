@@ -6,11 +6,9 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.impl.Pair;
 import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
 import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
-import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -119,14 +117,11 @@ public class WebAuthnRegistrationController {
             final Optional<Subject> subjectOpt = Optional
                     .ofNullable(resolvedUserId);
             final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
-            Pair<PublicKeyCredentialCreationOptions, String> optionsAndKey = rps.startRegistration(
+            final WebAuthnRegistrationResponse response = rps.startRegistration(
                     username,
                     realm,
                     displayName,
                     subjectOpt);
-            final WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse();
-            response.setOptions(optionsAndKey.first);
-            response.setKey(optionsAndKey.second);
             return mapper.writeValueAsString(response);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);

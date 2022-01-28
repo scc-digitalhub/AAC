@@ -6,8 +6,6 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.impl.Pair;
-import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
 import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
@@ -82,10 +80,7 @@ public class WebAuthnAuthenticationController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
 
-            Pair<AssertionRequest, String> reqAndKey = rps.startLogin(username, realm);
-            final WebAuthnLoginResponse response = new WebAuthnLoginResponse();
-            response.setAssertionRequest(reqAndKey.first);
-            response.setKey(reqAndKey.second);
+            final WebAuthnLoginResponse response = rps.startLogin(username, realm);
             return mapper.writeValueAsString(response);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
