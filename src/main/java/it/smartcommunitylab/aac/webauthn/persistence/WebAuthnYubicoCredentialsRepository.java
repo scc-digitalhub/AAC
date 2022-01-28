@@ -39,7 +39,8 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
             Set<PublicKeyCredentialDescriptor> descriptors = Collections.emptySet();
             for (WebAuthnCredential c : credentials) {
                 PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
-                        .id(c.getCredentialId()).type(PublicKeyCredentialType.PUBLIC_KEY).transports(c.getTransports())
+                        .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
+                        .transports(c.getTransports())
                         .build();
                 descriptors.add(descriptor);
             }
