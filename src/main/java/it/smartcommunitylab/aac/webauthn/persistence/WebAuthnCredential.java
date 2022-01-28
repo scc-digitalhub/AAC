@@ -65,7 +65,7 @@ public class WebAuthnCredential {
 
     public RegisteredCredential getRegisteredCredential() {
         return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(getCredentialId()))
-                .userHandle(parentAccount.getUserHandle())
+                .userHandle(ByteArray.fromBase64(parentAccount.getUserHandle()))
                 .publicKeyCose(ByteArray.fromBase64(getPublicKeyCose())).signatureCount(signatureCount).build();
     }
 

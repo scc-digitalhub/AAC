@@ -163,7 +163,7 @@ public class WebAuthnRpService {
     public Pair<AssertionRequest, String> startLogin(String username, String realm) {
         WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
-                .userHandle(account.getUserHandle()).timeout(TIMEOUT)
+                .userHandle(ByteArray.fromBase64(account.getUserHandle())).timeout(TIMEOUT)
                 .userVerification(UserVerificationRequirement.REQUIRED).username(username).build();
         AssertionRequest startAssertion = rp.startAssertion(startAssertionOptions);
         final String key = generateNewKey();
@@ -249,7 +249,7 @@ public class WebAuthnRpService {
                 subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
             }
             account.setSubject(subject);
-            account.setUserHandle(userHandleBA);
+            account.setUserHandle(userHandleBA.getBase64());
             account.setProvider(provider);
             webAuthnUserAccountRepository.save(account);
             return newUserIdentity;
@@ -263,6 +263,6 @@ public class WebAuthnRpService {
         }
         assert (account.getUsername() == username);
         return Optional.of(UserIdentity.builder().name(account.getUsername()).displayName(displayName)
-                .id(account.getUserHandle()).build());
+                .id(ByteArray.fromBase64(account.getUserHandle())).build());
     }
 }

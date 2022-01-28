@@ -64,7 +64,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     public Optional<ByteArray> getUserHandleForUsername(String username) {
         WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
         if (account != null) {
-            return Optional.of(account.getUserHandle());
+            return Optional.of(ByteArray.fromBase64(account.getUserHandle()));
         }
         return Optional.empty();
     }
