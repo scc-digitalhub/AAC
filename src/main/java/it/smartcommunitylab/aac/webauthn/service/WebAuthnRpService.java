@@ -79,10 +79,10 @@ public class WebAuthnRpService {
                 .authenticatorSelection(authenticatorSelection).timeout(TIMEOUT).build();
         final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
         final WebAuthnCredentialCreationInfo info = new WebAuthnCredentialCreationInfo();
-        info.username = username;
-        info.realm = realm;
-        info.options = options;
-        info.providerId = provider;
+        info.setUsername(username);
+        info.setRealm(realm);
+        info.setOptions(options);
+        info.setProviderId(provider);
         final String key = generateNewKey();
         activeRegistrations.put(key, info);
         return Pair.of(options, key);
@@ -98,14 +98,14 @@ public class WebAuthnRpService {
             String key) {
         try {
             final WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
-            if (info == null || info.realm != realm) {
+            if (info == null || info.getRealm() != realm) {
                 return Optional.empty();
             }
-            final String username = info.username;
+            final String username = info.getUsername();
             final WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
                     username);
             assert (account != null);
-            final PublicKeyCredentialCreationOptions options = info.options;
+            final PublicKeyCredentialCreationOptions options = info.getOptions();
             RegistrationResult result = rp
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
             boolean attestationIsTrusted = result.isAttestationTrusted();
