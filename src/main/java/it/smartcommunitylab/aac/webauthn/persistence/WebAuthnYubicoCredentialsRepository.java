@@ -81,7 +81,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         }
         Set<WebAuthnCredential> credentials = acc.getCredentials();
         for (final WebAuthnCredential cred : credentials) {
-            if (cred.getCredentialId().equals(credentialId)) {
+            if (cred.getCredentialId().equals(credentialId.getBase64())) {
                 return Optional.of(cred.getRegisteredCredential());
             }
         }
