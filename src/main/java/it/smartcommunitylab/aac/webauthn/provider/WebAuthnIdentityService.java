@@ -42,7 +42,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     // providers
     private final WebAuthnAccountService accountService;
     private final WebAuthnAttributeProvider attributeProvider;
-    private final WebAuthnAuthenticationProvider authenticationProvider;
     private final WebAuthnSubjectResolver subjectResolver;
     private final WebAuthnCredentialsService credentialService;
 
@@ -70,8 +69,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
         this.accountService = new WebAuthnAccountService(providerId, userAccountService, config, realm);
         this.credentialService = new WebAuthnCredentialsService(providerId, userAccountService, config, realm);
-        this.authenticationProvider = new WebAuthnAuthenticationProvider(providerId, userAccountService, accountService,
-                credentialService, config, realm);
         this.subjectResolver = new WebAuthnSubjectResolver(providerId, userAccountService, config, realm);
 
     }
@@ -83,7 +80,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
     @Override
     public ExtendedAuthenticationProvider getAuthenticationProvider() {
-        return authenticationProvider;
+        return null;
     }
 
     @Override
