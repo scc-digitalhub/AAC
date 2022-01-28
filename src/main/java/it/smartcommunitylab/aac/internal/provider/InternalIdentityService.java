@@ -67,8 +67,12 @@ public class InternalIdentityService extends AbstractProvider
 <<<<<<< HEAD
 =======
         // TODO replace with service to support external repo
+<<<<<<< HEAD
         // this.accountRepository = accountRepository;
 >>>>>>> Define most entities needed for webauthn
+=======
+//        this.accountRepository = accountRepository;
+>>>>>>> Fix formatting inconsistencies
         this.userEntityService = userEntityService;
         this.config = config;
 
@@ -133,11 +137,23 @@ public class InternalIdentityService extends AbstractProvider
 
         // extract account and attributes in raw format from authenticated principal
         InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
+<<<<<<< HEAD
 
         // username binds all identity pieces together
         String username = principal.getUsername();
 
         if (userId == null) {
+=======
+        String userId = principal.getUserId();
+//        String username = principal.getName();
+//
+//        // userId should be username, check
+//        if (!parseResourceId(userId).equals(username)) {
+//            throw new NoSuchUserException();
+//        }
+
+        if (subjectId == null) {
+>>>>>>> Fix formatting inconsistencies
             // this better exists
             throw new NoSuchUserException();
         }
@@ -166,10 +182,10 @@ public class InternalIdentityService extends AbstractProvider
             throw new IllegalArgumentException("user mismatch");
 =======
         if (!curSubjectId.equals(subjectId)) {
-            // // force link
-            // // TODO re-evaluate
-            // account.setSubject(subjectId);
-            // account = accountRepository.save(account);
+//            // force link
+//            // TODO re-evaluate
+//            account.setSubject(subjectId);
+//            account = accountRepository.save(account);
             throw new IllegalArgumentException("subject mismatch");
 
 >>>>>>> Define most entities needed for webauthn
