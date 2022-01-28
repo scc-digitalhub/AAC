@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.yubico.webauthn.data.ByteArray;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.util.Assert;
@@ -91,7 +89,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
                 && attributes.keySet().contains("credentialId")) {
             try {
                 account = userAccountService.findByCredentialId(
-                        ByteArray.fromBase64Url(attributes.get("credentialId")).getBase64());
+                        attributes.get("credentialId"));
             } catch (Exception e) {
             }
         }
