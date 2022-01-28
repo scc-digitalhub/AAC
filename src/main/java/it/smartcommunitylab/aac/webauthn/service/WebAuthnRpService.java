@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
 import java.security.SecureRandom;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,7 +57,6 @@ public class WebAuthnRpService {
 
     private static Long TIMEOUT = 9000L;
 
-    // TODO: civts make it so this gets cleaned from time to time
     private Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
     private Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
 
@@ -113,13 +111,15 @@ public class WebAuthnRpService {
             final String username = info.getUsername();
             final WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
                     username);
-            assert (account != null);
+            if (account == null) {
+                throw new WebAuthnAuthenticationException("_",
+                        "Can not find matching account");
+            }
             final PublicKeyCredentialCreationOptions options = info.getOptions();
             RegistrationResult result = rp
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
             boolean attestationIsTrusted = result.isAttestationTrusted();
             if (attestationIsTrusted) {
-                final Set<WebAuthnCredential> previousCredentials = account.getCredentials();
                 final WebAuthnCredential newCred = new WebAuthnCredential();
                 newCred.setCreatedOn(new Date());
                 newCred.setLastUsedOn(new Date());
@@ -133,12 +133,9 @@ public class WebAuthnRpService {
                 } else {
                     newCred.setTransports("");
                 }
-                newCred.setParentAccount(account);
+                newCred.setParentAccountId(account.getId());
 
-                previousCredentials.add(newCred);
                 webAuthnCredentialsRepository.save(newCred);
-                account.setCredentials(previousCredentials);
-                webAuthnUserAccountRepository.save(account);
                 activeRegistrations.remove(key);
                 if (username != null) {
                     return username;
@@ -150,7 +147,7 @@ public class WebAuthnRpService {
         } catch (Exception e) {
         }
         throw new WebAuthnAuthenticationException("_",
-                "Registration failed" );
+                "Registration failed");
     }
 
     private String convertTransportsToString(Set<AuthenticatorTransport> transports) {
@@ -205,7 +202,7 @@ public class WebAuthnRpService {
      */
     public String finishLogin(
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc,
-            String sessionId) throws WebAuthnAuthenticationException{
+            String sessionId) throws WebAuthnAuthenticationException {
         try {
             AssertionRequest assertionRequest = activeAuthentications.get(sessionId);
             AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
@@ -214,7 +211,8 @@ public class WebAuthnRpService {
             if (result.isSuccess() && result.isSignatureCounterValid()) {
                 final WebAuthnUserAccount account = webAuthnUserAccountRepository
                         .findByUserHandle(result.getUserHandle().getBase64());
-                Set<WebAuthnCredential> credentials = account.getCredentials();
+                List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
+                        .findByParentAccountId(account.getId());
                 Optional<WebAuthnCredential> toUpdate = Optional.empty();
                 ByteArray resultCredentialId = result.getCredentialId();
                 for (WebAuthnCredential c : credentials) {
@@ -263,7 +261,6 @@ public class WebAuthnRpService {
                     .id(userHandleBA).build();
             final WebAuthnUserAccount account = new WebAuthnUserAccount();
             account.setUsername(username);
-            account.setCredentials(Collections.emptySet());
             account.setRealm(realm);
             String subject;
             if (subjectOrNull != null) {

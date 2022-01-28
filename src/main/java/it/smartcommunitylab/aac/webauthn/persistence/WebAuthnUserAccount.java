@@ -1,14 +1,10 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
-import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
@@ -30,11 +26,8 @@ public class WebAuthnUserAccount implements UserAccount {
     @Column(name = "id")
     private Long id;
 
-    // TODO: civts, use converter
     @Column(unique = true, name = "user_handle")
     private String userHandle;
-    @OneToMany(mappedBy = "parentAccount", fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<WebAuthnCredential> credentials;
 
     @NotNull
     @Column(name = "subject_id")
@@ -60,15 +53,7 @@ public class WebAuthnUserAccount implements UserAccount {
     public String getEmailAddress() {
         return emailAddress;
     }
-
-    public Set<WebAuthnCredential> getCredentials() {
-        return credentials;
-    }
-
-    public void setCredentials(Set<WebAuthnCredential> credentials) {
-        this.credentials = credentials;
-    }
-
+ 
     public void setId(Long id) {
         this.id = id;
     }
