@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.yubico.webauthn.CredentialRepository;
 import com.yubico.webauthn.RegisteredCredential;
+import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
@@ -41,7 +42,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
             for (WebAuthnCredential c : credentials) {
                 PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
                         .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
-                        .transports(c.getTransports())
+                        .transports(getTransportsFromString(c.getTransports()))
                         .build();
                 descriptors.add(descriptor);
             }
@@ -49,6 +50,14 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         } catch (Exception e) {
         }
         return Collections.emptySet();
+    }
+
+    private Set<AuthenticatorTransport> getTransportsFromString(String transports) {
+        final Set<AuthenticatorTransport> result = new HashSet<>();
+        for (final String code : transports.split(",")) {
+            result.add(AuthenticatorTransport.valueOf(code));
+        }
+        return result;
     }
 
     @Override
