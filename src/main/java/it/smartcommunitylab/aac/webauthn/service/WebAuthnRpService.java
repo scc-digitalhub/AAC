@@ -74,7 +74,7 @@ public class WebAuthnRpService {
     }
 
     public WebAuthnRegistrationResponse startRegistration(String username, String realm,
-            Optional<String> displayName, Optional<Subject> optSub) {
+            String displayName, Subject optSub) {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
@@ -231,9 +231,9 @@ public class WebAuthnRpService {
         return Optional.empty();
     }
 
-    UserIdentity getUserIdentityOrGenerate(String username, String realm, Optional<String> displayNameOpt,
-            Optional<Subject> optSub) {
-        String displayName = displayNameOpt.orElse("");
+    UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayNameOrNull,
+            Subject subjectOrNull) {
+        String displayName = displayNameOrNull != null ? displayNameOrNull : "";
         Optional<UserIdentity> option = getUserIdentity(username, displayName);
         if (option.isPresent()) {
             return option.get();
@@ -249,9 +249,10 @@ public class WebAuthnRpService {
             account.setUsername(username);
             account.setCredentials(Collections.emptySet());
             account.setRealm(realm);
-            String subject;
-            if (optSub.isPresent()) {
-                subject = optSub.get().getSubjectId();
+            String subject
+            ;
+            if (subjectOrNull!=null) {
+                subject = subjectOrNull.getSubjectId();
             } else {
                 subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
             }

@@ -100,11 +100,11 @@ public class WebAuthnRegistrationController {
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
-            Optional<String> displayName = Optional.empty();
+            String displayName = null;
 
             Object _reqDisplayName = body.getOrDefault("displayName", null);
             if (UsernameValidator.isValidDisplayName(_reqDisplayName)) {
-                displayName = Optional.of((String) _reqDisplayName);
+                displayName = (String) _reqDisplayName;
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid displayName");
             }
@@ -112,16 +112,14 @@ public class WebAuthnRegistrationController {
             final WebAuthnIdentityService webAuthnIdentityService = webAuthnIdentityAuthority
                     .getIdentityService(providerId);
             final WebAuthnSubjectResolver subjectResolver = webAuthnIdentityService.getSubjectResolver();
-            Subject resolvedUserId = subjectResolver
+            Subject subject = subjectResolver
                     .resolveByUserId(username);
-            final Optional<Subject> subjectOpt = Optional
-                    .ofNullable(resolvedUserId);
             final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
             final WebAuthnRegistrationResponse response = rps.startRegistration(
                     username,
                     realm,
                     displayName,
-                    subjectOpt);
+                    subject);
             return mapper.writeValueAsString(response);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
