@@ -68,8 +68,9 @@ public class WebAuthnCredential {
     private Date lastUsedOn;
 
     public RegisteredCredential getRegisteredCredential() {
-        return RegisteredCredential.builder().credentialId(getCredentialId()).userHandle(parentAccount.getUserHandle())
-                .publicKeyCose(getPublicKeyCose()).signatureCount(signatureCount).build();
+        return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(getCredentialId()))
+                .userHandle(parentAccount.getUserHandle())
+                .publicKeyCose(ByteArray.fromBase64(getPublicKeyCose())).signatureCount(signatureCount).build();
     }
 
     public Date getCreatedOn() {
@@ -89,20 +90,20 @@ public class WebAuthnCredential {
     }
 
     // Getters and setters
-    public void setCredentialId(ByteArray credentialId) {
-        this.credentialId = credentialId.getBase64();
+    public void setCredentialId(String credentialId) {
+        this.credentialId = credentialId;
     }
 
-    public ByteArray getCredentialId() {
-        return ByteArray.fromBase64(credentialId);
+    public String getCredentialId() {
+        return credentialId;
     }
 
-    public void setPublicKeyCose(ByteArray publicKeyCose) {
-        this.publicKeyCose = publicKeyCose.getBase64();
+    public void setPublicKeyCose(String publicKeyCose) {
+        this.publicKeyCose = publicKeyCose;
     }
 
-    public ByteArray getPublicKeyCose() {
-        return ByteArray.fromBase64(publicKeyCose);
+    public String getPublicKeyCose() {
+        return publicKeyCose;
     }
 
     public Set<AuthenticatorTransport> getTransports() {
