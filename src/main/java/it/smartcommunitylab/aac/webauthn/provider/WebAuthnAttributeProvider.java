@@ -8,7 +8,6 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
@@ -63,12 +62,8 @@ public class WebAuthnAttributeProvider extends AbstractProvider implements Attri
         String username = parseResourceId(userId);
         String provider = getProvider();
 
-        WebAuthnUserAccount account;
-        try {
-            account = userAccountService.findByProviderAndUsername(provider, username);
-        } catch (NoSuchUserException _e) {
-            account = null;
-        }
+        WebAuthnUserAccount account = userAccountService.findByProviderAndUsername(provider, username);
+        
         if (account == null) {
             return null;
         }
@@ -97,12 +92,8 @@ public class WebAuthnAttributeProvider extends AbstractProvider implements Attri
         String username = parseResourceId(userId);
         String provider = getProvider();
 
-        WebAuthnUserAccount account;
-        try {
-            account = userAccountService.findByProviderAndUsername(provider, username);
-        } catch (NoSuchUserException _e) {
-            account = null;
-        }
+        WebAuthnUserAccount account = userAccountService.findByProviderAndUsername(provider, username);
+        
         if (account == null) {
             return null;
         }
