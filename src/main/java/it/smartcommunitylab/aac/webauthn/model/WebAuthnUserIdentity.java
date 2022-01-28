@@ -2,8 +2,8 @@ package it.smartcommunitylab.aac.webauthn.model;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.security.core.CredentialsContainer;
 
@@ -13,6 +13,7 @@ import it.smartcommunitylab.aac.core.base.BaseIdentity;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsContainer {
@@ -20,27 +21,36 @@ public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsCon
 
     private final WebAuthnUserAuthenticatedPrincipal principal;
 
+    private final WebAuthnCredentialsRepository webAuthnCredentialsRepository;
     private WebAuthnUserAccount account;
 
     private String userId;
 
     private Map<String, UserAttributes> attributes;
 
-    public WebAuthnUserIdentity(String provider, String realm, WebAuthnUserAccount account) {
+    public WebAuthnUserIdentity(String provider,
+            String realm,
+            WebAuthnUserAccount account,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm);
         this.account = account;
+        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
         this.principal = null;
         this.userId = account.getUserId();
         this.attributes = new HashMap<>();
     }
 
-    public WebAuthnUserIdentity(String provider, String realm, WebAuthnUserAccount account,
-            WebAuthnUserAuthenticatedPrincipal principal) {
+    public WebAuthnUserIdentity(String provider,
+            String realm,
+            WebAuthnUserAccount account,
+            WebAuthnUserAuthenticatedPrincipal principal,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm);
         this.account = account;
         this.principal = principal;
         this.userId = account.getUserId();
         this.attributes = new HashMap<>();
+        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
     }
 
     @Override
@@ -88,14 +98,12 @@ public class WebAuthnUserIdentity extends BaseIdentity implements CredentialsCon
 
     @Override
     public void eraseCredentials() {
-        this.account.setCredentials(null);
+
+        List<WebAuthnCredential> credentials = webAuthnCredentialsRepository.findByParentAccountId(account.getId());
+        webAuthnCredentialsRepository.deleteAll(credentials);
         if (this.principal != null) {
             this.principal.eraseCredentials();
         }
-    }
-
-    public Set<WebAuthnCredential> getCredentials() {
-        return this.account.getCredentials();
     }
 
     @Override

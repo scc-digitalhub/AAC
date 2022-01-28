@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
@@ -20,21 +19,25 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
 public class WebAuthnAccountService extends AbstractProvider implements AccountService {
     protected final WebAuthnUserAccountService userAccountService;
 
+    private final WebAuthnCredentialsRepository webAuthnCredentialsRepository;
     private final WebAuthnIdentityProviderConfigMap config;
 
     public WebAuthnAccountService(String providerId,
             WebAuthnUserAccountService userAccountService,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository,
             WebAuthnIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
         this.userAccountService = userAccountService;
+        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
         this.config = providerConfig.getConfigMap();
     }
 
@@ -154,12 +157,12 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         }
 
         // check type and extract our parameters if present
-        Set<WebAuthnCredential> credentials = null;
+        List<WebAuthnCredential> credentials = null;
         String email = null;
 
         if (reg instanceof WebAuthnUserAccount) {
             WebAuthnUserAccount ireg = (WebAuthnUserAccount) reg;
-            credentials = ireg.getCredentials();
+            credentials = webAuthnCredentialsRepository.findByParentAccountId(ireg.getId());
             email = ireg.getEmailAddress();
 
             if (StringUtils.hasText(email)) {
@@ -176,7 +179,6 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         account.setSubject(subjectId);
         account.setRealm(getRealm());
         account.setUsername(username);
-        account.setCredentials(credentials);
         account.setEmailAddress(email);
 
         account = userAccountService.addAccount(account);
@@ -215,7 +217,6 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         if (reg instanceof WebAuthnUserAccount) {
             WebAuthnUserAccount ireg = (WebAuthnUserAccount) reg;
             String email = ireg.getEmailAddress();
-            Set<WebAuthnCredential> credentials = ireg.getCredentials();
 
             if (StringUtils.hasText(email)) {
                 email = Jsoup.clean(email, Safelist.none());
@@ -223,7 +224,6 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
             // we update all props, even if empty or null
             account.setEmailAddress(email);
-            account.setCredentials(credentials);
 
             account = userAccountService.updateAccount(account.getId(), account);
         }

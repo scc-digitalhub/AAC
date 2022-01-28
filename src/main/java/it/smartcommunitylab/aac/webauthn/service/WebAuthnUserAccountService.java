@@ -60,7 +60,8 @@ public class WebAuthnUserAccountService {
         if (cred == null) {
             return null;
         }
-        return accountRepository.detach(cred.getParentAccount());
+        WebAuthnUserAccount userAccount = accountRepository.getOne(cred.getParentAccountId());
+        return accountRepository.detach(userAccount);
     }
 
     /*
@@ -73,7 +74,6 @@ public class WebAuthnUserAccountService {
             // we explode model
             WebAuthnUserAccount account = new WebAuthnUserAccount();
 
-            account.setCredentials(reg.getCredentials());
             account.setEmailAddress(reg.getEmailAddress());
             account.setProvider(reg.getProvider());
             account.setRealm(reg.getRealm());
@@ -103,7 +103,6 @@ public class WebAuthnUserAccountService {
 
         try {
             // we explode model and update every field
-            account.setCredentials(reg.getCredentials());
             account.setEmailAddress(reg.getEmailAddress());
             account.setProvider(reg.getProvider());
             account.setRealm(reg.getRealm());
@@ -121,7 +120,7 @@ public class WebAuthnUserAccountService {
 
     public void deleteAccount(String provider, String subject) {
         final WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
-        for (final WebAuthnCredential c : credentialRepository.findByParentAccount(account)) {
+        for (final WebAuthnCredential c : credentialRepository.findByParentAccountId(account.getId())) {
             credentialRepository.delete(c);
         }
         accountRepository.delete(account);

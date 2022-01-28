@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipa
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -34,12 +35,18 @@ public class WebAuthnSubjectResolver extends AbstractProvider
     private WebAuthnAccountService accountProvider;
 
     public WebAuthnSubjectResolver(String providerId, WebAuthnUserAccountService userAccountService,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository,
             WebAuthnIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
 
         // build an internal provider bound to repository
-        this.accountProvider = new WebAuthnAccountService(providerId, userAccountService, providerConfig, realm);
+        this.accountProvider = new WebAuthnAccountService(
+                providerId,
+                userAccountService,
+                webAuthnCredentialsRepository,
+                providerConfig,
+                realm);
     }
 
     @Override

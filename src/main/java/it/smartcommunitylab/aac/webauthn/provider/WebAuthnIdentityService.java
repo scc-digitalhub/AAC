@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserIdentity;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -38,6 +39,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
     // provider configuration
     private final WebAuthnIdentityProviderConfig config;
+    private final WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     // providers
     private final WebAuthnAccountService accountService;
@@ -47,7 +49,9 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
     public WebAuthnIdentityService(
             String providerId,
-            WebAuthnUserAccountService userAccountService, UserEntityService userEntityService,
+            WebAuthnUserAccountService userAccountService,
+            UserEntityService userEntityService,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository,
             WebAuthnIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
@@ -64,12 +68,18 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
         this.config = config;
+        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
-        this.accountService = new WebAuthnAccountService(providerId, userAccountService, config, realm);
+        this.accountService = new WebAuthnAccountService(providerId, userAccountService, webAuthnCredentialsRepository,
+                config, realm);
         this.credentialService = new WebAuthnCredentialsService(providerId, userAccountService, config, realm);
-        this.subjectResolver = new WebAuthnSubjectResolver(providerId, userAccountService, config, realm);
+        this.subjectResolver = new WebAuthnSubjectResolver(providerId,
+                userAccountService,
+                webAuthnCredentialsRepository,
+                config,
+                realm);
 
     }
 
@@ -197,7 +207,12 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // TODO, we shouldn't have additional attributes for webauthn
 
         // use builder to properly map attributes
-        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account, principal);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(
+                getProvider(),
+                getRealm(),
+                account,
+                principal,
+                webAuthnCredentialsRepository);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, subjectId);
@@ -236,7 +251,10 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // TODO, we shouldn't have additional attributes for WebAuthn
 
         // use builder to properly map attributes
-        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
+                getRealm(),
+                account,
+                webAuthnCredentialsRepository);
         if (fetchAttributes) {
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
@@ -274,7 +292,10 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
             // TODO, we shouldn't have additional attributes for WebAuthn
 
             // use builder to properly map attributes
-            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
+            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
+                    getRealm(),
+                    account,
+                    webAuthnCredentialsRepository);
             if (fetchAttributes) {
                 // convert attribute sets
                 Collection<UserAttributes> identityAttributes = attributeProvider
@@ -356,7 +377,10 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
             // TODO, we shouldn't have additional attributes for webauthn
 
             // use builder to properly map attributes
-            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
+            WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
+                    getRealm(),
+                    account,
+                    webAuthnCredentialsRepository);
 
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(account.getUserId());
@@ -408,7 +432,11 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // TODO, we shouldn't have additional attributes for webauthn
 
         // use builder to properly map attributes
-        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(), getRealm(), account);
+        WebAuthnUserIdentity identity = new WebAuthnUserIdentity(
+                getProvider(),
+                getRealm(),
+                account,
+                webAuthnCredentialsRepository);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
