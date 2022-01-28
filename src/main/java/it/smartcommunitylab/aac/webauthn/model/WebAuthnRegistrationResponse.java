@@ -24,7 +24,7 @@ public class WebAuthnRegistrationResponse {
     @JsonProperty("options")
     @JsonSerialize(using = PublicKeyCredentialCreationOptionsSerializer.class)
     @NotNull
-    PublicKeyCredentialCreationOptions options;
+    private PublicKeyCredentialCreationOptions options;
 
     public String getKey() {
         return this.key;
