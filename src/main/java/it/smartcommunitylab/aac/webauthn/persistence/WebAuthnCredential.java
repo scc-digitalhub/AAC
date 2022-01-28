@@ -1,7 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.persistence;
 
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -44,22 +44,22 @@ public class WebAuthnCredential {
      */
     @Column(name = "display_name")
     private String displayName;
-    
+
     // TODO: civts, use converters
     /**
      * Public key of this credential
      */
     @Column(name = "public_key_cose")
     private String publicKeyCose;
-    
+
     @Column(name = "signature_count")
     private Long signatureCount = 0L;
-    
+
     // TODO: use converters
     @ElementCollection
     @Column(name = "transports")
     private Set<String> transports;
-    
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_on")
     private Date createdOn;
@@ -106,7 +106,7 @@ public class WebAuthnCredential {
     }
 
     public Set<AuthenticatorTransport> getTransports() {
-        final Set<AuthenticatorTransport> result = new HashSet<>();
+        final Set<AuthenticatorTransport> result = Collections.emptySet();
         for (final String code : transports) {
             result.add(AuthenticatorTransport.valueOf(code));
         }
@@ -114,7 +114,7 @@ public class WebAuthnCredential {
     }
 
     public void setTransports(Set<AuthenticatorTransport> transports) {
-        final Set<String> result = new HashSet<>();
+        final Set<String> result = Collections.emptySet();
         for (final AuthenticatorTransport t : transports) {
             if (t == AuthenticatorTransport.USB) {
                 result.add("USB");

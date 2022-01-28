@@ -1,6 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.auth;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -45,7 +45,7 @@ public class WebAuthnRpRegistrationRepository {
         final String rpid = config.getRpid();
         final Matcher localhostMatcher = localhostPattern.matcher(rpid);
         final boolean isRpidLocalhost = localhostMatcher.matches();
-        Set<String> origins = new HashSet<>();
+        Set<String> origins = Collections.emptySet();
         origins.add("https://" + rpid);
         if (isRpidLocalhost) {
             origins.add("http://" + rpid);
