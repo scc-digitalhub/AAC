@@ -269,7 +269,6 @@ public class WebAuthnRpService {
         if (account == null) {
             return Optional.empty();
         }
-        assert (account.getUsername() == username);
         return Optional.of(UserIdentity.builder().name(account.getUsername()).displayName(displayName)
                 .id(ByteArray.fromBase64(account.getUserHandle())).build());
     }
