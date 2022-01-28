@@ -4,17 +4,12 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yubico.webauthn.RegisteredCredential;
-import com.yubico.webauthn.data.ByteArray;
 
 @Entity
 @Table(name = "webauthn_credentials")
@@ -25,11 +20,9 @@ public class WebAuthnCredential {
     private String credentialId;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "webauth_acc_id", nullable = false)
-    private WebAuthnUserAccount parentAccount;
+    @Column(name = "webauth_acc_id", nullable = false)
+    private Long parentAccountId;
 
-    // TODO: civts, use converters
     /**
      * A custom name the user can associate to this credential
      * It can be used, for example, to help distinguishing authenticators.
@@ -40,7 +33,6 @@ public class WebAuthnCredential {
     @Column(name = "display_name")
     private String displayName;
 
-    // TODO: civts, use converters
     /**
      * Public key of this credential
      */
@@ -63,11 +55,6 @@ public class WebAuthnCredential {
     @Column(name = "last_used_on")
     private Date lastUsedOn;
 
-    public RegisteredCredential getRegisteredCredential() {
-        return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(getCredentialId()))
-                .userHandle(ByteArray.fromBase64(parentAccount.getUserHandle()))
-                .publicKeyCose(ByteArray.fromBase64(getPublicKeyCose())).signatureCount(signatureCount).build();
-    }
 
     public Date getCreatedOn() {
         return createdOn;
@@ -126,11 +113,11 @@ public class WebAuthnCredential {
         this.displayName = displayName;
     }
 
-    public WebAuthnUserAccount getParentAccount() {
-        return parentAccount;
+    public Long getParentAccountId() {
+        return parentAccountId;
     }
 
-    public void setParentAccount(WebAuthnUserAccount parentAccount) {
-        this.parentAccount = parentAccount;
+    public void setParentAccountId(Long parentAccountId) {
+        this.parentAccountId = parentAccountId;
     }
 }

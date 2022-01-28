@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.webauthn.persistence;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -37,7 +38,8 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
         try {
             WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
-            final Set<WebAuthnCredential> credentials = account.getCredentials();
+            final List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
+                    .findByParentAccountId(account.getId());
             Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
             for (WebAuthnCredential c : credentials) {
                 PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
@@ -88,10 +90,10 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         if (acc == null) {
             return Optional.empty();
         }
-        Set<WebAuthnCredential> credentials = acc.getCredentials();
+        List<WebAuthnCredential> credentials = webAuthnCredentialsRepository.findByParentAccountId(acc.getId());
         for (final WebAuthnCredential cred : credentials) {
             if (cred.getCredentialId().equals(credentialId.getBase64())) {
-                return Optional.of(cred.getRegisteredCredential());
+                return Optional.of(getRegisteredCredential(cred));
             }
         }
         return Optional.empty();
@@ -103,8 +105,16 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         Set<RegisteredCredential> s = new HashSet<>();
         WebAuthnCredential cred = webAuthnCredentialsRepository.findByCredentialId(credentialId.getBase64());
         if (cred != null) {
-            s.add(cred.getRegisteredCredential());
+            s.add(getRegisteredCredential(cred));
         }
         return s;
+    }
+
+    private RegisteredCredential getRegisteredCredential(WebAuthnCredential credential) {
+        final WebAuthnUserAccount account = userAccountRepository.getOne(credential.getParentAccountId());
+        return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(credential.getCredentialId()))
+                .userHandle(ByteArray.fromBase64(account.getUserHandle()))
+                .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))
+                .signatureCount(credential.getSignatureCount()).build();
     }
 }

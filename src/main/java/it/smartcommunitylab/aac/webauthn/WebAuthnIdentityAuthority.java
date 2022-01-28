@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
@@ -38,6 +39,7 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
     public static final String AUTHORITY_URL = "/auth/webauthn/";
     private WebAuthnIdentityProviderConfigMap defaultProviderConfig;
     private WebAuthnIdentityProviderConfig template;
+    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     // This notation refers to application.yml file
     @Value("${authorities.webauthn.rpid}")
@@ -62,11 +64,12 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
     private final WebAuthnUserAccountService userAccountService;
 
     private final UserEntityService userEntityService;
- 
+
     public WebAuthnIdentityAuthority(
             WebAuthnUserAccountService userAccountService,
             UserEntityService userEntityService,
-            ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
+            ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository,
+            WebAuthnCredentialsRepository webAuthnCredentialsRepository) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
@@ -74,6 +77,7 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
         this.userAccountService = userAccountService;
         this.userEntityService = userEntityService;
         this.registrationRepository = registrationRepository;
+        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
     }
 
     @Override
@@ -119,19 +123,18 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
                         throw new IllegalArgumentException("no configuration matching the given provider id");
                     }
 
-                    WebAuthnIdentityService idp = new WebAuthnIdentityService(id, userAccountService, userEntityService,
-                            config, config.getRealm());
+                    WebAuthnIdentityService idp = new WebAuthnIdentityService(id,
+                            userAccountService,
+                            userEntityService,
+                            webAuthnCredentialsRepository,
+                            config,
+                            config.getRealm());
 
                     return idp;
 
                 }
             });
-
-    // TODO, create a global repository for the rp services and populate it here
-    // WebAuthnRpRegistrationRepository
-
-    // Add method WebAuthnIdentityService getOrCreate(providerId)
-
+ 
     @Override
     public WebAuthnIdentityService getIdentityProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
