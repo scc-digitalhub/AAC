@@ -134,8 +134,6 @@ public class OpenAPIConfig {
                 .build();
     }
 
-    //TODO: civts, document webauthn API endpoints
-
     @Bean
     public GroupedOpenApi oauth() {
         return GroupedOpenApi.builder()
