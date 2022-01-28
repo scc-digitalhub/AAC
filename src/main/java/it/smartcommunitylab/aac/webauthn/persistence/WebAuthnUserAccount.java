@@ -13,8 +13,6 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
-import com.yubico.webauthn.data.ByteArray;
-
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -55,8 +53,8 @@ public class WebAuthnUserAccount implements UserAccount {
         return id;
     }
 
-    public ByteArray getUserHandle() {
-        return ByteArray.fromBase64(userHandle);
+    public String getUserHandle() {
+        return userHandle;
     }
 
     public String getEmailAddress() {
@@ -83,8 +81,8 @@ public class WebAuthnUserAccount implements UserAccount {
         this.username = username;
     }
 
-    public void setUserHandle(ByteArray userHandle) {
-        this.userHandle = userHandle.getBase64();
+    public void setUserHandle(String userHandle) {
+        this.userHandle = userHandle;
     }
 
     public void setEmailAddress(String emailAddress) {
