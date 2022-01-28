@@ -29,10 +29,11 @@ public class WebAuthnUserAccount implements UserAccount {
 
     @Id
     @GeneratedValue
+    @Column(name = "id")
     private Long id;
 
     // TODO: civts, use converter
-    @Column(unique = true)
+    @Column(unique = true, name = "user_handle")
     private String userHandle;
     @OneToMany(mappedBy = "parentAccount", fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<WebAuthnCredential> credentials;
@@ -40,8 +41,11 @@ public class WebAuthnUserAccount implements UserAccount {
     @NotNull
     @Column(name = "subject_id")
     private String subject;
+    @Column(name = "email_address")
     private String emailAddress;
+    @Column(name = "realm")
     private String realm;
+    @Column(name = "username")
     private String username;
 
     @Column(name = "provider_id")

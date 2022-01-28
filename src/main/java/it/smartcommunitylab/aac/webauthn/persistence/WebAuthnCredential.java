@@ -4,12 +4,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -19,14 +21,17 @@ import com.yubico.webauthn.data.AuthenticatorTransport;
 import com.yubico.webauthn.data.ByteArray;
 
 @Entity
+@Table(name = "webauthn_credentials")
 public class WebAuthnCredential {
 
     @Id
+    @Column(name = "credential_id")
     private String credentialId;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "webauth_acc_id", nullable = false)
+    @Column(name = "parent_account")
     private WebAuthnUserAccount parentAccount;
 
     // TODO: civts, use converters
@@ -37,23 +42,29 @@ public class WebAuthnCredential {
      * E.g., a credential may be called 'Yubico 5c' to make it obvious in the web
      * interface that it is relative to that authenticator
      */
+    @Column(name = "display_name")
     private String displayName;
-
+    
     // TODO: civts, use converters
     /**
      * Public key of this credential
      */
+    @Column(name = "public_key_cose")
     private String publicKeyCose;
-
+    
+    @Column(name = "signature_count")
     private Long signatureCount = 0L;
-
+    
     // TODO: use converters
     @ElementCollection
+    @Column(name = "transports")
     private Set<String> transports;
-
+    
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_on")
     private Date createdOn;
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_used_on")
     private Date lastUsedOn;
 
     public RegisteredCredential getRegisteredCredential() {
