@@ -97,8 +97,10 @@ public class WebAuthnRpService {
     }
 
     /**
-     * Returns the username of the user on successful authentication or null if the
-     * authentication was not successful
+     * Returns:
+     * - the username of the authenticated user on successful authentication
+     * - null if the authentication was not successful
+     * - throws a WebAuthnAuthenticationException if some other error occourred
      */
     public String finishRegistration(
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc,
@@ -144,11 +146,13 @@ public class WebAuthnRpService {
                 webAuthnCredentialsRepository.save(newCred);
                 activeRegistrations.remove(key);
                 return username;
+            } else {
+                return null;
             }
         } catch (Exception e) {
+            throw new WebAuthnAuthenticationException("_",
+                    "Registration failed");
         }
-        throw new WebAuthnAuthenticationException("_",
-                "Registration failed");
     }
 
     private String convertTransportsToString(Set<AuthenticatorTransport> transports) {
@@ -227,11 +231,13 @@ public class WebAuthnRpService {
                             "Could not find the requested credential in the account");
                 }
                 return username;
+            } else {
+                return null;
             }
         } catch (Exception e) {
+            throw new WebAuthnAuthenticationException("_",
+                    "Login failed");
         }
-        throw new WebAuthnAuthenticationException("_",
-                "Login failed");
     }
 
     UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayName,
