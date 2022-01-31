@@ -111,6 +111,10 @@ public class WebAuthnRpService {
                         "Can not find matching active registration request");
             }
             final String username = info.getUsername();
+            if (!StringUtils.hasText(username)) {
+                throw new WebAuthnAuthenticationException("_",
+                        "Could not finish registration: missing username");
+            }
             final WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
                     username);
             if (account == null) {
@@ -139,12 +143,7 @@ public class WebAuthnRpService {
 
                 webAuthnCredentialsRepository.save(newCred);
                 activeRegistrations.remove(key);
-                if (username != null) {
-                    return username;
-                } else {
-                    throw new WebAuthnAuthenticationException("_",
-                            "Could not register user " + username + " with subject " + account.getSubject());
-                }
+                return username;
             }
         } catch (Exception e) {
         }
