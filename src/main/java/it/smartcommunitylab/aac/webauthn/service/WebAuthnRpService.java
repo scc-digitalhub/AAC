@@ -222,13 +222,11 @@ public class WebAuthnRpService {
                 credential.setLastUsedOn(new Date());
                 webAuthnCredentialsRepository.save(credential);
                 final String username = account.getUsername();
-                if (username != null) {
-                    return username;
-                } else {
+                if (!StringUtils.hasText(username)) {
                     throw new WebAuthnAuthenticationException(account.getSubject(),
                             "Could not find the requested credential in the account");
                 }
-
+                return username;
             }
         } catch (Exception e) {
         }
