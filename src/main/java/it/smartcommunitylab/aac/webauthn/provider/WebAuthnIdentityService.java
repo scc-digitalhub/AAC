@@ -39,7 +39,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
     // provider configuration
     private final WebAuthnIdentityProviderConfig config;
-    private final WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     // providers
     private final WebAuthnAccountService accountService;
@@ -68,7 +67,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
         this.config = config;
-        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
@@ -211,8 +209,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
                 getProvider(),
                 getRealm(),
                 account,
-                principal,
-                webAuthnCredentialsRepository);
+                principal);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, subjectId);
@@ -253,8 +250,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // use builder to properly map attributes
         WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
                 getRealm(),
-                account,
-                webAuthnCredentialsRepository);
+                account);
         if (fetchAttributes) {
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
@@ -294,8 +290,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
             // use builder to properly map attributes
             WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
                     getRealm(),
-                    account,
-                    webAuthnCredentialsRepository);
+                    account);
             if (fetchAttributes) {
                 // convert attribute sets
                 Collection<UserAttributes> identityAttributes = attributeProvider
@@ -379,8 +374,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
             // use builder to properly map attributes
             WebAuthnUserIdentity identity = new WebAuthnUserIdentity(getProvider(),
                     getRealm(),
-                    account,
-                    webAuthnCredentialsRepository);
+                    account);
 
             // convert attribute sets
             Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(account.getUserId());
@@ -435,8 +429,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         WebAuthnUserIdentity identity = new WebAuthnUserIdentity(
                 getProvider(),
                 getRealm(),
-                account,
-                webAuthnCredentialsRepository);
+                account);
 
         // convert attribute sets
         Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
