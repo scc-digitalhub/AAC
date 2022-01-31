@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.util.LinkedHashMap;
+import org.springframework.util.StringUtils;
 
 import javax.validation.Valid;
 
@@ -154,6 +155,9 @@ public class WebAuthnRegistrationController {
 
             try {
                 final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
+                if(!StringUtils.hasText(authenticatedUser)){
+                    throw invalidAttestationException;
+                }
                 return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";
             } catch (WebAuthnAuthenticationException e) {
                 throw invalidAttestationException;
