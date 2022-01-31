@@ -234,9 +234,8 @@ public class WebAuthnRpService {
                 "Login failed");
     }
 
-    UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayNameOrNull,
+    UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayName,
             Subject subjectOrNull) {
-        String displayName = displayNameOrNull != null ? displayNameOrNull : "";
         Optional<UserIdentity> option = getUserIdentity(username, displayName);
         if (option.isPresent()) {
             return option.get();
@@ -246,7 +245,7 @@ public class WebAuthnRpService {
             random.nextBytes(userHandle);
             final ByteArray userHandleBA = new ByteArray(userHandle);
             final UserIdentity newUserIdentity = UserIdentity.builder()
-                    .name(username).displayName(displayName)
+                    .name(username).displayName(displayName != null ? displayName : "")
                     .id(userHandleBA).build();
             final WebAuthnUserAccount account = new WebAuthnUserAccount();
             account.setUsername(username);
