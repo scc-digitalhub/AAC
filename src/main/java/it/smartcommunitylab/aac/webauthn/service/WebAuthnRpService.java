@@ -32,6 +32,8 @@ import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.Subject;
@@ -153,19 +155,9 @@ public class WebAuthnRpService {
     private String convertTransportsToString(Set<AuthenticatorTransport> transports) {
         final List<String> result = new LinkedList<>();
         for (final AuthenticatorTransport t : transports) {
-            if (t == AuthenticatorTransport.USB) {
-                result.add("USB");
-            } else if (t == AuthenticatorTransport.BLE) {
-                result.add("BLE");
-            } else if (t == AuthenticatorTransport.NFC) {
-                result.add("NFC");
-            } else if (t == AuthenticatorTransport.INTERNAL) {
-                result.add("INTERNAL");
-            } else {
-                throw new IllegalArgumentException("Transport not found: " + t);
-            }
+            result.add(t.getId());
         }
-        return String.join(",", result);
+        return StringUtils.collectionToCommaDelimitedString(result);
     }
 
     public WebAuthnLoginResponse startLogin(String username, String realm) {

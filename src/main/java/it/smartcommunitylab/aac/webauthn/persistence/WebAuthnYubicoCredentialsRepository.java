@@ -13,6 +13,8 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
 
+import org.springframework.util.StringUtils;
+
 /**
  * For this class, everytime we should use the 'username', we
  * will instead use a string in the following format:
@@ -56,8 +58,8 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     private Set<AuthenticatorTransport> getTransportsFromString(String transports) {
         final Set<AuthenticatorTransport> result = new HashSet<>();
-        for (final String code : transports.split(",")) {
-            result.add(AuthenticatorTransport.valueOf(code));
+        for (final String code : StringUtils.commaDelimitedListToSet(transports)) {
+            result.add(AuthenticatorTransport.of(code));
         }
         return result;
     }
