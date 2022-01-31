@@ -9,8 +9,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 @Entity
 @Table(name = "webauthn_credentials")
 public class WebAuthnCredential {
@@ -19,7 +17,6 @@ public class WebAuthnCredential {
     @Column(name = "credential_id")
     private String credentialId;
 
-    @JsonIgnore
     @Column(name = "webauth_acc_id", nullable = false)
     private Long parentAccountId;
 
