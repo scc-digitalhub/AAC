@@ -236,7 +236,8 @@ public class WebAuthnRpService {
 
     UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayName,
             Subject subjectOrNull) {
-        Optional<UserIdentity> option = getUserIdentity(username, displayName);
+        final String userDisplayName = displayName != null ? displayName : "";
+        Optional<UserIdentity> option = getUserIdentity(username, userDisplayName);
         if (option.isPresent()) {
             return option.get();
         } else {
@@ -245,7 +246,7 @@ public class WebAuthnRpService {
             random.nextBytes(userHandle);
             final ByteArray userHandleBA = new ByteArray(userHandle);
             final UserIdentity newUserIdentity = UserIdentity.builder()
-                    .name(username).displayName(displayName != null ? displayName : "")
+                    .name(username).displayName(userDisplayName)
                     .id(userHandleBA).build();
             final WebAuthnUserAccount account = new WebAuthnUserAccount();
             account.setUsername(username);
