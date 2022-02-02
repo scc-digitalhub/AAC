@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
-import java.util.LinkedHashMap;
-import org.springframework.util.StringUtils;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -14,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -83,7 +83,7 @@ public class WebAuthnRegistrationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/attestationOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String generateAttestationOptions(@RequestBody LinkedHashMap<String, Object> body,
+    public String generateAttestationOptions(@RequestBody Map<String, Object> body,
             @PathVariable("providerId") String providerId) {
         try {
             final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
@@ -93,20 +93,13 @@ public class WebAuthnRegistrationController {
                 throw new RegistrationException("registration is disabled");
             }
             WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
-
-            String username;
-            Object _userName = body.get("username");
-            if (UsernameValidator.isValidUsername(_userName)) {
-                username = (String) _userName;
-            } else {
+            String username = (String) body.get("username");
+            if (!UsernameValidator.isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
-            String displayName = null;
 
-            Object _reqDisplayName = body.getOrDefault("displayName", null);
-            if (UsernameValidator.isValidDisplayName(_reqDisplayName)) {
-                displayName = (String) _reqDisplayName;
-            } else {
+            String displayName = (String) body.getOrDefault("displayName", null);
+            if (!UsernameValidator.isValidDisplayName(displayName)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid displayName");
             }
 
@@ -155,7 +148,7 @@ public class WebAuthnRegistrationController {
 
             try {
                 final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
-                if(!StringUtils.hasText(authenticatedUser)){
+                if (!StringUtils.hasText(authenticatedUser)) {
                     throw invalidAttestationException;
                 }
                 return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";

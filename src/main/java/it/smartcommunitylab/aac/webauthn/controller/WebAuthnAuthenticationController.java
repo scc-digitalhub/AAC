@@ -96,17 +96,12 @@ public class WebAuthnAuthenticationController {
     @ResponseBody
     public String verifyAssertion(@RequestBody @Valid WebAuthnAssertionResponse body,
             @PathVariable("providerId") String providerId) {
-        Object assertionJSON = body.getAssertion();
-        final String key = body.getKey();
-        if (assertionJSON == null || !(assertionJSON instanceof LinkedHashMap)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
-        }
+        final String key = body.getKey(); 
         try {
             final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
 
-            String assertionString = mapper.writeValueAsString(assertionJSON);
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
-                    .parseAssertionResponseJson((String) assertionString);
+                    .parseAssertionResponseJson(body.getAssertionAsJson());
 
             try {
                 final String authenticatedUser = rps.finishLogin(pkc, key);
