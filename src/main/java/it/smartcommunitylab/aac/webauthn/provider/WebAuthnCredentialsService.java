@@ -103,7 +103,7 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
             throw new NoSuchUserException();
         }
 
-        return userAccountService.updateAccount(account.getId(), account);
+        return userAccountService.updateAccount(account.getUserHandle(), account);
     }
 
     @Override
