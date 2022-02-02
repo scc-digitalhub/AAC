@@ -162,7 +162,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         if (reg instanceof WebAuthnUserAccount) {
             WebAuthnUserAccount ireg = (WebAuthnUserAccount) reg;
-            credentials = webAuthnCredentialsRepository.findByParentAccountId(ireg.getId());
+            credentials = webAuthnCredentialsRepository.findByUserHandle(ireg.getUserHandle());
             email = ireg.getEmailAddress();
 
             if (StringUtils.hasText(email)) {
@@ -225,7 +225,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
             // we update all props, even if empty or null
             account.setEmailAddress(email);
 
-            account = userAccountService.updateAccount(account.getId(), account);
+            account = userAccountService.updateAccount(account.getUserHandle(), account);
         }
 
         // set providerId since all webauthn accounts have the same

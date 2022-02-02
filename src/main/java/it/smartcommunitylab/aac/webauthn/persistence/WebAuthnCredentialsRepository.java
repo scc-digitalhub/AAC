@@ -13,6 +13,6 @@ public interface WebAuthnCredentialsRepository
 
     WebAuthnCredential findByCredentialId(String credentialId);
 
-    List<WebAuthnCredential> findByParentAccountId(Long parentAccountId);
+    List<WebAuthnCredential> findByUserHandle(String userHandle);
 
 }

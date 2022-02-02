@@ -72,7 +72,7 @@ public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrin
         Map<String, String> attributes = new HashMap<>();
         if (principal != null) {
             // map base attributes, these will be available for custom mapping
-            attributes.put("id", Long.toString(principal.getId()));
+            attributes.put("id", principal.getUserHandle());
 
             String username = principal.getUsername();
             if (StringUtils.hasText(username)) {

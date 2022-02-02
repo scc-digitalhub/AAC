@@ -17,8 +17,8 @@ public class WebAuthnCredential {
     @Column(name = "credential_id")
     private String credentialId;
 
-    @Column(name = "webauth_acc_id", nullable = false)
-    private Long parentAccountId;
+    @Column(name = "user_handle", nullable = false)
+    private String userHandle;
 
     /**
      * A custom name the user can associate to this credential
@@ -110,11 +110,11 @@ public class WebAuthnCredential {
         this.displayName = displayName;
     }
 
-    public Long getParentAccountId() {
-        return parentAccountId;
+    public String getUserHandle() {
+        return userHandle;
     }
 
-    public void setParentAccountId(Long parentAccountId) {
-        this.parentAccountId = parentAccountId;
+    public void setUserHandle(String userHandle) {
+        this.userHandle = userHandle;
     }
 }
