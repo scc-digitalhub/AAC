@@ -9,7 +9,7 @@ import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
 public interface WebAuthnUserAccountRepository
-                extends CustomJpaRepository<WebAuthnUserAccount, Long>, DetachableJpaRepository<WebAuthnUserAccount> {
+                extends CustomJpaRepository<WebAuthnUserAccount, String>, DetachableJpaRepository<WebAuthnUserAccount> {
 
         // WebAuthnUserAccount findByRealmAndUsername(String realm, String username);
         // use findByProviderAndUsername

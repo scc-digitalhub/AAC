@@ -41,7 +41,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         try {
             WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
             final List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
-                    .findByParentAccountId(account.getId());
+                    .findByUserHandle(account.getUserHandle());
             Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
             for (WebAuthnCredential c : credentials) {
                 PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
@@ -92,7 +92,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         if (acc == null) {
             return Optional.empty();
         }
-        List<WebAuthnCredential> credentials = webAuthnCredentialsRepository.findByParentAccountId(acc.getId());
+        List<WebAuthnCredential> credentials = webAuthnCredentialsRepository.findByUserHandle(acc.getUserHandle());
         for (final WebAuthnCredential cred : credentials) {
             if (cred.getCredentialId().equals(credentialId.getBase64())) {
                 return Optional.of(getRegisteredCredential(cred));
@@ -113,7 +113,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     }
 
     private RegisteredCredential getRegisteredCredential(WebAuthnCredential credential) {
-        final WebAuthnUserAccount account = userAccountRepository.getOne(credential.getParentAccountId());
+        final WebAuthnUserAccount account = userAccountRepository.getOne(credential.getUserHandle());
         return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(credential.getCredentialId()))
                 .userHandle(ByteArray.fromBase64(account.getUserHandle()))
                 .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))

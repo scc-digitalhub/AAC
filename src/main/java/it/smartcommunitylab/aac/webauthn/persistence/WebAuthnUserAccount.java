@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.webauthn.persistence;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -20,13 +19,9 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 public class WebAuthnUserAccount implements UserAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
+ 
     @Id
-    @GeneratedValue
-    @Column(name = "id")
-    private Long id;
-
-    @Column(unique = true, name = "user_handle")
+    @Column(name = "user_handle")
     private String userHandle;
 
     @NotNull
@@ -41,10 +36,7 @@ public class WebAuthnUserAccount implements UserAccount {
 
     @Column(name = "provider_id")
     private String provider;
-
-    public Long getId() {
-        return id;
-    }
+ 
 
     public String getUserHandle() {
         return userHandle;
@@ -53,11 +45,7 @@ public class WebAuthnUserAccount implements UserAccount {
     public String getEmailAddress() {
         return emailAddress;
     }
- 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+  
     public void setRealm(String realm) {
         this.realm = realm;
     }
@@ -105,7 +93,7 @@ public class WebAuthnUserAccount implements UserAccount {
     public String getUserId() {
         if (subject == null) {
             // use our id at authority level is the internal id
-            return String.valueOf(id);
+            return userHandle;
         }
         return subject;
     }

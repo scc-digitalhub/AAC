@@ -60,7 +60,7 @@ public class WebAuthnUserAccountService {
         if (cred == null) {
             return null;
         }
-        WebAuthnUserAccount userAccount = accountRepository.getOne(cred.getParentAccountId());
+        WebAuthnUserAccount userAccount = accountRepository.getOne(cred.getUserHandle());
         return accountRepository.detach(userAccount);
     }
 
@@ -90,13 +90,13 @@ public class WebAuthnUserAccountService {
     }
 
     public WebAuthnUserAccount updateAccount(
-            long id,
+            String userHandle,
             WebAuthnUserAccount reg) throws NoSuchUserException, RegistrationException {
         if (reg == null) {
             throw new NoSuchUserException();
         }
 
-        WebAuthnUserAccount account = accountRepository.findOne(id);
+        WebAuthnUserAccount account = accountRepository.findByUserHandle(userHandle);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -120,7 +120,7 @@ public class WebAuthnUserAccountService {
 
     public void deleteAccount(String provider, String subject) {
         final WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
-        for (final WebAuthnCredential c : credentialRepository.findByParentAccountId(account.getId())) {
+        for (final WebAuthnCredential c : credentialRepository.findByUserHandle(account.getUserHandle())) {
             credentialRepository.delete(c);
         }
         accountRepository.delete(account);

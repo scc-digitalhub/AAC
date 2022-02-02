@@ -146,7 +146,7 @@ public class WebAuthnSubjectResolver extends AbstractProvider
             WebAuthnUserAccount account = (WebAuthnUserAccount) user.getPrincipal();
 
             // export internal id
-            attributes.put("id", Long.toString(account.getId()));
+            attributes.put("id", account.getUserHandle());
 
         }
 

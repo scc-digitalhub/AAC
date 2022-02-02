@@ -141,7 +141,7 @@ public class WebAuthnRpService {
                 } else {
                     newCred.setTransports("");
                 }
-                newCred.setParentAccountId(account.getId());
+                newCred.setUserHandle(account.getUserHandle());
 
                 webAuthnCredentialsRepository.save(newCred);
                 activeRegistrations.remove(key);
@@ -202,7 +202,7 @@ public class WebAuthnRpService {
                 final WebAuthnUserAccount account = webAuthnUserAccountRepository
                         .findByUserHandle(result.getUserHandle().getBase64());
                 List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
-                        .findByParentAccountId(account.getId());
+                        .findByUserHandle(account.getUserHandle());
                 Optional<WebAuthnCredential> toUpdate = Optional.empty();
                 ByteArray resultCredentialId = result.getCredentialId();
                 for (WebAuthnCredential c : credentials) {
