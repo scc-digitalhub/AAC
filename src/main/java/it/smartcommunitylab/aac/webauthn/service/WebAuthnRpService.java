@@ -88,7 +88,7 @@ public class WebAuthnRpService {
         info.setRealm(realm);
         info.setOptions(options);
         info.setProviderId(provider);
-        final String key = generateNewKey();
+        final String key = UUID.randomUUID().toString();
         activeRegistrations.put(key, info);
         final WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse();
         response.setKey(key);
@@ -169,17 +169,12 @@ public class WebAuthnRpService {
                 .userHandle(ByteArray.fromBase64(account.getUserHandle())).timeout(TIMEOUT)
                 .userVerification(UserVerificationRequirement.REQUIRED).username(username).build();
         AssertionRequest startAssertion = rp.startAssertion(startAssertionOptions);
-        final String key = generateNewKey();
+        final String key = UUID.randomUUID().toString();
         activeAuthentications.put(key, startAssertion);
         final WebAuthnLoginResponse response = new WebAuthnLoginResponse();
         response.setAssertionRequest(startAssertion);
         response.setKey(key);
         return response;
-    }
-
-    private String generateNewKey() {
-        String uuid = UUID.randomUUID().toString();
-        return uuid;
     }
 
     // public AssertionRequest startLoginUsernameless(String sessionId) {
