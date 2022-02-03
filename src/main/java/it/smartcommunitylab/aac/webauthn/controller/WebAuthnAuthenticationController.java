@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
-import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.validation.Valid;
 
@@ -66,17 +68,14 @@ public class WebAuthnAuthenticationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String generateAssertionOptions(@RequestBody LinkedHashMap<String, Object> body,
+    public String generateAssertionOptions(@RequestBody Map<String, Object> body,
             @PathVariable("providerId") String providerId) {
         try {
             final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
             final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
 
-            String username;
-            Object _userName = body.get("username");
-            if (UsernameValidator.isValidUsername(_userName)) {
-                username = (String) _userName;
-            } else {
+            String username = (String) body.get("username");
+            if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
 
@@ -96,7 +95,7 @@ public class WebAuthnAuthenticationController {
     @ResponseBody
     public String verifyAssertion(@RequestBody @Valid WebAuthnAssertionResponse body,
             @PathVariable("providerId") String providerId) {
-        final String key = body.getKey(); 
+        final String key = body.getKey();
         try {
             final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
 
@@ -114,5 +113,17 @@ public class WebAuthnAuthenticationController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
         }
+    }
+
+    /**
+     * Checks if the provided object can be used as a valid username
+     */
+    private boolean isValidUsername(Object username) {
+        if (!(username instanceof String)) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile("^\\w{3,30}$");
+        Matcher matcher = pattern.matcher((String) username);
+        return matcher.find();
     }
 }
