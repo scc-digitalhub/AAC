@@ -238,9 +238,9 @@ public class WebAuthnRpService {
     UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayName,
             Subject subjectOrNull) {
         final String userDisplayName = displayName != null ? displayName : "";
-        Optional<UserIdentity> option = getUserIdentity(username, userDisplayName);
-        if (option.isPresent()) {
-            return option.get();
+        UserIdentity userIdentity = getUserIdentity(username, userDisplayName);
+        if (userIdentity!=null) {
+            return userIdentity;
         } else {
             byte[] userHandle = new byte[64];
             SecureRandom random = new SecureRandom();
@@ -266,12 +266,12 @@ public class WebAuthnRpService {
         }
     }
 
-    Optional<UserIdentity> getUserIdentity(String username, String displayName) {
+    UserIdentity getUserIdentity(String username, String displayName) {
         WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
         if (account == null) {
-            return Optional.empty();
+            return null;
         }
-        return Optional.of(UserIdentity.builder().name(account.getUsername()).displayName(displayName)
-                .id(ByteArray.fromBase64(account.getUserHandle())).build());
+        return UserIdentity.builder().name(account.getUsername()).displayName(displayName)
+                .id(ByteArray.fromBase64(account.getUserHandle())).build();
     }
 }
