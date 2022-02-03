@@ -1,6 +1,8 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.validation.Valid;
 
@@ -94,12 +96,12 @@ public class WebAuthnRegistrationController {
             }
             WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
             String username = (String) body.get("username");
-            if (!UsernameValidator.isValidUsername(username)) {
+            if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
 
             String displayName = (String) body.getOrDefault("displayName", null);
-            if (!UsernameValidator.isValidDisplayName(displayName)) {
+            if (!isValidDisplayName(displayName)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid displayName");
             }
 
@@ -159,5 +161,29 @@ public class WebAuthnRegistrationController {
         } catch (Exception e) {
         }
         throw invalidAttestationException;
+    }
+
+    /**
+     * Checks if the provided object can be used as a valid username
+     */
+    private boolean isValidUsername(Object username) {
+        if (!(username instanceof String)) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile("^\\w{3,30}$");
+        Matcher matcher = pattern.matcher((String) username);
+        return matcher.find();
+    }
+
+    /**
+     * Checks if the provided object can be used as a valid display name
+     */
+    private boolean isValidDisplayName(Object candidate) {
+        if (!(candidate instanceof String)) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile("^[\\w ]{3,30}$");
+        Matcher matcher = pattern.matcher((String) candidate);
+        return matcher.find();
     }
 }
