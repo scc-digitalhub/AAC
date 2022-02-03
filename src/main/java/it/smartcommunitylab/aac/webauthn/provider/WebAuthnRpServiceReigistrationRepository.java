@@ -86,12 +86,4 @@ public class WebAuthnRpServiceReigistrationRepository {
         return rpServicesByProviderId.get(providerId);
     }
 
-    public String getRealm(String providerId) {
-        return registrationRepository.findByProviderId(providerId).getRealm();
-    }
-
-    public WebAuthnIdentityProviderConfig getProviderConfig(String providerId) {
-        return registrationRepository.findByProviderId(providerId);
-    }
-
 }

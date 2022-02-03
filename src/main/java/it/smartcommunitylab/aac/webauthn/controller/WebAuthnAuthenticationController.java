@@ -67,15 +67,14 @@ public class WebAuthnAuthenticationController {
     public WebAuthnLoginResponse generateAssertionOptions(@RequestBody @Valid WebAuthnAuthenticationStartRequest body,
             @PathVariable("providerId") String providerId) {
         try {
-            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
-            final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
+            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
 
             String username = body.getUsername();
             if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
 
-            final WebAuthnLoginResponse response = rps.startLogin(username, realm);
+            WebAuthnLoginResponse response = rps.startLogin(username);
             return response;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
