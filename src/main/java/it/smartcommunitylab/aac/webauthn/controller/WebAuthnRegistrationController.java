@@ -85,7 +85,7 @@ public class WebAuthnRegistrationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/attestationOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String generateAttestationOptions(@RequestBody Map<String, Object> body,
+    public WebAuthnRegistrationResponse generateAttestationOptions(@RequestBody Map<String, Object> body,
             @PathVariable("providerId") String providerId) {
         try {
             final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
@@ -116,7 +116,7 @@ public class WebAuthnRegistrationController {
                     realm,
                     displayName,
                     subject);
-            return mapper.writeValueAsString(response);
+            return  response;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
