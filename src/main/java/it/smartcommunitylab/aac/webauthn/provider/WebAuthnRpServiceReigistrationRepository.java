@@ -44,10 +44,10 @@ public class WebAuthnRpServiceReigistrationRepository {
     private RelyingParty buildRp(String providerId, WebAuthnIdentityProviderConfigMap config) {
         final String rpid = config.getRpid();
         Set<String> origins = new HashSet<>();
-        // TODO:civts, remove this later
+        // TODO: civts, remove this later
         origins.add("http://localhost");
         origins.add(applicationUrl);
-        RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder().id(rpid).name(config.getRpName())
+        RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder().id(rpid).name("AAC " + providerId)
                 .build();
         WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
                 providerId,
