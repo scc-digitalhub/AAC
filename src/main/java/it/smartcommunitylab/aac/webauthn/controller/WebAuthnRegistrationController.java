@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +29,7 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnRpServiceReigistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnSubjectResolver;
@@ -84,7 +84,7 @@ public class WebAuthnRegistrationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/attestationOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public WebAuthnRegistrationResponse generateAttestationOptions(@RequestBody Map<String, Object> body,
+    public WebAuthnRegistrationResponse generateAttestationOptions(@RequestBody @Valid WebAuthnRegistrationStartRequest body,
             @PathVariable("providerId") String providerId) {
         try {
             final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
@@ -94,12 +94,12 @@ public class WebAuthnRegistrationController {
                 throw new RegistrationException("registration is disabled");
             }
             WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
-            String username = (String) body.get("username");
+            String username =   body.getUsername();
             if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
 
-            String displayName = (String) body.getOrDefault("displayName", null);
+            String displayName = body.getDisplayName();
             if (!isValidDisplayName(displayName)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid displayName");
             }

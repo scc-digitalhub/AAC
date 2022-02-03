@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnRpServiceReigistrationRepository;
@@ -64,13 +64,13 @@ public class WebAuthnAuthenticationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public WebAuthnLoginResponse generateAssertionOptions(@RequestBody Map<String, Object> body,
+    public WebAuthnLoginResponse generateAssertionOptions(@RequestBody @Valid WebAuthnAuthenticationStartRequest body,
             @PathVariable("providerId") String providerId) {
         try {
             final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
             final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
 
-            String username = (String) body.get("username");
+            String username = body.getUsername();
             if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
