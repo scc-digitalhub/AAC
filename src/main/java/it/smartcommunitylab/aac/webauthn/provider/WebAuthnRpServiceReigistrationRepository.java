@@ -82,7 +82,7 @@ public class WebAuthnRpServiceReigistrationRepository {
                 }
             });
 
-    public WebAuthnRpService getOrCreate(String providerId) throws ExecutionException {
+    public WebAuthnRpService get(String providerId) throws ExecutionException {
         return rpServicesByProviderId.get(providerId);
     }
 

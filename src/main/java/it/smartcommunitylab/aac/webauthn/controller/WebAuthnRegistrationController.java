@@ -93,7 +93,7 @@ public class WebAuthnRegistrationController {
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
-            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
+            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
             String username =   body.getUsername();
             if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
@@ -139,7 +139,7 @@ public class WebAuthnRegistrationController {
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
-            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
+            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
             final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
 
             String key = body.getKey();

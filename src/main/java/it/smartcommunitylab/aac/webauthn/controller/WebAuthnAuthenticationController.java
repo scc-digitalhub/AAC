@@ -67,7 +67,7 @@ public class WebAuthnAuthenticationController {
     public WebAuthnLoginResponse generateAssertionOptions(@RequestBody @Valid WebAuthnAuthenticationStartRequest body,
             @PathVariable("providerId") String providerId) {
         try {
-            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
+            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
             final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
 
             String username = body.getUsername();
@@ -93,7 +93,7 @@ public class WebAuthnAuthenticationController {
             @PathVariable("providerId") String providerId) {
         final String key = body.getKey();
         try {
-            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
+            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
 
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
                     .parseAssertionResponseJson(body.getAssertionAsJson());
