@@ -83,8 +83,8 @@ public class WebAuthnRpService {
         WebAuthnUserAccount existingAccount = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
                 username);
         if (existingAccount != null) {
-            //TODO: civts, check if the user is already authenticated. 
-            //In that case, we should allow registering multiple credentials
+            // TODO: civts, check if the user is already authenticated.
+            // In that case, we should allow registering multiple credentials
             throw new WebAuthnAuthenticationException("_", "User already exists");
         }
         final UserIdentity user = generateUserIdentity(username, realm, displayName, optSub);
@@ -171,7 +171,7 @@ public class WebAuthnRpService {
         return StringUtils.collectionToCommaDelimitedString(result);
     }
 
-    public WebAuthnLoginResponse startLogin(String username, String realm) {
+    public WebAuthnLoginResponse startLogin(String username) {
         WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
                 .userHandle(ByteArray.fromBase64(account.getUserHandle())).timeout(TIMEOUT)

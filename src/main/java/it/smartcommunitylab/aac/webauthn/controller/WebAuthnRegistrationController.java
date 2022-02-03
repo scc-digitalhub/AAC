@@ -25,11 +25,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnRpServiceReigistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnSubjectResolver;
@@ -44,6 +46,13 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 @Controller
 @RequestMapping
 public class WebAuthnRegistrationController {
+
+    private final ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository;
+
+    public WebAuthnRegistrationController(
+            ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
+        this.registrationRepository = registrationRepository;
+    }
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -62,7 +71,7 @@ public class WebAuthnRegistrationController {
     @RequestMapping(value = "/auth/webauthn/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(@PathVariable("providerId") String providerId) {
         try {
-            final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
+            final boolean canRegister = registrationRepository.findByProviderId(providerId)
                     .getConfigMap()
                     .isEnableRegistration();
             if (!canRegister) {
@@ -84,17 +93,18 @@ public class WebAuthnRegistrationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/attestationOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public WebAuthnRegistrationResponse generateAttestationOptions(@RequestBody @Valid WebAuthnRegistrationStartRequest body,
+    public WebAuthnRegistrationResponse generateAttestationOptions(
+            @RequestBody @Valid WebAuthnRegistrationStartRequest body,
             @PathVariable("providerId") String providerId) {
         try {
-            final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
+            final boolean canRegister = registrationRepository.findByProviderId(providerId)
                     .getConfigMap()
                     .isEnableRegistration();
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
             WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
-            String username =   body.getUsername();
+            String username = body.getUsername();
             if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
             }
@@ -109,7 +119,8 @@ public class WebAuthnRegistrationController {
             final WebAuthnSubjectResolver subjectResolver = webAuthnIdentityService.getSubjectResolver();
             Subject subject = subjectResolver
                     .resolveByUserId(username);
-            final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
+            WebAuthnIdentityProviderConfig providerCfg = registrationRepository.findByProviderId(providerId);
+            String realm = providerCfg.getRealm();
             final WebAuthnRegistrationResponse response = rps.startRegistration(
                     username,
                     realm,
@@ -133,14 +144,15 @@ public class WebAuthnRegistrationController {
         final ResponseStatusException invalidAttestationException = new ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "Invalid attestation");
         try {
-            final boolean canRegister = webAuthnRpServiceReigistrationRepository.getProviderConfig(providerId)
+            final boolean canRegister = registrationRepository.findByProviderId(providerId)
                     .getConfigMap()
                     .isEnableRegistration();
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
             WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
-            final String realm = webAuthnRpServiceReigistrationRepository.getRealm(providerId);
+            WebAuthnIdentityProviderConfig providerCfg = registrationRepository.findByProviderId(providerId);
+            String realm = providerCfg.getRealm();
 
             String key = body.getKey();
             String attestationString = mapper.writeValueAsString(body.getAttestation());
