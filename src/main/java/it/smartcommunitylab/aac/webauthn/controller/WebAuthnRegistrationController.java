@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
-import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
@@ -116,7 +115,7 @@ public class WebAuthnRegistrationController {
                     realm,
                     displayName,
                     subject);
-            return  response;
+            return response;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -148,19 +147,14 @@ public class WebAuthnRegistrationController {
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
                     .parseRegistrationResponseJson(attestationString);
 
-            try {
-                final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
-                if (!StringUtils.hasText(authenticatedUser)) {
-                    throw invalidAttestationException;
-                }
-                return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";
-            } catch (WebAuthnAuthenticationException e) {
+            final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
+            if (!StringUtils.hasText(authenticatedUser)) {
                 throw invalidAttestationException;
             }
-
+            return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";
         } catch (Exception e) {
+            throw invalidAttestationException;
         }
-        throw invalidAttestationException;
     }
 
     /**
