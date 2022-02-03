@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
@@ -40,7 +39,6 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 @Controller
 @RequestMapping
 public class WebAuthnAuthenticationController {
-
 
     @Autowired
     private WebAuthnRpServiceReigistrationRepository webAuthnRpServiceReigistrationRepository;
@@ -99,15 +97,8 @@ public class WebAuthnAuthenticationController {
 
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
                     .parseAssertionResponseJson(body.getAssertionAsJson());
-
-            try {
-                final String authenticatedUser = rps.finishLogin(pkc, key);
-
-                return "Welcome " + authenticatedUser;
-            } catch (WebAuthnAuthenticationException e) {
-
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
-            }
+            final String authenticatedUser = rps.finishLogin(pkc, key);
+            return "Welcome " + authenticatedUser;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
         }
