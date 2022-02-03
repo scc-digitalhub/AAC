@@ -38,15 +38,10 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 public class WebAuthnIdentityAuthority implements IdentityAuthority, InitializingBean {
     public static final String AUTHORITY_URL = "/auth/webauthn/";
     private WebAuthnIdentityProviderConfigMap defaultProviderConfig;
-    private WebAuthnIdentityProviderConfig template;
     private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
-    // This notation refers to application.yml file
     @Value("${authorities.webauthn.rpid}")
     private String rpid;
-
-    @Value("${authorities.webauthn.rpName}")
-    private String rpName;
 
     @Value("${authorities.webauthn.enableRegistration}")
     private boolean enableRegistration;
@@ -85,16 +80,10 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
         // build default config from props
         defaultProviderConfig = new WebAuthnIdentityProviderConfigMap();
         defaultProviderConfig.setRpid(rpid);
-        defaultProviderConfig.setRpName(rpName);
         defaultProviderConfig.setTrustUnverifiedAuthenticatorResponses(trustUnverifiedAuthenticatorResponses);
         defaultProviderConfig.setEnableRegistration(enableRegistration);
         defaultProviderConfig.setEnableUpdate(enableUpdate);
         defaultProviderConfig.setMaxSessionDuration(maxSessionDuration);
-
-        template = new WebAuthnIdentityProviderConfig("webauthn.default", null);
-        template.setConfigMap(defaultProviderConfig);
-        template.setName("webauthn default");
-
     }
 
     @Override
@@ -134,7 +123,7 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
 
                 }
             });
- 
+
     @Override
     public WebAuthnIdentityService getIdentityProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
@@ -293,16 +282,12 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
 
     @Override
     public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return Collections.singleton(WebAuthnIdentityProviderConfig.toConfigurableProvider(template));
+        return Collections.emptySet();
     }
 
     @Override
     public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
-        if ("webauthn.default".equals(templateId)) {
-            return WebAuthnIdentityProviderConfig.toConfigurableProvider(template);
-        }
-
         throw new NoSuchProviderException("no templates available");
     }
 }

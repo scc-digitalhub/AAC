@@ -26,7 +26,6 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     private String rpid = "https://localhost";
-    private String rpName = "AAC";
 
     private boolean enableRegistration = false;
     /**
@@ -108,14 +107,6 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
 
     public void setMaxSessionDuration(int maxSessionDuration) {
         this.maxSessionDuration = maxSessionDuration;
-    }
-
-    public String getRpName() {
-        return this.rpName;
-    }
-
-    public void setRpName(String rpName) {
-        this.rpName = rpName;
     }
 
     public boolean isTrustUnverifiedAuthenticatorResponses() {
