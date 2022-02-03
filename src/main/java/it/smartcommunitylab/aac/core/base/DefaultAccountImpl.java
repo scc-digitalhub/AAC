@@ -24,6 +24,7 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
     private String internalUserId;
     private String username;
     private String emailAddress;
+    private Boolean emailVerified;
     private Map<String, String> attributes = new HashMap<>();
     // jsonSchema describing attributes to serve UI
     private JsonSchema schema;
@@ -57,6 +58,18 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified != null ? emailVerified.booleanValue() : false;
     }
 
     @Override

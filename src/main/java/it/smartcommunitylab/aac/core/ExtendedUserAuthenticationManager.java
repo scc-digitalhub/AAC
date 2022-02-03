@@ -428,6 +428,10 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                         identity.getAccount().getEmailAddress());
             }
 
+            if (identity.getAccount().isEmailVerified() && !user.isEmailVerified()) {
+                user = userService.verifyEmail(subjectId, identity.getAccount().getEmailAddress());
+            }
+
             // set login date
             // register additional audit info from request
             Date now = Calendar.getInstance().getTime();

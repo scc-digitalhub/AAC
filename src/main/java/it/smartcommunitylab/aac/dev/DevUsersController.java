@@ -138,6 +138,24 @@ public class DevUsersController {
         return ResponseEntity.ok(user);
     }
 
+    @PutMapping("/realms/{realm}/users/{subjectId}/verify")
+    public ResponseEntity<User> verifyRealmUser(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        User user = userManager.verifyUser(realm, subjectId);
+        return ResponseEntity.ok(user);
+    }
+
+    @DeleteMapping("/realms/{realm}/users/{subjectId}/unverify")
+    public ResponseEntity<User> unverifyRealmUser(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        User user = userManager.unverifyUser(realm, subjectId);
+        return ResponseEntity.ok(user);
+    }
+
     @PostMapping("/realms/{realm}/users/invite")
     public ResponseEntity<Void> inviteRealmUser(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

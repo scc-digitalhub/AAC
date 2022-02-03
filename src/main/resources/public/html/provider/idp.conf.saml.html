@@ -124,11 +124,6 @@
                     <label for="isPassive">isPassive</label>
                 </div>
             </div>
-            <div class="form-group col ">
-                 <label for="userNameAttributeName">Username attribute*</label>
-                 <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
-                     id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
-             </div>
         </div>
         <div class="row mt-3">
             <div class="form-group col ">
@@ -152,4 +147,21 @@
             </div>
         </div>
     </fieldset>
+    <fieldset>
+        <legend class="mb-4">Account Configuration</legend>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" name="trustEmailAddress" id="trustEmailAddress" type="checkbox"
+                        ng-model="idp.configuration.trustEmailAddress">
+                    <label for="trustEmailAddress">trustEmailAddress</label>
+                </div>
+            </div>
+            <div class="form-group col ">
+                 <label for="userNameAttributeName">Username attribute*</label>
+                 <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
+                     id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
+             </div>
+        </div>       
+    </fieldset>    
 </div>

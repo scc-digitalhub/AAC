@@ -56,6 +56,8 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
     private String authnContextComparison;
     private String userNameAttributeName = "subject";
 
+    private Boolean trustEmailAddress;
+
     // not editable
     private String metadataUrl;
     private String assertionConsumerServiceUrl;
@@ -233,6 +235,14 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.userNameAttributeName = userNameAttributeName;
     }
 
+    public Boolean getTrustEmailAddress() {
+        return trustEmailAddress;
+    }
+
+    public void setTrustEmailAddress(Boolean trustEmailAddress) {
+        this.trustEmailAddress = trustEmailAddress;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -270,6 +280,7 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.authnContextComparison = map.getAuthnContextComparison();
 
         this.userNameAttributeName = map.getUserNameAttributeName();
+        this.trustEmailAddress = map.getTrustEmailAddress();
 
         this.entityId = map.getEntityId();
 

@@ -42,9 +42,12 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.ClientEntity;
+import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.AttributeProviderService;
@@ -122,62 +125,9 @@ public class UserManager {
     @Autowired
     private AuditEventStore auditStore;
 
-//    /*
-//     * System admin user internal usage TODO rework for non-internal providers
-//     */
-//    public User systemAdmin() {
-//        // hack
-//        // TODO rework
-//        InternalUserAccount account = internalUserManager.internalAdmin();
-//        return userService.findUser(account.getSubject());
-//    }
-
     /*
      * Manage users
      */
-
-    /*
-     * UserDetails describes user in terms of identities as authorities and
-     * authentication
-     * 
-     * TODO evaluate removal, we should avoid userDetails outside the
-     * auth/securityContext
-     */
-//    public UserDetails getUserDetails(String subjectId, String realm) throws NoSuchUserException {
-//        // resolve subject
-//        UserEntity user = userService.getUser(subjectId);
-//        if (!user.getRealm().equals(realm)) {
-//            throw new NoSuchUserException("realm mismatch");
-//        }
-//
-//        // fetch authorities, only for this realm
-//        Set<GrantedAuthority> authorities = new HashSet<>();
-//        authorities.add(new SimpleGrantedAuthority(Config.R_USER));
-//        List<UserRoleEntity> userRoles = userSelrvice.getRoles(subjectId, realm);
-//
-//        for (UserRoleEntity ur : userRoles) {
-//            authorities.add(new RealmGrantedAuthority(ur.getRealm(), ur.getRole()));
-//        }
-//
-//        // fetch identities
-//        Set<UserIdentity> identities = new HashSet<>();
-//        // TODO we need an order criteria
-//        for (IdentityAuthority ia : authorityManager.listIdentityAuthorities()) {
-//            List<IdentityProvider> idps = ia.getIdentityProviders(realm);
-//            for (IdentityProvider idp : idps) {
-//                identities.addAll(idp.listIdentities(subjectId));
-//            }
-//        }
-//
-//        // fetch attributes outside idps
-//        // TODO
-//        Set<UserAttributes> attributes = Collections.emptySet();
-//
-//        // build userDetails
-//        return buildUserDetails(subjectId, realm,
-//                identities, attributes, authorities);
-//
-//    }
 
     /*
      * User describes user in terms of identities as attributes
@@ -391,6 +341,71 @@ public class UserManager {
         if (source.equals(r.getSlug())) {
             // lock account
             userEntityService.unlockUser(subjectId);
+        }
+
+        return userService.getUser(subjectId, realm);
+    }
+
+    @Transactional(readOnly = false)
+    public User verifyUser(String realm, String subjectId)
+            throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("verify email user {} from realm {}", String.valueOf(subjectId), realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get user source realm
+        String source = userService.getUserRealm(subjectId);
+        if (source.equals(r.getSlug())) {
+            // fetch user
+            UserEntity user = userEntityService.getUser(subjectId);
+
+            // verify account email
+            user = userEntityService.verifyEmail(subjectId, user.getEmailAddress());
+
+            // update all provider accounts via service
+            // use get to also update offline providersF
+            Collection<IdentityService> idss = authorityManager.getIdentityServices(realm);
+            for (IdentityService ids : idss) {
+                AccountService as = ids.getAccountService();
+                Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
+                accounts.forEach(ua -> {
+                    try {
+                        as.verifyAccount(ua.getUserId(), ua);
+                    } catch (RegistrationException | NoSuchUserException e) {
+                    }
+                });
+            }
+        }
+
+        return userService.getUser(subjectId, realm);
+    }
+
+    @Transactional(readOnly = false)
+    public User unverifyUser(String realm, String subjectId)
+            throws NoSuchUserException, NoSuchRealmException {
+        logger.debug("reset email for user {} from realm {}", realm);
+
+        Realm r = realmService.getRealm(realm);
+
+        // get user source realm
+        String source = userService.getUserRealm(subjectId);
+        if (source.equals(r.getSlug())) {
+            // reset account email
+            userEntityService.unverifyEmail(subjectId);
+
+            // update all provider accounts via service
+            // use get to also update offline providersF
+            Collection<IdentityService> idss = authorityManager.getIdentityServices(realm);
+            for (IdentityService ids : idss) {
+                AccountService as = ids.getAccountService();
+                Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
+                accounts.forEach(ua -> {
+                    try {
+                        as.unverifyAccount(ua.getUserId(), ua);
+                    } catch (RegistrationException | NoSuchUserException e) {
+                    }
+                });
+            }
         }
 
         return userService.getUser(subjectId, realm);

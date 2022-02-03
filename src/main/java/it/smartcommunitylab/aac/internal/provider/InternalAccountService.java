@@ -348,7 +348,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     public InternalUserAccount updateAccount(String userId, UserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
+            throw new IllegalArgumentException("update is disabled for this provider");
         }
 
         String username = parseResourceId(userId);
@@ -395,6 +395,55 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         // rewrite internal userId
         account.setUserId(exportInternalId(username));
 
+        return account;
+    }
+
+    @Override
+    public InternalUserAccount verifyAccount(String userId, UserAccount reg)
+            throws NoSuchUserException, RegistrationException {
+        if (!config.isEnableUpdate()) {
+            throw new IllegalArgumentException("update is disabled for this provider");
+        }
+
+        String username = parseResourceId(userId);
+        String realm = getRealm();
+
+        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // verify will override confirm
+        account.setConfirmed(true);
+        account.setConfirmationDeadline(null);
+        account.setConfirmationKey(null);
+
+        account = userAccountService.updateAccount(account.getId(), account);
+        return account;
+
+    }
+
+    @Override
+    public InternalUserAccount unverifyAccount(String userId, UserAccount reg)
+            throws NoSuchUserException, RegistrationException {
+        if (!config.isEnableUpdate()) {
+            throw new IllegalArgumentException("update is disabled for this provider");
+        }
+
+        String username = parseResourceId(userId);
+        String realm = getRealm();
+
+        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // reset will override confirm
+        account.setConfirmed(false);
+        account.setConfirmationDeadline(null);
+        account.setConfirmationKey(null);
+
+        account = userAccountService.updateAccount(account.getId(), account);
         return account;
     }
 
@@ -510,7 +559,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throws MessagingException {
         if (mailService != null) {
             String realm = getRealm();
-            String provider = getProvider();
             String loginUrl = "/login";
             if (uriBuilder != null) {
                 loginUrl = uriBuilder.buildUrl(realm, loginUrl);

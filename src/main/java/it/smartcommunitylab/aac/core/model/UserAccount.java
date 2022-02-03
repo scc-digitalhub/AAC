@@ -14,4 +14,6 @@ public interface UserAccount extends UserResource, Serializable {
 
     public String getEmailAddress();
 
+    public boolean isEmailVerified();
+
 }

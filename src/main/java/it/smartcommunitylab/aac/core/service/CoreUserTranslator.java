@@ -28,6 +28,7 @@ public class CoreUserTranslator implements UserTranslator {
         // pass only username+email
         result.setUsername(user.getUsername());
         result.setEmail(user.getEmail());
+        result.setEmailVerified(user.isEmailVerified());
 
         // filter identities
         List<UserIdentity> identities = user.getIdentities().stream()

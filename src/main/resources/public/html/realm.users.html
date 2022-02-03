@@ -45,6 +45,10 @@
               <a class="text-decoration-none {{item.blocked ? 'text-danger' : ''}}  {{item.locked && !item.blocked ? 'text-muted' : ''}}"
                 ui-sref="realm.user({realmId:realm.slug, subjectId:item.subjectId})">
                 <span class="h6">{{item.username}}</span>
+                <svg ng-if="item.emailVerified" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                  <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                  <title>Verified</title>
+                </svg>                
                 <svg ng-if="item.blocked" aria-hidden="true" class="icon icon-sm icon-danger mx-3">
                   <use xlink:href="./italia/svg/sprite.svg#it-error"></use>
                   <title>Blocked</title>
