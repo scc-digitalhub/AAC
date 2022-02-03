@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import javax.validation.Valid;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
 import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
@@ -42,7 +41,6 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 @RequestMapping
 public class WebAuthnAuthenticationController {
 
-    private ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private WebAuthnRpServiceReigistrationRepository webAuthnRpServiceReigistrationRepository;
@@ -68,7 +66,7 @@ public class WebAuthnAuthenticationController {
     @Hidden
     @PostMapping(value = "/auth/webauthn/assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String generateAssertionOptions(@RequestBody Map<String, Object> body,
+    public WebAuthnLoginResponse generateAssertionOptions(@RequestBody Map<String, Object> body,
             @PathVariable("providerId") String providerId) {
         try {
             final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.getOrCreate(providerId);
@@ -80,7 +78,7 @@ public class WebAuthnAuthenticationController {
             }
 
             final WebAuthnLoginResponse response = rps.startLogin(username, realm);
-            return mapper.writeValueAsString(response);
+            return response;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
