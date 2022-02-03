@@ -58,6 +58,7 @@ public class WebAuthnRpService {
     final String provider;
 
     private static Long TIMEOUT = 9000L;
+    private static SecureRandom random = new SecureRandom();
 
     private Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
     private Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
@@ -79,7 +80,14 @@ public class WebAuthnRpService {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
-        final UserIdentity user = getUserIdentityOrGenerate(username, realm, displayName, optSub);
+        WebAuthnUserAccount existingAccount = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
+                username);
+        if (existingAccount != null) {
+            //TODO: civts, check if the user is already authenticated. 
+            //In that case, we should allow registering multiple credentials
+            throw new WebAuthnAuthenticationException("_", "User already exists");
+        }
+        final UserIdentity user = generateUserIdentity(username, realm, displayName, optSub);
         final StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder().user(user)
                 .authenticatorSelection(authenticatorSelection).timeout(TIMEOUT).build();
         final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
@@ -235,43 +243,28 @@ public class WebAuthnRpService {
         }
     }
 
-    UserIdentity getUserIdentityOrGenerate(String username, String realm, String displayName,
+    UserIdentity generateUserIdentity(String username, String realm, String displayName,
             Subject subjectOrNull) {
         final String userDisplayName = displayName != null ? displayName : "";
-        UserIdentity userIdentity = getUserIdentity(username, userDisplayName);
-        if (userIdentity!=null) {
-            return userIdentity;
+        byte[] userHandle = new byte[64];
+        random.nextBytes(userHandle);
+        final ByteArray userHandleBA = new ByteArray(userHandle);
+        final UserIdentity newUserIdentity = UserIdentity.builder()
+                .name(username).displayName(userDisplayName)
+                .id(userHandleBA).build();
+        WebAuthnUserAccount account = new WebAuthnUserAccount();
+        account.setUsername(username);
+        account.setRealm(realm);
+        String subject;
+        if (subjectOrNull != null) {
+            subject = subjectOrNull.getSubjectId();
         } else {
-            byte[] userHandle = new byte[64];
-            SecureRandom random = new SecureRandom();
-            random.nextBytes(userHandle);
-            final ByteArray userHandleBA = new ByteArray(userHandle);
-            final UserIdentity newUserIdentity = UserIdentity.builder()
-                    .name(username).displayName(userDisplayName)
-                    .id(userHandleBA).build();
-            final WebAuthnUserAccount account = new WebAuthnUserAccount();
-            account.setUsername(username);
-            account.setRealm(realm);
-            String subject;
-            if (subjectOrNull != null) {
-                subject = subjectOrNull.getSubjectId();
-            } else {
-                subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
-            }
-            account.setSubject(subject);
-            account.setUserHandle(userHandleBA.getBase64());
-            account.setProvider(provider);
-            webAuthnUserAccountRepository.save(account);
-            return newUserIdentity;
+            subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
         }
-    }
-
-    UserIdentity getUserIdentity(String username, String displayName) {
-        WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
-        if (account == null) {
-            return null;
-        }
-        return UserIdentity.builder().name(account.getUsername()).displayName(displayName)
-                .id(ByteArray.fromBase64(account.getUserHandle())).build();
+        account.setSubject(subject);
+        account.setUserHandle(userHandleBA.getBase64());
+        account.setProvider(provider);
+        webAuthnUserAccountRepository.save(account);
+        return newUserIdentity;
     }
 }
