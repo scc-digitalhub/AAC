@@ -24,15 +24,15 @@ public abstract class BaseAccount extends AbstractAccount {
     public void setUserId(String userId) {
         this.userId = userId;
     }
-
-    public AccountProfile toProfile() {
-        AccountProfile ap = new AccountProfile();
-        ap.setAuthority(getAuthority());
-        ap.setProvider(getProvider());
-        ap.setRealm(getRealm());
-        ap.setUserId(getUserId());
-        ap.setUsername(getUsername());
-
-        return ap;
-    }
+//
+//    public AccountProfile toProfile() {
+//        AccountProfile ap = new AccountProfile();
+//        ap.setAuthority(getAuthority());
+//        ap.setProvider(getProvider());
+//        ap.setRealm(getRealm());
+//        ap.setUserId(getUserId());
+//        ap.setUsername(getUsername());
+//
+//        return ap;
+//    }
 }

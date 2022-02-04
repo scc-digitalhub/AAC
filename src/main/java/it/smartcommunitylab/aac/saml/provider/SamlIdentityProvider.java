@@ -225,11 +225,15 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         String name = attributes.get("name");
         String email = attributes.get("email");
         String lang = attributes.get("locale");
+        boolean emailVerified = providerConfig.getConfigMap().getTrustEmailAddress() != null
+                ? providerConfig.getConfigMap().getTrustEmailAddress()
+                : false;
 
         // we override every time
         account.setUsername(username);
         account.setName(name);
         account.setEmail(email);
+        account.setEmailVerified(emailVerified);
         account.setLang(lang);
 
         account = accountRepository.saveAndFlush(account);

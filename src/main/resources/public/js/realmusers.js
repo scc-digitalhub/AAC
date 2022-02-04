@@ -94,6 +94,18 @@ angular.module('aac.controllers.realmusers', [])
             });
         }
 
+        service.verifyUser = function (slug, subject) {
+            return $http.put('console/dev/realms/' + slug + '/users/' + subject + '/verify').then(function (data) {
+                return data.data;
+            });
+        }
+
+        service.unverifyUser = function (slug, subject) {
+            return $http.delete('console/dev/realms/' + slug + '/users/' + subject + '/unverify').then(function (data) {
+                return data.data;
+            });
+        }        
+
         service.inviteUser = function (slug, invitation, roles) {
             var data = { roles: roles, username: invitation.external ? null : invitation.username, subjectId: invitation.external ? invitation.subjectId : null };
             return $http.post('console/dev/realms/' + slug + '/users/invite', data).then(function (data) {
@@ -293,6 +305,24 @@ angular.module('aac.controllers.realmusers', [])
                     Utils.showError(err.data.message);
                 });
         }
+        $scope.verifyUser = function (user) {
+            RealmUsers.verifyUser(slug, user.subjectId)
+                .then(function (data) {
+                    user.emailVerified = data.emailVerified;
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
+        $scope.unverifyUser = function (user) {
+            RealmUsers.unverifyUser(slug, user.subjectId)
+                .then(function (data) {
+                    user.emailVerified = data.emailVerified;
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }        
 
         $scope.inspectDlg = function (obj) {
             $scope.modObj = obj;
@@ -657,6 +687,29 @@ angular.module('aac.controllers.realmusers', [])
                 });
         }
 
+        $scope.verifyUserDlg = function () {
+            $scope.verifyUser = function () {
+                $('#verifyConfirm').modal('hide');
+                RealmUsers.verifyUser(slug, subjectId)
+                    .then(function (data) {
+                        $scope.reload(data);
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+            $('#verifyConfirm').modal({ keyboard: false });
+        }
+
+        $scope.unverifyUser = function () {
+            RealmUsers.unverifyUser(slug, subjectId)
+                .then(function (data) {
+                    $scope.reload(data);
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
 
         $scope.inspectDlg = function (obj) {
             $scope.modObj = obj;

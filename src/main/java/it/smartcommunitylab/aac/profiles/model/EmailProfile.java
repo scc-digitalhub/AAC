@@ -21,9 +21,9 @@ public class EmailProfile extends AbstractProfile {
     public EmailProfile() {
     }
 
-    public EmailProfile(EmailProfile p) {
+    public EmailProfile(BasicProfile p) {
         email = p.getEmail();
-        emailVerified = p.getEmailVerified();
+        emailVerified = false;
     }
 
     @Override

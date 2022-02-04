@@ -158,6 +158,10 @@ public class OIDCUserAccount implements UserAccount, Serializable {
         this.emailVerified = emailVerified;
     }
 
+    public boolean isEmailVerified() {
+        return emailVerified != null ? emailVerified.booleanValue() : false;
+    }
+
     public String getGivenName() {
         return givenName;
     }

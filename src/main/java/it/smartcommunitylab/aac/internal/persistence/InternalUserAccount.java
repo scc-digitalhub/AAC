@@ -169,6 +169,10 @@ public class InternalUserAccount implements UserAccount {
         this.email = email;
     }
 
+    public boolean isEmailVerified() {
+        return confirmed;
+    }
+
     public String getName() {
         return name;
     }
@@ -266,22 +270,22 @@ public class InternalUserAccount implements UserAccount {
     }
 
 //    @Override
-    public AccountProfile toProfile() {
-        AccountProfile profile = new AccountProfile();
-        profile.setAuthority(getAuthority());
-        profile.setProvider(getProvider());
-        profile.setRealm(getRealm());
-        profile.setUsername(getUsername());
-        profile.setUserId(getUserId());
-
-        profile.setAttributes(new HashMap<>());
-        profile.getAttributes().put("username", getUsername());
-        profile.getAttributes().put("email", getEmail());
-        profile.getAttributes().put("given_name", getName());
-        profile.getAttributes().put("family_name", getSurname());
-
-        return profile;
-    }
+//    public AccountProfile toProfile() {
+//        AccountProfile profile = new AccountProfile();
+//        profile.setAuthority(getAuthority());
+//        profile.setProvider(getProvider());
+//        profile.setRealm(getRealm());
+//        profile.setUsername(getUsername());
+//        profile.setUserId(getUserId());
+//
+//        profile.setAttributes(new HashMap<>());
+//        profile.getAttributes().put("username", getUsername());
+//        profile.getAttributes().put("email", getEmail());
+//        profile.getAttributes().put("given_name", getName());
+//        profile.getAttributes().put("family_name", getSurname());
+//
+//        return profile;
+//    }
 
     @Override
     public String toString() {
