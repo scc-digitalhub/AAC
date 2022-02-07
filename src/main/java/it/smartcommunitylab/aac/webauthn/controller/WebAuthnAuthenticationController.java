@@ -26,8 +26,8 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnRpServiceReigistrationRepository;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRepository;
 
 /**
  * Manages the endpoints connected to the authentication ceremony of WebAuthn.
@@ -41,7 +41,7 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 public class WebAuthnAuthenticationController {
 
     @Autowired
-    private WebAuthnRpServiceReigistrationRepository webAuthnRpServiceReigistrationRepository;
+    private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceReigistrationRepository;
 
     /**
      * Serves the page to start a new WebAuthn authentication ceremony.

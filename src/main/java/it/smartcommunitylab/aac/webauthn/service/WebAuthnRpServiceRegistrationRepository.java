@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.webauthn.provider;
+package it.smartcommunitylab.aac.webauthn.service;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -19,11 +19,11 @@ import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountRepository;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnYubicoCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
+import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
 @Service
-public class WebAuthnRpServiceReigistrationRepository {
+public class WebAuthnRpServiceRegistrationRepository {
     private final ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository;
 
     @Autowired
@@ -36,7 +36,7 @@ public class WebAuthnRpServiceReigistrationRepository {
     @Value("${application.url}")
     private String applicationUrl;
 
-    public WebAuthnRpServiceReigistrationRepository(
+    public WebAuthnRpServiceRegistrationRepository(
             ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         this.registrationRepository = registrationRepository;
     }
