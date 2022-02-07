@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.yubico.webauthn.CredentialRepository;
 import com.yubico.webauthn.RegisteredCredential;
@@ -51,10 +52,10 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
                 .findByUserHandle(account.getUserHandle());
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnCredential c : credentials) {
-            Set<AuthenticatorTransport> transports = new HashSet<>();
-            for (final String code : StringUtils.commaDelimitedListToSet(c.getTransports())) {
-                transports.add(AuthenticatorTransport.of(code));
-            }
+            Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
+            .stream()
+            .map(t -> AuthenticatorTransport.of(t))
+            .collect(Collectors.toSet());
             PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
                     .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
                     .transports(transports)
