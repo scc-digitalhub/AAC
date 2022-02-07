@@ -101,12 +101,11 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     @Override
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
         // In our database the credentialID already has a unique constraint
-        Set<RegisteredCredential> s = new HashSet<>();
         WebAuthnCredential cred = webAuthnCredentialsRepository.findByCredentialId(credentialId.getBase64());
-        if (cred != null) {
-            s.add(getRegisteredCredential(cred));
+        if (cred == null) {
+            return Collections.emptySet();
         }
-        return s;
+        return Collections.singleton(getRegisteredCredential(cred));
     }
 
     private RegisteredCredential getRegisteredCredential(WebAuthnCredential credential) {
