@@ -48,11 +48,11 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 
 public class WebAuthnRpService {
 
-    WebAuthnUserAccountRepository webAuthnUserAccountRepository;
+    private WebAuthnUserAccountRepository webAuthnUserAccountRepository;
 
-    WebAuthnCredentialsRepository webAuthnCredentialsRepository;
+    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
-    SubjectService subjectService;
+    private SubjectService subjectService;
 
     private final RelyingParty rp;
     private final String provider;
