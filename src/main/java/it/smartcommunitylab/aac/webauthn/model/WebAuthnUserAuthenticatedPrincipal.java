@@ -3,8 +3,6 @@ package it.smartcommunitylab.aac.webauthn.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.yubico.webauthn.data.ByteArray;
-
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -78,7 +76,7 @@ public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrin
             if (StringUtils.hasText(username)) {
                 attributes.put("username", username);
             }
-            String userHandle = ByteArray.fromBase64(principal.getUserHandle()).getBase64Url();
+            String userHandle = principal.getUserHandle();
             if (StringUtils.hasText(userHandle)) {
                 attributes.put("userHandle", userHandle);
             }
@@ -91,7 +89,7 @@ public class WebAuthnUserAuthenticatedPrincipal implements UserAuthenticatedPrin
         this.principal = principal;
     }
 
-    public Object getPrincipal() {
+    public WebAuthnUserAccount getPrincipal() {
         return this.principal;
     }
 
