@@ -54,8 +54,8 @@ public class WebAuthnRpService {
 
     SubjectService subjectService;
 
-    final private RelyingParty rp;
-    final String provider;
+    private final RelyingParty rp;
+    private final String provider;
 
     private static Long TIMEOUT = 9000L;
     private static SecureRandom random = new SecureRandom();
