@@ -53,9 +53,9 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnCredential c : credentials) {
             Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
-            .stream()
-            .map(t -> AuthenticatorTransport.of(t))
-            .collect(Collectors.toSet());
+                    .stream()
+                    .map(t -> AuthenticatorTransport.of(t))
+                    .collect(Collectors.toSet());
             PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
                     .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
                     .transports(transports)
@@ -64,27 +64,23 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         }
         return descriptors;
     }
- 
+
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
         WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
-        if (account != null) {
-            return Optional.of(ByteArray.fromBase64(account.getUserHandle()));
+        if (account == null) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        return Optional.of(ByteArray.fromBase64(account.getUserHandle()));
     }
 
     @Override
     public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
-        try {
-            WebAuthnUserAccount account = userAccountRepository.findByUserHandle(userHandle.getBase64());
-            if (account == null) {
-                return Optional.empty();
-            }
-            return Optional.of(account.getUsername());
-        } catch (Exception e) {
+        WebAuthnUserAccount account = userAccountRepository.findByUserHandle(userHandle.getBase64());
+        if (account == null) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        return Optional.of(account.getUsername());
     }
 
     @Override
