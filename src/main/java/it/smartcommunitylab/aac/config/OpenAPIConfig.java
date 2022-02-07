@@ -170,18 +170,6 @@ public class OpenAPIConfig {
                 .build();
     }
 
-    @Bean
-    public GroupedOpenApi scim() {
-        return GroupedOpenApi.builder()
-                .group("SCIM 2.0 API")
-                .packagesToScan("it.smartcommunitylab.aac.scim")
-                .addOperationCustomizer((operation, handlerMethod) -> {
-                    operation.addSecurityItem(new SecurityRequirement().addList("oauth2"));
-                    return operation;
-                })
-                .build();
-    }
-    
     public static class OpenAPIConf {
         private HashMap<String, String> title;
         private HashMap<String, String> description;
