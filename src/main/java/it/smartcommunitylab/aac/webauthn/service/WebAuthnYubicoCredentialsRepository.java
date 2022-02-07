@@ -51,23 +51,19 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
                 .findByUserHandle(account.getUserHandle());
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnCredential c : credentials) {
+            Set<AuthenticatorTransport> transports = new HashSet<>();
+            for (final String code : StringUtils.commaDelimitedListToSet(c.getTransports())) {
+                transports.add(AuthenticatorTransport.of(code));
+            }
             PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
                     .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
-                    .transports(getTransportsFromString(c.getTransports()))
+                    .transports(transports)
                     .build();
             descriptors.add(descriptor);
         }
         return descriptors;
     }
-
-    private Set<AuthenticatorTransport> getTransportsFromString(String transports) {
-        final Set<AuthenticatorTransport> result = new HashSet<>();
-        for (final String code : StringUtils.commaDelimitedListToSet(transports)) {
-            result.add(AuthenticatorTransport.of(code));
-        }
-        return result;
-    }
-
+ 
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
         WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
