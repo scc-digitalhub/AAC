@@ -33,9 +33,9 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnRpServiceReigistrationRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnSubjectResolver;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRepository;
 
 /**
  * Manages the endpoints connected to the registration ceremony of WebAuthn.
@@ -57,7 +57,7 @@ public class WebAuthnRegistrationController {
     private ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
-    private WebAuthnRpServiceReigistrationRepository webAuthnRpServiceReigistrationRepository;
+    private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceReigistrationRepository;
 
     @Autowired
     private WebAuthnIdentityAuthority webAuthnIdentityAuthority;
