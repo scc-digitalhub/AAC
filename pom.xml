@@ -281,13 +281,6 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
-		
-		<dependency>
-        <groupId>org.wso2.charon</groupId>
-        <artifactId>org.wso2.charon3.core</artifactId>
-        <version>3.4.23</version>
-    </dependency>
-        
 	</dependencies>
 
 	<!-- <profiles> -->
