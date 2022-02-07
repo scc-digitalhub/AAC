@@ -19,8 +19,8 @@ import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountRepository;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnYubicoCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnYubicoCredentialsRepository;
 
 @Service
 public class WebAuthnRpServiceReigistrationRepository {
