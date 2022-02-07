@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.group.model;
+package it.smartcommunitylab.aac.common;
 
 import it.smartcommunitylab.aac.SystemKeys;
 

@@ -16,29 +16,34 @@
 
 package it.smartcommunitylab.aac.group;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserService;
-import it.smartcommunitylab.aac.group.model.Group;
-import it.smartcommunitylab.aac.group.model.NoSuchGroupException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.group.persistence.GroupEntity;
 import it.smartcommunitylab.aac.group.service.GroupService;
-import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.model.Subject;
 
 /**
  * @author raman
@@ -48,101 +53,198 @@ import it.smartcommunitylab.aac.model.Realm;
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')"
         + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class GroupManager {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-	// TODO
-	@Autowired
-	private GroupService groupService;
+//    private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
-    private RealmService realmService;
-    @Autowired 
-	private UserService userService;
+    private AuthenticationHelper authHelper;
 
-    
-	@Transactional(readOnly = true)
-	public List<Group> getSubjectGroups(String subject, String realm) throws NoSuchRealmException {
-        logger.debug("get group {} for realm {}", String.valueOf(subject), realm);
-        realmService.getRealm(realm);
-        return groupService.getSubjectGroups(subject);
+    @Autowired
+    private GroupService groupService;
 
-	}
-	
-	@Transactional(readOnly = true)
-	public List<Group> getRealmGroups(String realm) throws NoSuchRealmException {
-        logger.debug("get groups for realm {}", realm);
-        Realm r = realmService.getRealm(realm);
-		return groupService.getRealmGroups(r.getSlug());
-	}
-	
-	@Transactional(readOnly = true)
-	public Page<Group> searchGroupsWithSpec(String realm, Specification<GroupEntity> spec, PageRequest pageRequest) throws NoSuchRealmException {
-        logger.debug("search groups for realm {}", realm);
-        Realm r = realmService.getRealm(realm);
-		return groupService.getRealmGroups(r.getSlug(), spec, pageRequest);
-	}
+//    @Autowired
+//    private RealmService realmService;
 
-	@Transactional(readOnly = true)
-	public Page<Group> getRealmGroups(String realm, Pageable pageRequest) throws NoSuchRealmException {
-        logger.debug("get groups for realm {}", realm);
-        Realm r = realmService.getRealm(realm);
-		return groupService.getRealmGroups(r.getSlug(), pageRequest);
-	}
-	
-	@Transactional(readOnly = true)
-	public Group getGroup(String groupId, String realm) throws NoSuchRealmException, NoSuchGroupException {
-        logger.debug("get group members for group {} realm {}", groupId, realm);
-        Realm r = realmService.getRealm(realm);
-        Group g = groupService.getGroup(groupId, true);
-        if (!g.getRealm().equals(r.getSlug())) throw new NoSuchGroupException("Group not found in realm");
-		return g;
-	}
-	
-	public Group createGroup(String realm, String name, String externalId) throws NoSuchRealmException {
-        logger.debug("Create group for realm {}", realm);
-        Realm r = realmService.getRealm(realm);
-        return groupService.createGroup(r.getSlug(), name, externalId);
-	}
-	public Group updateGroup(String id, String realm, String name, String externalId) throws NoSuchRealmException, NoSuchGroupException {
-        logger.debug("Update group {id} for realm {}", realm);
-        Realm r = realmService.getRealm(realm);
-        getGroup(id, r.getSlug());
-        return groupService.updateGroup(id, name, externalId);
-	}
+    @Autowired
+    private SubjectService subjectService;
 
-	public void setSubjectGroups(String subject, String realm, List<String> groups) throws NoSuchUserException, NoSuchRealmException, NoSuchGroupException {
-        logger.debug("Set subject groups {} realm {}", subject, realm);
-        Realm r = realmService.getRealm(realm);
-        userService.getUser(subject, r.getSlug());
-        // check groups of realm
-        for (String g : groups) {
-        	getGroup(g, realm);
+    /*
+     * Realm groups
+     */
+    @Transactional(readOnly = true)
+    public Collection<Group> getRealmGroups(String realm)
+            throws NoSuchRealmException {
+        return groupService.listGroups(realm);
+
+    }
+
+    @Transactional(readOnly = true)
+    public Group getRealmGroup(String realm, String groupId, boolean withMembers)
+            throws NoSuchRealmException, NoSuchGroupException {
+        Group g = groupService.getGroup(realm, groupId, withMembers);
+        if (!realm.equals(g.getRealm())) {
+            throw new IllegalArgumentException("realm mismatch");
         }
-        groupService.setSubjectGroups(subject, groups);
-	}
-	public void setGroupMembers(String group, String realm, List<String> subjects) throws NoSuchRealmException, NoSuchGroupException, NoSuchUserException {
-        logger.debug("Set group members {} realm {}", group, realm);
-        Realm r = realmService.getRealm(realm);
-    	getGroup(group, realm);
-        // check subjects of realm
-        for (String s : subjects) {
-            userService.getUser(s, r.getSlug());
-        }
-        groupService.setGroupMembers(group, subjects);
-	}
-	
-	public void deleteGroup(String group, String realm) throws NoSuchRealmException, NoSuchGroupException {
-        logger.debug("delete group {} realm {}", group, realm);
-        realmService.getRealm(realm);
-    	getGroup(group, realm);
-    	groupService.deleteGroup(group);
-	}
 
-	public void deleteUserFromGroups(String id, String realm) throws NoSuchRealmException, NoSuchUserException {
-        logger.debug("delete subject from groups {} realm {}", id, realm);
-        Realm r = realmService.getRealm(realm);
-        userService.getUser(id, r.getSlug());
-    	groupService.deleteUserFromGroups(id);
-		
-	}
+        return g;
+    }
+
+    public Group addRealmGroup(String realm, Group g) throws NoSuchRealmException {
+        String group = g.getGroup();
+        if (!StringUtils.hasText(group)) {
+            throw new IllegalArgumentException("group can not be null or empty");
+        }
+
+        group = Jsoup.clean(group, Safelist.none());
+
+        String groupId = g.getGroupId();
+        String parentGroup = g.getParentGroup();
+        String name = g.getName();
+        String description = g.getDescription();
+
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Safelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Safelist.none());
+        }
+
+        return groupService.addGroup(groupId, realm, group, parentGroup, name, description);
+    }
+
+    public Group updateRealmGroup(String realm, String groupId, Group g)
+            throws NoSuchRealmException, NoSuchGroupException {
+
+        Group gl = groupService.getGroup(groupId);
+        if (!realm.equals(gl.getRealm())) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+
+        String group = g.getGroup();
+        String parentGroup = g.getParentGroup();
+        String name = g.getName();
+        String description = g.getDescription();
+        if (StringUtils.hasText(name)) {
+            name = Jsoup.clean(name, Safelist.none());
+        }
+        if (StringUtils.hasText(description)) {
+            description = Jsoup.clean(description, Safelist.none());
+        }
+
+        return groupService.updateGroup(groupId, realm, group, parentGroup, name, description);
+    }
+
+    public Group renameGroup(String realm, String groupId, String group)
+            throws NoSuchRealmException, NoSuchGroupException {
+
+        Group gl = groupService.getGroup(groupId);
+        if (!realm.equals(gl.getRealm())) {
+            throw new IllegalArgumentException("realm mismatch");
+        }
+
+        group = Jsoup.clean(group, Safelist.none());
+
+        return groupService.renameGroup(groupId, realm, group);
+    }
+
+    public void deleteGroup(String realm, String groupId) throws NoSuchRealmException, NoSuchGroupException {
+        Group gl = groupService.getGroup(groupId);
+        if (gl != null) {
+            if (!realm.equals(gl.getRealm())) {
+                throw new IllegalArgumentException("realm mismatch");
+            }
+
+            groupService.deleteGroup(groupId);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Group> getRealmGroups(String realm, Pageable pageRequest) throws NoSuchRealmException {
+        return groupService.listGroups(realm, pageRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Group> getRealmGroupsByParent(String realm, String parentGroup) throws NoSuchRealmException {
+        return groupService.listGroupsByParentGroup(realm, parentGroup);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Group> searchGroupsWithSpec(String realm, Specification<GroupEntity> spec, PageRequest pageRequest)
+            throws NoSuchRealmException {
+        // TODO accept query spec for group not entity!
+        return groupService.searchGroupsWithSpec(realm, spec, pageRequest, false);
+    }
+
+    /*
+     * Group membership
+     */
+    public Collection<String> getGroupMembers(String realm, String group)
+            throws NoSuchRealmException, NoSuchGroupException {
+        return groupService.getGroupMembers(realm, group);
+    }
+
+    public Collection<String> addGroupMembers(String realm, String group, List<String> subjects)
+            throws NoSuchRealmException, NoSuchGroupException {
+
+        // TODO evaluate checking if subjects match the realm
+        subjects.stream()
+                .map(s -> groupService.addGroupMember(realm, group, s))
+                .collect(Collectors.toList());
+
+        return groupService.getGroupMembers(realm, group);
+    }
+
+    public Collection<String> setGroupMembers(String realm, String group, List<String> subjects)
+            throws NoSuchRealmException, NoSuchGroupException {
+
+        // TODO evaluate checking if subjects match the realm
+        return groupService.setGroupMembers(realm, group, subjects);
+    }
+
+    public Collection<String> removeGroupMember(String realm, String group, String subject)
+            throws NoSuchRealmException, NoSuchGroupException {
+
+        // TODO evaluate checking if subjects match the realm
+        groupService.removeGroupMember(realm, group, subject);
+
+        return groupService.getGroupMembers(realm, group);
+    }
+
+    /*
+     * Subject groups
+     */
+    public Collection<Group> curSubjectGroups(String realm) {
+        Authentication auth = authHelper.getAuthentication();
+        if (auth == null) {
+            throw new InsufficientAuthenticationException("invalid or missing authentication");
+        }
+
+        String subjectId = auth.getName();
+        return groupService.getSubjectGroups(subjectId, realm);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Group> getSubjectGroups(String subject, String realm)
+            throws NoSuchSubjectException, NoSuchRealmException {
+        return groupService.getSubjectGroups(subject, realm);
+    }
+
+    public Collection<Group> setSubjectGroups(String subject, String realm, Collection<Group> groups)
+            throws NoSuchSubjectException, NoSuchRealmException, NoSuchGroupException {
+
+        // check if subject exists
+        Subject s = subjectService.getSubject(subject);
+
+        // unpack
+        List<String> toSet = groups.stream()
+                .filter(r -> realm.equals(r.getRealm()) || r.getRealm() == null)
+                .filter(r -> groupService.findGroup(realm, r.getGroup()) != null)
+                .map(r -> r.getGroup()).collect(Collectors.toList());
+
+        return groupService.setSubjectGroups(s.getSubjectId(), realm, toSet);
+
+    }
+
+    public void deleteSubjectFromGroups(String subject, String realm) throws NoSuchSubjectException {
+        groupService.deleteSubjectFromGroups(subject, realm);
+    }
 
 }

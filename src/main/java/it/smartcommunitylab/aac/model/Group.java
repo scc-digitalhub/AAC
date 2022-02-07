@@ -14,74 +14,64 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.group.persistence;
+package it.smartcommunitylab.aac.model;
 
 import java.util.Date;
+import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author raman
  *
  */
-@Entity
-@Table(name = "groups", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "group_key" }))
-@EntityListeners(AuditingEntityListener.class)
-public class GroupEntity {
 
-    public static final String ID_PREFIX = "g_";
+@Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Group {
 
     /*
-     * UUID is system-wide auto-generated id
+     * system-wide uuid
      */
-    @Id
-    @NotNull
-    @Column(unique = true)
-    private String uuid;
+    private String groupId;
 
-    @NotNull
     private String realm;
 
     /*
-     * group is user-defined key, unique per realm
+     * realm group id
      */
-    @NotNull
-    @Column(name = "group_key", unique = true)
+    @NotBlank
     private String group;
 
     /*
-     * parent group supports hierarchy, refers to group key
+     * parent group id
      */
-    @Column(name = "parent_group")
     private String parentGroup;
 
     private String name;
     private String description;
 
-    @CreatedDate
-    @Column(name = "created_date")
+    /*
+     * List of subjects associated with this group
+     */
+    private List<String> members;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date createDate;
 
-    @LastModifiedDate
-    @Column(name = "last_modified_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date modifiedDate;
 
-    public String getUuid() {
-        return uuid;
+    public String getGroupId() {
+        return groupId;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
     public String getRealm() {
@@ -124,6 +114,14 @@ public class GroupEntity {
         this.description = description;
     }
 
+    public List<String> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<String> members) {
+        this.members = members;
+    }
+
     public Date getCreateDate() {
         return createDate;
     }
@@ -138,6 +136,5 @@ public class GroupEntity {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
-
     }
 }

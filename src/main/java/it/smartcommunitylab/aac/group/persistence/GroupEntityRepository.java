@@ -30,10 +30,15 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
  *
  */
 @Repository
-public interface GroupEntityRepository  extends CustomJpaRepository<GroupEntity, String>, JpaSpecificationExecutor<GroupEntity> {
+public interface GroupEntityRepository
+        extends CustomJpaRepository<GroupEntity, String>, JpaSpecificationExecutor<GroupEntity> {
+
+    GroupEntity findByRealmAndGroup(String realm, String group);
 
     List<GroupEntity> findByRealm(String realm);
 
     Page<GroupEntity> findByRealm(String realm, Pageable pageRequest);
+
+    List<GroupEntity> findByRealmAndParentGroup(String realm, String parentGroup);
 
 }

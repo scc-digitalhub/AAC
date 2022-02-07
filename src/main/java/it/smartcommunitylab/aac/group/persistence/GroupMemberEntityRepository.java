@@ -32,17 +32,22 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
  *
  */
 @Repository
-public interface GroupMemberEntityRepository  extends CustomJpaRepository<GroupMemberEntity, Long>, JpaSpecificationExecutor<GroupMemberEntity> {
+public interface GroupMemberEntityRepository
+        extends CustomJpaRepository<GroupMemberEntity, Long>, JpaSpecificationExecutor<GroupMemberEntity> {
 
-    Page<GroupMemberEntity> findByGroup(String group, Pageable pageRequest);
-    
-    List<GroupMemberEntity> findByGroup(String group);
+    GroupMemberEntity findByRealmAndGroupAndSubject(String realm, String group, String subject);
+
+    List<GroupMemberEntity> findByRealmAndGroup(String realm, String group);
+
+    Page<GroupMemberEntity> findByRealmAndGroup(String realm, String group, Pageable pageRequest);
 
     List<GroupMemberEntity> findBySubject(String subject);
 
-    @Query("select g from GroupMemberEntity gm inner join GroupEntity g on gm.group = g.uuid where gm.subject = ?1")
-    List<GroupEntity> findGroupsBySubject(String subject);
+    List<GroupMemberEntity> findBySubjectAndRealm(String subject, String realm);
 
-	List<GroupMemberEntity> findByGroupIn(Set<String> collect);
-    
+//    @Query("select g from GroupMemberEntity gm inner join GroupEntity g on gm.group = g.uuid where gm.subject = ?1")
+//    List<GroupEntity> findGroupsBySubject(String subject);
+
+    List<GroupMemberEntity> findByGroupIn(Set<String> groups);
+
 }

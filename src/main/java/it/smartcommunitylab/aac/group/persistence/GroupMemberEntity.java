@@ -29,7 +29,7 @@ import javax.validation.constraints.NotNull;
  *
  */
 @Entity
-@Table(name = "group_members", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "group_id" }))
+@Table(name = "group_members", uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "group_key" }))
 public class GroupMemberEntity {
 
     @Id
@@ -41,31 +41,79 @@ public class GroupMemberEntity {
     private String subject;
 
     @NotNull
-    @Column(name = "group_id")
+    private String realm;
+
+    @NotNull
+    @Column(name = "group_key")
     private String group;
 
-	public Long getId() {
-		return id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public String getSubject() {
-		return subject;
-	}
+    public String getSubject() {
+        return subject;
+    }
 
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 
-	public String getGroup() {
-		return group;
-	}
+    public String getRealm() {
+        return realm;
+    }
 
-	public void setGroup(String group) {
-		this.group = group;
-	}
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((group == null) ? 0 : group.hashCode());
+        result = prime * result + ((realm == null) ? 0 : realm.hashCode());
+        result = prime * result + ((subject == null) ? 0 : subject.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        GroupMemberEntity other = (GroupMemberEntity) obj;
+        if (group == null) {
+            if (other.group != null)
+                return false;
+        } else if (!group.equals(other.group))
+            return false;
+        if (realm == null) {
+            if (other.realm != null)
+                return false;
+        } else if (!realm.equals(other.realm))
+            return false;
+        if (subject == null) {
+            if (other.subject != null)
+                return false;
+        } else if (!subject.equals(other.subject))
+            return false;
+        return true;
+    }
 
 }
