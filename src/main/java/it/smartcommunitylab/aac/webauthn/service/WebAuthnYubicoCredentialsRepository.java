@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.webauthn.persistence;
+package it.smartcommunitylab.aac.webauthn.service;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,6 +14,11 @@ import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
 
 import org.springframework.util.StringUtils;
+
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountRepository;
 
 /**
  * For this class, everytime we should use the 'username', we
