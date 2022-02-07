@@ -1,8 +1,10 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
+import java.io.Serializable;
+
 import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 
-public class WebAuthnCredentialCreationInfo {
+public class WebAuthnCredentialCreationInfo implements Serializable {
     private PublicKeyCredentialCreationOptions options;
     private String username;
     private String realm;
