@@ -43,22 +43,21 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        try {
-            WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
-            final List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
-                    .findByUserHandle(account.getUserHandle());
-            Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
-            for (WebAuthnCredential c : credentials) {
-                PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
-                        .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
-                        .transports(getTransportsFromString(c.getTransports()))
-                        .build();
-                descriptors.add(descriptor);
-            }
-            return descriptors;
-        } catch (Exception e) {
+        WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
+        if (account == null) {
+            return Collections.emptySet();
         }
-        return Collections.emptySet();
+        final List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
+                .findByUserHandle(account.getUserHandle());
+        Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
+        for (WebAuthnCredential c : credentials) {
+            PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
+                    .id(ByteArray.fromBase64(c.getCredentialId())).type(PublicKeyCredentialType.PUBLIC_KEY)
+                    .transports(getTransportsFromString(c.getTransports()))
+                    .build();
+            descriptors.add(descriptor);
+        }
+        return descriptors;
     }
 
     private Set<AuthenticatorTransport> getTransportsFromString(String transports) {
