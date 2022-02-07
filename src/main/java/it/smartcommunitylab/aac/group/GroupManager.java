@@ -70,14 +70,14 @@ public class GroupManager {
      * Realm groups
      */
     @Transactional(readOnly = true)
-    public Collection<Group> getRealmGroups(String realm)
+    public Collection<Group> getGroups(String realm)
             throws NoSuchRealmException {
         return groupService.listGroups(realm);
 
     }
 
     @Transactional(readOnly = true)
-    public Group getRealmGroup(String realm, String groupId, boolean withMembers)
+    public Group getGroup(String realm, String groupId, boolean withMembers)
             throws NoSuchRealmException, NoSuchGroupException {
         Group g = groupService.getGroup(realm, groupId, withMembers);
         if (!realm.equals(g.getRealm())) {
@@ -87,7 +87,7 @@ public class GroupManager {
         return g;
     }
 
-    public Group addRealmGroup(String realm, Group g) throws NoSuchRealmException {
+    public Group addGroup(String realm, Group g) throws NoSuchRealmException {
         String group = g.getGroup();
         if (!StringUtils.hasText(group)) {
             throw new IllegalArgumentException("group can not be null or empty");
@@ -110,7 +110,7 @@ public class GroupManager {
         return groupService.addGroup(groupId, realm, group, parentGroup, name, description);
     }
 
-    public Group updateRealmGroup(String realm, String groupId, Group g)
+    public Group updateGroup(String realm, String groupId, Group g)
             throws NoSuchRealmException, NoSuchGroupException {
 
         Group gl = groupService.getGroup(groupId);
@@ -157,12 +157,12 @@ public class GroupManager {
     }
 
     @Transactional(readOnly = true)
-    public Page<Group> getRealmGroups(String realm, Pageable pageRequest) throws NoSuchRealmException {
+    public Page<Group> getGroups(String realm, Pageable pageRequest) throws NoSuchRealmException {
         return groupService.listGroups(realm, pageRequest);
     }
 
     @Transactional(readOnly = true)
-    public Collection<Group> getRealmGroupsByParent(String realm, String parentGroup) throws NoSuchRealmException {
+    public Collection<Group> getGroupsByParent(String realm, String parentGroup) throws NoSuchRealmException {
         return groupService.listGroupsByParentGroup(realm, parentGroup);
     }
 

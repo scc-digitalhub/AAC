@@ -137,4 +137,12 @@ public class Group {
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
+
+    @Override
+    public String toString() {
+        return "Group [groupId=" + groupId + ", realm=" + realm + ", group=" + group + ", parentGroup=" + parentGroup
+                + ", name=" + name + ", description=" + description + ", createDate=" + createDate + ", modifiedDate="
+                + modifiedDate + "]";
+    }
+
 }
