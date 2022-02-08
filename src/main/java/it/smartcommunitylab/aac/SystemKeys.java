@@ -45,7 +45,7 @@ public class SystemKeys {
     public static final String RESOURCE_CLIENT = "client";
     public static final String RESOURCE_ROLE = "role";
     public static final String RESOURCE_SERVICE = "service";
-    public static final String RESOURCE_GROUP = "group"; 
+    public static final String RESOURCE_GROUP = "group";
 
     public static final String PATH_SEPARATOR = "/-/";
 
@@ -90,4 +90,8 @@ public class SystemKeys {
     public static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
     public static final MediaType MEDIA_TYPE_XYAML = MediaType.valueOf("application/x-yaml");
 
+    public static final String[] API_MEDIA_TYPES = {
+            MediaType.APPLICATION_JSON.toString(),
+            MEDIA_TYPE_YAML.toString(), MEDIA_TYPE_YML.toString(), MEDIA_TYPE_XYAML.toString()
+    };
 }

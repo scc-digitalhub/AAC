@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.group;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -107,7 +108,15 @@ public class GroupManager {
             description = Jsoup.clean(description, Safelist.none());
         }
 
-        return groupService.addGroup(groupId, realm, group, parentGroup, name, description);
+        Group res = groupService.addGroup(groupId, realm, group, parentGroup, name, description);
+
+        // add memberships if defined
+        if (g.getMembers() != null) {
+            Collection<String> members = groupService.setGroupMembers(realm, group, g.getMembers());
+            res.setMembers(new ArrayList<>(members));
+        }
+
+        return res;
     }
 
     public Group updateGroup(String realm, String groupId, Group g)
@@ -129,7 +138,15 @@ public class GroupManager {
             description = Jsoup.clean(description, Safelist.none());
         }
 
-        return groupService.updateGroup(groupId, realm, group, parentGroup, name, description);
+        Group res = groupService.updateGroup(groupId, realm, group, parentGroup, name, description);
+
+        // update memberships if defined
+        if (g.getMembers() != null) {
+            Collection<String> members = groupService.setGroupMembers(realm, group, g.getMembers());
+            res.setMembers(new ArrayList<>(members));
+        }
+
+        return res;
     }
 
     public Group renameGroup(String realm, String groupId, String group)
@@ -181,7 +198,13 @@ public class GroupManager {
         return groupService.getGroupMembers(realm, group);
     }
 
-    public Collection<String> addGroupMembers(String realm, String group, List<String> subjects)
+    public String addGroupMember(String realm, String group, String subject)
+            throws NoSuchRealmException, NoSuchGroupException {
+        // TODO evaluate checking if subjects match the realm
+        return groupService.addGroupMember(realm, group, subject);
+    }
+
+    public Collection<String> addGroupMembers(String realm, String group, Collection<String> subjects)
             throws NoSuchRealmException, NoSuchGroupException {
 
         // TODO evaluate checking if subjects match the realm
@@ -192,18 +215,22 @@ public class GroupManager {
         return groupService.getGroupMembers(realm, group);
     }
 
-    public Collection<String> setGroupMembers(String realm, String group, List<String> subjects)
+    public Collection<String> setGroupMembers(String realm, String group, Collection<String> subjects)
             throws NoSuchRealmException, NoSuchGroupException {
 
         // TODO evaluate checking if subjects match the realm
         return groupService.setGroupMembers(realm, group, subjects);
     }
 
-    public Collection<String> removeGroupMember(String realm, String group, String subject)
+    public void removeGroupMember(String realm, String group, String subject)
             throws NoSuchRealmException, NoSuchGroupException {
-
-        // TODO evaluate checking if subjects match the realm
         groupService.removeGroupMember(realm, group, subject);
+    }
+
+    public Collection<String> removeGroupMembers(String realm, String group, Collection<String> subjects)
+            throws NoSuchRealmException, NoSuchGroupException {
+        subjects.stream()
+                .forEach(s -> groupService.removeGroupMember(realm, group, s));
 
         return groupService.getGroupMembers(realm, group);
     }

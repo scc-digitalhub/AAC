@@ -55,6 +55,10 @@ public class Group {
     private String name;
     private String description;
 
+    public Group() {
+        this.members = null;
+    }
+
     /*
      * List of subjects associated with this group
      */

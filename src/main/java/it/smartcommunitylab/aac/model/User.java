@@ -90,6 +90,9 @@ public class User {
     // space roles are global
     private Set<SpaceRole> spaceRoles;
 
+    // groups where user is a member
+    private Set<Group> groups;
+
     // additional attributes as UserAttributes collection
     // realm scoped
     private List<UserAttributes> attributes;
@@ -107,6 +110,7 @@ public class User {
         this.attributes = new ArrayList<>();
         this.realmRoles = new HashSet<>();
         this.spaceRoles = new HashSet<>();
+        this.groups = new HashSet<>();
     }
 
     public User(UserDetails details) {
@@ -121,7 +125,9 @@ public class User {
                 .collect(Collectors.toSet());
         this.identities = new HashSet<>(details.getIdentities());
         this.attributes = new ArrayList<>(details.getAttributeSets(false));
+        this.realmRoles = new HashSet<>();
         this.spaceRoles = new HashSet<>();
+        this.groups = new HashSet<>();
 
         this.username = details.getUsername();
 //        this.name = details.getFirstName();
@@ -332,6 +338,19 @@ public class User {
         if (rr != null) {
             spaceRoles.addAll(rr);
         }
+    }
+
+    /*
+     * Groups
+     */
+
+    public Set<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Collection<Group> groups) {
+        this.groups = new HashSet<>();
+        this.groups.addAll(groups);
     }
 
 //    public void addSpaceRoles(Collection<SpaceRole> rr) {

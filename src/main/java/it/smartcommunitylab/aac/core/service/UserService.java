@@ -34,6 +34,8 @@ import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.core.provider.AttributeService;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
+import it.smartcommunitylab.aac.group.service.GroupService;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
@@ -68,7 +70,10 @@ public class UserService {
     private SubjectRoleService roleService;
 
     @Autowired
-    private IdentityProviderService identityProviderService;
+    private GroupService groupService;
+//
+//    @Autowired
+//    private IdentityProviderService identityProviderService;
 
     @Autowired
     private AttributeProviderService attributeProviderService;
@@ -110,6 +115,9 @@ public class UserService {
             // refresh space roles
             u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
+            // refresh groups
+            u.setGroups(fetchUserGroups(subjectId, realm));
+
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -150,6 +158,10 @@ public class UserService {
 
             // refresh space roles
             u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+
+            // refresh groups
+            u.setGroups(fetchUserGroups(subjectId, realm));
+
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -191,6 +203,10 @@ public class UserService {
 
             // refresh space roles
             u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+
+            // refresh groups
+            u.setGroups(fetchUserGroups(subjectId, realm));
+
         } catch (NoSuchUserException e) {
             // something wrong with refresh, ignore
         }
@@ -271,6 +287,9 @@ public class UserService {
         // add space roles
         u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
+        // add groups
+        u.setGroups(fetchUserGroups(subjectId, realm));
+
         return u;
 
     }
@@ -350,6 +369,9 @@ public class UserService {
         // add space roles
         u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
+        // add groups
+        u.setGroups(fetchUserGroups(subjectId, realm));
+
         return u;
 
     }
@@ -380,7 +402,7 @@ public class UserService {
                 pageRequest,
                 () -> page.getTotalElements());
     }
-    
+
     public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest) {
         Page<UserEntity> page = userService.searchUsersWithSpec(spec, pageRequest);
         return PageableExecutionUtils.getPage(
@@ -634,6 +656,10 @@ public class UserService {
     private Collection<SpaceRole> fetchUserSpaceRoles(String subjectId, String realm) throws NoSuchUserException {
         // we don't filter space roles per realm, so read all
         return spaceRoleService.getRoles(subjectId);
+    }
+
+    private Collection<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
+        return groupService.getSubjectGroups(subjectId, realm);
     }
 
 }
