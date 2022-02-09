@@ -4,9 +4,8 @@ databaseChangeLog:
       author: matteos
       preConditions:
         - onFail: MARK_RAN
-          not:
-            tableExists:
-              tableName: identity_providers
+          tableExists:
+            tableName: providers
       changes:
         - renameTable:
             oldTableName: providers
