@@ -162,7 +162,8 @@ public class DevClientAppController {
         }
 
         if (!SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType())
-                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())) {
+                && !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType())
+                && !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())) {
             throw new IllegalArgumentException("invalid file");
         }
 
