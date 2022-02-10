@@ -104,7 +104,7 @@ angular.module('aac.controllers.realmusers', [])
             return $http.delete('console/dev/realms/' + slug + '/users/' + subject + '/unverify').then(function (data) {
                 return data.data;
             });
-        }        
+        }
 
         service.inviteUser = function (slug, invitation, roles) {
             var data = { roles: roles, username: invitation.external ? null : invitation.username, subjectId: invitation.external ? invitation.subjectId : null };
@@ -201,6 +201,11 @@ angular.module('aac.controllers.realmusers', [])
                             u._authorities = u.authorities
                                 .filter(function (a) { return slug == a.realm })
                                 .map(function (a) { return a.role });
+                        }
+                        if ('groups' in u) {
+                            u._groups = u.groups
+                                .filter(function (a) { return slug == a.realm })
+                                .map(function (a) { return a.group });
                         }
                     });
                 })
@@ -322,7 +327,7 @@ angular.module('aac.controllers.realmusers', [])
                 }).catch(function (err) {
                     Utils.showError(err.data.message);
                 });
-        }        
+        }
 
         $scope.inspectDlg = function (obj) {
             $scope.modObj = obj;
@@ -1294,7 +1299,7 @@ angular.module('aac.controllers.realmusers', [])
             $scope.modAttributes = {
                 ...attributes,
                 attributes: attributes.attributes.map(at => {
-                    if (at.value && at.type === 'object') at.value = JSON.stringify(at.value); 
+                    if (at.value && at.type === 'object') at.value = JSON.stringify(at.value);
                     return {
                         ...at,
                         field: attributeField(at)
@@ -1312,7 +1317,7 @@ angular.module('aac.controllers.realmusers', [])
                 //build attribute dto
                 var attributes = {};
                 $scope.modAttributes.attributes.forEach(a => {
-                    if (a.type === 'object') a.value = a.value ? JSON.parse(a.value) : null; 
+                    if (a.type === 'object') a.value = a.value ? JSON.parse(a.value) : null;
                     attributes[a.key] = a.value;
                 });
 

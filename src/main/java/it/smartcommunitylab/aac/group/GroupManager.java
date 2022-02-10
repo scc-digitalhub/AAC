@@ -80,7 +80,7 @@ public class GroupManager {
     @Transactional(readOnly = true)
     public Group getGroup(String realm, String groupId, boolean withMembers)
             throws NoSuchRealmException, NoSuchGroupException {
-        Group g = groupService.getGroup(realm, groupId, withMembers);
+        Group g = groupService.getGroup(groupId, withMembers);
         if (!realm.equals(g.getRealm())) {
             throw new IllegalArgumentException("realm mismatch");
         }
@@ -199,13 +199,21 @@ public class GroupManager {
     }
 
     public String addGroupMember(String realm, String group, String subject)
-            throws NoSuchRealmException, NoSuchGroupException {
-        // TODO evaluate checking if subjects match the realm
-        return groupService.addGroupMember(realm, group, subject);
+            throws NoSuchRealmException, NoSuchGroupException, NoSuchSubjectException {
+        // check if subject exists
+        Subject s = subjectService.getSubject(subject);
+
+        // TODO evaluate checking if subject matches the realm
+        return groupService.addGroupMember(realm, group, s.getSubjectId());
     }
 
     public Collection<String> addGroupMembers(String realm, String group, Collection<String> subjects)
-            throws NoSuchRealmException, NoSuchGroupException {
+            throws NoSuchRealmException, NoSuchGroupException, NoSuchSubjectException {
+
+        // check if all subjects exists
+        if (subjects.stream().anyMatch(s -> (subjectService.findSubject(s) == null))) {
+            throw new NoSuchSubjectException();
+        }
 
         // TODO evaluate checking if subjects match the realm
         subjects.stream()
@@ -216,7 +224,12 @@ public class GroupManager {
     }
 
     public Collection<String> setGroupMembers(String realm, String group, Collection<String> subjects)
-            throws NoSuchRealmException, NoSuchGroupException {
+            throws NoSuchRealmException, NoSuchGroupException, NoSuchSubjectException {
+
+        // check if all subjects exists
+        if (subjects.stream().anyMatch(s -> (subjectService.findSubject(s) == null))) {
+            throw new NoSuchSubjectException();
+        }
 
         // TODO evaluate checking if subjects match the realm
         return groupService.setGroupMembers(realm, group, subjects);

@@ -55,20 +55,21 @@ public class Group {
     private String name;
     private String description;
 
-    public Group() {
-        this.members = null;
-    }
-
     /*
      * List of subjects associated with this group
      */
     private List<String> members;
+    private Long size;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date createDate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date modifiedDate;
+
+    public Group() {
+        this.members = null;
+    }
 
     public String getGroupId() {
         return groupId;
@@ -124,6 +125,14 @@ public class Group {
 
     public void setMembers(List<String> members) {
         this.members = members;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
     }
 
     public Date getCreateDate() {

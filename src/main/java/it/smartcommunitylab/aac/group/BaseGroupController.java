@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.model.Group;
 
@@ -167,8 +168,8 @@ public class BaseGroupController {
             throws NoSuchRealmException, NoSuchGroupException {
         logger.debug("get group {} members for realm {}",
                 StringUtils.trimAllWhitespace(groupId), StringUtils.trimAllWhitespace(realm));
-
-        return groupManager.getGroupMembers(realm, groupId);
+        Group g = groupManager.getGroup(realm, groupId, false);
+        return groupManager.getGroupMembers(realm, g.getGroup());
     }
 
     @PostMapping("/groups/{realm}/{groupId}/members")
@@ -177,12 +178,12 @@ public class BaseGroupController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId,
             @RequestBody @Valid @NotNull Collection<String> members)
-            throws NoSuchRealmException, NoSuchGroupException {
+            throws NoSuchRealmException, NoSuchGroupException, NoSuchSubjectException {
         logger.debug("add group {} members for realm {}",
                 StringUtils.trimAllWhitespace(groupId), StringUtils.trimAllWhitespace(realm));
-
+        Group g = groupManager.getGroup(realm, groupId, false);
         if (members != null && !members.isEmpty()) {
-            return groupManager.addGroupMembers(realm, groupId, members);
+            return groupManager.addGroupMembers(realm, g.getGroup(), members);
         }
 
         return Collections.emptyList();
@@ -194,14 +195,28 @@ public class BaseGroupController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId,
             @RequestBody @Valid Collection<String> members)
-            throws NoSuchRealmException, NoSuchGroupException {
+            throws NoSuchRealmException, NoSuchGroupException, NoSuchSubjectException {
         logger.debug("set group {} members for realm {}",
                 StringUtils.trimAllWhitespace(groupId), StringUtils.trimAllWhitespace(realm));
-
-        return groupManager.setGroupMembers(realm, groupId, members);
+        Group g = groupManager.getGroup(realm, groupId, false);
+        return groupManager.setGroupMembers(realm, g.getGroup(), members);
     }
 
-    @DeleteMapping("/groups/{realm}/{groupId}/member/{subjectId}")
+    @PutMapping("/groups/{realm}/{groupId}/members/{subjectId}")
+    @Operation(summary = "add a specific subject as member for a given group")
+    public void addGroupMember(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchGroupException, NoSuchSubjectException {
+        logger.debug("add group {} member {} for realm {}",
+                StringUtils.trimAllWhitespace(groupId), StringUtils.trimAllWhitespace(subjectId),
+                StringUtils.trimAllWhitespace(realm));
+        Group g = groupManager.getGroup(realm, groupId, false);
+        groupManager.addGroupMember(realm, g.getGroup(), subjectId);
+    }
+
+    @DeleteMapping("/groups/{realm}/{groupId}/members/{subjectId}")
     @Operation(summary = "remove a specific subject from a given group")
     public void removeGroupMember(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -211,8 +226,8 @@ public class BaseGroupController {
         logger.debug("delete group {} members {} for realm {}",
                 StringUtils.trimAllWhitespace(groupId), StringUtils.trimAllWhitespace(subjectId),
                 StringUtils.trimAllWhitespace(realm));
-
-        groupManager.removeGroupMember(realm, groupId, subjectId);
+        Group g = groupManager.getGroup(realm, groupId, false);
+        groupManager.removeGroupMember(realm, g.getGroup(), subjectId);
     }
 
 }

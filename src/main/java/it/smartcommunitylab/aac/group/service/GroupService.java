@@ -116,7 +116,7 @@ public class GroupService {
 
         g = groupRepository.save(g);
 
-        return toGroup(g);
+        return toGroup(g, 0L);
     }
 
     @Transactional(readOnly = true)
@@ -126,17 +126,28 @@ public class GroupService {
             return null;
         }
 
-        return toGroup(g);
+        return toGroup(g, null);
     }
 
     @Transactional(readOnly = true)
     public Group getGroup(String uuid) throws NoSuchGroupException {
+        return getGroup(uuid, false);
+    }
+
+    @Transactional(readOnly = true)
+    public Group getGroup(String uuid, boolean withMembers) throws NoSuchGroupException {
         GroupEntity g = groupRepository.findOne(uuid);
         if (g == null) {
             throw new NoSuchGroupException();
         }
 
-        return toGroup(g);
+        long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
+        if (withMembers) {
+            Collection<GroupMemberEntity> members = groupMemberRepository.findByRealmAndGroup(g.getRealm(),
+                    g.getGroup());
+            return toGroup(g, size, members);
+        }
+        return toGroup(g, size);
     }
 
     @Transactional(readOnly = true)
@@ -146,7 +157,7 @@ public class GroupService {
             return null;
         }
 
-        return toGroup(g);
+        return toGroup(g, null);
     }
 
     @Transactional(readOnly = true)
@@ -160,12 +171,14 @@ public class GroupService {
         if (g == null) {
             throw new NoSuchGroupException();
         }
+
+        long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
         if (withMembers) {
             Collection<GroupMemberEntity> members = groupMemberRepository.findByRealmAndGroup(realm, group);
-            return toGroup(g, members);
+            return toGroup(g, size, members);
         }
 
-        return toGroup(g);
+        return toGroup(g, size);
     }
 
     @Transactional(readOnly = true)
@@ -175,7 +188,11 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public Collection<Group> listGroups(String realm, boolean withMembers) {
-        List<Group> groups = groupRepository.findByRealm(realm).stream().map(this::toGroup)
+        List<Group> groups = groupRepository.findByRealm(realm).stream()
+                .map(g -> {
+                    long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
+                    return toGroup(g, size);
+                })
                 .collect(Collectors.toList());
         if (withMembers) {
             groups.forEach(g -> {
@@ -196,7 +213,11 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public Page<Group> listGroups(String realm, Pageable pageRequest, boolean withMembers) {
-        Page<Group> groups = groupRepository.findByRealm(realm, pageRequest).map(this::toGroup);
+        Page<Group> groups = groupRepository.findByRealm(realm, pageRequest)
+                .map(g -> {
+                    long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
+                    return toGroup(g, size);
+                });
         if (withMembers) {
             groups.forEach(g -> {
                 Collection<GroupMemberEntity> members = groupMemberRepository.findByRealmAndGroup(realm, g.getGroup());
@@ -218,7 +239,11 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public Collection<Group> listGroupsByParentGroup(String realm, String parentGroup, boolean withMembers) {
-        List<Group> groups = groupRepository.findByRealmAndParentGroup(realm, parentGroup).stream().map(this::toGroup)
+        List<Group> groups = groupRepository.findByRealmAndParentGroup(realm, parentGroup).stream()
+                .map(g -> {
+                    long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
+                    return toGroup(g, size);
+                })
                 .collect(Collectors.toList());
         if (withMembers) {
             groups.forEach(g -> {
@@ -236,7 +261,11 @@ public class GroupService {
     public Page<Group> searchGroupsWithSpec(String realm,
             Specification<GroupEntity> spec, PageRequest pageRequest,
             boolean withMembers) {
-        Page<Group> groups = groupRepository.findAll(spec, pageRequest).map(this::toGroup);
+        Page<Group> groups = groupRepository.findAll(spec, pageRequest)
+                .map(g -> {
+                    long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
+                    return toGroup(g, size);
+                });
         if (withMembers) {
             groups.forEach(g -> {
                 Collection<GroupMemberEntity> members = groupMemberRepository.findByRealmAndGroup(realm, g.getGroup());
@@ -277,7 +306,10 @@ public class GroupService {
         g.setDescription(description);
 
         g = groupRepository.save(g);
-        return toGroup(g);
+
+        long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
+
+        return toGroup(g, size);
     }
 
     public Group renameGroup(String uuid, String realm, String group) throws NoSuchGroupException {
@@ -311,7 +343,10 @@ public class GroupService {
         g.setGroup(group);
 
         g = groupRepository.save(g);
-        return toGroup(g);
+
+        long size = groupMemberRepository.countByRealmAndGroup(g.getRealm(), g.getGroup());
+
+        return toGroup(g, size);
 
     }
 
@@ -410,6 +445,11 @@ public class GroupService {
     }
 
     @Transactional(readOnly = true)
+    public long countGroupMembers(String realm, String group) {
+        return groupMemberRepository.countByRealmAndGroup(realm, group);
+    }
+
+    @Transactional(readOnly = true)
     public Collection<String> getGroupMembers(String realm, String group) {
         return groupMemberRepository.findByRealmAndGroup(realm, group).stream()
                 .map(m -> m.getSubject())
@@ -459,7 +499,7 @@ public class GroupService {
                 .filter(g -> g != null)
                 .collect(Collectors.toSet());
 
-        return groups.stream().map(this::toGroup).collect(Collectors.toList());
+        return groups.stream().map(g -> toGroup(g, null)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -469,7 +509,7 @@ public class GroupService {
                 .filter(g -> g != null)
                 .collect(Collectors.toSet());
 
-        return groups.stream().map(this::toGroup).collect(Collectors.toList());
+        return groups.stream().map(g -> toGroup(g, null)).collect(Collectors.toList());
     }
 
     public Collection<Group> setSubjectGroups(String subject, String realm, List<String> groups) {
@@ -538,7 +578,7 @@ public class GroupService {
     /*
      * Converters
      */
-    private Group toGroup(GroupEntity ge) {
+    private Group toGroup(GroupEntity ge, Long size) {
         Group g = new Group();
         g.setGroupId(ge.getUuid());
 
@@ -552,11 +592,13 @@ public class GroupService {
         g.setCreateDate(ge.getCreateDate());
         g.setModifiedDate(ge.getModifiedDate());
 
+        g.setSize(size);
+
         return g;
     }
 
-    private Group toGroup(GroupEntity ge, Collection<GroupMemberEntity> members) {
-        Group g = toGroup(ge);
+    private Group toGroup(GroupEntity ge, long size, Collection<GroupMemberEntity> members) {
+        Group g = toGroup(ge, size);
         List<String> mm = members.stream()
                 .map(GroupMemberEntity::getSubject)
                 .collect(Collectors.toList());

@@ -37,6 +37,8 @@ public interface GroupMemberEntityRepository
 
     GroupMemberEntity findByRealmAndGroupAndSubject(String realm, String group, String subject);
 
+    long countByRealmAndGroup(String realm, String group);
+
     List<GroupMemberEntity> findByRealmAndGroup(String realm, String group);
 
     Page<GroupMemberEntity> findByRealmAndGroup(String realm, String group, Pageable pageRequest);
