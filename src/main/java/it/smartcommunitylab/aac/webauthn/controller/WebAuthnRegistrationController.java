@@ -5,7 +5,6 @@ import java.util.regex.Pattern;
 
 import javax.validation.Valid;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
 import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
 import com.yubico.webauthn.data.PublicKeyCredential;
@@ -53,8 +52,6 @@ public class WebAuthnRegistrationController {
             ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         this.registrationRepository = registrationRepository;
     }
-
-    private ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceReigistrationRepository;
@@ -155,9 +152,9 @@ public class WebAuthnRegistrationController {
             String realm = providerCfg.getRealm();
 
             String key = body.getKey();
-            String attestationString = mapper.writeValueAsString(body.getAttestation());
+
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
-                    .parseRegistrationResponseJson(attestationString);
+                    .parseRegistrationResponseJson(body.exportAttestation());
 
             final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
             if (!StringUtils.hasText(authenticatedUser)) {
