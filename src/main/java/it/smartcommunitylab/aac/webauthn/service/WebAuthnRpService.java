@@ -44,11 +44,10 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountRepository;
 
 public class WebAuthnRpService {
 
-    private WebAuthnUserAccountRepository webAuthnUserAccountRepository;
+    private WebAuthnUserAccountService webAuthnUserAccountService;
 
     private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
@@ -64,14 +63,14 @@ public class WebAuthnRpService {
     private Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
 
     public WebAuthnRpService(RelyingParty rp,
-            WebAuthnUserAccountRepository webAuthnUserAccountRepository,
+            WebAuthnUserAccountService webAuthnUserAccountService,
             WebAuthnCredentialsRepository webAuthnCredentialsRepository,
             SubjectService subjectService,
             String provider) {
         this.rp = rp;
         this.provider = provider;
         this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
-        this.webAuthnUserAccountRepository = webAuthnUserAccountRepository;
+        this.webAuthnUserAccountService = webAuthnUserAccountService;
         this.subjectService = subjectService;
     }
 
@@ -80,7 +79,7 @@ public class WebAuthnRpService {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
-        WebAuthnUserAccount existingAccount = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
+        WebAuthnUserAccount existingAccount = webAuthnUserAccountService.findByProviderAndUsername(provider,
                 username);
         if (existingAccount != null) {
             // TODO: civts, check if the user is already authenticated.
@@ -125,7 +124,7 @@ public class WebAuthnRpService {
                 throw new WebAuthnAuthenticationException("_",
                         "Could not finish registration: missing username");
             }
-            final WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider,
+            final WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(provider,
                     username);
             if (account == null) {
                 throw new WebAuthnAuthenticationException("_",
@@ -172,7 +171,7 @@ public class WebAuthnRpService {
     }
 
     public WebAuthnLoginResponse startLogin(String username) {
-        WebAuthnUserAccount account = webAuthnUserAccountRepository.findByProviderAndUsername(provider, username);
+        WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(provider, username);
         StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
                 .userHandle(ByteArray.fromBase64(account.getUserHandle())).timeout(TIMEOUT)
                 .userVerification(UserVerificationRequirement.REQUIRED).username(username).build();
@@ -204,10 +203,9 @@ public class WebAuthnRpService {
         try {
             AssertionRequest assertionRequest = activeAuthentications.get(sessionId);
             AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
-                    // The PublicKeyCredentialRequestOptions from startAssertion above
                     .response(pkc).build());
             if (result.isSuccess() && result.isSignatureCounterValid()) {
-                final WebAuthnUserAccount account = webAuthnUserAccountRepository
+                final WebAuthnUserAccount account = webAuthnUserAccountService
                         .findByUserHandle(result.getUserHandle().getBase64());
                 List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
                         .findByUserHandle(account.getUserHandle());
@@ -264,7 +262,7 @@ public class WebAuthnRpService {
         account.setSubject(subject);
         account.setUserHandle(userHandleBA.getBase64());
         account.setProvider(provider);
-        webAuthnUserAccountRepository.save(account);
+        webAuthnUserAccountService.addAccount(account);
         return newUserIdentity;
     }
 }
