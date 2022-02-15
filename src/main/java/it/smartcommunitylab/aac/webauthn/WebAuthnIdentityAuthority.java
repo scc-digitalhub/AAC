@@ -40,9 +40,6 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
     private WebAuthnIdentityProviderConfigMap defaultProviderConfig;
     private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
-    @Value("${authorities.webauthn.rpid}")
-    private String rpid;
-
     @Value("${authorities.webauthn.enableRegistration}")
     private boolean enableRegistration;
 
@@ -79,7 +76,6 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
     public void afterPropertiesSet() throws Exception {
         // build default config from props
         defaultProviderConfig = new WebAuthnIdentityProviderConfigMap();
-        defaultProviderConfig.setRpid(rpid);
         defaultProviderConfig.setTrustUnverifiedAuthenticatorResponses(trustUnverifiedAuthenticatorResponses);
         defaultProviderConfig.setEnableRegistration(enableRegistration);
         defaultProviderConfig.setEnableUpdate(enableUpdate);

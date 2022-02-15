@@ -25,8 +25,6 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private String rpid = "https://localhost";
-
     private boolean enableRegistration = false;
     /**
      * If the user can update the credential to a new one. In this case is false
@@ -53,7 +51,6 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         WebAuthnIdentityProviderConfigMap map = mapper.convertValue(props, WebAuthnIdentityProviderConfigMap.class);
 
-        this.rpid = map.getRpid();
         this.enableRegistration = map.isEnableRegistration();
         this.enableUpdate = map.isEnableUpdate();
         this.trustUnverifiedAuthenticatorResponses = map.isTrustUnverifiedAuthenticatorResponses();
@@ -64,14 +61,6 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
     public static JsonSchema getConfigurationSchema() throws JsonMappingException {
         JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
         return schemaGen.generateSchema(InternalIdentityProviderConfigMap.class);
-    }
-
-    public String getRpid() {
-        return rpid;
-    }
-
-    public void setRpid(String rpid) {
-        this.rpid = rpid;
     }
 
     public void setEnableRegistration(boolean enableRegistration) {
