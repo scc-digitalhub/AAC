@@ -8,6 +8,8 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,6 +22,8 @@ public class WebAuthnAttestationResponse {
     @JsonProperty("key")
     @NotNull
     private String key;
+
+    private static ObjectMapper mapper = new ObjectMapper();
 
     public String getKey() {
         return key;
@@ -35,5 +39,9 @@ public class WebAuthnAttestationResponse {
 
     public void setAttestation(Map<String, Serializable> attestation) {
         this.attestation = attestation;
+    }
+
+    public String exportAttestation() throws JsonProcessingException{
+        return mapper.writeValueAsString(attestation);
     }
 }
