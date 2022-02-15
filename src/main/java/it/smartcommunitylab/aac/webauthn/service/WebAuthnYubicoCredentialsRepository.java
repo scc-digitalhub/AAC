@@ -19,7 +19,6 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountRepository;
 
 /**
  * For this class, everytime we should use the 'username', we
@@ -31,20 +30,20 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String providerId;
-    private WebAuthnUserAccountRepository userAccountRepository;
+    private WebAuthnUserAccountService webAuthnUserAccountService;
     private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     public WebAuthnYubicoCredentialsRepository(String provider,
-            WebAuthnUserAccountRepository userAccountRepository,
+            WebAuthnUserAccountService webAuthnUserAccountService,
             WebAuthnCredentialsRepository webAuthnCredentialsRepository) {
-        this.userAccountRepository = userAccountRepository;
+        this.webAuthnUserAccountService = webAuthnUserAccountService;
         this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
         this.providerId = provider;
     }
 
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
+        WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(providerId, username);
         if (account == null) {
             return Collections.emptySet();
         }
@@ -67,7 +66,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
-        WebAuthnUserAccount account = userAccountRepository.findByProviderAndUsername(providerId, username);
+        WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(providerId, username);
         if (account == null) {
             return Optional.empty();
         }
@@ -76,7 +75,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     @Override
     public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
-        WebAuthnUserAccount account = userAccountRepository.findByUserHandle(userHandle.getBase64());
+        WebAuthnUserAccount account = webAuthnUserAccountService.findByUserHandle(userHandle.getBase64());
         if (account == null) {
             return Optional.empty();
         }
@@ -85,7 +84,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     @Override
     public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-        WebAuthnUserAccount acc = userAccountRepository.findByUserHandle(userHandle.getBase64());
+        WebAuthnUserAccount acc = webAuthnUserAccountService.findByUserHandle(userHandle.getBase64());
         if (acc == null) {
             return Optional.empty();
         }
@@ -113,7 +112,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     }
 
     private RegisteredCredential getRegisteredCredential(WebAuthnCredential credential) {
-        final WebAuthnUserAccount account = userAccountRepository.getOne(credential.getUserHandle());
+        final WebAuthnUserAccount account = webAuthnUserAccountService.findByUserHandle(credential.getUserHandle());
         if (account == null) {
             return null;
         }
