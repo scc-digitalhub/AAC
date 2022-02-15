@@ -89,8 +89,6 @@ authorities:
           enabled: true
           validity: 86400
    webauthn:
-      rpid: ${WEBAUTHN_RP_ID:localhost}
-      rpName: ${WEBAUTHN_RP_NAME:AAC}
       enableRegistration: ${WEBAUTHN_ENABLE_REGISTRATION:true}
       trustUnverifiedAuthenticatorResponses: ${WEBAUTHN_TRUST_UNVERIFIED_AUTH_RESPONSES:false}
       enableUpdate: false
