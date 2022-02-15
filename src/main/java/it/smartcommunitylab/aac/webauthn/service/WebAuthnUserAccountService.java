@@ -3,9 +3,9 @@ package it.smartcommunitylab.aac.webauthn.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -18,17 +18,12 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 @Transactional
 public class WebAuthnUserAccountService {
 
-    private final WebAuthnUserAccountRepository accountRepository;
+    @Autowired
+    private  WebAuthnUserAccountRepository accountRepository;
 
-    private final WebAuthnCredentialsRepository credentialRepository;
-
-    public WebAuthnUserAccountService(WebAuthnUserAccountRepository accountRepository,
-            WebAuthnCredentialsRepository credentialRepository) {
-        Assert.notNull(accountRepository, "accountRepository is mandatory");
-        Assert.notNull(credentialRepository, "credentialRepository is mandatory");
-        this.accountRepository = accountRepository;
-        this.credentialRepository = credentialRepository;
-    }
+    @Autowired
+    private  WebAuthnCredentialsRepository credentialRepository;
+ 
 
     @Transactional(readOnly = true)
     public List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm) throws NoSuchUserException {
@@ -55,6 +50,15 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
+    public WebAuthnUserAccount findByUserHandle(String userHandle) {
+        WebAuthnUserAccount account = accountRepository.findByUserHandle(userHandle);
+        if (account == null) {
+            return null;
+        }
+        return accountRepository.detach(account);
+    }
+ 
+    @Transactional(readOnly = true)
     public WebAuthnUserAccount findByCredentialId(String credentialId) {
         WebAuthnCredential cred = credentialRepository.findByCredentialId(credentialId);
         if (cred == null) {
@@ -79,6 +83,7 @@ public class WebAuthnUserAccountService {
             account.setRealm(reg.getRealm());
             account.setUserHandle(reg.getUserHandle());
             account.setUsername(reg.getUsername());
+            account.setSubject(reg.getSubject());
 
             account = accountRepository.saveAndFlush(account);
             account = accountRepository.detach(account);

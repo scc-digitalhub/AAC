@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
@@ -29,7 +28,7 @@ public class WebAuthnRpServiceRegistrationRepository {
     private final ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository;
 
     @Autowired
-    private WebAuthnUserAccountRepository webAuthnUserAccountRepository;
+    private WebAuthnUserAccountService webAuthnUserAccountService;
     @Autowired
     private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
     @Autowired
@@ -55,7 +54,7 @@ public class WebAuthnRpServiceRegistrationRepository {
                 .build();
         WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
                 providerId,
-                webAuthnUserAccountRepository,
+                webAuthnUserAccountService,
                 webAuthnCredentialsRepository);
         RelyingParty rp = RelyingParty.builder().identity(rpIdentity).credentialRepository(webauthnRepository)
                 .allowUntrustedAttestation(config.isTrustUnverifiedAuthenticatorResponses()).allowOriginPort(true)
@@ -79,7 +78,7 @@ public class WebAuthnRpServiceRegistrationRepository {
 
                     RelyingParty rp = buildRp(providerId, config.getConfigMap());
                     return new WebAuthnRpService(rp,
-                            webAuthnUserAccountRepository,
+                            webAuthnUserAccountService,
                             webAuthnCredentialsRepository,
                             subjectService,
                             providerId);
