@@ -105,11 +105,18 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         if (cred == null) {
             return Collections.emptySet();
         }
-        return Collections.singleton(getRegisteredCredential(cred));
+        RegisteredCredential credential = getRegisteredCredential(cred);
+        if (credential == null) {
+            return Collections.emptySet();
+        }
+        return Collections.singleton(credential);
     }
 
     private RegisteredCredential getRegisteredCredential(WebAuthnCredential credential) {
         final WebAuthnUserAccount account = userAccountRepository.getOne(credential.getUserHandle());
+        if (account == null) {
+            return null;
+        }
         return RegisteredCredential.builder().credentialId(ByteArray.fromBase64(credential.getCredentialId()))
                 .userHandle(ByteArray.fromBase64(account.getUserHandle()))
                 .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))
