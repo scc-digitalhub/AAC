@@ -91,7 +91,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         if (account == null
                 && attributes.keySet().contains("credentialId")) {
             try {
-                account = userAccountService.findByCredentialId(
+                account = userAccountService.findUserByCredentialId(
                         attributes.get("credentialId"));
             } catch (Exception e) {
             }
