@@ -541,7 +541,11 @@ public class AuthorizationEndpoint implements InitializingBean {
 
         }
 
-        if (responseTypes.contains("token")) {
+        // workaround for adding custom claims to id_token
+        // TODO rework with proper integration of claimService with idTokenService and
+        // split from accessToken claims with dedicated mapping
+        if (responseTypes.contains("token")
+                || (responseTypes.contains("id_token") && clientDetails.isIdTokenClaims())) {
             // translate to tokenRequest
             TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(authorizationRequest,
                     "implicit");
@@ -590,6 +594,14 @@ public class AuthorizationEndpoint implements InitializingBean {
                 throw new ServerErrorException("Unable to build response");
             }
 
+        }
+
+        // workaround for adding custom claims to id_token
+        // TODO rework with proper integration of claimService with idTokenService and
+        // split from accessToken claims with dedicated mapping
+        if (responseTypes.size() == 1 && responseTypes.contains("id_token")) {
+            // reset accessToken to return a proper response
+            accessToken = null;
         }
 
         AuthorizationResponse response = new AuthorizationResponse();
