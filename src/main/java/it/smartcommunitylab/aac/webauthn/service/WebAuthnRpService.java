@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -136,16 +135,20 @@ public class WebAuthnRpService {
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
             boolean attestationIsTrusted = result.isAttestationTrusted();
             if (attestationIsTrusted) {
-                final WebAuthnCredential newCred = new WebAuthnCredential();
+                WebAuthnCredential newCred = new WebAuthnCredential();
                 newCred.setCreatedOn(new Date());
                 newCred.setLastUsedOn(new Date());
                 newCred.setCredentialId(result.getKeyId().getId().getBase64());
                 newCred.setPublicKeyCose(result.getPublicKeyCose().getBase64());
                 newCred.setSignatureCount(result.getSignatureCount());
-                final Optional<SortedSet<AuthenticatorTransport>> transportsOpt = result.getKeyId().getTransports();
+                Optional<SortedSet<AuthenticatorTransport>> transportsOpt = result.getKeyId().getTransports();
                 if (transportsOpt.isPresent()) {
-                    newCred.setTransports(
-                            convertTransportsToString(transportsOpt.get()));
+                    SortedSet<AuthenticatorTransport> transports = transportsOpt.get();
+                    final List<String> transportCodes = new LinkedList<>();
+                    for (final AuthenticatorTransport t : transports) {
+                        transportCodes.add(t.getId());
+                    }
+                    newCred.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
                 } else {
                     newCred.setTransports("");
                 }
@@ -161,14 +164,6 @@ public class WebAuthnRpService {
             throw new WebAuthnAuthenticationException("_",
                     "Registration failed");
         }
-    }
-
-    private String convertTransportsToString(Set<AuthenticatorTransport> transports) {
-        final List<String> result = new LinkedList<>();
-        for (final AuthenticatorTransport t : transports) {
-            result.add(t.getId());
-        }
-        return StringUtils.collectionToCommaDelimitedString(result);
     }
 
     public WebAuthnLoginResponse startLogin(String username) {
