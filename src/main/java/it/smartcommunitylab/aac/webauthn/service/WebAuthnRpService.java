@@ -42,14 +42,11 @@ import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 public class WebAuthnRpService {
 
     private WebAuthnUserAccountService webAuthnUserAccountService;
-
-    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     private SubjectService subjectService;
 
@@ -64,12 +61,10 @@ public class WebAuthnRpService {
 
     public WebAuthnRpService(RelyingParty rp,
             WebAuthnUserAccountService webAuthnUserAccountService,
-            WebAuthnCredentialsRepository webAuthnCredentialsRepository,
             SubjectService subjectService,
             String provider) {
         this.rp = rp;
         this.provider = provider;
-        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
         this.webAuthnUserAccountService = webAuthnUserAccountService;
         this.subjectService = subjectService;
     }
@@ -150,7 +145,7 @@ public class WebAuthnRpService {
                 }
                 newCred.setUserHandle(account.getUserHandle());
 
-                webAuthnCredentialsRepository.save(newCred);
+                webAuthnUserAccountService.saveCredential(newCred);
                 activeRegistrations.remove(key);
                 return username;
             } else {
@@ -207,8 +202,8 @@ public class WebAuthnRpService {
             if (result.isSuccess() && result.isSignatureCounterValid()) {
                 final WebAuthnUserAccount account = webAuthnUserAccountService
                         .findByUserHandle(result.getUserHandle().getBase64());
-                List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
-                        .findByUserHandle(account.getUserHandle());
+                List<WebAuthnCredential> credentials = webAuthnUserAccountService
+                        .findCredentialsByUserHandle(account.getUserHandle());
                 Optional<WebAuthnCredential> toUpdate = Optional.empty();
                 ByteArray resultCredentialId = result.getCredentialId();
                 for (WebAuthnCredential c : credentials) {
@@ -225,7 +220,7 @@ public class WebAuthnRpService {
                 credentials.remove(credential);
                 credential.setSignatureCount(result.getSignatureCount());
                 credential.setLastUsedOn(new Date());
-                webAuthnCredentialsRepository.save(credential);
+                webAuthnUserAccountService.saveCredential(credential);
                 final String username = account.getUsername();
                 if (!StringUtils.hasText(username)) {
                     throw new WebAuthnAuthenticationException(account.getSubject(),

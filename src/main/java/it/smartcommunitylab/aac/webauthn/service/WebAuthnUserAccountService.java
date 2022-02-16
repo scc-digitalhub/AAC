@@ -19,11 +19,9 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccountReposito
 public class WebAuthnUserAccountService {
 
     @Autowired
-    private  WebAuthnUserAccountRepository accountRepository;
-
+    private WebAuthnUserAccountRepository accountRepository;
     @Autowired
-    private  WebAuthnCredentialsRepository credentialRepository;
- 
+    private WebAuthnCredentialsRepository credentialRepository;
 
     @Transactional(readOnly = true)
     public List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm) throws NoSuchUserException {
@@ -57,9 +55,9 @@ public class WebAuthnUserAccountService {
         }
         return accountRepository.detach(account);
     }
- 
+
     @Transactional(readOnly = true)
-    public WebAuthnUserAccount findByCredentialId(String credentialId) {
+    public WebAuthnUserAccount findUserByCredentialId(String credentialId) {
         WebAuthnCredential cred = credentialRepository.findByCredentialId(credentialId);
         if (cred == null) {
             return null;
@@ -129,6 +127,23 @@ public class WebAuthnUserAccountService {
             credentialRepository.delete(c);
         }
         accountRepository.delete(account);
+    }
+
+    public WebAuthnCredential findCredentialById(String credentialId) {
+        WebAuthnCredential c = credentialRepository.findByCredentialId(credentialId);
+        if (c == null) {
+            return null;
+        }
+        return credentialRepository.detach(c);
+    }
+
+    public WebAuthnCredential saveCredential(WebAuthnCredential credential) {
+        WebAuthnCredential c = credentialRepository.saveAndFlush(credential);
+        return credentialRepository.detach(c);
+    }
+
+    public List<WebAuthnCredential> findCredentialsByUserHandle(String userHandle) {
+        return credentialRepository.findByUserHandle(userHandle);
     }
 
 }
