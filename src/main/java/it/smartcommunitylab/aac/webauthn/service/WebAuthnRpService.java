@@ -1,6 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
-import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,9 +30,12 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.data.UserVerificationRequirement;
+import com.yubico.webauthn.data.exception.Base64UrlException;
 import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
 
+import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -55,7 +58,7 @@ public class WebAuthnRpService {
     private final String provider;
 
     private static Long TIMEOUT = 9000L;
-    private static SecureRandom random = new SecureRandom();
+    private final StringKeyGenerator keyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 64);
 
     private Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
     private Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
@@ -239,11 +242,16 @@ public class WebAuthnRpService {
 
     private UserIdentity generateUserIdentity(String username, String realm, String displayName,
             Subject subjectOrNull) {
-        final String userDisplayName = displayName != null ? displayName : "";
-        byte[] userHandle = new byte[64];
-        random.nextBytes(userHandle);
-        final ByteArray userHandleBA = new ByteArray(userHandle);
-        final UserIdentity newUserIdentity = UserIdentity.builder()
+        String userDisplayName = displayName != null ? displayName : "";
+        String userHandle = keyGenerator.generateKey();
+        ByteArray userHandleBA = null;
+        try {
+            userHandleBA = ByteArray.fromBase64Url(userHandle);
+        } catch (Base64UrlException e) {
+            System.out.println("The newly-generated user handle is not valid base64Url");
+            return null;
+        }
+        UserIdentity newUserIdentity = UserIdentity.builder()
                 .name(username).displayName(userDisplayName)
                 .id(userHandleBA).build();
         WebAuthnUserAccount account = new WebAuthnUserAccount();
