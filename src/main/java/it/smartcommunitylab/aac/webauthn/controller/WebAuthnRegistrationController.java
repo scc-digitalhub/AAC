@@ -126,7 +126,7 @@ public class WebAuthnRegistrationController {
                     displayName,
                     subject);
             return response;
-        } catch (ResponseStatusException | ExecutionException e) {
+        } catch (ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
