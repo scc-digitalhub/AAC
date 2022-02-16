@@ -87,7 +87,7 @@ public class WebAuthnUserAccountService {
             account = accountRepository.detach(account);
 
             return account;
-        } catch (Exception e) {
+        } catch (RegistrationException e) {
             throw new RegistrationException(e.getMessage());
         }
     }
@@ -116,7 +116,7 @@ public class WebAuthnUserAccountService {
             account = accountRepository.detach(account);
 
             return account;
-        } catch (Exception e) {
+        } catch (RegistrationException e) {
             throw new RegistrationException(e.getMessage());
         }
     }
