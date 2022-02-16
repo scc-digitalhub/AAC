@@ -40,7 +40,6 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
@@ -74,7 +73,7 @@ public class WebAuthnRpService {
     }
 
     public WebAuthnRegistrationResponse startRegistration(String username, String realm,
-            String displayName, Subject optSub) {
+            String displayName) {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
@@ -85,7 +84,7 @@ public class WebAuthnRpService {
             // In that case, we should allow registering multiple credentials
             throw new WebAuthnAuthenticationException("_", "User already exists");
         }
-        final UserIdentity user = generateUserIdentity(username, realm, displayName, optSub);
+        final UserIdentity user = generateUserIdentity(username, displayName);
         final StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder().user(user)
                 .authenticatorSelection(authenticatorSelection).timeout(TIMEOUT).build();
         final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
@@ -127,17 +126,29 @@ public class WebAuthnRpService {
                 throw new WebAuthnAuthenticationException("_",
                         "Could not finish registration: missing username");
             }
-            final WebAuthnUserAccount account = webAuthnUserAccountService.findByProviderAndUsername(provider,
+            WebAuthnUserAccount existingAccount = webAuthnUserAccountService.findByProviderAndUsername(provider,
                     username);
-            if (account == null) {
+            if (existingAccount != null) {
                 throw new WebAuthnAuthenticationException("_",
-                        "Can not find matching account");
+                        "Account already registered");
             }
             final PublicKeyCredentialCreationOptions options = info.getOptions();
             RegistrationResult result = rp
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
             boolean attestationIsTrusted = result.isAttestationTrusted();
             if (attestationIsTrusted) {
+                // Create user account in the database
+                WebAuthnUserAccount account = new WebAuthnUserAccount();
+                account.setUsername(username);
+                account.setRealm(realm);
+                String subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
+                account.setSubject(subject);
+                ByteArray userHandle = info.getOptions().getUser().getId();
+                account.setUserHandle(userHandle.getBase64());
+                account.setProvider(provider);
+                webAuthnUserAccountService.addAccount(account);
+
+                // Create credential in the database
                 WebAuthnCredential newCred = new WebAuthnCredential();
                 newCred.setCreatedOn(new Date());
                 newCred.setLastUsedOn(new Date());
@@ -240,8 +251,7 @@ public class WebAuthnRpService {
         }
     }
 
-    private UserIdentity generateUserIdentity(String username, String realm, String displayName,
-            Subject subjectOrNull) {
+    private UserIdentity generateUserIdentity(String username, String displayName) {
         String userDisplayName = displayName != null ? displayName : "";
         String userHandle = keyGenerator.generateKey();
         ByteArray userHandleBA = null;
@@ -254,19 +264,6 @@ public class WebAuthnRpService {
         UserIdentity newUserIdentity = UserIdentity.builder()
                 .name(username).displayName(userDisplayName)
                 .id(userHandleBA).build();
-        WebAuthnUserAccount account = new WebAuthnUserAccount();
-        account.setUsername(username);
-        account.setRealm(realm);
-        String subject;
-        if (subjectOrNull != null) {
-            subject = subjectOrNull.getSubjectId();
-        } else {
-            subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
-        }
-        account.setSubject(subject);
-        account.setUserHandle(userHandleBA.getBase64());
-        account.setProvider(provider);
-        webAuthnUserAccountService.addAccount(account);
         return newUserIdentity;
     }
 }

@@ -27,14 +27,11 @@ import org.springframework.web.server.ResponseStatusException;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
-import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationStartRequest;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnSubjectResolver;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRepository;
 
@@ -57,9 +54,6 @@ public class WebAuthnRegistrationController {
 
     @Autowired
     private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceReigistrationRepository;
-
-    @Autowired
-    private WebAuthnIdentityAuthority webAuthnIdentityAuthority;
 
     /**
      * Serves the page to register a new WebAuthn credential.
@@ -113,18 +107,12 @@ public class WebAuthnRegistrationController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid displayName");
             }
 
-            final WebAuthnIdentityService webAuthnIdentityService = webAuthnIdentityAuthority
-                    .getIdentityService(providerId);
-            final WebAuthnSubjectResolver subjectResolver = webAuthnIdentityService.getSubjectResolver();
-            Subject subject = subjectResolver
-                    .resolveByUserId(username);
             WebAuthnIdentityProviderConfig providerCfg = registrationRepository.findByProviderId(providerId);
             String realm = providerCfg.getRealm();
             final WebAuthnRegistrationResponse response = rps.startRegistration(
                     username,
                     realm,
-                    displayName,
-                    subject);
+                    displayName);
             return response;
         } catch (ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
