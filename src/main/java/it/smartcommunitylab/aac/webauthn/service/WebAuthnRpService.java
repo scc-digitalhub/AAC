@@ -242,7 +242,7 @@ public class WebAuthnRpService {
         }
     }
 
-    UserIdentity generateUserIdentity(String username, String realm, String displayName,
+    private UserIdentity generateUserIdentity(String username, String realm, String displayName,
             Subject subjectOrNull) {
         final String userDisplayName = displayName != null ? displayName : "";
         byte[] userHandle = new byte[64];
