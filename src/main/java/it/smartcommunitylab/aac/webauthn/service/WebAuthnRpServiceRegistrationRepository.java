@@ -2,7 +2,7 @@ package it.smartcommunitylab.aac.webauthn.service;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -41,11 +41,8 @@ public class WebAuthnRpServiceRegistrationRepository {
 
     private RelyingParty buildRp(String providerId, WebAuthnIdentityProviderConfigMap config)
             throws MalformedURLException {
-        Set<String> origins = new HashSet<>();
         URL publicAppUrl = new URL(applicationUrl);
-        // TODO: civts, remove this later
-        origins.add("http://localhost");
-        origins.add(applicationUrl);
+        Set<String> origins = Collections.singleton(applicationUrl);
         RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder().id(publicAppUrl.getHost())
                 .name("AAC " + providerId)
                 .build();
