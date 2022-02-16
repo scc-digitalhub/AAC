@@ -31,6 +31,8 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.data.UserVerificationRequirement;
+import com.yubico.webauthn.exception.AssertionFailedException;
+import com.yubico.webauthn.exception.RegistrationFailedException;
 
 import org.springframework.util.StringUtils;
 
@@ -155,7 +157,7 @@ public class WebAuthnRpService {
             } else {
                 return null;
             }
-        } catch (Exception e) {
+        } catch (WebAuthnAuthenticationException | RegistrationFailedException e) {
             throw new WebAuthnAuthenticationException("_",
                     "Registration failed");
         }
@@ -234,7 +236,7 @@ public class WebAuthnRpService {
             } else {
                 return null;
             }
-        } catch (Exception e) {
+        } catch (WebAuthnAuthenticationException | AssertionFailedException e) {
             throw new WebAuthnAuthenticationException("_",
                     "Login failed");
         }
