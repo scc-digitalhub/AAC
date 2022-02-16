@@ -110,9 +110,13 @@ public class WebAuthnRpService {
             String key) throws WebAuthnAuthenticationException {
         try {
             final WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
-            if (info == null || info.getRealm() != realm) {
-                throw new WebAuthnAuthenticationException("_",
-                        "Can not find matching active registration request");
+            WebAuthnAuthenticationException noSuchRegistration = new WebAuthnAuthenticationException("_",
+                    "Can not find matching active registration request");
+            if (info == null) {
+                throw noSuchRegistration;
+            }
+            if (!info.getRealm().equals(realm)) {
+                throw noSuchRegistration;
             }
             final String username = info.getUsername();
             if (!StringUtils.hasText(username)) {
