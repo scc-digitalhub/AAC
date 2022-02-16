@@ -210,7 +210,7 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
 
                 // load and return
                 return providers.get(providerId);
-            } catch (Exception ee) {
+            } catch (ExecutionException ee) {
                 // cleanup
                 registrationRepository.removeRegistration(providerId);
 

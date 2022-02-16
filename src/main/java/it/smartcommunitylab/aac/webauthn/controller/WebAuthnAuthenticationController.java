@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,7 +78,7 @@ public class WebAuthnAuthenticationController {
 
             WebAuthnLoginResponse response = rps.startLogin(username);
             return response;
-        } catch (Exception e) {
+        } catch (ResponseStatusException | ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -98,7 +100,7 @@ public class WebAuthnAuthenticationController {
                     .parseAssertionResponseJson(body.getAssertionAsJson());
             final String authenticatedUser = rps.finishLogin(pkc, key);
             return "Welcome " + authenticatedUser;
-        } catch (Exception e) {
+        } catch (IOException | ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
         }
     }

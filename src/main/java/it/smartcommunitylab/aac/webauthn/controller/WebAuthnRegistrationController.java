@@ -1,5 +1,7 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,7 +77,7 @@ public class WebAuthnRegistrationController {
                 throw new RegistrationException("registration is disabled");
             }
             return "webauthn/register";
-        } catch (Exception e) {
+        } catch (RegistrationException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -124,7 +126,7 @@ public class WebAuthnRegistrationController {
                     displayName,
                     subject);
             return response;
-        } catch (Exception e) {
+        } catch (ResponseStatusException | ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -161,7 +163,7 @@ public class WebAuthnRegistrationController {
                 throw invalidAttestationException;
             }
             return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";
-        } catch (Exception e) {
+        } catch (IOException | ExecutionException e) {
             throw invalidAttestationException;
         }
     }
