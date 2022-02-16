@@ -17,7 +17,6 @@ import com.yubico.webauthn.data.PublicKeyCredentialType;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 /**
@@ -31,13 +30,10 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     private final String providerId;
     private WebAuthnUserAccountService webAuthnUserAccountService;
-    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     public WebAuthnYubicoCredentialsRepository(String provider,
-            WebAuthnUserAccountService webAuthnUserAccountService,
-            WebAuthnCredentialsRepository webAuthnCredentialsRepository) {
+            WebAuthnUserAccountService webAuthnUserAccountService) {
         this.webAuthnUserAccountService = webAuthnUserAccountService;
-        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
         this.providerId = provider;
     }
 
@@ -47,8 +43,8 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         if (account == null) {
             return Collections.emptySet();
         }
-        final List<WebAuthnCredential> credentials = webAuthnCredentialsRepository
-                .findByUserHandle(account.getUserHandle());
+        final List<WebAuthnCredential> credentials = webAuthnUserAccountService
+                .findCredentialsByUserHandle(account.getUserHandle());
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnCredential c : credentials) {
             Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
@@ -88,7 +84,8 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         if (acc == null) {
             return Optional.empty();
         }
-        List<WebAuthnCredential> credentials = webAuthnCredentialsRepository.findByUserHandle(acc.getUserHandle());
+        List<WebAuthnCredential> credentials = webAuthnUserAccountService
+                .findCredentialsByUserHandle(acc.getUserHandle());
         for (final WebAuthnCredential cred : credentials) {
             if (cred.getCredentialId().equals(credentialId.getBase64())) {
                 return Optional.of(getRegisteredCredential(cred));
@@ -100,7 +97,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
     @Override
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
         // In our database the credentialID already has a unique constraint
-        WebAuthnCredential cred = webAuthnCredentialsRepository.findByCredentialId(credentialId.getBase64());
+        WebAuthnCredential cred = webAuthnUserAccountService.findCredentialById(credentialId.getBase64());
         if (cred == null) {
             return Collections.emptySet();
         }

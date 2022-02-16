@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
@@ -30,17 +29,15 @@ public class WebAuthnRpServiceRegistrationRepository {
     @Autowired
     private WebAuthnUserAccountService webAuthnUserAccountService;
     @Autowired
-    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
-    @Autowired
     private SubjectService subjectService;
-
-    @Value("${application.url}")
-    private String applicationUrl;
 
     public WebAuthnRpServiceRegistrationRepository(
             ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
         this.registrationRepository = registrationRepository;
     }
+
+    @Value("${application.url}")
+    private String applicationUrl;
 
     private RelyingParty buildRp(String providerId, WebAuthnIdentityProviderConfigMap config)
             throws MalformedURLException {
@@ -54,8 +51,7 @@ public class WebAuthnRpServiceRegistrationRepository {
                 .build();
         WebAuthnYubicoCredentialsRepository webauthnRepository = new WebAuthnYubicoCredentialsRepository(
                 providerId,
-                webAuthnUserAccountService,
-                webAuthnCredentialsRepository);
+                webAuthnUserAccountService);
         RelyingParty rp = RelyingParty.builder().identity(rpIdentity).credentialRepository(webauthnRepository)
                 .allowUntrustedAttestation(config.isTrustUnverifiedAuthenticatorResponses()).allowOriginPort(true)
                 .allowOriginSubdomain(false)
@@ -79,7 +75,6 @@ public class WebAuthnRpServiceRegistrationRepository {
                     RelyingParty rp = buildRp(providerId, config.getConfigMap());
                     return new WebAuthnRpService(rp,
                             webAuthnUserAccountService,
-                            webAuthnCredentialsRepository,
                             subjectService,
                             providerId);
                 }
