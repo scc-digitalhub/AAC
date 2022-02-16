@@ -78,7 +78,7 @@ public class WebAuthnAuthenticationController {
 
             WebAuthnLoginResponse response = rps.startLogin(username);
             return response;
-        } catch (ResponseStatusException | ExecutionException e) {
+        } catch (ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
