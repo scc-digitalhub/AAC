@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.validation.Valid;
@@ -111,7 +110,6 @@ public class WebAuthnAuthenticationController {
      * Checks if the provided object can be used as a valid username
      */
     private boolean isValidUsername(String username) {
-        Matcher matcher = pattern.matcher((String) username);
-        return matcher.find();
+        return pattern.matcher(username).matches();
     }
 }
