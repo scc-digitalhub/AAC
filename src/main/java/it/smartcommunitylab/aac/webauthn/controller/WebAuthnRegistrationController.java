@@ -2,7 +2,6 @@ package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.validation.Valid;
@@ -170,22 +169,14 @@ public class WebAuthnRegistrationController {
     /**
      * Checks if the provided object can be used as a valid username
      */
-    private boolean isValidUsername(Object username) {
-        if (!(username instanceof String)) {
-            return false;
-        }
-        Matcher matcher = pattern.matcher((String) username);
-        return matcher.find();
+    private boolean isValidUsername(String username) {
+        return pattern.matcher(username).matches();
     }
 
     /**
      * Checks if the provided object can be used as a valid display name
      */
-    private boolean isValidDisplayName(Object candidate) {
-        if (!(candidate instanceof String)) {
-            return false;
-        }
-        Matcher matcher = pattern.matcher((String) candidate);
-        return matcher.find();
+    private boolean isValidDisplayName(String candidate) {
+        return pattern.matcher(candidate).matches();
     }
 }
