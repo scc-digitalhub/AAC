@@ -39,15 +39,6 @@ public class WebAuthnUserAccountService {
     }
 
     @Transactional(readOnly = true)
-    public WebAuthnUserAccount findByProviderAndSubject(String provider, String subject) throws NoSuchUserException {
-        WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
     public WebAuthnUserAccount findByUserHandle(String userHandle) {
         WebAuthnUserAccount account = accountRepository.findByUserHandle(userHandle);
         if (account == null) {
@@ -121,8 +112,8 @@ public class WebAuthnUserAccountService {
         }
     }
 
-    public void deleteAccount(String provider, String subject) {
-        final WebAuthnUserAccount account = accountRepository.findByProviderAndSubject(provider, subject);
+    public void deleteAccount(String userHandle) {
+        final WebAuthnUserAccount account = accountRepository.findByUserHandle(userHandle);
         for (final WebAuthnCredential c : credentialRepository.findByUserHandle(account.getUserHandle())) {
             credentialRepository.delete(c);
         }

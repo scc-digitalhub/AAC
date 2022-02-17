@@ -77,10 +77,6 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
             throw new IllegalArgumentException("invalid credentials");
         }
 
-        String userHandle = ((UserWebAuthnCredentials) credentials).getCredentials();
-
-        setCredential(userId, userHandle);
-
         // we return a placeholder to describe config
         UserWebAuthnCredentials result = new UserWebAuthnCredentials();
         result.setUserId(userId);
@@ -88,22 +84,6 @@ public class WebAuthnCredentialsService extends AbstractProvider implements Cred
         result.setCanSet(canSet());
 
         return result;
-    }
-
-    public WebAuthnUserAccount setCredential(
-            String userId,
-            String userHandle) throws NoSuchUserException {
-
-        // fetch user
-        String username = parseResourceId(userId);
-        String provider = getProvider();
-        WebAuthnUserAccount account = userAccountService
-                .findByProviderAndSubject(provider, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        return userAccountService.updateAccount(account.getUserHandle(), account);
     }
 
     @Override

@@ -65,7 +65,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
     @Override
     public WebAuthnUserAccount getAccount(String userId) throws NoSuchUserException {
-        return userAccountService.findByProviderAndSubject(getProvider(), userId);
+        return userAccountService.findByUserHandle(userId);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
         WebAuthnUserAccount account = null;
         if (attributes.containsKey("userId")) {
             String subject = parseResourceId(attributes.get("userId"));
-            account = userAccountService.findByProviderAndSubject(provider, subject);
+            account = userAccountService.findByUserHandle(subject);
         }
 
         if (account == null
@@ -110,8 +110,8 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public void deleteAccount(String subject) throws NoSuchUserException {
-        userAccountService.deleteAccount(getProvider(), subject);
+    public void deleteAccount(String userHandle) throws NoSuchUserException {
+        userAccountService.deleteAccount(userHandle);
     }
 
     @Override
@@ -195,17 +195,14 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public WebAuthnUserAccount updateAccount(String userId, UserAccount reg)
+    public WebAuthnUserAccount updateAccount(String userHandle, UserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
-        String username = parseResourceId(userId);
-        String provider = getProvider();
-
         WebAuthnUserAccount account = userAccountService
-                .findByProviderAndSubject(provider, username);
+                .findByUserHandle(userHandle);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -227,9 +224,6 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         // set providerId since all webauthn accounts have the same
         account.setProvider(getProvider());
-
-        // rewrite webauthn userId
-        account.setSubject(exportInternalId(username));
 
         return account;
     }
