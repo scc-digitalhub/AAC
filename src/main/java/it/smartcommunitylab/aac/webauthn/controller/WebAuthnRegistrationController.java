@@ -46,7 +46,7 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRe
 public class WebAuthnRegistrationController {
 
     @Autowired
-    private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceReigistrationRepository;
+    private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceRegistrationRepository;
 
     @Autowired
     private ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository;
@@ -106,7 +106,7 @@ public class WebAuthnRegistrationController {
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
-            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
+            WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
             String username = body.getUsername();
             if (!isValidUsername(username)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
@@ -147,7 +147,7 @@ public class WebAuthnRegistrationController {
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
-            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
+            WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
             WebAuthnIdentityProviderConfig providerCfg = registrationRepository.findByProviderId(providerId);
             String realm = providerCfg.getRealm();
 
