@@ -131,6 +131,9 @@ public class OAuth2ClientDetails implements ClientDetails {
     private boolean firstParty = false;
 
     @JsonIgnore
+    private boolean refreshTokenRotation = false;
+
+    @JsonIgnore
     private Map<String, Object> additionalInformation = new LinkedHashMap<String, Object>();
 
     // hooks
@@ -324,6 +327,14 @@ public class OAuth2ClientDetails implements ClientDetails {
 
     public void setFirstParty(boolean firstParty) {
         this.firstParty = firstParty;
+    }
+
+    public boolean isRefreshTokenRotation() {
+        return refreshTokenRotation;
+    }
+
+    public void setRefreshTokenRotation(boolean refreshTokenRotation) {
+        this.refreshTokenRotation = refreshTokenRotation;
     }
 
     public Set<String> getResponseTypes() {

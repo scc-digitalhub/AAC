@@ -147,6 +147,16 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.firstParty = firstParty;
     }
 
+    public boolean isRefreshTokenRotation() {
+        if (additionalConfig == null) {
+            return false;
+        }
+
+        return additionalConfig.getRefreshTokenRotation() != null
+                ? additionalConfig.getRefreshTokenRotation().booleanValue()
+                : false;
+    }
+
     public Integer getAccessTokenValidity() {
         return accessTokenValidity;
     }
@@ -239,11 +249,14 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.jwksUri = map.getJwksUri();
 
         // handle additional props
-        if (map.getAdditionalConfig() != null) {
-            this.additionalConfig = map.getAdditionalConfig();
+        // we parse again the map because we flatten props by unwrapping
+        OAuth2ClientAdditionalConfig additionalConfig = OAuth2ClientAdditionalConfig.convert(props);
+        if (additionalConfig != null) {
+            this.additionalConfig = additionalConfig;
         }
-        if (map.getAdditionalInformation() != null) {
-            this.additionalInformation = map.getAdditionalInformation();
+        OAuth2ClientInfo clientInfo = OAuth2ClientInfo.convert(props);
+        if (clientInfo != null) {
+            this.additionalInformation = clientInfo;
         }
 //        if(props != null && props.containsKey("additionalInformation")) {
 //            this.additionalInformation = OAuth2ClientInfo.convert(props.get("additionalInformation"));
