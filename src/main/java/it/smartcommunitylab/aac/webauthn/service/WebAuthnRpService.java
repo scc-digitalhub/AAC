@@ -49,18 +49,18 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 public class WebAuthnRpService {
 
-    private WebAuthnUserAccountService webAuthnUserAccountService;
+    private final WebAuthnUserAccountService webAuthnUserAccountService;
 
-    private SubjectService subjectService;
+    private final SubjectService subjectService;
 
     private final RelyingParty rp;
     private final String provider;
 
-    private static Long TIMEOUT = 9000L;
+    private static final Long TIMEOUT = 9000L;
     private final StringKeyGenerator keyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 64);
 
-    private Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
-    private Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
+    private final Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
+    private final Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
 
     public WebAuthnRpService(RelyingParty rp,
             WebAuthnUserAccountService webAuthnUserAccountService,
