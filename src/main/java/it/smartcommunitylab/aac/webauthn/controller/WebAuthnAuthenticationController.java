@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
@@ -44,6 +45,8 @@ public class WebAuthnAuthenticationController {
 
     @Autowired
     private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceRegistrationRepository;
+
+    private static Pattern pattern = Pattern.compile(SystemKeys.SLUG_PATTERN);
 
     /**
      * Serves the page to start a new WebAuthn authentication ceremony.
@@ -108,7 +111,6 @@ public class WebAuthnAuthenticationController {
      * Checks if the provided object can be used as a valid username
      */
     private boolean isValidUsername(String username) {
-        Pattern pattern = Pattern.compile("^\\w{3,30}$");
         Matcher matcher = pattern.matcher((String) username);
         return matcher.find();
     }
