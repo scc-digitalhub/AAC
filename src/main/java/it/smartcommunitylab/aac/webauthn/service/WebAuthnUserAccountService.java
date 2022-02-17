@@ -113,10 +113,9 @@ public class WebAuthnUserAccountService {
     }
 
     public void deleteAccount(String userHandle) {
-        final WebAuthnUserAccount account = accountRepository.findByUserHandle(userHandle);
-        for (final WebAuthnCredential c : credentialRepository.findByUserHandle(account.getUserHandle())) {
-            credentialRepository.delete(c);
-        }
+        WebAuthnUserAccount account = accountRepository.findByUserHandle(userHandle);
+        List<WebAuthnCredential> credentials = credentialRepository.findByUserHandle(userHandle);
+        credentialRepository.deleteInBatch(credentials);
         accountRepository.delete(account);
     }
 
