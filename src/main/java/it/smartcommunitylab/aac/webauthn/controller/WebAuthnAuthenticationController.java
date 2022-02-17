@@ -92,13 +92,12 @@ public class WebAuthnAuthenticationController {
     @ResponseBody
     public String verifyAssertion(@RequestBody @Valid WebAuthnAssertionResponse body,
             @PathVariable("providerId") String providerId) {
-        final String key = body.getKey();
         try {
             final WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
 
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
                     .parseAssertionResponseJson(body.getAssertionAsJson());
-            final String authenticatedUser = rps.finishLogin(pkc, key);
+            final String authenticatedUser = rps.finishLogin(pkc, body.getKey());
             return "Welcome " + authenticatedUser;
         } catch (IOException | ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
