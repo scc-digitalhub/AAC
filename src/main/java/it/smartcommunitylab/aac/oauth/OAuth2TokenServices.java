@@ -186,6 +186,12 @@ public class OAuth2TokenServices
             throw new InvalidGrantException("Wrong client for this refresh token: " + refreshTokenValue);
         }
 
+        // check request has offline_access scope
+        Set<String> scopes = authentication.getOAuth2Request().getScope();
+        if (!scopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
+            throw new InvalidRequestException("refresh requires offline_access scope");
+        }
+
         // fetch client
         OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
 

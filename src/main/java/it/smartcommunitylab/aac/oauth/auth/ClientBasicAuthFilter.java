@@ -164,6 +164,16 @@ public class ClientBasicAuthFilter extends AbstractAuthenticationProcessingFilte
                 authRequest = new OAuth2ClientPKCEAuthenticationToken(clientId, code, verifier,
                         AuthenticationMethod.NONE.getValue());
             }
+
+            // support refresh flow with pkce without secret
+            // requires refresh token rotation set
+            if ("refresh_token".equals(grantType)
+                    && request.getParameterMap().containsKey("refresh_token")) {
+                String refreshToken = request.getParameter("refresh_token");
+                // replace request
+                authRequest = new OAuth2ClientRefreshAuthenticationToken(clientId, refreshToken,
+                        AuthenticationMethod.NONE.getValue());
+            }
         }
 
         // collect request details
