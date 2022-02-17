@@ -108,10 +108,7 @@ public class WebAuthnAuthenticationController {
     /**
      * Checks if the provided object can be used as a valid username
      */
-    private boolean isValidUsername(Object username) {
-        if (!(username instanceof String)) {
-            return false;
-        }
+    private boolean isValidUsername(String username) {
         Pattern pattern = Pattern.compile("^\\w{3,30}$");
         Matcher matcher = pattern.matcher((String) username);
         return matcher.find();
