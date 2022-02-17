@@ -64,9 +64,15 @@ public class WebAuthnRegistrationController {
     @RequestMapping(value = "/auth/webauthn/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(@PathVariable("providerId") String providerId) {
         try {
-            final boolean canRegister = registrationRepository.findByProviderId(providerId)
-                    .getConfigMap()
-                    .isEnableRegistration();
+            WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
+            boolean canRegister;
+            if (provider != null) {
+                canRegister = provider
+                        .getConfigMap()
+                        .isEnableRegistration();
+            } else {
+                canRegister = false;
+            }
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
@@ -90,9 +96,15 @@ public class WebAuthnRegistrationController {
             @RequestBody @Valid WebAuthnRegistrationStartRequest body,
             @PathVariable("providerId") String providerId) {
         try {
-            final boolean canRegister = registrationRepository.findByProviderId(providerId)
-                    .getConfigMap()
-                    .isEnableRegistration();
+            WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
+            boolean canRegister;
+            if (provider != null) {
+                canRegister = provider
+                        .getConfigMap()
+                        .isEnableRegistration();
+            } else {
+                canRegister = false;
+            }
             if (!canRegister) {
                 throw new RegistrationException("registration is disabled");
             }
