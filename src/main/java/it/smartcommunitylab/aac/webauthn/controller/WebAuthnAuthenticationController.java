@@ -43,7 +43,7 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRe
 public class WebAuthnAuthenticationController {
 
     @Autowired
-    private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceReigistrationRepository;
+    private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceRegistrationRepository;
 
     /**
      * Serves the page to start a new WebAuthn authentication ceremony.
@@ -69,7 +69,7 @@ public class WebAuthnAuthenticationController {
     public WebAuthnLoginResponse generateAssertionOptions(@RequestBody @Valid WebAuthnAuthenticationStartRequest body,
             @PathVariable("providerId") String providerId) {
         try {
-            WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
+            WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
 
             String username = body.getUsername();
             if (!isValidUsername(username)) {
@@ -94,7 +94,7 @@ public class WebAuthnAuthenticationController {
             @PathVariable("providerId") String providerId) {
         final String key = body.getKey();
         try {
-            final WebAuthnRpService rps = webAuthnRpServiceReigistrationRepository.get(providerId);
+            final WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
 
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
                     .parseAssertionResponseJson(body.getAssertionAsJson());
