@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
@@ -45,15 +46,13 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnRpServiceRegistrationRe
 @RequestMapping
 public class WebAuthnRegistrationController {
 
-    private final ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository;
-
-    public WebAuthnRegistrationController(
-            ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository) {
-        this.registrationRepository = registrationRepository;
-    }
-
     @Autowired
     private WebAuthnRpServiceRegistrationRepository webAuthnRpServiceReigistrationRepository;
+
+    @Autowired
+    private ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository;
+
+    private static Pattern pattern = Pattern.compile(SystemKeys.SLUG_PATTERN);
 
     /**
      * Serves the page to register a new WebAuthn credential.
@@ -175,7 +174,6 @@ public class WebAuthnRegistrationController {
         if (!(username instanceof String)) {
             return false;
         }
-        Pattern pattern = Pattern.compile("^\\w{3,30}$");
         Matcher matcher = pattern.matcher((String) username);
         return matcher.find();
     }
@@ -187,7 +185,6 @@ public class WebAuthnRegistrationController {
         if (!(candidate instanceof String)) {
             return false;
         }
-        Pattern pattern = Pattern.compile("^[\\w ]{3,30}$");
         Matcher matcher = pattern.matcher((String) candidate);
         return matcher.find();
     }
