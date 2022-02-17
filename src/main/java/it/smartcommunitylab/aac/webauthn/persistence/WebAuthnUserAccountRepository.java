@@ -16,8 +16,6 @@ public interface WebAuthnUserAccountRepository
 
         WebAuthnUserAccount findByProviderAndUsername(String provider, String username);
 
-        WebAuthnUserAccount findByProviderAndSubject(String provider, String subject);
-
         // A subject can have more accounts
         List<WebAuthnUserAccount> findBySubjectAndRealm(String subject, String realm);
 
