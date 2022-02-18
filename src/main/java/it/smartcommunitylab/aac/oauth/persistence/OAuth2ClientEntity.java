@@ -74,7 +74,7 @@ public class OAuth2ClientEntity {
     private String tokenType;
 
     @Column(name = "id_token_claims")
-    private boolean idTokenClaims = false;
+    private Boolean idTokenClaims;
 
     /*
      * OAuth2 flows - related info
@@ -107,14 +107,14 @@ public class OAuth2ClientEntity {
     @Lob
     @Column(name = "additional_information")
     @Convert(converter = HashMapConverter.class)
-    private Map<String, String> additionalInformation;
+    private Map<String, Serializable> additionalInformation;
 
     /*
      * first party clients won't require approval for in-realm resource consumption
      * (realm idp, realm identity, realm service etc) matching a list of scopes
      */
     @Column(name = "first_party")
-    private boolean firstParty = false;
+    private Boolean firstParty;
 
     // TODO drop resourceids (which exist only in resource server) in favor of
     // audience which indicates the resource servers
@@ -249,27 +249,35 @@ public class OAuth2ClientEntity {
         this.additionalConfiguration = additionalConfiguration;
     }
 
-    public Map<String, String> getAdditionalInformation() {
+    public Map<String, Serializable> getAdditionalInformation() {
         return additionalInformation;
     }
 
-    public void setAdditionalInformation(Map<String, String> additionalInformation) {
+    public void setAdditionalInformation(Map<String, Serializable> additionalInformation) {
         this.additionalInformation = additionalInformation;
     }
 
     public boolean isFirstParty() {
+        return firstParty != null ? firstParty.booleanValue() : false;
+    }
+
+    public Boolean getFirstParty() {
         return firstParty;
     }
 
-    public void setFirstParty(boolean firstParty) {
+    public void setFirstParty(Boolean firstParty) {
         this.firstParty = firstParty;
     }
 
     public boolean isIdTokenClaims() {
+        return idTokenClaims != null ? idTokenClaims.booleanValue() : false;
+    }
+
+    public Boolean getIdTokenClaims() {
         return idTokenClaims;
     }
 
-    public void setIdTokenClaims(boolean idTokenClaims) {
+    public void setIdTokenClaims(Boolean idTokenClaims) {
         this.idTokenClaims = idTokenClaims;
     }
 

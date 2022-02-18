@@ -36,7 +36,7 @@ public class OAuth2ClientInfo implements Serializable {
 //    }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, String> read(String additionalInformation) {
+    public static Map<String, Serializable> read(String additionalInformation) {
         try {
             return mapper.readValue(additionalInformation, Map.class);
         } catch (JsonProcessingException e) {
@@ -44,7 +44,7 @@ public class OAuth2ClientInfo implements Serializable {
         }
     }
 
-    public static OAuth2ClientInfo convert(Map<String, String> map) {
+    public static OAuth2ClientInfo convert(Map<String, Serializable> map) {
         return mapper.convertValue(map, OAuth2ClientInfo.class);
     }
 
@@ -58,7 +58,7 @@ public class OAuth2ClientInfo implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, String> toMap() throws IllegalArgumentException {
+    public Map<String, Serializable> toMap() throws IllegalArgumentException {
         try {
             mapper.setSerializationInclusion(Include.NON_EMPTY);
             return mapper.convertValue(this, HashMap.class);

@@ -49,6 +49,10 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
     @JsonProperty("id_token_encrypted_response_enc")
     private EncryptionMethod idTokenEncMethod;
 
+    // refresh token config
+    @JsonProperty("refresh_token_rotation")
+    private Boolean refreshTokenRotation;
+
     // userinfo jwt config
     @JsonProperty("userinfo_signed_response_alg")
     private JWSAlgorithm userinfoSignAlgorithm;
@@ -235,6 +239,14 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
 
     public void setRequestUris(Set<String> requestUris) {
         this.requestUris = requestUris;
+    }
+
+    public Boolean getRefreshTokenRotation() {
+        return refreshTokenRotation;
+    }
+
+    public void setRefreshTokenRotation(Boolean refreshTokenRotation) {
+        this.refreshTokenRotation = refreshTokenRotation;
     }
 
 }

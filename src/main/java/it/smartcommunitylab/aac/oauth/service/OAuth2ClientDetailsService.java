@@ -99,6 +99,11 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
                     clientDetails.setJwtEncAlgorithm(config.getJwtEncMethod().getValue());
                 }
 
+                boolean isRefreshTokenRotation = config.getRefreshTokenRotation() != null
+                        ? config.getRefreshTokenRotation().booleanValue()
+                        : false;
+                clientDetails.setRefreshTokenRotation(isRefreshTokenRotation);
+
             } catch (Exception e) {
                 // ignore additional config
             }

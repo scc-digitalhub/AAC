@@ -112,6 +112,13 @@
                     <label>IdToken custom claims</label>
                 </div>
             </div>
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                    ng-click="app.configuration.refresh_token_rotation = !app.configuration.refresh_token_rotation">
+                    <input class="form-check-input" type="checkbox" ng-model="app.configuration.refresh_token_rotation">
+                    <label>Refresh token rotation</label>
+                </div>
+            </div>            
         </div>
 
         <div class="row">
