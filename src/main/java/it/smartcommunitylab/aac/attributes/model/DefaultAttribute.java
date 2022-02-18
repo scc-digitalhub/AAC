@@ -78,4 +78,8 @@ public class DefaultAttribute implements Attribute, Serializable {
         return null;
     }
 
+    @Override
+    public String exportValue() {
+        return null;
+    }
 }

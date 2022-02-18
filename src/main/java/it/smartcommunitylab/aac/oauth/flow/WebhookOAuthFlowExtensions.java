@@ -26,6 +26,8 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -141,16 +143,16 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     @Override
-    public Boolean onAfterUserApproval(Collection<String> scopes, User user,
+    public Optional<Boolean> onAfterUserApproval(Collection<String> scopes, User user,
             OAuth2ClientDetails client) throws FlowExecutionException {
         if (client.getHookWebUrls() == null) {
-            return null;
+            return Optional.empty();
         }
 
         String webhook = client.getHookWebUrls().get(OAuthFlowExtensions.AFTER_USER_APPROVAL);
 
         if (!StringUtils.hasText(webhook)) {
-            return null;
+            return Optional.empty();
         }
 
         // convert to map
@@ -179,13 +181,13 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
                 String body = response.getBody();
                 if (StringUtils.hasText(body)) {
                     ApprovalResult result = mapper.convertValue(body, ApprovalResult.class);
-                    return result.approved;
+                    return Optional.ofNullable(result.approved);
                 } else {
-                    return true;
+                    return Optional.of(true);
                 }
             } else if (statusCode.is4xxClientError()) {
                 // we consider this as "denied"
-                return false;
+                return Optional.of(false);
             } else {
                 throw new FlowExecutionException("invalid response from webhook: " + statusCode.toString());
             }

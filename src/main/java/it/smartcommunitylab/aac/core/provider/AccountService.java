@@ -30,4 +30,12 @@ public interface AccountService extends AccountProvider {
             String userId,
             UserAccount account) throws NoSuchUserException, RegistrationException;
 
+    public UserAccount verifyAccount(
+            String userId,
+            UserAccount account) throws NoSuchUserException, RegistrationException;
+
+    public UserAccount unverifyAccount(
+            String userId,
+            UserAccount account) throws NoSuchUserException, RegistrationException;
+
 }

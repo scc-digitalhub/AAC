@@ -19,6 +19,11 @@
             <button class="btn btn-success btn-sm  text-right" ng-if="user.blocked"
                 ng-click="unblockUser()">Unblock</button>
 
+            <button class="btn btn-success btn-sm  text-right" ng-if="!user.emailVerified" ng-disabled="user.blocked"
+                ng-click="verifyUserDlg()">Verify</button>
+            <button class="btn btn-warning btn-sm  text-right" ng-if="user.emailVerified" ng-disabled="user.blocked"
+                ng-click="unverifyUser()">Un-verify</button>
+
             <button class="btn btn-danger btn-sm  text-right" ng-click="deleteUserDlg()">Delete</button>
         </div>
     </div>
@@ -32,7 +37,13 @@
             </a>
         </div>
         <div class="col">
-            <h3>{{username}}</h3>
+            <h3>
+                <span> {{username}} </span>
+                <svg ng-if="user.emailVerified" aria-hidden="true" class="icon icon-sm icon-success mx-3">
+                    <use xlink:href="./italia/svg/sprite.svg#it-check-circle"></use>
+                    <title>Verified</title>
+                </svg>
+            </h3>
             <p class="text-monospace">
                 <span class="small text-monospace bg-light pl-1 pr-1">{{user.subjectId}}</span>
                 <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(user.subjectId)">
@@ -71,7 +82,7 @@
             <a class="nav-link {{activeView('attributes')}}" href ng-click="switchView('attributes')">Attributes</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{activeView('spaceroles')}}" href ng-click="switchView('spaceroles')">SpaceRoles</a>
+            <a class="nav-link {{activeView('spaceroles')}}" href ng-click="switchView('spaceroles')">Space Roles</a>
         </li>
     </ul>
     <div class="tab-content pt-3 pb-2">
@@ -127,6 +138,22 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-danger btn-sm" ng-click="blockUser()" type="button">Block</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal popconfirm-modal" tabindex="-1" role="dialog" id="verifyConfirm">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>Are you sure you want to proceed?</p>
+                <p class="text-danger">Verifying a user account will trust the provided emailAddress.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" ng-click="verifyUser()" type="button">Verify</button>
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-dismiss="modal">Cancel</button>
             </div>
         </div>

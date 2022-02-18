@@ -60,7 +60,10 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
             // TODO implement a mapper via script handling a json representation without
             // security related attributes
             for (String key : keys) {
-                result.put(key, principal.getFirstAttribute(key).toString());
+                Object value = principal.getFirstAttribute(key);
+                if (value != null) {
+                    result.put(key, value.toString());
+                }
             }
 
         }

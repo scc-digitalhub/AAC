@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ public class AttributeService {
      */
 
     public AttributeSet getAttributeSet(String identifier) throws NoSuchAttributeSetException {
-        logger.debug("get attribute set for id " + identifier);
+        logger.debug("get attribute set for id " + StringUtils.trimAllWhitespace(identifier));
 
         if (systemAttributeSets.containsKey(identifier)) {
             return systemAttributeSets.get(identifier);
@@ -104,7 +105,7 @@ public class AttributeService {
     }
 
     public Collection<AttributeSet> listAttributeSets(String realm) {
-        logger.debug("list attribute sets for realm " + realm);
+        logger.debug("list attribute sets for realm " + StringUtils.trimAllWhitespace(realm));
 
         // TODO add static (internal) attribute sets to list
         return attributeService.listAttributeSets(realm).stream().map(s -> {
@@ -133,7 +134,7 @@ public class AttributeService {
                 for (Attribute attr : set.getAttributes()) {
 
                     AttributeEntity ae = attributeService.addAttribute(identifier, attr.getKey(),
-                            attr.getType(), null,
+                            attr.getType(), attr.getIsMultiple(),
                             attr.getName(), attr.getDescription());
 
                     attrs.add(toAttribute(ae));
@@ -152,7 +153,7 @@ public class AttributeService {
     public AttributeSet updateAttributeSet(String identifier, AttributeSet set)
             throws NoSuchAttributeSetException {
 
-        logger.debug("update attribute set " + identifier);
+        logger.debug("update attribute set " + StringUtils.trimAllWhitespace(identifier));
 
         if (systemAttributeSets.containsKey(identifier)) {
             throw new IllegalArgumentException("system attribute sets are unmodifiable");
@@ -174,12 +175,12 @@ public class AttributeService {
                 AttributeEntity ae = attributeService.findAttribute(identifier, attr.getKey());
                 if (ae == null) {
                     ae = attributeService.addAttribute(identifier, attr.getKey(),
-                            attr.getType(), null,
+                            attr.getType(), attr.getIsMultiple(),
                             attr.getName(), attr.getDescription());
                 } else {
                     try {
                         ae = attributeService.updateAttribute(identifier, attr.getKey(),
-                                attr.getType(), null,
+                                attr.getType(), attr.getIsMultiple(),
                                 attr.getName(), attr.getDescription());
                     } catch (NoSuchAttributeException e) {
                     }
@@ -284,6 +285,7 @@ public class AttributeService {
 
         attr.setName(ae.getName());
         attr.setDescription(ae.getDescription());
+        attr.setIsMultiple(ae.isMultiple());
 
         return attr;
     }

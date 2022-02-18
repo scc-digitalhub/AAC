@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.attributes.model;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.Attribute;
 
@@ -14,9 +16,22 @@ public abstract class AbstractAttribute implements Attribute, Serializable {
     protected String name;
     protected String description;
 
+    @JsonProperty("multiple")
+    private Boolean isMultiple;
+
     @Override
     public String getKey() {
         return key;
+    }
+
+    @Override
+    public String exportValue() {
+        Serializable value = getValue();
+        if (value == null) {
+            return null;
+        }
+
+        return value.toString();
     }
 
     public void setKey(String key) {
@@ -39,6 +54,14 @@ public abstract class AbstractAttribute implements Attribute, Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getIsMultiple() {
+        return isMultiple;
+    }
+
+    public void setIsMultiple(Boolean isMultiple) {
+        this.isMultiple = isMultiple;
     }
 
 }

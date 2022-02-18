@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
@@ -34,14 +35,14 @@ public class ScopeManager {
 
     @Deprecated
     public Scope findScope(String scope) {
-        logger.debug("find scope " + String.valueOf(scope));
+        logger.debug("find scope " + StringUtils.trimAllWhitespace(scope));
 
         // from registry
         return scopeRegistry.findScope(scope);
     }
 
     public Scope getScope(String scope) throws NoSuchScopeException {
-        logger.debug("get scope " + String.valueOf(scope));
+        logger.debug("get scope " + StringUtils.trimAllWhitespace(scope));
 
         // from registry
         return scopeRegistry.getScope(scope);
@@ -63,7 +64,7 @@ public class ScopeManager {
     }
 
     public Resource getResource(String resourceId) throws NoSuchResourceException {
-        logger.debug("get resource " + String.valueOf(resourceId));
+        logger.debug("get resource " + StringUtils.trimAllWhitespace(resourceId));
 
         // from registry
         return scopeRegistry.getResource(resourceId);

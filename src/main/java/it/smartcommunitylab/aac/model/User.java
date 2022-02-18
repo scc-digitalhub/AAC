@@ -49,6 +49,7 @@ public class User {
     // basic profile
     private String username;
     private String email;
+    private boolean emailVerified;
 
     // user status
     // TODO convert to enum
@@ -186,6 +187,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public boolean isBlocked() {

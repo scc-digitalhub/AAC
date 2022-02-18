@@ -34,8 +34,9 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
@@ -48,14 +49,13 @@ import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
-import springfox.documentation.annotations.ApiIgnore;
 
 /*
  * https://openid.net/specs/openid-connect-rpinitiated-1_0.html
  */
 
 @Controller
-@Api(tags = { "OpenID Connect Session Management" })
+@Tag(name = "OpenID Connect Session Management" )
 public class EndSessionEndpoint {
 
     public static final String END_SESSION_URL = "/endsession";
@@ -87,7 +87,7 @@ public class EndSessionEndpoint {
     @Autowired
     private RealmManager realmManager;
 
-    @ApiOperation(value = "Logout with user confirmation")
+    @Operation(summary = "Logout with user confirmation")
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.GET)
     public String endSession(
             @RequestParam(value = "id_token_hint", required = false) @Pattern(regexp = SystemKeys.URI_PATTERN) String idTokenHint,
@@ -208,7 +208,7 @@ public class EndSessionEndpoint {
         }
     }
 
-    @ApiIgnore
+    @Hidden
     @RequestMapping(value = END_SESSION_URL, method = RequestMethod.POST)
     public void processLogout(@RequestParam(value = "approve", required = false) Optional<String> approve,
             HttpServletRequest request,

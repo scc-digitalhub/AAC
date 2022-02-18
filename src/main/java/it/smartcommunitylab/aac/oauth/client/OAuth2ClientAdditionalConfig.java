@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
@@ -24,7 +25,9 @@ import it.smartcommunitylab.aac.oauth.model.ResponseType;
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OAuth2ClientAdditionalConfig {
+public class OAuth2ClientAdditionalConfig implements Serializable {
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
+
     private static ObjectMapper mapper = new ObjectMapper();
 
     @JsonProperty("response_types")
@@ -45,6 +48,10 @@ public class OAuth2ClientAdditionalConfig {
     private JWEAlgorithm idTokenEncAlgorithm;
     @JsonProperty("id_token_encrypted_response_enc")
     private EncryptionMethod idTokenEncMethod;
+
+    // refresh token config
+    @JsonProperty("refresh_token_rotation")
+    private Boolean refreshTokenRotation;
 
     // userinfo jwt config
     @JsonProperty("userinfo_signed_response_alg")
@@ -232,6 +239,14 @@ public class OAuth2ClientAdditionalConfig {
 
     public void setRequestUris(Set<String> requestUris) {
         this.requestUris = requestUris;
+    }
+
+    public Boolean getRefreshTokenRotation() {
+        return refreshTokenRotation;
+    }
+
+    public void setRefreshTokenRotation(Boolean refreshTokenRotation) {
+        this.refreshTokenRotation = refreshTokenRotation;
     }
 
 }

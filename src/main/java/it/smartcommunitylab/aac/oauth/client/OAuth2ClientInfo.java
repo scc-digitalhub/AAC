@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.oauth.client;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.smartcommunitylab.aac.SystemKeys;
+
 /*
  * Additional information holder with mapping 
  * 
@@ -17,7 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OAuth2ClientInfo {
+public class OAuth2ClientInfo implements Serializable {
+    private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
 
@@ -32,7 +36,7 @@ public class OAuth2ClientInfo {
 //    }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, String> read(String additionalInformation) {
+    public static Map<String, Serializable> read(String additionalInformation) {
         try {
             return mapper.readValue(additionalInformation, Map.class);
         } catch (JsonProcessingException e) {
@@ -40,7 +44,7 @@ public class OAuth2ClientInfo {
         }
     }
 
-    public static OAuth2ClientInfo convert(Map<String, String> map) {
+    public static OAuth2ClientInfo convert(Map<String, Serializable> map) {
         return mapper.convertValue(map, OAuth2ClientInfo.class);
     }
 
@@ -54,7 +58,7 @@ public class OAuth2ClientInfo {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, String> toMap() throws IllegalArgumentException {
+    public Map<String, Serializable> toMap() throws IllegalArgumentException {
         try {
             mapper.setSerializationInclusion(Include.NON_EMPTY);
             return mapper.convertValue(this, HashMap.class);

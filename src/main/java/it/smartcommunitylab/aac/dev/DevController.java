@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.dev;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
@@ -39,6 +41,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.context.WebContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.AuditManager;
@@ -70,10 +74,9 @@ import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.scope.Resource;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.ServicesManager;
-import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
-@ApiIgnore
+@Hidden
 public class DevController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -129,7 +132,8 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Map<String, Object>> getRealmOAuth2Metadata(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
         // hack
         // TODO render proper per realm meta
         Map<String, Object> metadata = oauth2MetadataEndpoint.getAuthServerMetadata();
@@ -141,7 +145,7 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Map<String, String>> getRealmBaseUrl(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             HttpServletRequest request) throws NoSuchRealmException {
         // hack
 
@@ -165,7 +169,8 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<RealmStatsBean> getRealmStats(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) throws NoSuchRealmException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm)
+            throws NoSuchRealmException {
         RealmStatsBean bean = new RealmStatsBean();
 
         Realm realmObj = realmManager.getRealm(realm);
@@ -227,9 +232,9 @@ public class DevController {
     @PostMapping("/console/dev/realms/{realm}/custom")
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public void previewRealm(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = true) @Valid @NotBlank String template,
-            @RequestBody @Valid CustomizationBean cb,
+            @RequestBody @Valid @NotNull CustomizationBean cb,
             HttpServletRequest req, HttpServletResponse res)
             throws NoSuchRealmException, SystemException, IOException {
 
@@ -239,7 +244,7 @@ public class DevController {
         // write as file
         res.setContentType("text/html");
         ServletOutputStream out = res.getOutputStream();
-        out.print(s);
+        out.write(s.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
 
@@ -252,7 +257,7 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Collection<Scope>> listScopes(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
         return ResponseEntity.ok(scopeManager.listScopes());
     }
 
@@ -260,8 +265,9 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Scope> getScope(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope) throws NoSuchScopeException {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SCOPE_PATTERN) String scope)
+            throws NoSuchScopeException {
         return ResponseEntity.ok(scopeManager.getScope(scope));
     }
 
@@ -269,7 +275,7 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Collection<Resource>> listResources(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
         return ResponseEntity.ok(scopeManager.listResources());
     }
 
@@ -277,8 +283,8 @@ public class DevController {
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN
             + "') or hasAuthority(#realm+':ROLE_ADMIN') or hasAuthority(#realm+':ROLE_DEVELOPER')")
     public ResponseEntity<Resource> getResource(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId)
             throws NoSuchResourceException {
         return ResponseEntity.ok(scopeManager.getResource(resourceId));
     }
@@ -291,7 +297,7 @@ public class DevController {
 
     @GetMapping("/console/dev/subjects/{subjectId}")
     public ResponseEntity<Subject> getSubject(
-            @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
             throws NoSuchSubjectException {
         return ResponseEntity.ok(subjectService.getSubject(subjectId));
     }
@@ -319,7 +325,7 @@ public class DevController {
     }
 
     @PostMapping("/console/dev/rolespaces/users")
-    public ResponseEntity<SpaceRoles> addRoleSpaceRoles(@RequestBody SpaceRoles roles)
+    public ResponseEntity<SpaceRoles> addRoleSpaceRoles(@RequestBody @Valid @NotNull SpaceRoles roles)
             throws NoSuchRealmException, NoSuchSubjectException {
         if (invalidOwner(roles.getContext(), roles.getSpace())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

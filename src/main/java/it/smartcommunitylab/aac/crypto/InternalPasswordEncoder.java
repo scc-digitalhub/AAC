@@ -24,6 +24,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 public class InternalPasswordEncoder implements PasswordEncoder {
 
+    private final PasswordHash hasher;
+
+    public InternalPasswordEncoder() {
+        this.hasher = new PasswordHash();
+    }
+
     @Override
     public String encode(CharSequence rawPassword) {
         return rawPassword.toString();
@@ -32,7 +38,7 @@ public class InternalPasswordEncoder implements PasswordEncoder {
     @Override
     public boolean matches(CharSequence rawPassword, String encodedPassword) {
         try {
-            return PasswordHash.validatePassword(rawPassword.toString(), encodedPassword);
+            return hasher.validatePassword(rawPassword.toString(), encodedPassword);
         } catch (Exception e) {
             return false;
         }

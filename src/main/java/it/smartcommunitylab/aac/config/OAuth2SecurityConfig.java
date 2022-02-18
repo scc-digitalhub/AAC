@@ -28,9 +28,11 @@ import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.auth.ClientBasicAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.ClientFormAuthTokenEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
+import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientRefreshAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientSecretAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 
 /*
  * Security context for oauth2 endpoints
@@ -50,6 +52,9 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private PeekableAuthorizationCodeServices authCodeServices;
+
+    @Autowired
+    private ExtTokenStore tokenStore;
 
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
@@ -73,7 +78,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
                 .addFilterBefore(
-                        getOAuth2ProviderFilters(clientService, clientDetailsService, authCodeServices),
+                        getOAuth2ProviderFilters(clientService, clientDetailsService, authCodeServices, tokenStore),
                         BasicAuthenticationFilter.class);
 
         // we don't want a session for these endpoints, each request should be evaluated
@@ -84,7 +89,8 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
     private Filter getOAuth2ProviderFilters(
             ClientDetailsService clientService,
             OAuth2ClientDetailsService clientDetailsService,
-            PeekableAuthorizationCodeServices authCodeServices) {
+            PeekableAuthorizationCodeServices authCodeServices,
+            ExtTokenStore tokenStore) {
 
         // build auth providers for oauth2 clients
         OAuth2ClientPKCEAuthenticationProvider pkceAuthProvider = new OAuth2ClientPKCEAuthenticationProvider(
@@ -93,12 +99,15 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         OAuth2ClientSecretAuthenticationProvider secretAuthProvider = new OAuth2ClientSecretAuthenticationProvider(
                 clientDetailsService);
         secretAuthProvider.setClientService(clientService);
+        OAuth2ClientRefreshAuthenticationProvider refreshAuthProvider = new OAuth2ClientRefreshAuthenticationProvider(
+                clientDetailsService, tokenStore);
+        refreshAuthProvider.setClientService(clientService);
 
         ClientAuthenticationManager authManager = new ClientAuthenticationManager(secretAuthProvider);
         authManager.setClientService(clientService);
 
         ClientAuthenticationManager pkceAuthManager = new ClientAuthenticationManager(secretAuthProvider,
-                pkceAuthProvider);
+                pkceAuthProvider, refreshAuthProvider);
         pkceAuthManager.setClientService(clientService);
 
         // build auth filters for TokenEndpoint

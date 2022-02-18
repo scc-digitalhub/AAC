@@ -20,11 +20,6 @@ public class UserEntity {
 
     public static final String ID_PREFIX = "u_";
 
-    // TODO remove numeric id, we should have UUID to avoid locking on create
-//    @Id
-//    @GeneratedValue
-//    private Long id;
-
     @Id
     @NotNull
     @Column(unique = true)
@@ -37,6 +32,9 @@ public class UserEntity {
 
     @Column(name = "email_address")
     private String emailAddress;
+
+    @Column(name = "email_verified")
+    private Boolean emailVerified;
 
     /*
      * user status
@@ -111,6 +109,18 @@ public class UserEntity {
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified != null ? emailVerified.booleanValue() : false;
     }
 
     public String getRealm() {

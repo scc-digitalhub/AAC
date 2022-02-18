@@ -1,3 +1,0 @@
-# Supported standards
-
-Reference documentation

@@ -48,4 +48,5 @@ public class BooleanAttribute extends AbstractAttribute {
 
         return Boolean.valueOf(stringValue);
     }
+
 }

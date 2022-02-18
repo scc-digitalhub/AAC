@@ -15,8 +15,6 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -289,6 +287,8 @@ public class UserService {
         User u = new User(subjectId, ue.getRealm());
         u.setUsername(ue.getUsername());
         u.setEmail(ue.getEmailAddress());
+        boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
+        u.setEmailVerified(emailVerified);
 
         // status
         boolean locked = ue.getLocked() != null ? ue.getLocked().booleanValue() : false;

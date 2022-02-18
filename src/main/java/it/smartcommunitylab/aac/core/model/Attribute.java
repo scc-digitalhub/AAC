@@ -8,7 +8,6 @@ import it.smartcommunitylab.aac.model.AttributeType;
  * An attribute is a typed property describing a value for a given resource.
  * 
  * While unusual, attributes may assume multiple values. 
- * In this case we expect multiple attributes with the same key define for the same entity
  */
 
 public interface Attribute {
@@ -19,7 +18,11 @@ public interface Attribute {
 
     public Serializable getValue();
 
+    public String exportValue();
+
     public String getName();
 
     public String getDescription();
+
+    public Boolean getIsMultiple();
 }

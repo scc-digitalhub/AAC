@@ -437,7 +437,7 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
 //        }
 //        c.jwksUri = oauth.getJwksUri();
 
-        Map<String, String> additionalInfo = oauth.getAdditionalInformation();
+        Map<String, Serializable> additionalInfo = oauth.getAdditionalInformation();
         if (additionalInfo != null) {
             c.configMap.setAdditionalInformation(OAuth2ClientInfo.convert(additionalInfo));
 //            c.additionalInformation = OAuth2ClientInfo.convert(map);

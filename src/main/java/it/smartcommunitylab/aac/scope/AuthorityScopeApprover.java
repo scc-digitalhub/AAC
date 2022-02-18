@@ -78,26 +78,13 @@ public class AuthorityScopeApprover implements ScopeApprover {
                 // we look for at least one
                 approved = grantedAuthorities.stream().anyMatch(a -> userAuthorities.contains(a));
             }
-            
+
         } else {
             // fetch authorities from user, in relation to realm
             // if we have a realm set, read only global or realm matching
             // if we have no realm, evaluate those matching client realm
             String rlm = realm != null ? realm : client.getRealm();
-            Set<String> userAuthorities = user.getAuthorities().stream()
-                    .map(a -> {
-                        if (a instanceof SimpleGrantedAuthority) {
-                            return a.getAuthority();
-                        } else if (a instanceof RealmGrantedAuthority) {
-                            if (((RealmGrantedAuthority) a).getRealm().equals(rlm)) {
-                                return ((RealmGrantedAuthority) a).getRole();
-                            }
-                        }
-
-                        return null;
-                    })
-                    .filter(a -> StringUtils.hasText(a))
-                    .collect(Collectors.toSet());
+            Set<String> userAuthorities = exportRealmAuthorities(rlm, user.getAuthorities());
 
             if (requireAll) {
                 // user needs to possess all the defined authorities
@@ -119,16 +106,30 @@ public class AuthorityScopeApprover implements ScopeApprover {
             return null;
         }
 
-        Set<String> clientAuthorities = client.getAuthorities().stream().map(a -> a.getAuthority())
-                .collect(Collectors.toSet());
-
         boolean approved = false;
-        if (requireAll) {
-            // client needs to possess all the defined authorities
-            approved = authorities.stream().allMatch(a -> clientAuthorities.contains(a));
+
+        if (grantedAuthorities != null) {
+            // evaluate authorities
+            Set<GrantedAuthority> clientAuthorities = client.getAuthorities();
+            if (requireAll) {
+                // client needs to possess all the defined authorities
+                approved = grantedAuthorities.stream().allMatch(a -> clientAuthorities.contains(a));
+            } else {
+                // we look for at least one
+                approved = grantedAuthorities.stream().anyMatch(a -> clientAuthorities.contains(a));
+            }
+
         } else {
-            // we look for at least one
-            approved = authorities.stream().anyMatch(a -> clientAuthorities.contains(a));
+            String rlm = realm != null ? realm : client.getRealm();
+            Set<String> clientAuthorities = exportRealmAuthorities(rlm, client.getAuthorities());
+
+            if (requireAll) {
+                // client needs to possess all the defined authorities
+                approved = authorities.stream().allMatch(a -> clientAuthorities.contains(a));
+            } else {
+                // we look for at least one
+                approved = authorities.stream().anyMatch(a -> clientAuthorities.contains(a));
+            }
         }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;
@@ -138,5 +139,22 @@ public class AuthorityScopeApprover implements ScopeApprover {
     @Override
     public String getRealm() {
         return realm;
+    }
+
+    private Set<String> exportRealmAuthorities(String realm, Collection<GrantedAuthority> authorities) {
+        return authorities.stream()
+                .map(a -> {
+                    if (a instanceof SimpleGrantedAuthority) {
+                        return a.getAuthority();
+                    } else if (a instanceof RealmGrantedAuthority) {
+                        if (((RealmGrantedAuthority) a).getRealm().equals(realm)) {
+                            return ((RealmGrantedAuthority) a).getRole();
+                        }
+                    }
+
+                    return null;
+                })
+                .filter(a -> StringUtils.hasText(a))
+                .collect(Collectors.toSet());
     }
 };

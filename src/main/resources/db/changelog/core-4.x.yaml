@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: align-providers-tables
+      author: matteos
+      preConditions:
+        - onFail: MARK_RAN
+          tableExists:
+            tableName: providers
+      changes:
+        - renameTable:
+            oldTableName: providers
+            newTableName: identity_providers
+            

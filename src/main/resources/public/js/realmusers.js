@@ -94,6 +94,18 @@ angular.module('aac.controllers.realmusers', [])
             });
         }
 
+        service.verifyUser = function (slug, subject) {
+            return $http.put('console/dev/realms/' + slug + '/users/' + subject + '/verify').then(function (data) {
+                return data.data;
+            });
+        }
+
+        service.unverifyUser = function (slug, subject) {
+            return $http.delete('console/dev/realms/' + slug + '/users/' + subject + '/unverify').then(function (data) {
+                return data.data;
+            });
+        }        
+
         service.inviteUser = function (slug, invitation, roles) {
             var data = { roles: roles, username: invitation.external ? null : invitation.username, subjectId: invitation.external ? invitation.subjectId : null };
             return $http.post('console/dev/realms/' + slug + '/users/invite', data).then(function (data) {
@@ -185,6 +197,11 @@ angular.module('aac.controllers.realmusers', [])
                                 .filter(function (a) { return slug == a.realm })
                                 .map(function (a) { return a.role });
                         }
+                        if ('authorities' in u) {
+                            u._authorities = u.authorities
+                                .filter(function (a) { return slug == a.realm })
+                                .map(function (a) { return a.role });
+                        }
                     });
                 })
                 .catch(function (err) {
@@ -217,7 +234,7 @@ angular.module('aac.controllers.realmusers', [])
 
         $scope.deleteUser = function () {
             $('#deleteConfirm').modal('hide');
-            RealmUsers.removeUser($scope.realm.slug, $scope.modUser).then(function () {
+            RealmUsers.removeUser($scope.realm.slug, $scope.modUser.subjectId).then(function () {
                 $scope.load();
                 Utils.showSuccess();
             }).catch(function (err) {
@@ -288,6 +305,24 @@ angular.module('aac.controllers.realmusers', [])
                     Utils.showError(err.data.message);
                 });
         }
+        $scope.verifyUser = function (user) {
+            RealmUsers.verifyUser(slug, user.subjectId)
+                .then(function (data) {
+                    user.emailVerified = data.emailVerified;
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
+        $scope.unverifyUser = function (user) {
+            RealmUsers.unverifyUser(slug, user.subjectId)
+                .then(function (data) {
+                    user.emailVerified = data.emailVerified;
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }        
 
         $scope.inspectDlg = function (obj) {
             $scope.modObj = obj;
@@ -575,7 +610,7 @@ angular.module('aac.controllers.realmusers', [])
                 })
                 .then(function (data) {
                     $scope.myspaces = data.map(s =>
-                        ((s.context ? s.context + '/' : '') + s.space));
+                        ((s.context ? s.context + '/' : '') + (s.space || '')));
                 })
                 .then(function () {
                     $scope.load();
@@ -652,6 +687,29 @@ angular.module('aac.controllers.realmusers', [])
                 });
         }
 
+        $scope.verifyUserDlg = function () {
+            $scope.verifyUser = function () {
+                $('#verifyConfirm').modal('hide');
+                RealmUsers.verifyUser(slug, subjectId)
+                    .then(function (data) {
+                        $scope.reload(data);
+                        Utils.showSuccess();
+                    }).catch(function (err) {
+                        Utils.showError(err.data.message);
+                    });
+            }
+            $('#verifyConfirm').modal({ keyboard: false });
+        }
+
+        $scope.unverifyUser = function () {
+            RealmUsers.unverifyUser(slug, subjectId)
+                .then(function (data) {
+                    $scope.reload(data);
+                    Utils.showSuccess();
+                }).catch(function (err) {
+                    Utils.showError(err.data.message);
+                });
+        }
 
         $scope.inspectDlg = function (obj) {
             $scope.modObj = obj;
@@ -955,7 +1013,7 @@ angular.module('aac.controllers.realmusers', [])
             $scope.spaceRoles = roles.map(r => {
                 return {
                     ...r,
-                    namespace: ((r.context ? r.context + '/' : '') + r.space)
+                    namespace: ((r.context ? r.context + '/' : '') + (r.space || ''))
                 }
             });
 
@@ -976,7 +1034,10 @@ angular.module('aac.controllers.realmusers', [])
             $('#spaceRolesModal').modal('hide');
             if ($scope.modSpaceRole && $scope.modSpaceRole.role && $scope.modSpaceRole.space) {
                 var { space, role } = $scope.modSpaceRole;
-                var authority = space + ":" + role;
+                // workaround for root space
+                if (space == '-- ROOT --') space = '';
+
+                var authority = (space ? (space + ':') : '') + role.trim();
 
                 updateSpaceRoles([authority], null);
                 $scope.modSpaceRole = null;
@@ -1233,6 +1294,7 @@ angular.module('aac.controllers.realmusers', [])
             $scope.modAttributes = {
                 ...attributes,
                 attributes: attributes.attributes.map(at => {
+                    if (at.value && at.type === 'object') at.value = JSON.stringify(at.value); 
                     return {
                         ...at,
                         field: attributeField(at)
@@ -1250,6 +1312,7 @@ angular.module('aac.controllers.realmusers', [])
                 //build attribute dto
                 var attributes = {};
                 $scope.modAttributes.attributes.forEach(a => {
+                    if (a.type === 'object') a.value = a.value ? JSON.parse(a.value) : null; 
                     attributes[a.key] = a.value;
                 });
 

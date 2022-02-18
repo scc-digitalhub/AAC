@@ -52,6 +52,8 @@ public class SamlUserAccount implements UserAccount, Serializable {
 
     // attributes
     private String email;
+    @Column(name = "email_verified")
+    private Boolean emailVerified;
 
     private String name;
 
@@ -127,6 +129,18 @@ public class SamlUserAccount implements UserAccount, Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified != null ? emailVerified.booleanValue() : false;
     }
 
     public void setName(String name) {

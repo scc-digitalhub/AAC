@@ -1,13 +1,12 @@
 <div class="pt-3 mb-5">
 
     <fieldset>
-         <legend class="mb-4">OIDC RP Configuration</legend>
-         <div class="row">
+        <legend class="mb-4">OIDC RP Configuration</legend>
+        <div class="row">
             <div class="form-group col">
                 <div class="input-group">
                     <label for="oidcRedirectUrl" class="active">Redirect url</label>
-                    <input type="text" class="form-control" id="oidcRedirectUrl" ng-model="oidcRedirectUrl"
-                        readonly>
+                    <input type="text" class="form-control" id="oidcRedirectUrl" ng-model="oidcRedirectUrl" readonly>
                     </span>
                     <div class="input-group-append">
                         <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(oidcRedirectUrl)">
@@ -17,8 +16,8 @@
                         </button>
                     </div>
                 </div>
-            </div>        
-        </div>    
+            </div>
+        </div>
         <legend class="mb-4">OIDC IdP Configuration</legend>
         <div class="form-group col ">
             <label for="clientId">Client ID*</label>
@@ -61,11 +60,6 @@
                         </option>
                     </select>
                 </div>
-            </div>
-            <div class="form-group col ">
-                <label for="userNameAttributeName">Username attribute*</label>
-                <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
-                    id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
             </div>
 
             <div class="form-group col ">
@@ -145,5 +139,28 @@
         </div>
 
     </fieldset>
-
+    <fieldset>
+        <legend class="mb-4">Account Configuration</legend>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" name="trustEmailAddress" id="trustEmailAddress" type="checkbox"
+                        ng-model="idp.configuration.trustEmailAddress">
+                    <label for="trustEmailAddress">trustEmailAddress</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" name="alwaysTrustEmailAddress" id="alwaysTrustEmailAddress" type="checkbox"
+                        ng-model="idp.configuration.alwaysTrustEmailAddress">
+                    <label for="alwaysTrustEmailAddress">alwaysTrustEmailAddress</label>
+                </div>
+            </div>            
+            <div class="form-group col ">
+                <label for="userNameAttributeName">Username attribute*</label>
+                <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
+                    id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
+            </div>
+        </div>
+    </fieldset>
 </div>

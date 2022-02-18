@@ -238,9 +238,17 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         String familyName = attributes.get(OpenIdAttributesSet.FAMILY_NAME);
         String givenName = attributes.get(OpenIdAttributesSet.GIVEN_NAME);
         String email = attributes.get(OpenIdAttributesSet.EMAIL);
+
+        boolean defaultVerifiedStatus = providerConfig.getConfigMap().getTrustEmailAddress() != null
+                ? providerConfig.getConfigMap().getTrustEmailAddress()
+                : false;
         boolean emailVerified = StringUtils.hasText(attributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
                 ? Boolean.parseBoolean(attributes.get(OpenIdAttributesSet.EMAIL_VERIFIED))
-                : false;
+                : defaultVerifiedStatus;
+
+        if (Boolean.TRUE.equals(providerConfig.getConfigMap().getAlwaysTrustEmailAddress())) {
+            emailVerified = true;
+        }
 
         String lang = attributes.get(OpenIdAttributesSet.LOCALE);
         // TODO evaluate how to handle external pictureURI

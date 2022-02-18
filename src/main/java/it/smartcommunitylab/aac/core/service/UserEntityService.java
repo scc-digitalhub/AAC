@@ -58,7 +58,7 @@ public class UserEntityService {
         Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_USER, username);
 
         // create user
-        u = new UserEntity(uuid, realm);
+        u = new UserEntity(s.getSubjectId(), realm);
         u.setUsername(username);
         u.setEmailAddress(emailAddress);
         // ensure user is active
@@ -275,6 +275,33 @@ public class UserEntityService {
         u = userRepository.save(u);
         return u;
 
+    }
+
+    public UserEntity verifyEmail(String uuid, String emailAddress) throws NoSuchUserException {
+
+        if (!StringUtils.hasText(emailAddress)) {
+            throw new IllegalArgumentException("null or empty email");
+        }
+
+        UserEntity u = getUser(uuid);
+        if (u.getEmailAddress() == null) {
+            u.setEmailAddress(emailAddress);
+        }
+
+        if (!emailAddress.equals(u.getEmailAddress())) {
+            throw new IllegalArgumentException("email address mismatch");
+        }
+
+        u.setEmailVerified(true);
+        u = userRepository.save(u);
+        return u;
+    }
+
+    public UserEntity unverifyEmail(String uuid) throws NoSuchUserException {
+        UserEntity u = getUser(uuid);
+        u.setEmailVerified(false);
+        u = userRepository.save(u);
+        return u;
     }
 
     public UserEntity deleteUser(String uuid) {

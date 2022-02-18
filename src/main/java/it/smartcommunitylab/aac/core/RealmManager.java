@@ -10,9 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
@@ -119,8 +116,7 @@ public class RealmManager {
 
     @Transactional(readOnly = false)
     public Realm updateRealm(String slug, Realm r) throws NoSuchRealmException {
-        logger.debug("update realm " + String.valueOf(slug));
-
+        logger.debug("update realm " + StringUtils.trimAllWhitespace(slug));
         r.setSlug(slug);
 
         String name = r.getName();
@@ -178,14 +174,14 @@ public class RealmManager {
 
     @Transactional(readOnly = true)
     public Realm findRealm(String slug) {
-        logger.debug("find realm " + String.valueOf(slug));
+        logger.debug("find realm " + StringUtils.trimAllWhitespace(slug));
 
         return realmService.findRealm(slug);
     }
 
     @Transactional(readOnly = true)
     public Realm getRealm(String slug) throws NoSuchRealmException {
-        logger.debug("get realm " + String.valueOf(slug));
+        logger.debug("get realm " + StringUtils.trimAllWhitespace(slug));
 
         return realmService.getRealm(slug);
     }
@@ -206,21 +202,23 @@ public class RealmManager {
 
     @Transactional(readOnly = true)
     public Collection<Realm> searchRealms(String keywords) {
-        logger.debug("search realms with query " + String.valueOf(keywords));
+        String query = StringUtils.trimAllWhitespace(keywords);
+        logger.debug("search realms with query " + String.valueOf(query));
 
-        return realmService.searchRealms(keywords);
+        return realmService.searchRealms(query);
     }
 
     @Transactional(readOnly = true)
     public Page<Realm> searchRealms(String keywords, Pageable pageRequest) {
-        logger.debug("search realms with query " + String.valueOf(keywords));
+        String query = StringUtils.trimAllWhitespace(keywords);
+        logger.debug("search realms with query " + String.valueOf(query));
 
-        return realmService.searchRealms(keywords, pageRequest);
+        return realmService.searchRealms(query, pageRequest);
     }
 
     @Transactional(readOnly = false)
     public void deleteRealm(String slug, boolean cleanup) throws NoSuchRealmException {
-        logger.debug("delete realm " + String.valueOf(slug));
+        logger.debug("delete realm " + StringUtils.trimAllWhitespace(slug));
         Realm realm = realmService.getRealm(slug);
 
         if (realm != null && cleanup) {

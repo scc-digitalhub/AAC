@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.oauth.flow;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -72,12 +73,12 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
             }
 
             // call extension and check if we get a valid response
-            Boolean approved = ext.onAfterUserApproval(scopes, user, clientDetails);
-            if (approved == null) {
+            Optional<Boolean> approved = ext.onAfterUserApproval(scopes, user, clientDetails);
+            if (approved.isEmpty()) {
                 return authorizationRequest.isApproved();
             }
 
-            return approved.booleanValue();
+            return approved.get().booleanValue();
 
         } catch (ClientRegistrationException e) {
             // block the request

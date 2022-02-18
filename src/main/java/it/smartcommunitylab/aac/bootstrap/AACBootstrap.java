@@ -409,7 +409,7 @@ public class AACBootstrap {
         }
 
         // Internal users
-
+        PasswordHash hasher = new PasswordHash();
         for (InternalUserAccount ua : config.getUsers().getInternal()) {
             try {
                 if (!StringUtils.hasText(ua.getRealm()) || !StringUtils.hasText(ua.getProvider())) {
@@ -462,7 +462,7 @@ public class AACBootstrap {
                 }
 
                 // re-set password
-                String hash = PasswordHash.createHash(ua.getPassword());
+                String hash = hasher.createHash(ua.getPassword());
                 account.setPassword(hash);
                 account.setChangeOnFirstAccess(false);
 

@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.roles;
 
 import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,22 +28,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.model.SpaceRole;
 
 @RestController
-@Api(tags = { "AAC Roles" })
+@Tag(name= "AAC Roles" )
 public class SpaceRoleController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private SpaceRoleManager roleManager;
 
-    @ApiOperation(value = "Get roles of the current user")
+    @Operation(summary = "Get roles of the current user")
     @PreAuthorize("hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/userroles/me")
     public Collection<SpaceRole> getUserRoles(BearerTokenAuthentication auth)
@@ -63,7 +64,7 @@ public class SpaceRoleController {
         return roleManager.getRoles(subject);
     }
 
-    @ApiOperation(value = "Get roles of the current client")
+    @Operation(summary = "Get roles of the current client")
     @PreAuthorize("hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENT_ROLE + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/clientroles/me")
     public Collection<SpaceRole> getClientRoles(BearerTokenAuthentication auth)
@@ -84,7 +85,7 @@ public class SpaceRoleController {
         return roleManager.getRoles(subject);
     }
 
-    @ApiOperation(value = "Get roles of the subject")
+    @Operation(summary = "Get roles of the subject")
     @PreAuthorize("(hasAuthority('" + Config.R_USER + "') and hasAuthority('SCOPE_" + Config.SCOPE_USER_ROLE
             + "')) or (hasAuthority('" + Config.R_CLIENT + "') and hasAuthority('SCOPE_" + Config.SCOPE_CLIENT_ROLE
             + "'))")

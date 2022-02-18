@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.MapperAttributeAuthority;
 import it.smartcommunitylab.aac.attributes.ScriptAttributeAuthority;
@@ -31,7 +37,7 @@ import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 
 @Service
-public class AuthorityManager {
+public class AuthorityManager implements InitializingBean {
 
     public static final String TYPE_IDENTITY = SystemKeys.RESOURCE_IDENTITY;
     public static final String TYPE_ATTRIBUTES = SystemKeys.RESOURCE_ATTRIBUTES;
@@ -40,91 +46,63 @@ public class AuthorityManager {
     private SessionManager sessionManager;
 
     /*
-     * Identity
+     * Services
      */
     @Autowired
     private IdentityProviderService identityProviderService;
 
     @Autowired
-    private InternalIdentityAuthority internalIdentityAuthority;
+    private AttributeProviderService attributeProviderService;
 
-    @Autowired
-    private OIDCIdentityAuthority oidcIdentityAuthority;
+    private final Map<String, IdentityAuthority> identityAuthorities;
+    private final Map<String, AttributeAuthority> attributeAuthorities;
 
-    @Autowired
-    private SamlIdentityAuthority samlIdentityAuthority;
+    /*
+     * Constructor
+     */
+    public AuthorityManager(Collection<IdentityAuthority> identityAuthorities,
+            Collection<AttributeAuthority> attributeAuthorities) {
 
-    @Autowired
-    private SpidIdentityAuthority spidIdentityAuthority;
+        Map<String, IdentityAuthority> ias = identityAuthorities.stream()
+                .collect(Collectors.toMap(e -> e.getAuthorityId(), e -> e));
+        Map<String, AttributeAuthority> aas = attributeAuthorities.stream()
+                .collect(Collectors.toMap(e -> e.getAuthorityId(), e -> e));
+
+        this.identityAuthorities = Collections.unmodifiableMap(ias);
+        this.attributeAuthorities = Collections.unmodifiableMap(aas);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notEmpty(identityAuthorities, "at least one identity authority is required");
+    }
 
     /*
      * Identity providers
      */
 
     public IdentityAuthority getIdentityAuthority(String authority) {
-        if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-            return internalIdentityAuthority;
-        } else if (SystemKeys.AUTHORITY_OIDC.equals(authority)) {
-            return oidcIdentityAuthority;
-        } else if (SystemKeys.AUTHORITY_SAML.equals(authority)) {
-            return samlIdentityAuthority;
-        } else if (SystemKeys.AUTHORITY_SPID.equals(authority)) {
-            return spidIdentityAuthority;
-        }
-        return null;
+        return identityAuthorities.get(authority);
     }
 
-    public List<IdentityAuthority> listIdentityAuthorities() {
-        List<IdentityAuthority> result = new ArrayList<>();
-        result.add(internalIdentityAuthority);
-        result.add(oidcIdentityAuthority);
-        result.add(samlIdentityAuthority);
-        result.add(spidIdentityAuthority);
-        return result;
+    public Collection<IdentityAuthority> listIdentityAuthorities() {
+        return identityAuthorities.values();
     }
 
     /*
      * Attribute
      */
-    @Autowired
-    private AttributeProviderService attributeProviderService;
-
-    @Autowired
-    private InternalAttributeAuthority internalAttributeAuthority;
-
-    @Autowired
-    private MapperAttributeAuthority mapperAttributeAuthority;
-
-    @Autowired
-    private ScriptAttributeAuthority scriptAttributeAuthority;
-
-    @Autowired
-    private WebhookAttributeAuthority webhookAttributeAuthority;
 
     /*
      * Attribute providers
      */
 
     public AttributeAuthority getAttributeAuthority(String authority) {
-        if (SystemKeys.AUTHORITY_INTERNAL.equals(authority)) {
-            return internalAttributeAuthority;
-        } else if (SystemKeys.AUTHORITY_MAPPER.equals(authority)) {
-            return mapperAttributeAuthority;
-        } else if (SystemKeys.AUTHORITY_SCRIPT.equals(authority)) {
-            return scriptAttributeAuthority;
-        } else if (SystemKeys.AUTHORITY_WEBHOOK.equals(authority)) {
-            return webhookAttributeAuthority;
-        }
-        return null;
+        return attributeAuthorities.get(authority);
     }
 
-    public List<AttributeAuthority> listAttributeAuthorities() {
-        List<AttributeAuthority> result = new ArrayList<>();
-        result.add(internalAttributeAuthority);
-        result.add(mapperAttributeAuthority);
-        result.add(scriptAttributeAuthority);
-        result.add(webhookAttributeAuthority);
-        return result;
+    public Collection<AttributeAuthority> listAttributeAuthorities() {
+        return attributeAuthorities.values();
     }
 
     /*

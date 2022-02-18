@@ -139,7 +139,11 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
+        Long count = jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
+        if (count == null) {
+            return 0;
+        }
+        return count.longValue();
     }
 
     @Override
@@ -231,7 +235,11 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
+        Long count = jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
+        if (count == null) {
+            return 0;
+        }
+        return count.longValue();
     }
 
     public void setCreateAuditTableSql(String createAuditTableSql) {

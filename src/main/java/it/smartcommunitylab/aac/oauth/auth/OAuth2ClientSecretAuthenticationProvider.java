@@ -56,46 +56,50 @@ public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticati
             throw new BadCredentialsException("missing required parameters in request");
         }
 
-        // load details, we need to check request
-        OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
-
-        // check if client can authenticate with this scheme
-        if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
-            this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
-            throw new BadCredentialsException("invalid authentication");
-        }
-
-        /*
-         * We authenticate by comparing clientSecret via plainText encoder
-         */
-
-        if (!this.passwordEncoder.matches(clientSecret, client.getClientSecret())) {
-            this.logger.debug("Failed to authenticate since secret does not match stored value");
-            throw new BadCredentialsException("invalid authentication");
-        }
-
-        // load authorities from clientService
-        Collection<GrantedAuthority> authorities;
         try {
-            ClientDetails clientDetails = clientService.loadClient(clientId);
-            authorities = clientDetails.getAuthorities();
-        } catch (NoSuchClientException e) {
-            throw new ClientRegistrationException("invalid client");
+            // load details, we need to check request
+            OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
+
+            // check if client can authenticate with this scheme
+            if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
+                this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
+                throw new BadCredentialsException("invalid authentication");
+            }
+
+            /*
+             * We authenticate by comparing clientSecret via plainText encoder
+             */
+
+            if (!this.passwordEncoder.matches(clientSecret, client.getClientSecret())) {
+                this.logger.debug("Failed to authenticate since secret does not match stored value");
+                throw new BadCredentialsException("invalid authentication");
+            }
+
+            // load authorities from clientService
+            Collection<GrantedAuthority> authorities;
+            try {
+                ClientDetails clientDetails = clientService.loadClient(clientId);
+                authorities = clientDetails.getAuthorities();
+            } catch (NoSuchClientException e) {
+                throw new ClientRegistrationException("invalid client");
+            }
+
+            // result contains credentials, someone later on will need to call
+            // eraseCredentials
+            OAuth2ClientSecretAuthenticationToken result = new OAuth2ClientSecretAuthenticationToken(
+                    clientId, clientSecret,
+                    authenticationMethod,
+                    authorities);
+
+            // save details
+            // TODO add ClientDetails in addition to oauth2ClientDetails
+            result.setOAuth2ClientDetails(client);
+            result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
+
+            return result;
+        } catch (ClientRegistrationException e) {
+            throw new BadCredentialsException("invalid authentication");
         }
-
-        // result contains credentials, someone later on will need to call
-        // eraseCredentials
-        OAuth2ClientSecretAuthenticationToken result = new OAuth2ClientSecretAuthenticationToken(
-                clientId, clientSecret,
-                authenticationMethod,
-                authorities);
-
-        // save details
-        // TODO add ClientDetails in addition to oauth2ClientDetails
-        result.setOAuth2ClientDetails(client);
-        result.setWebAuthenticationDetails(authRequest.getWebAuthenticationDetails());
-
-        return result;
     }
 
     @Override

@@ -2,55 +2,62 @@ angular.module('aac.controllers.realmproviders', [])
     /**
       * Realm Data Services
       */
-    .service('RealmProviders', function ($http) {
-        var rService = {};
-        rService.getIdentityProvider = function (slug, providerId) {
-            return $http.get('console/dev/realms/' + slug + '/idps/' + providerId).then(function (data) {
+    .service('RealmProviders', function ($http, $window) {
+        var service = {};
+        // idps
+        service.getIdentityProvider = function (slug, providerId) {
+            return $http.get('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.getIdentityProviders = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/idps').then(function (data) {
+        service.getIdentityProviders = function (slug) {
+            return $http.get('console/dev/idp/' + slug).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.getIdentityProviderTemplates = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/providertemplates').then(function (data) {
+        service.getIdentityProviderTemplates = function (slug) {
+            return $http.get('console/dev/idptemplates/' + slug).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.removeIdentityProvider = function (slug, providerId) {
-            return $http.delete('console/dev/realms/' + slug + '/idps/' + providerId).then(function (data) {
+        service.removeIdentityProvider = function (slug, providerId) {
+            return $http.delete('console/dev/idp/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.saveIdentityProvider = function (slug, provider) {
+        service.saveIdentityProvider = function (slug, provider) {
             if (provider.provider) {
-                return $http.put('console/dev/realms/' + slug + '/idps/' + provider.provider, provider).then(function (data) {
+                return $http.put('console/dev/idp/' + slug + '/' + provider.provider, provider).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.post('console/dev/realms/' + slug + '/idps', provider).then(function (data) {
+                return $http.post('console/dev/idp/' + slug, provider).then(function (data) {
                     return data.data;
                 });
             }
         }
 
-        rService.changeIdentityProviderState = function (slug, providerId, provider) {
-            return $http.put('console/dev/realms/' + slug + '/idps/' + providerId + '/state', provider).then(function (data) {
-                return data.data;
-            });
+        service.changeIdentityProviderState = function (slug, providerId, provider) {
+            if (provider.enabled) {
+                return $http.put('console/dev/idp/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                    return data.data;
+                });
+            } else {
+                return $http.delete('console/dev/idp/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                    return data.data;
+                });
+            }
         }
 
-        rService.importIdentityProvider = function (slug, file) {
+        service.importIdentityProvider = function (slug, file) {
             var fd = new FormData();
             fd.append('file', file);
             return $http({
-                url: 'console/dev/realms/' + slug + '/idps',
+                url: 'console/dev/idp/' + slug,
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -59,53 +66,64 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
-        rService.changeIdentityProviderClientApp = function (slug, providerId, client) {
-            return $http.put('console/dev/realms/' + slug + '/idps/' + providerId + '/apps/' + client.clientId, client).then(function (data) {
+        service.exportIdentityProvider = function (slug, providerId) {
+            $window.open('console/dev/idp/' + slug + '/' + providerId + '/export');
+        }
+
+        service.changeIdentityProviderClientApp = function (slug, providerId, client) {
+            return $http.put('console/dev/idp/' + slug + '/' + providerId + '/apps/' + client.clientId, client).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.getAttributeProvider = function (slug, providerId) {
-            return $http.get('console/dev/realms/' + slug + '/aps/' + providerId).then(function (data) {
+        //aps
+        service.getAttributeProvider = function (slug, providerId) {
+            return $http.get('console/dev/ap/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.getAttributeProviders = function (slug) {
-            return $http.get('console/dev/realms/' + slug + '/aps').then(function (data) {
+        service.getAttributeProviders = function (slug) {
+            return $http.get('console/dev/ap/' + slug).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.removeAttributeProvider = function (slug, providerId) {
-            return $http.delete('console/dev/realms/' + slug + '/aps/' + providerId).then(function (data) {
+        service.removeAttributeProvider = function (slug, providerId) {
+            return $http.delete('console/dev/ap/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
             });
         }
 
-        rService.saveAttributeProvider = function (slug, provider) {
+        service.saveAttributeProvider = function (slug, provider) {
             if (provider.provider) {
-                return $http.put('console/dev/realms/' + slug + '/aps/' + provider.provider, provider).then(function (data) {
+                return $http.put('console/dev/ap/' + slug + '/' + provider.provider, provider).then(function (data) {
                     return data.data;
                 });
             } else {
-                return $http.post('console/dev/realms/' + slug + '/aps', provider).then(function (data) {
+                return $http.post('console/dev/ap/' + slug, provider).then(function (data) {
                     return data.data;
                 });
             }
         }
 
-        rService.changeAttributeProviderState = function (slug, providerId, provider) {
-            return $http.put('console/dev/realms/' + slug + '/aps/' + providerId + '/state', provider).then(function (data) {
-                return data.data;
-            });
+        service.changeAttributeProviderState = function (slug, providerId, provider) {
+            if (provider.enabled) {
+                return $http.put('console/dev/ap/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                    return data.data;
+                });
+            } else {
+                return $http.delete('console/dev/ap/' + slug + '/' + providerId + '/status', provider).then(function (data) {
+                    return data.data;
+                });
+            }
         }
 
-        rService.importAttributeProvider = function (slug, file) {
+        service.importAttributeProvider = function (slug, file) {
             var fd = new FormData();
             fd.append('file', file);
             return $http({
-                url: 'console/dev/realms/' + slug + '/aps',
+                url: 'console/dev/ap/' + slug,
                 headers: { "Content-Type": undefined }, //set undefined to let $http manage multipart declaration with proper boundaries
                 data: fd,
                 method: "PUT"
@@ -114,13 +132,17 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
-        rService.testAttributeProvider = function (slug, providerId) {
-            return $http.get('console/dev/realms/' + slug + '/aps/' + providerId + '/test').then(function (data) {
+        service.exportAttributeProvider = function (slug, providerId) {
+            $window.open('console/dev/ap/' + slug + '/' + providerId + '/export');
+        }
+
+        service.testAttributeProvider = function (slug, providerId) {
+            return $http.get('console/dev/ap/' + slug + '/' + providerId + '/test').then(function (data) {
                 return data.data;
             });
         }
 
-        return rService;
+        return service;
 
     })
     /**
@@ -255,7 +277,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.exportProvider = function (provider) {
-            window.open('console/dev/realms/' + provider.realm + '/idps/' + provider.provider + '/export');
+            RealmProviders.exportIdentityProvider(slug, provider.provider);
         };
 
         var toChips = function (str) {
@@ -664,7 +686,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.exportProvider = function (provider) {
-            window.open('console/dev/realms/' + provider.realm + '/idps/' + provider.provider + '/export');
+            RealmProviders.exportIdentityProvider(slug, provider.provider);
         };
 
         $scope.applyProviderTemplate = function () {
@@ -928,7 +950,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.exportProvider = function (provider) {
-            window.open('console/dev/realms/' + provider.realm + '/aps/' + provider.provider + '/export');
+            RealmProviders.exportAttributeProvider(slug, provider.provider);
         };
 
         var iconProvider = function (idp) {
@@ -1125,7 +1147,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.exportProvider = function (provider) {
-            window.open('console/dev/realms/' + provider.realm + '/aps/' + provider.provider + '/export');
+            RealmProviders.exportAttributeProvider(slug, provider.provider);
         };
 
         var iconProvider = function (idp) {

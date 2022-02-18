@@ -40,6 +40,8 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private AuthenticationMethod clientAuthenticationMethod;
     private String scope;
     private String userNameAttributeName = "sub";
+    private Boolean trustEmailAddress;
+    private Boolean alwaysTrustEmailAddress;
 
     // explicit config
     private String authorizationUri;
@@ -108,6 +110,22 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setUserNameAttributeName(String userNameAttributeName) {
         this.userNameAttributeName = userNameAttributeName;
+    }
+
+    public Boolean getTrustEmailAddress() {
+        return trustEmailAddress;
+    }
+
+    public void setTrustEmailAddress(Boolean trustEmailAddress) {
+        this.trustEmailAddress = trustEmailAddress;
+    }
+
+    public Boolean getAlwaysTrustEmailAddress() {
+        return alwaysTrustEmailAddress;
+    }
+
+    public void setAlwaysTrustEmailAddress(Boolean alwaysTrustEmailAddress) {
+        this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
     }
 
     public String getAuthorizationUri() {
@@ -206,6 +224,8 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.clientAuthenticationMethod = map.getClientAuthenticationMethod();
         this.scope = map.getScope();
         this.userNameAttributeName = map.getUserNameAttributeName();
+        this.trustEmailAddress = map.getTrustEmailAddress();
+        this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
 
         // explicit config
         this.authorizationUri = map.getAuthorizationUri();

@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
@@ -43,6 +45,14 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
 
         // we get roles from user, it should be up-to-date
         Set<SpaceRole> roles = user.getSpaceRoles();
+
+        // filter context if specified by client
+        if (StringUtils.hasText(client.getHookUniqueSpaces())) {
+            roles = roles.stream()
+                    .filter(r -> r.getContext() != null && r.getContext().startsWith(client.getHookUniqueSpaces()))
+                    .collect(Collectors.toSet());
+        }
+
         // export as space name
         Set<String> spaces = roles.stream().map(r -> r.getSpace()).collect(Collectors.toSet());
 

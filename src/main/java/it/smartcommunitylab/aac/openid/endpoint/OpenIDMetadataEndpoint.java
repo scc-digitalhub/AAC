@@ -38,8 +38,10 @@ import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.jwt.JWTEncryptionAndDecryptionService;
 import it.smartcommunitylab.aac.jwt.JWTSigningAndValidationService;
@@ -62,7 +64,7 @@ import it.smartcommunitylab.aac.profiles.scope.ProfileScopeProvider;
  *
  */
 @Controller
-@Api(tags = { "OpenID Connect Discovery" })
+@Tag(name = "OpenID Connect Discovery" )
 public class OpenIDMetadataEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -83,7 +85,7 @@ public class OpenIDMetadataEndpoint {
     @Autowired
     private JWTEncryptionAndDecryptionService encService;
 
-    @ApiOperation(value = "Get OpenID provider configuration information")
+    @Operation(summary = "Get OpenID provider configuration information")
     @RequestMapping(method = RequestMethod.GET, value = OPENID_CONFIGURATION_URL, produces = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody Map<String, Object> providerConfiguration() {
         return getConfiguration();

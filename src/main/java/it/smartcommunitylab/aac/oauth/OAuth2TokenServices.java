@@ -186,6 +186,12 @@ public class OAuth2TokenServices
             throw new InvalidGrantException("Wrong client for this refresh token: " + refreshTokenValue);
         }
 
+        // check request has offline_access scope
+        Set<String> scopes = authentication.getOAuth2Request().getScope();
+        if (!scopes.contains(Config.SCOPE_OFFLINE_ACCESS)) {
+            throw new InvalidRequestException("refresh requires offline_access scope");
+        }
+
         // fetch client
         OAuth2ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
 
@@ -235,6 +241,12 @@ public class OAuth2TokenServices
 
             }
 
+            // check if client has rotate to always configured
+            if (clientDetails.isRefreshTokenRotation()) {
+                // renew regardless of expiration
+                renewToken = true;
+            }
+
             // build a new oauthAuthentication matching tokenRequest
             OAuth2Authentication refreshedAuthentication = refreshAuthentication(authentication, tokenRequest);
 
@@ -254,6 +266,7 @@ public class OAuth2TokenServices
             accessToken.setRefreshToken(refreshToken);
 
             // if needed build a new refresh token and replace in response
+            // TODO keep old refresh token valid for a small window to account delays
             if (renewToken) {
                 // if we renew use the original authentication, not the refreshed
                 OAuth2RefreshToken refreshedToken = createRefreshToken(authentication, refreshValiditySeconds);
