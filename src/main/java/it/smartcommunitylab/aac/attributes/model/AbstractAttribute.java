@@ -24,6 +24,16 @@ public abstract class AbstractAttribute implements Attribute, Serializable {
         return key;
     }
 
+    @Override
+    public String exportValue() {
+        Serializable value = getValue();
+        if (value == null) {
+            return null;
+        }
+
+        return value.toString();
+    }
+
     public void setKey(String key) {
         this.key = key;
     }
@@ -46,12 +56,12 @@ public abstract class AbstractAttribute implements Attribute, Serializable {
         this.description = description;
     }
 
-	public Boolean getIsMultiple() {
-		return isMultiple;
-	}
+    public Boolean getIsMultiple() {
+        return isMultiple;
+    }
 
-	public void setIsMultiple(Boolean isMultiple) {
-		this.isMultiple = isMultiple;
-	}
-    
+    public void setIsMultiple(Boolean isMultiple) {
+        this.isMultiple = isMultiple;
+    }
+
 }

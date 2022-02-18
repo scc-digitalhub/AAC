@@ -42,6 +42,11 @@ public class TimeAttribute extends AbstractAttribute {
         return value;
     }
 
+    @Override
+    public String exportValue() {
+        return value == null ? null : getIsoDateTimeValue();
+    }
+
     public void setValue(LocalTime value) {
         this.value = value;
     }

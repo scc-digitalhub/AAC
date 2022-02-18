@@ -18,9 +18,11 @@ public interface Attribute {
 
     public Serializable getValue();
 
+    public String exportValue();
+
     public String getName();
 
     public String getDescription();
-    
+
     public Boolean getIsMultiple();
 }
