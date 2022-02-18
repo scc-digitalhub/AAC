@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.profiles.extractor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,7 +12,6 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
@@ -43,58 +43,72 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
             return null;
         }
 
-        return extract(identity.getAccount(), identity.getAttributes());
+        return extract(identity.getAttributes());
     }
 
     @Override
     public CustomProfile extractUserProfile(User user) throws InvalidDefinitionException {
+        // fetch custom attributes
+        List<UserAttributes> userAttributes = user.getAttributes().stream()
+                .filter(ua -> !ua.getIdentifier().startsWith("aac."))
+                .collect(Collectors.toList());
+
         // fetch identities
         Collection<UserIdentity> identities = user.getIdentities();
 
         if (identities.isEmpty()) {
-            return null;
+            return extract(userAttributes);
         }
 
         // TODO decide how to merge identities into a single profile
         // for now get first identity, should be last logged in
         UserIdentity id = identities.iterator().next();
-        CustomProfile profile = extract(id.getAccount(), id.getAttributes());
+
+        CustomProfile profile = extract(mergeAttributes(userAttributes, id.getAttributes()));
         return profile;
     }
 
     @Override
     public Collection<? extends CustomProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
+        // fetch custom attributes
+        List<UserAttributes> userAttributes = user.getAttributes().stream()
+                .filter(ua -> !ua.getIdentifier().startsWith("aac."))
+                .collect(Collectors.toList());
+
         // fetch identities
         Collection<UserIdentity> identities = user.getIdentities();
 
         if (identities.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.singleton(extract(userAttributes));
         }
 
-        return identities.stream().map(id -> extract(id.getAccount(), id.getAttributes())).collect(Collectors.toList());
-
+        return identities.stream()
+                .map(id -> extract(mergeAttributes(userAttributes, id.getAttributes())))
+                .collect(Collectors.toList());
     }
 
-    private CustomProfile extract(UserAccount account, Collection<UserAttributes> attributes) {
+    private Collection<UserAttributes> mergeAttributes(
+            Collection<UserAttributes> userAttributes,
+            Collection<UserAttributes> identityAttributes) {
+
+        Map<String, UserAttributes> attributesMap = new HashMap<>();
+        userAttributes.forEach(ua -> attributesMap.put(ua.getIdentifier(), ua));
+
+        // merge attributes to user, override if present
+        // TODO evaluate which attributes have precedence
+        identityAttributes.forEach(ua -> attributesMap.put(ua.getIdentifier(), ua));
+
+        return attributesMap.values();
+    }
+
+    private CustomProfile extract(Collection<UserAttributes> attributes) {
 
         CustomProfile profile = new CustomProfile(identifier);
-
-        // from account we can get only basic
-        // TODO evaluate dropping username in custom profiles
-        if (mapping.containsKey("username")) {
-            profile.addAttribute("username", account.getUsername());
+        List<String> reserved = Collections.emptyList();
+        if (identifier.startsWith("aac.")) {
+            // filter core claims
+            reserved = Arrays.asList(RESERVED);
         }
-        if (mapping.containsKey("authority")) {
-            profile.addAttribute("authority", account.getAuthority());
-        }
-        if (mapping.containsKey("provider")) {
-            profile.addAttribute("provider", account.getProvider());
-        }
-        if (mapping.containsKey("realm")) {
-            profile.addAttribute("realm", account.getRealm());
-        }
-
-        List<String> reserved = Arrays.asList(RESERVED);
 
         // from attributes fetch mapped props
         for (Map.Entry<String, Collection<String>> entry : mapping.entrySet()) {
@@ -103,7 +117,7 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
                 Collection<String> sets = entry.getValue();
                 Attribute attr = this.getAttribute(attributes, key, sets);
                 if (attr != null) {
-                    profile.addAttribute(key, attr.getValue());
+                    profile.addAttribute(key, attr.exportValue());
                 }
             }
         }

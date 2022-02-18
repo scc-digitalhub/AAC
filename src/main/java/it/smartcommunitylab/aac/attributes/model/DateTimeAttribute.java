@@ -41,6 +41,11 @@ public class DateTimeAttribute extends AbstractAttribute {
         return value;
     }
 
+    @Override
+    public String exportValue() {
+        return value == null ? null : getIsoDateTimeValue();
+    }
+
     public void setValue(LocalDateTime value) {
         this.value = value;
     }
