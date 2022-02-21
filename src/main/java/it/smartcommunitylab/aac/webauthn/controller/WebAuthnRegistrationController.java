@@ -61,23 +61,14 @@ public class WebAuthnRegistrationController {
     @Hidden
     @RequestMapping(value = "/auth/webauthn/register/{providerId}", method = RequestMethod.GET)
     public String registrationPage(@PathVariable("providerId") String providerId) {
-        try {
-            WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
-            boolean canRegister;
-            if (provider != null) {
-                canRegister = provider
-                        .getConfigMap()
-                        .isEnableRegistration();
-            } else {
-                canRegister = false;
-            }
-            if (!canRegister) {
-                throw new RegistrationException("registration is disabled");
-            }
-            return "webauthn/register";
-        } catch (RegistrationException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
+        if (provider == null) {
+            throw new RegistrationException("");
         }
+        if (!provider.getConfigMap().isEnableRegistration()) {
+            throw new IllegalArgumentException();
+        }
+        return "webauthn/register";
     }
 
     /**
@@ -95,16 +86,11 @@ public class WebAuthnRegistrationController {
             @PathVariable("providerId") String providerId) {
         try {
             WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
-            boolean canRegister;
-            if (provider != null) {
-                canRegister = provider
-                        .getConfigMap()
-                        .isEnableRegistration();
-            } else {
-                canRegister = false;
+            if (provider == null) {
+                throw new RegistrationException("");
             }
-            if (!canRegister) {
-                throw new RegistrationException("registration is disabled");
+            if (!provider.getConfigMap().isEnableRegistration()) {
+                throw new IllegalArgumentException();
             }
             WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
             String username = body.getUsername();
