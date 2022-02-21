@@ -14,6 +14,7 @@ import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
 import com.yubico.webauthn.data.PublicKeyCredentialType;
 
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
@@ -29,10 +30,11 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 public class WebAuthnYubicoCredentialsRepository implements CredentialRepository {
 
     private final String providerId;
-    private WebAuthnUserAccountService webAuthnUserAccountService;
+    private final WebAuthnUserAccountService webAuthnUserAccountService;
 
     public WebAuthnYubicoCredentialsRepository(String provider,
             WebAuthnUserAccountService webAuthnUserAccountService) {
+        Assert.notNull(webAuthnUserAccountService, "WebAuthn account service is mandatory");
         this.webAuthnUserAccountService = webAuthnUserAccountService;
         this.providerId = provider;
     }
