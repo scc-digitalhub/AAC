@@ -15,6 +15,8 @@ import com.yubico.webauthn.AssertionRequest;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebAuthnLoginResponse {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+    
     @JsonProperty("key")
     @NotNull
     private String key;
@@ -22,7 +24,6 @@ public class WebAuthnLoginResponse {
     @NotNull
     private AssertionRequest assertionRequest;
 
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     public String getKey() {
         return this.key;
