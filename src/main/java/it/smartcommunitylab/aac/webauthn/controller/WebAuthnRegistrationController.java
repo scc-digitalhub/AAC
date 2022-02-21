@@ -135,7 +135,7 @@ public class WebAuthnRegistrationController {
             String key = body.getKey();
 
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
-                    .parseRegistrationResponseJson(body.exportAttestation());
+                    .parseRegistrationResponseJson(body.toJson());
 
             final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
             if (!StringUtils.hasText(authenticatedUser)) {
