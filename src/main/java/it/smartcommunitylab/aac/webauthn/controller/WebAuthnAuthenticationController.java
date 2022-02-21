@@ -98,7 +98,7 @@ public class WebAuthnAuthenticationController {
             final WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
 
             PublicKeyCredential<AuthenticatorAssertionResponse, ClientAssertionExtensionOutputs> pkc = PublicKeyCredential
-                    .parseAssertionResponseJson(body.getAssertionAsJson());
+                    .parseAssertionResponseJson(body.toJson());
             final String authenticatedUser = rps.finishLogin(pkc, body.getKey());
             return "Welcome " + authenticatedUser;
         } catch (IOException | ExecutionException e) {

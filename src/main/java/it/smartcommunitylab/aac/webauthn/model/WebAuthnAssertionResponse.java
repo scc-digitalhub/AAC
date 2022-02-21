@@ -44,7 +44,7 @@ public class WebAuthnAssertionResponse {
     }
 
     @JsonIgnore
-    public String getAssertionAsJson() throws JsonProcessingException{
+    public String toJson() throws JsonProcessingException{
         return mapper.writeValueAsString(this.assertion);
     }
 }
