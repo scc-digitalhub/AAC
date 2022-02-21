@@ -172,4 +172,10 @@ public class WebAuthnIdentityProviderConfig extends AbstractConfigurableProvider
         return ip;
     }
 
+    public boolean isAllowedUnstrustedAssertions() {
+        return configMap.getTrustUnverifiedAuthenticatorResponses() != null
+                ? configMap.getTrustUnverifiedAuthenticatorResponses().booleanValue()
+                : false;
+    }
+
 }

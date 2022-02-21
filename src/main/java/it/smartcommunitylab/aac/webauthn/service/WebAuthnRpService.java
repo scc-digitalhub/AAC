@@ -49,6 +49,7 @@ import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 
 public class WebAuthnRpService {
 
+    private boolean allowUntrustedAttestation = false;
     private final WebAuthnUserAccountService webAuthnUserAccountService;
 
     private final SubjectService subjectService;
@@ -70,6 +71,10 @@ public class WebAuthnRpService {
         this.provider = provider;
         this.webAuthnUserAccountService = webAuthnUserAccountService;
         this.subjectService = subjectService;
+    }
+
+    public void setAllowUntrustedAttestation(boolean allowUntrustedAttestation) {
+        this.allowUntrustedAttestation = allowUntrustedAttestation;
     }
 
     public WebAuthnRegistrationResponse startRegistration(String username, String realm,
@@ -136,44 +141,43 @@ public class WebAuthnRpService {
             RegistrationResult result = rp
                     .finishRegistration(FinishRegistrationOptions.builder().request(options).response(pkc).build());
             boolean attestationIsTrusted = result.isAttestationTrusted();
-            if (attestationIsTrusted) {
-                // Create user account in the database
-                WebAuthnUserAccount account = new WebAuthnUserAccount();
-                account.setUsername(username);
-                account.setRealm(realm);
-                String subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
-                account.setSubject(subject);
-                ByteArray userHandle = info.getOptions().getUser().getId();
-                account.setUserHandle(userHandle.getBase64());
-                account.setProvider(provider);
-                webAuthnUserAccountService.addAccount(account);
-
-                // Create credential in the database
-                WebAuthnCredential newCred = new WebAuthnCredential();
-                newCred.setCreatedOn(new Date());
-                newCred.setLastUsedOn(new Date());
-                newCred.setCredentialId(result.getKeyId().getId().getBase64());
-                newCred.setPublicKeyCose(result.getPublicKeyCose().getBase64());
-                newCred.setSignatureCount(result.getSignatureCount());
-                Optional<SortedSet<AuthenticatorTransport>> transportsOpt = result.getKeyId().getTransports();
-                if (transportsOpt.isPresent()) {
-                    SortedSet<AuthenticatorTransport> transports = transportsOpt.get();
-                    final List<String> transportCodes = new LinkedList<>();
-                    for (final AuthenticatorTransport t : transports) {
-                        transportCodes.add(t.getId());
-                    }
-                    newCred.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
-                } else {
-                    newCred.setTransports("");
-                }
-                newCred.setUserHandle(account.getUserHandle());
-
-                webAuthnUserAccountService.saveCredential(newCred);
-                activeRegistrations.remove(key);
-                return username;
-            } else {
-                return null;
+            if (!attestationIsTrusted && !allowUntrustedAttestation) {
+                throw new WebAuthnAuthenticationException("_", "Untrusted attestation");
             }
+            // Create user account in the database
+            WebAuthnUserAccount account = new WebAuthnUserAccount();
+            account.setUsername(username);
+            account.setRealm(realm);
+            String subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
+            account.setSubject(subject);
+            ByteArray userHandle = info.getOptions().getUser().getId();
+            account.setUserHandle(userHandle.getBase64());
+            account.setProvider(provider);
+            webAuthnUserAccountService.addAccount(account);
+
+            // Create credential in the database
+            WebAuthnCredential newCred = new WebAuthnCredential();
+            newCred.setCreatedOn(new Date());
+            newCred.setLastUsedOn(new Date());
+            newCred.setCredentialId(result.getKeyId().getId().getBase64());
+            newCred.setPublicKeyCose(result.getPublicKeyCose().getBase64());
+            newCred.setSignatureCount(result.getSignatureCount());
+            Optional<SortedSet<AuthenticatorTransport>> transportsOpt = result.getKeyId().getTransports();
+            if (transportsOpt.isPresent()) {
+                SortedSet<AuthenticatorTransport> transports = transportsOpt.get();
+                final List<String> transportCodes = new LinkedList<>();
+                for (final AuthenticatorTransport t : transports) {
+                    transportCodes.add(t.getId());
+                }
+                newCred.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
+            } else {
+                newCred.setTransports("");
+            }
+            newCred.setUserHandle(account.getUserHandle());
+
+            webAuthnUserAccountService.saveCredential(newCred);
+            activeRegistrations.remove(key);
+            return username;
         } catch (WebAuthnAuthenticationException | RegistrationFailedException e) {
             throw new WebAuthnAuthenticationException("_",
                     "Registration failed");
