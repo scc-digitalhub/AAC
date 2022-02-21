@@ -20,7 +20,7 @@ public class WebAuthnLoginResponse {
     private String key;
 
     @NotNull
-    private AssertionRequest assertionrequest;
+    private AssertionRequest assertionRequest;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -33,15 +33,15 @@ public class WebAuthnLoginResponse {
     }
 
     public AssertionRequest getAssertionRequest() {
-        return this.assertionrequest;
+        return this.assertionRequest;
     }
 
     public void setAssertionRequest(AssertionRequest assertionrequest) {
-        this.assertionrequest = assertionrequest;
+        this.assertionRequest = assertionrequest;
     }
 
     @JsonGetter("assertionRequest")
     public JsonNode getOptionsAsJson() throws JsonProcessingException {
-        return mapper.readTree(assertionrequest.toCredentialsGetJson());
+        return mapper.readTree(assertionRequest.toCredentialsGetJson());
     }
 }
