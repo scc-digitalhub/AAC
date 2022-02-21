@@ -120,7 +120,7 @@ public class WebAuthnRegistrationController {
     @PostMapping(value = "/auth/webauthn/attestations/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String verifyAttestation(@RequestBody @Valid WebAuthnAttestationResponse body,
-            @PathVariable("providerId") String providerId) { 
+            @PathVariable("providerId") String providerId) {
         try {
             final boolean canRegister = registrationRepository.findByProviderId(providerId)
                     .getConfigMap()
@@ -137,15 +137,15 @@ public class WebAuthnRegistrationController {
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
                     .parseRegistrationResponseJson(body.toJson());
 
-            final String authenticatedUser = rps.finishRegistration(pkc, realm, key);
+            final String authenticatedUser = rps.finishRegistration(pkc, providerId, realm, key);
             if (!StringUtils.hasText(authenticatedUser)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Invalid attestation");
+                        "Invalid attestation");
             }
             return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";
         } catch (IOException | ExecutionException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            "Invalid attestation");
+                    "Invalid attestation");
         }
     }
 
