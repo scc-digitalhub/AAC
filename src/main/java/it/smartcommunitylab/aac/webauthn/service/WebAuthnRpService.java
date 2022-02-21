@@ -114,6 +114,7 @@ public class WebAuthnRpService {
      */
     public String finishRegistration(
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc,
+            String providerId,
             String realm,
             String key) throws WebAuthnAuthenticationException {
         try {
@@ -121,6 +122,9 @@ public class WebAuthnRpService {
             WebAuthnAuthenticationException noSuchRegistration = new WebAuthnAuthenticationException("_",
                     "Can not find matching active registration request");
             if (info == null) {
+                throw noSuchRegistration;
+            }
+            if (!info.getProviderId().equals(providerId)) {
                 throw noSuchRegistration;
             }
             final String username = info.getUsername();
