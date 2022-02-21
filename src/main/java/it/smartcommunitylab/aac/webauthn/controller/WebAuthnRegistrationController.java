@@ -129,15 +129,13 @@ public class WebAuthnRegistrationController {
                 throw new RegistrationException("registration is disabled");
             }
             WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
-            WebAuthnIdentityProviderConfig providerCfg = registrationRepository.findByProviderId(providerId);
-            String realm = providerCfg.getRealm();
 
             String key = body.getKey();
 
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc = PublicKeyCredential
                     .parseRegistrationResponseJson(body.toJson());
 
-            final String authenticatedUser = rps.finishRegistration(pkc, providerId, realm, key);
+            final String authenticatedUser = rps.finishRegistration(pkc, providerId, key);
             if (!StringUtils.hasText(authenticatedUser)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Invalid attestation");
