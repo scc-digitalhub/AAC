@@ -103,11 +103,8 @@ public class WebAuthnRegistrationController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid displayName");
             }
 
-            WebAuthnIdentityProviderConfig providerCfg = registrationRepository.findByProviderId(providerId);
-            String realm = providerCfg.getRealm();
             final WebAuthnRegistrationResponse response = rps.startRegistration(
                     username,
-                    realm,
                     displayName);
             return response;
         } catch (ExecutionException e) {
