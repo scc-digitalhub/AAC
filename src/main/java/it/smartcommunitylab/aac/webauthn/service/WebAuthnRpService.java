@@ -2,13 +2,12 @@ package it.smartcommunitylab.aac.webauthn.service;
 
 import java.util.Base64;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.SortedSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
@@ -162,13 +161,9 @@ public class WebAuthnRpService {
             newCred.setCredentialId(result.getKeyId().getId().getBase64());
             newCred.setPublicKeyCose(result.getPublicKeyCose().getBase64());
             newCred.setSignatureCount(result.getSignatureCount());
-            Optional<SortedSet<AuthenticatorTransport>> transportsOpt = result.getKeyId().getTransports();
-            if (transportsOpt.isPresent()) {
-                SortedSet<AuthenticatorTransport> transports = transportsOpt.get();
-                final List<String> transportCodes = new LinkedList<>();
-                for (final AuthenticatorTransport t : transports) {
-                    transportCodes.add(t.getId());
-                }
+            if (result.getKeyId().getTransports().isPresent()) {
+                Set<AuthenticatorTransport> transports = result.getKeyId().getTransports().get();
+                List<String> transportCodes = transports.stream().map(t -> t.getId()).collect(Collectors.toList());
                 newCred.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
             }
             newCred.setUserHandle(account.getUserHandle());
