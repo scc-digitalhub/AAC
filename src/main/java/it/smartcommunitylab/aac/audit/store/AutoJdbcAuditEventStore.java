@@ -25,26 +25,26 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<AuditEvent> rowMapper = new AuditEventRowMapper();
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT = " CREATE TABLE IF NOT EXISTS `audit` (" +
-            "  `time` TIMESTAMP," +
-            "  `principal` varchar(255)," +
-            "  `realm` varchar(255) DEFAULT NULL," +
-            "  `type` varchar(255)," +
-            "  `event` BLOB ) ";
+    private static final String DEFAULT_CREATE_TABLE_STATEMENT = " CREATE TABLE IF NOT EXISTS audit (" +
+            "  time TIMESTAMP," +
+            "  principal varchar(255)," +
+            "  realm varchar(255) DEFAULT NULL," +
+            "  type varchar(255)," +
+            "  event BLOB ) ";
 
-    private static final String DEFAULT_INSERT_STATEMENT = "insert into `audit` (`time`, `principal`, `realm` , `type`, `event` ) values (?, ?, ?, ?, ?)";
+    private static final String DEFAULT_INSERT_STATEMENT = "insert into audit (time, principal, realm , type, event ) values (?, ?, ?, ?, ?)";
 
-    private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT = "select `time`, `principal`, `realm` , `type`, `event` from `audit` where principal = ?";
-    private static final String DEFAULT_SELECT_REALM_STATEMENT = "select `time`, `principal`, `realm` , `type`, `event` from `audit` where realm = ?";
+    private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT = "select time, principal, realm , type, event from audit where principal = ?";
+    private static final String DEFAULT_SELECT_REALM_STATEMENT = "select time, principal, realm , type, event from audit where realm = ?";
 
-    private static final String DEFAULT_COUNT_PRINCIPAL_STATEMENT = "select count(*) from `audit` where principal = ?";
-    private static final String DEFAULT_COUNT_REALM_STATEMENT = "select count(*) from `audit` where realm = ?";
+    private static final String DEFAULT_COUNT_PRINCIPAL_STATEMENT = "select count(*) from audit where principal = ?";
+    private static final String DEFAULT_COUNT_REALM_STATEMENT = "select count(*) from audit where realm = ?";
 
-    private static final String TIME_AFTER_CONDITION = "`time` >= ?";
-    private static final String TIME_BETWEEN_CONDITION = "`time` between ? and ? ";
-    private static final String TYPE_CONDITION = "`type` = ?";
+    private static final String TIME_AFTER_CONDITION = "time >= ?";
+    private static final String TIME_BETWEEN_CONDITION = "time between ? and ? ";
+    private static final String TYPE_CONDITION = "type = ?";
 
-    private static final String DEFAULT_ORDER_BY = "order by `time` DESC";
+    private static final String DEFAULT_ORDER_BY = "order by time DESC";
 
     private String createAuditTableSql = DEFAULT_CREATE_TABLE_STATEMENT;
     private String insertAuditEventSql = DEFAULT_INSERT_STATEMENT;
