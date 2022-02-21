@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserIdentity;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
@@ -50,7 +49,6 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
             String providerId,
             WebAuthnUserAccountService userAccountService,
             UserEntityService userEntityService,
-            WebAuthnCredentialsRepository webAuthnCredentialsRepository,
             WebAuthnIdentityProviderConfig config,
             String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
@@ -70,11 +68,10 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
-        this.accountService = new WebAuthnAccountService(providerId, userAccountService, webAuthnCredentialsRepository,
+        this.accountService = new WebAuthnAccountService(providerId, userAccountService,  
                 config, realm); 
         this.subjectResolver = new WebAuthnSubjectResolver(providerId,
                 userAccountService,
-                webAuthnCredentialsRepository,
                 config,
                 realm);
 

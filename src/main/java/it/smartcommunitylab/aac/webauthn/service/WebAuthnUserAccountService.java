@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -128,7 +129,37 @@ public class WebAuthnUserAccountService {
     }
 
     public WebAuthnCredential saveCredential(WebAuthnCredential credential) {
+        if (credential.getCredentialId() == null) {
+            throw new IllegalArgumentException();
+        }
         WebAuthnCredential c = credentialRepository.saveAndFlush(credential);
+        return credentialRepository.detach(c);
+    }
+
+    public WebAuthnCredential updateCredential(String credentialId, WebAuthnCredential credential)
+            throws NoSuchUserException {
+        WebAuthnCredential dbCred = credentialRepository.findByCredentialId(credentialId);
+        if (dbCred == null) {
+            throw new NoSuchUserException();
+        }
+        dbCred.setDisplayName(credential.getDisplayName());
+        WebAuthnCredential c = credentialRepository.saveAndFlush(dbCred);
+        return credentialRepository.detach(c);
+    }
+
+    public WebAuthnCredential updateCredentialCounter(String credentialId, long counter)
+            throws NoSuchUserException {
+        WebAuthnCredential dbCred = credentialRepository.findByCredentialId(credentialId);
+        if (dbCred == null) {
+            throw new NoSuchUserException();
+        }
+        if (counter <= dbCred.getSignatureCount()) {
+            throw new IllegalArgumentException();
+        }
+        Date now = new Date();
+        dbCred.setLastUsedOn(now);
+        dbCred.setSignatureCount(counter);
+        WebAuthnCredential c = credentialRepository.saveAndFlush(dbCred);
         return credentialRepository.detach(c);
     }
 
@@ -136,4 +167,7 @@ public class WebAuthnUserAccountService {
         return credentialRepository.findByUserHandle(userHandle);
     }
 
+    public WebAuthnCredential findByUserHandleAndCredentialId(String userHandle, String credentialId) {
+        return credentialRepository.findByUserHandleAndCredentialId(userHandle, credentialId);
+    }
 }
