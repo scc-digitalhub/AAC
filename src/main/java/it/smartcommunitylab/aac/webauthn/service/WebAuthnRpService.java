@@ -39,6 +39,7 @@ import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnCredentialCreationInfo;
@@ -58,7 +59,8 @@ public class WebAuthnRpService {
     private final String provider;
 
     private static final Long TIMEOUT = 9000L;
-    private final StringKeyGenerator keyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 64);
+    private final StringKeyGenerator keyGenerator = new Base64StringKeyGenerator(
+            Base64.getUrlEncoder().withoutPadding(), 64);
 
     private final Map<String, WebAuthnCredentialCreationInfo> activeRegistrations = new ConcurrentHashMap<>();
     private final Map<String, AssertionRequest> activeAuthentications = new ConcurrentHashMap<>();
@@ -170,8 +172,6 @@ public class WebAuthnRpService {
                     transportCodes.add(t.getId());
                 }
                 newCred.setTransports(StringUtils.collectionToCommaDelimitedString(transportCodes));
-            } else {
-                newCred.setTransports("");
             }
             newCred.setUserHandle(account.getUserHandle());
 
@@ -218,38 +218,25 @@ public class WebAuthnRpService {
             AssertionRequest assertionRequest = activeAuthentications.get(sessionId);
             AssertionResult result = rp.finishAssertion(FinishAssertionOptions.builder().request(assertionRequest)
                     .response(pkc).build());
-            if (result.isSuccess() && result.isSignatureCounterValid()) {
-                final WebAuthnUserAccount account = webAuthnUserAccountService
-                        .findByUserHandle(result.getUserHandle().getBase64());
-                List<WebAuthnCredential> credentials = webAuthnUserAccountService
-                        .findCredentialsByUserHandle(account.getUserHandle());
-                Optional<WebAuthnCredential> toUpdate = Optional.empty();
-                ByteArray resultCredentialId = result.getCredentialId();
-                for (WebAuthnCredential c : credentials) {
-                    ByteArray cCredentialId = ByteArray.fromBase64(c.getCredentialId());
-                    if (cCredentialId.equals(resultCredentialId)) {
-                        toUpdate = Optional.of(c);
-                    }
-                }
-                if (toUpdate.isEmpty()) {
-                    throw new WebAuthnAuthenticationException(account.getSubject(),
-                            "Could not find the requested credential in the account");
-                }
-                WebAuthnCredential credential = toUpdate.get();
-                credentials.remove(credential);
-                credential.setSignatureCount(result.getSignatureCount());
-                credential.setLastUsedOn(new Date());
-                webAuthnUserAccountService.saveCredential(credential);
-                final String username = account.getUsername();
-                if (!StringUtils.hasText(username)) {
-                    throw new WebAuthnAuthenticationException(account.getSubject(),
-                            "Could not find the requested credential in the account");
-                }
-                return username;
-            } else {
-                return null;
+            if (!(result.isSuccess() && result.isSignatureCounterValid())) {
+                throw new WebAuthnAuthenticationException("_",
+                        "Untrusted assertion");
             }
-        } catch (WebAuthnAuthenticationException | AssertionFailedException e) {
+            final WebAuthnUserAccount account = webAuthnUserAccountService
+                    .findByUserHandle(result.getUserHandle().getBase64());
+            if (account == null) {
+                throw new WebAuthnAuthenticationException("_",
+                        "Could not find the requested credential in the account");
+            }
+            ByteArray resultCredentialId = result.getCredentialId();
+            String credentialId = resultCredentialId.getBase64();
+            if (webAuthnUserAccountService.findByUserHandleAndCredentialId(result.getUserHandle().getBase64(),
+                    credentialId) == null) {
+                throw new WebAuthnAuthenticationException("_", "");
+            }
+            webAuthnUserAccountService.updateCredentialCounter(credentialId, result.getSignatureCount());
+            return account.getUsername();
+        } catch (WebAuthnAuthenticationException | AssertionFailedException | NoSuchUserException e) {
             throw new WebAuthnAuthenticationException("_",
                     "Login failed");
         }

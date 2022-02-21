@@ -37,7 +37,7 @@ public class WebAuthnCredential {
     private String publicKeyCose;
 
     @Column(name = "signature_count")
-    private Long signatureCount = 0L;
+    private long signatureCount = 0L;
 
     /**
      * Comma-separated list of the transports
@@ -94,11 +94,11 @@ public class WebAuthnCredential {
         this.transports = transports;
     }
 
-    public void setSignatureCount(Long signatureCount) {
+    public void setSignatureCount(long signatureCount) {
         this.signatureCount = signatureCount;
     }
 
-    public Long getSignatureCount() {
+    public long getSignatureCount() {
         return signatureCount;
     }
 

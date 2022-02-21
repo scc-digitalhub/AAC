@@ -19,25 +19,21 @@ import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredential;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserAccount;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 
 public class WebAuthnAccountService extends AbstractProvider implements AccountService {
     protected final WebAuthnUserAccountService userAccountService;
-
-    private final WebAuthnCredentialsRepository webAuthnCredentialsRepository;
+ 
     private final WebAuthnIdentityProviderConfigMap config;
 
     public WebAuthnAccountService(String providerId,
-            WebAuthnUserAccountService userAccountService,
-            WebAuthnCredentialsRepository webAuthnCredentialsRepository,
+            WebAuthnUserAccountService userAccountService, 
             WebAuthnIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
-        this.userAccountService = userAccountService;
-        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
+        this.userAccountService = userAccountService; 
         this.config = providerConfig.getConfigMap();
     }
 
@@ -159,7 +155,7 @@ public class WebAuthnAccountService extends AbstractProvider implements AccountS
 
         if (reg instanceof WebAuthnUserAccount) {
             WebAuthnUserAccount ireg = (WebAuthnUserAccount) reg;
-            credentials = webAuthnCredentialsRepository.findByUserHandle(ireg.getUserHandle());
+            credentials = userAccountService.findCredentialsByUserHandle(ireg.getUserHandle());
             email = ireg.getEmailAddress();
 
             if (StringUtils.hasText(email)) {

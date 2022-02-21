@@ -12,7 +12,8 @@ public interface WebAuthnCredentialsRepository
         extends CustomJpaRepository<WebAuthnCredential, String>, DetachableJpaRepository<WebAuthnCredential> {
 
     WebAuthnCredential findByCredentialId(String credentialId);
-
+    
     List<WebAuthnCredential> findByUserHandle(String userHandle);
-
+    
+    WebAuthnCredential findByUserHandleAndCredentialId(String userHandle, String credentialId);
 }
