@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
+import it.smartcommunitylab.aac.core.provider.CredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
@@ -43,8 +44,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     // providers
     private final WebAuthnAccountService accountService;
     private final WebAuthnAttributeProvider attributeProvider;
-    private final WebAuthnSubjectResolver subjectResolver;
-    private final WebAuthnCredentialsService credentialService;
+    private final WebAuthnSubjectResolver subjectResolver; 
 
     public WebAuthnIdentityService(
             String providerId,
@@ -71,8 +71,7 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new WebAuthnAttributeProvider(providerId, userAccountService, config, realm);
         this.accountService = new WebAuthnAccountService(providerId, userAccountService, webAuthnCredentialsRepository,
-                config, realm);
-        this.credentialService = new WebAuthnCredentialsService(providerId, userAccountService, config, realm);
+                config, realm); 
         this.subjectResolver = new WebAuthnSubjectResolver(providerId,
                 userAccountService,
                 webAuthnCredentialsRepository,
@@ -123,8 +122,8 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
-    public WebAuthnCredentialsService getCredentialsService() {
-        return credentialService;
+    public CredentialsService getCredentialsService() {
+        return null;
     }
 
     @Override
@@ -146,17 +145,13 @@ public class WebAuthnIdentityService extends AbstractProvider implements Identit
     public String getDisplayMode() {
         return config.getDisplayMode() != null ? config.getDisplayMode() : SystemKeys.DISPLAY_MODE_FORM;
     }
-
-    public String getResetUrl() {
-        return getCredentialsService().getResetUrl();
-    }
+ 
 
     @Override
     public Map<String, String> getActionUrls() {
         Map<String, String> map = new HashMap<>();
         map.put(SystemKeys.ACTION_LOGIN, getAuthenticationUrl());
         map.put(SystemKeys.ACTION_REGISTER, getRegistrationUrl());
-        map.put(SystemKeys.ACTION_RESET, getResetUrl());
 
         return map;
     }
