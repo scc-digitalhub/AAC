@@ -11,37 +11,33 @@ public class WebAuthnAuthenticationException extends AuthenticationException {
 
     private final String subject;
     private final String username;
-    private final String credentials;
-    private final String flow;
+    private final String credentials; 
     private final AuthenticationException exception;
 
     public WebAuthnAuthenticationException(String subject, String message) {
         super(message);
         this.subject = subject;
-        this.username = null;
-        this.flow = null;
+        this.username = null; 
         this.credentials = null;
         this.exception = null;
     }
 
-    public WebAuthnAuthenticationException(String subject, String username, String credentials, String flow,
+    public WebAuthnAuthenticationException(String subject, String username, String credentials,
             AuthenticationException ex) {
         super(ex.getMessage(), ex.getCause());
         this.subject = subject;
         this.username = username;
-        this.credentials = credentials;
-        this.flow = flow;
+        this.credentials = credentials; 
         this.exception = ex;
     }
 
-    public WebAuthnAuthenticationException(String subject, String username, String credentials, String flow,
+    public WebAuthnAuthenticationException(String subject, String username, String credentials,
             AuthenticationException ex,
             String message) {
         super(message, ex.getCause());
         this.subject = subject;
         this.username = username;
-        this.credentials = credentials;
-        this.flow = flow;
+        this.credentials = credentials; 
         this.exception = ex;
     }
 
@@ -56,11 +52,7 @@ public class WebAuthnAuthenticationException extends AuthenticationException {
     public String getCredentials() {
         return credentials;
     }
-
-    public String getFlow() {
-        return flow;
-    }
-
+ 
     public AuthenticationException getException() {
         return exception;
     }
