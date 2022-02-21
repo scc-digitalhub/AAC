@@ -75,7 +75,7 @@ public class WebAuthnAuthenticationController {
 
             String username = body.getUsername();
             if (!isValidUsername(username)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username");
+                throw new IllegalArgumentException();
             }
 
             WebAuthnLoginResponse response = rps.startLogin(username);
