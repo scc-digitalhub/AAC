@@ -79,8 +79,7 @@ public class WebAuthnRpService {
         this.allowUntrustedAttestation = allowUntrustedAttestation;
     }
 
-    public WebAuthnRegistrationResponse startRegistration(String username, String realm,
-            String displayName) {
+    public WebAuthnRegistrationResponse startRegistration(String username, String displayName) {
         final AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .residentKey(ResidentKeyRequirement.REQUIRED).userVerification(UserVerificationRequirement.REQUIRED)
                 .build();
@@ -97,7 +96,6 @@ public class WebAuthnRpService {
         final PublicKeyCredentialCreationOptions options = rp.startRegistration(startRegistrationOptions);
         final WebAuthnCredentialCreationInfo info = new WebAuthnCredentialCreationInfo();
         info.setUsername(username);
-        info.setRealm(realm);
         info.setOptions(options);
         info.setProviderId(provider);
         final String key = UUID.randomUUID().toString();
@@ -123,9 +121,6 @@ public class WebAuthnRpService {
             WebAuthnAuthenticationException noSuchRegistration = new WebAuthnAuthenticationException("_",
                     "Can not find matching active registration request");
             if (info == null) {
-                throw noSuchRegistration;
-            }
-            if (!info.getRealm().equals(realm)) {
                 throw noSuchRegistration;
             }
             final String username = info.getUsername();

@@ -7,7 +7,6 @@ import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 public class WebAuthnCredentialCreationInfo implements Serializable {
     private PublicKeyCredentialCreationOptions options;
     private String username;
-    private String realm;
     private String providerId;
 
     public PublicKeyCredentialCreationOptions getOptions() {
@@ -20,14 +19,6 @@ public class WebAuthnCredentialCreationInfo implements Serializable {
 
     public void setProviderId(String providerId) {
         this.providerId = providerId;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
     }
 
     public String getUsername() {
