@@ -25,21 +25,21 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private boolean enableRegistration = false;
+    private Boolean enableRegistration = false;
     /**
      * If the user can update the credential to a new one. In this case is false
      * by default since we would create another account
      */
-    private boolean enableUpdate = false;
+    private Boolean enableUpdate = false;
     /**
      * If the user can reset the credential.
      * In our case this is false, since we can not reset a WebAuthn credential
      */
-    private boolean enableReset = false;
+    private Boolean enableReset = false;
 
     private int maxSessionDuration = 24 * 60 * 60; // 24h
 
-    private boolean trustUnverifiedAuthenticatorResponses;
+    private Boolean trustUnverifiedAuthenticatorResponses;
 
     private static ObjectMapper mapper = new ObjectMapper();
     private final static TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {
@@ -53,7 +53,7 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
 
         this.enableRegistration = map.isEnableRegistration();
         this.enableUpdate = map.isEnableUpdate();
-        this.trustUnverifiedAuthenticatorResponses = map.isTrustUnverifiedAuthenticatorResponses();
+        this.trustUnverifiedAuthenticatorResponses = map.getTrustUnverifiedAuthenticatorResponses();
 
     }
 
@@ -98,11 +98,11 @@ public class WebAuthnIdentityProviderConfigMap implements ConfigurableProperties
         this.maxSessionDuration = maxSessionDuration;
     }
 
-    public boolean isTrustUnverifiedAuthenticatorResponses() {
+    public Boolean getTrustUnverifiedAuthenticatorResponses() {
         return trustUnverifiedAuthenticatorResponses;
     }
 
-    public void setTrustUnverifiedAuthenticatorResponses(boolean trustUnverifiedAuthenticatorResponses) {
+    public void setTrustUnverifiedAuthenticatorResponses(Boolean trustUnverifiedAuthenticatorResponses) {
         this.trustUnverifiedAuthenticatorResponses = trustUnverifiedAuthenticatorResponses;
     }
 }

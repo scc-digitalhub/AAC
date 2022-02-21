@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 
 @Service
 public class WebAuthnRpServiceRegistrationRepository {
@@ -39,7 +38,7 @@ public class WebAuthnRpServiceRegistrationRepository {
     @Value("${application.url}")
     private String applicationUrl;
 
-    private RelyingParty buildRp(String providerId, WebAuthnIdentityProviderConfigMap config)
+    private RelyingParty buildRp(String providerId, WebAuthnIdentityProviderConfig config)
             throws MalformedURLException {
         URL publicAppUrl = new URL(applicationUrl);
         Set<String> origins = Collections.singleton(applicationUrl);
@@ -50,7 +49,7 @@ public class WebAuthnRpServiceRegistrationRepository {
                 providerId,
                 webAuthnUserAccountService);
         RelyingParty rp = RelyingParty.builder().identity(rpIdentity).credentialRepository(webauthnRepository)
-                .allowUntrustedAttestation(config.isTrustUnverifiedAuthenticatorResponses()).allowOriginPort(true)
+                .allowUntrustedAttestation(config.isAllowedUnstrustedAssertions()).allowOriginPort(true)
                 .allowOriginSubdomain(false)
                 .origins(origins)
                 .build();
@@ -69,11 +68,13 @@ public class WebAuthnRpServiceRegistrationRepository {
                         throw new IllegalArgumentException("no configuration matching the given provider id");
                     }
 
-                    RelyingParty rp = buildRp(providerId, config.getConfigMap());
-                    return new WebAuthnRpService(rp,
+                    RelyingParty rp = buildRp(providerId, config);
+                    WebAuthnRpService rpservice = new WebAuthnRpService(rp,
                             webAuthnUserAccountService,
                             subjectService,
                             providerId);
+                    rpservice.setAllowUntrustedAttestation(config.isAllowedUnstrustedAssertions());
+                    return rpservice;
                 }
             });
 
