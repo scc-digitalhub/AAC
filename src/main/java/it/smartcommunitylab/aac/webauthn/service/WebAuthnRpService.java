@@ -115,7 +115,6 @@ public class WebAuthnRpService {
     public String finishRegistration(
             PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc,
             String providerId,
-            String realm,
             String key) throws WebAuthnAuthenticationException {
         try {
             final WebAuthnCredentialCreationInfo info = activeRegistrations.get(key);
@@ -148,7 +147,7 @@ public class WebAuthnRpService {
             // Create user account in the database
             WebAuthnUserAccount account = new WebAuthnUserAccount();
             account.setUsername(username);
-            account.setRealm(realm);
+            account.setRealm(null);
             String subject = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
             account.setSubject(subject);
             ByteArray userHandle = info.getOptions().getUser().getId();
