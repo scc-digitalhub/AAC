@@ -88,12 +88,10 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         }
         List<WebAuthnCredential> credentials = webAuthnUserAccountService
                 .findCredentialsByUserHandle(acc.getUserHandle());
-        for (final WebAuthnCredential cred : credentials) {
-            if (cred.getCredentialId().equals(credentialId.getBase64())) {
-                return Optional.of(getRegisteredCredential(cred));
-            }
-        }
-        return Optional.empty();
+        return credentials.stream()
+                .filter(c -> c.getCredentialId().equals(credentialId.getBase64()))
+                .findFirst()
+                .map(c -> getRegisteredCredential(c));
     }
 
     @Override
