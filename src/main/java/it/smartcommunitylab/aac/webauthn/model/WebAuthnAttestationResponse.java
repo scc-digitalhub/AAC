@@ -41,7 +41,7 @@ public class WebAuthnAttestationResponse {
         this.attestation = attestation;
     }
 
-    public String exportAttestation() throws JsonProcessingException{
+    public String toJson() throws JsonProcessingException{
         return mapper.writeValueAsString(attestation);
     }
 }
