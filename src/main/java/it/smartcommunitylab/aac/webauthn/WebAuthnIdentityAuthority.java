@@ -28,7 +28,6 @@ import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnCredentialsRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityService;
@@ -38,7 +37,6 @@ import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserAccountService;
 public class WebAuthnIdentityAuthority implements IdentityAuthority, InitializingBean {
     public static final String AUTHORITY_URL = "/auth/webauthn/";
     private WebAuthnIdentityProviderConfigMap defaultProviderConfig;
-    private WebAuthnCredentialsRepository webAuthnCredentialsRepository;
 
     @Value("${authorities.webauthn.enableRegistration}")
     private boolean enableRegistration;
@@ -60,8 +58,8 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
     public WebAuthnIdentityAuthority(
             WebAuthnUserAccountService userAccountService,
             UserEntityService userEntityService,
-            ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository,
-            WebAuthnCredentialsRepository webAuthnCredentialsRepository) {
+            ProviderRepository<WebAuthnIdentityProviderConfig> registrationRepository
+            ) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
@@ -69,7 +67,6 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
         this.userAccountService = userAccountService;
         this.userEntityService = userEntityService;
         this.registrationRepository = registrationRepository;
-        this.webAuthnCredentialsRepository = webAuthnCredentialsRepository;
     }
 
     @Override
@@ -111,7 +108,6 @@ public class WebAuthnIdentityAuthority implements IdentityAuthority, Initializin
                     WebAuthnIdentityService idp = new WebAuthnIdentityService(id,
                             userAccountService,
                             userEntityService,
-                            webAuthnCredentialsRepository,
                             config,
                             config.getRealm());
 
