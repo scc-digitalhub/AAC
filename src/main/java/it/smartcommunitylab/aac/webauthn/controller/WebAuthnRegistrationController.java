@@ -63,7 +63,7 @@ public class WebAuthnRegistrationController {
     public String registrationPage(@PathVariable("providerId") String providerId) {
         WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
         if (provider == null) {
-            throw new RegistrationException("");
+            throw new RegistrationException("No provider with id " + providerId);
         }
         if (!provider.getConfigMap().isEnableRegistration()) {
             throw new IllegalArgumentException();
@@ -87,7 +87,7 @@ public class WebAuthnRegistrationController {
         try {
             WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
             if (provider == null) {
-                throw new RegistrationException("");
+                throw new RegistrationException("No provider with id " + providerId);
             }
             if (!provider.getConfigMap().isEnableRegistration()) {
                 throw new IllegalArgumentException();
