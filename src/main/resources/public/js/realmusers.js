@@ -525,7 +525,7 @@ angular.module('aac.controllers.realmusers', [])
                 })
                 .then(function (data) {
                     $scope.reloadGroups(data.groups);
-                    return;
+                    return data;
                 })                
                 .then(function (data) {
                     $scope.reloadRoles(data.roles);

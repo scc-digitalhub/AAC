@@ -43,13 +43,13 @@ public interface GroupMemberEntityRepository
 
     Page<GroupMemberEntity> findByRealmAndGroup(String realm, String group, Pageable pageRequest);
 
+    List<GroupMemberEntity> findByRealmAndGroupIn(String realm, Set<String> groups);
+
     List<GroupMemberEntity> findBySubject(String subject);
 
     List<GroupMemberEntity> findBySubjectAndRealm(String subject, String realm);
 
 //    @Query("select g from GroupMemberEntity gm inner join GroupEntity g on gm.group = g.uuid where gm.subject = ?1")
 //    List<GroupEntity> findGroupsBySubject(String subject);
-
-    List<GroupMemberEntity> findByGroupIn(Set<String> groups);
 
 }

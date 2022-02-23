@@ -1,0 +1,87 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">
+            Role subjects
+            <small class="form-text">
+                Manually manage subjects associated with this role.
+            </small>
+        </legend>
+
+        <div class="row">
+            <div class="col col-12 text-right">
+                <button class="btn btn-primary text-right" type="button" ng-click="createRoleSubjectDlg()">
+                    <svg class="icon icon-sm icon-white">
+                        <use xlink:href="./italia/svg/sprite.svg#it-plus"></use>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm table-hover border-bottom" ng-if="subjects && subjects.length > 0">
+                    <tr ng-repeat="subject in subjects">
+
+                        <td class="align-middle">
+                            <div class="avatar-wrapper avatar-extra-text">
+                                <div ng-if="subject.icon" class="avatar size-lg">
+                                    <svg aria-hidden="true" class="icon icon-secondary">
+                                        <use xlink:href="{{subject.icon}}"></use>
+                                    </svg>
+                                </div>
+                                <div class="extra-text">
+                                    <span class="h6">{{subject.name}}</span>
+                                    <br> <small class="text-muted"> {{subject.type}} </small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="align-middle">
+                            ID <span class="small text-monospace bg-light pl-1 pr-1">{{subject.subjectId}}</span>
+                            <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(subject.subjectId)">
+                                <svg class="icon icon-xs icon-primary">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                                </svg>
+                            </button>
+                        </td>
+                        <td class="text-right">
+                            <button class="btn btn-danger btn-sm" ng-click="removeRoleSubject(subject)">Delete</button>
+                        </td>
+                    </tr>
+                </table>
+                <p ng-if="!subjects || subjects.length == 0">No subjects associated</p>
+
+            </div>
+        </div>
+
+    </fieldset>
+</div>
+
+
+
+
+<div class="modal fade bs-modal-lg" id="roleSubjectModal" tabindex="-1" role="dialog" aria-labelledby="roleSubjectModal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h3 class="modal-title" id="modal-title">Assign role to subject</h3>
+            </div>
+            <form class="needs-validation was-validated" novalidate name="roleSubjectForm">
+                <div class="modal-body" id="modal-body">
+                    <div class="form-group">
+                        <label for="slug">Subject*</label>
+                        <input type="text" class="form-control form-control-sm" id="subjectId"
+                            ng-model="modRoleSubject.subjectId" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="button" ng-click="saveRoleSubject()"
+                        ng-disabled="roleSubjectForm.$invalid">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

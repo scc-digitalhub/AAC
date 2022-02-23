@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.roles.service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,21 +21,27 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntityRepository;
+import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntity;
+import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntityRepository;
 
 @Service
 @Transactional
 public class RealmRoleService {
 
     private final RealmRoleEntityRepository roleRepository;
+    private final SubjectRoleEntityRepository rolesRepository;
     private final SubjectService subjectService;
     private SearchableApprovalStore approvalStore;
 
     public RealmRoleService(RealmRoleEntityRepository roleRepository,
+            SubjectRoleEntityRepository rolesRepository,
             SubjectService subjectService) {
         Assert.notNull(roleRepository, "role repository is mandatory");
+        Assert.notNull(rolesRepository, "roles repository is mandatory");
         Assert.notNull(subjectService, "subject service is mandatory");
 
         this.roleRepository = roleRepository;
+        this.rolesRepository = rolesRepository;
         this.subjectService = subjectService;
     }
 
@@ -62,7 +69,7 @@ public class RealmRoleService {
         }
 
         // create a subject, will throw error if exists
-        Subject s = subjectService.addSubject(roleId, realm, SystemKeys.RESOURCE_ROLE, role);
+        subjectService.addSubject(roleId, realm, SystemKeys.RESOURCE_ROLE, role);
 
         // create role
         r = new RealmRoleEntity(roleId);
@@ -110,12 +117,29 @@ public class RealmRoleService {
 
     @Transactional(readOnly = true)
     public RealmRole getRole(String realm, String role) throws NoSuchRoleException {
+        return getRole(realm, role, true);
+    }
+
+    @Transactional(readOnly = true)
+    public RealmRole getRole(String realm, String role, boolean withSubjects) throws NoSuchRoleException {
         RealmRoleEntity r = roleRepository.findByRealmAndRole(realm, role);
         if (r == null) {
             throw new NoSuchRoleException();
         }
+        RealmRole rr = toRole(r);
 
-        return toRole(r);
+        long size = rolesRepository.countByRealmAndRole(r.getRealm(), r.getRole());
+        rr.setSize(size);
+
+        if (withSubjects) {
+            Collection<SubjectRoleEntity> subjects = rolesRepository.findByRealmAndRole(realm, role);
+            List<String> ss = subjects.stream()
+                    .map(SubjectRoleEntity::getSubject)
+                    .collect(Collectors.toList());
+            rr.setSubjects(ss);
+        }
+
+        return rr;
     }
 
     @Transactional(readOnly = true)

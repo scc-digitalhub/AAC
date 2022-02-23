@@ -103,8 +103,8 @@
 
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
-                data-target="#collapseProviders" aria-expanded="{{isAnyState(['realm.idps','realm.idp'])}}"
-                aria-controls="collapseProviders">
+                data-target="#collapseAuthentication" aria-expanded="{{isAnyState(['realm.idps','realm.idp'])}}"
+                aria-controls="collapseAuthentication">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-key"></use>
                 </svg>
@@ -112,7 +112,7 @@
               </a>
 
               <ul class="link-sublist collapse" ng-class="{show: isAnyState(['realm.idps','realm.idp'])}"
-                id="collapseProviders">
+                id="collapseAuthentication">
                 <li>
                   <a class="list-item" href ui-sref="realm.idps"
                     ng-class="{active: isAnyState(['realm.idps','realm.idp'])}">
@@ -126,9 +126,9 @@
 
             <li ng-if="realmAdmin && !realmImmutable">
               <a class="list-item medium px-2 pb-2 pt-1 left-icon" href data-toggle="collapse"
-                data-target="#collapseProviders"
+                data-target="#collapseAuthorization"
                 aria-expanded="{{isAnyState(['realm.roles','realm.role','realm.scopes'])}}"
-                aria-controls="collapseProviders">
+                aria-controls="collapseAuthorization">
                 <svg class="icon icon-sm icon-primary left" aria-hidden="true">
                   <use xlink:href="./italia/svg/sprite.svg#it-unlocked"></use>
                 </svg>
@@ -136,7 +136,7 @@
               </a>
 
               <ul class="link-sublist collapse"
-                ng-class="{show: isAnyState(['realm.roles','realm.role','realm.scopes'])}" id="collapseProviders">
+                ng-class="{show: isAnyState(['realm.roles','realm.role','realm.scopes'])}" id="collapseAuthorization">
                 <li>
                   <a class="list-item" href ui-sref="realm.roles"
                     ng-class="{active: isAnyState(['realm.roles','realm.role'])}">
