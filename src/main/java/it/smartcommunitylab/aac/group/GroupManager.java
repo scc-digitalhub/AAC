@@ -262,12 +262,12 @@ public class GroupManager {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Group> getSubjectGroups(String subject, String realm)
+    public Collection<Group> getSubjectGroups(String realm, String subject)
             throws NoSuchSubjectException, NoSuchRealmException {
         return groupService.getSubjectGroups(subject, realm);
     }
 
-    public Collection<Group> setSubjectGroups(String subject, String realm, Collection<Group> groups)
+    public Collection<Group> setSubjectGroups(String realm, String subject, Collection<Group> groups)
             throws NoSuchSubjectException, NoSuchRealmException, NoSuchGroupException {
 
         // check if subject exists
@@ -283,7 +283,7 @@ public class GroupManager {
 
     }
 
-    public void deleteSubjectFromGroups(String subject, String realm) throws NoSuchSubjectException {
+    public void deleteSubjectFromGroups(String realm, String subject) throws NoSuchSubjectException {
         groupService.deleteSubjectFromGroups(subject, realm);
     }
 

@@ -1,0 +1,63 @@
+<div class="pt-3">
+
+    <fieldset>
+        <legend class="mb-5">
+            Groups
+            <small class="form-text"> Manage groups for the current user</small>
+        </legend>
+        <div class="row">
+            <table class="table table-hover border-bottom">
+                <tr ng-repeat="item in groups">
+                    <td class="align-middle">
+                        <h6>{{item.name}}</h6>
+                        <p>{{item.description}}</p>
+                    </td>
+                    <td class="align-middle">
+                        ID <span class="small text-monospace bg-light pl-1 pr-1">{{item.group}}</span>
+                        <button class="btn btn-xs btn-link p-0 pb-1" ng-click="copyText(item.group)">
+                            <svg class="icon icon-xs icon-black">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-danger btn-sm" ng-click="removeGroup(item)">Remove</button>
+                    </td>
+                </tr>
+            </table>
+            <div class="col-md-12">
+                <button class="btn btn-primary btn-sm" ng-click="addGroupDlg()">Add group</button>
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+<div class="modal popconfirm-modal" tabindex="-1" group="dialog" id="groupsModal">
+    <div class="modal-dialog" group="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add realm group </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Add a group for the current user
+                </p>
+                <form name="groupForm" class="needs-validation was-validated" novalidate>
+                    <div class="form-group col pt-4 mb-2">
+                        <div class="bootstrap-select-wrapper border-bottom-0">
+                            <label class="active" for="group">Group</label>
+                            <select required title="Select one" id="group" ng-model="modGroup.group"
+                                ng-options="r as r.name for r in modGroup.groups track by r.group">
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="button" ng-click="addGroup()"
+                    ng-disabled="groupForm.$invalid">Add</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -40,6 +40,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
@@ -48,6 +49,8 @@ import it.smartcommunitylab.aac.core.UserManager;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
+import it.smartcommunitylab.aac.group.GroupManager;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.User;
@@ -62,6 +65,9 @@ public class DevUsersController {
 
     @Autowired
     private UserManager userManager;
+
+    @Autowired
+    protected GroupManager groupManager;
 
     @Autowired
     private RealmRoleManager roleManager;
@@ -163,6 +169,41 @@ public class DevUsersController {
             throws NoSuchRealmException, NoSuchUserException, NoSuchProviderException {
         userManager.inviteUser(realm, bean.getUsername(), bean.getSubjectId());
         return ResponseEntity.ok(null);
+    }
+
+    /*
+     * Groups
+     */
+    @GetMapping("/realms/{realm}/users/{subjectId}/groups")
+    public ResponseEntity<Collection<Group>> getRealmUserGroups(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        try {
+            Collection<Group> groups = groupManager.getSubjectGroups(realm, subjectId);
+            return ResponseEntity.ok(groups);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchUserException();
+        }
+    }
+
+    @PutMapping("/realms/{realm}/users/{subjectId}/groups")
+    public ResponseEntity<Collection<Group>> updateRealmUserGroups(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+            @RequestBody @Valid @NotNull Collection<Group> groups)
+            throws NoSuchRealmException, NoSuchUserException, NoSuchGroupException {
+        // filter groups, make sure they belong to the current realm
+        Set<Group> values = groups.stream()
+                .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
+                .collect(Collectors.toSet());
+        try {
+            Collection<Group> result = groupManager.setSubjectGroups(realm, subjectId,
+                    values);
+            return ResponseEntity.ok(result);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchUserException();
+        }
     }
 
     /*

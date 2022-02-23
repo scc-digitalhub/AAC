@@ -48,6 +48,17 @@ angular.module('aac.controllers.realmusers', [])
             });
         }
 
+        service.getRealmGroups = function (slug, subject) {
+            return $http.get('console/dev/realms/' + slug + '/users/' + subject + '/groups').then(function (data) {
+                return data.data;
+            });
+        }
+        service.updateRealmGroups = function (slug, subject, groups) {
+            return $http.put('console/dev/realms/' + slug + '/users/' + subject + '/groups', groups).then(function (data) {
+                return data.data;
+            });
+        }
+
         service.getRealmRoles = function (slug, subject) {
             return $http.get('console/dev/realms/' + slug + '/users/' + subject + '/roles').then(function (data) {
                 return data.data;
@@ -452,7 +463,7 @@ angular.module('aac.controllers.realmusers', [])
         // }
 
     })
-    .controller('RealmUserController', function ($scope, $state, $stateParams, RealmData, RealmUsers, RealmProviders, RealmAttributeSets, RealmRoles, RealmServices, RoleSpaceData, Utils) {
+    .controller('RealmUserController', function ($scope, $state, $stateParams, RealmData, RealmUsers, RealmProviders, RealmAttributeSets, RealmGroups, RealmRoles, RealmServices, RoleSpaceData, Utils) {
         var slug = $stateParams.realmId;
         var subjectId = $stateParams.subjectId;
         $scope.curView = 'overview';
@@ -512,6 +523,10 @@ angular.module('aac.controllers.realmusers', [])
                     $scope.reloadAttributes(data.attributes);
                     return data;
                 })
+                .then(function (data) {
+                    $scope.reloadGroups(data.groups);
+                    return;
+                })                
                 .then(function (data) {
                     $scope.reloadRoles(data.roles);
                     return;
@@ -589,6 +604,13 @@ angular.module('aac.controllers.realmusers', [])
                 .then(function (services) {
                     var sMap = new Map(services.map(e => [e.serviceId, e]));
                     $scope.services = sMap;
+                })
+                .then(function () {
+                    return RealmGroups.getGroups(slug);
+                })
+                .then(function (groups) {
+                    var gMap = new Map(groups.map(e => [e.group, e]));
+                    $scope.realmGroups = gMap;
                 })
                 .then(function () {
                     return RealmRoles.getRoles(slug);
@@ -857,6 +879,133 @@ angular.module('aac.controllers.realmusers', [])
                         Utils.showError('Failed to load apps: ' + err.data.message);
                     });
             }
+        }
+
+        /*
+        * realm groups
+        */
+        $scope.loadGroups = function () {
+            RealmUsers.getRealmGroups(slug, subjectId)
+                .then(function (data) {
+                    $scope.reloadGroups(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load user groups: ' + err.data.message);
+                });
+        }
+
+        $scope.reloadGroups = function (data) {
+            var realmGroups = $scope.realmGroups;
+            var groups = data.map(r => {
+
+                if (!realmGroups.has(r.group)) {
+                    return null;
+                }
+
+                var { group, name, description, groupId } = realmGroups.get(r.group);
+                return {
+                    ...r,
+                    group, name, description, groupId
+                }
+            })
+            $scope.groups = groups;
+
+            //flatten for display
+            $scope._groups = groups.map(r => r.group);
+
+            //also update user model
+            $scope.user.groups = data;
+        }
+
+        $scope.removeGroup = function (group) {
+            if (group.realm && group.realm != slug) {
+                Utils.showError('Failed to remove group');
+                return;
+            }
+
+            updateGroups(null, [group]);
+        }
+
+
+        $scope.addGroupDlg = function () {
+            $scope.modGroup = {
+                realm: slug,
+                group: '',
+                groups: Array.from($scope.realmGroups.values())
+            };
+            $('#groupsModal').modal({ keyboard: false });
+            Utils.refreshFormBS(300);
+        }
+
+        $scope.addGroup = function () {
+            $('#groupsModal').modal('hide');
+            if ($scope.modGroup && $scope.modGroup.group) {
+                var group = $scope.modGroup.group;
+
+                updateGroups([group], null);
+                $scope.modGroup = null;
+            }
+        }
+
+        // save groups
+        var updateGroups = function (groupsAdd, groupsRemove) {
+            //map cur realm
+            var curGroups = $scope.groups
+                .map(a => a.group);
+
+            var realmGroups = Array.from($scope.realmGroups.values()).map(r => r.group);
+
+            //handle only same realm
+            var groupsToAdd = [];
+            if (groupsAdd) {
+                groupsToAdd = groupsAdd.map(r => {
+                    if (r.group) {
+                        return r.group;
+                    }
+                    return r;
+                }).filter(r => !curGroups.includes(r));
+            }
+
+            if (groupsToAdd.some(r => !realmGroups.includes(r))) {
+                Utils.showError('Invalid groups');
+                return;
+            }
+
+            var groupsToRemove = [];
+            if (groupsRemove) {
+                groupsToRemove = groupsRemove.map(r => {
+                    if (r.group) {
+                        return r.group;
+                    }
+                    return r;
+                }).filter(r => curGroups.includes(r));
+            }
+
+            var keepGroups = curGroups.filter(r => !groupsToRemove.includes(r));
+            var groups = keepGroups.concat(groupsToAdd);
+
+            var data = groups.map(r => {
+                return { 'realm': slug, 'group': r }
+            });
+
+
+            RealmUsers.updateRealmGroups(slug, subjectId, data)
+                .then(function (data) {
+                    $scope.reloadGroups(data);
+                    return;
+                })
+                .then(function () {
+                    return RealmUsers.getApprovals(slug, subjectId);
+                })
+                .then(function (data) {
+                    $scope.reloadApprovals(data, $scope._groups);
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to update groups: ' + err.data.message);
+                });
+
+
         }
 
         /*
