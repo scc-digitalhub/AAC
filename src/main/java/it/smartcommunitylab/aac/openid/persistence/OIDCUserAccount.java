@@ -16,6 +16,7 @@ import javax.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.UserAccount;
@@ -159,7 +160,7 @@ public class OIDCUserAccount implements UserAccount, Serializable {
     }
 
     public boolean isEmailVerified() {
-        return emailVerified != null ? emailVerified.booleanValue() : false;
+        return (StringUtils.hasText(email) && emailVerified != null) ? emailVerified.booleanValue() : false;
     }
 
     public String getGivenName() {
