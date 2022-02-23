@@ -151,8 +151,6 @@ public class Config {
     public static final String SCOPE_APIKEY_USER_CLIENT = "apikey.user.client";
     public static final String SCOPE_APIKEY_USER = "apikey.user.me";
 
-    /** scopes for api management */
-    public static final String SCOPE_APIMANAGEMENT = "apimanagement";
     /** scopes for service management */
     public static final String SCOPE_SERVICEMANAGEMENT = "servicemanagement";
     public static final String SCOPE_SERVICEMANAGEMENT_USER = "servicemanagement.me";
