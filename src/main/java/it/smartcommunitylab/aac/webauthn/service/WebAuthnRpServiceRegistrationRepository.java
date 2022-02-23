@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
@@ -78,8 +79,12 @@ public class WebAuthnRpServiceRegistrationRepository {
                 }
             });
 
-    public WebAuthnRpService get(String providerId) throws ExecutionException {
-        return rpServicesByProviderId.get(providerId);
+    public WebAuthnRpService get(String providerId) throws NoSuchProviderException {
+        try {
+            return rpServicesByProviderId.get(providerId);
+        } catch (ExecutionException e) {
+            throw new NoSuchProviderException();
+        }
     }
 
 }
