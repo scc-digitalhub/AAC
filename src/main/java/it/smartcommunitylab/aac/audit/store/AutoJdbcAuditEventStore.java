@@ -137,8 +137,6 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
             }
         }
 
-        query.append(" ").append(orderBy);
-
         Long count = jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
         if (count == null) {
             return 0;
@@ -232,8 +230,6 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
                 params.add(new java.sql.Timestamp(after.toEpochMilli()));
             }
         }
-
-        query.append(" ").append(orderBy);
 
         Long count = jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
         if (count == null) {
