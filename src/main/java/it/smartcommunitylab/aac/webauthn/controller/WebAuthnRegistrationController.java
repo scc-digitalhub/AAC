@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import javax.validation.Valid;
@@ -25,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAttestationResponse;
@@ -77,14 +77,14 @@ public class WebAuthnRegistrationController {
      * 
      * The challenge and the information about the ceremony are temporarily stored
      * in the session.
+     * @throws NoSuchProviderException
      */
     @Hidden
     @PostMapping(value = "/auth/webauthn/attestationOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public WebAuthnRegistrationResponse generateAttestationOptions(
             @RequestBody @Valid WebAuthnRegistrationStartRequest body,
-            @PathVariable("providerId") String providerId) {
-        try {
+            @PathVariable("providerId") String providerId) throws NoSuchProviderException {
             WebAuthnIdentityProviderConfig provider = registrationRepository.findByProviderId(providerId);
             if (provider == null) {
                 throw new RegistrationException("No provider with id " + providerId);
@@ -107,20 +107,18 @@ public class WebAuthnRegistrationController {
                     username,
                     displayName);
             return response;
-        } catch (ExecutionException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 
     /**
      * Validates the attestation generated using the Credential Creation
      * Options obtained through the {@link #generateAttestationOptions} controller
+     * @throws NoSuchProviderException
      */
     @Hidden
     @PostMapping(value = "/auth/webauthn/attestations/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String verifyAttestation(@RequestBody @Valid WebAuthnAttestationResponse body,
-            @PathVariable("providerId") String providerId) {
+            @PathVariable("providerId") String providerId) throws NoSuchProviderException {
         try {
             final boolean canRegister = registrationRepository.findByProviderId(providerId)
                     .getConfigMap()
@@ -141,7 +139,7 @@ public class WebAuthnRegistrationController {
                         "Invalid attestation");
             }
             return "Welcome " + authenticatedUser + ". Next step is to authenticate your session";
-        } catch (IOException | ExecutionException e) {
+        } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Invalid attestation");
         }

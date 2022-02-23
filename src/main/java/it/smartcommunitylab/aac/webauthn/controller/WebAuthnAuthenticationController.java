@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.webauthn.controller;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import javax.validation.Valid;
@@ -24,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAssertionResponse;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnAuthenticationStartRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnLoginResponse;
@@ -64,36 +64,36 @@ public class WebAuthnAuthenticationController {
      * 
      * The challenge and the information about the ceremony are temporarily stored
      * in the session.
+     * 
+     * @throws NoSuchProviderException
      */
     @Hidden
     @PostMapping(value = "/auth/webauthn/assertionOptions/{providerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public WebAuthnLoginResponse generateAssertionOptions(@RequestBody @Valid WebAuthnAuthenticationStartRequest body,
-            @PathVariable("providerId") String providerId) {
-        try {
-            WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
+            @PathVariable("providerId") String providerId) throws NoSuchProviderException {
+        WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
 
-            String username = body.getUsername();
-            if (!isValidUsername(username)) {
-                throw new IllegalArgumentException();
-            }
-
-            WebAuthnLoginResponse response = rps.startLogin(username);
-            return response;
-        } catch (ExecutionException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        String username = body.getUsername();
+        if (!isValidUsername(username)) {
+            throw new IllegalArgumentException();
         }
+
+        WebAuthnLoginResponse response = rps.startLogin(username);
+        return response;
     }
 
     /**
      * Validates the assertion generated using the Credential Request
      * Options obtained through the {@link #generateAssertionOptions} controller
+     * 
+     * @throws NoSuchProviderException
      */
     @Hidden
     @RequestMapping(value = "/auth/webauthn/assertions/{providerId}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String verifyAssertion(@RequestBody @Valid WebAuthnAssertionResponse body,
-            @PathVariable("providerId") String providerId) {
+            @PathVariable("providerId") String providerId) throws NoSuchProviderException {
         try {
             final WebAuthnRpService rps = webAuthnRpServiceRegistrationRepository.get(providerId);
 
@@ -101,7 +101,7 @@ public class WebAuthnAuthenticationController {
                     .parseAssertionResponseJson(body.toJson());
             final String authenticatedUser = rps.finishLogin(pkc, body.getKey());
             return "Welcome " + authenticatedUser;
-        } catch (IOException | ExecutionException e) {
+        } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid assertion");
         }
     }
