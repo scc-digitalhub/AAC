@@ -58,7 +58,6 @@ import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
-import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
@@ -261,35 +260,6 @@ public class UserManager {
         userService.deleteUser(subjectId);
     }
 
-    public void updateUser(String realm, String subjectId, String name, String surname, String lang)
-            throws NoSuchRealmException, NoSuchProviderException, NoSuchUserException {
-        logger.debug("update internal user details to realm {}", realm);
-        Realm r = realmService.getRealm(realm);
-        if (StringUtils.hasText(subjectId)) {
-            Collection<IdentityProvider> providers = authorityManager.getIdentityProviders(r.getSlug());
-
-            // Assume internal provider exists and is unique
-            Optional<IdentityProvider> internalProvider = providers.stream()
-                    .filter(p -> p.getAuthority().equals(SystemKeys.AUTHORITY_INTERNAL)).findFirst();
-            if (!internalProvider.isPresent()) {
-                throw new NoSuchProviderException("No internal provider available");
-            }
-            IdentityService identityService = authorityManager.getIdentityService(internalProvider.get().getProvider());
-            Collection<? extends UserIdentity> identities = identityService.listIdentities(subjectId, false);
-            // no internal user exists: do nothing
-            if (identities == null || identities.size() == 0)
-                return;
-
-            UserIdentity identity = identities.iterator().next();
-            InternalUserAccount userAccount = (InternalUserAccount) identityService.getAccountService()
-                    .getAccount(identity.getUserId());
-            userAccount.setName(name);
-            userAccount.setSurname(surname);
-            userAccount.setLang(lang);
-            identityService.getAccountService().updateAccount(identity.getUserId(), userAccount);
-        }
-    }
-
     public String inviteUser(String realm, String username, String subjectId)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
 
@@ -319,7 +289,7 @@ public class UserManager {
             UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
 //            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
             logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
-            return ((InternalUserAccount) identity.getAccount()).getSubject();
+            return identity.getUserId();
         }
 
         if (StringUtils.hasText(subjectId)) {

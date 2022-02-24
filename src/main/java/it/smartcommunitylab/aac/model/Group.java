@@ -161,4 +161,35 @@ public class Group {
                 + modifiedDate + "]";
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((group == null) ? 0 : group.hashCode());
+        result = prime * result + ((realm == null) ? 0 : realm.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Group other = (Group) obj;
+        if (group == null) {
+            if (other.group != null)
+                return false;
+        } else if (!group.equals(other.group))
+            return false;
+        if (realm == null) {
+            if (other.realm != null)
+                return false;
+        } else if (!realm.equals(other.realm))
+            return false;
+        return true;
+    }
+
 }

@@ -243,6 +243,7 @@ public class BaseGroupController {
      * Roles
      */
     @GetMapping("/groups/{realm}/{groupId}/roles")
+    @Operation(summary = "get roles for a specific group")
     public ResponseEntity<Collection<RealmRole>> getGroupRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId)
@@ -256,6 +257,7 @@ public class BaseGroupController {
     }
 
     @PutMapping("/groups/{realm}/{groupId}/roles")
+    @Operation(summary = "set roles for a specific group")
     public ResponseEntity<Collection<RealmRole>> updateGroupRoles(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId,
