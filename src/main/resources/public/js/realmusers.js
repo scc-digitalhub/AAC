@@ -526,7 +526,7 @@ angular.module('aac.controllers.realmusers', [])
                 .then(function (data) {
                     $scope.reloadGroups(data.groups);
                     return data;
-                })                
+                })
                 .then(function (data) {
                     $scope.reloadRoles(data.roles);
                     return;
@@ -607,6 +607,23 @@ angular.module('aac.controllers.realmusers', [])
                 })
                 .then(function () {
                     return RealmGroups.getGroups(slug);
+                })
+                .then(function (groups) {
+                    return Promise.all(
+                        groups.map(g => {
+                            return RealmGroups.getGroupRoles(slug, g.groupId)
+                                .then(function (roles) {
+                                    var rr = [];
+                                    if (roles) {
+                                        rr = roles.map(r => r.role);
+                                    }
+                                    return {
+                                        ...g,
+                                        roles: rr
+                                    }
+                                });
+                        })
+                    );
                 })
                 .then(function (groups) {
                     var gMap = new Map(groups.map(e => [e.group, e]));
@@ -902,10 +919,10 @@ angular.module('aac.controllers.realmusers', [])
                     return null;
                 }
 
-                var { group, name, description, groupId } = realmGroups.get(r.group);
+                var { group, name, description, groupId, roles } = realmGroups.get(r.group);
                 return {
                     ...r,
-                    group, name, description, groupId
+                    group, name, description, groupId, roles
                 }
             })
             $scope.groups = groups;
@@ -995,10 +1012,13 @@ angular.module('aac.controllers.realmusers', [])
                     return;
                 })
                 .then(function () {
+                    return $scope.loadRoles();
+                })
+                .then(function () {
                     return RealmUsers.getApprovals(slug, subjectId);
                 })
                 .then(function (data) {
-                    $scope.reloadApprovals(data, $scope._groups);
+                    $scope.reloadApprovals(data, $scope._roles);
                     Utils.showSuccess();
                 })
                 .catch(function (err) {
@@ -1030,9 +1050,15 @@ angular.module('aac.controllers.realmusers', [])
                 }
 
                 var { role, name, description, roleId } = realmRoles.get(r.role);
+
+                //check if direct assign or via group
+                var groups = $scope.groups
+                    .filter(g => (g.roles && g.roles.includes(role)))
+                    .map(g => g.group);
+
                 return {
                     ...r,
-                    role, name, description, roleId
+                    role, name, description, roleId, groups
                 }
             })
             $scope.roles = roles;

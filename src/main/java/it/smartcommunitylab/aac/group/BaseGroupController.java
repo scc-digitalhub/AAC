@@ -2,6 +2,8 @@ package it.smartcommunitylab.aac.group;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -10,6 +12,7 @@ import javax.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,8 +28,11 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.roles.RealmRoleManager;
 
 /*
  * Base controller for realm groups
@@ -39,6 +45,9 @@ public class BaseGroupController {
 
     @Autowired
     protected GroupManager groupManager;
+
+    @Autowired
+    private RealmRoleManager roleManager;
 
     public String getAuthority() {
         return Config.R_USER;
@@ -230,4 +239,38 @@ public class BaseGroupController {
         groupManager.removeGroupMember(realm, g.getGroup(), subjectId);
     }
 
+    /*
+     * Roles
+     */
+    @GetMapping("/groups/{realm}/{groupId}/roles")
+    public ResponseEntity<Collection<RealmRole>> getGroupRoles(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId)
+            throws NoSuchRealmException, NoSuchGroupException {
+        try {
+            Collection<RealmRole> roles = roleManager.getSubjectRoles(realm, groupId);
+            return ResponseEntity.ok(roles);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchGroupException();
+        }
+    }
+
+    @PutMapping("/groups/{realm}/{groupId}/roles")
+    public ResponseEntity<Collection<RealmRole>> updateGroupRoles(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String groupId,
+            @RequestBody @Valid @NotNull Collection<RealmRole> roles)
+            throws NoSuchRealmException, NoSuchGroupException {
+        // filter roles, make sure they belong to the current realm
+        Set<RealmRole> values = roles.stream()
+                .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
+                .collect(Collectors.toSet());
+        try {
+            Collection<RealmRole> result = roleManager.setSubjectRoles(realm, groupId,
+                    values);
+            return ResponseEntity.ok(result);
+        } catch (NoSuchSubjectException e) {
+            throw new NoSuchGroupException();
+        }
+    }
 }

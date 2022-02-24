@@ -61,6 +61,17 @@ angular.module('aac.controllers.realmgroups', [])
                 return data.data;
             });
         }
+
+        service.getGroupRoles = function (realm, groupId) {
+            return $http.get('console/dev/groups/' + realm + '/' + groupId + '/roles').then(function (data) {
+                return data.data;
+            });
+        }
+        service.updateGroupRoles = function (realm, groupId, roles) {
+            return $http.put('console/dev/groups/' + realm + '/' + groupId + '/roles', roles).then(function (data) {
+                return data.data;
+            });
+        }
         return service;
     })
     .controller('RealmGroupsController', function ($scope, $state, $stateParams, RealmGroups, Utils) {
@@ -178,7 +189,7 @@ angular.module('aac.controllers.realmgroups', [])
 
     })
 
-    .controller('RealmGroupController', function ($scope, $state, $stateParams, RealmGroups, RealmData, RealmUsers, RealmAppsData, Utils) {
+    .controller('RealmGroupController', function ($scope, $state, $stateParams, RealmGroups, RealmData, RealmRoles, Utils) {
         var slug = $stateParams.realmId;
         var groupId = $stateParams.groupId;
 
@@ -210,6 +221,9 @@ angular.module('aac.controllers.realmgroups', [])
                     return data;
                 })
                 .then(function () {
+                    $scope.loadRoles();
+                })
+                .then(function () {
                     $scope.loadMembers();
                 })
                 .catch(function (err) {
@@ -219,7 +233,17 @@ angular.module('aac.controllers.realmgroups', [])
         };
 
         var init = function () {
-            $scope.load();
+            RealmRoles.getRoles(slug)
+                .then(function (roles) {
+                    var rMap = new Map(roles.map(e => [e.role, e]));
+                    $scope.realmRoles = rMap;
+                })
+                .then(function () {
+                    $scope.load();
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load realm group: ' + err.data.message);
+                });
         };
 
         $scope.reload = function (data) {
@@ -343,6 +367,126 @@ angular.module('aac.controllers.realmgroups', [])
             }
             $('#deleteConfirm').modal({ keyboard: false });
         };
+
+        /*
+        * realm roles
+        */
+        $scope.loadRoles = function () {
+            RealmGroups.getGroupRoles(slug, groupId)
+                .then(function (data) {
+                    $scope.reloadRoles(data);
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to load group roles: ' + err.data.message);
+                });
+        }
+
+        $scope.reloadRoles = function (data) {
+            var realmRoles = $scope.realmRoles;
+            var roles = data.map(r => {
+
+                if (!realmRoles.has(r.role)) {
+                    return null;
+                }
+
+                var { role, name, description, roleId } = realmRoles.get(r.role);
+                return {
+                    ...r,
+                    role, name, description, roleId
+                }
+            })
+            $scope.roles = roles;
+
+            //flatten for display
+            $scope._roles = roles.map(r => r.role);
+
+            //also update user model
+            $scope.group.roles = data;
+        }
+
+        $scope.removeRole = function (role) {
+            if (role.realm && role.realm != slug) {
+                Utils.showError('Failed to remove role');
+                return;
+            }
+
+            updateRoles(null, [role]);
+        }
+
+
+        $scope.addRoleDlg = function () {
+            $scope.modRole = {
+                realm: slug,
+                role: '',
+                roles: Array.from($scope.realmRoles.values())
+            };
+            $('#rolesModal').modal({ keyboard: false });
+            Utils.refreshFormBS(300);
+        }
+
+        $scope.addRole = function () {
+            $('#rolesModal').modal('hide');
+            if ($scope.modRole && $scope.modRole.role) {
+                var role = $scope.modRole.role;
+
+                updateRoles([role], null);
+                $scope.modRole = null;
+            }
+        }
+
+        // save roles
+        var updateRoles = function (rolesAdd, rolesRemove) {
+            //map cur realm
+            var curRoles = $scope.roles
+                .map(a => a.role);
+
+            var realmRoles = Array.from($scope.realmRoles.values()).map(r => r.role);
+
+            //handle only same realm
+            var rolesToAdd = [];
+            if (rolesAdd) {
+                rolesToAdd = rolesAdd.map(r => {
+                    if (r.role) {
+                        return r.role;
+                    }
+                    return r;
+                }).filter(r => !curRoles.includes(r));
+            }
+
+            if (rolesToAdd.some(r => !realmRoles.includes(r))) {
+                Utils.showError('Invalid roles');
+                return;
+            }
+
+            var rolesToRemove = [];
+            if (rolesRemove) {
+                rolesToRemove = rolesRemove.map(r => {
+                    if (r.role) {
+                        return r.role;
+                    }
+                    return r;
+                }).filter(r => curRoles.includes(r));
+            }
+
+            var keepRoles = curRoles.filter(r => !rolesToRemove.includes(r));
+            var roles = keepRoles.concat(rolesToAdd);
+
+            var data = roles.map(r => {
+                return { 'realm': slug, 'role': r }
+            });
+
+
+            RealmGroups.updateGroupRoles(slug, groupId, data)
+                .then(function (data) {
+                    $scope.reloadRoles(data);
+                    Utils.showSuccess();
+                })
+                .catch(function (err) {
+                    Utils.showError('Failed to update roles: ' + err.data.message);
+                });
+
+
+        }
 
         var iconProvider = function (type) {
             var icon = './italia/svg/sprite.svg#it-user';

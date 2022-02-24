@@ -60,7 +60,9 @@ import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
@@ -174,14 +176,14 @@ public class UserManager {
         return userService.searchUsers(r.getSlug(), keywords, pageRequest);
     }
 
-
     @Transactional(readOnly = true)
-    public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest) throws NoSuchRealmException {
+    public Page<User> searchUsersWithSpec(String realm, Specification<UserEntity> spec, Pageable pageRequest)
+            throws NoSuchRealmException {
         logger.debug("search users for realm {} with spec {}", realm, String.valueOf(spec));
         Realm r = realmService.getRealm(realm);
         return userService.searchUsersWithSpec(r.getSlug(), spec, pageRequest);
     }
-    
+
     @Transactional(readOnly = true)
     public List<User> findUsersByUsername(String realm, String username) throws NoSuchRealmException {
         logger.debug("search users for realm {} with username {}", realm, username);
@@ -189,7 +191,6 @@ public class UserManager {
         return userService.findUsersByUsername(realm, username);
     }
 
-    
     /*
      * Authorities
      */
@@ -259,8 +260,9 @@ public class UserManager {
         // let userService handle account, registrations etc
         userService.deleteUser(subjectId);
     }
-    
-    public void updateUser(String realm, String subjectId, String name, String surname, String lang) throws NoSuchRealmException, NoSuchProviderException, NoSuchUserException {
+
+    public void updateUser(String realm, String subjectId, String name, String surname, String lang)
+            throws NoSuchRealmException, NoSuchProviderException, NoSuchUserException {
         logger.debug("update internal user details to realm {}", realm);
         Realm r = realmService.getRealm(realm);
         if (StringUtils.hasText(subjectId)) {
@@ -275,17 +277,18 @@ public class UserManager {
             IdentityService identityService = authorityManager.getIdentityService(internalProvider.get().getProvider());
             Collection<? extends UserIdentity> identities = identityService.listIdentities(subjectId, false);
             // no internal user exists: do nothing
-            if (identities == null || identities.size() == 0) return;
-            
+            if (identities == null || identities.size() == 0)
+                return;
+
             UserIdentity identity = identities.iterator().next();
-            InternalUserAccount userAccount = (InternalUserAccount) identityService.getAccountService().getAccount(identity.getUserId());
+            InternalUserAccount userAccount = (InternalUserAccount) identityService.getAccountService()
+                    .getAccount(identity.getUserId());
             userAccount.setName(name);
             userAccount.setSurname(surname);
             userAccount.setLang(lang);
             identityService.getAccountService().updateAccount(identity.getUserId(), userAccount);
         }
     }
-
 
     public String inviteUser(String realm, String username, String subjectId)
             throws NoSuchRealmException, NoSuchProviderException, RegistrationException, NoSuchUserException {
@@ -316,7 +319,7 @@ public class UserManager {
             UserIdentity identity = identityService.registerIdentity(null, account, Collections.emptyList());
 //            updateRoles(realm, ((InternalUserAccount) identity.getAccount()).getSubject(), roles);
             logger.debug("invite user new identity {} in realm {}", identity.getUserId(), realm);
-            return ((InternalUserAccount)identity.getAccount()).getSubject();
+            return ((InternalUserAccount) identity.getAccount()).getSubject();
         }
 
         if (StringUtils.hasText(subjectId)) {
@@ -766,6 +769,23 @@ public class UserManager {
                     return cp;
                 }).collect(Collectors.toList());
 
+    }
+
+    /*
+     * Roles
+     */
+
+    public Collection<RealmRole> getUserRealmRoles(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        return userService.fetchUserRealmRoles(subjectId, realm);
+    }
+
+    /*
+     * Groups
+     */
+    public Collection<Group> getUserGroups(String realm, String subjectId)
+            throws NoSuchRealmException, NoSuchUserException {
+        return userService.fetchUserGroups(subjectId, realm);
     }
 
 }

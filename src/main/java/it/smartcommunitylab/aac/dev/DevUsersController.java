@@ -242,12 +242,8 @@ public class DevUsersController {
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
             throws NoSuchRealmException, NoSuchUserException {
-        try {
-            Collection<RealmRole> roles = roleManager.getSubjectRoles(realm, subjectId);
-            return ResponseEntity.ok(roles);
-        } catch (NoSuchSubjectException e) {
-            throw new NoSuchUserException();
-        }
+        Collection<RealmRole> roles = userManager.getUserRealmRoles(realm, subjectId);
+        return ResponseEntity.ok(roles);
     }
 
     @PutMapping("/realms/{realm}/users/{subjectId}/roles")
