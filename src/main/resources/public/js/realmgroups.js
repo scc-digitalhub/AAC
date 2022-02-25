@@ -295,6 +295,28 @@ angular.module('aac.controllers.realmgroups', [])
             $('#deleteConfirm').modal({ keyboard: false });
         };
 
+        $scope.searchSubjects = function () {
+            var keywords = $scope.modMember.search;
+            if (keywords && keywords.length > 2) {
+                var params = {
+                    t: "user,client",
+                    q: keywords
+                };
+
+                RealmData.getSubjects(slug, params)
+                    .then(function (data) {
+                        $scope.modMember.results = data;
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Error while searching: ' + err.data.message);
+                    });
+            }
+        }
+
+        /*
+        * Members
+        */
+
         $scope.loadMembers = function () {
             RealmGroups.getGroupMembers(slug, groupId)
                 .then(function (data) {
@@ -333,7 +355,11 @@ angular.module('aac.controllers.realmgroups', [])
         };
 
         $scope.createMemberDlg = function () {
-            $scope.modMember = {};
+            $scope.modMember = {
+                subjectId: null,
+                search: "",
+                results: null
+            };
             $('#memberModal').modal({ keyboard: false });
             Utils.refreshFormBS();
         }

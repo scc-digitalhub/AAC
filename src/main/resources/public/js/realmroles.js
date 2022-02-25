@@ -396,6 +396,24 @@ angular.module('aac.controllers.realmroles', [])
             }
         }
 
+        $scope.searchSubjects = function () {
+            var keywords = $scope.modRoleSubject.search;
+            if (keywords && keywords.length > 2) {
+                var params = {
+                    t: "user,client,group",
+                    q: keywords
+                };
+
+                RealmData.getSubjects(slug, params)
+                    .then(function (data) {
+                        $scope.modRoleSubject.results = data;
+                    })
+                    .catch(function (err) {
+                        Utils.showError('Error while searching: ' + err.data.message);
+                    });
+            }
+        }
+
         $scope.loadRoleSubjects = function () {
             RealmRoles.getRoleSubjects(slug, roleId)
                 .then(function (data) {
@@ -407,7 +425,7 @@ angular.module('aac.controllers.realmroles', [])
         };
 
         $scope.reloadRoleSubjects = function (data) {
-            $scope.subjects = data;
+            //$scope.subjects = data;
             var ids = new Set(data);
 
             //resolve subjects
@@ -434,7 +452,11 @@ angular.module('aac.controllers.realmroles', [])
         };
 
         $scope.createRoleSubjectDlg = function () {
-            $scope.modRoleSubject = {};
+            $scope.modRoleSubject = {
+                subjectId: null,
+                search: null,
+                results: null
+            };
             $('#roleSubjectModal').modal({ keyboard: false });
             Utils.refreshFormBS();
         }

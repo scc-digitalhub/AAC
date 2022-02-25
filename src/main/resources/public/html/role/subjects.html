@@ -21,7 +21,7 @@
         <div class="row">
             <div class="col">
                 <table class="table table-sm table-hover border-bottom" ng-if="subjects && subjects.length > 0">
-                    <tr ng-repeat="subject in subjects">
+                    <tr ng-repeat="subject in subjects track by subject.subjectId">
 
                         <td class="align-middle">
                             <div class="avatar-wrapper avatar-extra-text">
@@ -74,6 +74,48 @@
                         <label for="slug">Subject*</label>
                         <input type="text" class="form-control form-control-sm" id="subjectId"
                             ng-model="modRoleSubject.subjectId" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="search" class="autocomplete" placeholder="search" id="search"
+                            ng-model="modRoleSubject.search" ng-change="searchSubjects()" autocomplete="off">
+                        <span class="autocomplete-icon" aria-hidden="true">
+                            <svg class="icon icon-sm">
+                                <use xlink:href="./italia/svg/sprite.svg#it-search"></use>
+                            </svg>
+                        </span>
+                        <label for="search" class="sr-only">Search</label>
+                    </div>
+                    <div>
+                        <table class="table table-sm table-hover border-bottom"
+                            ng-if="modRoleSubject.results && modRoleSubject.results.length > 0">
+                            <tr ng-repeat="item in modRoleSubject.results">
+
+                                <td class="align-middle">
+                                    <div class="avatar-wrapper avatar-extra-text">
+                                        <div ng-if="item.icon" class="avatar size-lg">
+                                            <svg aria-hidden="true" class="icon icon-secondary">
+                                                <use xlink:href="{{item.icon}}"></use>
+                                            </svg>
+                                        </div>
+                                        <div class="extra-text">
+                                            <span class="h6">{{item.name}}</span>
+                                            <br> <span
+                                                class="small text-monospace bg-light pl-1 pr-1">{{item.subjectId}}</span>
+                                            <br> <small class="text-muted"> {{item.type}} </small>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm"
+                                        ng-click="(modRoleSubject.subjectId = item.subjectId)">Select</button>
+                                </td>
+                            </tr>
+                        </table>
+                        <p
+                            ng-if="modRoleSubject.search && (!modRoleSubject.results || modRoleSubject.results.length == 0)">
+                            No results
+                        </p>
                     </div>
                 </div>
                 <div class="modal-footer">
