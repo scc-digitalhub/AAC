@@ -417,11 +417,16 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             throws MessagingException {
         if (mailService != null) {
             String realm = getRealm();
-            String lang = (account.getLang() != null ? account.getLang() : "und");
+            String loginUrl = "/login";
+            if (uriBuilder != null) {
+                loginUrl = uriBuilder.buildUrl(realm, loginUrl);
+            }
+            String lang = (account.getLang() != null ? account.getLang() : "en");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("password", password);
+            vars.put("url", loginUrl);
 
             String template = "mail/password";
             if (StringUtils.hasText(lang)) {
@@ -429,7 +434,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             }
 
             String subject = mailService.getMessageSource().getMessage(
-                    "password.subject", null,
+                    "mail.password_subject", null,
                     Locale.forLanguageTag(lang));
 
             mailService.sendEmail(account.getEmail(), template, subject, vars);
@@ -438,13 +443,14 @@ public class InternalPasswordService extends AbstractProvider implements Credent
 
     private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
         if (mailService != null) {
-            String realm = getRealm();
+            // action is handled by global filter
+            String realm = null;
             String provider = getProvider();
             String confirmUrl = InternalIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
             if (uriBuilder != null) {
                 confirmUrl = uriBuilder.buildUrl(realm, confirmUrl);
             }
-            String lang = (account.getLang() != null ? account.getLang() : "und");
+            String lang = (account.getLang() != null ? account.getLang() : "en");
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
@@ -456,7 +462,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             }
 
             String subject = mailService.getMessageSource().getMessage(
-                    "reset.subject", null,
+                    "mail.reset_subject", null,
                     Locale.forLanguageTag(lang));
 
             mailService.sendEmail(account.getEmail(), template, subject, vars);

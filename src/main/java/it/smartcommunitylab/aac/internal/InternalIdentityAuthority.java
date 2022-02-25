@@ -131,6 +131,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         this.mailService = mailService;
     }
 
+    @Autowired
     public void setUriBuilder(RealmAwareUriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
     }
