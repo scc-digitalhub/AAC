@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
@@ -24,6 +25,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,16 +44,19 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientManager;
 import it.smartcommunitylab.aac.core.ProviderManager;
 import it.smartcommunitylab.aac.core.RealmManager;
+import it.smartcommunitylab.aac.core.SubjectManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.dev.DevUsersController.InvitationBean;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.services.ServicesManager;
 
 @RestController
@@ -71,6 +76,10 @@ public class DevRealmController {
 
     @Autowired
     private ServicesManager serviceManager;
+
+    @Autowired
+    private SubjectManager subjectManager;
+
     @Autowired
     private AuditManager auditManager;
 
@@ -227,6 +236,28 @@ public class DevRealmController {
             throws NoSuchRealmException, NoSuchUserException {
         realmManager.removeDeveloper(realm, subjectId);
         return ResponseEntity.ok(null);
+    }
+
+    /*
+     * Realm subjects
+     */
+    @GetMapping("/realms/{realm}/subjects")
+    public ResponseEntity<Collection<Subject>> getRealmSubjects(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = false) String q, @RequestParam(required = false) String t)
+            throws NoSuchRealmException {
+
+        Set<String> types = StringUtils.hasText(t) ? StringUtils.commaDelimitedListToSet(t) : null;
+        return ResponseEntity.ok(subjectManager.searchSubjects(realm, q, types));
+    }
+
+    @GetMapping("/realms/{realm}/subjects/{subjectId}")
+    public ResponseEntity<Subject> getRealmSubject(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+            throws NoSuchRealmException, NoSuchSubjectException {
+        Subject sub = subjectManager.getSubject(realm, subjectId);
+        return ResponseEntity.ok(sub);
     }
 
 }

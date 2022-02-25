@@ -289,18 +289,18 @@ public class DevController {
         return ResponseEntity.ok(scopeManager.getResource(resourceId));
     }
 
-    /*
-     * Subjects
-     * 
-     * TODO evaluate permission model
-     */
-
-    @GetMapping("/console/dev/subjects/{subjectId}")
-    public ResponseEntity<Subject> getSubject(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
-            throws NoSuchSubjectException {
-        return ResponseEntity.ok(subjectService.getSubject(subjectId));
-    }
+//    /*
+//     * Subjects
+//     * 
+//     * TODO evaluate permission model
+//     */
+//
+//    @GetMapping("/console/dev/subjects/{subjectId}")
+//    public ResponseEntity<Subject> getSubject(
+//            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId)
+//            throws NoSuchSubjectException {
+//        return ResponseEntity.ok(subjectService.getSubject(subjectId));
+//    }
 
     /*
      * Spaces
