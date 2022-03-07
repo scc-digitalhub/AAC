@@ -1,12 +1,13 @@
 package it.smartcommunitylab.aac.core.model;
 
+import java.io.Serializable;
+
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.Credentials;
 
-public interface UserCredentials extends Credentials {
-    public String getUserId();
+public interface UserCredentials extends Credentials, UserResource, Serializable {
 
-    public boolean canSet();
-
-    public boolean canReset();
-
+    default String getType() {
+        return SystemKeys.RESOURCE_CREDENTIALS;
+    }
 }

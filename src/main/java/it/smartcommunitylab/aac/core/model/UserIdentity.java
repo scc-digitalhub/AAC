@@ -3,7 +3,7 @@ package it.smartcommunitylab.aac.core.model;
 import java.io.Serializable;
 import java.util.Collection;
 
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.SystemKeys;
 
 /*
  *  An identity, bounded to a realm, is:
@@ -12,16 +12,16 @@ import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
  *  and contains
  *  - an account (from a provider)
  *  - a set of attributes (from a provider)
+ *  - an authenticated principal when user performed auth via this provider
  *  
  *  core implementations will always match account and attributes providers
  *  i.e. attributes will be fetched from identity provider
  *  
- *  note that we do not enforce authorities to match between providers,
- *  but mixed configurations are not supported by now
+ *  do note that identities *may* contain credentials in accounts OR principal.
  */
 public interface UserIdentity extends UserResource, Serializable {
 
-    // login principal
+    // authenticated principal (if available)
     public UserAuthenticatedPrincipal getPrincipal();
 
     // the account
@@ -30,7 +30,15 @@ public interface UserIdentity extends UserResource, Serializable {
     // attributes are mapped into multiple sets
     public Collection<UserAttributes> getAttributes();
 
-    // expose method to clear private data
-    public void eraseCredentials();
+    default String getType() {
+        return SystemKeys.RESOURCE_IDENTITY;
+    }
+
+    // id is local to provider
+    // by default user identity id is the account id
+    // the same id should be assigned to authenticatedPrincipal
+    default String getId() {
+        return getAccount() == null ? null : getAccount().getAccountId();
+    }
 
 }

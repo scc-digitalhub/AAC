@@ -16,7 +16,12 @@ public abstract class AbstractIdentity extends AbstractBaseResource implements U
         super(authority, provider, realm);
     }
 
-    public String getType() {
+    protected AbstractIdentity(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
+    }
+
+    @Override
+    public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
     }
 

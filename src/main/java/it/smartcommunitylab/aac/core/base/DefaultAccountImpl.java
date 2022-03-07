@@ -9,19 +9,17 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.EditableAccount;
 
 /*
  * An instantiable user account. 
  */
 
 @JsonInclude(Include.NON_NULL)
-public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
+public class DefaultAccountImpl extends AbstractAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    @JsonIgnore
-    private String internalUserId;
+    private String id;
     private String username;
     private String emailAddress;
     private Boolean emailVerified;
@@ -31,15 +29,14 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
 
     public DefaultAccountImpl(String authority, String provider, String realm) {
         super(authority, provider, realm);
-//        this.attributes = new HashMap<>();
     }
 
-    public String getInternalUserId() {
-        return internalUserId;
+    public String getId() {
+        return id;
     }
 
-    public void setInternalUserId(String internalUserId) {
-        this.internalUserId = internalUserId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override
@@ -72,16 +69,6 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
         return emailVerified != null ? emailVerified.booleanValue() : false;
     }
 
-    @Override
-    public String getUserId() {
-        if (userId == null) {
-            // leverage the default mapper to translate internalId when missing
-            return exportInternalId(internalUserId);
-        } else {
-            return userId;
-        }
-    }
-
     public Map<String, String> getAttributes() {
         return attributes;
     }
@@ -98,7 +85,6 @@ public class DefaultAccountImpl extends BaseAccount implements EditableAccount {
         return this.attributes.get(key);
     }
 
-    @Override
     @JsonIgnore
     public JsonSchema getSchema() {
         if (schema != null) {
