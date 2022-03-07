@@ -44,7 +44,7 @@ import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.CredentialsService;
+import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.dto.ConnectedAppProfile;
 import it.smartcommunitylab.aac.model.SpaceRole;
@@ -223,7 +223,7 @@ public class UserAccountController {
         IdentityService idp = authorityManager.getIdentityService(providerId);
 
         // fetch credentials service if available
-        CredentialsService service = idp.getCredentialsService();
+        UserCredentialsService service = idp.getCredentialsService();
 
         if (service == null) {
             throw new IllegalArgumentException("credentials are immutable");

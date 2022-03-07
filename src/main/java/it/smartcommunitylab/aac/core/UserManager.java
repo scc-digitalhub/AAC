@@ -391,7 +391,7 @@ public class UserManager {
                 Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
                 accounts.forEach(ua -> {
                     try {
-                        as.verifyAccount(ua.getUserId(), ua);
+                        as.verifyAccount(ua.getUserId());
                     } catch (RegistrationException | NoSuchUserException e) {
                     }
                 });
@@ -422,7 +422,7 @@ public class UserManager {
                 Collection<? extends UserAccount> accounts = as.listAccounts(subjectId);
                 accounts.forEach(ua -> {
                     try {
-                        as.unverifyAccount(ua.getUserId(), ua);
+                        as.unverifyAccount(ua.getUserId());
                     } catch (RegistrationException | NoSuchUserException e) {
                     }
                 });
