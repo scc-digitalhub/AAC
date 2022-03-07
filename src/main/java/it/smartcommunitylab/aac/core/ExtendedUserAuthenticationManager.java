@@ -24,6 +24,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,11 +41,11 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
@@ -301,11 +302,11 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
         logger.trace("auth principal is " + principal.toString());
 
-        // authentication provider should yield a proper userId (addressable)
-        String userId = auth.getPrincipal().getUserId();
-        logger.debug("authenticated userId is " + userId);
+        // authentication provider should yield a proper local id (addressable)
+        String principalId = auth.getPrincipal().getPrincipalId();
+        logger.debug("authenticated principalId is " + principalId);
 
-        // fetch identity provider for the given userId
+        // fetch identity provider for the given account
         // fast load skipping db
         IdentityProvider idp = authorityManager.fetchIdentityProvider(authorityId, providerId);
         if (idp == null) {
@@ -321,21 +322,23 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         String subjectId = null;
 
         // ask the IdP to resolve for persisted accounts
+        // TODO handle subject as UserSubject
         SubjectResolver resolver = idp.getSubjectResolver();
-        Subject s = resolver.resolveByUserId(userId);
+        Subject s = resolver.resolveByPrincipalId(principalId);
         if (s != null) {
+            // principal is associated to a persisted account linked to a user
             subjectId = s.getSubjectId();
-            logger.debug("resolved subject for identity to " + subjectId);
+            logger.debug("resolved user for identity to " + subjectId);
         }
 
         if (subjectId == null) {
             // account linking via attributes
-            Map<String, String> attributes = resolver.getLinkingAttributes(principal);
+            Map<String, String> attributes = resolver.getAttributes(principal);
             if (attributes != null && !attributes.isEmpty()) {
                 Collection<IdentityProvider> idps = authorityManager.fetchIdentityProviders(realm);
                 // first result is ok
                 for (IdentityProvider i : idps) {
-                    Subject ss = i.getSubjectResolver().resolveByLinkingAttributes(attributes);
+                    Subject ss = i.getSubjectResolver().resolveByAttributes(attributes);
                     if (ss != null) {
                         subjectId = ss.getSubjectId();
                         logger.debug("linked subject for identity to " + subjectId);
@@ -402,7 +405,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             logger.trace("userIdentity is " + identity.toString());
 
             // validate userId matches authentication
-            if (!userId.equals(identity.getUserId())) {
+            if (!subjectId.equals(identity.getUserId())) {
                 // provider misbehave or corruption
                 logger.error("userId does not match");
                 throw new AuthenticationServiceException("error processing request");
@@ -471,7 +474,9 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             // we also force erase credentials from the request to ensure non reuse
             request.eraseCredentials();
             // also erase credentials from identity, we don't want them in token
-            identity.eraseCredentials();
+            if (identity instanceof CredentialsContainer) {
+                ((CredentialsContainer) identity).eraseCredentials();
+            }
 
             // we can build the user authentication
             DefaultUserAuthenticationToken userAuth = new DefaultUserAuthenticationToken(
@@ -557,7 +562,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             return result;
 
         } catch (NoSuchUserException | NoSuchSubjectException e) {
-            logger.error("idp could not resolve identity for user " + userId);
+            logger.error("idp could not resolve identity for user " + subjectId);
             throw new UsernameNotFoundException("no identity for user from provider");
         }
 

@@ -10,6 +10,7 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
 /*
  * An authenticationToken holding both the provider token and a resolved identity

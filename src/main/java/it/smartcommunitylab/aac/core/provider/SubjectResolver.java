@@ -1,38 +1,39 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Map;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.model.Subject;
 
 public interface SubjectResolver {
 
     /*
-     * UserId
+     * Local id: direct resolve
      * 
-     * A globally addressable user identifier should suffices for a given authority
-     * to dispatch requests to providers
-     * 
-     * Providers should be able to translate to internal id
+     * we expect providers to be able to resolve subjects for persisted accounts
      */
 
-    // TODO return Optional<> instead of null
-    public Subject resolveByUserId(String userId);
+    public Subject resolveByAccountId(String accountId);
 
-    /*
-     * Identifying attributes
-     * 
-     * Multiple sets of attributes which can identify a user for a given provider.
-     * Each set, when fully populated, should suffice in finding the user.
-     * 
-     * To identify the provider consumers will need additional information
-     */
+    public Subject resolveByPrincipalId(String principalId);
 
-    public Subject resolveByIdentifyingAttributes(Map<String, String> attributes);
+    public Subject resolveByIdentityId(String identityId);
 
-    // disabled exposure of attribute keys
-//    public Collection<Set<String>> getIdentifyingAttributes();
-
-    public Map<String, String> getIdentifyingAttributes(UserAuthenticatedPrincipal principal);
+//    /*
+//     * Identifying attributes
+//     * 
+//     * Multiple sets of attributes which can identify a user for a given provider.
+//     * Each set, when fully populated, should suffice in finding the user.
+//     * 
+//     * To identify the provider consumers will need additional information
+//     */
+//
+//    public Subject resolveByIdentifyingAttributes(Map<String, String> attributes);
+//
+//    // disabled exposure of attribute keys
+////    public Collection<Set<String>> getIdentifyingAttributes();
+//
+//    public Map<String, String> getIdentifyingAttributes(UserAuthenticatedPrincipal principal);
 
     /*
      * Account linking
@@ -46,11 +47,13 @@ public interface SubjectResolver {
     // multi-login and
     // additional-identity-fetch
 
-    public Subject resolveByLinkingAttributes(Map<String, String> attributes);
+//    public Subject resolveByLinkingAttributes(Map<String, String> attributes);
+    public Subject resolveByAttributes(Map<String, String> attributes);
 
     // disabled exposure of attribute keys
 //    public Collection<String> getLinkingAttributes();
 
-    public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal);
+//    public Map<String, String> getLinkingAttributes(UserAuthenticatedPrincipal principal);
+    public Map<String, String> getAttributes(UserAuthenticatedPrincipal principal);
 
 }

@@ -8,6 +8,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 
+//TODO remove authPrincipal from here and split to SubjectAuthenticatedPrincipal
 public class Subject implements AuthenticatedPrincipal, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;

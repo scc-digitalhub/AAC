@@ -8,6 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 
 public abstract class ExtendedAuthenticationProvider extends AbstractProvider
         implements AuthenticationProvider {
@@ -17,7 +18,7 @@ public abstract class ExtendedAuthenticationProvider extends AbstractProvider
     }
 
     @Override
-    public String getType() {
+    public final String getType() {
         return SystemKeys.RESOURCE_AUTHENTICATION;
     }
 

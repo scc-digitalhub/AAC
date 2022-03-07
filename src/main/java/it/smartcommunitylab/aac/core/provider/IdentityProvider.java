@@ -5,8 +5,8 @@ import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.model.UserIdentity;
 
 /*
@@ -27,7 +27,7 @@ public interface IdentityProvider extends ResourceProvider {
 
     public String getDescription();
 
-    public ConfigurableProperties getConfiguration();
+    public String getDisplayMode();
 
     /*
      * auth provider
@@ -40,7 +40,7 @@ public interface IdentityProvider extends ResourceProvider {
     public AccountProvider getAccountProvider();
 
     public AttributeProvider getAttributeProvider();
-    
+
     /*
      * subjects are global, we can resolve
      */
@@ -53,7 +53,7 @@ public interface IdentityProvider extends ResourceProvider {
      * If given a subjectId the provider should update the account
      */
 
-    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String subjectId)
+    public UserIdentity convertIdentity(UserAuthenticatedPrincipal principal, String userId)
             throws NoSuchUserException;
 
     /*
@@ -62,13 +62,14 @@ public interface IdentityProvider extends ResourceProvider {
      * implementations are not required to support this
      */
 
-    // userId is provider-specific
-    public UserIdentity getIdentity(String subject, String userId) throws NoSuchUserException;
+    // identityId is provider-specific
+    public UserIdentity getIdentity(String identityId) throws NoSuchUserException;
 
-    public UserIdentity getIdentity(String subject, String userId, boolean fetchAttributes) throws NoSuchUserException;
+    public UserIdentity getIdentity(String identityId, boolean fetchAttributes)
+            throws NoSuchUserException;
 
     /*
-     * fetch for subject
+     * fetch for user
      * 
      * opt-in, loads identities outside login for persisted accounts linked to the
      * subject
@@ -77,9 +78,9 @@ public interface IdentityProvider extends ResourceProvider {
      * outside the login flow!
      */
 
-    public Collection<? extends UserIdentity> listIdentities(String subject);
+    public Collection<? extends UserIdentity> listIdentities(String userId);
 
-    public Collection<? extends UserIdentity> listIdentities(String subject, boolean fetchAttributes);
+    public Collection<? extends UserIdentity> listIdentities(String userId, boolean fetchAttributes);
 
     /*
      * Delete accounts.
@@ -87,9 +88,9 @@ public interface IdentityProvider extends ResourceProvider {
      * Implementations are required to implement this, even as a no-op. At minimum
      * we expect providers to clean up any local registration or cache.
      */
-    public void deleteIdentity(String subjectId, String userId) throws NoSuchUserException;
+    public void deleteIdentity(String identityId) throws NoSuchUserException;
 
-    public void deleteIdentities(String subjectId);
+    public void deleteIdentities(String userId);
 
     /*
      * Login
@@ -101,8 +102,6 @@ public interface IdentityProvider extends ResourceProvider {
     public String getAuthenticationUrl();
 
 //    public AuthenticationEntryPoint getAuthenticationEntryPoint();
-
-    public String getDisplayMode();
 
     /*
      * Additional action urls

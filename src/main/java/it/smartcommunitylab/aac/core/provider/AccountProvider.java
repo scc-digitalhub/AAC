@@ -1,25 +1,34 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import java.util.Collection;
-import java.util.Map;
 
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 
 public interface AccountProvider extends ResourceProvider {
 
     /*
      * Fetch accounts from this provider
-     * 
-     * userId is globally addressable
      */
 
-    public UserAccount getAccount(String userId) throws NoSuchUserException;
+    // accountId is local to provider
+    public UserAccount getAccount(String accountId) throws NoSuchUserException;
 
-    public UserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException;
+    public void deleteAccount(String accountId) throws NoSuchUserException;
 
-    public Collection<? extends UserAccount> listAccounts(String subject);
+    // userId is globally addressable
+    public Collection<? extends UserAccount> listAccounts(String userId);
 
-    public void deleteAccount(String userId) throws NoSuchUserException;
+    /*
+     * Actions on accounts
+     */
+    public UserAccount lockAccount(String accountId) throws NoSuchUserException, RegistrationException;
+
+    public UserAccount unlockAccount(String accountId) throws NoSuchUserException, RegistrationException;
+
+    public UserAccount blockAccount(String accountId) throws NoSuchUserException, RegistrationException;
+
+    public UserAccount unblockAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
 }

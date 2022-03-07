@@ -28,7 +28,7 @@ public interface IdentityService extends IdentityProvider {
 
     public AccountService getAccountService();
 
-    public CredentialsService getCredentialsService();
+    public UserCredentialsService getCredentialsService();
 
     /*
      * Manage identities from this provider
@@ -37,12 +37,11 @@ public interface IdentityService extends IdentityProvider {
      */
 
     public UserIdentity registerIdentity(
-            String subject, UserAccount account,
+            String userId, UserAccount account,
             Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
 
     public UserIdentity updateIdentity(
-            String subject,
-            String userId, UserAccount account,
+            String identityId, UserAccount account,
             Collection<UserAttributes> attributes) throws NoSuchUserException, RegistrationException;
 
     /*
