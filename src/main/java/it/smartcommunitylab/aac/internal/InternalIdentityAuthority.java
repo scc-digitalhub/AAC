@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
@@ -74,18 +75,16 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     private InternalIdentityProviderConfigMap defaultProviderConfig;
 
-    private InternalIdentityProviderConfig template;
-
     // services
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
-    // identity providers by id
-//    private Map<String, InternalIdentityProvider> providers = new HashMap<>();
-
-    private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
+    // identity provider configs by id
+    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
 
     // loading cache for idps
+    // TODO replace with external loadableProviderRepository for
+    // ProviderRepository<InternalIdentityProvider>
     private final LoadingCache<String, InternalIdentityService> providers = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
             .maximumSize(100)
@@ -115,7 +114,7 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
     public InternalIdentityAuthority(
             InternalUserAccountService userAccountService,
             UserEntityService userEntityService,
-            ProviderRepository<InternalIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
@@ -154,11 +153,6 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         defaultProviderConfig.setPasswordRequireNumber(passwordRequireNumber);
         defaultProviderConfig.setPasswordRequireSpecial(passwordRequireSpecial);
         defaultProviderConfig.setPasswordSupportWhitespace(passwordSupportWhitespace);
-
-        template = new InternalIdentityProviderConfig("internal.default", null);
-        template.setConfigMap(defaultProviderConfig);
-        template.setName("system default");
-
     }
 
     @Override
@@ -291,16 +285,12 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
 
     @Override
     public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return Collections.singleton(InternalIdentityProviderConfig.toConfigurableProvider(template));
+        return Collections.emptyList();
     }
 
     @Override
     public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
-        if ("internal.default".equals(templateId)) {
-            return InternalIdentityProviderConfig.toConfigurableProvider(template);
-        }
-
         throw new NoSuchProviderException("no templates available");
     }
 

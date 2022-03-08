@@ -13,13 +13,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalAttributeEntity;
 import it.smartcommunitylab.aac.internal.service.InternalAttributeEntityService;
 
@@ -73,11 +72,6 @@ public class InternalAttributeService extends AbstractProvider
     @Override
     public String getDescription() {
         return providerConfig.getDescription();
-    }
-
-    @Override
-    public ConfigurableProperties getConfiguration() {
-        return providerConfig;
     }
 
     @Override

@@ -1,9 +1,6 @@
 package it.smartcommunitylab.aac.core.provider;
 
-import java.util.Collection;
-
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
 
 /*
@@ -33,8 +30,8 @@ public interface UserCredentialsService extends ResourceProvider {
 
     public UserCredentials setCredentials(String accountId, UserCredentials credentials) throws NoSuchUserException;
 
-    // userId is globally addressable
-    public Collection<? extends UserAccount> listCredentials(String userId);
+//    // userId is globally addressable
+//    public Collection<? extends UserCredentials> listCredentials(String userId);
 
     public String getSetUrl() throws NoSuchUserException;
 
@@ -44,6 +41,6 @@ public interface UserCredentialsService extends ResourceProvider {
      */
     public String getResetUrl();
 
-    public UserCredentials resetUserCredentials(String accountId) throws NoSuchUserException;
+    public UserCredentials resetCredentials(String accountId) throws NoSuchUserException;
 
 }

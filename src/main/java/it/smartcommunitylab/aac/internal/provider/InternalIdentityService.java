@@ -17,12 +17,11 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
@@ -63,8 +62,6 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         Assert.isTrue(realm.equals(config.getRealm()), "configuration does not match this provider");
 
         // internal data repositories
-        // TODO replace with service to support external repo
-//        this.accountRepository = accountRepository;
         this.userEntityService = userEntityService;
         this.config = config;
 
@@ -117,36 +114,35 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = false)
-    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String subjectId)
+    public InternalUserIdentity convertIdentity(UserAuthenticatedPrincipal userPrincipal, String userId)
             throws NoSuchUserException {
+        Assert.isInstanceOf(InternalUserAuthenticatedPrincipal.class, userPrincipal,
+                "principal must be an instance of internal authenticated principal");
+
         // extract account and attributes in raw format from authenticated principal
         InternalUserAuthenticatedPrincipal principal = (InternalUserAuthenticatedPrincipal) userPrincipal;
-        String userId = principal.getUserId();
-//        String username = principal.getName();
-//
-//        // userId should be username, check
-//        if (!parseResourceId(userId).equals(username)) {
-//            throw new NoSuchUserException();
-//        }
 
-        if (subjectId == null) {
+        // username binds all identity pieces together
+        String username = principal.getUsername();
+
+        if (userId == null) {
             // this better exists
             throw new NoSuchUserException();
 
         }
 
         // get the internal account entity
-        InternalUserAccount account = accountService.getAccount(userId);
+        InternalUserAccount account = accountService.getAccount(username);
 
         if (account == null) {
             // error, user should already exists for authentication
             throw new NoSuchUserException();
         }
 
-        // subjectId is always present, is derived from the same account table
-        String curSubjectId = account.getSubject();
+        // userId is always present, is derived from the same account table
+        String curUserId = account.getUserId();
 
-        if (!curSubjectId.equals(subjectId)) {
+        if (!curUserId.equals(userId)) {
 //            // force link
 //            // TODO re-evaluate
 //            account.setSubject(subjectId);
@@ -162,7 +158,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account, principal);
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, subjectId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, userId);
         identity.setAttributes(identityAttributes);
 
         // do note returned identity has credentials populated
@@ -175,36 +171,31 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = true)
-    public InternalUserIdentity getIdentity(String subject, String userId) throws NoSuchUserException {
-        return getIdentity(subject, userId, true);
+    public InternalUserIdentity getIdentity(String username) throws NoSuchUserException {
+        return getIdentity(username, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public InternalUserIdentity getIdentity(String subject, String userId, boolean fetchAttributes)
+    public InternalUserIdentity getIdentity(String username, boolean fetchAttributes)
             throws NoSuchUserException {
 
-        // check if we are the providers
-        if (!getProvider().equals(parseProviderId(userId))) {
-            throw new IllegalArgumentException("invalid provider key in userId");
-        }
-
         // lookup a matching account
-        InternalUserAccount account = accountService.getAccount(userId);
-
-        // check subject
-        if (!account.getSubject().equals(subject)) {
-            throw new IllegalArgumentException("subject mismatch");
-        }
+        InternalUserAccount account = accountService.getAccount(username);
+//
+//        // check subject
+//        if (!account.getUserId().equals(userId)) {
+//            throw new IllegalArgumentException("user mismatch");
+//        }
 
         // fetch attributes
-        // TODO, we shouldn't have additional attributes for internal
+        // we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
         if (fetchAttributes) {
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
+            Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(username);
             identity.setAttributes(identityAttributes);
         }
 
@@ -217,15 +208,15 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<InternalUserIdentity> listIdentities(String subject) {
-        return listIdentities(subject, true);
+    public Collection<InternalUserIdentity> listIdentities(String userId) {
+        return listIdentities(userId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<InternalUserIdentity> listIdentities(String subject, boolean fetchAttributes) {
+    public Collection<InternalUserIdentity> listIdentities(String userId, boolean fetchAttributes) {
         // lookup for matching accounts
-        List<InternalUserAccount> accounts = accountService.listAccounts(subject);
+        List<InternalUserAccount> accounts = accountService.listAccounts(userId);
         if (accounts.isEmpty()) {
             return Collections.emptyList();
         }
@@ -242,7 +233,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             if (fetchAttributes) {
                 // convert attribute sets
                 Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAttributes(account.getUserId());
+                        .getAccountAttributes(account.getUsername());
                 identity.setAttributes(identityAttributes);
             }
 
@@ -281,12 +272,12 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
     @Override
     public boolean canRegister() {
-        return config.getConfigMap().isEnableRegistration();
+        return config.isEnableRegistration();
     }
 
     @Override
     public boolean canUpdate() {
-        return config.getConfigMap().isEnableUpdate();
+        return config.isEnableUpdate();
 
     }
 
@@ -303,10 +294,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity registerIdentity(
-            String subject, UserAccount reg,
+            String userId, UserAccount reg,
             Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
-        if (!config.getConfigMap().isEnableRegistration()) {
+        if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("registration is disabled for this provider");
         }
 
@@ -328,33 +319,28 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
         // we expect subject to be valid, or null if we need to create
         UserEntity user = null;
-        if (!StringUtils.hasText(subject)) {
-            subject = userEntityService.createUser(realm).getUuid();
-            user = userEntityService.addUser(subject, realm, username, emailAddress);
-            subject = user.getUuid();
+        if (!StringUtils.hasText(userId)) {
+            userId = userEntityService.createUser(realm).getUuid();
+            user = userEntityService.addUser(userId, realm, username, emailAddress);
+            userId = user.getUuid();
         } else {
             // check if exists
-            userEntityService.getUser(subject);
+            userEntityService.getUser(userId);
         }
 
         try {
             // create internal account
-            InternalUserAccount account = accountService.registerAccount(subject, reg);
-
-            // set providerId since all internal accounts have the same
-            account.setProvider(getProvider());
-
-            // rewrite internal userId
-            account.setUserId(exportInternalId(username));
+            InternalUserAccount account = accountService.registerAccount(userId, reg);
 
             // store and update attributes
-            // TODO, we shouldn't have additional attributes for internal
+            // we shouldn't have additional attributes for internal
 
             // use builder to properly map attributes
             InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
             // convert attribute sets
-            Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(account.getUserId());
+            Collection<UserAttributes> identityAttributes = attributeProvider
+                    .getAccountAttributes(account.getUsername());
             identity.setAttributes(identityAttributes);
 
             // this identity has credentials
@@ -363,7 +349,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         } catch (RegistrationException | IllegalArgumentException e) {
             // cleanup subject if we created it
             if (user != null) {
-                userEntityService.deleteUser(subject);
+                userEntityService.deleteUser(userId);
             }
 
             throw e;
@@ -374,11 +360,10 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     @Override
     @Transactional(readOnly = false)
     public InternalUserIdentity updateIdentity(
-            String subject,
-            String userId, UserAccount reg,
+            String username, UserAccount reg,
             Collection<UserAttributes> attributes)
             throws NoSuchUserException, RegistrationException {
-        if (!config.getConfigMap().isEnableUpdate()) {
+        if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
@@ -386,31 +371,31 @@ public class InternalIdentityService extends AbstractProvider implements Identit
             throw new RegistrationException("empty or incomplete registration");
         }
 
-        // we expect subject to be valid
-        if (!StringUtils.hasText(subject)) {
-            throw new IllegalArgumentException("invalid subjectId");
-        }
-
-        UserEntity user = userEntityService.getUser(subject);
+//        // we expect subject to be valid
+//        if (!StringUtils.hasText(userId)) {
+//            throw new IllegalArgumentException("invalid subjectId");
+//        }
+//
+//        UserEntity user = userEntityService.getUser(userId);
 
         // get the internal account entity
-        InternalUserAccount account = accountService.getAccount(userId);
+        InternalUserAccount account = accountService.getAccount(username);
 
-        // check subject
-        if (!account.getSubject().equals(subject)) {
-            throw new IllegalArgumentException("subject mismatch");
-        }
+//        // check subject
+//        if (!account.getUserId().equals(userId)) {
+//            throw new IllegalArgumentException("subject mismatch");
+//        }
 
-        account = accountService.updateAccount(subject, reg);
+        account = accountService.updateAccount(username, reg);
 
         // store and update attributes
-        // TODO, we shouldn't have additional attributes for internal
+        // we shouldn't have additional attributes for internal
 
         // use builder to properly map attributes
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account);
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.getAttributes(userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.getAccountAttributes(username);
         identity.setAttributes(identityAttributes);
 
         // this identity has credentials, erase
@@ -421,33 +406,33 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentity(String subject, String userId) throws NoSuchUserException {
-        if (!config.getConfigMap().isEnableDelete()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
-        }
+    public void deleteIdentity(String username) throws NoSuchUserException {
+//        if (!config.isEnableDelete()) {
+//            throw new IllegalArgumentException("delete is disabled for this provider");
+//        }
 
-        // get the internal account entity
-        InternalUserAccount account = accountService.getAccount(userId);
+//        // get the internal account entity
+//        InternalUserAccount account = accountService.getAccount(username);
 
-        // check subject
-        if (!account.getSubject().equals(subject)) {
-            throw new IllegalArgumentException("subject mismatch");
-        }
+//        // check subject
+//        if (!account.getUserId().equals(userId)) {
+//            throw new IllegalArgumentException("user mismatch");
+//        }
 
-        accountService.deleteAccount(userId);
+        accountService.deleteAccount(username);
     }
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentities(String subjectId) {
-        if (!config.getConfigMap().isEnableDelete()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
-        }
+    public void deleteIdentities(String userId) {
+//        if (!config.getConfigMap().isEnableDelete()) {
+//            throw new IllegalArgumentException("delete is disabled for this provider");
+//        }
 
-        List<InternalUserAccount> accounts = accountService.listAccounts(subjectId);
+        List<InternalUserAccount> accounts = accountService.listAccounts(userId);
         for (UserAccount account : accounts) {
             try {
-                accountService.deleteAccount(account.getUserId());
+                accountService.deleteAccount(account.getUsername());
             } catch (NoSuchUserException e) {
             }
         }
@@ -481,11 +466,6 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     @Override
     public String getDescription() {
         return config.getDescription();
-    }
-
-    @Override
-    public ConfigurableProperties getConfiguration() {
-        return config;
     }
 
     @Override

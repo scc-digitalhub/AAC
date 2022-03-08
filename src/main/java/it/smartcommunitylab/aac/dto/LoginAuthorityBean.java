@@ -167,7 +167,6 @@ public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
         }
         a.iconUrl = a.icon.startsWith("logo-") ? "svg/sprite.svg#" + a.icon : "italia/svg/sprite.svg#" + a.icon;
         a.displayMode = idp.getDisplayMode() != null ? idp.getDisplayMode() : SystemKeys.DISPLAY_MODE_BUTTON;
-        a.configuration = idp.getConfiguration();
 
         return a;
     }

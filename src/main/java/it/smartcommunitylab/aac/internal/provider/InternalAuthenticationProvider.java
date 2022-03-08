@@ -13,7 +13,7 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
@@ -72,12 +72,14 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
         String credentials = String
                 .valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(getRealm(), username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(getProvider(), username);
         if (account == null) {
             throw new InternalAuthenticationException(username, username, credentials, "unknown",
                     new BadCredentialsException("invalid user or password"));
         }
-        String subject = account.getSubject();
+
+        // userId is equal to subject
+        String subject = account.getUserId();
 
         // TODO check if providers are available
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
@@ -129,8 +131,8 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
     @Override
     protected UserAuthenticatedPrincipal createUserPrincipal(Object principal) {
         InternalUserAccount account = (InternalUserAccount) principal;
+        String userId = account.getUserId();
         String username = account.getUsername();
-        String name = account.getUsername();
 //        StringBuilder fullName = new StringBuilder();
 //        fullName.append(account.getName()).append(" ").append(account.getSurname());
 //
@@ -140,9 +142,11 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
 //        }
 
         InternalUserAuthenticatedPrincipal user = new InternalUserAuthenticatedPrincipal(getProvider(), getRealm(),
-                exportInternalId(username));
-        user.setName(name);
-        user.setPrincipal(account);
+                userId, username);
+        // set principal name as username
+        user.setName(username);
+        // set attributes to support mapping in idp
+        user.setAccountAttributes(account);
 
         return user;
     }

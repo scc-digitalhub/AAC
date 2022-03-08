@@ -1,13 +1,10 @@
 package it.smartcommunitylab.aac.internal.provider;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import javax.mail.MessagingException;
 
 import org.jsoup.Jsoup;
@@ -29,6 +26,7 @@ import it.smartcommunitylab.aac.core.provider.AccountService;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
+import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
 public class InternalAccountService extends AbstractProvider implements AccountService {
@@ -41,8 +39,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     private final InternalPasswordService passwordService;
 
     // provider configuration
-    private final InternalIdentityProviderConfig providerConfig;
-    private final InternalIdentityProviderConfigMap config;
+    private final InternalIdentityProviderConfig config;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
@@ -56,8 +53,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         Assert.notNull(providerConfig, "provider config is mandatory");
         Assert.notNull(userAccountService, "user account service is mandatory");
         this.userAccountService = userAccountService;
-        this.providerConfig = providerConfig;
-        this.config = providerConfig.getConfigMap();
+        this.config = providerConfig;
 
         this.passwordService = new InternalPasswordService(providerId, userAccountService, providerConfig, realm);
     }
@@ -82,100 +78,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
-    public List<InternalUserAccount> listAccounts(String subject) {
-        List<InternalUserAccount> accounts = userAccountService.findBySubject(subject, getRealm());
-
-        // we need to fix ids
-        return accounts.stream().map(a -> {
-            a.setProvider(getProvider());
-            a.setUserId(exportInternalId(a.getUsername()));
-            return a;
-        }).collect(Collectors.toList());
-    }
-
-    @Override
-    public InternalUserAccount getAccount(String userId) throws NoSuchUserException {
-        String username = parseResourceId(userId);
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
-        if (account == null) {
-            throw new NoSuchUserException(
-                    "Internal user with username " + username + " does not exist for realm " + realm);
-        }
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
-
-        return account;
-    }
-
-    @Override
-    public InternalUserAccount getByIdentifyingAttributes(Map<String, String> attributes) throws NoSuchUserException {
-        String realm = getRealm();
-
-        // check if passed map contains at least one valid set and fetch account
-        // TODO rewrite less hardcoded
-        // note AVOID reflection, we want native image support
-        InternalUserAccount account = null;
-        if (attributes.containsKey("userId")) {
-            String username = parseResourceId(attributes.get("userId"));
-            account = userAccountService.findAccountByUsername(realm, username);
-        }
-
-        if (account == null
-                && attributes.keySet().containsAll(Arrays.asList("realm", "username"))
-                && realm.equals((attributes.get("realm")))) {
-            account = userAccountService.findAccountByUsername(realm, attributes.get("username"));
-        }
-
-        if (account == null
-                && attributes.keySet().containsAll(Arrays.asList("realm", "email"))
-                && realm.equals((attributes.get("realm")))) {
-            account = userAccountService.findAccountByEmail(realm, attributes.get("email"));
-        }
-
-        if (account == null
-                && attributes.keySet().contains("confirmationKey")) {
-            account = userAccountService.findAccountByConfirmationKey(realm, attributes.get("confirmationKey"));
-        }
-
-        if (account == null
-                && attributes.keySet().contains("resetKey")) {
-            account = userAccountService.findAccountByResetKey(realm, attributes.get("resetKey"));
-        }
-
-        if (account == null) {
-            throw new NoSuchUserException("No internal user found matching attributes");
-        }
-
-        String username = account.getUsername();
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
-
-        return account;
-    }
-
-    @Override
-    public void deleteAccount(String userId) throws NoSuchUserException {
-        String username = parseResourceId(userId);
-        String realm = getRealm();
-
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
-
-        if (account != null) {
-            // remove account
-            userAccountService.deleteAccount(account.getId());
-        }
-    }
-
-    @Override
     public boolean canRegister() {
         return config.isEnableRegistration();
     }
@@ -185,35 +87,63 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         return config.isEnableUpdate();
     }
 
-    public InternalUserAccount findAccountByUsername(String username) {
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+    @Override
+    public boolean canVerify() {
+        return true;
+    }
+
+    @Override
+    public List<InternalUserAccount> listAccounts(String userId) {
+        return userAccountService.findByUser(userId, getProvider());
+    }
+
+    @Override
+    public InternalUserAccount getAccount(String username) throws NoSuchUserException {
+        String provider = getProvider();
+
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account == null) {
-            return null;
+            throw new NoSuchUserException();
         }
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
 
         return account;
     }
 
+    public InternalUserAccount findAccountByEmail(String email) {
+        String provider = getProvider();
+        return userAccountService.findAccountByEmail(provider, email);
+    }
+
+    public InternalUserAccount findAccountByUsername(String username) {
+        String provider = getProvider();
+        return userAccountService.findAccountByUsername(provider, username);
+    }
+
     @Override
-    public InternalUserAccount registerAccount(String subjectId, UserAccount reg)
+    public void deleteAccount(String username) throws NoSuchUserException {
+        String provider = getProvider();
+
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
+
+        if (account != null) {
+            // remove account
+            userAccountService.deleteAccount(provider, username);
+        }
+    }
+
+    @Override
+    public InternalUserAccount registerAccount(String userId, UserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableRegistration()) {
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
         // we expect subject to be valid
-        if (!StringUtils.hasText(subjectId)) {
-            throw new RegistrationException("missing-subject");
-
+        if (!StringUtils.hasText(userId)) {
+            throw new RegistrationException("missing-user");
         }
 
+        String provider = getProvider();
         String realm = getRealm();
 
         // extract base fields
@@ -224,7 +154,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new RegistrationException("missing-username");
         }
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account != null) {
             throw new AlreadyRegisteredException("duplicate-registration");
         }
@@ -280,11 +210,15 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         }
 
         account = new InternalUserAccount();
-        account.setSubject(subjectId);
-        account.setRealm(realm);
+        account.setProvider(provider);
         account.setUsername(username);
+
+        account.setUserId(userId);
+        account.setRealm(realm);
         // by default disable login
         account.setPassword(null);
+        // set account as active
+        account.setStatus(UserStatus.ACTIVE.getValue());
         account.setEmail(email);
         account.setName(name);
         account.setSurname(surname);
@@ -310,9 +244,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         account = userAccountService.addAccount(account);
 
-        String userId = this.exportInternalId(username);
-
-        account = passwordService.setPassword(userId, password, changeOnFirstAccess);
+        account = passwordService.setPassword(username, password, changeOnFirstAccess);
 
         // send mail
         try {
@@ -332,29 +264,22 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+
         // TODO evaluate returning cleartext password after creation
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
-
         return account;
 
     }
 
     @Override
-    public InternalUserAccount updateAccount(String userId, UserAccount reg)
+    public InternalUserAccount updateAccount(String username, UserAccount reg)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
-        String username = parseResourceId(userId);
-        String realm = getRealm();
+        String provider = getProvider();
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -386,29 +311,48 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             account.setSurname(surname);
             account.setLang(lang);
 
-            account = userAccountService.updateAccount(account.getId(), account);
+            account = userAccountService.updateAccount(provider, username, account);
         }
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
 
         return account;
     }
 
     @Override
-    public InternalUserAccount verifyAccount(String userId, UserAccount reg)
+    public InternalUserAccount linkAccount(String username, String userId)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
-        String username = parseResourceId(userId);
-        String realm = getRealm();
+        // we expect subject to be valid
+        if (!StringUtils.hasText(userId)) {
+            throw new RegistrationException("missing-user");
+        }
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        String provider = getProvider();
+
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // re-link to user
+        account.setUserId(userId);
+        account = userAccountService.updateAccount(provider, username, account);
+        return account;
+
+    }
+
+    @Override
+    public InternalUserAccount verifyAccount(String username)
+            throws NoSuchUserException, RegistrationException {
+        if (!config.isEnableUpdate()) {
+            throw new IllegalArgumentException("update is disabled for this provider");
+        }
+
+        String provider = getProvider();
+
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -418,22 +362,21 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         account.setConfirmationDeadline(null);
         account.setConfirmationKey(null);
 
-        account = userAccountService.updateAccount(account.getId(), account);
+        account = userAccountService.updateAccount(provider, username, account);
         return account;
 
     }
 
     @Override
-    public InternalUserAccount unverifyAccount(String userId, UserAccount reg)
+    public InternalUserAccount unverifyAccount(String username)
             throws NoSuchUserException, RegistrationException {
         if (!config.isEnableUpdate()) {
             throw new IllegalArgumentException("update is disabled for this provider");
         }
 
-        String username = parseResourceId(userId);
-        String realm = getRealm();
+        String provider = getProvider();
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -443,60 +386,112 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         account.setConfirmationDeadline(null);
         account.setConfirmationKey(null);
 
-        account = userAccountService.updateAccount(account.getId(), account);
+        account = userAccountService.updateAccount(provider, username, account);
         return account;
     }
 
-    public InternalUserAccount resetConfirm(String userId)
-            throws NoSuchUserException {
-        if (!config.isEnableUpdate()) {
-            throw new IllegalArgumentException("delete is disabled for this provider");
-        }
+    /*
+     * Administrative ops
+     */
+    @Override
+    public UserAccount activateAccount(String username) throws NoSuchUserException, RegistrationException {
+        return updateStatus(username, UserStatus.ACTIVE);
+    }
 
-        String username = parseResourceId(userId);
-        String realm = getRealm();
+    @Override
+    public UserAccount inactivateAccount(String username) throws NoSuchUserException, RegistrationException {
+        return updateStatus(username, UserStatus.INACTIVE);
+    }
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+    @Override
+    public UserAccount lockAccount(String username) throws NoSuchUserException, RegistrationException {
+        return updateStatus(username, UserStatus.LOCKED);
+    }
+
+    @Override
+    public UserAccount unlockAccount(String username) throws NoSuchUserException, RegistrationException {
+        return updateStatus(username, UserStatus.ACTIVE);
+    }
+
+    @Override
+    public UserAccount blockAccount(String username) throws NoSuchUserException, RegistrationException {
+        return updateStatus(username, UserStatus.BLOCKED);
+    }
+
+    @Override
+    public UserAccount unblockAccount(String username) throws NoSuchUserException, RegistrationException {
+        return updateStatus(username, UserStatus.ACTIVE);
+    }
+
+    public UserAccount updateStatus(String username, UserStatus newStatus)
+            throws NoSuchUserException, RegistrationException {
+        String provider = getProvider();
+
+        InternalUserAccount account = userAccountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
-        // build key
-        String confirmationKey = passwordService.generateKey();
+        // check if active, inactive accounts can not be changed except for activation
+        UserStatus curStatus = UserStatus.parse(account.getStatus());
+        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
+            throw new IllegalArgumentException("account is inactive, activate first to update status");
+        }
 
-        // we set deadline as +N seconds
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.SECOND, config.getConfirmationValidity());
-
-        account.setConfirmed(false);
-        account.setConfirmationDeadline(calendar.getTime());
-        account.setConfirmationKey(confirmationKey);
-
-        account = userAccountService.updateAccount(account.getId(), account);
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
-
+        // update status
+        account.setStatus(newStatus.getValue());
+        account = userAccountService.updateAccount(provider, username, account);
         return account;
     }
+
+//    public InternalUserAccount resetConfirm(String userId)
+//            throws NoSuchUserException {
+//        if (!config.isEnableUpdate()) {
+//            throw new IllegalArgumentException("delete is disabled for this provider");
+//        }
+//
+//        String username = parseResourceId(userId);
+//        String realm = getRealm();
+//
+//        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+//        if (account == null) {
+//            throw new NoSuchUserException();
+//        }
+//
+//        // build key
+//        String confirmationKey = passwordService.generateKey();
+//
+//        // we set deadline as +N seconds
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.add(Calendar.SECOND, config.getConfirmationValidity());
+//
+//        account.setConfirmed(false);
+//        account.setConfirmationDeadline(calendar.getTime());
+//        account.setConfirmationKey(confirmationKey);
+//
+//        account = userAccountService.updateAccount(account.getId(), account);
+//
+//        // set providerId since all internal accounts have the same
+//        account.setProvider(getProvider());
+//
+//        // rewrite internal userId
+//        account.setUserId(exportInternalId(username));
+//
+//        return account;
+//    }
 
     public InternalUserAccount confirmAccount(String confirmationKey) throws NoSuchUserException {
 
         if (!StringUtils.hasText(confirmationKey)) {
             throw new IllegalArgumentException("empty-key");
         }
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(realm, confirmationKey);
+        String provider = getProvider();
+        InternalUserAccount account = userAccountService.findAccountByConfirmationKey(provider, confirmationKey);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
-        if (!account.getRealm().equals(realm)) {
-            throw new IllegalArgumentException("realm mismatch");
-        }
+        String username = account.getUsername();
 
         if (!account.isConfirmed()) {
 
@@ -535,18 +530,10 @@ public class InternalAccountService extends AbstractProvider implements AccountS
                 account.setConfirmed(true);
                 account.setConfirmationDeadline(null);
                 account.setConfirmationKey(null);
-                account = userAccountService.updateAccount(account.getId(), account);
+                account = userAccountService.updateAccount(provider, username, account);
             }
 
         }
-
-        String username = account.getUsername();
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
 
         return account;
 

@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserCredentials;
-import it.smartcommunitylab.aac.core.provider.CredentialsService;
+import it.smartcommunitylab.aac.core.provider.UserCredentialsService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.dto.PasswordPolicy;
@@ -33,14 +33,13 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.utils.MailService;
 
-public class InternalPasswordService extends AbstractProvider implements CredentialsService {
+public class InternalPasswordService extends AbstractProvider implements UserCredentialsService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final InternalUserAccountService userAccountService;
+    private final InternalUserAccountService accountService;
 
     // provider configuration
-    private final InternalIdentityProviderConfig providerConfig;
-    private final InternalIdentityProviderConfigMap config;
+    private final InternalIdentityProviderConfig config;
 
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
@@ -52,9 +51,8 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
-        this.userAccountService = userAccountService;
-        this.providerConfig = providerConfig;
-        this.config = providerConfig.getConfigMap();
+        this.accountService = userAccountService;
+        this.config = providerConfig;
         this.hasher = new PasswordHash();
     }
 
@@ -100,28 +98,23 @@ public class InternalPasswordService extends AbstractProvider implements Credent
     }
 
     @Override
-    public UserPasswordCredentials getUserCredentials(String userId) throws NoSuchUserException {
+    public UserPasswordCredentials getCredentials(String username) throws NoSuchUserException {
         // fetch user
-        String username = parseResourceId(userId);
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        String provider = getProvider();
+        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
         // password are encrypted, can't read
         // we return a placeholder to describe config
-        UserPasswordCredentials credentials = new UserPasswordCredentials();
-        credentials.setUserId(userId);
-        credentials.setCanReset(canReset());
-        credentials.setCanSet(canSet());
-        credentials.setChangeOnFirstAccess(account.getChangeOnFirstAccess());
-
+        UserPasswordCredentials credentials = new UserPasswordCredentials(getAuthority(), provider, getRealm(),
+                account.getUserId());
         return credentials;
     }
 
     @Override
-    public UserPasswordCredentials setUserCredentials(String userId, UserCredentials credentials)
+    public UserPasswordCredentials setCredentials(String username, UserCredentials credentials)
             throws NoSuchUserException {
         if (!config.isEnablePasswordSet()) {
             throw new IllegalArgumentException("set is disabled for this provider");
@@ -132,23 +125,31 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             throw new IllegalArgumentException("invalid credentials");
         }
 
+        String provider = getProvider();
+        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
+        if (account == null) {
+            throw new NoSuchUserException();
+        }
+
+        // check if userId matches account
+        if (!account.getUserId().equals(credentials.getUserId())) {
+            throw new IllegalArgumentException("invalid credentials");
+        }
+
         String password = ((UserPasswordCredentials) credentials).getPassword();
         validatePassword(password);
 
-        InternalUserAccount account = setPassword(userId, password, false);
+        account = setPassword(username, password, false);
 
         // we return a placeholder to describe config
-        UserPasswordCredentials result = new UserPasswordCredentials();
-        result.setUserId(userId);
-        result.setCanReset(canReset());
-        result.setCanSet(canSet());
-        result.setChangeOnFirstAccess(account.getChangeOnFirstAccess());
+        UserPasswordCredentials result = new UserPasswordCredentials(getAuthority(), getProvider(), getRealm(),
+                account.getUserId());
 
         return result;
     }
 
     @Override
-    public UserPasswordCredentials resetUserCredentials(String userId) throws NoSuchUserException {
+    public UserPasswordCredentials resetCredentials(String username) throws NoSuchUserException {
         if (!config.isEnablePasswordReset()) {
             throw new IllegalArgumentException("reset is disabled for this provider");
         }
@@ -156,15 +157,11 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         // direct reset credentials to a new password, single use
         String password = generatePassword();
 
-        InternalUserAccount account = setPassword(userId, password, true);
+        InternalUserAccount account = setPassword(username, password, true);
 
-        // we return full credentials
-        UserPasswordCredentials result = new UserPasswordCredentials();
-        result.setUserId(userId);
-        result.setCanReset(canReset());
-        result.setCanSet(canSet());
-        result.setPassword(password);
-        result.setChangeOnFirstAccess(account.getChangeOnFirstAccess());
+        // we return a placeholder to describe config
+        UserPasswordCredentials result = new UserPasswordCredentials(getAuthority(), getProvider(), getRealm(),
+                account.getUserId());
 
         // send mail
         try {
@@ -192,12 +189,11 @@ public class InternalPasswordService extends AbstractProvider implements Credent
      * Manage
      */
 
-    public boolean verifyPassword(String userId, String password) throws NoSuchUserException {
-
+    public boolean verifyPassword(String username, String password) throws NoSuchUserException {
         // fetch user
-        String username = parseResourceId(userId);
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        String provider = getProvider();
+
+        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -213,14 +209,13 @@ public class InternalPasswordService extends AbstractProvider implements Credent
     }
 
     public InternalUserAccount setPassword(
-            String userId,
+            String username,
             String password,
             boolean changeOnFirstAccess) throws NoSuchUserException {
 
         // fetch user
-        String username = parseResourceId(userId);
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        String provider = getProvider();
+        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -233,7 +228,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             account.setPassword(hash);
             account.setChangeOnFirstAccess(changeOnFirstAccess);
 
-            return userAccountService.updateAccount(account.getId(), account);
+            return accountService.updateAccount(provider, username, account);
 
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new SystemException(e.getMessage());
@@ -241,15 +236,14 @@ public class InternalPasswordService extends AbstractProvider implements Credent
 
     }
 
-    public InternalUserAccount resetPassword(String userId) throws NoSuchUserException {
+    public InternalUserAccount resetPassword(String username) throws NoSuchUserException {
         if (!config.isEnablePasswordReset()) {
             throw new IllegalArgumentException("reset is disabled for this provider");
         }
 
         // fetch user
-        String username = parseResourceId(userId);
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        String provider = getProvider();
+        InternalUserAccount account = accountService.findAccountByUsername(provider, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -271,7 +265,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             logger.error(e.getMessage());
         }
 
-        return userAccountService.updateAccount(account.getId(), account);
+        return accountService.updateAccount(provider, username, account);
 
     }
 
@@ -280,15 +274,12 @@ public class InternalPasswordService extends AbstractProvider implements Credent
             throw new IllegalArgumentException("empty-key");
         }
 
-        String realm = getRealm();
-        InternalUserAccount account = userAccountService.findAccountByResetKey(realm, resetKey);
+        String provider = getProvider();
+        InternalUserAccount account = accountService.findAccountByResetKey(provider, resetKey);
         if (account == null) {
             throw new NoSuchUserException();
         }
-
-        if (!account.getRealm().equals(realm)) {
-            throw new IllegalArgumentException("realm mismatch");
-        }
+        String username = account.getUsername();
 
         // validate key, we do it simple
         boolean isValid = false;
@@ -340,16 +331,7 @@ public class InternalPasswordService extends AbstractProvider implements Credent
         account.setPassword(password);
         account.setChangeOnFirstAccess(true);
 
-        account = userAccountService.updateAccount(account.getId(), account);
-
-        String username = account.getUsername();
-
-        // set providerId since all internal accounts have the same
-        account.setProvider(getProvider());
-
-        // rewrite internal userId
-        account.setUserId(exportInternalId(username));
-
+        account = accountService.updateAccount(provider, username, account);
         return account;
 
     }

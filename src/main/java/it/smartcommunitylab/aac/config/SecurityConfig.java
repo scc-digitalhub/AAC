@@ -53,9 +53,9 @@ import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandl
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
-import it.smartcommunitylab.aac.internal.InternalConfirmKeyAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.InternalLoginAuthenticationFilter;
-import it.smartcommunitylab.aac.internal.InternalResetKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.internal.auth.InternalResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;

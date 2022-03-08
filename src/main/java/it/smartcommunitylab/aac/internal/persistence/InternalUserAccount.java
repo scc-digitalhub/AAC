@@ -1,16 +1,13 @@
 package it.smartcommunitylab.aac.internal.persistence;
 
 import java.util.Date;
-import java.util.HashMap;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -19,37 +16,37 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.core.base.AbstractAccount;
 
 @Entity
-@Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "username" }))
+@Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "provider_id", "email" }))
 @EntityListeners(AuditingEntityListener.class)
-public class InternalUserAccount implements UserAccount {
+public class InternalUserAccount extends AbstractAccount {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
+    // account id
     @Id
-    @GeneratedValue
-    private Long id;
-
-    // entity
-    @NotNull
-    @Column(name = "subject_id")
-    private String subject;
-
-    @Transient
+    @NotBlank
+    @Column(name = "provider_id")
     private String provider;
 
-    private String realm;
-
-    @Transient
-    private String userId;
-
-    // login
+    @Id
+    @NotBlank
     @Column(name = "username")
     private String username;
+
+    // user id
+    @NotNull
+    @Column(name = "user_id")
+    private String userId;
+
+    @NotBlank
+    private String realm;
+
+    // login
     private String password;
+    private String status;
 
     // attributes
     private String email;
@@ -84,6 +81,10 @@ public class InternalUserAccount implements UserAccount {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
+    public InternalUserAccount() {
+        super(SystemKeys.AUTHORITY_INTERNAL, null, null);
+    }
+
     @Override
     public String getAuthority() {
         return SystemKeys.AUTHORITY_INTERNAL;
@@ -91,12 +92,12 @@ public class InternalUserAccount implements UserAccount {
 
     @Override
     public String getProvider() {
-        return provider == null ? SystemKeys.AUTHORITY_INTERNAL : provider;
+        return provider;
     }
 
     @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
+    public String getId() {
+        return username;
     }
 
     @Override
@@ -109,45 +110,28 @@ public class InternalUserAccount implements UserAccount {
         return email;
     }
 
-    @Override
-    public String getUserId() {
-        if (userId == null) {
-            // use our id at authority level is the internal id
-            return String.valueOf(id);
-        }
-
-        return userId;
-    }
-
-    public void setUserId(String id) {
-        userId = id;
-    }
-
     /*
      * fields
      */
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
 
     public String getRealm() {
         return realm;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public void setRealm(String realm) {
         this.realm = realm;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public void setUsername(String username) {
@@ -160,6 +144,14 @@ public class InternalUserAccount implements UserAccount {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getEmail() {
@@ -264,38 +256,6 @@ public class InternalUserAccount implements UserAccount {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-//    @Override
-//    public AccountProfile toProfile() {
-//        AccountProfile profile = new AccountProfile();
-//        profile.setAuthority(getAuthority());
-//        profile.setProvider(getProvider());
-//        profile.setRealm(getRealm());
-//        profile.setUsername(getUsername());
-//        profile.setUserId(getUserId());
-//
-//        profile.setAttributes(new HashMap<>());
-//        profile.getAttributes().put("username", getUsername());
-//        profile.getAttributes().put("email", getEmail());
-//        profile.getAttributes().put("given_name", getName());
-//        profile.getAttributes().put("family_name", getSurname());
-//
-//        return profile;
-//    }
-
-    @Override
-    public String toString() {
-        return "InternalUserAccount [id=" + id + ", subject=" + subject + ", provider=" + provider + ", realm=" + realm
-                + ", username=" + username + ", email=" + email + ", name=" + name + ", surname=" + surname + ", lang="
-                + lang + ", confirmed=" + confirmed + ", confirmationDeadline=" + confirmationDeadline
-                + ", confirmationKey=" + confirmationKey + ", resetDeadline=" + resetDeadline + ", resetKey=" + resetKey
-                + ", changeOnFirstAccess=" + changeOnFirstAccess + ", createDate=" + createDate + ", modifiedDate="
-                + modifiedDate + "]";
     }
 
 }

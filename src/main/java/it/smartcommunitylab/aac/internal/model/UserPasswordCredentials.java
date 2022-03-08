@@ -1,31 +1,23 @@
 package it.smartcommunitylab.aac.internal.model;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import it.smartcommunitylab.aac.core.model.UserCredentials;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
 
 @Valid
-public class UserPasswordCredentials implements UserCredentials {
+public class UserPasswordCredentials extends AbstractUserCredentials {
+    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    @NotBlank
-    private String userId;
+    public UserPasswordCredentials(String authority, String provider, String realm, String userId) {
+        super(authority, provider, realm, userId);
+        Assert.hasText(userId, "userId can not be null or blank");
+    }
+
     private String password;
-
-    private boolean canReset = false;
-    private boolean canSet = false;
-
-    private boolean changeOnFirstAccess = false;
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     public String getPassword() {
         return password;
@@ -35,14 +27,6 @@ public class UserPasswordCredentials implements UserCredentials {
         this.password = password;
     }
 
-    public void setCanReset(boolean canReset) {
-        this.canReset = canReset;
-    }
-
-    public void setCanSet(boolean canSet) {
-        this.canSet = canSet;
-    }
-
     @Override
     @JsonIgnore
     public String getCredentials() {
@@ -50,21 +34,8 @@ public class UserPasswordCredentials implements UserCredentials {
     }
 
     @Override
-    public boolean canSet() {
-        return canSet;
-    }
-
-    @Override
-    public boolean canReset() {
-        return canReset;
-    }
-
-    public boolean isChangeOnFirstAccess() {
-        return changeOnFirstAccess;
-    }
-
-    public void setChangeOnFirstAccess(boolean changeOnFirstAccess) {
-        this.changeOnFirstAccess = changeOnFirstAccess;
+    public String getId() {
+        return getUserId() + ":password";
     }
 
 }

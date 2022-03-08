@@ -8,33 +8,35 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
-public class InternalUserAuthenticatedPrincipal implements UserAuthenticatedPrincipal, CredentialsContainer {
+public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal implements CredentialsContainer {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final String provider;
-    private final String realm;
-
-    private final String userId;
+    private final String username;
     private String name;
-    private InternalUserAccount principal;
+    private String email;
+    private Boolean confirmed;
 
-    public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId) {
-        Assert.notNull(userId, "userId cannot be null");
-        Assert.notNull(provider, "provider cannot be null");
-        Assert.notNull(realm, "realm cannot be null");
+    // internal attributes from account
+    private Map<String, String> attributes;
 
-        this.userId = userId;
-        this.provider = provider;
-        this.realm = realm;
+    public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, userId);
+        Assert.hasText(username, "username can not be null or empty");
+        this.username = username;
+
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return username;
     }
 
     @Override
@@ -44,44 +46,75 @@ public class InternalUserAuthenticatedPrincipal implements UserAuthenticatedPrin
 
     @Override
     public Map<String, String> getAttributes() {
-        Map<String, String> attributes = new HashMap<>();
-        if (principal != null) {
-            // map base attributes, these will be available for custom mapping
-            attributes.put("username", principal.getUsername());
-            attributes.put("id", Long.toString(principal.getId()));
-            attributes.put("confirmed", Boolean.toString(principal.isConfirmed()));
+        Map<String, String> map = new HashMap<>();
+        map.put("provider", getProvider());
+        map.put("username", username);
+        map.put("id", username);
 
-            String name = principal.getName();
-            if (StringUtils.hasText(name)) {
-                attributes.put("name", name);
+        if (StringUtils.hasText(name)) {
+            map.put("name", name);
+        }
+
+        String userId = getUserId();
+        if (StringUtils.hasText(userId)) {
+            map.put("userId", userId);
+        }
+
+        // add all account attributes if set
+        if (attributes != null) {
+            map.putAll(attributes);
+        }
+
+        // override if set
+        if (StringUtils.hasText(email)) {
+            map.put("email", email);
+        }
+        if (confirmed != null) {
+            map.put("confirmed", Boolean.toString(confirmed.booleanValue()));
+        }
+
+        return map;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Boolean getConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(Boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public void setAccountAttributes(InternalUserAccount account) {
+        if (account != null) {
+            this.email = account.getEmail();
+            this.confirmed = account.isConfirmed();
+
+            // map base attributes, these will be available for custom mapping
+            attributes = new HashMap<>();
+
+            String pname = account.getName();
+            if (StringUtils.hasText(pname)) {
+                attributes.put("name", pname);
             }
 
-            String surname = principal.getSurname();
+            String surname = account.getSurname();
             if (StringUtils.hasText(surname)) {
                 attributes.put("surname", surname);
             }
 
-            String email = principal.getEmail();
-            if (StringUtils.hasText(email)) {
-                attributes.put("email", email);
-            }
-
-            String lang = principal.getLang();
+            String lang = account.getLang();
             if (StringUtils.hasText(lang)) {
                 attributes.put("lang", lang);
             }
-
         }
-
-        return attributes;
-    }
-
-    public InternalUserAccount getPrincipal() {
-        return principal;
-    }
-
-    public void setPrincipal(InternalUserAccount principal) {
-        this.principal = principal;
     }
 
     public void setName(String name) {
@@ -89,24 +122,11 @@ public class InternalUserAuthenticatedPrincipal implements UserAuthenticatedPrin
     }
 
     @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_INTERNAL;
-    }
-
-    @Override
-    public String getProvider() {
-        return provider;
-    }
-
-    @Override
-    public String getRealm() {
-        return realm;
-    }
-
-    @Override
     public void eraseCredentials() {
-        this.principal.setPassword(null);
-
+        if (this.attributes != null) {
+            // make sure password is not exposed in attributes
+            this.attributes.remove("password");
+        }
     }
 
 }
