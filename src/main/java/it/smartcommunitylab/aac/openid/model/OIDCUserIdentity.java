@@ -1,110 +1,82 @@
-package it.smartcommunitylab.aac.openid;
+package it.smartcommunitylab.aac.openid.model;
 
-import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
-import it.smartcommunitylab.aac.openid.auth.OIDCAuthenticatedPrincipal;
+import java.util.HashSet;
+import java.util.Set;
 
-public class OIDCUserIdentity extends DefaultIdentityImpl implements Serializable {
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.base.AbstractIdentity;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
+
+public class OIDCUserIdentity extends AbstractIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
-    private String emailAddress;
-    private OIDCAuthenticatedPrincipal principal;
+    // authentication principal (if available)
+    private final OIDCUserAuthenticatedPrincipal principal;
 
-    public OIDCUserIdentity(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_OIDC, provider, realm);
-        attributes = Collections.emptySet();
+    // user account
+    private final OIDCUserAccount account;
+
+    // attribute sets
+    protected Set<UserAttributes> attributes;
+
+    public OIDCUserIdentity(String provider, String realm, OIDCUserAccount account) {
+        this(SystemKeys.AUTHORITY_OIDC, provider, realm, account);
     }
 
-    public OIDCUserIdentity(String provider, String realm, OIDCAuthenticatedPrincipal principal) {
-        super(SystemKeys.AUTHORITY_OIDC, provider, realm, principal);
-        attributes = Collections.emptySet();
+    public OIDCUserIdentity(String authority, String provider, String realm, OIDCUserAccount account) {
+        super(authority, provider, realm);
+        this.account = account;
+        this.principal = null;
+        this.attributes = Collections.emptySet();
+        super.setUserId(account.getUserId());
+    }
+
+    public OIDCUserIdentity(String provider, String realm, OIDCUserAccount account,
+            OIDCUserAuthenticatedPrincipal principal) {
+        this(SystemKeys.AUTHORITY_OIDC, provider, realm, account, principal);
+    }
+
+    public OIDCUserIdentity(String authority, String provider, String realm, OIDCUserAccount account,
+            OIDCUserAuthenticatedPrincipal principal) {
+        super(authority, provider, realm);
+        this.account = account;
         this.principal = principal;
-        this.username = principal.getName();
+        this.attributes = Collections.emptySet();
+        super.setUserId(account.getUserId());
     }
 
     @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_OIDC;
+    public OIDCUserAuthenticatedPrincipal getPrincipal() {
+        return principal;
     }
 
     @Override
-    public void eraseCredentials() {
-        // we do not have credentials or sensible data
-
+    public OIDCUserAccount getAccount() {
+        return account;
     }
 
     @Override
-    public OIDCAuthenticatedPrincipal getPrincipal() {
-        return this.principal;
+    public Collection<UserAttributes> getAttributes() {
+        return attributes;
     }
 
-//    @Override
-//    public Object getCredentials() {
-//        // we do not have credentials or sensible data
-//        return null;
-//    }
+    public String getSubject() {
+        return account.getSubject();
+    }
 
     public String getEmailAddress() {
-        return emailAddress;
+        return account.getEmail();
     }
 
-    public void setEmailAddress(String emailAddress) {
-        this.emailAddress = emailAddress;
+    public void setAttributes(Collection<UserAttributes> attributes) {
+        this.attributes = new HashSet<>();
+        if (attributes != null) {
+            attributes.addAll(attributes);
+        }
     }
-
-    /*
-     * Builder
-     */
-//    public static OIDCUserIdentity from(OIDCUserAccount user, Collection<AttributeEntity> attributes) {
-//        OIDCUserIdentity i = new OIDCUserIdentity(user.getProvider(), user.getRealm());
-//        i.account = user;
-//        i.username = user.getUsername();
-//
-//        // TODO build attributes
-////        Set<AbstractMap.SimpleEntry<String, String>> attrs = new HashSet<>();
-////        // static map base attrs
-////        attrs.add(createAttribute("email", user.getEmail()));
-////        attrs.add(createAttribute("email_verified", Boolean.toString(user.getEmailVerified())));
-////        attrs.add(createAttribute("name", user.getName()));
-////        attrs.add(createAttribute("given_name", user.getGivenName()));
-////        attrs.add(createAttribute("family_name", user.getFamilyName()));
-////        attrs.add(createAttribute("profile", user.getProfileUri()));
-////        attrs.add(createAttribute("picture", user.getPictureUri()));
-////
-////        // also map additional attrs
-////        attrs.addAll(
-////                attributes.stream().map(a -> createAttribute(a.getKey(), a.getValue())).collect(Collectors.toSet()));
-////
-////        // filter empty or null attributes
-////        i.attributes = attrs.stream().filter(a -> StringUtils.hasText(a.getValue())).collect(Collectors.toSet());
-//
-//        return i;
-//
-//    }
-
-//    /*
-//     * Helpers
-//     */
-//    private static AbstractMap.SimpleEntry<String, String> createAttribute(String key, String value) {
-//        String k = buildAttributeKey(key);
-//        return new AbstractMap.SimpleEntry<>(k, value);
-//
-//    }
-//
-//    private static String buildAttributeKey(String key) {
-//        String k = key;
-//        if (StringUtils.hasText(k)) {
-//            if (!k.startsWith(ATTRIBUTE_PREFIX)) {
-//                k = ATTRIBUTE_PREFIX + key;
-//            }
-//        }
-//
-//        return k;
-//    }
-//
-//    private static final String ATTRIBUTE_PREFIX = SystemKeys.AUTHORITY_OIDC + ".";
 
 }

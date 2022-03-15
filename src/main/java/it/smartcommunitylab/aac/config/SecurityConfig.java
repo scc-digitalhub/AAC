@@ -51,6 +51,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter;
@@ -128,7 +129,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private RealmAwarePathUriBuilder realmUriBuilder;
 
     @Autowired
-    private ProviderRepository<InternalIdentityProviderConfig> internalProviderRepository;
+    private ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderRepository;
 
     @Autowired
     private ProviderRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
@@ -337,7 +338,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getInternalAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<InternalIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<InternalIdentityProviderConfig> providerRepository,
             InternalUserAccountService userAccountService) {
 
         List<Filter> filters = new ArrayList<>();

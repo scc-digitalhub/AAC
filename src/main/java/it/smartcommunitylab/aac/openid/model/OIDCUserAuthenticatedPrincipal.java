@@ -1,40 +1,53 @@
-package it.smartcommunitylab.aac.openid.auth;
+package it.smartcommunitylab.aac.openid.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.util.Assert;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import org.springframework.util.StringUtils;
 
-public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
+import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
+
+public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
 
-    private final String provider;
-    private final String realm;
-
-    private final String userId;
+    // subject identifier from external provider
+    private final String subject;
     private String name;
+
+    // link attributes
+    private String email;
+    private Boolean emailVerified;
+
     private OAuth2User principal;
 
-    private Map<String, String> attributes;
+    // locally set attributes, for example after custom mapping
+    private Map<String, Serializable> attributes;
 
-    public OIDCAuthenticatedPrincipal(String provider, String realm, String userId) {
-        Assert.notNull(userId, "userId cannot be null");
-        Assert.notNull(provider, "provider cannot be null");
-        Assert.notNull(realm, "realm cannot be null");
+    public OIDCUserAuthenticatedPrincipal(String provider, String realm, String userId, String subject) {
+        this(SystemKeys.AUTHORITY_OIDC, provider, realm, userId, subject);
+    }
 
-        this.userId = userId;
-        this.provider = provider;
-        this.realm = realm;
+    public OIDCUserAuthenticatedPrincipal(String authority, String provider, String realm, String userId,
+            String subject) {
+        super(authority, provider, realm, userId);
+        Assert.hasText(subject, "subject can not be null or empty");
+        this.subject = subject;
+    }
+
+    public String getSubject() {
+        return subject;
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return subject;
     }
 
     @Override
@@ -43,13 +56,9 @@ public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
     }
 
     @Override
-    public Map<String, String> getAttributes() {
-        if (attributes != null) {
-            // local attributes overwrite oauth attributes when set
-            return attributes;
-        }
+    public Map<String, Serializable> getAttributes() {
+        Map<String, Serializable> result = new HashMap<>();
 
-        Map<String, String> result = new HashMap<>();
         if (principal != null) {
             Map<String, Object> oauthAttributes = principal.getAttributes();
 
@@ -57,16 +66,39 @@ public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
             // TODO implement a mapper via script handling a json representation without
             // security related attributes
             for (Map.Entry<String, Object> e : oauthAttributes.entrySet()) {
-                result.put(e.getKey(), e.getValue().toString());
+                result.putIfAbsent(e.getKey(), e.getValue().toString());
             }
 
             if (isOidcUser()) {
                 Map<String, Object> claims = ((OidcUser) principal).getClaims();
                 for (Map.Entry<String, Object> e : claims.entrySet()) {
-                    result.put(e.getKey(), e.getValue().toString());
+                    result.putIfAbsent(e.getKey(), e.getValue().toString());
                 }
             }
         }
+
+        if (attributes != null) {
+            // local attributes overwrite oauth attributes when set
+            attributes.entrySet().forEach(e -> result.putIfAbsent(e.getKey(), e.getValue()));
+        }
+
+        // make sure these are never overridden
+        result.put("provider", getProvider());
+        result.put("sub", subject);
+        result.put("id", subject);
+
+        if (StringUtils.hasText(name)) {
+            result.put("name", name);
+        }
+
+        if (StringUtils.hasText(email)) {
+            result.put("email", email);
+        }
+
+        if (emailVerified != null) {
+            result.put(OpenIdAttributesSet.EMAIL_VERIFIED, emailVerified.booleanValue());
+        }
+
         return result;
     }
 
@@ -97,36 +129,29 @@ public class OIDCAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
         return null;
     }
 
-    public void setAttributes(Map<String, String> attributes) {
+    public void setAttributes(Map<String, Serializable> attributes) {
         this.attributes = attributes;
     }
 
-//    @Override
-//    public Map<String, String> getLinkingAttributes() {
-//        Map<String, String> attributes = getAttributes();
-//
-//        // expose only realm+email
-//        Map<String, String> result = new HashMap<>();
-//        if (StringUtils.hasText(attributes.get("email"))) {
-//            result.put("realm", getRealm());
-//            result.put("email", attributes.get("email"));
-//        }
-//        return result;
-//    }
-
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_OIDC;
+    public String getEmail() {
+        return email;
     }
 
-    @Override
-    public String getRealm() {
-        return realm;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    @Override
-    public String getProvider() {
-        return provider;
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public boolean isEmailVerified() {
+        boolean verified = emailVerified != null ? emailVerified.booleanValue() : false;
+        return StringUtils.hasText(email) && verified;
     }
 
 }

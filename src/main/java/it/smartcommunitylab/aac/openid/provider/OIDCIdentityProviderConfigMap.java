@@ -8,6 +8,8 @@ import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -39,7 +41,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     private AuthenticationMethod clientAuthenticationMethod;
     private String scope;
-    private String userNameAttributeName = "sub";
+    private String userNameAttributeName;
     private Boolean trustEmailAddress;
     private Boolean alwaysTrustEmailAddress;
 
@@ -60,7 +62,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     public OIDCIdentityProviderConfigMap() {
         // set default
         this.scope = "openid,email";
-        this.userNameAttributeName = "sub";
+        this.userNameAttributeName = IdTokenClaimNames.SUB;
         this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
     }
 
@@ -205,17 +207,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-//        // workaround for clientAuthenticationMethod not having default constructor
-//        ClientAuthenticationMethod method = null;
-//        if (props.containsKey("clientAuthenticationMethod")) {
-//            Object v = props.get("clientAuthenticationMethod");
-//            String name = v instanceof String ? v.toString() : (String) ((Map) v).get("value");
-//            method = new ClientAuthenticationMethod(name);
-//            props.remove("clientAuthenticationMethod");
-//        }
-
         OIDCIdentityProviderConfigMap map = mapper.convertValue(props, OIDCIdentityProviderConfigMap.class);
-//        map.setClientAuthenticationMethod(method);
 
         this.clientId = map.getClientId();
         this.clientSecret = map.getClientSecret();
