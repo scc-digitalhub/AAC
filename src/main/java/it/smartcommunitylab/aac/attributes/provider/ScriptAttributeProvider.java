@@ -23,13 +23,13 @@ import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 
 public class ScriptAttributeProvider extends AbstractProvider implements AttributeProvider {
@@ -91,11 +91,6 @@ public class ScriptAttributeProvider extends AbstractProvider implements Attribu
     @Override
     public String getDescription() {
         return providerConfig.getDescription();
-    }
-
-    @Override
-    public ConfigurableProperties getConfiguration() {
-        return providerConfig;
     }
 
     @Override
