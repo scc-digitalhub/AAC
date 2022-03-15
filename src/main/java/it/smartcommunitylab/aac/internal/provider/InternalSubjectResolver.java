@@ -20,16 +20,17 @@ public class InternalSubjectResolver extends AbstractProvider
         implements SubjectResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public final static String[] ATTRIBUTES = { "realm", "email" };
+    public final static String[] ATTRIBUTES = { "email" };
 
-    private InternalUserAccountService accountService;
+    private final InternalUserAccountService accountService;
+    private final InternalIdentityProviderConfig config;
 
     public InternalSubjectResolver(String providerId, InternalUserAccountService userAccountService,
             InternalIdentityProviderConfig providerConfig, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
         Assert.notNull(userAccountService, "user account service is mandatory");
-
         this.accountService = userAccountService;
+        this.config = providerConfig;
     }
 
     @Override
@@ -152,6 +153,10 @@ public class InternalSubjectResolver extends AbstractProvider
 
     @Override
     public Map<String, String> getAttributes(UserAuthenticatedPrincipal principal) {
+        if (!config.isLinkable()) {
+            return null;
+        }
+
         if (!(principal instanceof InternalUserAuthenticatedPrincipal)) {
             return null;
         }
@@ -162,11 +167,9 @@ public class InternalSubjectResolver extends AbstractProvider
         // export userId
         attributes.put("userId", user.getUserId());
 
-        if (user.getConfirmed() != null) {
-            if (user.getConfirmed().booleanValue()) {
-                // export email
-                attributes.put("email", user.getEmail());
-            }
+        if (user.isEmailConfirmed()) {
+            // export email
+            attributes.put("email", user.getEmail());
         }
 
         return attributes;

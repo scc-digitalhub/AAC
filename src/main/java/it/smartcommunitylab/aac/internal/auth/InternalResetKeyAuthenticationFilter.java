@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -41,7 +41,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
     public static final String DEFAULT_FILTER_URI = InternalIdentityAuthority.AUTHORITY_URL
             + "doreset/{registrationId}";
 
-    private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
 
 //    public static final String DEFAULT_FILTER_URI = "/auth/internal/";
 //    public static final String ACTION = "doreset";
@@ -58,12 +58,12 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
     private final InternalUserAccountService userAccountService;
 
     public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
-            ProviderRepository<InternalIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalResetKeyAuthenticationFilter(InternalUserAccountService userAccountService,
-            ProviderRepository<InternalIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -141,6 +141,7 @@ public class InternalResetKeyAuthenticationFilter extends AbstractAuthentication
         }
 
         // fetch account
+        // TODO remove, let authProvider handle
         InternalUserAccount account = userAccountService.findAccountByResetKey(realm, code);
         if (account == null) {
             // don't leak user does not exists

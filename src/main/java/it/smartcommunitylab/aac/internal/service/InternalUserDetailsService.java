@@ -18,14 +18,14 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 public class InternalUserDetailsService implements UserDetailsService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final String realm;
+    private final String providerId;
 
     private final InternalUserAccountService userAccountService;
 
-    public InternalUserDetailsService(InternalUserAccountService userAccountService, String realm) {
+    public InternalUserDetailsService(InternalUserAccountService userAccountService, String providerId) {
         Assert.notNull(userAccountService, "user account service is mandatory");
         this.userAccountService = userAccountService;
-        this.realm = realm;
+        this.providerId = providerId;
     }
 
     @Override
@@ -35,10 +35,10 @@ public class InternalUserDetailsService implements UserDetailsService {
         // expected that the user name is already unwrapped ready for repository
         String username = userId;
 
-        InternalUserAccount account = userAccountService.findAccountByUsername(realm, username);
+        InternalUserAccount account = userAccountService.findAccountByUsername(providerId, username);
         if (account == null) {
             throw new UsernameNotFoundException(
-                    "Internal user with username " + username + " does not exist for realm " + realm);
+                    "Internal user with username " + username + " does not exist for provider " + providerId);
         }
 
         // always grant user role

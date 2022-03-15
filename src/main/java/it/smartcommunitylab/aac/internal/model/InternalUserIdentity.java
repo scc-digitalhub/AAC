@@ -1,14 +1,13 @@
 package it.smartcommunitylab.aac.internal.model;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.security.core.CredentialsContainer;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractIdentity;
-import it.smartcommunitylab.aac.core.model.UserAccount;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 
 public class InternalUserIdentity extends AbstractIdentity implements CredentialsContainer {
@@ -20,7 +19,7 @@ public class InternalUserIdentity extends AbstractIdentity implements Credential
     private final InternalUserAuthenticatedPrincipal principal;
 
     // internal user account
-    private InternalUserAccount account;
+    private final InternalUserAccount account;
 
     // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
@@ -29,7 +28,8 @@ public class InternalUserIdentity extends AbstractIdentity implements Credential
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.account = account;
         this.principal = null;
-        this.attributes = new HashMap<>();
+        this.attributes = Collections.emptyMap();
+        super.setUserId(account.getUserId());
     }
 
     public InternalUserIdentity(String provider, String realm, InternalUserAccount account,
@@ -37,26 +37,17 @@ public class InternalUserIdentity extends AbstractIdentity implements Credential
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.account = account;
         this.principal = principal;
-        this.attributes = new HashMap<>();
-    }
-
-    public InternalUserIdentity(String provider, String realm, String userId,
-            InternalUserAccount account,
-            InternalUserAuthenticatedPrincipal principal) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
-        this.account = account;
-        this.principal = principal;
-        this.attributes = new HashMap<>();
-        super.setUserId(userId);
+        this.attributes = Collections.emptyMap();
+        super.setUserId(account.getUserId());
     }
 
     @Override
-    public UserAuthenticatedPrincipal getPrincipal() {
+    public InternalUserAuthenticatedPrincipal getPrincipal() {
         return principal;
     }
 
     @Override
-    public UserAccount getAccount() {
+    public InternalUserAccount getAccount() {
         return account;
     }
 

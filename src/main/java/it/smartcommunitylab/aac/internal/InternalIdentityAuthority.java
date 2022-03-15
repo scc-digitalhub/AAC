@@ -29,7 +29,6 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -122,7 +121,6 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         this.userAccountService = userAccountService;
         this.userEntityService = userEntityService;
         this.registrationRepository = registrationRepository;
-
     }
 
     @Autowired
@@ -185,18 +183,18 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
-    @Override
-    public String getUserProviderId(String userId) {
-        // unpack id
-        return extractProviderId(userId);
-    }
-
-    @Override
-    public InternalIdentityService getUserIdentityProvider(String userId) {
-        // unpack id
-        String providerId = extractProviderId(userId);
-        return getIdentityProvider(providerId);
-    }
+//    @Override
+//    public String getUserProviderId(String userId) {
+//        // unpack id
+//        return extractProviderId(userId);
+//    }
+//
+//    @Override
+//    public InternalIdentityService getUserIdentityProvider(String userId) {
+//        // unpack id
+//        String providerId = extractProviderId(userId);
+//        return getIdentityProvider(providerId);
+//    }
 
     @Override
     public InternalIdentityService registerIdentityProvider(ConfigurableIdentityProvider cp) {
@@ -312,30 +310,6 @@ public class InternalIdentityAuthority implements IdentityAuthority, Initializin
         // merge config with default
         return InternalIdentityProviderConfig.fromConfigurableProvider(
                 cp, defaultProviderConfig);
-
-    }
-
-    private String extractProviderId(String userId) throws IllegalArgumentException {
-        if (!StringUtils.hasText(userId)) {
-            throw new IllegalArgumentException("empty or null id");
-        }
-
-        String[] s = userId.split(Pattern.quote("|"));
-
-        if (s.length != 3) {
-            throw new IllegalArgumentException("invalid resource id");
-        }
-
-        // check match
-        if (!getAuthorityId().equals(s[0])) {
-            throw new IllegalArgumentException("authority mismatch");
-        }
-
-        if (!StringUtils.hasText(s[1])) {
-            throw new IllegalArgumentException("empty provider id");
-        }
-
-        return s[1];
 
     }
 

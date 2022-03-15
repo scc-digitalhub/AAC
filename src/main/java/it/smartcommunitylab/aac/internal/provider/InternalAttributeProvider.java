@@ -101,6 +101,7 @@ public class InternalAttributeProvider extends AbstractProvider implements Attri
         AccountAttributesSet accountset = new AccountAttributesSet();
         accountset.setUsername(account.getUsername());
         accountset.setUserId(account.getUserId());
+        accountset.setId(account.getUsername());
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
                 accountset));
         // email

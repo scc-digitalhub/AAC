@@ -26,26 +26,17 @@ public class InternalIdentityProviderConfig extends BaseIdentityProviderConfig {
     // map capabilities
     private InternalIdentityProviderConfigMap configMap;
 
-    // hook functions
-    private Map<String, String> hookFunctions;
-
     public InternalIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_INTERNAL, provider, realm);
         this.configMap = new InternalIdentityProviderConfigMap();
-        this.hookFunctions = Collections.emptyMap();
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
-
-    public void setConfigMap(InternalIdentityProviderConfigMap configMap) {
-        this.configMap = configMap;
     }
 
     public InternalIdentityProviderConfigMap getConfigMap() {
         return configMap;
+    }
+
+    public void setConfigMap(InternalIdentityProviderConfigMap configMap) {
+        this.configMap = configMap;
     }
 
     @Override
@@ -57,14 +48,6 @@ public class InternalIdentityProviderConfig extends BaseIdentityProviderConfig {
     public void setConfiguration(Map<String, Serializable> props) {
         configMap = new InternalIdentityProviderConfigMap();
         configMap.setConfiguration(props);
-    }
-
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
-    }
-
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
     }
 
     /*
@@ -133,7 +116,7 @@ public class InternalIdentityProviderConfig extends BaseIdentityProviderConfig {
                 : PASSWORD_MAX_LENGTH;
     }
     /*
-     * builders //
+     * builders
      */
 //    public static ConfigurableIdentityProvider toConfigurableProvider(InternalIdentityProviderConfig ip) {
 //        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_INTERNAL,
@@ -165,6 +148,7 @@ public class InternalIdentityProviderConfig extends BaseIdentityProviderConfig {
         ip.icon = cp.getIcon();
         ip.displayMode = cp.getDisplayMode();
 
+        ip.persistence = cp.getPersistence();
         ip.linkable = cp.isLinkable();
         ip.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 

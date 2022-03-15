@@ -77,7 +77,7 @@ public class InternalCredentialsController {
             throw new IllegalArgumentException("credentials are immutable");
         }
 
-        UserPasswordCredentials cred = service.getUserCredentials(userId);
+        UserPasswordCredentials cred = service.getCredentials(userId);
         UserPasswordBean reg = new UserPasswordBean();
         reg.setUserId(userId);
 //        reg.setPassword("");
@@ -128,6 +128,7 @@ public class InternalCredentialsController {
 
             // fetch provider
             InternalIdentityService idp = internalAuthority.getIdentityService(providerId);
+            String realm = idp.getRealm();
 
             // fetch credentials service if available
             InternalPasswordService service = idp.getCredentialsService();
@@ -141,7 +142,7 @@ public class InternalCredentialsController {
             }
 
             // get current password
-            UserPasswordCredentials cur = service.getUserCredentials(userId);
+            UserPasswordCredentials cur = service.getCredentials(userId);
             model.addAttribute("userId", userId);
             model.addAttribute("username", account.getUsername());
             model.addAttribute("credentials", cur);
@@ -165,19 +166,19 @@ public class InternalCredentialsController {
                 throw new RegistrationException("passwords do not match");
             }
 
-            // if cur has changeOnFirstAccess we skip verification
-            if (!cur.isChangeOnFirstAccess()) {
-                boolean valid = service.verifyPassword(userId, reg.getCurPassword());
-                if (!valid) {
-                    throw new RegistrationException("invalid verification password");
-                }
-            }
+//            // if cur has changeOnFirstAccess we skip verification
+//            if (!cur.isChangeOnFirstAccess()) {
+//                boolean valid = service.verifyPassword(userId, reg.getCurPassword());
+//                if (!valid) {
+//                    throw new RegistrationException("invalid verification password");
+//                }
+//            }
 
             // update
-            UserPasswordCredentials pwd = new UserPasswordCredentials();
-            pwd.setUserId(userId);
+            UserPasswordCredentials pwd = new UserPasswordCredentials(SystemKeys.AUTHORITY_INTERNAL, providerId, realm,
+                    userId);
             pwd.setPassword(password);
-            pwd = service.setUserCredentials(userId, pwd);
+            pwd = service.setCredentials(userId, pwd);
 
             return "registration/changesuccess";
         } catch (RegistrationException e) {

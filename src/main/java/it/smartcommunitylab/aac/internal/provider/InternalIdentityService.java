@@ -93,7 +93,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
     }
 
     @Override
-    public ExtendedAuthenticationProvider getAuthenticationProvider() {
+    public InternalAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
 
@@ -128,7 +128,6 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         if (userId == null) {
             // this better exists
             throw new NoSuchUserException();
-
         }
 
         // get the internal account entity
@@ -147,8 +146,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
 //            // TODO re-evaluate
 //            account.setSubject(subjectId);
 //            account = accountRepository.save(account);
-            throw new IllegalArgumentException("subject mismatch");
-
+            throw new IllegalArgumentException("user mismatch");
         }
 
         // store and update attributes
@@ -222,9 +220,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         }
 
         List<InternalUserIdentity> identities = new ArrayList<>();
-
         for (InternalUserAccount account : accounts) {
-
             // fetch attributes
             // TODO, we shouldn't have additional attributes for internal
 
@@ -245,6 +241,40 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         }
 
         return identities;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void deleteIdentity(String username) throws NoSuchUserException {
+//        if (!config.isEnableDelete()) {
+//            throw new IllegalArgumentException("delete is disabled for this provider");
+//        }
+
+//        // get the internal account entity
+//        InternalUserAccount account = accountService.getAccount(username);
+
+//        // check subject
+//        if (!account.getUserId().equals(userId)) {
+//            throw new IllegalArgumentException("user mismatch");
+//        }
+
+        accountService.deleteAccount(username);
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void deleteIdentities(String userId) {
+//        if (!config.getConfigMap().isEnableDelete()) {
+//            throw new IllegalArgumentException("delete is disabled for this provider");
+//        }
+
+        List<InternalUserAccount> accounts = accountService.listAccounts(userId);
+        for (InternalUserAccount account : accounts) {
+            try {
+                accountService.deleteAccount(account.getUsername());
+            } catch (NoSuchUserException e) {
+            }
+        }
     }
 
     @Override
@@ -402,40 +432,6 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         identity.eraseCredentials();
 
         return identity;
-    }
-
-    @Override
-    @Transactional(readOnly = false)
-    public void deleteIdentity(String username) throws NoSuchUserException {
-//        if (!config.isEnableDelete()) {
-//            throw new IllegalArgumentException("delete is disabled for this provider");
-//        }
-
-//        // get the internal account entity
-//        InternalUserAccount account = accountService.getAccount(username);
-
-//        // check subject
-//        if (!account.getUserId().equals(userId)) {
-//            throw new IllegalArgumentException("user mismatch");
-//        }
-
-        accountService.deleteAccount(username);
-    }
-
-    @Override
-    @Transactional(readOnly = false)
-    public void deleteIdentities(String userId) {
-//        if (!config.getConfigMap().isEnableDelete()) {
-//            throw new IllegalArgumentException("delete is disabled for this provider");
-//        }
-
-        List<InternalUserAccount> accounts = accountService.listAccounts(userId);
-        for (UserAccount account : accounts) {
-            try {
-                accountService.deleteAccount(account.getUsername());
-            } catch (NoSuchUserException e) {
-            }
-        }
     }
 
     @Override

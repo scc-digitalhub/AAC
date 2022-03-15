@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.InternalIdentityAuthority;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
@@ -43,18 +43,20 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
 
     private final RequestMatcher requestMatcher;
 
-    private final ProviderRepository<InternalIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository;
 
     private AuthenticationEntryPoint authenticationEntryPoint;
+
+    // TODO remove
     private final InternalUserAccountService userAccountService;
 
     public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
-            ProviderRepository<InternalIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository) {
         this(userAccountService, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public InternalLoginAuthenticationFilter(InternalUserAccountService userAccountService,
-            ProviderRepository<InternalIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository,
             String filterProcessingUrl, AuthenticationEntryPoint authenticationEntryPoint) {
         super(filterProcessingUrl);
         Assert.notNull(userAccountService, "user account service is required");
@@ -142,6 +144,7 @@ public class InternalLoginAuthenticationFilter extends AbstractAuthenticationPro
         // fetch account to check
         // if this does not exists we'll let authProvider handle the error to ensure
         // proper audit
+        // TODO rework, this should be handled post login by adding another filter
         InternalUserAccount account = userAccountService.findAccountByUsername(providerId, username);
         if (account != null) {
             HttpSession session = request.getSession(true);

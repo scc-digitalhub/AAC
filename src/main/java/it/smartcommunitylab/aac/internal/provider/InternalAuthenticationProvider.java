@@ -13,7 +13,6 @@ import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationToken;
@@ -48,7 +47,7 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
         this.userAccountService = userAccountService;
 
         // build a userDetails service
-        userDetailsService = new InternalUserDetailsService(userAccountService, realm);
+        userDetailsService = new InternalUserDetailsService(userAccountService, providerId);
 
         // build our internal auth provider by wrapping spring dao authprovider
         authProvider = new DaoAuthenticationProvider();
@@ -129,7 +128,7 @@ public class InternalAuthenticationProvider extends ExtendedAuthenticationProvid
     }
 
     @Override
-    protected UserAuthenticatedPrincipal createUserPrincipal(Object principal) {
+    protected InternalUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
         InternalUserAccount account = (InternalUserAccount) principal;
         String userId = account.getUserId();
         String username = account.getUsername();

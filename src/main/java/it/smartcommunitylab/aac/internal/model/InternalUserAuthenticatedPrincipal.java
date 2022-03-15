@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.internal.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,8 +46,8 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
     }
 
     @Override
-    public Map<String, String> getAttributes() {
-        Map<String, String> map = new HashMap<>();
+    public Map<String, Serializable> getAttributes() {
+        Map<String, Serializable> map = new HashMap<>();
         map.put("provider", getProvider());
         map.put("username", username);
         map.put("id", username);
@@ -90,6 +91,11 @@ public class InternalUserAuthenticatedPrincipal extends AbstractAuthenticatedPri
 
     public void setConfirmed(Boolean confirmed) {
         this.confirmed = confirmed;
+    }
+
+    public boolean isEmailConfirmed() {
+        boolean verified = confirmed != null ? confirmed.booleanValue() : false;
+        return StringUtils.hasText(email) && verified;
     }
 
     public void setAccountAttributes(InternalUserAccount account) {

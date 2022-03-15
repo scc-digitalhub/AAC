@@ -11,6 +11,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +30,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
 import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.utils.MailService;
 
+@Transactional
 public class InternalAccountService extends AbstractProvider implements AccountService {
 
     private static final String LANG_UNDEFINED = "en";
@@ -41,10 +43,9 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     // provider configuration
     private final InternalIdentityProviderConfig config;
 
+    private final InternalUserAccountService userAccountService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
-
-    protected final InternalUserAccountService userAccountService;
 
     public InternalAccountService(String providerId,
             InternalUserAccountService userAccountService,
@@ -93,11 +94,13 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InternalUserAccount> listAccounts(String userId) {
         return userAccountService.findByUser(userId, getProvider());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InternalUserAccount getAccount(String username) throws NoSuchUserException {
         String provider = getProvider();
 
@@ -109,11 +112,13 @@ public class InternalAccountService extends AbstractProvider implements AccountS
         return account;
     }
 
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByEmail(String email) {
         String provider = getProvider();
         return userAccountService.findAccountByEmail(provider, email);
     }
 
+    @Transactional(readOnly = true)
     public InternalUserAccount findAccountByUsername(String username) {
         String provider = getProvider();
         return userAccountService.findAccountByUsername(provider, username);
@@ -138,7 +143,7 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new IllegalArgumentException("delete is disabled for this provider");
         }
 
-        // we expect subject to be valid
+        // we expect user to be valid
         if (!StringUtils.hasText(userId)) {
             throw new RegistrationException("missing-user");
         }
@@ -284,6 +289,12 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new NoSuchUserException();
         }
 
+        // check if active, inactive accounts can not be changed except for activation
+        UserStatus curStatus = UserStatus.parse(account.getStatus());
+        if (UserStatus.INACTIVE == curStatus) {
+            throw new IllegalArgumentException("account is inactive, activate first to update status");
+        }
+
         // can update only from our model
         if (reg instanceof InternalUserAccount) {
             InternalUserAccount ireg = (InternalUserAccount) reg;
@@ -320,9 +331,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     @Override
     public InternalUserAccount linkAccount(String username, String userId)
             throws NoSuchUserException, RegistrationException {
-        if (!config.isEnableUpdate()) {
-            throw new IllegalArgumentException("update is disabled for this provider");
-        }
 
         // we expect subject to be valid
         if (!StringUtils.hasText(userId)) {
@@ -336,11 +344,16 @@ public class InternalAccountService extends AbstractProvider implements AccountS
             throw new NoSuchUserException();
         }
 
+        // check if active, inactive accounts can not be changed except for activation
+        UserStatus curStatus = UserStatus.parse(account.getStatus());
+        if (UserStatus.INACTIVE == curStatus) {
+            throw new IllegalArgumentException("account is inactive, activate first to update status");
+        }
+
         // re-link to user
         account.setUserId(userId);
         account = userAccountService.updateAccount(provider, username, account);
         return account;
-
     }
 
     @Override
@@ -364,7 +377,6 @@ public class InternalAccountService extends AbstractProvider implements AccountS
 
         account = userAccountService.updateAccount(provider, username, account);
         return account;
-
     }
 
     @Override
@@ -393,37 +405,37 @@ public class InternalAccountService extends AbstractProvider implements AccountS
     /*
      * Administrative ops
      */
-    @Override
-    public UserAccount activateAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.ACTIVE);
-    }
+//    @Override
+//    public UserAccount activateAccount(String username) throws NoSuchUserException, RegistrationException {
+//        return updateStatus(username, UserStatus.ACTIVE);
+//    }
+//
+//    @Override
+//    public UserAccount inactivateAccount(String username) throws NoSuchUserException, RegistrationException {
+//        return updateStatus(username, UserStatus.INACTIVE);
+//    }
 
     @Override
-    public UserAccount inactivateAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.INACTIVE);
-    }
-
-    @Override
-    public UserAccount lockAccount(String username) throws NoSuchUserException, RegistrationException {
+    public InternalUserAccount lockAccount(String username) throws NoSuchUserException, RegistrationException {
         return updateStatus(username, UserStatus.LOCKED);
     }
 
     @Override
-    public UserAccount unlockAccount(String username) throws NoSuchUserException, RegistrationException {
+    public InternalUserAccount unlockAccount(String username) throws NoSuchUserException, RegistrationException {
         return updateStatus(username, UserStatus.ACTIVE);
     }
 
-    @Override
-    public UserAccount blockAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.BLOCKED);
-    }
+//    @Override
+//    public UserAccount blockAccount(String username) throws NoSuchUserException, RegistrationException {
+//        return updateStatus(username, UserStatus.BLOCKED);
+//    }
+//
+//    @Override
+//    public UserAccount unblockAccount(String username) throws NoSuchUserException, RegistrationException {
+//        return updateStatus(username, UserStatus.ACTIVE);
+//    }
 
-    @Override
-    public UserAccount unblockAccount(String username) throws NoSuchUserException, RegistrationException {
-        return updateStatus(username, UserStatus.ACTIVE);
-    }
-
-    public UserAccount updateStatus(String username, UserStatus newStatus)
+    private InternalUserAccount updateStatus(String username, UserStatus newStatus)
             throws NoSuchUserException, RegistrationException {
         String provider = getProvider();
 

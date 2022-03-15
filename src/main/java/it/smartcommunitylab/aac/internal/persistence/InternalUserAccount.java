@@ -5,6 +5,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
@@ -17,8 +18,10 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractAccount;
+import it.smartcommunitylab.aac.model.UserStatus;
 
 @Entity
+@IdClass(InternalUserAccountId.class)
 @Table(name = "internal_users", uniqueConstraints = @UniqueConstraint(columnNames = { "provider_id", "email" }))
 @EntityListeners(AuditingEntityListener.class)
 public class InternalUserAccount extends AbstractAccount {
@@ -110,6 +113,16 @@ public class InternalUserAccount extends AbstractAccount {
         return email;
     }
 
+    @Override
+    public boolean isEmailVerified() {
+        return StringUtils.hasText(email) && confirmed;
+    }
+
+    @Override
+    public boolean isLocked() {
+        return UserStatus.LOCKED.getValue().equals(status);
+    }
+
     /*
      * fields
      */
@@ -160,10 +173,6 @@ public class InternalUserAccount extends AbstractAccount {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public boolean isEmailVerified() {
-        return StringUtils.hasText(email) && confirmed;
     }
 
     public String getName() {
