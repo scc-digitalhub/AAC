@@ -45,7 +45,7 @@ backend-container-build:
     - docker push $CONTAINER_IMAGE
     - docker push $CONTAINER_IMAGE_LATEST
   only:
-    - 4.x-platform
+    - 4.x
 
 include:
   - template: Security/Container-Scanning.gitlab-ci.yml
@@ -75,10 +75,10 @@ deploy:
   stage: deploy
   image: smartcommunitylab/kubectl-alpine:latest
   environment:
-    name: platform-test
+    name: platform-new
   script:
     - echo "deploy backend"
-    - kubectl -n global set image deployments/aac4 aac=$CONTAINER_IMAGE --record=true
-    - kubectl -n global rollout status deployment aac4
+    - kubectl -n aac-dev set image deployments/aac-dev aac=$CONTAINER_IMAGE --record=true
+    - kubectl -n aac-dev rollout status deployment aac-dev
   only:
-    - 4.x-platform
+    - 4.x
