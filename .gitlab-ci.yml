@@ -1,0 +1,84 @@
+image: docker:19
+
+services:
+  - docker:dind
+
+stages:
+  - test
+  - build
+  - container-build
+  - container-scan
+  - deploy
+
+variables:
+  SECURE_LOG_LEVEL: info
+  DS_JAVA_VERSION: 11
+  DOCKER_DRIVER: overlay
+  CONTAINER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  CONTAINER_IMAGE_LATEST: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-latest
+  # MAVEN_CLI_OPTS: -DskipTests --batch-mode
+  SAST_JAVA_VERSION: 11
+
+# maven-test:
+#   image: maven:3-openjdk-8
+#   stage: test
+#   script:
+#     - mvn $MAVEN_REPO test
+
+maven-build:
+  image: maven:3-openjdk-11
+  stage: build
+  # only:
+  #   refs:
+  #     - dev
+  #     - master
+  script:
+    - mvn -DskipTests=true clean package
+
+backend-container-build:
+  stage: container-build
+  environment:
+    name: $CI_COMMIT_REF_NAME
+  script:
+    - docker login -u $DHUB_USER -p $DHUB_PASS
+    - DOCKER_BUILDKIT=1 docker build -f Dockerfile -t $CONTAINER_IMAGE -t $CONTAINER_IMAGE_LATEST .
+    - docker push $CONTAINER_IMAGE
+    - docker push $CONTAINER_IMAGE_LATEST
+  only:
+    - 4.x
+
+include:
+  - template: Security/Container-Scanning.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+
+container_scanning:
+  stage: container-scan
+  variables:
+    DOCKER_IMAGE: smartcommunitylab/aac:$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+    DOCKERFILE_PATH: "Dockerfile"
+    GIT_STRATEGY: fetch
+    DOCKER_USER: ""
+    DOCKER_PASSWORD: ""
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+#
+# gemnasium-dependency_scanning:
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+#
+# spotbugs-sast:
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME != "adc-aac-test"'
+
+deploy:
+  stage: deploy
+  image: smartcommunitylab/kubectl-alpine:latest
+  environment:
+    name: platform-new
+  script:
+    - echo "deploy backend"
+    - kubectl -n aac-dev set image deployments/aac-dev aac=$CONTAINER_IMAGE --record=true
+    - kubectl -n aac-dev rollout status deployment aac-dev
+  only:
+    - 4.x
