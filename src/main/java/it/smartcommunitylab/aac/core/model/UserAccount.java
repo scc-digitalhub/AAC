@@ -18,6 +18,8 @@ public interface UserAccount extends UserResource, Serializable {
 
     public boolean isEmailVerified();
 
+    public boolean isLocked();
+
     default String getType() {
         return SystemKeys.RESOURCE_ACCOUNT;
     }

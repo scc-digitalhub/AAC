@@ -18,7 +18,7 @@ public interface UserAuthenticatedPrincipal extends AuthenticatedPrincipal, User
     public String getName();
 
     // principal attributes as received from idp
-    public Map<String, String> getAttributes();
+    public Map<String, Serializable> getAttributes();
 
     default String getType() {
         return SystemKeys.RESOURCE_PRINCIPAL;

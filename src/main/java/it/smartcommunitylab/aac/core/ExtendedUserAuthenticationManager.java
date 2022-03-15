@@ -411,6 +411,14 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                 throw new AuthenticationServiceException("error processing request");
             }
 
+            // make sure user is not locked
+            // TODO check blocked
+            if (identity.getAccount().isLocked()) {
+                // provider misbehave
+                logger.error("account is locked");
+                throw new AuthenticationServiceException("error processing request");
+            }
+
             // TODO attribute providers outside idp
 //            // fetch attributes
 //            // could be a no-op, we expect attributes mapped to the shared schema

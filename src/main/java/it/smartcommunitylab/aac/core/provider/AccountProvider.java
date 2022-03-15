@@ -25,17 +25,17 @@ public interface AccountProvider extends ResourceProvider {
      */
     public UserAccount linkAccount(String accountId, String userId) throws NoSuchUserException, RegistrationException;
 
-    public UserAccount activateAccount(String accountId) throws NoSuchUserException, RegistrationException;
-
-    public UserAccount inactivateAccount(String accountId) throws NoSuchUserException, RegistrationException;
+//    public UserAccount activateAccount(String accountId) throws NoSuchUserException, RegistrationException;
+//
+//    public UserAccount inactivateAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
     // TODO implement lock/block via expirable locks
     public UserAccount lockAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
     public UserAccount unlockAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
-    public UserAccount blockAccount(String accountId) throws NoSuchUserException, RegistrationException;
-
-    public UserAccount unblockAccount(String accountId) throws NoSuchUserException, RegistrationException;
+//    public UserAccount blockAccount(String accountId) throws NoSuchUserException, RegistrationException;
+//
+//    public UserAccount unblockAccount(String accountId) throws NoSuchUserException, RegistrationException;
 
 }

@@ -25,7 +25,7 @@ public abstract class BaseIdentityProviderConfig extends AbstractProviderConfig 
     }
 
     @Override
-    public String getType() {
+    public final String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
     }
 
