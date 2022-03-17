@@ -43,6 +43,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private String scope;
     private String userNameAttributeName;
     private Boolean trustEmailAddress;
+    private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
 
     // explicit config
@@ -128,6 +129,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setAlwaysTrustEmailAddress(Boolean alwaysTrustEmailAddress) {
         this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
+    }
+
+    public Boolean getRequireEmailAddress() {
+        return requireEmailAddress;
+    }
+
+    public void setRequireEmailAddress(Boolean requireEmailAddress) {
+        this.requireEmailAddress = requireEmailAddress;
     }
 
     public String getAuthorizationUri() {
@@ -218,6 +227,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.userNameAttributeName = map.getUserNameAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
+        this.requireEmailAddress = map.getRequireEmailAddress();
 
         // explicit config
         this.authorizationUri = map.getAuthorizationUri();

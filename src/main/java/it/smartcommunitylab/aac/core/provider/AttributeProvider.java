@@ -79,7 +79,7 @@ public interface AttributeProvider extends ResourceProvider {
      * Sets returned from identity conversion are *always* used for token claims
      */
 
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String userId);
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal, String userId);
 
 //    public Collection<UserAttributes> convertAttributes(Map<String, Serializable> attributes);
 
@@ -99,10 +99,14 @@ public interface AttributeProvider extends ResourceProvider {
 
     // we expect the list to contain both custom and global sets, according to
     // supported, if available
-    public Collection<UserAttributes> getAttributes(String userId);
+    public Collection<UserAttributes> getUserAttributes(String userId);
+
+    public Collection<UserAttributes> getAccountAttributes(String id);
 
 //    public UserAttributes getUserAttributes(String userId, String setId) throws NoSuchUserException;
 
-    public void deleteAttributes(String userId);
+    public void deleteUserAttributes(String userId);
+
+    public void deleteAccountAttributes(String id);
 
 }

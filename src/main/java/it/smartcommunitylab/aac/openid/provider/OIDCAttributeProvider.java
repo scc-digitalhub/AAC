@@ -87,7 +87,7 @@ public class OIDCAttributeProvider extends AbstractProvider implements Attribute
     }
 
     @Override
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String userId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal, String userId) {
         // we expect an instance of our model
         if (!(principal instanceof OIDCUserAuthenticatedPrincipal)) {
             return null;
@@ -123,7 +123,7 @@ public class OIDCAttributeProvider extends AbstractProvider implements Attribute
     }
 
     @Override
-    public Collection<UserAttributes> getAttributes(String userId) {
+    public Collection<UserAttributes> getUserAttributes(String userId) {
         // nothing is accessible here by user, only by account
         return null;
     }
@@ -226,9 +226,14 @@ public class OIDCAttributeProvider extends AbstractProvider implements Attribute
     }
 
     @Override
-    public void deleteAttributes(String subjectId) {
+    public void deleteUserAttributes(String userId) {
+        // nothing to do
+    }
+
+    @Override
+    public void deleteAccountAttributes(String sub) {
         // cleanup from store
-        attributeStore.deleteAttributes(subjectId);
+        attributeStore.deleteAttributes(sub);
     }
 
 }

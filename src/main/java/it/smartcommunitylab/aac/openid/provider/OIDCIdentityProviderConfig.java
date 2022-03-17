@@ -194,6 +194,10 @@ public class OIDCIdentityProviderConfig extends BaseIdentityProviderConfig {
 //        return defaultValue;
 //    }
 
+    public boolean requireEmailAddress() {
+        return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
+    }
+
     /*
      * builders
      */

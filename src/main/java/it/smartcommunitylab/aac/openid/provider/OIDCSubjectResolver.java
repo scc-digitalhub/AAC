@@ -41,7 +41,6 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
 
         this.accountRepository = accountRepository;
         this.config = config;
-
     }
 
     @Override
@@ -62,21 +61,21 @@ public class OIDCSubjectResolver extends AbstractProvider implements SubjectReso
     }
 
     @Override
-    public Subject resolveByAccountId(String sub) {
+    public Subject resolveByAccountId(String accountId) {
         // accountId is sub
-        return resolveBySubject(sub);
+        return resolveBySubject(accountId);
     }
 
     @Override
-    public Subject resolveByPrincipalId(String sub) {
+    public Subject resolveByPrincipalId(String principalId) {
         // principalId is sub
-        return resolveBySubject(sub);
+        return resolveBySubject(principalId);
     }
 
     @Override
-    public Subject resolveByIdentityId(String sub) {
+    public Subject resolveByIdentityId(String identityId) {
         // identityId is sub
-        return resolveBySubject(sub);
+        return resolveBySubject(identityId);
     }
 
     @Override

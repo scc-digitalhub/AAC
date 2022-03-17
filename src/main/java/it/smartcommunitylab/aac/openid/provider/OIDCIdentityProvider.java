@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
 
 public class OIDCIdentityProvider extends AbstractProvider implements IdentityProvider {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // provider configuration
     private final OIDCIdentityProviderConfig config;
@@ -161,7 +164,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
                             .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 }
             } catch (SystemException | InvalidDefinitionException ex) {
-//                logger.error(ex.getMessage());
+                logger.debug("error mapping principal attributes via script: " + ex.getMessage());
             }
         }
 
@@ -259,7 +262,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         account = accountProvider.updateAccount(subject, account);
 
         // convert attribute sets via provider, will update store
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal, userId);
 
         // build identity
         OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
@@ -278,13 +281,8 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
     @Transactional(readOnly = true)
     public OIDCUserIdentity getIdentity(String subject, boolean fetchAttributes)
             throws NoSuchUserException {
-
         // lookup a matching account
         OIDCUserAccount account = accountProvider.getAccount(subject);
-
-//        if (!account.getSubject().equals(subject)) {
-//            throw new NoSuchUserException();
-//        }
 
         // build identity
         OIDCUserIdentity identity = new OIDCUserIdentity(getAuthority(), getProvider(), getRealm(), account);
@@ -321,7 +319,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
             if (fetchAttributes) {
                 // convert attribute sets
                 Collection<UserAttributes> identityAttributes = attributeProvider
-                        .getAttributes(account.getSubject());
+                        .getAccountAttributes(account.getSubject());
                 identity.setAttributes(identityAttributes);
             }
 
@@ -335,7 +333,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
     @Transactional(readOnly = false)
     public void deleteIdentity(String subject) throws NoSuchUserException {
         // cleanup attributes
-        attributeProvider.deleteAttributes(subject);
+        attributeProvider.deleteAccountAttributes(subject);
 
         // delete account
         accountProvider.deleteAccount(subject);

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.UserStatus;
 
 /*
  * An instantiable user account. 
@@ -23,6 +24,7 @@ public class DefaultAccountImpl extends AbstractAccount {
     private String username;
     private String emailAddress;
     private Boolean emailVerified;
+    private String status;
     private Map<String, String> attributes = new HashMap<>();
     // jsonSchema describing attributes to serve UI
     private JsonSchema schema;
@@ -83,6 +85,19 @@ public class DefaultAccountImpl extends AbstractAccount {
 
     public String getAttribute(String key) {
         return this.attributes.get(key);
+    }
+
+    @Override
+    public boolean isLocked() {
+        return UserStatus.LOCKED.getValue().equals(status);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @JsonIgnore

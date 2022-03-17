@@ -1,6 +1,5 @@
 package it.smartcommunitylab.aac.openid.provider;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final OIDCUserAccountRepository accountRepository;
-    private final OIDCIdentityProviderConfig providerConfig;
+    private final OIDCIdentityProviderConfig config;
 
     protected OIDCAccountProvider(String providerId, OIDCUserAccountRepository accountRepository,
             OIDCIdentityProviderConfig config,
@@ -43,7 +42,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        this.providerConfig = config;
+        this.config = config;
         this.accountRepository = accountRepository;
     }
 
@@ -91,7 +90,6 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
     @Transactional(readOnly = true)
     public OIDCUserAccount findAccountByEmail(String email) {
         String provider = getProvider();
-
         OIDCUserAccount account = accountRepository.findByProviderAndEmail(provider, email);
         if (account == null) {
             return null;
@@ -224,7 +222,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         if (!StringUtils.hasText(sub)) {
             throw new RegistrationException("missing-sub");
         }
-        if (!StringUtils.hasText(email)) {
+        if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
             throw new RegistrationException("missing-email");
         }
 
@@ -279,7 +277,7 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // validate email
         String email = clean(reg.getEmail());
-        if (!StringUtils.hasText(email)) {
+        if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
             throw new RegistrationException("missing-email");
         }
 
