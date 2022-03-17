@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -37,7 +36,7 @@ import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
@@ -55,7 +54,7 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     // system attributes store
     private final AutoJdbcAttributeStore jdbcAttributeStore;
 
-    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
 
     // loading cache for idps
     private final LoadingCache<String, SamlIdentityProvider> providers = CacheBuilder.newBuilder()
@@ -73,7 +72,7 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
                     AttributeStore attributeStore = getAttributeStore(id, config.getPersistence());
 
                     SamlIdentityProvider idp = new SamlIdentityProvider(
-                            id, config.getName(),
+                            id,
                             accountRepository, attributeStore,
                             config, config.getRealm());
                     idp.setExecutionService(executionService);
@@ -92,15 +91,10 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_SAML;
-    }
-
     public SamlIdentityAuthority(
             SamlUserAccountRepository accountRepository,
             AutoJdbcAttributeStore jdbcAttributeStore,
-            ProviderRepository<SamlIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             @Qualifier("samlRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(jdbcAttributeStore, "attribute store is mandatory");
@@ -147,6 +141,11 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
+    public String getAuthorityId() {
+        return SystemKeys.AUTHORITY_SAML;
+    }
+
+    @Override
     public boolean hasIdentityProvider(String providerId) {
         SamlIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
         return (registration != null);
@@ -171,18 +170,18 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
                 .filter(p -> (p != null)).collect(Collectors.toList());
     }
 
-    @Override
-    public String getUserProviderId(String userId) {
-        // unpack id
-        return extractProviderId(userId);
-    }
-
-    @Override
-    public SamlIdentityProvider getUserIdentityProvider(String userId) {
-        // unpack id
-        String providerId = extractProviderId(userId);
-        return getIdentityProvider(providerId);
-    }
+//    @Override
+//    public String getUserProviderId(String userId) {
+//        // unpack id
+//        return extractProviderId(userId);
+//    }
+//
+//    @Override
+//    public SamlIdentityProvider getUserIdentityProvider(String userId) {
+//        // unpack id
+//        String providerId = extractProviderId(userId);
+//        return getIdentityProvider(providerId);
+//    }
 
     @Override
     public SamlIdentityProvider registerIdentityProvider(ConfigurableIdentityProvider cp) {
@@ -262,6 +261,22 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
         return Collections.emptyList();
     }
 
+    @Override
+    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
+        return templates.values().stream().map(c -> c.toConfigurableProvider())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
+            throws NoSuchProviderException {
+        if (templates.containsKey(templateId)) {
+            return templates.get(templateId).toConfigurableProvider();
+        }
+
+        throw new NoSuchProviderException("no templates available");
+    }
+
     /*
      * helpers
      */
@@ -275,46 +290,6 @@ public class SamlIdentityAuthority implements IdentityAuthority, InitializingBea
         }
 
         return store;
-    }
-
-    private String extractProviderId(String userId) throws IllegalArgumentException {
-        if (!StringUtils.hasText(userId)) {
-            throw new IllegalArgumentException("empty or null id");
-        }
-
-        String[] s = userId.split(Pattern.quote("|"));
-
-        if (s.length != 3) {
-            throw new IllegalArgumentException("invalid resource id");
-        }
-
-        // check match
-        if (!getAuthorityId().equals(s[0])) {
-            throw new IllegalArgumentException("authority mismatch");
-        }
-
-        if (!StringUtils.hasText(s[1])) {
-            throw new IllegalArgumentException("empty provider id");
-        }
-
-        return s[1];
-
-    }
-
-    @Override
-    public Collection<ConfigurableIdentityProvider> getConfigurableProviderTemplates() {
-        return templates.values().stream().map(c -> SamlIdentityProviderConfig.toConfigurableProvider(c))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
-            throws NoSuchProviderException {
-        if (templates.containsKey(templateId)) {
-            return SamlIdentityProviderConfig.toConfigurableProvider(templates.get(templateId));
-        }
-
-        throw new NoSuchProviderException("no templates available");
     }
 
 }

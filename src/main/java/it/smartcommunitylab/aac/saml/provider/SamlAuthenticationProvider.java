@@ -26,10 +26,10 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthentication;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
+import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
@@ -38,7 +38,7 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
     private final static String SUBJECT_ATTRIBUTE = "subject";
 
     private final SamlUserAccountRepository accountRepository;
-    private final SamlIdentityProviderConfig providerConfig;
+    private final SamlIdentityProviderConfig config;
     private final String usernameAttributeName;
 
     private final OpenSamlAuthenticationProvider openSamlProvider;
@@ -50,7 +50,7 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 
-        this.providerConfig = config;
+        this.config = config;
         this.accountRepository = accountRepository;
 
         this.usernameAttributeName = StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
@@ -130,17 +130,25 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
         // note we expect default behavior, if provider has a converter this will break
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
 
-        // username mapping, default name always set
-        String username = StringUtils.hasText(samlDetails.getFirstAttribute(usernameAttributeName))
-                ? samlDetails.getFirstAttribute(usernameAttributeName)
-                : samlDetails.getName();
-        String userId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
+        // upstream subject identifier
+        String subjectId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
                 ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
                 : samlDetails.getName();
 
+        // name is always available, is mapped via provider configuration
+        String name = samlDetails.getName();
+
+        // username mapping, default name always set
+        String username = StringUtils.hasText(samlDetails.getFirstAttribute(usernameAttributeName))
+                ? samlDetails.getFirstAttribute(usernameAttributeName)
+                : name;
+
+        // we still don't have userId
+        String userId = null;
+
         // bind principal to ourselves
-        SamlAuthenticatedPrincipal user = new SamlAuthenticatedPrincipal(getProvider(), getRealm(),
-                exportInternalId(userId));
+        SamlUserAuthenticatedPrincipal user = new SamlUserAuthenticatedPrincipal(getProvider(), getRealm(),
+                userId, subjectId);
         user.setName(username);
         user.setPrincipal(samlDetails);
 

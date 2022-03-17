@@ -24,11 +24,12 @@ import org.springframework.security.saml2.provider.service.registration.Saml2Mes
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.BaseIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 
-public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
+public class SamlIdentityProviderConfig extends BaseIdentityProviderConfig {
+    private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     public static final String DEFAULT_METADATA_URL = "{baseUrl}" + SamlIdentityAuthority.AUTHORITY_URL
             + "metadata/{registrationId}";
@@ -36,16 +37,8 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     public static final String DEFAULT_CONSUMER_URL = "{baseUrl}" + SamlIdentityAuthority.AUTHORITY_URL
             + "sso/{registrationId}";
 
-    private String name;
-    private String description;
-    private String persistence;
-    private Boolean linkable;
-
     private SamlIdentityProviderConfigMap configMap;
     private RelyingPartyRegistration relyingPartyRegistration;
-
-    // hook functions
-    private Map<String, String> hookFunctions;
 
     public SamlIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
@@ -55,30 +48,6 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
         this.configMap.setEntityId(DEFAULT_METADATA_URL);
         this.configMap.setMetadataUrl(DEFAULT_METADATA_URL);
         this.configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
-
-        this.hookFunctions = Collections.emptyMap();
-
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public SamlIdentityProviderConfigMap getConfigMap() {
@@ -87,38 +56,6 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public void setConfigMap(SamlIdentityProviderConfigMap configMap) {
         this.configMap = configMap;
-    }
-
-    public String getPersistence() {
-        return persistence;
-    }
-
-    public void setPersistence(String persistence) {
-        this.persistence = persistence;
-    }
-
-    public Boolean getLinkable() {
-        return linkable;
-    }
-
-    public void setLinkable(Boolean linkable) {
-        this.linkable = linkable;
-    }
-
-    public boolean isLinkable() {
-        if (linkable != null) {
-            return linkable.booleanValue();
-        }
-
-        return true;
-    }
-
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
-    }
-
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
     }
 
     @Override
@@ -264,6 +201,10 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
     public String getRelyingPartyRegistrationAuthnContextComparison() {
         return configMap.getAuthnContextComparison();
+    }
+
+    public boolean requireEmailAddress() {
+        return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
     }
 
     //
@@ -415,21 +356,21 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
     /*
      * builders
      */
-    public static ConfigurableIdentityProvider toConfigurableProvider(SamlIdentityProviderConfig sp) {
-        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_SAML, sp.getProvider(),
-                sp.getRealm());
-        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setPersistence(sp.getPersistence());
-
-        cp.setName(sp.getName());
-        cp.setDescription(sp.getDescription());
-        cp.setHookFunctions(sp.getHookFunctions());
-
-        cp.setEnabled(true);
-        cp.setLinkable(sp.isLinkable());
-        cp.setConfiguration(sp.getConfiguration());
-        return cp;
-    }
+//    public static ConfigurableIdentityProvider toConfigurableProvider(SamlIdentityProviderConfig sp) {
+//        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_SAML, sp.getProvider(),
+//                sp.getRealm());
+//        cp.setType(SystemKeys.RESOURCE_IDENTITY);
+//        cp.setPersistence(sp.getPersistence());
+//
+//        cp.setName(sp.getName());
+//        cp.setDescription(sp.getDescription());
+//        cp.setHookFunctions(sp.getHookFunctions());
+//
+//        cp.setEnabled(true);
+//        cp.setLinkable(sp.isLinkable());
+//        cp.setConfiguration(sp.getConfiguration());
+//        return cp;
+//    }
 
     public static SamlIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         SamlIdentityProviderConfig sp = new SamlIdentityProviderConfig(cp.getProvider(), cp.getRealm());
@@ -437,6 +378,9 @@ public class SamlIdentityProviderConfig extends AbstractConfigurableProvider {
 
         sp.name = cp.getName();
         sp.description = cp.getDescription();
+        sp.icon = cp.getIcon();
+        sp.displayMode = cp.getDisplayMode();
+
         sp.persistence = cp.getPersistence();
         sp.linkable = cp.isLinkable();
         sp.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());

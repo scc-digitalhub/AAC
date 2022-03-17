@@ -1,41 +1,47 @@
-package it.smartcommunitylab.aac.saml.auth;
+package it.smartcommunitylab.aac.saml.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
 
-public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
+public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
-    private final String provider;
-    private final String realm;
-
-    private final String userId;
+    // subject identifier from external provider
+    private final String subjectId;
     private String name;
+
+    // link attributes
+    private String email;
+    private Boolean emailVerified;
+
     private Saml2AuthenticatedPrincipal principal;
 
-    private Map<String, String> attributes;
+    // locally set attributes, for example after custom mapping
+    private Map<String, Serializable> attributes;
 
-    public SamlAuthenticatedPrincipal(String provider, String realm, String userId) {
-        Assert.notNull(userId, "userId cannot be null");
-        Assert.notNull(provider, "provider cannot be null");
-        Assert.notNull(realm, "realm cannot be null");
+    public SamlUserAuthenticatedPrincipal(String provider, String realm, String userId, String subjectId) {
+        super(SystemKeys.AUTHORITY_SAML, provider, realm, userId);
+        Assert.notNull(subjectId, "subjectId cannot be null");
+        this.subjectId = subjectId;
+    }
 
-        this.userId = userId;
-        this.provider = provider;
-        this.realm = realm;
+    public String getSubjectId() {
+        return subjectId;
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return subjectId;
     }
 
     @Override
@@ -44,14 +50,9 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
     }
 
     @Override
-    public Map<String, String> getAttributes() {
+    public Map<String, Serializable> getAttributes() {
+        Map<String, Serializable> result = new HashMap<>();
 
-        if (attributes != null) {
-            // local attributes overwrite oauth attributes when set
-            return attributes;
-        }
-
-        Map<String, String> result = new HashMap<>();
         if (principal != null) {
             // we implement only first attribute
             Set<String> keys = principal.getAttributes().keySet();
@@ -66,6 +67,28 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
                 }
             }
 
+        }
+
+        if (attributes != null) {
+            // local attributes overwrite saml attributes when set
+            attributes.entrySet().forEach(e -> result.putIfAbsent(e.getKey(), e.getValue()));
+        }
+
+        // make sure these are never overridden
+        result.put("provider", getProvider());
+        result.put("subjectId", subjectId);
+        result.put("id", subjectId);
+
+        if (StringUtils.hasText(name)) {
+            result.put("name", name);
+        }
+
+        if (StringUtils.hasText(email)) {
+            result.put("email", email);
+        }
+
+        if (emailVerified != null) {
+            result.put("emailVerified", emailVerified.booleanValue());
         }
         return result;
     }
@@ -82,23 +105,29 @@ public class SamlAuthenticatedPrincipal implements UserAuthenticatedPrincipal {
         this.name = name;
     }
 
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_SAML;
-    }
-
-    @Override
-    public String getRealm() {
-        return realm;
-    }
-
-    @Override
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
+    public void setAttributes(Map<String, Serializable> attributes) {
         this.attributes = attributes;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public boolean isEmailVerified() {
+        boolean verified = emailVerified != null ? emailVerified.booleanValue() : false;
+        return StringUtils.hasText(email) && verified;
     }
 
 }

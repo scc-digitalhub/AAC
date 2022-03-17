@@ -1,65 +1,72 @@
-package it.smartcommunitylab.aac.saml;
+package it.smartcommunitylab.aac.saml.model;
 
-import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.base.AbstractIdentity;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 
-public class SamlUserIdentity extends DefaultIdentityImpl implements Serializable {
+public class SamlUserIdentity extends AbstractIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
-    private String username;
-    private SamlAuthenticatedPrincipal principal;
+    // authentication principal (if available)
+    private SamlUserAuthenticatedPrincipal principal;
 
-    public SamlUserIdentity(String provider, String realm) {
+    // user account
+    private final SamlUserAccount account;
+
+    // attribute sets
+    protected Set<UserAttributes> attributes;
+
+    public SamlUserIdentity(String provider, String realm, SamlUserAccount account) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
-        attributes = Collections.emptySet();
+        this.account = account;
+        this.principal = null;
+        this.attributes = Collections.emptySet();
+        super.setUserId(account.getUserId());
     }
 
-    public SamlUserIdentity(String provider, String realm, SamlAuthenticatedPrincipal principal) {
+    public SamlUserIdentity(String provider, String realm, SamlUserAccount account,
+            SamlUserAuthenticatedPrincipal principal) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
-        attributes = Collections.emptySet();
+        this.account = account;
         this.principal = principal;
-        this.username = principal.getName();
+        this.attributes = Collections.emptySet();
+        super.setUserId(account.getUserId());
     }
 
     @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_SAML;
-    }
-
-    @Override
-    public void eraseCredentials() {
-        // we do not have credentials or sensible data
-
-    }
-
-    @Override
-    public SamlAuthenticatedPrincipal getPrincipal() {
+    public SamlUserAuthenticatedPrincipal getPrincipal() {
         return this.principal;
     }
 
-    /*
-     * props: only getters we want this to be immutable
-     */
-    public String getUsername() {
-        return username;
+    @Override
+    public SamlUserAccount getAccount() {
+        return account;
     }
 
-    /*
-     * Builder
-     */
-//    public static SamlUserIdentity from(SamlUserAccount user) {
-//        SamlUserIdentity i = new SamlUserIdentity(user.getProvider(), user.getRealm());
-//        i.account = user;
-//        i.username = user.getUsername();
-//
-//        // TODO add attributes
-//
-//        return i;
-//
-//    }
+    @Override
+    public Collection<UserAttributes> getAttributes() {
+        return attributes;
+    }
+
+    public String getSubjectId() {
+        return account.getSubjectId();
+    }
+
+    public String getEmailAddress() {
+        return account.getEmail();
+    }
+
+    public void setAttributes(Collection<UserAttributes> attributes) {
+        this.attributes = new HashSet<>();
+        if (attributes != null) {
+            attributes.addAll(attributes);
+        }
+    }
 }

@@ -132,10 +132,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderRepository;
 
     @Autowired
-    private ProviderRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
+    private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderRepository;
 
     @Autowired
-    private ProviderRepository<SamlIdentityProviderConfig> samlProviderRepository;
+    private ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderRepository;
 
     @Autowired
     private ProviderRepository<SpidIdentityProviderConfig> spidProviderRepository;
@@ -373,7 +373,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getOIDCAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<OIDCIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<OIDCIdentityProviderConfig> providerRepository,
             OIDCClientRegistrationRepository clientRegistrationRepository) {
         // build filters bound to shared client + request repos
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
@@ -403,7 +403,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getSamlAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<SamlIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
 
         // request repository

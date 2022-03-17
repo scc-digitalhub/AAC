@@ -54,9 +54,11 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
     private Boolean isPassive;
     private Set<String> authnContextClasses;
     private String authnContextComparison;
-    private String userNameAttributeName = "subject";
+    private String userNameAttributeName;
 
     private Boolean trustEmailAddress;
+    private Boolean alwaysTrustEmailAddress;
+    private Boolean requireEmailAddress;
 
     // not editable
     private String metadataUrl;
@@ -65,6 +67,7 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
     public SamlIdentityProviderConfigMap() {
         this.signAuthNRequest = true;
         this.ssoServiceBinding = "HTTP-POST";
+        this.userNameAttributeName = "subject";
     }
 
     public String getSigningKey() {
@@ -243,6 +246,22 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.trustEmailAddress = trustEmailAddress;
     }
 
+    public Boolean getAlwaysTrustEmailAddress() {
+        return alwaysTrustEmailAddress;
+    }
+
+    public void setAlwaysTrustEmailAddress(Boolean alwaysTrustEmailAddress) {
+        this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
+    }
+
+    public Boolean getRequireEmailAddress() {
+        return requireEmailAddress;
+    }
+
+    public void setRequireEmailAddress(Boolean requireEmailAddress) {
+        this.requireEmailAddress = requireEmailAddress;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -281,6 +300,8 @@ public class SamlIdentityProviderConfigMap implements ConfigurableProperties, Se
 
         this.userNameAttributeName = map.getUserNameAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();
+        this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
+        this.requireEmailAddress = map.getRequireEmailAddress();
 
         this.entityId = map.getEntityId();
 

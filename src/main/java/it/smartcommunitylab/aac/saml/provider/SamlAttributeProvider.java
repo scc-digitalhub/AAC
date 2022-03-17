@@ -2,31 +2,40 @@ package it.smartcommunitylab.aac.saml.provider;
 
 import java.io.Serializable;
 import java.text.ParseException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
+import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
+import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 
 public class SamlAttributeProvider extends AbstractProvider implements AttributeProvider {
@@ -35,8 +44,7 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
     private final AttributeStore attributeStore;
 
     private final SamlUserAccountRepository accountRepository;
-    private final SamlIdentityProviderConfig providerConfig;
-
+    private final SamlIdentityProviderConfig config;
     private final OpenIdAttributesMapper openidMapper;
 
     public SamlAttributeProvider(
@@ -51,7 +59,7 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
 
         this.accountRepository = accountRepository;
         this.attributeStore = attributeStore;
-        this.providerConfig = providerConfig;
+        this.config = providerConfig;
 
         // attributes
         openidMapper = new OpenIdAttributesMapper();
@@ -64,74 +72,88 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
 
     @Override
     public String getName() {
-        return providerConfig.getName();
+        return config.getName();
     }
 
     @Override
     public String getDescription() {
-        return providerConfig.getDescription();
+        return config.getDescription();
     }
 
     @Override
-    public ConfigurableProperties getConfiguration() {
-        return providerConfig;
-    }
-
-    @Override
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String subjectId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
+            String userId) {
         // we expect an instance of our model
-        SamlAuthenticatedPrincipal user = (SamlAuthenticatedPrincipal) principal;
-        String userId = parseResourceId(user.getUserId());
-        String realm = getRealm();
+        if (!(principal instanceof SamlUserAuthenticatedPrincipal)) {
+            return null;
+        }
+        // we expect an instance of our model
+        SamlUserAuthenticatedPrincipal user = (SamlUserAuthenticatedPrincipal) principal;
+        String subjectId = user.getSubjectId();
         String provider = getProvider();
 
-        Map<String, String> attributes = user.getAttributes();
+        Map<String, Serializable> attributes = user.getAttributes();
 
-        SamlUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
+        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, subjectId));
         if (account == null) {
             return null;
         }
 
-        // get all attributes from principal except jwt attrs
+        // get all attributes from principal except saml attrs
         // TODO handle all attributes not only strings.
         Map<String, Serializable> principalAttributes = attributes.entrySet().stream()
                 .filter(e -> !ArrayUtils.contains(SamlIdentityProvider.SAML_ATTRIBUTES, e.getKey()))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        Set<Entry<String, Serializable>> storeAttributes = new HashSet<>();
+        for (Entry<String, Serializable> e : principalAttributes.entrySet()) {
+            Entry<String, Serializable> es = new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue());
+            storeAttributes.add(es);
+        }
+
+        // store attributes linked to sub
+        attributeStore.setAttributes(subjectId, storeAttributes);
 
         return extractUserAttributes(account, principalAttributes);
 
     }
 
     @Override
-    public Collection<UserAttributes> getAttributes(String subjectId) {
-        // we expect subjectId to be == userId
-        String userId = subjectId;
-        String realm = getRealm();
+    public Collection<UserAttributes> getUserAttributes(String userId) {
+        // nothing is accessible here by user, only by account
+        return null;
+    }
+
+    @Override
+    public Collection<UserAttributes> getAccountAttributes(String subjectId) {
         String provider = getProvider();
 
-        SamlUserAccount account = accountRepository.findByRealmAndProviderAndUserId(realm, provider, userId);
+        SamlUserAccount account = accountRepository.findOne(new SamlUserAccountId(provider, subjectId));
         if (account == null) {
             return null;
         }
 
         // read from store
-        String id = parseResourceId(userId);
-        Map<String, Serializable> principalAttributes = attributeStore.findAttributes(id);
-
+        Map<String, Serializable> principalAttributes = attributeStore.findAttributes(subjectId);
         return extractUserAttributes(account, principalAttributes);
     }
 
     private List<UserAttributes> extractUserAttributes(SamlUserAccount account,
             Map<String, Serializable> principalAttributes) {
         List<UserAttributes> attributes = new ArrayList<>();
-        String userId = exportInternalId(account.getUserId());
+        // user identifier
+        String userId = account.getUserId();
+
+        // base attributes
+        String name = account.getName() != null ? account.getName() : account.getSubjectId();
+        String email = account.getEmail();
+        String username = account.getUsername() != null ? account.getUsername() : account.getEmail();
 
         // build base
         BasicAttributesSet basicset = new BasicAttributesSet();
-        String name = account.getName() != null ? account.getName() : account.getUsername();
         basicset.setName(name);
-        basicset.setEmail(account.getEmail());
-        basicset.setUsername(account.getUsername());
+        basicset.setEmail(email);
+        basicset.setUsername(username);
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
                 basicset));
 
@@ -139,6 +161,7 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
         AccountAttributesSet accountset = new AccountAttributesSet();
         accountset.setUsername(account.getUsername());
         accountset.setUserId(account.getUserId());
+        accountset.setId(account.getSubjectId());
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
                 accountset));
         // email
@@ -147,16 +170,31 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
                 emailset));
 
+        // merge attributes
+        Map<String, Serializable> map = new HashMap<>();
+        // set store attributes
         if (principalAttributes != null) {
-            // openid via mapper
-            AttributeSet openidset = openidMapper.mapAttributes(principalAttributes);
-            attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
-                    openidset));
+            map.putAll(principalAttributes);
+        }
 
+        // override from account
+        map.put(OpenIdAttributesSet.NAME, name);
+        map.put(OpenIdAttributesSet.EMAIL, email);
+        map.put(OpenIdAttributesSet.EMAIL_VERIFIED, account.isEmailVerified());
+        map.put(OpenIdAttributesSet.PREFERRED_USERNAME, username);
+
+        if (StringUtils.hasText(account.getLang())) {
+            map.put(OpenIdAttributesSet.LOCALE, account.getLang());
+        }
+
+        // openid via mapper
+        AttributeSet openidset = openidMapper.mapAttributes(map);
+        attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
+                openidset));
+
+        if (principalAttributes != null) {
             // build an additional attributeSet for additional attributes, specific for this
-            // provider
-            // TODO build via attribute provider and record fields to keep an attributeSet
-            // model
+            // provider, where we export all raw attributes
             DefaultUserAttributesImpl idpset = new DefaultUserAttributesImpl(getAuthority(), getProvider(),
                     getRealm(), userId, "idp." + getProvider());
             // store everything as string
@@ -173,7 +211,12 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
     }
 
     @Override
-    public void deleteAttributes(String subjectId) {
+    public void deleteUserAttributes(String subjectId) {
+        // nothing to do
+    }
+
+    @Override
+    public void deleteAccountAttributes(String subjectId) {
         // cleanup from store
         attributeStore.deleteAttributes(subjectId);
     }

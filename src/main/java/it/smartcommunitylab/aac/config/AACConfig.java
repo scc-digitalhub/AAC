@@ -220,8 +220,8 @@ public class AACConfig {
     }
 
     @Bean
-    public InMemoryProviderRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
-        return new InMemoryProviderRepository<SamlIdentityProviderConfig>();
+    public InMemoryProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<SamlIdentityProviderConfig>();
     }
 
     @Bean
