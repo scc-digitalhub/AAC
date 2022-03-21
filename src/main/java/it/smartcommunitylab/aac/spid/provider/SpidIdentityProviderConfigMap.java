@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
+import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -51,6 +52,8 @@ public class SpidIdentityProviderConfigMap implements ConfigurableProperties, Se
     private SpidAttribute userNameAttributeName = SpidAttribute.SPID_CODE;
     private Boolean useSpidCodeAsNameId;
     private Set<SpidAttribute> spidAttributes;
+    private SpidUserAttribute idAttribute;
+
     // note: comparison is hardcoded as minimum
     private SpidAuthnContext authnContext;
 
@@ -78,6 +81,7 @@ public class SpidIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.contactPersonType = "other";
         this.authnContext = SpidAuthnContext.SPID_L1;
         this.useSpidCodeAsNameId = true;
+        this.idAttribute = SpidUserAttribute.SPID_CODE;
 
         this.spidAttributes = new HashSet<>();
         this.spidAttributes.add(SpidAttribute.SPID_CODE);
@@ -190,6 +194,14 @@ public class SpidIdentityProviderConfigMap implements ConfigurableProperties, Se
 
     public void setUseSpidCodeAsNameId(Boolean useSpidCodeAsNameId) {
         this.useSpidCodeAsNameId = useSpidCodeAsNameId;
+    }
+
+    public SpidUserAttribute getIdAttribute() {
+        return idAttribute;
+    }
+
+    public void setIdAttribute(SpidUserAttribute idAttribute) {
+        this.idAttribute = idAttribute;
     }
 
     public Set<SpidAttribute> getSpidAttributes() {
@@ -313,6 +325,7 @@ public class SpidIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.ssoServiceBinding = map.getSsoServiceBinding();
         this.useSpidCodeAsNameId = map.getUseSpidCodeAsNameId();
         this.userNameAttributeName = map.getUserNameAttributeName();
+        this.idAttribute = map.getIdAttribute();
         this.spidAttributes = map.getSpidAttributes();
         this.authnContext = map.getAuthnContext();
 

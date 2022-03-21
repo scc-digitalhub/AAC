@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidResponseValidator;
@@ -43,7 +43,7 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
 
     private final static String SUBJECT_ATTRIBUTE = "subject";
 
-    private final SpidIdentityProviderConfig providerConfig;
+    private final SpidIdentityProviderConfig config;
     private final String usernameAttributeName;
     private final boolean useSpidCodeAsNameId;
 
@@ -58,7 +58,7 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
         super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(config, "provider config is mandatory");
 
-        this.providerConfig = config;
+        this.config = config;
 
         this.useSpidCodeAsNameId = config.getConfigMap().getUseSpidCodeAsNameId() != null
                 ? config.getConfigMap().getUseSpidCodeAsNameId().booleanValue()
@@ -169,12 +169,14 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
         // note we expect default behavior, if provider has a converter this will break
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
 
+        // upstream subject identifier
+        String subjectId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
+                ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
+                : samlDetails.getName();
+
         // username mapping, default name always set
         String username = StringUtils.hasText(samlDetails.getFirstAttribute(usernameAttributeName))
                 ? samlDetails.getFirstAttribute(usernameAttributeName)
-                : samlDetails.getName();
-        String userId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
-                ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
                 : samlDetails.getName();
 
         if (useSpidCodeAsNameId) {
@@ -184,15 +186,16 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider {
                         new Saml2Error(Saml2ErrorCodes.USERNAME_NOT_FOUND, "spidCode not found"));
             }
 
-            userId = spidCode;
+            subjectId = spidCode;
         }
 
-        String idpName = samlDetails.getFirstAttribute("issuer");
+        // we still don't have userId
+        String userId = null;
 
         // bind principal to ourselves
         SpidAuthenticatedPrincipal user = new SpidAuthenticatedPrincipal(getProvider(), getRealm(),
-                idpName, exportInternalId(userId));
-        user.setName(username);
+                userId, subjectId);
+        user.setUsername(username);
         user.setPrincipal(samlDetails);
 
         return user;

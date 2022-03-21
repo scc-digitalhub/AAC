@@ -1,40 +1,44 @@
-package it.smartcommunitylab.aac.spid;
+package it.smartcommunitylab.aac.spid.model;
 
-import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.DefaultIdentityImpl;
+import it.smartcommunitylab.aac.core.base.AbstractIdentity;
+import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 
-public class SpidUserIdentity extends DefaultIdentityImpl implements Serializable {
+public class SpidUserIdentity extends AbstractIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
 
-    private String username;
+    // authentication principal (if available)
     private SpidAuthenticatedPrincipal principal;
 
-    public SpidUserIdentity(String provider, String realm) {
+    // user account
+    private final SpidUserAccount account;
+
+    // attribute sets
+    protected Set<UserAttributes> attributes;
+
+    public SpidUserIdentity(String provider, String realm, SpidUserAccount account) {
         super(SystemKeys.AUTHORITY_SPID, provider, realm);
-        attributes = Collections.emptySet();
+        this.account = account;
+        this.principal = null;
+        this.attributes = Collections.emptySet();
+        super.setUserId(account.getUserId());
     }
 
-    public SpidUserIdentity(String provider, String realm, SpidAuthenticatedPrincipal principal) {
+    public SpidUserIdentity(String provider, String realm, SpidUserAccount account,
+            SpidAuthenticatedPrincipal principal) {
         super(SystemKeys.AUTHORITY_SAML, provider, realm);
-        attributes = Collections.emptySet();
+        this.account = account;
         this.principal = principal;
-        this.username = principal.getName();
-    }
-
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_SAML;
-    }
-
-    @Override
-    public void eraseCredentials() {
-        // we do not have credentials or sensible data
-
+        this.attributes = Collections.emptySet();
+        super.setUserId(account.getUserId());
     }
 
     @Override
@@ -42,11 +46,29 @@ public class SpidUserIdentity extends DefaultIdentityImpl implements Serializabl
         return this.principal;
     }
 
-    /*
-     * props: only getters we want this to be immutable
-     */
-    public String getUsername() {
-        return username;
+    @Override
+    public SpidUserAccount getAccount() {
+        return account;
+    }
+
+    @Override
+    public Collection<UserAttributes> getAttributes() {
+        return attributes;
+    }
+
+    public String getSubjectId() {
+        return account.getSubjectId();
+    }
+
+    public String getEmailAddress() {
+        return account.getEmail();
+    }
+
+    public void setAttributes(Collection<UserAttributes> attributes) {
+        this.attributes = new HashSet<>();
+        if (attributes != null) {
+            attributes.addAll(attributes);
+        }
     }
 
 }

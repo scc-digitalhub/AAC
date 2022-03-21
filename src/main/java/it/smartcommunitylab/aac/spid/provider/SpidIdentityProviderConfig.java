@@ -37,12 +37,15 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
+import it.smartcommunitylab.aac.core.base.BaseIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
+import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
+import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 
-public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
+public class SpidIdentityProviderConfig extends BaseIdentityProviderConfig {
+    private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
 
     public static final String DEFAULT_METADATA_URL = "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL
             + "metadata/{registrationId}";
@@ -53,16 +56,9 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
     public static final String DEFAULT_LOGOUT_URL = "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL
             + "slo/{registrationId}";
 
-    private String name;
-    private String description;
-    private String persistence;
-
     private SpidIdentityProviderConfigMap configMap;
     private Set<RelyingPartyRegistration> relyingPartyRegistrations;
     private Map<String, SpidRegistration> idps;
-
-    // hook functions
-    private Map<String, String> hookFunctions;
 
     public SpidIdentityProviderConfig(String provider, String realm) {
         super(SystemKeys.AUTHORITY_SPID, provider, realm);
@@ -74,35 +70,12 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
         this.configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
 
         this.idps = Collections.emptyMap();
-        this.hookFunctions = Collections.emptyMap();
-
     }
 
     public void setIdps(Collection<SpidRegistration> idps) {
         if (idps != null) {
             this.idps = idps.stream().collect(Collectors.toMap(e -> e.getEntityId(), e -> e));
         }
-    }
-
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public SpidIdentityProviderConfigMap getConfigMap() {
@@ -113,20 +86,14 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
         this.configMap = configMap;
     }
 
+    @Override
     public String getPersistence() {
-        return persistence;
+        return SystemKeys.PERSISTENCE_LEVEL_SESSION;
     }
 
+    @Override
     public void setPersistence(String persistence) {
-        this.persistence = persistence;
-    }
-
-    public Map<String, String> getHookFunctions() {
-        return hookFunctions;
-    }
-
-    public void setHookFunctions(Map<String, String> hookFunctions) {
-        this.hookFunctions = hookFunctions;
+        this.persistence = SystemKeys.PERSISTENCE_LEVEL_SESSION;
     }
 
     @Override
@@ -142,7 +109,6 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
         configMap.setMetadataUrl(DEFAULT_METADATA_URL);
         configMap.setAssertionConsumerServiceUrl(DEFAULT_CONSUMER_URL);
         configMap.setSingleLogoutUrl(DEFAULT_LOGOUT_URL);
-
     }
 
     public Set<String> getRelyingPartyMetadataUrls() {
@@ -367,8 +333,8 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
 //        ;
 //        // as per spec, for L1 we do NOT include ForceAuthn at all
 //        return null;
-        
-        //return always true due to check in spid validator
+
+        // return always true due to check in spid validator
         return true;
     }
 
@@ -406,6 +372,10 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
             credentials.add(credential);
         }
         return credentials;
+    }
+
+    public SpidUserAttribute getIdAttribute() {
+        return configMap.getIdAttribute();
     }
 
 //
@@ -519,20 +489,21 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
     /*
      * builders
      */
-    public static ConfigurableIdentityProvider toConfigurableProvider(SpidIdentityProviderConfig sp) {
-        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_SPID, sp.getProvider(), sp.getRealm());
-        cp.setType(SystemKeys.RESOURCE_IDENTITY);
-        cp.setPersistence(sp.getPersistence());
-
-        cp.setName(sp.getName());
-        cp.setDescription(sp.getDescription());
-        cp.setHookFunctions(sp.getHookFunctions());
-
-        cp.setEnabled(true);
-        cp.setLinkable(false);
-        cp.setConfiguration(sp.getConfiguration());
-        return cp;
-    }
+//    public static ConfigurableIdentityProvider toConfigurableProvider(SpidIdentityProviderConfig sp) {
+//        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider(SystemKeys.AUTHORITY_SPID, sp.getProvider(),
+//                sp.getRealm());
+//        cp.setType(SystemKeys.RESOURCE_IDENTITY);
+//        cp.setPersistence(sp.getPersistence());
+//
+//        cp.setName(sp.getName());
+//        cp.setDescription(sp.getDescription());
+//        cp.setHookFunctions(sp.getHookFunctions());
+//
+//        cp.setEnabled(true);
+//        cp.setLinkable(false);
+//        cp.setConfiguration(sp.getConfiguration());
+//        return cp;
+//    }
 
     public static SpidIdentityProviderConfig fromConfigurableProvider(ConfigurableIdentityProvider cp) {
         SpidIdentityProviderConfig sp = new SpidIdentityProviderConfig(cp.getProvider(), cp.getRealm());
@@ -540,7 +511,11 @@ public class SpidIdentityProviderConfig extends AbstractConfigurableProvider {
 
         sp.name = cp.getName();
         sp.description = cp.getDescription();
+        sp.icon = cp.getIcon();
+        sp.displayMode = cp.getDisplayMode();
+
         sp.persistence = cp.getPersistence();
+        sp.linkable = cp.isLinkable();
         sp.hookFunctions = (cp.getHookFunctions() != null ? cp.getHookFunctions() : Collections.emptyMap());
 
         return sp;

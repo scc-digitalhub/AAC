@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.core.authorities.IdentityAuthority;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.IdentityService;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderRepository;
 import it.smartcommunitylab.aac.saml.auth.SamlRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountRepository;
@@ -47,7 +48,7 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
 
     private final SpidUserAccountRepository accountRepository;
 
-    private final ProviderRepository<SpidIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
 
     // loading cache for idps
     private final LoadingCache<String, SpidIdentityProvider> providers = CacheBuilder.newBuilder()
@@ -82,14 +83,9 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
 
-    @Override
-    public String getAuthorityId() {
-        return SystemKeys.AUTHORITY_SPID;
-    }
-
     public SpidIdentityAuthority(
             SpidUserAccountRepository accountRepository,
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
             @Qualifier("spidRelyingPartyRegistrationRepository") SamlRelyingPartyRegistrationRepository samlRelyingPartyRegistrationRepository) {
         Assert.notNull(accountRepository, "account repository is mandatory");
         Assert.notNull(registrationRepository, "provider registration repository is mandatory");
@@ -120,6 +116,11 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     }
 
     @Override
+    public String getAuthorityId() {
+        return SystemKeys.AUTHORITY_SPID;
+    }
+
+    @Override
     public boolean hasIdentityProvider(String providerId) {
         SpidIdentityProviderConfig registration = registrationRepository.findByProviderId(providerId);
         return (registration != null);
@@ -142,19 +143,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
         Collection<SpidIdentityProviderConfig> registrations = registrationRepository.findByRealm(realm);
         return registrations.stream().map(r -> getIdentityProvider(r.getProvider()))
                 .filter(p -> (p != null)).collect(Collectors.toList());
-    }
-
-    @Override
-    public String getUserProviderId(String userId) {
-        // unpack id
-        return extractProviderId(userId);
-    }
-
-    @Override
-    public SpidIdentityProvider getUserIdentityProvider(String userId) {
-        // unpack id
-        String providerId = extractProviderId(userId);
-        return getIdentityProvider(providerId);
     }
 
     @Override
@@ -250,33 +238,6 @@ public class SpidIdentityAuthority implements IdentityAuthority, InitializingBea
     public ConfigurableIdentityProvider getConfigurableProviderTemplate(String templateId)
             throws NoSuchProviderException {
         throw new NoSuchProviderException();
-    }
-
-    /*
-     * helpers
-     */
-    private String extractProviderId(String userId) throws IllegalArgumentException {
-        if (!StringUtils.hasText(userId)) {
-            throw new IllegalArgumentException("empty or null id");
-        }
-
-        String[] s = userId.split(Pattern.quote("|"));
-
-        if (s.length != 3) {
-            throw new IllegalArgumentException("invalid resource id");
-        }
-
-        // check match
-        if (!getAuthorityId().equals(s[0])) {
-            throw new IllegalArgumentException("authority mismatch");
-        }
-
-        if (!StringUtils.hasText(s[1])) {
-            throw new IllegalArgumentException("empty provider id");
-        }
-
-        return s[1];
-
     }
 
 }

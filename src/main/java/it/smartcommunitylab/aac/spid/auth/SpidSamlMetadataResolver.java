@@ -88,7 +88,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.w3c.dom.Element;
 
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
@@ -104,7 +104,7 @@ public class SpidSamlMetadataResolver implements Saml2MetadataResolver {
         OpenSamlInitializationService.initialize();
     }
 
-    private final ProviderRepository<SpidIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
 
     private final EntityDescriptorMarshaller marshaller;
 
@@ -137,7 +137,7 @@ public class SpidSamlMetadataResolver implements Saml2MetadataResolver {
 //    private final XMLObjectBuilder xmlObjectBuilder;
 
     public SpidSamlMetadataResolver(
-            ProviderRepository<SpidIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository) {
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         this.registrationRepository = registrationRepository;
 
