@@ -26,7 +26,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 
 public class SamlAuthenticationRequestContextConverter
@@ -36,7 +36,7 @@ public class SamlAuthenticationRequestContextConverter
         OpenSamlInitializationService.initialize();
     }
 
-    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
 
     private AuthnRequestMarshaller marshaller;
 
@@ -49,7 +49,7 @@ public class SamlAuthenticationRequestContextConverter
     private RequestedAuthnContextBuilder reqAuthnContextBuilder;
 
     public SamlAuthenticationRequestContextConverter(
-            ProviderRepository<SamlIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
         this.registrationRepository = registrationRepository;
 
@@ -142,7 +142,7 @@ public class SamlAuthenticationRequestContextConverter
 //        Scoping scoping = new ScopingBuilder().buildObject();
 //        scoping.setProxyCount(2);
 //        auth.setScoping(scoping);
-        
+
         return auth;
 
     }

@@ -31,7 +31,7 @@ import org.springframework.web.util.HtmlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-import it.smartcommunitylab.aac.core.provider.ProviderRepository;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
@@ -50,13 +50,13 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private Saml2AuthenticationRequestRepository<Saml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
     public SamlWebSsoAuthenticationRequestFilter(
-            ProviderRepository<SamlIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
         this(registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI);
     }
 
     public SamlWebSsoAuthenticationRequestFilter(
-            ProviderRepository<SamlIdentityProviderConfig> registrationRepository,
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
             RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
             String filterProcessingUrl) {
         Assert.notNull(registrationRepository, "registration repository cannot be null");
@@ -173,7 +173,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     }
 
     private static Saml2AuthenticationRequestFactory getRequestFactory(
-            ProviderRepository<SamlIdentityProviderConfig> registrationRepository) {
+            ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository) {
         org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory factory = new org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory();
         factory.setAuthenticationRequestContextConverter(
                 new SamlAuthenticationRequestContextConverter(registrationRepository));
