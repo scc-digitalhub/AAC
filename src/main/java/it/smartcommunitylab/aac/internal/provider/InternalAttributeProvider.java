@@ -55,7 +55,7 @@ public class InternalAttributeProvider extends AbstractProvider implements Attri
     }
 
     @Override
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String userId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal, String userId) {
         // we expect an instance of our model
         InternalUserAuthenticatedPrincipal user = (InternalUserAuthenticatedPrincipal) principal;
         String username = user.getUsername();
@@ -69,7 +69,7 @@ public class InternalAttributeProvider extends AbstractProvider implements Attri
     }
 
     @Override
-    public Collection<UserAttributes> getAttributes(String userId) {
+    public Collection<UserAttributes> getUserAttributes(String userId) {
         // nothing is accessible here by user, only by account
         return null;
     }
@@ -126,7 +126,12 @@ public class InternalAttributeProvider extends AbstractProvider implements Attri
     }
 
     @Override
-    public void deleteAttributes(String userId) {
+    public void deleteUserAttributes(String userId) {
+        // nothing to do
+    }
+
+    @Override
+    public void deleteAccountAttributes(String id) {
         // nothing to do
     }
 

@@ -75,18 +75,19 @@ public class InternalAttributeService extends AbstractProvider
     }
 
     @Override
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String subjectId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
+            String subjectId) {
 
         if (providerConfig.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
         }
 
         // nothing to process, just fetch attributes already in store
-        return getAttributes(subjectId);
+        return getUserAttributes(subjectId);
     }
 
     @Override
-    public Collection<UserAttributes> getAttributes(String subjectId) {
+    public Collection<UserAttributes> getUserAttributes(String subjectId) {
         List<UserAttributes> result = new ArrayList<>();
 
         // build sets from stored values
@@ -121,7 +122,7 @@ public class InternalAttributeService extends AbstractProvider
     }
 
     @Override
-    public void deleteAttributes(String subjectId) {
+    public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeEntityService.deleteAttributes(getProvider(), subjectId);
     }
@@ -168,5 +169,16 @@ public class InternalAttributeService extends AbstractProvider
 
         return result;
 
+    }
+
+    @Override
+    public Collection<UserAttributes> getAccountAttributes(String id) {
+        // nothing accessible by account
+        return null;
+    }
+
+    @Override
+    public void deleteAccountAttributes(String id) {
+        // nothing to do
     }
 }

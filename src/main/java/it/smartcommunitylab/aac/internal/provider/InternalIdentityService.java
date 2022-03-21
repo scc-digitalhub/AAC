@@ -16,7 +16,6 @@ import org.springframework.util.StringUtils;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.UserAccount;
@@ -156,7 +155,7 @@ public class InternalIdentityService extends AbstractProvider implements Identit
         InternalUserIdentity identity = new InternalUserIdentity(getProvider(), getRealm(), account, principal);
 
         // convert attribute sets
-        Collection<UserAttributes> identityAttributes = attributeProvider.convertAttributes(principal, userId);
+        Collection<UserAttributes> identityAttributes = attributeProvider.convertPrincipalAttributes(principal, userId);
         identity.setAttributes(identityAttributes);
 
         // do note returned identity has credentials populated
