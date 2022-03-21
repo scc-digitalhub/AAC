@@ -531,7 +531,7 @@ public class UserService {
             List<AttributeProvider> aps = aa.getAttributeProviders(realm);
             for (AttributeProvider ap : aps) {
                 // remove all attributes
-                ap.deleteAttributes(subjectId);
+                ap.deleteUserAttributes(subjectId);
 
             }
         }
@@ -576,7 +576,7 @@ public class UserService {
             throws NoSuchUserException, NoSuchProviderException {
         UserEntity u = userService.getUser(subjectId);
         AttributeProvider ap = authorityManager.getAttributeProvider(provider);
-        return ap.getAttributes(u.getUuid());
+        return ap.getUserAttributes(u.getUuid());
     }
 
     public UserAttributes getUserAttributes(String subjectId, String realm, String provider, String setId)
@@ -591,7 +591,7 @@ public class UserService {
         }
 
         AttributeProvider ap = authorityManager.getAttributeProvider(provider);
-        return ap.getAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
+        return ap.getUserAttributes(u.getUuid()).stream().filter(a -> a.getIdentifier().equals(setId)).findFirst()
                 .orElse(null);
     }
 
@@ -634,7 +634,7 @@ public class UserService {
         for (AttributeAuthority aa : authorityManager.listAttributeAuthorities()) {
             List<AttributeProvider> aps = aa.getAttributeProviders(realm);
             for (AttributeProvider ap : aps) {
-                attributes.addAll(ap.getAttributes(subjectId));
+                attributes.addAll(ap.getUserAttributes(subjectId));
             }
         }
 

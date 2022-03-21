@@ -335,14 +335,20 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             // account linking via attributes
             Map<String, String> attributes = resolver.getAttributes(principal);
             if (attributes != null && !attributes.isEmpty()) {
-                Collection<IdentityProvider> idps = authorityManager.fetchIdentityProviders(realm);
-                // first result is ok
-                for (IdentityProvider i : idps) {
-                    Subject ss = i.getSubjectResolver().resolveByAttributes(attributes);
-                    if (ss != null) {
-                        subjectId = ss.getSubjectId();
-                        logger.debug("linked subject for identity to " + subjectId);
-                        break;
+                // let idp resolver try with attributes
+                s = resolver.resolveByAttributes(attributes);
+
+                if (s == null) {
+                    // fallback to other idps from the same realm
+                    Collection<IdentityProvider> idps = authorityManager.fetchIdentityProviders(realm);
+                    // first result is ok
+                    for (IdentityProvider i : idps) {
+                        Subject ss = i.getSubjectResolver().resolveByAttributes(attributes);
+                        if (ss != null) {
+                            subjectId = ss.getSubjectId();
+                            logger.debug("linked subject for identity to " + subjectId);
+                            break;
+                        }
                     }
                 }
             }
@@ -503,7 +509,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                 // try to fetch attributes, don't stop authentication on errors
                 // attributes from aps are optional by definition
                 try {
-                    Collection<UserAttributes> attrs = ap.convertAttributes(principal, subjectId);
+                    Collection<UserAttributes> attrs = ap.convertPrincipalAttributes(principal, subjectId);
                     if (attrs != null) {
                         attrs.forEach(a -> userDetails.addAttributeSet(a));
                     }

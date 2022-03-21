@@ -138,7 +138,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderRepository;
 
     @Autowired
-    private ProviderRepository<SpidIdentityProviderConfig> spidProviderRepository;
+    private ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderRepository;
 
 //    /*
 //     * rememberme
@@ -439,7 +439,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
 
     public CompositeFilter getSpidAuthorityFilters(AuthenticationManager authManager,
-            ProviderRepository<SpidIdentityProviderConfig> providerRepository,
+            ProviderConfigRepository<SpidIdentityProviderConfig> providerRepository,
             SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
 
         // request repository

@@ -51,10 +51,10 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
 import it.smartcommunitylab.aac.core.AuthorityManager;
-import it.smartcommunitylab.aac.core.auth.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.base.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.AttributeProvider;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 
@@ -217,7 +217,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         // mock mapping done by provider
         Map<String, Serializable> principalAttributes = new HashMap<>();
         // get all attributes from principal
-        Map<String, String> attributes = principal.getAttributes();
+        Map<String, Serializable> attributes = principal.getAttributes();
         // TODO handle all attributes not only strings.
         principalAttributes.putAll(attributes.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
@@ -233,7 +233,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         function.setContext(principalAttributes);
 
         try {
-            Collection<UserAttributes> userAttributes = ap.convertAttributes(principal, userAuth.getSubjectId());
+            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(principal, userAuth.getSubjectId());
             if (userAttributes == null) {
                 userAttributes = Collections.emptyList();
             }

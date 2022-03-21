@@ -225,8 +225,8 @@ public class AACConfig {
     }
 
     @Bean
-    public InMemoryProviderRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
-        return new InMemoryProviderRepository<SpidIdentityProviderConfig>();
+    public InMemoryProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
+        return new InMemoryProviderConfigRepository<SpidIdentityProviderConfig>();
     }
 
     @Bean
