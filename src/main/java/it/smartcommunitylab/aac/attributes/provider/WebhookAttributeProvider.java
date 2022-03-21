@@ -136,7 +136,8 @@ public class WebhookAttributeProvider extends AbstractProvider implements Attrib
     }
 
     @Override
-    public Collection<UserAttributes> convertAttributes(UserAuthenticatedPrincipal principal, String subjectId) {
+    public Collection<UserAttributes> convertPrincipalAttributes(UserAuthenticatedPrincipal principal,
+            String subjectId) {
 
         if (providerConfig.getAttributeSets().isEmpty()) {
             return Collections.emptyList();
@@ -147,7 +148,9 @@ public class WebhookAttributeProvider extends AbstractProvider implements Attrib
         List<UserAttributes> result = new ArrayList<>();
         Map<String, Serializable> principalAttributes = new HashMap<>();
         // get all attributes from principal
-        Map<String, String> attributes = principal.getAttributes();
+        Map<String, String> attributes = principal.getAttributes().entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
+
         // TODO handle all attributes not only strings.
         principalAttributes.putAll(attributes.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
@@ -243,7 +246,7 @@ public class WebhookAttributeProvider extends AbstractProvider implements Attrib
     }
 
     @Override
-    public Collection<UserAttributes> getAttributes(String subjectId) {
+    public Collection<UserAttributes> getUserAttributes(String subjectId) {
         // fetch from store
         Map<String, Serializable> attributes = attributeStore.findAttributes(subjectId);
         if (attributes == null || attributes.isEmpty()) {
@@ -279,9 +282,21 @@ public class WebhookAttributeProvider extends AbstractProvider implements Attrib
     }
 
     @Override
-    public void deleteAttributes(String subjectId) {
+    public void deleteUserAttributes(String subjectId) {
         // cleanup from store
         attributeStore.deleteAttributes(subjectId);
+    }
+
+    @Override
+    public Collection<UserAttributes> getAccountAttributes(String id) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void deleteAccountAttributes(String id) {
+        // TODO Auto-generated method stub
+
     }
 
 }
