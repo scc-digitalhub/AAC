@@ -149,7 +149,7 @@ public class SamlAuthenticationProvider extends ExtendedAuthenticationProvider {
         // bind principal to ourselves
         SamlUserAuthenticatedPrincipal user = new SamlUserAuthenticatedPrincipal(getProvider(), getRealm(),
                 userId, subjectId);
-        user.setName(username);
+        user.setUsername(username);
         user.setPrincipal(samlDetails);
 
         return user;

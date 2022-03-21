@@ -87,7 +87,6 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
         if (!(principal instanceof SamlUserAuthenticatedPrincipal)) {
             return null;
         }
-        // we expect an instance of our model
         SamlUserAuthenticatedPrincipal user = (SamlUserAuthenticatedPrincipal) principal;
         String subjectId = user.getSubjectId();
         String provider = getProvider();
@@ -167,6 +166,7 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
         // email
         EmailAttributesSet emailset = new EmailAttributesSet();
         emailset.setEmail(account.getEmail());
+        emailset.setEmailVerified(account.getEmailVerified());
         attributes.add(new DefaultUserAttributesImpl(getAuthority(), getProvider(), getRealm(), userId,
                 emailset));
 
@@ -211,7 +211,7 @@ public class SamlAttributeProvider extends AbstractProvider implements Attribute
     }
 
     @Override
-    public void deleteUserAttributes(String subjectId) {
+    public void deleteUserAttributes(String userId) {
         // nothing to do
     }
 

@@ -1,17 +1,19 @@
 package it.smartcommunitylab.aac.saml.provider;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.saml.model.SamlUserAttribute;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountId;
@@ -20,8 +22,6 @@ import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
 @Transactional
 public class SamlSubjectResolver extends AbstractProvider implements SubjectResolver {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    public final static String[] ATTRIBUTES = { "email" };
 
     private final SamlUserAccountRepository accountRepository;
     private final SamlIdentityProviderConfig config;
@@ -75,11 +75,22 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
     @Override
     @Transactional(readOnly = true)
     public Subject resolveByAttributes(Map<String, String> attributes) {
-        if (attributes.keySet().containsAll(Arrays.asList(ATTRIBUTES))
+        String attributeName = config.getIdAttribute().getValue();
+
+        if (attributes.keySet().contains(attributeName)
                 && getRealm().equals((attributes.get("realm")))) {
-            // let provider resolve to an account
-            String email = attributes.get("email");
-            SamlUserAccount account = accountRepository.findByProviderAndEmail(getProvider(), email);
+            // resolve to an account by attribute
+            SamlUserAccount account = null;
+            if (SamlUserAttribute.EMAIL == config.getIdAttribute()) {
+                String email = attributes.get(attributeName);
+                account = accountRepository.findByProviderAndEmail(getProvider(), email).stream().findFirst()
+                        .orElse(null);
+            } else if (SamlUserAttribute.USERNAME == config.getIdAttribute()) {
+                String username = attributes.get(attributeName);
+                account = accountRepository.findByProviderAndUsername(getProvider(), username).stream().findFirst()
+                        .orElse(null);
+            }
+
             if (account == null) {
                 return null;
             }
@@ -107,9 +118,14 @@ public class SamlSubjectResolver extends AbstractProvider implements SubjectReso
         // export userId
         attributes.put("userId", user.getUserId());
 
-        if (user.isEmailVerified()) {
+        if (SamlUserAttribute.EMAIL == config.getIdAttribute() && user.isEmailVerified()) {
             // export email
             attributes.put("email", user.getEmail());
+        }
+
+        if (SamlUserAttribute.USERNAME == config.getIdAttribute() && StringUtils.hasText(user.getUsername())) {
+            // export username
+            attributes.put("username", user.getName());
         }
 
         return attributes;

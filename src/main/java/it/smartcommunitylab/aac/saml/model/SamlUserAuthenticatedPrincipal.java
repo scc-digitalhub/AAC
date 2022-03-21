@@ -18,7 +18,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     // subject identifier from external provider
     private final String subjectId;
-    private String name;
+    private String username;
 
     // link attributes
     private String email;
@@ -46,7 +46,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     @Override
     public String getName() {
-        return name;
+        return username;
     }
 
     @Override
@@ -79,8 +79,8 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         result.put("subjectId", subjectId);
         result.put("id", subjectId);
 
-        if (StringUtils.hasText(name)) {
-            result.put("name", name);
+        if (StringUtils.hasText(username)) {
+            result.put("username", username);
         }
 
         if (StringUtils.hasText(email)) {
@@ -101,12 +101,16 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         this.principal = principal;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public void setAttributes(Map<String, Serializable> attributes) {
         this.attributes = attributes;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {

@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.BaseIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.base.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
+import it.smartcommunitylab.aac.saml.model.SamlUserAttribute;
 
 public class SamlIdentityProviderConfig extends BaseIdentityProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
@@ -176,6 +177,11 @@ public class SamlIdentityProviderConfig extends BaseIdentityProviderConfig {
 
         return builder.build();
 
+    }
+
+    public SamlUserAttribute getIdAttribute() {
+        return configMap.getIdAttribute() != null ? configMap.getIdAttribute()
+                : SamlUserAttribute.EMAIL;
     }
 
     // export additional properties not supported by stock model

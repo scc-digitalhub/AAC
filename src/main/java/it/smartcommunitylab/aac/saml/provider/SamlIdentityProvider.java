@@ -83,7 +83,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
     }
 
     @Override
-    public ExtendedAuthenticationProvider getAuthenticationProvider() {
+    public SamlAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
 
@@ -112,11 +112,12 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         SamlUserAuthenticatedPrincipal principal = (SamlUserAuthenticatedPrincipal) userPrincipal;
 
         // we use upstream subject for accounts
+        // TODO handle transient ids, for example with session persistence
         String subjectId = principal.getSubjectId();
         String provider = getProvider();
 
         // attributes from provider
-        String name = principal.getName();
+        String username = principal.getUsername();
         Map<String, Serializable> attributes = principal.getAttributes();
 
         if (userId == null) {
@@ -155,7 +156,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         // rebuild user principal with updated attributes
         Saml2AuthenticatedPrincipal saml2Principal = principal.getPrincipal();
         principal = new SamlUserAuthenticatedPrincipal(provider, getRealm(), userId, subjectId);
-        principal.setName(name);
+        principal.setUsername(username);
         principal.setPrincipal(saml2Principal);
         principal.setAttributes(principalAttributes);
 
@@ -165,12 +166,11 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().toString()));
 
         String email = samlAttributes.get("email");
-        if (StringUtils.hasText(samlAttributes.get("name"))) {
-            // replace name from attributes/mapping
-            name = samlAttributes.get("name");
-        }
+        username = StringUtils.hasText(samlAttributes.get("username"))
+                ? samlAttributes.get("username")
+                : principal.getUsername();
 
-        principal.setName(name);
+        principal.setUsername(username);
         principal.setEmail(email);
 
         // TODO handle not persisted configuration
@@ -182,7 +182,7 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
             // create
             account = new SamlUserAccount();
             account.setSubjectId(subjectId);
-            account.setName(name);
+            account.setUsername(username);
             account.setEmail(email);
             account = accountProvider.registerAccount(userId, account);
         }
@@ -199,18 +199,14 @@ public class SamlIdentityProvider extends AbstractProvider implements IdentityPr
         }
 
         // update additional attributes
-        String issuer = attributes.containsKey("issuer") ? attributes.get("issuer").toString()
+        String subjectFormat = attributes.containsKey("subjectFormat") ? attributes.get("subjectFormat").toString()
                 : null;
+        String issuer = samlAttributes.get("issuer");
         if (!StringUtils.hasText(issuer)) {
             issuer = config.getRelyingPartyRegistration().getAssertingPartyDetails().getEntityId();
         }
 
-        String subjectFormat = attributes.containsKey("subjectFormat") ? attributes.get("subjectFormat").toString()
-                : null;
-
-        String username = StringUtils.hasText(samlAttributes.get("username"))
-                ? samlAttributes.get("username")
-                : email;
+        String name = StringUtils.hasText(samlAttributes.get("name")) ? samlAttributes.get("name") : username;
 
         boolean defaultVerifiedStatus = config.getConfigMap().getTrustEmailAddress() != null
                 ? config.getConfigMap().getTrustEmailAddress()

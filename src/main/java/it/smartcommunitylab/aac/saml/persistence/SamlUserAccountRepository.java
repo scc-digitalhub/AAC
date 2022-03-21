@@ -8,10 +8,12 @@ import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
 
 @Repository
-public interface SamlUserAccountRepository
-        extends CustomJpaRepository<SamlUserAccount, SamlUserAccountId>, DetachableJpaRepository<SamlUserAccount> {
+public interface SamlUserAccountRepository extends CustomJpaRepository<SamlUserAccount, SamlUserAccountId>,
+        DetachableJpaRepository<SamlUserAccount> {
 
-    SamlUserAccount findByProviderAndEmail(String provider, String email);
+    List<SamlUserAccount> findByProviderAndEmail(String provider, String email);
+
+    List<SamlUserAccount> findByProviderAndUsername(String provider, String username);
 
     List<SamlUserAccount> findByRealm(String realm);
 
