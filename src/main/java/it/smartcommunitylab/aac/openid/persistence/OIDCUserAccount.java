@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.model.UserStatus;
 
 @Entity
 @IdClass(OIDCUserAccountId.class)
-@Table(name = "oidc_users", uniqueConstraints = @UniqueConstraint(columnNames = { "provider_id", "email" }))
+@Table(name = "oidc_users")
 @EntityListeners(AuditingEntityListener.class)
 public class OIDCUserAccount extends AbstractAccount {
 

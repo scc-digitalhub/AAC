@@ -18,6 +18,7 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.AccountProvider;
 import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAttribute;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountId;
 import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
@@ -77,20 +78,6 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
         String provider = getProvider();
 
         OIDCUserAccount account = accountRepository.findOne(new OIDCUserAccountId(provider, sub));
-        if (account == null) {
-            return null;
-        }
-
-        // detach the entity, we don't want modifications to be persisted via a
-        // read-only interface
-        // for example eraseCredentials will reset the password in db
-        return accountRepository.detach(account);
-    }
-
-    @Transactional(readOnly = true)
-    public OIDCUserAccount findAccountByEmail(String email) {
-        String provider = getProvider();
-        OIDCUserAccount account = accountRepository.findByProviderAndEmail(provider, email);
         if (account == null) {
             return null;
         }
@@ -215,8 +202,15 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         String realm = getRealm();
 
-        // extract base fields
+        // extract id fields
         String email = clean(reg.getEmail());
+        String username = clean(reg.getUsername());
+        if (OIDCUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
+            throw new RegistrationException("missing-email");
+        }
+        if (OIDCUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
+            throw new RegistrationException("missing-username");
+        }
 
         // validate
         if (!StringUtils.hasText(sub)) {
@@ -228,7 +222,6 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
 
         // extract attributes
         String issuer = clean(reg.getIssuer());
-        String username = clean(reg.getUsername());
         Boolean emailVerified = reg.getEmailVerified();
         String name = clean(reg.getName());
         String givenName = clean(reg.getGivenName());
@@ -275,15 +268,23 @@ public class OIDCAccountProvider extends AbstractProvider implements AccountProv
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
-        // validate email
+        // id attributes
+        String username = clean(reg.getUsername());
         String email = clean(reg.getEmail());
+        if (OIDCUserAttribute.EMAIL == config.getIdAttribute() && !StringUtils.hasText(email)) {
+            throw new RegistrationException("missing-email");
+        }
+        if (OIDCUserAttribute.USERNAME == config.getIdAttribute() && !StringUtils.hasText(username)) {
+            throw new RegistrationException("missing-username");
+        }
+
+        // validate email
         if (!StringUtils.hasText(email) && config.requireEmailAddress()) {
             throw new RegistrationException("missing-email");
         }
 
         // extract attributes
         String issuer = clean(reg.getIssuer());
-        String username = clean(reg.getUsername());
         Boolean emailVerified = reg.getEmailVerified();
         String name = clean(reg.getName());
         String givenName = clean(reg.getGivenName());

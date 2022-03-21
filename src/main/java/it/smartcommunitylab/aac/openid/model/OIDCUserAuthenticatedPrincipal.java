@@ -19,7 +19,7 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     // subject identifier from external provider
     private final String subject;
-    private String name;
+    private String username;
 
     // link attributes
     private String email;
@@ -52,7 +52,7 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
 
     @Override
     public String getName() {
-        return name;
+        return username;
     }
 
     @Override
@@ -87,8 +87,8 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         result.put("sub", subject);
         result.put("id", subject);
 
-        if (StringUtils.hasText(name)) {
-            result.put("name", name);
+        if (StringUtils.hasText(username)) {
+            result.put("name", username);
         }
 
         if (StringUtils.hasText(email)) {
@@ -110,8 +110,12 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
         this.principal = principal;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public OAuth2User getOAuth2User() {

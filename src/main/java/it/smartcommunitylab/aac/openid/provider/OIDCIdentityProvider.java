@@ -131,7 +131,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         String provider = getProvider();
 
         // attributes from provider
-        String name = principal.getName();
+        String username = principal.getUsername();
         Map<String, Serializable> attributes = principal.getAttributes();
 
         if (userId == null) {
@@ -173,7 +173,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
         principal = new OIDCUserAuthenticatedPrincipal(getAuthority(), getProvider(),
                 getRealm(),
                 userId, subject);
-        principal.setName(name);
+        principal.setUsername(username);
         principal.setPrincipal(oauth2User);
         principal.setAttributes(principalAttributes);
 
@@ -186,12 +186,11 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
                         a -> a.exportValue()));
 
         String email = oidcAttributes.get(OpenIdAttributesSet.EMAIL);
-        if (StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.NAME))) {
-            // replace name from attributes/mapping
-            name = oidcAttributes.get(OpenIdAttributesSet.NAME);
-        }
+        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
+                : principal.getUsername();
 
-        principal.setName(name);
+        principal.setUsername(username);
         principal.setEmail(email);
 
         // TODO handle not persisted configuration
@@ -203,7 +202,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
             // create
             account = new OIDCUserAccount();
             account.setSubject(subject);
-            account.setName(name);
+            account.setUsername(username);
             account.setEmail(email);
             account = accountProvider.registerAccount(userId, account);
         }
@@ -226,9 +225,10 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
             issuer = provider;
         }
 
-        String username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
-                : email;
+        String name = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.NAME))
+                ? oidcAttributes.get(OpenIdAttributesSet.NAME)
+                : username;
+
         String familyName = oidcAttributes.get(OpenIdAttributesSet.FAMILY_NAME);
         String givenName = oidcAttributes.get(OpenIdAttributesSet.GIVEN_NAME);
 
@@ -399,6 +399,7 @@ public class OIDCIdentityProvider extends AbstractProvider implements IdentityPr
             OpenIdAttributesSet.NAME,
             OpenIdAttributesSet.FAMILY_NAME,
             OpenIdAttributesSet.GIVEN_NAME,
+            OpenIdAttributesSet.PREFERRED_USERNAME,
             OpenIdAttributesSet.EMAIL,
             OpenIdAttributesSet.EMAIL_VERIFIED,
             OpenIdAttributesSet.PICTURE,

@@ -153,7 +153,7 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
         String subject = oauthDetails.getAttribute(IdTokenClaimNames.SUB);
 
         // name is always available, is mapped via provider configuration
-        String name = oauthDetails.getName();
+        String username = oauthDetails.getName();
 
         // we still don't have userId
         String userId = null;
@@ -166,7 +166,7 @@ public class OIDCAuthenticationProvider extends ExtendedAuthenticationProvider {
         OIDCUserAuthenticatedPrincipal user = new OIDCUserAuthenticatedPrincipal(getAuthority(), getProvider(),
                 getRealm(),
                 userId, subject);
-        user.setName(name);
+        user.setUsername(username);
         user.setPrincipal(oauthDetails);
 
         return user;

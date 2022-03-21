@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
+import it.smartcommunitylab.aac.openid.model.OIDCUserAttribute;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -46,6 +47,8 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
     private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
 
+    private OIDCUserAttribute idAttribute;
+
     // explicit config
     private String authorizationUri;
     private String tokenUri;
@@ -65,6 +68,7 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.scope = "openid,email";
         this.userNameAttributeName = IdTokenClaimNames.SUB;
         this.clientAuthenticationMethod = AuthenticationMethod.CLIENT_SECRET_BASIC;
+        this.idAttribute = OIDCUserAttribute.EMAIL;
     }
 
     public String getClientId() {
@@ -203,6 +207,14 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.promptMode = promptMode;
     }
 
+    public OIDCUserAttribute getIdAttribute() {
+        return idAttribute;
+    }
+
+    public void setIdAttribute(OIDCUserAttribute idAttribute) {
+        this.idAttribute = idAttribute;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -228,6 +240,8 @@ public class OIDCIdentityProviderConfigMap implements ConfigurableProperties, Se
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();
+
+        this.idAttribute = map.getIdAttribute();
 
         // explicit config
         this.authorizationUri = map.getAuthorizationUri();
