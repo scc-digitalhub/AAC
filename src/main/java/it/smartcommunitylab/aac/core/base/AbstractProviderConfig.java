@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.core.base;
 import java.io.Serializable;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 
 public abstract class AbstractProviderConfig implements ConfigurableProperties, Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

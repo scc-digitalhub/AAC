@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.core.base;
+package it.smartcommunitylab.aac.core.model;
 
 import java.util.Set;
 

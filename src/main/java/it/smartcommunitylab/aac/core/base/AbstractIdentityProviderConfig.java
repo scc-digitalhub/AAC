@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
 
 public abstract class AbstractIdentityProviderConfig extends AbstractProviderConfig {
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;

@@ -4,7 +4,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.ConfigurableProperties;
+import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 
 public class LoginAuthorityBean implements Comparable<LoginAuthorityBean> {
